@@ -1,5 +1,5 @@
+use crate::cli;
 use anyhow::{Context, Result, bail};
-use tokmd_config as cli;
 use tokmd_format::{
     DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
     render_diff_md_with_options,

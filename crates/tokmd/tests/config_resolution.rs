@@ -1,5 +1,6 @@
+use tokmd::cli::{CliLangArgs, TableFormat};
 use tokmd::resolve_lang;
-use tokmd_config::{CliLangArgs, Profile};
+use tokmd_settings::Profile;
 
 #[test]
 fn test_resolve_lang_no_args_no_profile() {
@@ -10,7 +11,7 @@ fn test_resolve_lang_no_args_no_profile() {
 
     // Default fallback values
     assert_eq!(resolved.paths[0].to_string_lossy(), ".");
-    assert_eq!(resolved.format, tokmd_types::TableFormat::Md);
+    assert_eq!(resolved.format, TableFormat::Md);
     assert_eq!(resolved.top, 0);
     assert!(!resolved.files);
 }
@@ -19,7 +20,7 @@ fn test_resolve_lang_no_args_no_profile() {
 fn test_resolve_lang_cli_overrides_profile() {
     let cli = CliLangArgs {
         top: Some(50),
-        format: Some(tokmd_config::CliTableFormat::Json),
+        format: Some(TableFormat::Json),
         ..Default::default()
     };
 
@@ -32,7 +33,7 @@ fn test_resolve_lang_cli_overrides_profile() {
     let resolved = resolve_lang(&cli, Some(&profile));
 
     assert_eq!(resolved.top, 50);
-    assert_eq!(resolved.format, tokmd_types::TableFormat::Json);
+    assert_eq!(resolved.format, TableFormat::Json);
 }
 
 #[test]
@@ -49,7 +50,7 @@ fn test_resolve_lang_profile_overrides_default() {
     let resolved = resolve_lang(&cli, Some(&profile));
 
     assert_eq!(resolved.top, 10);
-    assert_eq!(resolved.format, tokmd_types::TableFormat::Tsv);
+    assert_eq!(resolved.format, TableFormat::Tsv);
     assert!(resolved.files);
 }
 
@@ -69,6 +70,6 @@ fn test_resolve_lang_partial_overrides() {
     let resolved = resolve_lang(&cli, Some(&profile));
 
     assert_eq!(resolved.top, 10); // From profile
-    assert_eq!(resolved.format, tokmd_types::TableFormat::Tsv); // From profile
+    assert_eq!(resolved.format, TableFormat::Tsv); // From profile
     assert!(resolved.files); // From CLI
 }

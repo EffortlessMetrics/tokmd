@@ -5,7 +5,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
-use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
+use tokmd_scan::{add_exclude_pattern, normalize_exclude_pattern};
 
 /// A writer wrapper that counts bytes written.
 struct CountingWriter<W: Write> {
@@ -34,7 +34,7 @@ impl<W: Write> Write for CountingWriter<W> {
         self.inner.flush()
     }
 }
-use tokmd_config as cli;
+use crate::cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_types::{
@@ -44,7 +44,7 @@ use tokmd_types::{
 };
 
 use crate::context_pack;
-use tokmd_progress::Progress;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);
@@ -108,7 +108,7 @@ pub(crate) fn handle(args: cli::CliContextArgs, global: &cli::GlobalArgs) -> Res
     );
     let git_scores = if needs_git && !args.no_git {
         let root = paths.first().cloned().unwrap_or_else(|| PathBuf::from("."));
-        match tokmd_context_git::compute_git_scores(
+        match tokmd_core::context_git::compute_git_scores(
             &root,
             &export.rows,
             args.max_commits,

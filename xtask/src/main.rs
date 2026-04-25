@@ -12,10 +12,12 @@ fn main() -> Result<()> {
     match cli.command {
         Some(cli::Commands::Bump(args)) => tasks::bump::run(args),
         Some(cli::Commands::Publish(args)) => tasks::publish::run(args),
+        Some(cli::Commands::PublishSurface(args)) => tasks::publish_surface::run(args),
         Some(cli::Commands::Cockpit(args)) => tasks::cockpit::run(args),
         Some(cli::Commands::Docs(args)) => tasks::docs::run(args),
         Some(cli::Commands::VersionConsistency(args)) => tasks::version_consistency::run(args),
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
+        Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
         Some(cli::Commands::LintFix(args)) => tasks::lint_fix::run(args),
         Some(cli::Commands::Sccache(args)) => tasks::sccache::run(args),

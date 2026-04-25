@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
+use tokmd_scan::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
 
 const MAX_INPUT_SIZE: usize = 8 * 1024;
 const SPLIT_BYTE: u8 = 0x1f;

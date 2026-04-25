@@ -779,10 +779,10 @@ fn contracts_cli_changed_via_commands() {
 
 #[test]
 fn contracts_cli_changed_via_config() {
-    let files = vec!["crates/tokmd-config/src/lib.rs"];
+    let files = vec!["crates/tokmd/src/config.rs"];
     let c = detect_contracts(&files);
     assert!(c.cli_changed);
-    assert!(c.api_changed); // lib.rs also triggers API
+    assert!(!c.api_changed);
 }
 
 #[test]

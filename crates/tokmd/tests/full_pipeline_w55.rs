@@ -11,9 +11,8 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use serde_json::Value;
 use tokmd_analysis_derived::derive_report;
-use tokmd_badge::badge_svg;
 use tokmd_format::{
-    compute_diff_rows, compute_diff_totals, create_diff_receipt, write_export_csv_to,
+    badge_svg, compute_diff_rows, compute_diff_totals, create_diff_receipt, write_export_csv_to,
     write_export_json_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,
 };
 use tokmd_model::{create_export_data, create_lang_report, create_module_report};

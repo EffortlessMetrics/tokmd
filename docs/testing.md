@@ -45,7 +45,7 @@ In-module tests for domain logic:
 
 ```bash
 cargo test                    # Run all tests
-cargo test -p tokmd-redact    # Test specific crate
+cargo test -p tokmd-format    # Test specific crate
 cargo test test_name          # Run single test
 ```
 
@@ -121,21 +121,16 @@ Using `proptest` (1.9.0) across 17 crates:
 
 | Crate | Properties Tested |
 |-------|-------------------|
-| `tokmd-redact` | Hash determinism, collision resistance, path normalization |
-| `tokmd-math` | Numeric and statistical invariants |
-| `tokmd-config` | Enum roundtrip serialization |
 | `tokmd-model` | Path normalization, aggregation invariants |
-| `tokmd-module-key` | Module key computation invariants |
+| `tokmd-format` | Table formatting, redaction, scan metadata, badge/tree rendering determinism |
+| `tokmd-scan` | Scanning options, exclude/path/tokeignore helpers, numeric invariants |
 | `tokmd-types` | DTO serialization roundtrips |
 | `tokmd-analysis-types` | Analysis receipt types |
 | `tokmd-analysis-imports` | Import parsing and normalization invariants |
-| `tokmd-format` | Table formatting determinism |
 | `tokmd-gate` | Policy evaluation invariants |
 | `tokmd-git` | Git history collection |
 | `tokmd-content` | Entropy calculation, tag counting |
 | `tokmd-walk` | File listing, traversal |
-| `tokmd-scan` | Scanning options |
-| `tokmd-tokeignore` | Template generation |
 | `tokmd-fun` | Novelty output generation |
 | `tokmd` | CLI output properties |
 
@@ -152,7 +147,7 @@ timeout = 10000
 ### Running Property Tests
 
 ```bash
-cargo test -p tokmd-redact properties
+cargo test -p tokmd-scan properties
 cargo test properties    # All property tests
 ```
 
@@ -233,7 +228,7 @@ exclude_re = [
 ### Running Mutation Tests
 
 ```bash
-cargo mutants --file crates/tokmd-redact/src/lib.rs    # Single file
+cargo mutants --file crates/tokmd-format/src/redact/mod.rs    # Single file
 cargo mutants --all-features                            # Full run (slow)
 ```
 

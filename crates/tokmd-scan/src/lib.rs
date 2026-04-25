@@ -442,3 +442,13 @@ mod tests {
         assert!(err.to_string().contains("Duplicate in-memory path"));
     }
 }
+
+pub mod exclude;
+pub mod math;
+pub mod path;
+pub mod tokeignore;
+
+pub use exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
+pub use math::{gini_coefficient, percentile, round_f64, safe_ratio};
+pub use path::{normalize_rel_path, normalize_slashes};
+pub use tokeignore::{InitArgs, InitProfile, init_tokeignore};

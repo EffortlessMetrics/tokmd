@@ -1,4 +1,5 @@
 [package]
+publish = false
 name = "tokmd-node"
 version.workspace = true
 edition.workspace = true
@@ -10,7 +11,6 @@ readme = "README.md"
 keywords = ["code-analysis", "nodejs", "bindings", "napi", "tokei"]
 categories = ["development-tools::ffi"]
 # This crate produces a native Node.js addon, not a crates.io library
-publish = false
 
 [lib]
 crate-type = ["cdylib"]
@@ -29,3 +29,4 @@ napi-build = "2"
 
 [dev-dependencies]
 tempfile.workspace = true
+

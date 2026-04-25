@@ -7,7 +7,7 @@
 
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd_badge::badge_svg;
+use tokmd_format::badge_svg;
 
 /// Cap input size — badge rendering is fast but we focus on realistic lengths.
 const MAX_INPUT_SIZE: usize = 4 * 1024; // 4 KB

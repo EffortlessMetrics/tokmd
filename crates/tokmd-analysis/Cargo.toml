@@ -80,3 +80,5 @@ tokmd-analysis-effort = { workspace = true, optional = true }
 tempfile.workspace = true
 proptest.workspace = true
 serde.workspace = true
+tokmd-test-support.workspace = true
+

@@ -14,10 +14,10 @@ Source code scanning adapter. This is the **Tier 1** tokei wrapper for tokmd, is
 ## Public API
 
 ```rust
-pub fn scan(paths: &[PathBuf], args: &GlobalArgs) -> Result<Languages>
+pub fn scan(paths: &[PathBuf], options: &ScanOptions) -> Result<Languages>
 ```
 
-Maps `GlobalArgs` fields to tokei `Config`:
+Maps `ScanOptions` fields to tokei `Config`:
 - `hidden` → include hidden files
 - `no_ignore` → skip all ignore files
 - `no_ignore_dot` → skip .ignore files
@@ -52,7 +52,7 @@ Tokei logs errors to stderr but doesn't return them. The scan function:
 
 - `tokei` (14.0.0, no default features)
 - `anyhow` (error handling)
-- `tokmd-config` (GlobalArgs)
+- `tokmd-settings` (ScanOptions)
 
 ## Testing
 

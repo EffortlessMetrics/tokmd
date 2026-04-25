@@ -1,5 +1,0 @@
----
-source: crates/tokmd-badge/tests/snapshots.rs
-expression: svg
----
-<svg xmlns="http://www.w3.org/2000/svg" width="250" height="24" role="img"><rect width="167" height="24" fill="#555"/><rect x="167" width="83" height="24" fill="#4c9aff"/><text x="83" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">cyclomatic complexity</text><text x="208" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">very high</text></svg>

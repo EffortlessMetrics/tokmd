@@ -1,5 +1,0 @@
----
-source: crates/tokmd-badge/tests/snapshot_w70.rs
-expression: "badge_svg(\"total bytes\", \"1,234,567,890\")"
----
-<svg xmlns="http://www.w3.org/2000/svg" width="208" height="24" role="img"><rect width="97" height="24" fill="#555"/><rect x="97" width="111" height="24" fill="#4c9aff"/><text x="48" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">total bytes</text><text x="152" y="16" fill="#fff" font-family="Verdana" font-size="11" text-anchor="middle">1,234,567,890</text></svg>

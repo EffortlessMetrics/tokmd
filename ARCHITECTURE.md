@@ -18,16 +18,19 @@ At a high level:
 
 - Tier 0: pure contracts and shared DTOs such as `tokmd-types`,
   `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, and
-  `tokmd-io-port`
-- Tier 1: core processing such as scanning, modeling, math, path/module-key
-  derivation, redaction, and settings-to-scan translation
-- Tier 2: adapters such as formatting, file walking, content scanning, git, and
-  badge/progress helpers
+  `tokmd-ffi-envelope`
+- Tier 1: core processing such as scanning, modeling, and sensor substrate
+  building
+- Tier 2: adapters such as formatting, file walking, content scanning, and git
 - Tier 3: orchestration crates such as `tokmd-analysis`, its focused enrichers,
   `tokmd-cockpit`, and `tokmd-gate`
-- Tier 4: facades such as `tokmd-config`, `tokmd-core`, `tokmd-ffi-envelope`,
-  and `tokmd-tool-schema`
+- Tier 4: facades such as `tokmd-core`
 - Tier 5: products such as the CLI and language/browser bindings
+
+Former helper packages for redaction, scan args, badge/progress rendering,
+module keys, path/exclude/math helpers, tokeignore templates, context policy/git,
+and tool schemas now live as owner modules inside the crate that publishes the
+owning API.
 
 ## Why This Shape Exists
 

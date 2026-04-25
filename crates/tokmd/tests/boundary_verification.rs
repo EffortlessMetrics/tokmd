@@ -97,23 +97,17 @@ fn tier_for_crate(name: &str) -> Option<u8> {
         | "tokmd-substrate" => Some(0),
 
         // Tier 1: Core
-        "tokmd-scan"
-        | "tokmd-model"
-        | "tokmd-redact"
-        | "tokmd-context-policy"
-        | "tokmd-scan-args"
-        | "tokmd-sensor" => Some(1),
+        "tokmd-scan" | "tokmd-model" | "tokmd-sensor" => Some(1),
 
         // Tier 2: Adapters
-        "tokmd-format" | "tokmd-walk" | "tokmd-content" | "tokmd-git" | "tokmd-badge"
-        | "tokmd-progress" => Some(2),
+        "tokmd-format" | "tokmd-walk" | "tokmd-content" | "tokmd-git" => Some(2),
 
         // Tier 3: Orchestration (all analysis-* crates, fun, gate, cockpit)
         n if n.starts_with("tokmd-analysis") => Some(3),
         "tokmd-fun" | "tokmd-gate" | "tokmd-cockpit" => Some(3),
 
         // Tier 4: Facade
-        "tokmd-config" | "tokmd-core" | "tokmd-tool-schema" => Some(4),
+        "tokmd-core" => Some(4),
 
         // Tier 5: Products
         "tokmd" | "tokmd-python" | "tokmd-node" | "tokmd-wasm" => Some(5),
@@ -262,7 +256,6 @@ fn tier0_crates_never_depend_on_scan_or_higher() {
         "tokmd-content",
         "tokmd-git",
         "tokmd-analysis",
-        "tokmd-config",
         "tokmd-core",
     ]
     .into_iter()
@@ -293,7 +286,7 @@ fn git_feature_only_in_expected_crates() {
         "tokmd-analysis-effort",
         "tokmd-analysis-grid",
         "tokmd-cockpit",
-        "tokmd-context-git",
+        "tokmd-core",
         "tokmd-sensor",
     ]
     .into_iter()

@@ -7,6 +7,8 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
+use tokmd_format::redact::{redact_path, short_hash};
+use tokmd_model::module_key::module_key;
 use tokmd_types::{
     CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION, FileKind, FileRow,
     HANDOFF_SCHEMA_VERSION, LangRow, ModuleRow, SCHEMA_VERSION, Totals,
@@ -208,82 +210,82 @@ proptest! {
 proptest! {
     #[test]
     fn normalize_slashes_removes_all_backslashes(path in "[a-z0-9_./\\\\]{1,50}") {
-        let normalized = tokmd_path::normalize_slashes(&path);
+        let normalized = tokmd_scan::normalize_slashes(&path);
         prop_assert!(!normalized.contains('\\'), "backslash in normalized: {normalized}");
     }
 
     #[test]
     fn normalize_slashes_is_idempotent(path in "[a-z0-9_./\\\\]{1,50}") {
-        let once = tokmd_path::normalize_slashes(&path);
-        let twice = tokmd_path::normalize_slashes(&once);
+        let once = tokmd_scan::normalize_slashes(&path);
+        let twice = tokmd_scan::normalize_slashes(&once);
         prop_assert_eq!(&once, &twice, "normalize_slashes not idempotent");
     }
 
     #[test]
     fn normalize_rel_path_no_backslash(path in "[a-z0-9_./\\\\]{1,50}") {
-        let normalized = tokmd_path::normalize_rel_path(&path);
+        let normalized = tokmd_scan::normalize_rel_path(&path);
         prop_assert!(!normalized.contains('\\'), "backslash in normalized rel path: {normalized}");
     }
 
     #[test]
     fn normalize_rel_path_is_idempotent(path in "[a-z0-9_./\\\\]{1,50}") {
-        let once = tokmd_path::normalize_rel_path(&path);
-        let twice = tokmd_path::normalize_rel_path(&once);
+        let once = tokmd_scan::normalize_rel_path(&path);
+        let twice = tokmd_scan::normalize_rel_path(&once);
         prop_assert_eq!(&once, &twice, "normalize_rel_path not idempotent");
     }
 }
 
 #[test]
 fn path_normalize_trailing_slash() {
-    let result = tokmd_path::normalize_slashes("src/lib/");
+    let result = tokmd_scan::normalize_slashes("src/lib/");
     assert_eq!(result, "src/lib/");
 }
 
 #[test]
 fn path_normalize_dot_segments() {
-    let result = tokmd_path::normalize_rel_path("./src/main.rs");
+    let result = tokmd_scan::normalize_rel_path("./src/main.rs");
     assert_eq!(result, "src/main.rs");
 }
 
 #[test]
 fn path_normalize_double_separators() {
-    let result = tokmd_path::normalize_slashes("src//lib.rs");
+    let result = tokmd_scan::normalize_slashes("src//lib.rs");
     assert_eq!(result, "src//lib.rs");
 }
 
 #[test]
 fn path_normalize_windows_backslash() {
-    let result = tokmd_path::normalize_slashes(r"crates\tokmd\src\main.rs");
+    let result = tokmd_scan::normalize_slashes(r"crates\tokmd\src\main.rs");
     assert_eq!(result, "crates/tokmd/src/main.rs");
 }
 
 #[test]
 fn path_normalize_mixed_separators() {
-    let result = tokmd_path::normalize_slashes(r"crates/tokmd\src/main.rs");
+    let result = tokmd_scan::normalize_slashes(r"crates/tokmd\src/main.rs");
     assert_eq!(result, "crates/tokmd/src/main.rs");
 }
 
 #[test]
 fn path_normalize_dot_backslash_prefix() {
-    let result = tokmd_path::normalize_rel_path(r".\src\main.rs");
+    let result = tokmd_scan::normalize_rel_path(r".\src\main.rs");
     assert_eq!(result, "src/main.rs");
 }
 
 #[test]
 fn path_normalize_empty_string() {
-    assert_eq!(tokmd_path::normalize_slashes(""), "");
-    assert_eq!(tokmd_path::normalize_rel_path(""), "");
+    assert_eq!(tokmd_scan::normalize_slashes(""), "");
+    assert_eq!(tokmd_scan::normalize_rel_path(""), "");
 }
 
 #[test]
 fn path_normalize_just_dot() {
-    assert_eq!(tokmd_path::normalize_rel_path("."), ".");
+    assert_eq!(tokmd_scan::normalize_rel_path("."), ".");
 }
 
 #[test]
 fn path_normalize_parent_ref_preserved() {
     assert_eq!(
-        tokmd_path::normalize_rel_path("../src/lib.rs"),
+        tokmd_scan::normalize_rel_path("../src/lib.rs"),
         "../src/lib.rs"
     );
 }
@@ -296,15 +298,15 @@ fn path_normalize_parent_ref_preserved() {
 fn module_key_same_path_same_result() {
     let roots = vec!["crates".to_string()];
     let path = "crates/tokmd/src/lib.rs";
-    let k1 = tokmd_module_key::module_key(path, &roots, 2);
-    let k2 = tokmd_module_key::module_key(path, &roots, 2);
+    let k1 = module_key(path, &roots, 2);
+    let k2 = module_key(path, &roots, 2);
     assert_eq!(k1, k2, "module_key must be deterministic");
 }
 
 #[test]
 fn module_key_uses_forward_slashes() {
     let roots = vec!["crates".to_string()];
-    let key = tokmd_module_key::module_key(r"crates\tokmd\src\lib.rs", &roots, 2);
+    let key = module_key(r"crates\tokmd\src\lib.rs", &roots, 2);
     assert!(!key.contains('\\'), "module key contains backslash: {key}");
     assert_eq!(key, "crates/tokmd");
 }
@@ -312,22 +314,16 @@ fn module_key_uses_forward_slashes() {
 #[test]
 fn module_key_dot_prefix_stripped() {
     let roots = vec!["crates".to_string()];
-    let k1 = tokmd_module_key::module_key("crates/foo/src/lib.rs", &roots, 2);
-    let k2 = tokmd_module_key::module_key("./crates/foo/src/lib.rs", &roots, 2);
+    let k1 = module_key("crates/foo/src/lib.rs", &roots, 2);
+    let k2 = module_key("./crates/foo/src/lib.rs", &roots, 2);
     assert_eq!(k1, k2, "leading ./ must not affect module key");
 }
 
 #[test]
 fn module_key_root_level_files() {
     let roots = vec!["crates".to_string()];
-    assert_eq!(
-        tokmd_module_key::module_key("Cargo.toml", &roots, 2),
-        "(root)"
-    );
-    assert_eq!(
-        tokmd_module_key::module_key("./README.md", &roots, 2),
-        "(root)"
-    );
+    assert_eq!(module_key("Cargo.toml", &roots, 2), "(root)");
+    assert_eq!(module_key("./README.md", &roots, 2), "(root)");
 }
 
 proptest! {
@@ -337,8 +333,8 @@ proptest! {
         depth in 1usize..5
     ) {
         let roots = vec!["crates".to_string(), "packages".to_string()];
-        let k1 = tokmd_module_key::module_key(&path, &roots, depth);
-        let k2 = tokmd_module_key::module_key(&path, &roots, depth);
+        let k1 = module_key(&path, &roots, depth);
+        let k2 = module_key(&path, &roots, depth);
         prop_assert_eq!(k1, k2, "module_key must always return the same value");
     }
 
@@ -348,7 +344,7 @@ proptest! {
         depth in 1usize..5
     ) {
         let roots = vec!["crates".to_string()];
-        let key = tokmd_module_key::module_key(&path, &roots, depth);
+        let key = module_key(&path, &roots, depth);
         prop_assert!(!key.contains('\\'), "module key contains backslash: {key}");
     }
 }
@@ -359,35 +355,35 @@ proptest! {
 
 #[test]
 fn redact_same_path_same_hash() {
-    let h1 = tokmd_redact::short_hash("src/main.rs");
-    let h2 = tokmd_redact::short_hash("src/main.rs");
+    let h1 = short_hash("src/main.rs");
+    let h2 = short_hash("src/main.rs");
     assert_eq!(h1, h2, "short_hash must be deterministic");
 }
 
 #[test]
 fn redact_path_same_input_same_output() {
-    let r1 = tokmd_redact::redact_path("src/secrets/config.json");
-    let r2 = tokmd_redact::redact_path("src/secrets/config.json");
+    let r1 = redact_path("src/secrets/config.json");
+    let r2 = redact_path("src/secrets/config.json");
     assert_eq!(r1, r2, "redact_path must be deterministic");
 }
 
 #[test]
 fn redact_cross_platform_consistency() {
-    let h_unix = tokmd_redact::short_hash("src/lib.rs");
-    let h_win = tokmd_redact::short_hash(r"src\lib.rs");
+    let h_unix = short_hash("src/lib.rs");
+    let h_win = short_hash(r"src\lib.rs");
     assert_eq!(h_unix, h_win, "hash must be cross-platform consistent");
 }
 
 #[test]
 fn redact_dot_prefix_consistency() {
-    let h1 = tokmd_redact::short_hash("src/lib.rs");
-    let h2 = tokmd_redact::short_hash("./src/lib.rs");
+    let h1 = short_hash("src/lib.rs");
+    let h2 = short_hash("./src/lib.rs");
     assert_eq!(h1, h2, "leading ./ must not affect hash");
 }
 
 #[test]
 fn redact_path_preserves_extension() {
-    let redacted = tokmd_redact::redact_path("src/main.rs");
+    let redacted = redact_path("src/main.rs");
     assert!(
         redacted.ends_with(".rs"),
         "extension not preserved: {redacted}"
@@ -396,8 +392,8 @@ fn redact_path_preserves_extension() {
 
 #[test]
 fn redact_path_length_is_fixed() {
-    let r1 = tokmd_redact::redact_path("a.rs");
-    let r2 = tokmd_redact::redact_path("very/deep/nested/path/to/file.rs");
+    let r1 = redact_path("a.rs");
+    let r2 = redact_path("very/deep/nested/path/to/file.rs");
     assert_eq!(
         r1.len(),
         r2.len(),
@@ -408,21 +404,21 @@ fn redact_path_length_is_fixed() {
 proptest! {
     #[test]
     fn short_hash_is_deterministic(input in "\\PC{1,50}") {
-        let h1 = tokmd_redact::short_hash(&input);
-        let h2 = tokmd_redact::short_hash(&input);
+        let h1 = short_hash(&input);
+        let h2 = short_hash(&input);
         prop_assert_eq!(h1, h2, "short_hash not deterministic");
     }
 
     #[test]
     fn short_hash_always_16_chars(input in "\\PC{1,50}") {
-        let hash = tokmd_redact::short_hash(&input);
+        let hash = short_hash(&input);
         prop_assert_eq!(hash.len(), 16, "short_hash length is not 16: {}", hash);
     }
 
     #[test]
     fn redact_path_is_deterministic(input in "[a-z]{1,5}(/[a-z]{1,5}){0,3}/[a-z]{1,8}\\.[a-z]{1,4}") {
-        let r1 = tokmd_redact::redact_path(&input);
-        let r2 = tokmd_redact::redact_path(&input);
+        let r1 = redact_path(&input);
+        let r2 = redact_path(&input);
         prop_assert_eq!(r1, r2, "redact_path not deterministic");
     }
 }

@@ -1,6 +1,6 @@
+use crate::cli;
 use anyhow::Result;
-use tokmd_config as cli;
-use tokmd_tokeignore as tokeignore;
+use tokmd_scan as tokeignore;
 
 #[cfg(feature = "ui")]
 use crate::interactive::{self, wizard};
@@ -18,7 +18,8 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
         !args.print && !args.non_interactive && interactive::tty::should_be_interactive();
 
     if !use_wizard {
-        if let Some(path) = tokeignore::init_tokeignore(&args)? {
+        let tokeignore_args = to_tokeignore_args(&args);
+        if let Some(path) = tokeignore::init_tokeignore(&tokeignore_args)? {
             // Friendly success message
             let template_name = format!("{:?}", args.template).to_lowercase();
             eprintln!(
@@ -53,7 +54,8 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
                         template: profile,
                         non_interactive: true,
                     };
-                    tokeignore::init_tokeignore(&modified_args)?;
+                    let modified_tokeignore_args = to_tokeignore_args(&modified_args);
+                    tokeignore::init_tokeignore(&modified_tokeignore_args)?;
                     eprintln!("Created .tokeignore");
                 }
 
@@ -81,4 +83,24 @@ pub(crate) fn handle(args: cli::InitArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn to_tokeignore_args(args: &cli::InitArgs) -> tokeignore::InitArgs {
+    let template = match args.template {
+        cli::InitProfile::Default => tokeignore::InitProfile::Default,
+        cli::InitProfile::Rust => tokeignore::InitProfile::Rust,
+        cli::InitProfile::Node => tokeignore::InitProfile::Node,
+        cli::InitProfile::Mono => tokeignore::InitProfile::Mono,
+        cli::InitProfile::Python => tokeignore::InitProfile::Python,
+        cli::InitProfile::Go => tokeignore::InitProfile::Go,
+        cli::InitProfile::Cpp => tokeignore::InitProfile::Cpp,
+    };
+
+    tokeignore::InitArgs {
+        dir: args.dir.clone(),
+        force: args.force,
+        print: args.print,
+        template,
+        non_interactive: args.non_interactive,
+    }
 }

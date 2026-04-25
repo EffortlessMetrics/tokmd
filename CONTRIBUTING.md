@@ -94,26 +94,15 @@ crates/
 ├── tokmd-analysis-types/            # Tier 0: Analysis receipt types
 ├── tokmd-settings/                  # Tier 0: Clap-free settings types
 ├── tokmd-envelope/                  # Tier 0: Cross-fleet sensor report contract
+├── tokmd-ffi-envelope/              # Tier 0: FFI envelope parser
 ├── tokmd-substrate/                 # Tier 0: Shared repo context
 ├── tokmd-scan/                      # Tier 1: tokei wrapper
 ├── tokmd-model/                     # Tier 1: Aggregation logic
-├── tokmd-tokeignore/                # Tier 1: Template generation
-├── tokmd-redact/                    # Tier 1: BLAKE3-based path redaction
 ├── tokmd-sensor/                    # Tier 1: Sensor trait + substrate builder
-├── tokmd-context-policy/            # Tier 1: Context/handoff policy helpers
-├── tokmd-scan-args/                 # Tier 1: Deterministic ScanArgs construction
-├── tokmd-math/                      # Tier 1: Deterministic numeric/statistical helpers
-├── tokmd-exclude/                   # Tier 1: Exclude-pattern normalization
-├── tokmd-path/                      # Tier 1: Cross-platform path normalization
-├── tokmd-module-key/                # Tier 1: Module-key derivation
 ├── tokmd-format/                    # Tier 2: Output rendering
 ├── tokmd-walk/                      # Tier 2: File system traversal
 ├── tokmd-content/                   # Tier 2: Content scanning
 ├── tokmd-git/                       # Tier 2: Git analysis
-├── tokmd-badge/                     # Tier 2: SVG badge rendering
-├── tokmd-progress/                  # Tier 2: Progress spinner/bar abstractions
-├── tokmd-context-git/               # Tier 2: Git-derived context ranking
-├── tokmd-export-tree/               # Tier 2: Tree renderers for exports
 ├── tokmd-analysis/                  # Tier 3: Analysis orchestration
 ├── tokmd-analysis-format/           # Tier 3: Analysis output rendering
 ├── tokmd-analysis-api-surface/      # Tier 3: API surface analysis
@@ -137,14 +126,18 @@ crates/
 ├── tokmd-analysis-util/             # Tier 3: Shared analysis utilities
 ├── tokmd-fun/                       # Tier 3: Novelty outputs
 ├── tokmd-gate/                      # Tier 3: Policy evaluation
-├── tokmd-config/                    # Tier 4: Configuration
 ├── tokmd-core/                      # Tier 4: Library facade + FFI
-├── tokmd-tool-schema/               # Tier 4: AI tool-schema generation
-├── tokmd-ffi-envelope/              # Tier 4: FFI envelope parser
 ├── tokmd/                           # Tier 5: CLI binary
 ├── tokmd-python/                    # Tier 5: Python bindings (PyO3)
-└── tokmd-node/                      # Tier 5: Node.js bindings (napi-rs)
+├── tokmd-node/                      # Tier 5: Node.js bindings (napi-rs)
+└── tokmd-wasm/                      # Tier 5: Browser/worker bindings
 ```
+
+Helper functionality that does not need an independent crates.io package now
+lives as owner modules: module-key logic in `tokmd-model`, path/exclude/math and
+tokeignore helpers in `tokmd-scan`, redaction/scan-args/badge/export-tree
+rendering in `tokmd-format`, context policy/git helpers in `tokmd-core`, and
+CLI/config/progress/tool-schema wiring in `tokmd`.
 
 ## Testing Strategy
 
@@ -186,11 +179,11 @@ Property-based testing verifies that functions behave correctly across a wide ra
 
 **Running property tests**:
 ```bash
-cargo test -p tokmd-redact properties  # Run property tests for tokmd-redact
+cargo test -p tokmd-scan properties    # Run property tests for tokmd-scan
 cargo test --workspace                  # Includes all property tests
 ```
 
-**Example patterns** (from `crates/tokmd-redact/tests/properties.rs`):
+**Example patterns** (from path/redaction property tests):
 ```rust
 use proptest::prelude::*;
 
@@ -276,10 +269,10 @@ cargo install cargo-mutants
 **Running locally**:
 ```bash
 # Test mutations in a specific file
-cargo mutants --file crates/tokmd-redact/src/lib.rs
+cargo mutants --file crates/tokmd-format/src/redact/mod.rs
 
 # Test a specific crate (run from crate directory for proper test scoping)
-cd crates/tokmd-redact && cargo mutants
+cd crates/tokmd-format && cargo mutants
 
 # Test with all features enabled
 cargo mutants --all-features
@@ -400,7 +393,7 @@ Publishing is handled via `cargo xtask publish`, which ensures correct dependenc
 # 1. Review the publish plan
 cargo xtask publish --plan --verbose
 
-# 2. Validate packaging (runs cargo publish --dry-run for each crate)
+# 2. Validate packaging (runs cargo package --list for each crate)
 cargo xtask publish --dry-run
 
 # 3. Publish for real (requires confirmation)

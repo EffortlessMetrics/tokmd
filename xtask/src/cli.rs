@@ -14,6 +14,8 @@ pub enum Commands {
     Bump(BumpArgs),
     /// Publish all crates in dependency order
     Publish(PublishArgs),
+    /// Audit the publish surface and optional package/publish dry-run closure checks
+    PublishSurface(PublishSurfaceArgs),
     /// Generate PR cockpit metrics for CI
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
@@ -22,6 +24,8 @@ pub enum Commands {
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
+    /// Reject committed crypto fixture blobs outside approved paths
+    FixtureBlobsCheck(FixtureBlobsCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
     Gate(GateArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
@@ -129,6 +133,17 @@ pub struct PublishArgs {
     pub yes: bool,
 }
 
+#[derive(Args, Debug, Clone, Default)]
+pub struct PublishSurfaceArgs {
+    /// Emit machine-readable JSON report
+    #[arg(long)]
+    pub json: bool,
+
+    /// Run cargo package --list for published surface crates
+    #[arg(long)]
+    pub verify_publish: bool,
+}
+
 #[derive(Args, Debug, Clone)]
 pub struct BumpArgs {
     /// New version to set (semver format: MAJOR.MINOR.PATCH)
@@ -145,7 +160,7 @@ pub struct BumpArgs {
     ///   - SCHEMA_VERSION (crates/tokmd-types/src/lib.rs) - core receipts
     ///   - ANALYSIS_SCHEMA_VERSION (crates/tokmd-analysis-types/src/lib.rs)
     ///   - COCKPIT_SCHEMA_VERSION (crates/tokmd-types/src/cockpit.rs)
-    ///   - TOOL_SCHEMA_VERSION (crates/tokmd-tool-schema/src/lib.rs)
+    ///   - TOOL_SCHEMA_VERSION (crates/tokmd/src/tool_schema.rs)
     ///   - CONTEXT_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
     ///   - CONTEXT_BUNDLE_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
     ///   - HANDOFF_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
@@ -155,6 +170,9 @@ pub struct BumpArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct BoundariesCheckArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct FixtureBlobsCheckArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct GateArgs {

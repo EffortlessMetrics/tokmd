@@ -21,8 +21,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+pub mod module_key;
+
+use crate::module_key::module_key_from_normalized;
 use tokei::{CodeStats, Config, LanguageType, Languages};
-use tokmd_module_key::module_key_from_normalized;
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
     ModuleReport, ModuleRow, Totals,
@@ -843,7 +845,7 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 /// assert_eq!(module_key("Cargo.toml", &roots, 2), "(root)");
 /// ```
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
-    tokmd_module_key::module_key(path, module_roots, module_depth)
+    module_key::module_key(path, module_roots, module_depth)
 }
 
 #[cfg(test)]

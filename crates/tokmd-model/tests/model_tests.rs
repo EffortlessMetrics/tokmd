@@ -170,13 +170,24 @@ fn lang_report_tokens_approximates_bytes() {
     let languages = scan_path(&crate_src_path());
     let report = create_lang_report(&languages, 0, false, ChildrenMode::Collapse);
 
-    // tokens = bytes / 4 (CHARS_PER_TOKEN)
+    // tokens are estimated per file as bytes / 4 and then summed, so aggregate
+    // rows may be lower than row.bytes / 4 by at most one token per file.
     for row in &report.rows {
-        let expected_tokens = row.bytes / 4;
-        assert_eq!(
-            row.tokens, expected_tokens,
-            "Tokens should be bytes/4 for {}: got {}, expected {}",
-            row.lang, row.tokens, expected_tokens
+        let upper_bound = row.bytes / 4;
+        assert!(
+            row.tokens <= upper_bound,
+            "Tokens should not exceed bytes/4 for {}: got {}, upper bound {}",
+            row.lang,
+            row.tokens,
+            upper_bound
+        );
+        assert!(
+            upper_bound.saturating_sub(row.tokens) <= row.files,
+            "Token rounding drift too large for {}: got {}, upper bound {}, files {}",
+            row.lang,
+            row.tokens,
+            upper_bound,
+            row.files
         );
     }
 }
@@ -726,12 +737,17 @@ fn lang_report_accumulates_bytes_and_tokens_correctly() {
     assert!(report.total.bytes > 0, "Total bytes should be positive");
     assert!(report.total.tokens > 0, "Total tokens should be positive");
 
-    // Verify relationship: tokens = bytes / 4 for the total
-    // (This may not be exact due to integer division, but should be close)
-    let expected_tokens = report.total.bytes / 4;
-    assert_eq!(
-        report.total.tokens, expected_tokens,
-        "Total tokens should be bytes/4"
+    // Verify relationship: aggregate tokens are the sum of per-file estimates.
+    // Integer truncation happens before aggregation, so totals can be lower
+    // than total bytes / 4 by at most one token per file.
+    let upper_bound = report.total.bytes / 4;
+    assert!(
+        report.total.tokens <= upper_bound,
+        "Total tokens should not exceed bytes/4"
+    );
+    assert!(
+        upper_bound.saturating_sub(report.total.tokens) <= report.total.files,
+        "Total token rounding drift should be bounded by file count"
     );
 }
 

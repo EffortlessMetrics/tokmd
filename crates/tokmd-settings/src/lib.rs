@@ -12,7 +12,7 @@
 //! * Default values and conversions
 //!
 //! ## What does NOT belong here
-//! * Clap parsing (use tokmd-config)
+//! * Clap parsing (use `tokmd::cli`)
 //! * I/O operations
 //! * Business logic
 
@@ -24,11 +24,45 @@ use serde::{Deserialize, Serialize};
 // Re-export types from tokmd_types for convenience
 pub use tokmd_types::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
+// Legacy profile contract persisted by the historical `config.json` format.
+//
+// These types are intentionally kept in `tokmd-settings` so that the config
+// profile contract is available without CLI parsing dependencies.
+
+/// Legacy profile map used by historical `config.json` files.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct UserConfig {
+    pub profiles: BTreeMap<String, Profile>,
+    pub repos: BTreeMap<String, String>, // "owner/repo" -> "profile_name"
+}
+
+/// Legacy profile options shared by configuration consumers.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Profile {
+    // Shared
+    pub format: Option<String>, // "json", "md", "tsv", "csv", "jsonl"
+    pub top: Option<usize>,
+
+    // Lang
+    pub files: Option<bool>,
+
+    // Module / Export
+    pub module_roots: Option<Vec<String>>,
+    pub module_depth: Option<usize>,
+    pub min_code: Option<usize>,
+    pub max_rows: Option<usize>,
+    pub redact: Option<RedactMode>,
+    pub meta: Option<bool>,
+
+    // "children" can be ChildrenMode or ChildIncludeMode string
+    pub children: Option<String>,
+}
+
 /// Scan options shared by all commands that invoke the scanner.
 ///
-/// This mirrors the scan-relevant fields of `GlobalArgs` without any
+/// This mirrors the scan-relevant fields of CLI global args without any
 /// UI-specific fields (`verbose`, `no_progress`). Lower-tier crates
-/// (scan, format, model) depend on this instead of `tokmd-config`.
+/// (scan, format, model) depend on this instead of the CLI parser.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ScanOptions {
     /// Glob patterns to exclude.

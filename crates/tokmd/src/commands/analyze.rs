@@ -1,12 +1,12 @@
+use crate::cli;
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
 use tokmd_analysis_explain as analysis_explain;
 use tokmd_analysis_types as analysis_types;
-use tokmd_config as cli;
 
 use crate::analysis_utils;
 use crate::export_bundle;
-use tokmd_progress::Progress;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Result<()> {
     if let Some(key) = args.explain.as_deref() {
@@ -30,10 +30,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
     let progress = Progress::new(!global.no_progress);
 
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
-    let format = args
-        .format
-        .map(Into::into)
-        .unwrap_or(tokmd_types::AnalysisFormat::Md);
+    let format = args.format.unwrap_or(tokmd_types::AnalysisFormat::Md);
     let git_flag = if args.git {
         Some(true)
     } else if args.no_git {

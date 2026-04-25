@@ -228,7 +228,7 @@ pub fn run_init_wizard(_dir: &Path) -> Result<Option<WizardResult>> {
 ///
 /// Uses the `TomlConfig` struct to ensure output matches the schema exactly.
 pub fn generate_toml_config(result: &WizardResult) -> Result<String> {
-    use tokmd_config::{AnalyzeConfig, ContextConfig, ExportConfig, ModuleConfig, TomlConfig};
+    use crate::cli::{AnalyzeConfig, ContextConfig, ExportConfig, ModuleConfig, TomlConfig};
 
     let config = TomlConfig {
         module: ModuleConfig {
@@ -264,15 +264,15 @@ pub fn generate_toml_config(result: &WizardResult) -> Result<String> {
 }
 
 /// Map project type to InitProfile.
-pub fn project_type_to_profile(project_type: ProjectType) -> tokmd_config::InitProfile {
+pub fn project_type_to_profile(project_type: ProjectType) -> crate::cli::InitProfile {
     match project_type {
-        ProjectType::Rust => tokmd_config::InitProfile::Rust,
-        ProjectType::Node => tokmd_config::InitProfile::Node,
-        ProjectType::Python => tokmd_config::InitProfile::Python,
-        ProjectType::Go => tokmd_config::InitProfile::Go,
-        ProjectType::Cpp => tokmd_config::InitProfile::Cpp,
-        ProjectType::Mono => tokmd_config::InitProfile::Mono,
-        ProjectType::Other => tokmd_config::InitProfile::Default,
+        ProjectType::Rust => crate::cli::InitProfile::Rust,
+        ProjectType::Node => crate::cli::InitProfile::Node,
+        ProjectType::Python => crate::cli::InitProfile::Python,
+        ProjectType::Go => crate::cli::InitProfile::Go,
+        ProjectType::Cpp => crate::cli::InitProfile::Cpp,
+        ProjectType::Mono => crate::cli::InitProfile::Mono,
+        ProjectType::Other => crate::cli::InitProfile::Default,
     }
 }
 
@@ -389,7 +389,7 @@ mod tests {
     fn test_profile_rust() {
         assert_eq!(
             project_type_to_profile(ProjectType::Rust),
-            tokmd_config::InitProfile::Rust
+            crate::cli::InitProfile::Rust
         );
     }
 
@@ -397,7 +397,7 @@ mod tests {
     fn test_profile_node() {
         assert_eq!(
             project_type_to_profile(ProjectType::Node),
-            tokmd_config::InitProfile::Node
+            crate::cli::InitProfile::Node
         );
     }
 
@@ -405,7 +405,7 @@ mod tests {
     fn test_profile_python() {
         assert_eq!(
             project_type_to_profile(ProjectType::Python),
-            tokmd_config::InitProfile::Python
+            crate::cli::InitProfile::Python
         );
     }
 
@@ -413,7 +413,7 @@ mod tests {
     fn test_profile_go() {
         assert_eq!(
             project_type_to_profile(ProjectType::Go),
-            tokmd_config::InitProfile::Go
+            crate::cli::InitProfile::Go
         );
     }
 
@@ -421,7 +421,7 @@ mod tests {
     fn test_profile_cpp() {
         assert_eq!(
             project_type_to_profile(ProjectType::Cpp),
-            tokmd_config::InitProfile::Cpp
+            crate::cli::InitProfile::Cpp
         );
     }
 
@@ -429,7 +429,7 @@ mod tests {
     fn test_profile_mono() {
         assert_eq!(
             project_type_to_profile(ProjectType::Mono),
-            tokmd_config::InitProfile::Mono
+            crate::cli::InitProfile::Mono
         );
     }
 
@@ -437,7 +437,7 @@ mod tests {
     fn test_profile_other_maps_to_default() {
         assert_eq!(
             project_type_to_profile(ProjectType::Other),
-            tokmd_config::InitProfile::Default
+            crate::cli::InitProfile::Default
         );
     }
 
@@ -487,7 +487,7 @@ mod tests {
         assert!(config.contains("preset = \"receipt\""));
 
         // Verify it's valid TOML by parsing
-        let parsed: tokmd_config::TomlConfig =
+        let parsed: crate::cli::TomlConfig =
             toml::from_str(&config).expect("generated config should be valid TOML");
         assert_eq!(parsed.module.depth, Some(2));
         assert_eq!(parsed.context.budget, Some("128k".to_string()));

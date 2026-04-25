@@ -1,7 +1,7 @@
+use crate::cli;
 use anyhow::Result;
 use tokmd_analysis as analysis;
-use tokmd_badge::badge_svg;
-use tokmd_config as cli;
+use tokmd_format::badge_svg;
 
 use crate::analysis_utils;
 use crate::export_bundle;

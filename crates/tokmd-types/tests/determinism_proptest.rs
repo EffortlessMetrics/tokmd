@@ -11,6 +11,7 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
+use tokmd_format::redact::{redact_path, short_hash};
 use tokmd_types::{FileKind, FileRow, LangRow, ModuleRow};
 
 // =========================================================================
@@ -212,21 +213,21 @@ proptest! {
 proptest! {
     #[test]
     fn normalize_slashes_then_rel_path_is_idempotent(path in "[a-z0-9_./\\\\]{1,50}") {
-        let step1 = tokmd_path::normalize_slashes(&path);
-        let step2 = tokmd_path::normalize_rel_path(&step1);
-        let step3 = tokmd_path::normalize_rel_path(&step2);
+        let step1 = tokmd_scan::normalize_slashes(&path);
+        let step2 = tokmd_scan::normalize_rel_path(&step1);
+        let step3 = tokmd_scan::normalize_rel_path(&step2);
         prop_assert_eq!(&step2, &step3, "composed normalization not idempotent");
     }
 
     #[test]
     fn normalize_slashes_preserves_forward_slashes(path in "[a-z0-9_/]{1,50}") {
-        let normalized = tokmd_path::normalize_slashes(&path);
+        let normalized = tokmd_scan::normalize_slashes(&path);
         prop_assert_eq!(&path as &str, &normalized as &str, "forward-slash-only paths must be unchanged");
     }
 
     #[test]
     fn normalize_rel_path_output_has_no_backslash(path in "[a-z0-9_./\\\\]{1,50}") {
-        let normalized = tokmd_path::normalize_rel_path(&path);
+        let normalized = tokmd_scan::normalize_rel_path(&path);
         prop_assert!(!normalized.contains('\\'), "backslash in normalized rel path: {normalized}");
     }
 }
@@ -267,7 +268,7 @@ proptest! {
 proptest! {
     #[test]
     fn redact_short_hash_deterministic_on_repeated_calls(input in "[a-z0-9_/\\\\.]{1,60}") {
-        let results: Vec<String> = (0..5).map(|_| tokmd_redact::short_hash(&input)).collect();
+        let results: Vec<String> = (0..5).map(|_| short_hash(&input)).collect();
         for (i, r) in results.iter().enumerate().skip(1) {
             prop_assert_eq!(&results[0], r, "short_hash diverged on call {}", i);
         }
@@ -279,7 +280,7 @@ proptest! {
         ext in "[a-z]{1,4}"
     ) {
         let path = format!("{stem}/file.{ext}");
-        let redacted = tokmd_redact::redact_path(&path);
+        let redacted = redact_path(&path);
         prop_assert!(
             redacted.ends_with(&format!(".{ext}")),
             "extension not preserved: input={} redacted={}", path, redacted
@@ -293,8 +294,8 @@ proptest! {
     ) {
         let unix_path = format!("{}/file.{ext}", segments.join("/"));
         let win_path = format!("{}\\file.{ext}", segments.join("\\"));
-        let h_unix = tokmd_redact::short_hash(&unix_path);
-        let h_win = tokmd_redact::short_hash(&win_path);
+        let h_unix = short_hash(&unix_path);
+        let h_win = short_hash(&win_path);
         prop_assert_eq!(h_unix, h_win, "hash must be cross-platform consistent: unix={} win={}", unix_path, win_path);
     }
 }

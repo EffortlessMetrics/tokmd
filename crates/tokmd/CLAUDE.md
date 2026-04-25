@@ -72,7 +72,8 @@ src/
 ├── export_bundle.rs # Export file handling
 ├── context_pack.rs  # Context packing logic
 ├── analysis_utils.rs
-└── badge.rs
+├── progress.rs      # CLI progress rendering
+└── tool_schema.rs   # LLM tool-schema generation
 ```
 
 ### Feature Flags
@@ -107,7 +108,7 @@ When comparing commits/tags directly (e.g., in `cockpit` command), use **two-dot
 All crates with full features enabled:
 - `tokmd-analysis` with: git, walk, content
 - `tokmd-analysis-format` with: fun
-- `tokmd-core`, `tokmd-format`, `tokmd-config`, `tokmd-types`
+- `tokmd-core`, `tokmd-format`, `tokmd-settings`, `tokmd-types`
 - `clap`, `clap_complete`
 - `dirs` (XDG config directories)
 - `serde_json`, `regex`

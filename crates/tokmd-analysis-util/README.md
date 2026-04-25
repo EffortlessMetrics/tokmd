@@ -15,7 +15,7 @@ You need deterministic helpers without dragging in orchestration or receipt-spec
 ## Integration notes
 - No feature flags.
 - Pure helper crate with deterministic path and ratio utilities.
-- Re-exports math helpers from `tokmd-math`.
+- Owns the analysis-facing math helper surface directly.
 
 ## Go deeper
 - Tutorial: [Tutorial](../../docs/tutorial.md)

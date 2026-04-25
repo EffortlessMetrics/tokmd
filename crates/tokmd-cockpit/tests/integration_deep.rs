@@ -209,10 +209,10 @@ fn contracts_cli_change_commands() {
 
 #[test]
 fn contracts_cli_change_config() {
-    let files = ["crates/tokmd-config/src/lib.rs"];
+    let files = ["crates/tokmd/src/config.rs"];
     let contracts = detect_contracts(&files);
     assert!(contracts.cli_changed);
-    assert!(contracts.api_changed);
+    assert!(!contracts.api_changed);
 }
 
 #[test]

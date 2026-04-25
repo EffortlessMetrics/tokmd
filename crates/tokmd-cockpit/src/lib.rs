@@ -13,7 +13,7 @@
 //! * Determinism hashing helpers
 //!
 //! ## What does NOT belong here
-//! * CLI argument parsing (use tokmd-config)
+//! * CLI argument parsing (use `tokmd::cli`)
 //! * Type definitions (use tokmd-types::cockpit)
 
 pub mod determinism;
@@ -609,7 +609,8 @@ fn compute_contract_gate(
             .iter()
             .filter(|f| {
                 f.path.contains("crates/tokmd/src/commands/")
-                    || f.path.contains("crates/tokmd-config/")
+                    || f.path.contains("crates/tokmd/src/cli/")
+                    || f.path == "crates/tokmd/src/config.rs"
             })
             .map(|s| s.path.as_str())
             .collect();
@@ -623,7 +624,9 @@ fn compute_contract_gate(
                 .count();
             let config_files = cli_files
                 .iter()
-                .filter(|f| f.contains("crates/tokmd-config/"))
+                .filter(|f| {
+                    f.contains("crates/tokmd/src/cli/") || **f == "crates/tokmd/src/config.rs"
+                })
                 .count();
 
             let mut parts = Vec::new();
@@ -700,7 +703,8 @@ fn compute_contract_gate(
             f.path.ends_with("/src/lib.rs")
                 || f.path.ends_with("/mod.rs")
                 || f.path.contains("crates/tokmd/src/commands/")
-                || f.path.contains("crates/tokmd-config/")
+                || f.path.contains("crates/tokmd/src/cli/")
+                || f.path == "crates/tokmd/src/config.rs"
                 || f.path == "docs/schema.json"
         })
         .map(|f| f.path.clone())
@@ -1950,7 +1954,8 @@ pub fn detect_contracts<S: AsRef<str>>(files: &[S]) -> Contracts {
             api_changed = true;
         }
         if file.as_ref().contains("crates/tokmd/src/commands/")
-            || file.as_ref().contains("crates/tokmd-config/")
+            || file.as_ref().contains("crates/tokmd/src/cli/")
+            || file.as_ref() == "crates/tokmd/src/config.rs"
         {
             cli_changed = true;
         }

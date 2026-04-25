@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::process::Stdio;
 
+use crate::cli;
 use anyhow::Result;
-use tokmd_config as cli;
 
 use crate::git_support::git_cmd;
 
@@ -326,8 +326,8 @@ fn print_result(result: &CheckResult, verbose: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::cli::GlobalArgs;
     use tempfile::tempdir;
-    use tokmd_config::GlobalArgs;
 
     #[test]
     fn matches_glob_handles_double_star() {

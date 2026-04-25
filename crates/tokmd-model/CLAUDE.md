@@ -68,7 +68,7 @@ Uses `BTreeMap` for stable key ordering.
 
 - `tokei` (Languages type)
 - `serde`, `anyhow`
-- `tokmd-config`, `tokmd-types`
+- `tokmd-types`
 
 ## Testing
 

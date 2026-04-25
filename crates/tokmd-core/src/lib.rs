@@ -58,21 +58,19 @@ use tokmd_analysis as analysis;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 
 // Public modules
+pub mod context_git;
+pub mod context_policy;
 pub mod error;
 pub mod ffi;
 pub mod settings;
-
-// Re-export types for convenience
-pub use tokmd_config as config;
 pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
-use tokmd_config::GlobalArgs;
-use tokmd_scan_args::scan_args;
+use tokmd_format::scan_args;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ChildIncludeMode, DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, FileRow, LangArgs,
+    ChildIncludeMode, DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, FileRow,
     LangArgsMeta, LangReceipt, LangReport, ModuleArgsMeta, ModuleReceipt, ModuleReport, RedactMode,
     SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
@@ -646,83 +644,6 @@ pub mod analysis_facade {
     /// - `Text(String)` — Textual formats: Markdown, JSON, XML, SVG, Mermaid, Tree, HTML
     /// - `Binary(Vec<u8>)` — Binary formats: MIDI (requires `fun` feature)
     pub use tokmd_analysis_format::RenderedOutput;
-}
-
-// =============================================================================
-// Legacy API (for backwards compatibility with CLI)
-// =============================================================================
-
-/// Runs the complete scan workflow: Scan -> Model -> Receipt.
-///
-/// This is the high-level entry point for generating a language inventory.
-///
-/// # Arguments
-///
-/// * `global` - Global scan configuration (excluded patterns, ignore settings, etc.)
-/// * `lang` - Language-specific arguments (format, top N, etc.)
-/// * `redact` - Optional redaction mode for safer output (e.g., when sharing with LLMs)
-///
-/// # Redaction Modes
-///
-/// * `None` or `Some(RedactMode::None)` - No redaction, paths shown as-is
-/// * `Some(RedactMode::Paths)` - Redact file paths (replaced with hashed values preserving extension)
-/// * `Some(RedactMode::All)` - Redact paths and excluded patterns
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::scan_workflow;
-/// use tokmd_config::GlobalArgs;
-/// use tokmd_types::{ChildrenMode, LangArgs, RedactMode, TableFormat};
-/// use std::path::PathBuf;
-///
-/// let global = GlobalArgs::default();
-/// let lang = LangArgs {
-///     paths: vec![PathBuf::from(".")],
-///     format: TableFormat::Md,
-///     top: 10,
-///     files: false,
-///     children: ChildrenMode::Separate,
-/// };
-///
-/// let receipt = scan_workflow(&global, &lang, Some(RedactMode::None)).expect("Scan failed");
-/// assert!(receipt.report.rows.len() > 0);
-/// ```
-pub fn scan_workflow(
-    global: &GlobalArgs,
-    lang: &LangArgs,
-    redact: Option<RedactMode>,
-) -> Result<LangReceipt> {
-    // 1. Scan
-    let scan_opts = ScanOptions::from(global);
-    let languages = tokmd_scan::scan(&lang.paths, &scan_opts)?;
-
-    // 2. Model (Aggregation & Filtering)
-    // create_lang_report handles filtering (top N) and children mode
-    let report = tokmd_model::create_lang_report(&languages, lang.top, lang.files, lang.children);
-
-    // 3. Receipt Construction
-    // We construct the receipt manually as it's just a data carrier.
-    let scan_args = scan_args(&lang.paths, &scan_opts, redact);
-
-    let receipt = LangReceipt {
-        schema_version: SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "lang".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![], // Tokei scan might have warnings but scan() doesn't return them currently
-        scan: scan_args,
-        args: LangArgsMeta {
-            format: format!("{:?}", lang.format), // Enums might need Display impl or conversion
-            top: lang.top,
-            with_files: lang.files,
-            children: lang.children,
-        },
-        report,
-    };
-
-    Ok(receipt)
 }
 
 // =============================================================================

@@ -30,7 +30,7 @@ fn arb_file_path() -> impl Strategy<Value = String> {
         Just("Cargo.toml".to_string()),
         Just("src/commands/gate.rs".to_string()),
         Just("docs/schema.json".to_string()),
-        Just("crates/tokmd-config/src/lib.rs".to_string()),
+        Just("crates/tokmd/src/config.rs".to_string()),
         "[a-z_/]{1,30}\\.[a-z]{1,4}",
     ]
 }

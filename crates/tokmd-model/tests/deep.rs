@@ -124,8 +124,8 @@ fn module_key_from_workspace_paths() {
         "crates/tokmd-model"
     );
     assert_eq!(
-        module_key("crates/tokmd-redact/src/lib.rs", &roots, 2),
-        "crates/tokmd-redact"
+        module_key("crates/tokmd-format/src/redact/mod.rs", &roots, 2),
+        "crates/tokmd-format"
     );
 }
 

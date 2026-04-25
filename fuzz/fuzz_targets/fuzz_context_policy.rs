@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_context_policy::{
+use tokmd_core::context_policy::{
     DEFAULT_DENSE_THRESHOLD, DEFAULT_MAX_FILE_PCT, assign_policy, classify_file, compute_file_cap,
     is_spine_file, smart_exclude_reason,
 };

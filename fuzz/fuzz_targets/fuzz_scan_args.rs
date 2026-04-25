@@ -11,7 +11,7 @@
 use std::path::PathBuf;
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_scan_args::{normalize_scan_input, scan_args};
+use tokmd_format::scan_args::{normalize_scan_input, scan_args};
 use tokmd_settings::ScanOptions;
 use tokmd_types::RedactMode;
 

@@ -1,5 +1,5 @@
 use tokmd_analysis_derived::build_tree;
-use tokmd_export_tree::render_analysis_tree;
+use tokmd_format::render_analysis_tree;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 fn row(path: &str, kind: FileKind, lines: usize, tokens: usize) -> FileRow {
