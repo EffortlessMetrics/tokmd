@@ -178,12 +178,11 @@ fn count_tags_custom_markers() {
 }
 
 #[test]
-fn count_tags_partial_match_counted() {
-    // "TODOLIST" contains "TODO"
+fn count_tags_partial_match_not_counted() {
+    // "TODOLIST" contains "TODO" but not as a standalone token.
     let text = "TODOLIST is not a real tag\n";
     let tags = count_tags(text, &["TODO"]);
-    // Substring match — "TODO" appears in "TODOLIST"
-    assert_eq!(tags[0].1, 1);
+    assert_eq!(tags[0].1, 0);
 }
 
 // ============================================================================

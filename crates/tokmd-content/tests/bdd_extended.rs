@@ -256,8 +256,8 @@ fn test_given_overlapping_tags_when_counted_then_independent() {
     // "TODO" and "TODOS" searched independently
     let text = "TODO TODOS TODO";
     let result = count_tags(text, &["TODO", "TODOS"]);
-    // "TODO" appears at positions 0, 5 (inside TODOS), and 11 → 3 matches
-    assert_eq!(result[0], ("TODO".to_string(), 3));
+    // "TODO" appears only as a standalone token at positions 0 and 11.
+    assert_eq!(result[0], ("TODO".to_string(), 2));
     // "TODOS" appears at position 5 → 1 match
     assert_eq!(result[1], ("TODOS".to_string(), 1));
 }
@@ -270,10 +270,10 @@ fn test_given_tag_at_start_and_end_when_counted_then_both_found() {
 }
 
 #[test]
-fn test_given_adjacent_tags_when_counted_then_all_found() {
+fn test_given_adjacent_tags_when_counted_then_none_found_without_separators() {
     let text = "TODOTODOTODO";
     let result = count_tags(text, &["TODO"]);
-    assert_eq!(result[0].1, 3);
+    assert_eq!(result[0].1, 0);
 }
 
 // ============================================================================

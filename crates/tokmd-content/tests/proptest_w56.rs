@@ -112,7 +112,7 @@ proptest! {
         tag_case in prop::sample::select(vec!["todo", "Todo", "TODO", "tOdO"]),
         suffix in "[a-zA-Z ]{0,20}",
     ) {
-        let text = format!("{}{}{}", prefix, tag_case, suffix);
+        let text = format!("{} {} {}", prefix, tag_case, suffix);
         let results = tokmd_content::count_tags(&text, &["TODO"]);
         prop_assert!(results[0].1 >= 1,
             "Should find at least 1 TODO in '{}', got {}", text, results[0].1);

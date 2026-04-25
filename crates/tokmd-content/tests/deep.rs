@@ -117,12 +117,8 @@ fn high_entropy_vs_low_entropy_ordering() {
 fn rust_use_statements_detected() {
     let code = "use std::io;\nuse std::fs;\nlet x = use_something();";
     let result = count_tags(code, &["use"]);
-    // "use" appears in all three lines (case-insensitive match)
-    assert!(
-        result[0].1 >= 3,
-        "expected >=3 'use' matches, got {}",
-        result[0].1
-    );
+    // Only standalone "use" tokens are counted.
+    assert_eq!(result[0].1, 2, "expected 2 standalone 'use' matches");
 }
 
 #[test]
@@ -191,10 +187,10 @@ fn main() {
 }
 
 #[test]
-fn adjacent_tags_counted() {
+fn adjacent_tags_require_token_boundaries() {
     let text = "TODOTODOTODO";
     let result = count_tags(text, &["TODO"]);
-    assert_eq!(result[0].1, 3);
+    assert_eq!(result[0].1, 0);
 }
 
 #[test]
