@@ -44,11 +44,7 @@ fn totals_from_rows(rows: &[LangRow]) -> Totals {
         } else {
             let total_lines: usize = rows.iter().map(|r| r.lines).sum();
             let total_files: usize = rows.iter().map(|r| r.files).sum();
-            if total_files > 0 {
-                total_lines / total_files
-            } else {
-                0
-            }
+            total_lines.checked_div(total_files).unwrap_or(0)
         },
     }
 }
