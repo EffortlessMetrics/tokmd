@@ -39,7 +39,7 @@ pub fn resolve_pointer<'a>(value: &'a Value, pointer: &str) -> Option<&'a Value>
 
     for token in pointer[1..].split('/') {
         // Unescape tokens per RFC 6901
-        let unescaped = unescape_token(token);
+        let unescaped = unescape_token(token)?;
 
         current = match current {
             Value::Object(map) => map.get(&unescaped)?,
@@ -58,8 +58,29 @@ pub fn resolve_pointer<'a>(value: &'a Value, pointer: &str) -> Option<&'a Value>
 /// Unescape a JSON Pointer token per RFC 6901.
 /// ~1 -> /
 /// ~0 -> ~
-fn unescape_token(token: &str) -> String {
-    token.replace("~1", "/").replace("~0", "~")
+fn unescape_token(token: &str) -> Option<String> {
+    // Fast path: avoid allocation when no escape marker is present.
+    if !token.contains('~') {
+        return Some(token.to_string());
+    }
+
+    let mut out = String::with_capacity(token.len());
+    let mut chars = token.chars();
+
+    while let Some(ch) = chars.next() {
+        if ch != '~' {
+            out.push(ch);
+            continue;
+        }
+
+        match chars.next() {
+            Some('0') => out.push('~'),
+            Some('1') => out.push('/'),
+            _ => return None,
+        }
+    }
+
+    Some(out)
 }
 
 /// Escape a string for use in a JSON Pointer.
@@ -100,6 +121,13 @@ mod tests {
     fn test_escaped_tokens() {
         let doc = json!({"a/b": {"c~d": 1}});
         assert_eq!(resolve_pointer(&doc, "/a~1b/c~0d"), Some(&json!(1)));
+    }
+
+    #[test]
+    fn test_invalid_escape_tokens() {
+        let doc = json!({"a~2b": 1, "dangling~": 2});
+        assert_eq!(resolve_pointer(&doc, "/a~2b"), None);
+        assert_eq!(resolve_pointer(&doc, "/dangling~"), None);
     }
 
     #[test]
