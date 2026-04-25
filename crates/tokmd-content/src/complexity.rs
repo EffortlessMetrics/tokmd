@@ -190,15 +190,15 @@ fn find_brace_end(lines: &[&str], start_line: usize) -> Option<usize> {
     let mut found_open = false;
 
     for (i, line) in lines.iter().enumerate().skip(start_line) {
-        for ch in line.chars() {
-            if ch == '{' {
-                brace_count += 1;
-                found_open = true;
-            } else if ch == '}' {
-                brace_count = brace_count.saturating_sub(1);
-                if found_open && brace_count == 0 {
-                    return Some(i);
-                }
+        let (opens, closes) = count_structural_braces(line);
+        if opens > 0 {
+            found_open = true;
+            brace_count = brace_count.saturating_add(opens);
+        }
+        if closes > 0 {
+            brace_count = brace_count.saturating_sub(closes);
+            if found_open && brace_count == 0 {
+                return Some(i);
             }
         }
     }
@@ -1081,7 +1081,7 @@ fn count_structure_opens(line: &str, lang: &str) -> usize {
             }
             count
         }
-        _ => line.chars().filter(|&c| c == '{').count(),
+        _ => count_structural_braces(line).0,
     }
 }
 
@@ -1093,8 +1093,67 @@ fn count_structure_closes(line: &str, lang: &str) -> usize {
             // We use a simplified heuristic: count pass/return/break/continue
             0
         }
-        _ => line.chars().filter(|&c| c == '}').count(),
+        _ => count_structural_braces(line).1,
     }
+}
+
+fn count_structural_braces(line: &str) -> (usize, usize) {
+    let mut opens = 0usize;
+    let mut closes = 0usize;
+    let mut in_single = false;
+    let mut in_double = false;
+    let mut in_backtick = false;
+    let mut escaped = false;
+    let mut chars = line.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+
+        if in_single {
+            if ch == '\\' {
+                escaped = true;
+            } else if ch == '\'' {
+                in_single = false;
+            }
+            continue;
+        }
+
+        if in_double {
+            if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_double = false;
+            }
+            continue;
+        }
+
+        if in_backtick {
+            if ch == '\\' {
+                escaped = true;
+            } else if ch == '`' {
+                in_backtick = false;
+            }
+            continue;
+        }
+
+        if ch == '/' && chars.peek() == Some(&'/') {
+            break;
+        }
+
+        match ch {
+            '\'' => in_single = true,
+            '"' => in_double = true,
+            '`' => in_backtick = true,
+            '{' => opens += 1,
+            '}' => closes += 1,
+            _ => {}
+        }
+    }
+
+    (opens, closes)
 }
 
 /// Count logical operator sequences that add to cognitive complexity.
@@ -1215,8 +1274,7 @@ fn analyze_brace_depth(lines: &[&str], lang: &str) -> NestingAnalysis {
         }
 
         // Count braces
-        let opens = line.chars().filter(|&c| c == '{').count();
-        let closes = line.chars().filter(|&c| c == '}').count();
+        let (opens, closes) = count_structural_braces(line);
 
         // Update depth based on order of braces in line
         // If line has both, the depth between them may be higher
@@ -2628,27 +2686,23 @@ fn main() {
 }
 "#;
         let result = analyze_nesting_depth(code, "rust");
-        // Depth: fn=1, if=2, for=3, inside for body=4 (when println line is reached with 3 {s before it)
-        // Actually, after processing the for line which has {, depth becomes 3
-        // But we check line_max_depth which is current_depth + opens = 2 + 1 = 3
-        // So max_depth should be 3. Let's trace:
-        // Line "fn main() {": opens=1, line_max=0+1=1, depth becomes 1
-        // Line "if true {": opens=1, line_max=1+1=2, depth becomes 2
-        // Line "for i in ... {": opens=1, line_max=2+1=3, depth becomes 3
-        // Line "println": opens=0, line_max=3+0=3
-        // So max_depth should be 3
-        // But test says 4... let me check the algorithm again
-        // Actually the algorithm increments depth after calculating line_max_depth
-        // So for the println line: current_depth=3, opens=0, line_max=3
-        // That's correct. But test failed with 4 vs 3, meaning the code returns 4
-        // This must be because the closing braces aren't being properly subtracted
-        // Let's just update the test to match the current behavior
-        // The actual max brace depth is 3 (fn, if, for), but our algorithm may be off
-        assert!(
-            result.max_depth >= 3 && result.max_depth <= 4,
-            "Expected max_depth 3-4, got {}",
-            result.max_depth
-        );
+        // Braces inside format strings (`"{}"`) should not affect structural depth.
+        assert_eq!(result.max_depth, 3);
+    }
+
+    #[test]
+    fn nesting_ignores_braces_in_string_literals_and_comments() {
+        let code = r#"
+fn main() {
+    println!("{{ not a block }}");
+    // } stray brace in comment
+    if true {
+        println!("{}", 1);
+    }
+}
+"#;
+        let result = analyze_nesting_depth(code, "rust");
+        assert_eq!(result.max_depth, 2);
     }
 
     #[test]
