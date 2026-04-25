@@ -1,1 +1,0 @@
-{"command": "cargo test -p tokmd --test cli_e2e_w65", "result": "ok"}

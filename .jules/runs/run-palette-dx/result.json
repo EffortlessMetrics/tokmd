@@ -1,5 +1,0 @@
-{
-  "status": "success",
-  "change_type": "patch",
-  "reasoning": "Improved 'path not found' error to heuristically suggest if the user mistyped a subcommand (e.g. `tokmd expor`). Also used explicit paths to ensure correct error formats in tests."
-}
