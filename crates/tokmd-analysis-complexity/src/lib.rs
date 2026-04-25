@@ -68,6 +68,7 @@ pub fn build_complexity_report(
 
     let mut file_complexities: Vec<FileComplexity> = Vec::new();
     let mut total_bytes = 0u64;
+    let mut total_function_lengths = 0usize;
     let max_total = limits.max_bytes;
     let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES) as usize;
 
@@ -97,7 +98,8 @@ pub fn build_complexity_report(
 
         let text = String::from_utf8_lossy(&bytes);
         let lang_mapped = map_language_for_complexity(&row.lang);
-        let (function_count, max_function_length) = count_functions(&row.lang, &text);
+        let (function_count, total_function_length, max_function_length) =
+            count_functions(&row.lang, &text);
         let cyclomatic = estimate_cyclomatic(&row.lang, &text);
 
         // Compute cognitive complexity and nesting depth
@@ -141,6 +143,8 @@ pub fn build_complexity_report(
             risk_level,
             functions,
         });
+
+        total_function_lengths += total_function_length;
     }
 
     // Sort by cyclomatic complexity descending, then by path
@@ -157,11 +161,7 @@ pub fn build_complexity_report(
     let avg_function_length = if total_functions == 0 {
         0.0
     } else {
-        let total_max_len: usize = file_complexities
-            .iter()
-            .map(|f| f.max_function_length)
-            .sum();
-        round_f64(total_max_len as f64 / file_count as f64, 2)
+        round_f64(total_function_lengths as f64 / total_functions as f64, 2)
     };
 
     let max_function_length = file_complexities
@@ -296,8 +296,8 @@ pub fn generate_complexity_histogram(
     }
 }
 
-/// Count functions and estimate max function length in lines.
-fn count_functions(lang: &str, text: &str) -> (usize, usize) {
+/// Count functions and estimate total/max function lengths in lines.
+fn count_functions(lang: &str, text: &str) -> (usize, usize, usize) {
     let lines: Vec<&str> = text.lines().collect();
     match lang.to_lowercase().as_str() {
         "rust" => count_rust_functions(&lines),
@@ -306,7 +306,7 @@ fn count_functions(lang: &str, text: &str) -> (usize, usize) {
         "go" => count_go_functions(&lines),
         "c" | "c++" | "java" | "c#" | "php" => count_c_style_functions(&lines),
         "ruby" => count_ruby_functions(&lines),
-        _ => (0, 0),
+        _ => (0, 0, 0),
     }
 }
 
@@ -366,8 +366,9 @@ fn is_rust_fn_start(trimmed: &str) -> bool {
     true
 }
 
-fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
+fn count_rust_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut in_fn = false;
     let mut fn_start = 0;
@@ -426,6 +427,7 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
                         brace_depth = brace_depth.saturating_sub(1);
                         if brace_depth == 0 {
                             let fn_len = i - fn_start + 1;
+                            total_len += fn_len;
                             max_len = max_len.max(fn_len);
                             in_fn = false;
                             break;
@@ -437,11 +439,12 @@ fn count_rust_functions(lines: &[&str]) -> (usize, usize) {
         }
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
-fn count_js_functions(lines: &[&str]) -> (usize, usize) {
+fn count_js_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut in_fn = false;
     let mut fn_start = 0;
@@ -474,17 +477,19 @@ fn count_js_functions(lines: &[&str]) -> (usize, usize) {
 
             if brace_depth == 0 && line.contains('}') {
                 let fn_len = i - fn_start + 1;
+                total_len += fn_len;
                 max_len = max_len.max(fn_len);
                 in_fn = false;
             }
         }
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
-fn count_python_functions(lines: &[&str]) -> (usize, usize) {
+fn count_python_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut fn_start = 0;
     let mut fn_indent = 0;
@@ -497,6 +502,7 @@ fn count_python_functions(lines: &[&str]) -> (usize, usize) {
             if in_fn {
                 // Previous function ended
                 let fn_len = i - fn_start;
+                total_len += fn_len;
                 max_len = max_len.max(fn_len);
             }
             count += 1;
@@ -510,6 +516,7 @@ fn count_python_functions(lines: &[&str]) -> (usize, usize) {
                 && !trimmed.starts_with("async def ")
             {
                 let fn_len = i - fn_start;
+                total_len += fn_len;
                 max_len = max_len.max(fn_len);
                 in_fn = false;
             }
@@ -518,14 +525,16 @@ fn count_python_functions(lines: &[&str]) -> (usize, usize) {
 
     if in_fn {
         let fn_len = lines.len() - fn_start;
+        total_len += fn_len;
         max_len = max_len.max(fn_len);
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
-fn count_go_functions(lines: &[&str]) -> (usize, usize) {
+fn count_go_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut in_fn = false;
     let mut fn_start = 0;
@@ -547,17 +556,19 @@ fn count_go_functions(lines: &[&str]) -> (usize, usize) {
 
             if brace_depth == 0 && line.contains('}') {
                 let fn_len = i - fn_start + 1;
+                total_len += fn_len;
                 max_len = max_len.max(fn_len);
                 in_fn = false;
             }
         }
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
-fn count_c_style_functions(lines: &[&str]) -> (usize, usize) {
+fn count_c_style_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut in_fn = false;
     let mut fn_start = 0;
@@ -593,17 +604,19 @@ fn count_c_style_functions(lines: &[&str]) -> (usize, usize) {
 
             if brace_depth == 0 && line.contains('}') {
                 let fn_len = i - fn_start + 1;
+                total_len += fn_len;
                 max_len = max_len.max(fn_len);
                 in_fn = false;
             }
         }
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
-fn count_ruby_functions(lines: &[&str]) -> (usize, usize) {
+fn count_ruby_functions(lines: &[&str]) -> (usize, usize, usize) {
     let mut count = 0;
+    let mut total_len = 0;
     let mut max_len = 0;
     let mut fn_start = 0;
     let mut in_fn = false;
@@ -640,6 +653,7 @@ fn count_ruby_functions(lines: &[&str]) -> (usize, usize) {
                 depth -= 1;
                 if depth == 0 {
                     let fn_len = i - fn_start + 1;
+                    total_len += fn_len;
                     max_len = max_len.max(fn_len);
                     in_fn = false;
                 }
@@ -647,7 +661,7 @@ fn count_ruby_functions(lines: &[&str]) -> (usize, usize) {
         }
     }
 
-    (count, max_len)
+    (count, total_len, max_len)
 }
 
 /// Estimate cyclomatic complexity by counting branching keywords.
@@ -1221,7 +1235,7 @@ pub async fn async_fn() {
 }
 "#;
         let lines: Vec<&str> = code.lines().collect();
-        let (count, _max_len) = count_rust_functions(&lines);
+        let (count, _total_len, _max_len) = count_rust_functions(&lines);
         assert_eq!(count, 3);
     }
 
@@ -1240,7 +1254,7 @@ def baz():
     return x + y
 "#;
         let lines: Vec<&str> = code.lines().collect();
-        let (count, _max_len) = count_python_functions(&lines);
+        let (count, _total_len, _max_len) = count_python_functions(&lines);
         assert_eq!(count, 3);
     }
 
@@ -1428,7 +1442,7 @@ pub const fn public_const() -> u32 {
         );
 
         // Also verify count_rust_functions picks them all up
-        let (count, _) = count_rust_functions(&lines);
+        let (count, _, _) = count_rust_functions(&lines);
         assert_eq!(count, 6);
     }
 

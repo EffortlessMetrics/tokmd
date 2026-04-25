@@ -108,6 +108,33 @@ pub fn with_branch(x: i32) -> &'static str {
     assert_eq!(report.files[0].function_count, 2);
 }
 
+#[test]
+fn given_multiple_functions_avg_length_is_per_function_not_per_file() {
+    let short = "\
+fn a() {
+}
+";
+    let longer = "\
+fn b() {
+    let x = 1;
+    let y = 2;
+    let z = x + y;
+}
+";
+    let (dir, paths) = write_temp_files(&[("src/short.rs", short), ("src/long.rs", longer)]);
+    let export = make_export(vec![
+        make_row("src/short.rs", "src", "Rust", 2),
+        make_row("src/long.rs", "src", "Rust", 5),
+    ]);
+
+    let report =
+        build_complexity_report(dir.path(), &paths, &export, &default_limits(), false).unwrap();
+
+    assert_eq!(report.total_functions, 2);
+    // Function lengths are 2 and 5 lines, so average should be 3.5.
+    assert_eq!(report.avg_function_length, 3.5);
+}
+
 // ===========================================================================
 // Scenario: Function details when detail_functions=true
 // ===========================================================================
