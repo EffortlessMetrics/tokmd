@@ -225,6 +225,39 @@ fn architecture_preset_content_gate() {
     }
 }
 
+/// Content-only builds (without walk) must still emit enricher-specific warnings
+/// instead of silently skipping TODO/import/dup analyzers.
+#[test]
+#[cfg(all(feature = "content", not(feature = "walk")))]
+fn content_without_walk_emits_specific_scan_warnings() {
+    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Deep)).unwrap();
+
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|w| w.contains(DisabledFeature::TodoScan.warning())),
+        "missing TODO warning: {:?}",
+        receipt.warnings
+    );
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|w| w.contains(DisabledFeature::DuplicationScan.warning())),
+        "missing duplication warning: {:?}",
+        receipt.warnings
+    );
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|w| w.contains(DisabledFeature::ImportScan.warning())),
+        "missing import warning: {:?}",
+        receipt.warnings
+    );
+}
+
 /// Deep preset requests all content-dependent enrichers.
 #[test]
 fn deep_preset_requests_all_content_enrichers() {

@@ -17,7 +17,7 @@ use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
-#[cfg(feature = "content")]
+#[cfg(all(feature = "content", feature = "walk"))]
 use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
 use crate::derived::{build_tree, derive_report};
 #[cfg(feature = "git")]
@@ -96,7 +96,7 @@ fn preset_plan(preset: AnalysisPreset) -> PresetPlan {
 #[cfg(any(feature = "walk", feature = "content", feature = "git"))]
 const ROOTLESS_FILE_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping file-backed enrichers";
-#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+#[cfg(feature = "git")]
 const ROOTLESS_GIT_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping git-backed enrichers";
 
@@ -143,6 +143,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     #[cfg(not(feature = "walk"))]
     let deps: Option<DependencyReport> = None;
 
+    #[cfg_attr(not(all(feature = "content", feature = "walk")), allow(unused_mut))]
     #[cfg(feature = "content")]
     let mut imports: Option<ImportReport> = None;
     #[cfg(not(feature = "content"))]
@@ -200,6 +201,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     let fun: Option<FunReport>;
 
     #[cfg(any(feature = "walk", feature = "content"))]
+    #[cfg_attr(not(feature = "walk"), allow(unused_mut, unused_variables))]
     let mut files: Option<Vec<PathBuf>> = None;
     #[cfg(not(any(feature = "walk", feature = "content")))]
     let _files: Option<Vec<PathBuf>> = None;
@@ -249,7 +251,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     }
 
     if plan.todo {
-        #[cfg(feature = "content")]
+        #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
                 match build_todo_report(&ctx.root, list, &req.limits, derived.totals.code) {
@@ -258,7 +260,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
                 }
             }
         }
-        #[cfg(not(feature = "content"))]
+        #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
             tokmd_analysis_grid::DisabledFeature::TodoScan
                 .warning()
@@ -267,7 +269,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     }
 
     if plan.dup {
-        #[cfg(feature = "content")]
+        #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
                 match build_duplicate_report(&ctx.root, list, &ctx.export, &req.limits) {
@@ -276,7 +278,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
                 }
             }
         }
-        #[cfg(not(feature = "content"))]
+        #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
             tokmd_analysis_grid::DisabledFeature::DuplicationScan
                 .warning()
@@ -332,7 +334,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     }
 
     if plan.imports {
-        #[cfg(feature = "content")]
+        #[cfg(all(feature = "content", feature = "walk"))]
         {
             if let Some(list) = files.as_deref() {
                 match build_import_report(
@@ -347,7 +349,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
                 }
             }
         }
-        #[cfg(not(feature = "content"))]
+        #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
             tokmd_analysis_grid::DisabledFeature::ImportScan
                 .warning()
