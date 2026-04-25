@@ -9,8 +9,8 @@
 //! * Serialization logic (JSON/CSV/CycloneDX)
 //! * Markdown and TSV table rendering
 //! * Output file writing
-//! * Redaction integration (via tokmd-redact re-exports)
-//! * ScanArgs integration (via tokmd-scan-args re-export)
+//! * Redaction integration (via internal `redact` module)
+//! * ScanArgs integration (via internal `scan_args` module)
 //!
 //! ## What does NOT belong here
 //! * Business logic (calculating stats)
@@ -39,7 +39,15 @@ use tokmd_types::{
     ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
-pub use tokmd_scan_args::{normalize_scan_input, scan_args};
+pub mod badge;
+pub mod export_tree;
+pub mod redact;
+pub mod scan_args;
+
+pub use badge::badge_svg;
+pub use export_tree::{render_analysis_tree, render_handoff_tree};
+pub use redact::{redact_path, short_hash};
+pub use scan_args::{normalize_scan_input, scan_args};
 
 fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {
     if redact == RedactMode::All {
@@ -536,9 +544,6 @@ fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'
         }),
     })
 }
-
-// Re-export redaction functions for backwards compatibility
-pub use tokmd_redact::{redact_path, short_hash};
 
 // -----------------
 // CycloneDX SBOM

@@ -15,14 +15,12 @@ tokmd follows a tiered microcrate architecture with strict dependency rules.
 
 ```
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
-                       tokmd-envelope, tokmd-substrate, tokmd-io-port
+                       tokmd-envelope, tokmd-ffi-envelope, tokmd-substrate,
+                       tokmd-io-port
          ↓
-Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-module-key, tokmd-path, tokmd-exclude,
-                       tokmd-context-policy, tokmd-math, tokmd-redact, tokmd-scan-args,
-                       tokmd-tokeignore, tokmd-sensor
+Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
-Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git,
-                       tokmd-context-git, tokmd-badge, tokmd-progress, tokmd-export-tree
+Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysis-archetype,
                        tokmd-analysis-assets, tokmd-analysis-complexity, tokmd-analysis-content,
@@ -34,10 +32,16 @@ Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysi
                        tokmd-analysis-near-dup, tokmd-analysis-topics, tokmd-analysis-util,
                        tokmd-cockpit, tokmd-fun, tokmd-gate
          ↓
-Tier 4 (Facade)        tokmd-config, tokmd-core, tokmd-ffi-envelope, tokmd-tool-schema
+Tier 4 (Facade)        tokmd-core
          ↓
 Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 ```
+
+Helper boundaries that do not need an independent crates.io package live as
+single-responsibility owner modules: module-key logic in `tokmd-model`,
+path/exclude/math/tokeignore helpers in `tokmd-scan`, redaction/scan-args/badge
+and export-tree rendering in `tokmd-format`, context policy/git helpers in
+`tokmd-core`, and CLI/config/progress/tool-schema wiring in `tokmd`.
 
 ### Tier 0: Contracts (Pure Data)
 
@@ -47,6 +51,7 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 | `tokmd-analysis-types` | Analysis receipt DTOs | `serde`, `tokmd-types` |
 | `tokmd-settings` | Clap-free settings types (`ScanOptions`, `LangSettings`, etc.) | `serde`, `tokmd-types` |
 | `tokmd-envelope` | Cross-fleet `SensorReport` contract (`Verdict`, `Finding`, `GateResults`) | `serde`, `serde_json` |
+| `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings | `serde_json` |
 | `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
 | `tokmd-io-port` | Host-abstracted file access contracts (`ReadFs`, `HostFs`, `MemFs`) | `std` only |
 
@@ -64,14 +69,6 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 |-------|---------|
 | `tokmd-scan` | Wraps tokei library for code scanning |
 | `tokmd-model` | Aggregation logic: tokei results → tokmd receipts |
-| `tokmd-module-key` | Deterministic module-key derivation from normalized paths |
-| `tokmd-path` | Cross-platform path normalization helpers (`\\` → `/`, relative path cleanup) |
-| `tokmd-exclude` | Deterministic exclude-pattern normalization + dedupe helpers |
-| `tokmd-context-policy` | Context/handoff policy helpers (smart excludes, spine matching, classification, inclusion policy) |
-| `tokmd-math` | Deterministic numeric/statistical helpers (`round_f64`, `safe_ratio`, percentile, gini) |
-| `tokmd-redact` | BLAKE3-based path hashing and redaction |
-| `tokmd-scan-args` | Deterministic `ScanArgs` metadata construction + redaction wiring |
-| `tokmd-tokeignore` | `.tokeignore` template generation |
 | `tokmd-sensor` | `EffortlessSensor` trait + `build_substrate()` builder |
 
 ### Tier 2: Adapters
@@ -82,10 +79,6 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 | `tokmd-walk` | Filesystem traversal with gitignore support | `walk` |
 | `tokmd-content` | File content scanning (entropy, tags, hashing) | `content` |
 | `tokmd-git` | Git history analysis via shell `git log` | `git` |
-| `tokmd-context-git` | Git-derived hotspot/churn scoring for context ranking | `git` |
-| `tokmd-badge` | SVG badge rendering helpers | — |
-| `tokmd-progress` | Progress spinner and progress-bar abstractions | `ui` |
-| `tokmd-export-tree` | Deterministic tree renderers for analysis/handoff exports | — |
 
 ### Tier 3: Orchestration
 
@@ -122,9 +115,6 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-config` | Clap-backed CLI/config types plus configuration loading |
-| `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings |
-| `tokmd-tool-schema` | AI tool-schema generation from clap command trees |
 | `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see ADR-001) |
 
 ### Tier 5: Products
@@ -222,13 +212,13 @@ tokmd guarantees byte-stable output for identical inputs:
 
 ```toml
 [features]
-git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git", "tokmd-context-git/git"]
+git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git", "tokmd-core/git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
 fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
 topics = ["tokmd-analysis/topics"]
 archetype = ["tokmd-analysis/archetype"]
-ui = ["dep:dialoguer", "dep:console", "dep:toml", "tokmd-progress/ui"]
+ui = ["dep:dialoguer", "dep:console", "dep:toml", "dep:indicatif"]
 ```
 
 ## Publishing Matrix

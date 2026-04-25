@@ -58,7 +58,7 @@ This version applies to core receipts: `lang`, `module`, `export`, `diff`, `cont
 ## Dependencies
 
 - `serde` with derive feature (serialization)
-- `tokmd-config` (configuration types)
+- Optional `clap` feature for shared CLI enum parsing
 
 ## Testing
 

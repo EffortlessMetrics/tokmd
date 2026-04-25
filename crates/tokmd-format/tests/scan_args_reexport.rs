@@ -4,7 +4,7 @@ use tokmd_settings::ScanOptions;
 use tokmd_types::RedactMode;
 
 #[test]
-fn given_scan_args_reexport_when_called_then_output_matches_core_microcrate() {
+fn given_scan_args_returns_stable_results() {
     // Given: canonical scan settings with redaction enabled
     let paths = vec![
         PathBuf::from("./src/lib.rs"),
@@ -16,21 +16,21 @@ fn given_scan_args_reexport_when_called_then_output_matches_core_microcrate() {
         ..Default::default()
     };
 
-    // When: both entrypoints are called
+    // When: normalization is called twice
     let from_format = tokmd_format::scan_args(&paths, &options, Some(RedactMode::Paths));
-    let from_microcrate = tokmd_scan_args::scan_args(&paths, &options, Some(RedactMode::Paths));
+    let from_format_repeat = tokmd_format::scan_args(&paths, &options, Some(RedactMode::Paths));
 
-    // Then: the compatibility layer is byte-equivalent
-    assert_eq!(from_format.paths, from_microcrate.paths);
-    assert_eq!(from_format.excluded, from_microcrate.excluded);
+    // Then: output is deterministic across invocations
+    assert_eq!(from_format.paths, from_format_repeat.paths);
+    assert_eq!(from_format.excluded, from_format_repeat.excluded);
     assert_eq!(
         from_format.excluded_redacted,
-        from_microcrate.excluded_redacted
+        from_format_repeat.excluded_redacted
     );
     assert_eq!(
         from_format.no_ignore_parent,
-        from_microcrate.no_ignore_parent
+        from_format_repeat.no_ignore_parent
     );
-    assert_eq!(from_format.no_ignore_dot, from_microcrate.no_ignore_dot);
-    assert_eq!(from_format.no_ignore_vcs, from_microcrate.no_ignore_vcs);
+    assert_eq!(from_format.no_ignore_dot, from_format_repeat.no_ignore_dot);
+    assert_eq!(from_format.no_ignore_vcs, from_format_repeat.no_ignore_vcs);
 }

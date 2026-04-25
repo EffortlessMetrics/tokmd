@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_math::{gini_coefficient, percentile, round_f64, safe_ratio};
+use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 
 const MAX_INPUT_SIZE: usize = 16 * 1024;
 

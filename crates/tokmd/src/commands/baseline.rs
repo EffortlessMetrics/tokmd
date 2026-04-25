@@ -4,18 +4,18 @@
 
 use std::path::Path;
 
+use crate::cli::{BaselineArgs, GlobalArgs};
 use anyhow::{Context, Result, bail};
 use tokmd_analysis as analysis;
 #[cfg(feature = "git")]
 use tokmd_analysis_types::DeterminismBaseline;
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, ComplexityBaseline};
-use tokmd_config::{BaselineArgs, GlobalArgs};
 
 use crate::analysis_utils;
 use crate::export_bundle;
+use crate::progress::Progress;
 #[cfg(feature = "git")]
 use tokmd_cockpit::determinism;
-use tokmd_progress::Progress;
 
 pub(crate) fn handle(args: BaselineArgs, global: &GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);

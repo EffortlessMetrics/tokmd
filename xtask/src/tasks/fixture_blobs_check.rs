@@ -1,5 +1,5 @@
 use crate::cli::FixtureBlobsCheckArgs;
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -55,6 +55,11 @@ fn evaluate_candidate(repo_root: &Path, rel_path: &str) -> Result<Option<Violati
         return Ok(None);
     }
 
+    let abs_path = repo_root.join(rel_path);
+    if !abs_path.is_file() {
+        return Ok(None);
+    }
+
     if let Some(ext) = forbidden_extension(rel_path) {
         return Ok(Some(Violation {
             path: rel_path.to_string(),
@@ -64,7 +69,6 @@ fn evaluate_candidate(repo_root: &Path, rel_path: &str) -> Result<Option<Violati
         }));
     }
 
-    let abs_path = repo_root.join(rel_path);
     if let Some(marker) = contains_forbidden_marker(&abs_path)? {
         return Ok(Some(Violation {
             path: rel_path.to_string(),

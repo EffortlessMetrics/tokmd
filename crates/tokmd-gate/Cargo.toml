@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-gate"
 version.workspace = true
 edition.workspace = true

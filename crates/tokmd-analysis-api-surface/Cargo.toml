@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-analysis-api-surface"
 version.workspace = true
 edition.workspace = true

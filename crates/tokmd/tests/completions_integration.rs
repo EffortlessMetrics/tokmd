@@ -3,7 +3,7 @@ mod common;
 use assert_cmd::Command;
 use clap::ValueEnum;
 use predicates::prelude::*;
-use tokmd_config::AnalysisPreset;
+use tokmd::cli::AnalysisPreset;
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));

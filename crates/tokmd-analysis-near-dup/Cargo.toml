@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-analysis-near-dup"
 version.workspace = true
 edition.workspace = true

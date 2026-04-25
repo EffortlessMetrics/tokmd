@@ -1,9 +1,9 @@
 //! Handler for the `tokmd tools` command.
 
+use crate::cli;
+use crate::tool_schema::{build_tool_schema, render_output};
 use anyhow::Result;
 use clap::CommandFactory;
-use tokmd_config as cli;
-use tokmd_tool_schema::{build_tool_schema, render_output};
 
 /// Handle the tools command.
 pub(crate) fn handle(args: cli::ToolsArgs) -> Result<()> {

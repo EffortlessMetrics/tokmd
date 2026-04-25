@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-analysis-grid"
 version.workspace = true
 edition.workspace = true

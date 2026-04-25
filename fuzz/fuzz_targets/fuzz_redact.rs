@@ -8,7 +8,7 @@
 
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd_redact::{redact_path, short_hash};
+use tokmd_format::redact::{redact_path, short_hash};
 
 /// Max input size - redaction is O(n) so we can be generous
 const MAX_INPUT_SIZE: usize = 64 * 1024; // 64KB

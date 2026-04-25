@@ -4,7 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use tokmd_analysis_types::FileStatRow;
 
-pub use tokmd_math::{gini_coefficient, percentile, round_f64, safe_ratio};
+pub use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 
 #[derive(Debug, Clone, Default)]
 pub struct AnalysisLimits {

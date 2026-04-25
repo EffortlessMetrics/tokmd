@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-analysis-derived"
 version.workspace = true
 edition.workspace = true
@@ -16,8 +15,8 @@ documentation = "https://docs.rs/tokmd-analysis-derived"
 blake3.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
-tokmd-math.workspace = true
-tokmd-export-tree.workspace = true
+tokmd-format.workspace = true
+tokmd-scan.workspace = true
 tokmd-types.workspace = true
 
 [dev-dependencies]

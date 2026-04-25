@@ -1,11 +1,11 @@
 //! Handler for the `tokmd gate` command.
 
+use crate::cli;
 use anyhow::{Context, Result, bail};
 use serde::Serialize;
 use std::path::Path;
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
-use tokmd_config as cli;
 use tokmd_gate::{
     GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
     RuleOperator, evaluate_policy, evaluate_ratchet_policy,

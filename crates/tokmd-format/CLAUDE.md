@@ -15,12 +15,12 @@ Output formatting and serialization. This is a **Tier 2** crate that renders tok
 
 ## Public API
 
-### ScanArgs Construction (Compatibility Re-export)
+### ScanArgs Construction
 ```rust
-/// Re-export from tokmd-scan-args.
+/// Re-export from tokmd-format::scan_args.
 pub fn scan_args(paths, global, redact) -> ScanArgs
 
-/// Re-export from tokmd-scan-args.
+/// Re-export from tokmd-format::scan_args.
 pub fn normalize_scan_input(path) -> String
 ```
 
@@ -45,7 +45,7 @@ pub fn write_export_jsonl_to_file(path, export, scan, args_meta) -> Result<()>
 
 ### Re-exports
 ```rust
-pub use tokmd_redact::{redact_path, short_hash};
+pub use tokmd_format::redact::{redact_path, short_hash};
 ```
 
 ## Implementation Details
@@ -92,7 +92,7 @@ When `--meta` is enabled:
 ## Dependencies
 
 - `serde_json`, `csv`, `uuid`, `time`
-- `tokmd-redact`, `tokmd-scan-args`, `tokmd-types`
+- `tokmd-types`
 
 ## Testing
 

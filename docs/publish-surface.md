@@ -1,0 +1,141 @@
+# Tokmd Publish Surface and Closure Policy
+
+Status: canonical policy baseline for PR A.
+
+## Why this exists (ADR-level rationale)
+
+The current architecture moved too far from microcrate-as-architecture to microcrate-as-surface-area.
+
+The packaging direction is now explicit:
+
+- keep an intentional published/public surface;
+- keep genuine reusable contracts as published support crates;
+- absorb everything else into SRP folders inside owning public crates;
+- enforce publishability with a closure proof, not package-count aesthetics.
+
+This is the hard rule: publishing correctness is defined by dependency closure, not by a broad `publish = false` pass.
+
+## Publication model
+
+`publish = false` is policy-only and valid only for crates that are truly outside the crates.io closure.
+
+For publishability, every intended public crate must have a full non-dev workspace dependency closure that references only:
+- published public crates
+- published support crates
+- crates intentionally outside the product surface (4 non-crates.io packages)
+
+If a public or support crate depends on anything else, that dependency must be merged into an owner module first.
+
+## Current publish surface (45 crates published + 4 non-crates.io)
+
+### Supported public crates (13)
+
+- `tokmd`
+- `tokmd-analysis-types`
+- `tokmd-cockpit`
+- `tokmd-core`
+- `tokmd-envelope`
+- `tokmd-ffi-envelope`
+- `tokmd-gate`
+- `tokmd-io-port`
+- `tokmd-sensor`
+- `tokmd-settings`
+- `tokmd-substrate`
+- `tokmd-types`
+- `tokmd-wasm`
+
+### Published support crates (32)
+
+- `tokmd-analysis`
+- `tokmd-analysis-api-surface`
+- `tokmd-analysis-archetype`
+- `tokmd-analysis-assets`
+- `tokmd-analysis-complexity`
+- `tokmd-analysis-content`
+- `tokmd-analysis-derived`
+- `tokmd-analysis-effort`
+- `tokmd-analysis-entropy`
+- `tokmd-analysis-explain`
+- `tokmd-analysis-fingerprint`
+- `tokmd-analysis-format`
+- `tokmd-analysis-format-md`
+- `tokmd-analysis-fun`
+- `tokmd-analysis-git`
+- `tokmd-analysis-grid`
+- `tokmd-analysis-halstead`
+- `tokmd-analysis-html`
+- `tokmd-analysis-imports`
+- `tokmd-analysis-license`
+- `tokmd-analysis-maintainability`
+- `tokmd-analysis-near-dup`
+- `tokmd-analysis-topics`
+- `tokmd-analysis-util`
+- `tokmd-content`
+- `tokmd-format`
+- `tokmd-fun`
+- `tokmd-git`
+- `tokmd-model`
+- `tokmd-scan`
+- `tokmd-test-support`
+- `tokmd-walk`
+
+**Count:** 32 published support crates.
+
+## Non-crates.io packages (intentional exceptions) (4)
+
+- `tokmd-fuzz`
+- `tokmd-node`
+- `tokmd-python`
+- `xtask`
+
+**Count:** 4 non-crates.io packages.
+
+## PR A scope guardrail
+
+PR A is **truth-first**:
+
+- publish-surface documentation
+- closure/reporting command
+- machine-readable classification
+- CI `--json --verify-publish` checks
+
+It makes only the owner-module moves that are needed to remove already-decided
+packaging helper crates from the publish closure. Deeper analysis-crate
+consolidation remains future work.
+
+## Hard rule
+
+- Do not leave non-published internal crates on the production path as `publish = false` placeholders.
+- Absorb non-essential packaging noise crates into SRP module folders under the owning public crate.
+
+## Future folder merge targets after policy freeze
+
+- `crates/tokmd-analysis`: `derived`, `util`, `grid`, `assets`, `fun`, `topics`, `archetype`, `fingerprint`, `format/markdown`
+
+## Publish closure audit
+
+Run:
+
+```bash
+cargo xtask publish-surface --json
+```
+
+For CI-ready checks, run:
+
+```bash
+cargo xtask publish-surface --json --verify-publish
+```
+
+The JSON report includes:
+
+- `summary.public_surface`
+- `summary.support_surface`
+- `summary.non_crates_io_packages`
+- per-target `non_dev_workspace_closure`
+- per-target `required_public`, `required_support`, `required_internal`, `required_non_crates_io`
+- `violations`
+- optional `packaging_checks` (`cargo package --list`)
+
+## Command contract for automation
+
+CI must fail when `--json --verify-publish` yields any `violations`.

@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-sensor"
 version.workspace = true
 edition.workspace = true

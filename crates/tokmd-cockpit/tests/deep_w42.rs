@@ -132,11 +132,11 @@ fn contracts_schema_md_detected() {
 }
 
 #[test]
-fn contracts_config_crate_is_cli() {
-    let files = vec!["crates/tokmd-config/src/lib.rs"];
+fn contracts_config_file_is_cli() {
+    let files = vec!["crates/tokmd/src/config.rs"];
     let c = detect_contracts(&files);
     assert!(c.cli_changed);
-    assert!(c.api_changed); // also lib.rs → api_changed
+    assert!(!c.api_changed);
 }
 
 #[test]

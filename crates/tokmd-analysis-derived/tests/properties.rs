@@ -2,7 +2,7 @@
 
 use proptest::prelude::*;
 use tokmd_analysis_derived::derive_report;
-use tokmd_math::round_f64;
+use tokmd_scan::round_f64;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────

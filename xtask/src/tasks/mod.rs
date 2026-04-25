@@ -7,6 +7,7 @@ pub mod fixture_blobs_check;
 pub mod gate;
 pub mod lint_fix;
 pub mod publish;
+pub mod publish_surface;
 pub mod sccache;
 pub mod trim_target;
 pub mod version_consistency;

@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
+use crate::cli;
 use clap::ValueEnum;
-use tokmd_config as cli;
+use tokmd_settings::{Profile, TomlConfig, UserConfig, ViewProfile};
 
 /// Configuration context combining TOML config, JSON config, and resolved profile.
 ///
@@ -16,21 +17,21 @@ use tokmd_config as cli;
 #[derive(Debug, Default)]
 pub struct ConfigContext {
     /// TOML configuration (tokmd.toml)
-    pub toml: Option<cli::TomlConfig>,
+    pub toml: Option<TomlConfig>,
     /// Path where TOML config was found
     pub toml_path: Option<PathBuf>,
     /// Legacy JSON configuration (config.json)
-    pub json: Option<cli::UserConfig>,
+    pub json: Option<UserConfig>,
 }
 
 impl ConfigContext {
     /// Get view profile from TOML config by name.
-    pub fn get_toml_view(&self, name: &str) -> Option<&cli::ViewProfile> {
+    pub fn get_toml_view(&self, name: &str) -> Option<&ViewProfile> {
         self.toml.as_ref().and_then(|t| t.view.get(name))
     }
 
     /// Get profile from JSON config by name.
-    pub fn get_json_profile(&self, name: &str) -> Option<&cli::Profile> {
+    pub fn get_json_profile(&self, name: &str) -> Option<&Profile> {
         self.json.as_ref().and_then(|c| c.profiles.get(name))
     }
 }
@@ -52,7 +53,7 @@ pub fn load_config() -> ConfigContext {
 /// 2. ./tokmd.toml (current directory)
 /// 3. Parent directories up to root
 /// 4. ~/.config/tokmd/tokmd.toml (user config)
-fn discover_toml_config() -> Option<(cli::TomlConfig, PathBuf)> {
+fn discover_toml_config() -> Option<(TomlConfig, PathBuf)> {
     // 1. Check TOKMD_CONFIG environment variable
     if let Ok(config_path) = std::env::var("TOKMD_CONFIG") {
         let path = PathBuf::from(&config_path);
@@ -85,9 +86,9 @@ fn discover_toml_config() -> Option<(cli::TomlConfig, PathBuf)> {
 }
 
 /// Try to load a TOML config file if it exists.
-fn try_load_toml(path: &std::path::Path) -> Option<(cli::TomlConfig, PathBuf)> {
+fn try_load_toml(path: &std::path::Path) -> Option<(TomlConfig, PathBuf)> {
     if path.exists() {
-        cli::TomlConfig::from_file(path)
+        TomlConfig::from_file(path)
             .ok()
             .map(|config| (config, path.to_path_buf()))
     } else {
@@ -96,7 +97,7 @@ fn try_load_toml(path: &std::path::Path) -> Option<(cli::TomlConfig, PathBuf)> {
 }
 
 /// Load legacy JSON configuration from user config directory.
-fn load_json_config() -> Option<cli::UserConfig> {
+fn load_json_config() -> Option<UserConfig> {
     let config_dir = dirs::config_dir()?.join("tokmd");
     let config_path = config_dir.join("config.json");
 
@@ -123,9 +124,9 @@ pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
 
 /// Resolve a JSON profile by name (legacy).
 pub fn resolve_profile<'a>(
-    config: &'a Option<cli::UserConfig>,
+    config: &'a Option<UserConfig>,
     name: Option<&String>,
-) -> Option<&'a cli::Profile> {
+) -> Option<&'a Profile> {
     config.as_ref().and_then(|c| {
         let key = name.map(|s| s.as_str()).unwrap_or("default");
         c.profiles.get(key)
@@ -151,11 +152,11 @@ pub fn resolve_profile<'a>(
 #[derive(Debug, Default)]
 pub struct ResolvedConfig<'a> {
     /// TOML view profile (takes precedence).
-    pub toml_view: Option<&'a cli::ViewProfile>,
+    pub toml_view: Option<&'a ViewProfile>,
     /// JSON profile (fallback).
-    pub json_profile: Option<&'a cli::Profile>,
+    pub json_profile: Option<&'a Profile>,
     /// TOML config sections.
-    pub toml: Option<&'a cli::TomlConfig>,
+    pub toml: Option<&'a TomlConfig>,
 }
 
 impl ResolvedConfig<'_> {
@@ -268,8 +269,8 @@ pub fn resolve_config<'a>(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::{CliLangArgs, Profile};
 /// use tokmd::resolve_lang;
-/// use tokmd_config::{CliLangArgs, Profile};
 ///
 /// let cli_args = CliLangArgs {
 ///     paths: None,
@@ -288,7 +289,7 @@ pub fn resolve_config<'a>(
 /// ```
 pub fn resolve_lang(
     cli_args: &cli::CliLangArgs,
-    profile: Option<&cli::Profile>,
+    profile: Option<&Profile>,
 ) -> tokmd_types::LangArgs {
     tokmd_types::LangArgs {
         paths: cli_args
@@ -300,10 +301,9 @@ pub fn resolve_lang(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliTableFormat::Md)
-            .into(),
+            .unwrap_or(cli::TableFormat::Md),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -314,10 +314,9 @@ pub fn resolve_lang(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildrenMode::Collapse)
-            .into(),
+            .unwrap_or(cli::ChildrenMode::Collapse),
     }
 }
 
@@ -327,8 +326,8 @@ pub fn resolve_lang(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::CliLangArgs;
 /// use tokmd::{resolve_lang_with_config, ResolvedConfig};
-/// use tokmd_config::CliLangArgs;
 ///
 /// let cli_args = CliLangArgs {
 ///     paths: None,
@@ -359,10 +358,9 @@ pub fn resolve_lang_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliTableFormat::Md)
-            .into(),
+            .unwrap_or(cli::TableFormat::Md),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         files: cli_args.files || resolved.files().unwrap_or(false),
         children: cli_args
@@ -370,10 +368,9 @@ pub fn resolve_lang_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildrenMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildrenMode::Collapse)
-            .into(),
+            .unwrap_or(cli::ChildrenMode::Collapse),
     }
 }
 
@@ -383,8 +380,8 @@ pub fn resolve_lang_with_config(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::{CliModuleArgs, Profile};
 /// use tokmd::resolve_module;
-/// use tokmd_config::{CliModuleArgs, Profile};
 ///
 /// let cli_args = CliModuleArgs {
 ///     paths: None,
@@ -406,7 +403,7 @@ pub fn resolve_lang_with_config(
 /// ```
 pub fn resolve_module(
     cli_args: &cli::CliModuleArgs,
-    profile: Option<&cli::Profile>,
+    profile: Option<&Profile>,
 ) -> tokmd_types::ModuleArgs {
     tokmd_types::ModuleArgs {
         paths: cli_args
@@ -418,10 +415,9 @@ pub fn resolve_module(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliTableFormat::Md)
-            .into(),
+            .unwrap_or(cli::TableFormat::Md),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -440,10 +436,9 @@ pub fn resolve_module(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildIncludeMode::Separate)
-            .into(),
+            .unwrap_or(cli::ChildIncludeMode::Separate),
     }
 }
 
@@ -453,8 +448,8 @@ pub fn resolve_module(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::CliModuleArgs;
 /// use tokmd::{resolve_module_with_config, ResolvedConfig};
-/// use tokmd_config::CliModuleArgs;
 ///
 /// let cli_args = CliModuleArgs {
 ///     paths: None,
@@ -489,10 +484,9 @@ pub fn resolve_module_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliTableFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliTableFormat::Md)
-            .into(),
+            .unwrap_or(cli::TableFormat::Md),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         module_roots: cli_args
             .module_roots
@@ -508,10 +502,9 @@ pub fn resolve_module_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildIncludeMode::Separate)
-            .into(),
+            .unwrap_or(cli::ChildIncludeMode::Separate),
     }
 }
 
@@ -521,8 +514,8 @@ pub fn resolve_module_with_config(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::{CliExportArgs, Profile};
 /// use tokmd::resolve_export;
-/// use tokmd_config::{CliExportArgs, Profile};
 ///
 /// let cli_args = CliExportArgs {
 ///     paths: None,
@@ -545,7 +538,7 @@ pub fn resolve_module_with_config(
 /// ```
 pub fn resolve_export(
     cli_args: &cli::CliExportArgs,
-    profile: Option<&cli::Profile>,
+    profile: Option<&Profile>,
 ) -> tokmd_types::ExportArgs {
     tokmd_types::ExportArgs {
         paths: cli_args
@@ -557,10 +550,9 @@ pub fn resolve_export(
             .or_else(|| {
                 profile
                     .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliExportFormat::Jsonl)
-            .into(),
+            .unwrap_or(cli::ExportFormat::Jsonl),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -576,10 +568,9 @@ pub fn resolve_export(
             .or_else(|| {
                 profile
                     .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildIncludeMode::Separate)
-            .into(),
+            .unwrap_or(cli::ChildIncludeMode::Separate),
         min_code: cli_args
             .min_code
             .or(profile.and_then(|p| p.min_code))
@@ -591,8 +582,7 @@ pub fn resolve_export(
         redact: cli_args
             .redact
             .or(profile.and_then(|p| p.redact))
-            .unwrap_or(cli::CliRedactMode::None)
-            .into(),
+            .unwrap_or(cli::RedactMode::None),
         meta: cli_args
             .meta
             .or(profile.and_then(|p| p.meta))
@@ -607,8 +597,8 @@ pub fn resolve_export(
 ///
 /// ```
 /// use std::path::PathBuf;
+/// use tokmd::cli::CliExportArgs;
 /// use tokmd::{resolve_export_with_config, ResolvedConfig};
-/// use tokmd_config::CliExportArgs;
 ///
 /// let cli_args = CliExportArgs {
 ///     paths: None,
@@ -643,16 +633,15 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .format()
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.format.as_deref())
-                    .and_then(|s| cli::CliExportFormat::from_str(s, true).ok())
+                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliExportFormat::Jsonl)
-            .into(),
+            .unwrap_or(cli::ExportFormat::Jsonl),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -668,16 +657,15 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .children()
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
             })
             .or_else(|| {
                 resolved
                     .toml
                     .and_then(|t| t.export.children.as_deref())
-                    .and_then(|s| cli::CliChildIncludeMode::from_str(s, true).ok())
+                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliChildIncludeMode::Separate)
-            .into(),
+            .unwrap_or(cli::ChildIncludeMode::Separate),
         min_code: cli_args.min_code.or(resolved.min_code()).unwrap_or(0),
         max_rows: cli_args.max_rows.or(resolved.max_rows()).unwrap_or(0),
         redact: cli_args
@@ -685,10 +673,9 @@ pub fn resolve_export_with_config(
             .or_else(|| {
                 resolved
                     .redact()
-                    .and_then(|s| cli::CliRedactMode::from_str(s, true).ok())
+                    .and_then(|s| cli::RedactMode::from_str(s, true).ok())
             })
-            .unwrap_or(cli::CliRedactMode::None)
-            .into(),
+            .unwrap_or(cli::RedactMode::None),
         meta: cli_args.meta.or(resolved.meta()).unwrap_or(true),
         strip_prefix: cli_args.strip_prefix.clone(),
     }

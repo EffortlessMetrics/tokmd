@@ -150,7 +150,7 @@ fn file_rows_insertion_order_does_not_affect_sorted_output() {
 
 #[test]
 fn module_key_is_path_order_independent() {
-    use tokmd_module_key::module_key;
+    use tokmd_model::module_key::module_key;
     let roots = vec!["crates".to_string()];
     let paths = [
         "crates/foo/src/lib.rs",
@@ -172,7 +172,7 @@ fn module_key_is_path_order_independent() {
 
 #[test]
 fn module_key_normalizes_separators() {
-    use tokmd_module_key::module_key;
+    use tokmd_model::module_key::module_key;
     let roots = vec!["crates".to_string()];
     assert_eq!(
         module_key("crates/foo/src/lib.rs", &roots, 2),

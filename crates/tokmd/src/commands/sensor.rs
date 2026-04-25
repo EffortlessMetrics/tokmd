@@ -10,10 +10,10 @@
 #[cfg(feature = "git")]
 use std::io::Write;
 
+use crate::cli;
 #[cfg(feature = "git")]
 use anyhow::Context;
 use anyhow::{Result, bail};
-use tokmd_config as cli;
 #[cfg(feature = "git")]
 use tokmd_envelope::findings;
 #[cfg(feature = "git")]

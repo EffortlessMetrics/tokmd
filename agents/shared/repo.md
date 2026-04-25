@@ -41,11 +41,16 @@ Tier summary:
 | Tier | Purpose | Example crates |
 |------|---------|----------------|
 | 0 | Contracts and settings | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate` |
-| 1 | Core scan and aggregation | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-sensor` |
-| 2 | Adapters and rendering | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-progress` |
+| 1 | Core scan and aggregation | `tokmd-scan`, `tokmd-model`, `tokmd-sensor` |
+| 2 | Adapters and rendering | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` |
 | 3 | Analysis orchestration | `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-analysis-*`, `tokmd-fun`, `tokmd-gate` |
-| 4 | Facade and config | `tokmd-config`, `tokmd-tool-schema`, `tokmd-core` |
-| 5 | End-user products | `tokmd`, `tokmd-python`, `tokmd-node` |
+| 4 | Library facade | `tokmd-core` |
+| 5 | End-user products | `tokmd`, `tokmd-python`, `tokmd-node`, `tokmd-wasm` |
+
+Former helper microcrates such as redaction, scan-args, badge rendering,
+progress, module-key, path/exclude/math, tokeignore, context policy/git, and
+tool-schema now live as owner modules inside `tokmd-format`, `tokmd-scan`,
+`tokmd-model`, `tokmd-core`, or `tokmd`.
 
 Dependency rule:
 
@@ -133,8 +138,8 @@ Common targeted commands:
 
 ```bash
 cargo test test_name --verbose
-cargo test -p tokmd-redact properties
-cargo mutants --file crates/tokmd-redact/src/lib.rs
+cargo test -p tokmd-scan properties
+cargo mutants --file crates/tokmd-format/src/redact/mod.rs
 cargo +nightly fuzz list
 ```
 

@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_export_tree::{render_analysis_tree, render_handoff_tree};
+use tokmd_format::{render_analysis_tree, render_handoff_tree};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 const MAX_INPUT_SIZE: usize = 16 * 1024;

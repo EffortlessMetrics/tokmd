@@ -597,7 +597,7 @@ fn schema_version_constant_is_3() {
 fn detect_contracts_api_changed() {
     let files = vec![
         stat("crates/tokmd/src/lib.rs", 10, 5),
-        stat("crates/tokmd-config/src/mod.rs", 5, 2),
+        stat("crates/tokmd/src/cli/mod.rs", 5, 2),
     ];
     let contracts = detect_contracts(&files);
     assert!(contracts.api_changed);

@@ -13,15 +13,12 @@ categories = ["development-tools", "config"]
 documentation = "https://docs.rs/tokmd-config"
 
 [dependencies]
-clap = { version = "4.6.0", features = ["derive"] }
-serde.workspace = true
-serde_json.workspace = true
-tokmd-settings.workspace = true
-tokmd-tool-schema.workspace = true
-tokmd-types = { workspace = true }
+tokmd.workspace = true
 
 
 [dev-dependencies]
+clap = { version = "4.6.0", features = ["derive"] }
 proptest.workspace = true
 tempfile.workspace = true
+serde_json.workspace = true
 toml = "1.1"

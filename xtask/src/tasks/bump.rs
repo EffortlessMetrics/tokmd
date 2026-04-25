@@ -42,7 +42,7 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
         current: 3,
     },
     SchemaVersionLocation {
-        path: "crates/tokmd-tool-schema/src/lib.rs",
+        path: "crates/tokmd/src/tool_schema.rs",
         constant: "TOOL_SCHEMA_VERSION",
         current: 1,
     },

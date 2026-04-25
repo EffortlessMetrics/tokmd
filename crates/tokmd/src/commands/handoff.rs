@@ -12,13 +12,13 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::cli;
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
-use tokmd_config as cli;
-use tokmd_exclude::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_model as model;
-use tokmd_path::normalize_slashes as normalize_path;
 use tokmd_scan as scan;
+use tokmd_scan::normalize_slashes as normalize_path;
+use tokmd_scan::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CapabilityState, CapabilityStatus, ExportData, FileKind, FileRow,
     HANDOFF_SCHEMA_VERSION, HandoffComplexity, HandoffDerived, HandoffExcludedPath, HandoffHotspot,
@@ -27,7 +27,7 @@ use tokmd_types::{
 
 use crate::context_pack;
 use crate::git_support::git_cmd;
-use tokmd_progress::Progress;
+use crate::progress::Progress;
 
 const DEFAULT_TREE_DEPTH: usize = 4;
 
@@ -87,7 +87,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     // Compute git scores if needed
     progress.set_message("Computing git scores...");
     let git_scores = if should_compute_git(&capabilities) {
-        tokmd_context_git::compute_git_scores(
+        tokmd_core::context_git::compute_git_scores(
             &root,
             &export.rows,
             args.max_commits,
@@ -392,12 +392,12 @@ fn build_intelligence(
     export: &ExportData,
     args: &cli::HandoffArgs,
     capabilities: &[CapabilityStatus],
-    git_scores: Option<&tokmd_context_git::GitScores>,
+    git_scores: Option<&tokmd_core::context_git::GitScores>,
 ) -> HandoffIntelligence {
     let mut warnings = Vec::new();
 
     // Build tree (always included)
-    let tree = Some(tokmd_export_tree::render_handoff_tree(
+    let tree = Some(tokmd_format::render_handoff_tree(
         export,
         DEFAULT_TREE_DEPTH,
     ));
@@ -1045,7 +1045,7 @@ mod tests {
             module_depth: 2,
             children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
-        let tree = tokmd_export_tree::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
+        let tree = tokmd_format::render_handoff_tree(&export, DEFAULT_TREE_DEPTH);
         assert!(tree.is_empty());
     }
 
@@ -1068,7 +1068,7 @@ mod tests {
             module_depth: 2,
             children: tokmd_types::ChildIncludeMode::ParentsOnly,
         };
-        let tree = tokmd_export_tree::render_handoff_tree(&export, 1);
+        let tree = tokmd_format::render_handoff_tree(&export, 1);
         assert!(tree.contains("a/"));
         assert!(!tree.contains("b/"));
         assert!(!tree.contains("file.rs"));

@@ -5,14 +5,14 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::Path;
 
-use tokmd_config::{ContextStrategy, ValueMetric};
-use tokmd_context_git::GitScores;
-use tokmd_context_policy::{
+use crate::cli::{ContextStrategy, ValueMetric};
+use tokmd_core::context_git::GitScores;
+use tokmd_core::context_policy::{
     assign_policy as assign_context_policy, classify_file as classify_context_file,
     compute_file_cap as compute_context_file_cap, is_spine_file as matches_spine_file,
     smart_exclude_reason,
 };
-use tokmd_path::normalize_slashes as normalize_path;
+use tokmd_scan::normalize_slashes as normalize_path;
 use tokmd_types::{
     ContextFileRow, FileClassification, FileKind, FileRow, InclusionPolicy, PolicyExcludedFile,
     SmartExcludedFile,

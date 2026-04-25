@@ -20,6 +20,7 @@
 
 #[cfg(feature = "analysis")]
 mod analysis_utils;
+pub mod cli;
 mod commands;
 pub mod config;
 mod context_pack;
@@ -28,10 +29,12 @@ mod export_bundle;
 mod git_support;
 #[cfg(feature = "ui")]
 mod interactive;
+mod progress;
+mod tool_schema;
 
+use crate::cli::Cli;
 use anyhow::Result;
 use clap::Parser;
-use tokmd_config as cli;
 
 pub use config::{
     ConfigContext, ResolvedConfig, resolve_config, resolve_export, resolve_export_with_config,
@@ -40,7 +43,7 @@ pub use config::{
 };
 
 pub fn run() -> Result<()> {
-    let cli = cli::Cli::parse();
+    let cli = Cli::parse();
     let config_ctx = config::load_config();
     let profile_name = config::get_profile_name(cli.profile.as_ref());
     let resolved = config::resolve_config(&config_ctx, profile_name.as_deref());

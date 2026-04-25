@@ -41,8 +41,6 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 0 | `tokmd-analysis-types` | Analysis receipt types |
 | 1 | `tokmd-scan` | tokei wrapper for code scanning |
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
-| 1 | `tokmd-tokeignore` | `.tokeignore` template generation |
-| 1 | `tokmd-redact` | BLAKE3-based path redaction utilities |
 | 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
 | 2 | `tokmd-walk` | File system traversal for assets |
 | 2 | `tokmd-content` | File content scanning (entropy, imports) |
@@ -51,11 +49,15 @@ The codebase follows a tiered microcrate architecture: **types → scan → mode
 | 3 | `tokmd-analysis-format` | Analysis output rendering |
 | 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
 | 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
-| 4 | `tokmd-config` | Configuration loading (`tokmd.toml`) |
 | 4 | `tokmd-core` | Library facade with FFI layer |
 | 5 | `tokmd` | CLI binary |
 | 5 | `tokmd-python` | PyO3 bindings for PyPI |
 | 5 | `tokmd-node` | napi-rs bindings for npm |
+
+Former helper microcrates such as redaction, scan-args, badge rendering,
+progress, module-key, path/exclude/math, tokeignore, context policy/git, and
+tool-schema now live as owner modules inside `tokmd-format`, `tokmd-scan`,
+`tokmd-model`, `tokmd-core`, or `tokmd`.
 
 ### CLI Commands
 
@@ -180,12 +182,12 @@ cargo insta review
 
 Run property tests:
 ```bash
-cargo test -p tokmd-redact properties
+cargo test -p tokmd-scan properties
 ```
 
 Run mutation testing:
 ```bash
-cargo mutants --file crates/tokmd-redact/src/lib.rs
+cargo mutants --file crates/tokmd-format/src/redact/mod.rs
 ```
 
 Run fuzz targets:

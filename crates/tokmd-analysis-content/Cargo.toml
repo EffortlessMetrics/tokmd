@@ -1,5 +1,4 @@
 [package]
-publish = false
 name = "tokmd-analysis-content"
 version.workspace = true
 edition.workspace = true
@@ -17,7 +16,7 @@ anyhow.workspace = true
 tokmd-analysis-imports.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
-tokmd-math.workspace = true
+tokmd-scan.workspace = true
 tokmd-content.workspace = true
 tokmd-types.workspace = true
 blake3.workspace = true

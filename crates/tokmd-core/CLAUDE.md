@@ -14,36 +14,46 @@ High-level API facade and recommended entry point for library usage. This is a *
 ## Public API
 
 ```rust
-pub fn scan_workflow(
-    global: &GlobalArgs,
-    lang: &LangArgs,
-    redact: Option<RedactMode>,
-) -> Result<LangReceipt>
+pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt>;
+pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt>;
+pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt>;
+pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt>;
+#[cfg(feature = "analysis")]
+pub fn analyze_workflow(scan: &ScanSettings, analyze: &AnalyzeSettings) -> Result<AnalysisReceipt>;
+pub fn version() -> &'static str;
 ```
 
 ### Re-exports
 ```rust
-pub use tokmd_config as config;
 pub use tokmd_types as types;
+```
+
+### Compatibility API (deprecated)
+
+The `scan_workflow` workflow and `tokmd_config` re-export exist for backwards compatibility
+when compiled with:
+
+```rust
+#[cfg(feature = "legacy-cli")]
 ```
 
 ## Implementation Details
 
 ### Workflow
 
-The `scan_workflow` function chains:
+The settings-first workflow chain is:
 1. **Scan** (tokmd-scan) - Execute tokei
 2. **Model** (tokmd-model) - Aggregate results
 3. **Receipt** - Construct with envelope metadata
 
 ```rust
-let global = GlobalArgs::default();
-let lang = LangArgs {
-    paths: vec![],
-    format: TableFormat::Json,
+let scan = ScanSettings::default();
+let lang = LangSettings {
+    top: 10,
+    files: true,
     // ...
 };
-let receipt = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
+let receipt = lang_workflow(&scan, &lang)?;
 ```
 
 ### Redaction Support
@@ -64,8 +74,9 @@ let receipt = scan_workflow(&global, &lang, Some(RedactMode::Paths))?;
 
 - `tokmd-scan` - Tokei wrapper
 - `tokmd-model` - Aggregation
-- `tokmd-redact` - Path hashing
-- `tokmd-config` - Args types
+- `tokmd-format::scan_args` - CLI/path/scan-arg rendering
+- `tokmd-format` - Serialization + text/file output helpers
+- `tokmd-settings` - Stable settings models
 - `tokmd-types` - Receipt types
 - `anyhow`
 

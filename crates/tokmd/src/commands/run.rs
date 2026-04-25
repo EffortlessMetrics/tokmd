@@ -1,16 +1,16 @@
 use std::path::PathBuf;
 
+use crate::cli;
 use anyhow::{Context, Result};
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
-use tokmd_config as cli;
 use tokmd_format as format;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_settings::ScanOptions;
 
 use crate::analysis_utils;
-use tokmd_progress::Progress;
+use crate::progress::Progress;
 
 pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()> {
     let progress = Progress::new(!global.no_progress);
@@ -65,10 +65,7 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     );
 
     // Get redact mode - applies to scan args in all receipts (lang.json, module.json, export.jsonl)
-    let redact_mode = args
-        .redact
-        .map(Into::into)
-        .unwrap_or(tokmd_types::RedactMode::None);
+    let redact_mode = args.redact.unwrap_or(tokmd_types::RedactMode::None);
     let scan_args = format::scan_args(&args.paths, &scan_opts, Some(redact_mode));
 
     // 4. Write artifacts using tokmd-format for consistency

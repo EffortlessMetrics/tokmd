@@ -1,5 +1,6 @@
 ---
 source: crates/tokmd-model/tests/snapshots.rs
+assertion_line: 135
 expression: redacted
 ---
 [
@@ -18,5 +19,21 @@ expression: redacted
     "lines_eq_sum": true,
     "module": "<root>",
     "path": "crates/tokmd-model/src/lib.rs"
+  },
+  {
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
+    "lines_eq_sum": true,
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/module_key/mod.rs"
+  },
+  {
+    "code_gt_zero": true,
+    "kind": "Parent",
+    "lang": "Rust",
+    "lines_eq_sum": true,
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/module_key/mod.rs"
   }
 ]

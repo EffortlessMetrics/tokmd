@@ -8,8 +8,7 @@ mod common;
 use assert_cmd::Command;
 use serde_json::Value;
 use tokmd_analysis_derived::derive_report;
-use tokmd_badge::badge_svg;
-use tokmd_format::{compute_diff_totals, create_diff_receipt, write_lang_report_to};
+use tokmd_format::{badge_svg, compute_diff_totals, create_diff_receipt, write_lang_report_to};
 use tokmd_model::{
     avg, create_export_data, create_lang_report, create_module_report, module_key, normalize_path,
 };

@@ -40,7 +40,7 @@ fn file_path_strategy() -> impl Strategy<Value = String> {
             Just("tests/".to_string()),
             Just("docs/".to_string()),
             Just("crates/tokmd/src/commands/".to_string()),
-            Just("crates/tokmd-config/".to_string()),
+            Just("crates/tokmd/src/cli/".to_string()),
             Just("".to_string()),
         ],
         "[a-z]{1,10}",

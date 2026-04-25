@@ -498,10 +498,7 @@ fn execute_publish(crates: &[String], args: &PublishArgs) -> Result<(Vec<String>
 fn is_publish_dependency(kind: &DependencyKind) -> bool {
     matches!(
         kind,
-        DependencyKind::Normal
-            | DependencyKind::Build
-            | DependencyKind::Development
-            | DependencyKind::Unknown
+        DependencyKind::Normal | DependencyKind::Build | DependencyKind::Unknown
     )
 }
 
@@ -1137,7 +1134,7 @@ mod tests {
     fn test_is_publish_dependency() {
         assert!(is_publish_dependency(&DependencyKind::Normal));
         assert!(is_publish_dependency(&DependencyKind::Build));
-        assert!(is_publish_dependency(&DependencyKind::Development));
+        assert!(!is_publish_dependency(&DependencyKind::Development));
     }
 
     #[test]

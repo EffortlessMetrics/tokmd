@@ -186,14 +186,14 @@ jobs:
           CI: true
 
   publish-plan:
-    name: Publish Plan
+    name: Publish Surface
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Verify publish plan
-        run: cargo xtask publish --plan --verbose
+      - name: Verify publish surface and dry-run checks
+        run: cargo xtask publish-surface --json --verify-publish
         env:
           CI: true
 
