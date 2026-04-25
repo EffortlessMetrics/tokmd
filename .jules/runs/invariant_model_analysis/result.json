@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "affected_shards": ["analysis-stack"],
+  "metrics": {
+    "proptests_added": 2
+  }
+}

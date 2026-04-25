@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-analysis-api-surface --test properties", "outcome": "test exact_mathematical_ratio_invariants ... ok\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.28s"}
+{"command": "cargo test -p tokmd-analysis-derived --test properties", "outcome": "test exact_mathematical_ratio_invariants ... ok\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.75s"}
