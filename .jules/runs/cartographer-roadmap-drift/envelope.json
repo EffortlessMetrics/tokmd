@@ -1,0 +1,22 @@
+{
+  "prompt_id": "cartographer_roadmap_design",
+  "persona": "Cartographer 🗺️",
+  "style": "Builder",
+  "primary_shard": "tooling-governance",
+  "allowed_paths": [
+    "xtask/**",
+    ".github/workflows/**",
+    "docs/**",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/**/Cargo.toml",
+    ".cargo/**"
+  ],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
+}

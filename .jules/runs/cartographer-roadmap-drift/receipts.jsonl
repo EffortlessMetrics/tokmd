@@ -1,0 +1,6 @@
+{"command": "cat ROADMAP.md | grep -n 'v1.9.0' -A 20", "exit_code": 0}
+{"command": "cat docs/implementation-plan.md | grep -n 'Phase 5' -A 10", "exit_code": 0}
+{"command": "git diff docs/implementation-plan.md", "exit_code": 0}
+{"command": "cargo xtask docs --check", "exit_code": 0}
+{"command": "cargo fmt -- --check", "exit_code": 0}
+{"command": "cargo xtask version-consistency", "exit_code": 0}
