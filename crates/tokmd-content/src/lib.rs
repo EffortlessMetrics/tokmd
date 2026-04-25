@@ -77,13 +77,27 @@ pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec
         return Ok(Vec::new());
     }
     let file = File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
-    let reader = BufReader::new(file);
+    let mut reader = BufReader::new(file);
     let mut lines = Vec::new();
     let mut bytes = 0usize;
 
-    for line in reader.lines() {
-        let line = line?;
-        bytes += line.len();
+    loop {
+        let mut line = String::new();
+        let bytes_read = reader.read_line(&mut line)?;
+        if bytes_read == 0 {
+            break;
+        }
+
+        bytes += bytes_read;
+
+        // Keep parity with BufRead::lines() output by stripping newline endings.
+        if line.ends_with('\n') {
+            line.pop();
+            if line.ends_with('\r') {
+                line.pop();
+            }
+        }
+
         lines.push(line);
         if lines.len() >= max_lines || bytes >= max_bytes {
             break;
@@ -296,6 +310,19 @@ mod tests {
         assert_eq!(lines.len(), 2, "Should stop after reaching 10 bytes");
         assert_eq!(lines[0], "12345");
         assert_eq!(lines[1], "67890");
+    }
+
+    #[test]
+    fn test_read_lines_max_bytes_counts_newline_bytes() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join("newline_bytes.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "abc").unwrap();
+        writeln!(f, "def").unwrap();
+
+        // "abc\n" is 4 bytes. With a max of 4, the second line should not be read.
+        let lines = read_lines(&path, 100, 4).unwrap();
+        assert_eq!(lines, vec!["abc"]);
     }
 
     #[test]
