@@ -290,10 +290,9 @@ fn extract_go_item_name(trimmed: &str) -> Option<String> {
     if let Some(rest) = trimmed.strip_prefix("func ") {
         let rest = if rest.starts_with('(') {
             // Method receiver: skip to closing paren
-            if let Some(close) = rest.find(')') {
+            {
+                let close = rest.find(')')?;
                 rest[close + 1..].trim_start()
-            } else {
-                return None;
             }
         } else {
             rest
