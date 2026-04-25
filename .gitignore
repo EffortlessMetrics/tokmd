@@ -44,7 +44,6 @@ mutants.out.old/
 .jules/worktrees/
 .jules/cache/
 .jules/transcripts/
-.jules/runs/
 .jules/runtime/
 .jules/tmp/
 

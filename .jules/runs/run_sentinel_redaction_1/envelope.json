@@ -1,0 +1,6 @@
+{
+  "run_id": "run_sentinel_redaction_1",
+  "persona": "Sentinel",
+  "style": "Stabilizer",
+  "primary_shard": "core-pipeline"
+}

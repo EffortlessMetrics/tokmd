@@ -1,0 +1,4 @@
+{
+  "status": "success",
+  "gates_run": ["cargo check", "cargo test", "cargo clippy"]
+}

@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}
