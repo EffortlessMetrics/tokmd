@@ -1,9 +1,0 @@
-{
-  "prompt_id": "surveyor_workspace",
-  "persona": "Surveyor",
-  "style": "Explorer",
-  "primary_shard": "workspace-wide",
-  "allowed_paths": ["**"],
-  "gate_profile": "core-rust",
-  "allowed_outcomes": ["pr_patch", "learning_pr"]
-}

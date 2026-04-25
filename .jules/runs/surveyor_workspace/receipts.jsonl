@@ -1,2 +1,0 @@
-{"command": "cargo xtask boundaries-check", "status": "success", "output": "All analysis microcrate boundaries OK"}
-{"command": "cargo machete", "status": "success", "output": "found unused dependencies in fuzz"}
