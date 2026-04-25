@@ -117,12 +117,12 @@ fn evaluate_rule(receipt: &Value, rule: &PolicyRule, allow_missing: bool) -> Rul
         RuleOperator::Exists => unreachable!(), // Handled above
     };
 
-    let passed = match comparison_result {
+    let passed = match &comparison_result {
         Ok(result) => {
             if rule.negate {
                 !result
             } else {
-                result
+                *result
             }
         }
         Err(_) => false,
@@ -146,29 +146,46 @@ fn evaluate_rule(receipt: &Value, rule: &PolicyRule, allow_missing: bool) -> Rul
         ),
     };
 
+    let generated_failure_message = comparison_result.err().map(|reason| {
+        format!(
+            "Rule '{}' failed: {} (pointer='{}', op='{}')",
+            rule.name, reason, rule.pointer, rule.op
+        )
+    });
+
     RuleResult {
         name: rule.name.clone(),
         passed,
         level: rule.level,
         actual: Some(actual.clone()),
         expected,
-        message: if passed { None } else { rule.message.clone() },
+        message: if passed {
+            None
+        } else {
+            rule.message.clone().or(generated_failure_message)
+        },
     }
 }
 
 /// Compare two values numerically.
-fn compare_numeric<F>(actual: &Value, expected: Option<&Value>, cmp: F) -> Result<bool, ()>
+fn compare_numeric<F>(
+    actual: &Value,
+    expected: Option<&Value>,
+    cmp: F,
+) -> Result<bool, &'static str>
 where
     F: Fn(f64, f64) -> bool,
 {
-    let actual_num = value_to_f64(actual).ok_or(())?;
-    let expected_num = expected.and_then(value_to_f64).ok_or(())?;
+    let actual_num = value_to_f64(actual).ok_or("actual value is not numeric")?;
+    let expected_num = expected
+        .and_then(value_to_f64)
+        .ok_or("expected value is missing or not numeric")?;
     Ok(cmp(actual_num, expected_num))
 }
 
 /// Compare two values for equality.
-fn compare_equal(actual: &Value, expected: Option<&Value>) -> Result<bool, ()> {
-    let expected = expected.ok_or(())?;
+fn compare_equal(actual: &Value, expected: Option<&Value>) -> Result<bool, &'static str> {
+    let expected = expected.ok_or("expected value is missing")?;
 
     // For strings, compare case-sensitively (before numeric to avoid "inf"/"nan" issues)
     if let (Some(a), Some(b)) = (actual.as_str(), expected.as_str()) {
@@ -185,8 +202,8 @@ fn compare_equal(actual: &Value, expected: Option<&Value>) -> Result<bool, ()> {
 }
 
 /// Check if actual value is in a list of expected values.
-fn compare_in(actual: &Value, expected: Option<&Vec<Value>>) -> Result<bool, ()> {
-    let list = expected.ok_or(())?;
+fn compare_in(actual: &Value, expected: Option<&Vec<Value>>) -> Result<bool, &'static str> {
+    let list = expected.ok_or("expected values list is missing")?;
 
     for item in list {
         if compare_equal(actual, Some(item)).unwrap_or(false) {
@@ -198,12 +215,14 @@ fn compare_in(actual: &Value, expected: Option<&Vec<Value>>) -> Result<bool, ()>
 }
 
 /// Check if actual contains expected.
-fn compare_contains(actual: &Value, expected: Option<&Value>) -> Result<bool, ()> {
-    let expected = expected.ok_or(())?;
+fn compare_contains(actual: &Value, expected: Option<&Value>) -> Result<bool, &'static str> {
+    let expected = expected.ok_or("expected value is missing")?;
 
     match actual {
         Value::String(s) => {
-            let needle = expected.as_str().ok_or(())?;
+            let needle = expected
+                .as_str()
+                .ok_or("expected value must be a string for string contains checks")?;
             Ok(s.contains(needle))
         }
         Value::Array(arr) => {
@@ -214,7 +233,7 @@ fn compare_contains(actual: &Value, expected: Option<&Value>) -> Result<bool, ()
             }
             Ok(false)
         }
-        _ => Err(()),
+        _ => Err("contains is only valid for string or array actual values"),
     }
 }
 
@@ -644,5 +663,38 @@ mod tests {
             "expected string should contain the list values: got '{}'",
             result.expected
         );
+    }
+
+    #[test]
+    fn test_comparison_type_error_generates_default_message() {
+        let receipt = json!({"count": "not-a-number"});
+        let rule = make_rule("numeric_check", "/count", RuleOperator::Lte, json!(10));
+
+        let result = evaluate_rule(&receipt, &rule, false);
+        assert!(!result.passed);
+        let message = result.message.unwrap_or_default();
+        assert!(
+            message.contains("actual value is not numeric"),
+            "expected diagnostic message, got: {message}"
+        );
+    }
+
+    #[test]
+    fn test_custom_message_overrides_generated_failure_message() {
+        let receipt = json!({"count": "not-a-number"});
+        let rule = PolicyRule {
+            name: "numeric_check".into(),
+            pointer: "/count".into(),
+            op: RuleOperator::Lte,
+            value: Some(json!(10)),
+            values: None,
+            negate: false,
+            level: RuleLevel::Error,
+            message: Some("Custom policy message".into()),
+        };
+
+        let result = evaluate_rule(&receipt, &rule, false);
+        assert!(!result.passed);
+        assert_eq!(result.message.as_deref(), Some("Custom policy message"));
     }
 }
