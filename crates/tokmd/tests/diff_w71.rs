@@ -30,7 +30,7 @@ fn lang_receipt_json(rows: &[(&str, usize, usize, usize, usize, usize)]) -> Stri
             total_files += files;
             total_bytes += bytes;
             total_tokens += tokens;
-            let avg = if *files > 0 { lines / files } else { 0 };
+            let avg = (*lines).checked_div(*files).unwrap_or(0);
             format!(
                 r#"{{"lang":"{}","code":{},"lines":{},"files":{},"bytes":{},"tokens":{},"avg_lines":{}}}"#,
                 lang, code, lines, files, bytes, tokens, avg
@@ -38,11 +38,7 @@ fn lang_receipt_json(rows: &[(&str, usize, usize, usize, usize, usize)]) -> Stri
         })
         .collect();
 
-    let total_avg = if total_files > 0 {
-        total_lines / total_files
-    } else {
-        0
-    };
+    let total_avg = total_lines.checked_div(total_files).unwrap_or(0);
 
     format!(
         r#"{{
