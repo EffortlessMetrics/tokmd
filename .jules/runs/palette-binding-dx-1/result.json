@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "patch_type": "PR-ready patch",
+  "learning_pr": false,
+  "telemetry": {
+    "change_shape": "Fixed `isRunMessage` validation in `web/runner/messages.js` to accept `paths` or `scan` arguments in addition to `inputs`.",
+    "blast_radius": "Limited to browser runner validation logic. Fixes broken usage of paths/scan in browser runner.",
+    "risk_class": "Low",
+    "rollback": "Revert the changes to `web/runner/messages.js` and `web/runner/messages.test.mjs`.",
+    "gates_run": ["npm test in web/runner"]
+  }
+}
