@@ -257,4 +257,28 @@ proptest! {
             report.nesting.max, report.nesting.avg
         );
     }
+
+    #[test]
+    fn exact_mathematical_ratio_invariants(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+
+        let expected_ratio = if report.doc_density.total.denominator == 0 {
+            0.0
+        } else {
+            tokmd_math::round_f64(report.doc_density.total.numerator as f64 / report.doc_density.total.denominator as f64, 4)
+        };
+
+        prop_assert_eq!(
+            report.doc_density.total.ratio, expected_ratio,
+            "overall doc_density ratio strict rounding invariant"
+        );
+
+        let total_test_denom = report.test_density.prod_lines + report.test_density.test_lines;
+        if total_test_denom == 0 {
+            prop_assert_eq!(report.test_density.ratio, 0.0);
+        } else {
+            let expected_test_ratio = tokmd_math::round_f64(report.test_density.test_lines as f64 / total_test_denom as f64, 4);
+            prop_assert_eq!(report.test_density.ratio, expected_test_ratio, "test_density ratio strict rounding invariant");
+        }
+    }
 }

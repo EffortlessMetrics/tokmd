@@ -342,3 +342,71 @@ fn empty_input_always_yields_zeros() {
     assert_eq!(report.public_ratio, 0.0);
     assert_eq!(report.documented_ratio, 0.0);
 }
+
+// ---------------------------------------------------------------------------
+// Property: Mathematical ratio calculation invariant matches round_f64
+// ---------------------------------------------------------------------------
+
+fn round_f64(val: f64, decimals: u32) -> f64 {
+    let factor = 10f64.powi(decimals as i32);
+    (val * factor).round() / factor
+}
+
+proptest! {
+    #[test]
+    fn exact_mathematical_ratio_invariants(
+        lines in prop::collection::vec(rust_item_line(), 0..50)
+    ) {
+        let code = lines.join("\n") + "\n";
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("lib.rs"), &code).unwrap();
+
+        let export = make_export(vec![make_row("lib.rs", ".", "Rust")]);
+        let paths = vec![PathBuf::from("lib.rs")];
+        let report = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        // 1. Total level public ratio invariant
+        let expected_public_ratio = if report.total_items == 0 {
+            0.0
+        } else {
+            round_f64(report.public_items as f64 / report.total_items as f64, 4)
+        };
+        prop_assert_eq!(
+            report.public_ratio, expected_public_ratio,
+            "overall public_ratio strict rounding invariant"
+        );
+
+        // 2. Per-language public ratio invariant
+        for lang_stats in report.by_language.values() {
+            let expected_lang_ratio = if lang_stats.total_items == 0 {
+                0.0
+            } else {
+                round_f64(lang_stats.public_items as f64 / lang_stats.total_items as f64, 4)
+            };
+            prop_assert_eq!(
+                lang_stats.public_ratio, expected_lang_ratio,
+                "language public_ratio strict rounding invariant"
+            );
+        }
+
+        // 3. Per-module public ratio invariant
+        for mod_row in &report.by_module {
+            let expected_mod_ratio = if mod_row.total_items == 0 {
+                0.0
+            } else {
+                round_f64(mod_row.public_items as f64 / mod_row.total_items as f64, 4)
+            };
+            prop_assert_eq!(
+                mod_row.public_ratio, expected_mod_ratio,
+                "module public_ratio strict rounding invariant"
+            );
+        }
+
+        // 4. Zero bounds for documented ratio
+        if report.public_items == 0 {
+            prop_assert_eq!(report.documented_ratio, 0.0);
+        }
+    }
+}
