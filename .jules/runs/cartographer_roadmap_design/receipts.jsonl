@@ -1,7 +1,0 @@
-{"command": "mkdir -p .jules/runs/cartographer_roadmap_design", "status": 0}
-{"command": "echo '...' > .jules/runs/cartographer_roadmap_design/envelope.json", "status": 0}
-{"command": "echo '...' > .jules/runs/cartographer_roadmap_design/decision.md", "status": 0}
-{"command": "patch ROADMAP.md update_roadmap.patch", "status": 0}
-{"command": "cargo xtask docs --check", "status": 0}
-{"command": "cargo fmt -- --check", "status": 0}
-{"command": "cargo clippy -- -D warnings", "status": 0}
