@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "learning_pr": false,
+  "summary": "Improved DX for unrecognized subcommands by adding a Levenshtein-based suggestion in error hints."
+}
