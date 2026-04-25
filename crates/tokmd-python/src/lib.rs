@@ -1099,6 +1099,13 @@ mod tests {
                 None,
                 None,
                 false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
@@ -1132,6 +1139,13 @@ mod tests {
                 Some(1),
                 None,
                 false,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
@@ -1328,10 +1342,9 @@ mod tests {
                 false,
             );
 
-            // Should not panic - either Ok or Err is acceptable
-            match result {
-                Ok(_) => (),  // Handled gracefully
-                Err(_) => (), // Error is also fine
+            // Should not panic - either Ok or Err is acceptable.
+            if let Err(err) = result {
+                let _ = err.to_string();
             }
         });
     }
@@ -1395,7 +1408,6 @@ mod tests {
         // - Must NOT panic
         // - Must return Err(PyErr)
         // - Python exception should contain "permission" or "access" in message
-        assert!(true, "Permission error contract documented");
     }
 
     // CONTRACT 2: All public functions return PyResult (type safety)
@@ -1444,7 +1456,7 @@ mod tests {
             let temp_path = temp_dir.to_string_lossy().to_string();
 
             // lang() - should return PyResult
-            match lang(
+            let _ = lang(
                 py,
                 Some(vec![temp_path.clone()]),
                 0,
@@ -1453,13 +1465,10 @@ mod tests {
                 None,
                 None,
                 false,
-            ) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            );
 
             // module() - should return PyResult
-            match module(
+            let _ = module(
                 py,
                 Some(vec![temp_path.clone()]),
                 0,
@@ -1469,13 +1478,10 @@ mod tests {
                 None,
                 None,
                 false,
-            ) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            );
 
             // export() - should return PyResult
-            match export(
+            let _ = export(
                 py,
                 Some(vec![temp_path.clone()]),
                 None,
@@ -1487,13 +1493,10 @@ mod tests {
                 None,
                 None,
                 false,
-            ) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            );
 
             // analyze() - should return PyResult
-            match analyze(
+            let _ = analyze(
                 py,
                 Some(vec![temp_path.clone()]),
                 None,
@@ -1504,22 +1507,20 @@ mod tests {
                 None,
                 None,
                 false,
-            ) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            );
 
             // diff() - should return PyResult
-            match diff(py, Some(&temp_path), Some(&temp_path)) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            let _ = diff(py, Some(&temp_path), Some(&temp_path));
 
             // cockpit() - should return PyResult
-            match cockpit(py, None, None, None, None) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            let _ = cockpit(py, None, None, None, None);
         });
     }
 
@@ -1569,10 +1570,7 @@ mod tests {
                 let result = run_json(py, "version", json_input);
 
                 // CONTRACT: Must not panic - Ok or Err both acceptable
-                match result {
-                    Ok(_) => (),
-                    Err(_) => (),
-                }
+                let _ = result;
             }
         });
     }
@@ -1596,14 +1594,8 @@ mod tests {
             let dict = PyDict::new(py);
             dict.set_item("test", 42).unwrap();
 
-            // If we reach here, GIL is still valid
-            assert!(true, "GIL remained valid after run()");
-
             // Original result should be available
-            match result {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            let _ = result;
         });
     }
 }
