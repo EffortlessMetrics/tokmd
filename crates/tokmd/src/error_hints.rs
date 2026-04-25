@@ -41,14 +41,71 @@ fn suggestions(err: &Error) -> Vec<String> {
         || haystack.contains("input path does not exist")
         || haystack.contains("no such file or directory")
     {
+        let mut did_you_mean = false;
+
+        // Check for common typoed subcommands in "Path not found: <bad>"
+        if haystack.contains("path not found") {
+            // Find the original path string from the chain
+            for e in err.chain() {
+                let e_str = e.to_string();
+                if e_str.starts_with("Path not found: ") {
+                    let bad_path = e_str.trim_start_matches("Path not found: ").trim();
+                    if !bad_path.contains('/') && !bad_path.contains('.') && !bad_path.is_empty() {
+                        let known = [
+                            "lang",
+                            "module",
+                            "export",
+                            "analyze",
+                            "badge",
+                            "init",
+                            "completions",
+                            "run",
+                            "diff",
+                            "context",
+                            "check-ignore",
+                            "tools",
+                            "gate",
+                            "cockpit",
+                            "baseline",
+                            "handoff",
+                            "sensor",
+                        ];
+
+                        let mut best_match = None;
+                        let mut best_dist = usize::MAX;
+
+                        for k in known.iter() {
+                            let d = levenshtein(bad_path, k);
+                            if d < best_dist {
+                                best_dist = d;
+                                best_match = Some(*k);
+                            }
+                        }
+
+                        if let Some(m) = best_match {
+                            // Max distance 2 for a typo, or proportional to length
+                            let threshold = std::cmp::max(2, m.len() / 3);
+                            if best_dist <= threshold && best_dist > 0 {
+                                push_hint(&mut out, &format!("Did you mean the subcommand `{m}`?"));
+                                did_you_mean = true;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if !did_you_mean {
+            push_hint(
+                &mut out,
+                "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
+            );
+        }
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
             &mut out,
             "Use an absolute path to avoid working-directory confusion.",
-        );
-        push_hint(
-            &mut out,
-            "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
         );
     }
 
@@ -97,6 +154,43 @@ fn push_hint(out: &mut Vec<String>, hint: &str) {
     }
 }
 
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a_chars: Vec<char> = a.chars().collect();
+    let b_chars: Vec<char> = b.chars().collect();
+
+    if a_chars.is_empty() {
+        return b_chars.len();
+    }
+    if b_chars.is_empty() {
+        return a_chars.len();
+    }
+
+    let mut d = vec![vec![0; b_chars.len() + 1]; a_chars.len() + 1];
+
+    for (i, row) in d.iter_mut().enumerate().take(a_chars.len() + 1) {
+        row[0] = i;
+    }
+    for (j, item) in d[0].iter_mut().enumerate().take(b_chars.len() + 1) {
+        *item = j;
+    }
+
+    for i in 1..=a_chars.len() {
+        for j in 1..=b_chars.len() {
+            let cost = if a_chars[i - 1] == b_chars[j - 1] {
+                0
+            } else {
+                1
+            };
+            d[i][j] = std::cmp::min(
+                std::cmp::min(d[i - 1][j] + 1, d[i][j - 1] + 1),
+                d[i - 1][j - 1] + cost,
+            );
+        }
+    }
+
+    d[a_chars.len()][b_chars.len()]
+}
+
 #[cfg(test)]
 mod tests {
     use anyhow::anyhow;
@@ -109,6 +203,22 @@ mod tests {
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("git --version")));
         assert!(hints.iter().any(|h| h.contains("--no-git")));
+    }
+
+    #[test]
+    fn suggests_for_typo_subcommand() {
+        let err = anyhow!("Path not found: anolyze");
+        let hints = suggestions(&err);
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("Did you mean the subcommand `analyze`?"))
+        );
+        assert!(
+            !hints
+                .iter()
+                .any(|h| h.contains("subcommand, it is not recognized"))
+        );
     }
 
     #[test]
