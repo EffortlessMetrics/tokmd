@@ -160,7 +160,7 @@ fn render_tree(receipt: &AnalysisReceipt) -> String {
 #[cfg(feature = "fun")]
 fn render_obj_fun(receipt: &AnalysisReceipt) -> Result<String> {
     if let Some(derived) = &receipt.derived {
-        let buildings: Vec<tokmd_fun::ObjBuilding> = derived
+        let buildings: Vec<crate::fun::ObjBuilding> = derived
             .top
             .largest_lines
             .iter()
@@ -169,7 +169,7 @@ fn render_obj_fun(receipt: &AnalysisReceipt) -> Result<String> {
                 let x = (idx % 5) as f32 * 2.0;
                 let y = (idx / 5) as f32 * 2.0;
                 let h = (row.lines as f32 / 10.0).max(0.5);
-                tokmd_fun::ObjBuilding {
+                crate::fun::ObjBuilding {
                     name: row.path.clone(),
                     x,
                     y,
@@ -179,7 +179,7 @@ fn render_obj_fun(receipt: &AnalysisReceipt) -> Result<String> {
                 }
             })
             .collect();
-        return Ok(tokmd_fun::render_obj(&buildings));
+        return Ok(crate::fun::render_obj(&buildings));
     }
     Ok("# tokmd code city\n".to_string())
 }
@@ -192,7 +192,7 @@ fn render_midi_fun(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
             let key = 60u8 + (row.depth as u8 % 12);
             let velocity = (40 + (row.lines.min(127) as u8 / 2)).min(120);
             let start = (idx as u32) * 240;
-            notes.push(tokmd_fun::MidiNote {
+            notes.push(crate::fun::MidiNote {
                 key,
                 velocity,
                 start,
@@ -201,7 +201,7 @@ fn render_midi_fun(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
             });
         }
     }
-    tokmd_fun::render_midi(&notes, 120)
+    crate::fun::render_midi(&notes, 120)
 }
 
 // --- fun disabled impls (errors) ---

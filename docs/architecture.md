@@ -21,7 +21,7 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-content, tokmd-git
          ↓
-Tier 3 (Orchestration) tokmd-analysis, tokmd-cockpit, tokmd-fun,
+Tier 3 (Orchestration) tokmd-analysis, tokmd-cockpit,
                        tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
@@ -33,7 +33,7 @@ Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
 path/exclude/math/tokeignore/walk helpers in `tokmd-scan`, shared analysis
 limits and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge
-and export-tree and analysis rendering in `tokmd-format`, assets/fun and
+and export-tree, fun renderers, and analysis rendering in `tokmd-format`, assets/fun and
 metric/security analysis enrichers and content/import/Git adapters in
 `tokmd-analysis`, context policy/git helpers in
 `tokmd-core`, sensor substrate context in `tokmd-sensor`, and
@@ -80,7 +80,6 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 | `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, fun, complexity, entropy, Halstead, license, maintainability, API surface, effort, near-duplicate, content, and import enrichers |
 | `tokmd-format::analysis` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
-| `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 
 ### Tier 4: Facade

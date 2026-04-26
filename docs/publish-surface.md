@@ -63,13 +63,12 @@ automation.
 - `tokmd-model`
 - `tokmd-scan`
 
-### Conditional public crates (2)
+### Conditional public crates (1)
 
 These packages need focused boundary memos before the repo decides whether they
 remain public or collapse into owner modules.
 
 - `tokmd-content`
-- `tokmd-fun`
 
 ### Internal module families still packaged today (0)
 
@@ -82,7 +81,7 @@ No packaged internal module families remain in the compatibility surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (19 crates published + 4 non-crates.io)
+## Current compatibility surface (18 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -101,18 +100,17 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (8, compatibility classification)
+### Published support crates (7, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-content`
 - `tokmd-format`
-- `tokmd-fun`
 - `tokmd-git`
 - `tokmd-model`
 - `tokmd-scan`
 - `tokmd-test-support`
 
-**Count:** 8 published support crates.
+**Count:** 7 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -136,12 +134,11 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (8)
+### Target support crates (7)
 
 - `tokmd-analysis`
 - `tokmd-content`
 - `tokmd-format`
-- `tokmd-fun`
 - `tokmd-git`
 - `tokmd-model`
 - `tokmd-scan`
@@ -209,6 +206,8 @@ The former substrate crate now lives under
 `crates/tokmd-sensor/src/substrate.rs`.
 The former walk crate now lives under
 `crates/tokmd-scan/src/walk/`.
+The former novelty renderer crate now lives under
+`crates/tokmd-format/src/fun/`.
 
 ## Publish closure audit
 

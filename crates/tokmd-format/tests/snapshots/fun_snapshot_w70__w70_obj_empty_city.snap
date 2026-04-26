@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/fun_snapshot_w70.rs
+expression: "render_obj(&[])"
+---
+# tokmd code city

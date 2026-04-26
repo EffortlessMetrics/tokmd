@@ -119,7 +119,6 @@ crates/
 ├── tokmd-analysis-near-dup/         # Tier 3: Near-duplicate detection
 ├── tokmd-analysis-topics/           # Tier 3: Topic-cloud extraction
 ├── tokmd-analysis-util/             # Tier 3: Shared analysis utilities
-├── tokmd-fun/                       # Tier 3: Novelty outputs
 ├── tokmd-gate/                      # Tier 3: Policy evaluation
 ├── tokmd-core/                      # Tier 4: Library facade + FFI
 ├── tokmd/                           # Tier 5: CLI binary

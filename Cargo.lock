@@ -2657,20 +2657,9 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-analysis-types",
- "tokmd-fun",
  "tokmd-settings",
  "tokmd-types",
  "uuid",
-]
-
-[[package]]
-name = "tokmd-fun"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "insta",
- "midly",
- "proptest",
 ]
 
 [[package]]

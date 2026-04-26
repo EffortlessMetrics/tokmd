@@ -98,9 +98,9 @@ fn tier_for_crate(name: &str) -> Option<u8> {
         // Tier 2: Adapters
         "tokmd-format" | "tokmd-content" | "tokmd-git" => Some(2),
 
-        // Tier 3: Orchestration (all analysis-* crates, fun, gate, cockpit)
+        // Tier 3: Orchestration (all analysis-* crates, gate, cockpit)
         n if n.starts_with("tokmd-analysis") => Some(3),
-        "tokmd-fun" | "tokmd-gate" | "tokmd-cockpit" => Some(3),
+        "tokmd-gate" | "tokmd-cockpit" => Some(3),
 
         // Tier 4: Facade
         "tokmd-core" => Some(4),
