@@ -2640,14 +2640,6 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "tokmd-ffi-envelope"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde_json",
  "tokmd-core",
 ]
 
@@ -2690,7 +2682,7 @@ dependencies = [
  "serde_json",
  "tokmd-content",
  "tokmd-core",
- "tokmd-ffi-envelope",
+ "tokmd-envelope",
  "tokmd-format",
  "tokmd-gate",
  "tokmd-model",
@@ -2754,7 +2746,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tokmd-core",
- "tokmd-ffi-envelope",
+ "tokmd-envelope",
 ]
 
 [[package]]
@@ -2767,7 +2759,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-core",
- "tokmd-ffi-envelope",
+ "tokmd-envelope",
 ]
 
 [[package]]
@@ -2862,7 +2854,7 @@ dependencies = [
  "serde_json",
  "tokmd-analysis-types",
  "tokmd-core",
- "tokmd-ffi-envelope",
+ "tokmd-envelope",
  "tokmd-types",
  "wasm-bindgen",
  "wasm-bindgen-test",

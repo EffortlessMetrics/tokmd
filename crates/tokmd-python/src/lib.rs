@@ -132,12 +132,12 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
     Ok(py.detach(|| tokmd_core::ffi::run_json(mode, args_json)))
 }
 
-fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> PyErr {
+fn map_envelope_error(err: tokmd_envelope::ffi::EnvelopeExtractError) -> PyErr {
     TokmdError::new_err(err.to_string())
 }
 
 fn extract_data_json(result_json: &str) -> PyResult<String> {
-    tokmd_ffi_envelope::extract_data_json(result_json).map_err(map_envelope_error)
+    tokmd_envelope::ffi::extract_data_json(result_json).map_err(map_envelope_error)
 }
 
 #[cfg(test)]
@@ -1246,7 +1246,7 @@ mod tests {
 
     #[test]
     fn map_envelope_error_preserves_message() {
-        let err = tokmd_ffi_envelope::EnvelopeExtractError::JsonParse("test error".to_string());
+        let err = tokmd_envelope::ffi::EnvelopeExtractError::JsonParse("test error".to_string());
         let py_err = map_envelope_error(err);
         assert!(py_err.to_string().contains("test error"));
     }

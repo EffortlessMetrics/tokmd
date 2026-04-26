@@ -394,7 +394,7 @@ UX work is explicitly **incremental and non-breaking**:
 | `tokmd-analysis/src/imports`   | 3    | Language-aware import parsing + normalization          |
 | `tokmd-analysis-maintainability` | 3  | Maintainability index scoring + Halstead merge         |
 | `tokmd-tool-schema`            | 4    | AI tool-schema generation from clap command trees      |
-| `tokmd-ffi-envelope`           | 4    | Shared FFI envelope parser for Python/Node bindings    |
+| `tokmd-envelope/src/ffi.rs`    | 0    | Shared FFI envelope parser for Python/Node bindings    |
 
 ### Architectural Changes
 
@@ -427,7 +427,7 @@ UX work is explicitly **incremental and non-breaking**:
 | 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
 | 2 | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
 | 3 | All `tokmd-analysis-*` microcrates, `tokmd-gate`, `tokmd-fun` | BDD scenarios, enricher contract verification, deep proptests |
-| 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-ffi-envelope` | FFI workflow integration, JSON API round-trip tests |
+| 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-envelope/src/ffi.rs` | FFI workflow integration, JSON API round-trip tests |
 | 5 | `tokmd` CLI | E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`, `sensor`, and `baseline` |
 
 ### What Landed (36+ PRs first wave, 16 PRs second wave)

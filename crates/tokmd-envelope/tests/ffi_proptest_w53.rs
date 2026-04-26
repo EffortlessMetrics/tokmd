@@ -1,11 +1,11 @@
-//! W53: Property-based tests for `tokmd-ffi-envelope` JSON envelope invariants.
+//! W53: Property-based tests for `tokmd-envelope::ffi` JSON envelope invariants.
 //!
 //! Covers: parse/extract consistency, error classification, roundtrip stability,
 //! format_error_message safety, and boundary conditions.
 
 use proptest::prelude::*;
 use serde_json::{Map, Number, Value};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };

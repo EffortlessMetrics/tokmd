@@ -1,4 +1,4 @@
-//! Wave 49: Deep tests for `tokmd-ffi-envelope`.
+//! Wave 49: Deep tests for `tokmd-envelope::ffi`.
 //!
 //! Covers:
 //! - Response envelope construction (ok=true with data, ok=false with error)
@@ -9,7 +9,7 @@
 
 use proptest::prelude::*;
 use serde_json::{Map, Number, Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };

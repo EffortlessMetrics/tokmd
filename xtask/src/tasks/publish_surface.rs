@@ -11,7 +11,6 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
     "tokmd-cockpit",
     "tokmd-core",
     "tokmd-envelope",
-    "tokmd-ffi-envelope",
     "tokmd-gate",
     "tokmd-io-port",
     "tokmd-sensor",
@@ -56,7 +55,6 @@ const PUBLIC_CAPABILITY_CRATES: &[&str] = &[
 
 const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[
     "tokmd-content",
-    "tokmd-ffi-envelope",
     "tokmd-fun",
     "tokmd-substrate",
     "tokmd-walk",

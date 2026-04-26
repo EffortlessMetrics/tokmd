@@ -63,13 +63,12 @@ automation.
 - `tokmd-model`
 - `tokmd-scan`
 
-### Conditional public crates (5)
+### Conditional public crates (4)
 
 These packages need focused boundary memos before the repo decides whether they
 remain public or collapse into owner modules.
 
 - `tokmd-content`
-- `tokmd-ffi-envelope`
 - `tokmd-fun`
 - `tokmd-substrate`
 - `tokmd-walk`
@@ -85,19 +84,18 @@ No packaged internal module families remain in the compatibility surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (22 crates published + 4 non-crates.io)
+## Current compatibility surface (21 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
 
-### Supported public crates (13)
+### Supported public crates (12)
 
 - `tokmd`
 - `tokmd-analysis-types`
 - `tokmd-cockpit`
 - `tokmd-core`
 - `tokmd-envelope`
-- `tokmd-ffi-envelope`
 - `tokmd-gate`
 - `tokmd-io-port`
 - `tokmd-sensor`
@@ -138,7 +136,7 @@ The compatibility target public surface remains the supported public API
 surface. The compatibility support surface now matches the current closure.
 `target_gap` is zero.
 
-### Target public crates (13)
+### Target public crates (12)
 
 Same as the current supported public crates.
 
@@ -210,6 +208,8 @@ The former analysis format and HTML crates now live under
 `crates/tokmd-format/src/analysis/`.
 The former analysis explain crate now lives under
 `crates/tokmd/src/analysis_explain/`.
+The former FFI envelope crate now lives under
+`crates/tokmd-envelope/src/ffi.rs`.
 
 ## Publish closure audit
 

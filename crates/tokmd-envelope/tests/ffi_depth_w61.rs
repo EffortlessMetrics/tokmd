@@ -1,11 +1,11 @@
-//! Wave 61: Depth tests for `tokmd-ffi-envelope`.
+//! Wave 61: Depth tests for `tokmd-envelope::ffi`.
 //!
 //! Covers: envelope construction edge cases, error formatting boundary
 //! conditions, extraction pipeline fidelity, determinism guarantees,
 //! type coercion rules, serialization round-trips, and stress scenarios.
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };

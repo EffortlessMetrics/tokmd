@@ -1,8 +1,8 @@
-//! W77 deep tests for tokmd-ffi-envelope: envelope construction, error
+//! W77 deep tests for tokmd-envelope::ffi: envelope construction, error
 //! formatting, serialization, and extraction edge cases.
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };

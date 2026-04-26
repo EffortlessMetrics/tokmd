@@ -27,7 +27,7 @@ fn serialize_args(args: &Value) -> Result<String, String> {
 fn extract_mode_data_json(mode: &str, args_json: &str) -> Result<String, String> {
     validate_mode_args_json(mode, args_json).map_err(|err| err.to_string())?;
     let result_json = tokmd_core::ffi::run_json(mode, args_json);
-    tokmd_ffi_envelope::extract_data_json(&result_json).map_err(|err| err.to_string())
+    tokmd_envelope::ffi::extract_data_json(&result_json).map_err(|err| err.to_string())
 }
 
 #[cfg(test)]
@@ -176,7 +176,7 @@ mod tests {
     #[test]
     fn run_json_returns_valid_envelope() {
         let result = run_json("version", "{}");
-        let envelope = tokmd_ffi_envelope::parse_envelope(&result).expect("valid JSON envelope");
+        let envelope = tokmd_envelope::ffi::parse_envelope(&result).expect("valid JSON envelope");
 
         assert_eq!(envelope["ok"], true);
         assert_eq!(envelope["data"]["version"], env!("CARGO_PKG_VERSION"));
@@ -351,7 +351,7 @@ mod tests {
                 "preset": "health"
             }"#,
         );
-        let envelope = tokmd_ffi_envelope::parse_envelope(&result).expect("valid JSON envelope");
+        let envelope = tokmd_envelope::ffi::parse_envelope(&result).expect("valid JSON envelope");
 
         assert_eq!(envelope["ok"], false);
         assert_eq!(envelope["error"]["code"], "not_implemented");
@@ -435,7 +435,7 @@ mod wasm_tests {
     fn core_mode_value(mode: &str, args_json: &str) -> Value {
         let envelope_json = tokmd_core::ffi::run_json(mode, args_json);
         let data_json =
-            tokmd_ffi_envelope::extract_data_json(&envelope_json).expect("core data payload");
+            tokmd_envelope::ffi::extract_data_json(&envelope_json).expect("core data payload");
         serde_json::from_str(&data_json).expect("valid core JSON value")
     }
 

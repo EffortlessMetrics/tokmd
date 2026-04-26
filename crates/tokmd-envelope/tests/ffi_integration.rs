@@ -1,4 +1,4 @@
-use tokmd_ffi_envelope::{EnvelopeExtractError, extract_data_from_json, extract_data_json};
+use tokmd_envelope::ffi::{EnvelopeExtractError, extract_data_from_json, extract_data_json};
 
 #[test]
 fn extracts_data_from_real_tokmd_core_version_envelope() {

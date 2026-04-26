@@ -1,10 +1,10 @@
-//! Schema contract tests for `tokmd-ffi-envelope` (FFI response envelope).
+//! Schema contract tests for `tokmd-envelope::ffi` (FFI response envelope).
 //!
 //! These tests verify that the FFI JSON envelope structure `{"ok": bool, "data": ..., "error": ...}`
 //! is correct, stable, and backwards-compatible.
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::*;
+use tokmd_envelope::ffi::*;
 
 // ===========================================================================
 // 1. Success envelope structure: {"ok": true, "data": ...}

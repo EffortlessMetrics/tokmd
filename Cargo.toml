@@ -7,7 +7,6 @@ members = [
     "crates/tokmd-core",
     "crates/tokmd-content",
     "crates/tokmd-envelope",
-    "crates/tokmd-ffi-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
     "crates/tokmd-gate",
@@ -35,7 +34,6 @@ default-members = [
     "crates/tokmd-cockpit",
     "crates/tokmd-core",
     "crates/tokmd-envelope",
-    "crates/tokmd-ffi-envelope",
     "crates/tokmd-format",
     "crates/tokmd-gate",
     "crates/tokmd-git",
@@ -69,7 +67,6 @@ tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.9.0" }
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.9.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.9.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.9.0" }
-tokmd-ffi-envelope = { path = "crates/tokmd-ffi-envelope", version = "1.9.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.9.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.9.0" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.9.0" }

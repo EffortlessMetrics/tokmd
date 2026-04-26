@@ -1,4 +1,4 @@
-//! Wave 43: Deep tests for `tokmd-ffi-envelope`.
+//! Wave 43: Deep tests for `tokmd-envelope::ffi`.
 //!
 //! Focuses on:
 //! - Envelope wrapping: ok responses and error responses
@@ -9,7 +9,7 @@
 //! - Integration with live `run_json` envelopes
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };
