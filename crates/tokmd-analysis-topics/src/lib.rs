@@ -78,7 +78,11 @@ pub fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         per_module.insert(module.to_string(), rows);
 
         for (term, tf) in tf_map {
-            *overall_tf.entry(term.clone()).or_insert(0) += *tf;
+            if let Some(count) = overall_tf.get_mut(term.as_str()) {
+                *count += *tf;
+            } else {
+                overall_tf.insert(term.clone(), *tf);
+            }
         }
     }
 
