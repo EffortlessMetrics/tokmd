@@ -12,7 +12,7 @@
 //! * Enricher orchestration and adapters (delegated to microcrates)
 //!
 //! ## What does NOT belong here
-//! * Output formatting (use tokmd-analysis-format)
+//! * Output formatting (use tokmd-format::analysis)
 //! * CLI argument parsing
 //! * File modification
 

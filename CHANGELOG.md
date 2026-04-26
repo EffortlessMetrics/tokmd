@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on `tokmd-analysis-format` (Tier 3), bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
-  - Added `analysis_facade` module in `tokmd-core` with re-exports from `tokmd-analysis-format`
-  - Removed direct `tokmd-analysis-format` dependency from `tokmd` crate
+- **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
+  - Added `analysis_facade` module in `tokmd-core` with renderer re-exports
+  - Removed the direct analysis-renderer dependency from `tokmd` crate
   - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3
   - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
 
@@ -122,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added context-aware scanning and policy microcrates: `tokmd-context-git`, `tokmd-context-policy`.
 - Added deterministic utility microcrates: `tokmd-exclude`, `tokmd-module-key`, `tokmd-path`, `tokmd-scan-args`, `tokmd-export-tree`, `tokmd-ffi-envelope`, `tokmd-math`.
-- Added explainability, schema, and import analysis components: `tokmd-analysis-explain`, import analysis modules, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, `tokmd-analysis-html`.
+- Added explainability, schema, and import analysis components: `tokmd-analysis-explain`, import analysis modules, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, and analysis HTML rendering.
 
 ### Changed
 
@@ -490,7 +490,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
   - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
   - `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
-  - `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-fun` (Tier 3: enrichment)
+  - `tokmd-analysis`, analysis rendering, `tokmd-fun` (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
   - `tokmd` (Tier 5: CLI binary)
 - **Git Integration**: Hotspots, bus factor, freshness, coupling analysis

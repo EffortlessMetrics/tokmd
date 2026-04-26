@@ -1,0 +1,129 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w58.rs
+assertion_line: 340
+expression: "text(render(&r, AnalysisFormat::Md).unwrap())"
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|20|7000|800|500|8300|210000|70000|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|10.3%|
+|Whitespace ratio|6.0%|
+|Bytes per line|25.30|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|10.7%|600|5000|
+|Python|9.1%|200|2000|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|20|10|1100|415.00|320.00|800.00|1050.00|0.4200|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|Tiny|0|50|3|15.0%|
+|Small|51|200|6|30.0%|
+|Medium|201|500|7|35.0%|
+|Large|501|∞|4|20.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/core/engine.rs|Rust|1100|900|27500|9000|11.8%|25.00|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+## Structure
+
+- Max depth: `8`
+- Avg depth: `3.10`
+
+## Test density
+
+- Test lines: `1500`
+- Prod lines: `6800`
+- Test ratio: `22.1%`
+
+## TODOs
+
+- Total: `12`
+- Density (per KLOC): `1.71`
+
+|Tag|Count|
+|---|---:|
+|TODO|8|
+|FIXME|3|
+|HACK|1|
+
+## Boilerplate ratio
+
+- Infra lines: `350`
+- Logic lines: `7950`
+- Infra ratio: `4.4%`
+
+## Polyglot
+
+- Languages: `5`
+- Dominant: `Rust` (67.5%)
+- Entropy: `1.2000`
+
+## Reading time
+
+- Minutes: `415.00` (20 lines/min)
+
+## Integrity
+
+- Hash: `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` (`blake3`)
+- Entries: `20`

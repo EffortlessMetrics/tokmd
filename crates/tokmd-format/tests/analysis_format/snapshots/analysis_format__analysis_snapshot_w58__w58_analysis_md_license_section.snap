@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w58.rs
+assertion_line: 521
+expression: "text(render(&r, AnalysisFormat::Md).unwrap())"
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## License radar
+
+- Effective: `MIT OR Apache-2.0`
+- Heuristic detection; not legal advice.
+
+|SPDX|Confidence|Source|Kind|
+|---|---:|---|---|
+|MIT|0.95|LICENSE-MIT|Text|
+|Apache-2.0|0.92|LICENSE-APACHE|Text|

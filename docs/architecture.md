@@ -23,7 +23,6 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-explain,
-                       tokmd-analysis-format, tokmd-analysis-html,
                        tokmd-cockpit, tokmd-fun,
                        tokmd-gate
          ↓
@@ -36,8 +35,9 @@ Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
 path/exclude/math/tokeignore helpers in `tokmd-scan`, shared analysis limits
 and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
-export-tree rendering in `tokmd-format`, assets/fun and metric/security
-analysis enrichers and content/import/Git adapters in `tokmd-analysis`, context policy/git helpers in
+export-tree and analysis rendering in `tokmd-format`, assets/fun and
+metric/security analysis enrichers and content/import/Git adapters in
+`tokmd-analysis`, context policy/git helpers in
 `tokmd-core`, and
 CLI/config/progress/tool-schema wiring in `tokmd`.
 
@@ -84,8 +84,7 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 |-------|---------|
 | `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, fun, complexity, entropy, Halstead, license, maintainability, API surface, effort, near-duplicate, content, and import enrichers |
 | `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
-| `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
-| `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
+| `tokmd-format::analysis` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
@@ -128,7 +127,7 @@ Filesystem → tokmd-walk → tokmd-scan (tokei) → tokmd-model → tokmd-forma
 ### Flow B: Analysis (analyze/cockpit)
 
 ```
-Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-format → Output
+Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-format::analysis → Output
                                 ↓
                  ┌──────────────┴─────────────────────────────┐
                  ↓                                            ↓
@@ -194,7 +193,7 @@ tokmd guarantees byte-stable output for identical inputs:
 git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git", "tokmd-core/git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
-fun = ["tokmd-analysis/fun", "tokmd-analysis-format/fun"]
+fun = ["tokmd-analysis/fun", "tokmd-format/fun"]
 topics = ["tokmd-analysis/topics"]
 archetype = ["tokmd-analysis/archetype"]
 ui = ["dep:dialoguer", "dep:console", "dep:toml", "dep:indicatif"]

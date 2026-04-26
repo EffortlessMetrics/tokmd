@@ -104,7 +104,6 @@ crates/
 ├── tokmd-content/                   # Tier 2: Content scanning
 ├── tokmd-git/                       # Tier 2: Git analysis
 ├── tokmd-analysis/                  # Tier 3: Analysis orchestration
-├── tokmd-analysis-format/           # Tier 3: Analysis output rendering
 ├── tokmd-analysis-api-surface/      # Tier 3: API surface analysis
 ├── tokmd-analysis-archetype/        # Tier 3: Archetype inference
 ├── tokmd-analysis-assets/           # Tier 3: Asset and dependency reports
@@ -117,7 +116,6 @@ crates/
 ├── tokmd-analysis/src/git/          # Tier 3: Git history adapters
 ├── tokmd-analysis-grid/             # Tier 3: Preset/feature matrix
 ├── tokmd-analysis-halstead/         # Tier 3: Halstead metrics
-├── tokmd-analysis-html/             # Tier 3: HTML renderer for analysis
 ├── tokmd-analysis/src/imports/      # Tier 3: Import parsing + normalization
 ├── tokmd-analysis-license/          # Tier 3: License radar scanning
 ├── tokmd-analysis-maintainability/  # Tier 3: Maintainability index scoring
@@ -334,7 +332,7 @@ exclude_re = ["impl.*Display", "fn main\\("]
    - Look at existing enrichers like `derived.rs` or `git.rs` for patterns
    - Add new modules and wire them into `analysis.rs`
 
-2. **Output format templates** — Improve Markdown/SVG rendering in `crates/tokmd-analysis-format/`
+2. **Output format templates** — Improve Markdown/SVG rendering in `crates/tokmd-format/src/analysis/`
 
 3. **Language support** — Extend import graph parsing for more languages
 
@@ -347,7 +345,7 @@ Enrichers are implemented as their own microcrates:
 1. Create a new crate under `crates/` (e.g., `tokmd-analysis-my-enricher/`)
 2. Add the data structures to `crates/tokmd-analysis-types/src/lib.rs`
 3. Wire it into the preset system in `crates/tokmd-analysis/src/analysis.rs`
-4. Add formatting support in `crates/tokmd-analysis-format/`
+4. Add formatting support in `crates/tokmd-format/src/analysis/`
 5. Add tests and update documentation
 
 ## Pull Requests
@@ -369,7 +367,7 @@ Enrichers are implemented as their own microcrates:
 
 ### For analysis receipts:
 1.  Update struct definitions in `tokmd-analysis-types`.
-2.  Update formatting in `tokmd-analysis-format`.
+2.  Update formatting in `tokmd-format::analysis`.
 3.  Update `docs/SCHEMA.md` documentation.
 4.  Increment `ANALYSIS_SCHEMA_VERSION` for breaking changes.
 

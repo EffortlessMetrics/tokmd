@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_w70.rs
+assertion_line: 303
+expression: out
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`

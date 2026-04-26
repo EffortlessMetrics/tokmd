@@ -7,7 +7,7 @@
 //! ## Architecture Note
 //!
 //! Per ADR-001, all analysis formatting goes through the tokmd-core facade rather
-//! than directly importing tokmd-analysis-format. This ensures the product layer
+//! than directly importing the analysis renderer. This ensures the product layer
 //! depends only on the facade (Tier 4) and contracts (Tier 0).
 
 use std::io::IsTerminal;

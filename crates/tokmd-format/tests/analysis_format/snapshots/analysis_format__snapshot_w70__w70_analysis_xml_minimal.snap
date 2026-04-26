@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_w70.rs
+assertion_line: 354
+expression: out
+---
+<analysis></analysis>

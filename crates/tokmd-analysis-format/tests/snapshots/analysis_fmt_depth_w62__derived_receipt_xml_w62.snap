@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-format/tests/analysis_fmt_depth_w62.rs
-expression: xml
----
-<analysis><totals files="10" code="500" comments="50" blanks="100" lines="650" bytes="20000" tokens="3000"/></analysis>

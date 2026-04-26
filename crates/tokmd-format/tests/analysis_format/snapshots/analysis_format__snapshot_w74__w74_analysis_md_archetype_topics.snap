@@ -1,0 +1,21 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_w74.rs
+assertion_line: 346
+expression: out
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Archetype
+
+- Kind: `web-app`
+- Evidence: `package.json`, `src/index.tsx`
+
+## Topics
+
+- Overall: `frontend, rendering`

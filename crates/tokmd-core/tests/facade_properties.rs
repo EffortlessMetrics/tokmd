@@ -7,9 +7,9 @@
 
 #[cfg(feature = "analysis")]
 mod facade_tests {
-    use tokmd_analysis_format::{RenderedOutput as OriginalOutput, render as original_render};
     use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisReceipt, AnalysisSource};
     use tokmd_core::analysis_facade::{RenderedOutput as FacadeOutput, render as facade_render};
+    use tokmd_format::analysis::{RenderedOutput as OriginalOutput, render as original_render};
     use tokmd_types::{AnalysisFormat, ScanStatus, ToolInfo};
 
     fn minimal_receipt() -> AnalysisReceipt {

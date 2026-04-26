@@ -107,7 +107,7 @@ When comparing commits/tags directly (e.g., in `cockpit` command), use **two-dot
 
 All crates with full features enabled:
 - `tokmd-analysis` with: git, walk, content
-- `tokmd-analysis-format` with: fun
+- `tokmd-format` with: fun
 - `tokmd-core`, `tokmd-format`, `tokmd-settings`, `tokmd-types`
 - `clap`, `clap_complete`
 - `dirs` (XDG config directories)

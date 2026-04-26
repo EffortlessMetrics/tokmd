@@ -1,6 +1,0 @@
----
-source: crates/tokmd-analysis-html/tests/edge_cases.rs
-assertion_line: 512
-expression: json_str
----
-{"files":[]}

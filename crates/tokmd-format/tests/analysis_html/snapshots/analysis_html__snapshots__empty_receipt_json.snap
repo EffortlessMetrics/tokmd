@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/analysis_html/snapshots.rs
+expression: json_section
+---
+{"files":[]}

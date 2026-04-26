@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w54.rs
+assertion_line: 376
+expression: "text(render(&r, AnalysisFormat::Xml).unwrap())"
+---
+<analysis></analysis>

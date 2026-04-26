@@ -1,0 +1,16 @@
+---
+source: crates/tokmd-format/tests/analysis_html/snapshots.rs
+expression: pretty
+---
+{
+  "files": [
+    {
+      "code": 250,
+      "lang": "Rust",
+      "lines": 325,
+      "module": "src",
+      "path": "src/main.rs",
+      "tokens": 750
+    }
+  ]
+}

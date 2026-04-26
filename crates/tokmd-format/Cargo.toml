@@ -11,14 +11,20 @@ keywords = ["formatting", "markdown", "json", "csv", "serialization"]
 categories = ["development-tools", "encoding"]
 documentation = "https://docs.rs/tokmd-format"
 
+[features]
+default = []
+fun = ["dep:tokmd-fun"]
+
 [dependencies]
 anyhow.workspace = true
 csv = "1.4.0"
 blake3.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-time = { version = "0.3.47", features = ["formatting"] }
+time = { version = "0.3.47", features = ["formatting", "macros"] }
 uuid = { version = "1.23", features = ["v4"] }
+tokmd-analysis-types.workspace = true
+tokmd-fun = { workspace = true, optional = true }
 tokmd-settings.workspace = true
 tokmd-types.workspace = true
 
@@ -26,6 +32,7 @@ tokmd-types.workspace = true
 uuid = { version = "1.23", features = ["v4", "js"] }
 
 [dev-dependencies]
+midly = "0.5.3"
 proptest.workspace = true
 insta = { workspace = true }
 tempfile.workspace = true

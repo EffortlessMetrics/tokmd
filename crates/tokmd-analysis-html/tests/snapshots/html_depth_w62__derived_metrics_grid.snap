@@ -1,6 +1,0 @@
----
-source: crates/tokmd-analysis-html/tests/html_depth_w62.rs
-expression: section
----
-<div class="metrics-grid">
-            <div class="metric-card"><span class="value">10</span><span class="label">Files</span></div>

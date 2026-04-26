@@ -9,7 +9,7 @@ Analysis logic and enrichers for tokmd receipts. This is a **Tier 3** orchestrat
 - Orchestrate optional analysis modules
 - Compute derived metrics
 - Support analysis presets
-- **NOT** for formatting (see tokmd-analysis-format)
+- **NOT** for formatting (see tokmd-format::analysis)
 
 ## Public API
 
@@ -92,6 +92,6 @@ cargo test -p tokmd-analysis --all-features
 
 ## Do NOT
 
-- Format output (use tokmd-analysis-format)
+- Format output (use tokmd-format::analysis)
 - Add CLI parsing logic
 - Modify files

@@ -1,0 +1,17 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w54.rs
+assertion_line: 332
+expression: "text(render(&r, AnalysisFormat::Md).unwrap())"
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Archetype
+
+- Kind: `web-api`
+- Evidence: `Cargo.toml`, `src/routes.rs`, `Dockerfile`

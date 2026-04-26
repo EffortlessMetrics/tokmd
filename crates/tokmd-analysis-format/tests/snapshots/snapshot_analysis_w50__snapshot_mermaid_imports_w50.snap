@@ -1,9 +1,0 @@
----
-source: crates/tokmd-analysis-format/tests/snapshot_analysis_w50.rs
-expression: text
----
-graph TD
-  src_main_rs -->|2| src_config_rs
-  src_config_rs -->|1| src_types_rs
-  src_main_rs -->|3| src_types_rs
-  src_types_rs -->|1| src_utils_rs

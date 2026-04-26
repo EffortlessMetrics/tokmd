@@ -1,0 +1,24 @@
+---
+source: crates/tokmd-format/tests/analysis_html/edge_cases.rs
+expression: pretty
+---
+{
+  "files": [
+    {
+      "code": 100,
+      "lang": "Rust",
+      "lines": 130,
+      "module": "src/日本語",
+      "path": "src/日本語/ファイル.rs",
+      "tokens": 300
+    },
+    {
+      "code": 50,
+      "lang": "Rust",
+      "lines": 65,
+      "module": "src/émojis",
+      "path": "src/émojis/🦀.rs",
+      "tokens": 150
+    }
+  ]
+}

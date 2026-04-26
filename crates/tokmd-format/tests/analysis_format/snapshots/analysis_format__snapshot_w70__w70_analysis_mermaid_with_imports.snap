@@ -1,0 +1,9 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_w70.rs
+assertion_line: 419
+expression: out
+---
+graph TD
+  engine -->|5| api
+  api -->|3| types
+  engine -->|2| types

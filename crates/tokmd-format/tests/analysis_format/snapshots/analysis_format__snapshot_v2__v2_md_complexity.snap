@@ -1,0 +1,34 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_v2.rs
+assertion_line: 122
+expression: rendered
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Complexity
+
+|Metric|Value|
+|---|---:|
+|Total functions|42|
+|Avg function length|18.5|
+|Max function length|120|
+|Avg cyclomatic|3.20|
+|Max cyclomatic|15|
+|Avg cognitive|4.10|
+|Max cognitive|22|
+|Avg nesting depth|2.30|
+|Max nesting depth|6|
+|High risk files|2|
+
+### Top complex files
+
+|Path|CC|Functions|Max fn length|
+|---|---:|---:|---:|
+|src/parser.rs|15|12|120|
+|src/lib.rs|4|8|45|

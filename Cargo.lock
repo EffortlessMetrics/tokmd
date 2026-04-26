@@ -2578,33 +2578,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokmd-analysis-format"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "insta",
- "midly",
- "proptest",
- "serde_json",
- "tokmd-analysis-html",
- "tokmd-analysis-types",
- "tokmd-fun",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-html"
-version = "1.9.0"
-dependencies = [
- "insta",
- "proptest",
- "serde_json",
- "time",
- "tokmd-analysis-types",
- "tokmd-types",
-]
-
-[[package]]
 name = "tokmd-analysis-types"
 version = "1.9.0"
 dependencies = [
@@ -2658,7 +2631,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis",
- "tokmd-analysis-format",
  "tokmd-analysis-types",
  "tokmd-cockpit",
  "tokmd-format",
@@ -2696,11 +2668,14 @@ dependencies = [
  "blake3",
  "csv",
  "insta",
+ "midly",
  "proptest",
  "serde",
  "serde_json",
  "tempfile",
  "time",
+ "tokmd-analysis-types",
+ "tokmd-fun",
  "tokmd-settings",
  "tokmd-types",
  "uuid",

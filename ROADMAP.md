@@ -95,7 +95,6 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 2    | `tokmd-content`         | File content scanning                 |
 | 2    | `tokmd-git`             | Git history analysis                  |
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
-| 3    | `tokmd-analysis-format` | Analysis output rendering             |
 | 3    | `tokmd-fun`             | Fun/novelty outputs                   |
 | 3    | `tokmd-gate`            | Policy evaluation with JSON pointer   |
 | 4    | `tokmd-config`          | Configuration loading                 |
@@ -394,7 +393,6 @@ UX work is explicitly **incremental and non-breaking**:
 | `tokmd-analysis-explain`       | 3    | Metric/finding explanation catalog and alias lookup    |
 | `tokmd-analysis/src/imports`   | 3    | Language-aware import parsing + normalization          |
 | `tokmd-analysis-maintainability` | 3  | Maintainability index scoring + Halstead merge         |
-| `tokmd-analysis-html`          | 3    | Single-responsibility HTML renderer for analysis       |
 | `tokmd-tool-schema`            | 4    | AI tool-schema generation from clap command trees      |
 | `tokmd-ffi-envelope`           | 4    | Shared FFI envelope parser for Python/Node bindings    |
 
@@ -650,7 +648,7 @@ These are explicitly out of scope for tokmd:
 Contributions welcome! Priority areas:
 
 1. **Enricher implementations** — See `crates/tokmd-analysis/src/` for patterns
-2. **Output format templates** — Markdown templates in `tokmd-analysis-format`
+2. **Output format templates** — Markdown templates in `tokmd-format::analysis`
 3. **Language support** — Extend import graph parsing
 4. **Documentation** — Recipe examples and use cases
 

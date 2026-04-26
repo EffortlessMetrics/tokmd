@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/analysis_html/edge_cases.rs
+expression: json_str
+---
+{"files":[]}
