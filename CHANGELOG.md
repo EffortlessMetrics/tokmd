@@ -490,7 +490,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
   - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
   - `tokmd-format`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
-  - `tokmd-analysis`, analysis rendering, `tokmd-fun` (Tier 3: enrichment)
+  - `tokmd-analysis` and analysis rendering (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
   - `tokmd` (Tier 5: CLI binary)
 - **Git Integration**: Hotspots, bus factor, freshness, coupling analysis

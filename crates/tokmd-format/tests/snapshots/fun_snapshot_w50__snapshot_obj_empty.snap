@@ -1,0 +1,5 @@
+---
+source: crates/tokmd-format/tests/fun_snapshot_w50.rs
+expression: output
+---
+# tokmd code city

@@ -43,6 +43,8 @@ use tokmd_types::{
 pub mod analysis;
 pub mod badge;
 pub mod export_tree;
+#[cfg(feature = "fun")]
+pub mod fun;
 pub mod redact;
 pub mod scan_args;
 

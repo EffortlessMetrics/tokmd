@@ -131,7 +131,7 @@ Using `proptest` (1.9.0) across 17 crates:
 | `tokmd-git` | Git history collection |
 | `tokmd-content` | Entropy calculation, tag counting |
 | `tokmd-scan::walk` | File listing, traversal |
-| `tokmd-fun` | Novelty output generation |
+| `tokmd-format::fun` | Novelty output generation |
 | `tokmd` | CLI output properties |
 
 ### Configuration
@@ -235,7 +235,7 @@ cargo mutants --all-features                            # Full run (slow)
 ### Mutant Killer Tests
 
 Dedicated tests to catch specific mutants:
-- `crates/tokmd-fun/tests/mutant_tests.rs` - OBJ/MIDI rendering
+- `crates/tokmd-format/tests/fun_mutant_tests.rs` - OBJ/MIDI rendering
 - `crates/tokmd-analysis/tests/mutant_killers.rs` - Analysis logic
 
 ## Test Patterns
