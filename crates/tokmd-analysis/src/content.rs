@@ -5,7 +5,7 @@ use tokmd_analysis_types::{DuplicateReport, ImportReport, TodoReport};
 use tokmd_types::ExportData;
 
 use crate::analysis::ImportGranularity;
-use tokmd_analysis_util::AnalysisLimits;
+use tokmd_analysis_types::AnalysisLimits;
 
 pub fn build_todo_report(
     root: &Path,

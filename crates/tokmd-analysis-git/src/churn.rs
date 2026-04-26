@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use tokmd_analysis_types::{ChurnTrend, PredictiveChurnReport, TrendClass};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use tokmd_analysis_util::normalize_path;
+use tokmd_analysis_types::normalize_path;
 
 const SECONDS_PER_WEEK: i64 = 7 * 86_400;
 const RECENT_WEEKS: i64 = 4;

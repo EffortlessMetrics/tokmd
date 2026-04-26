@@ -15,12 +15,21 @@
 //! * File I/O operations
 
 pub mod findings;
+pub mod util;
 
 use std::collections::BTreeMap;
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
+
+pub use util::{
+    AnalysisLimits, empty_file_row, is_infra_lang, is_test_path, normalize_path, normalize_root,
+    now_ms, path_depth,
+};
+
+#[cfg(test)]
+pub use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 
 /// Schema version for analysis receipts.
 /// v7: Added coupling normalization (Jaccard/Lift), commit intent classification, near-duplicate detection.

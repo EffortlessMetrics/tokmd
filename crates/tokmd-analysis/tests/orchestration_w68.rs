@@ -8,8 +8,8 @@ use std::path::PathBuf;
 use tokmd_analysis::{
     AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze,
 };
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
-use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
 // ---------------------------------------------------------------------------

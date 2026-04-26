@@ -1,10 +1,10 @@
-//! W57 depth tests for tokmd-analysis-util.
+//! W57 depth tests for analysis types util module.
 
-use std::path::{Path, PathBuf};
-use tokmd_analysis_util::{
+use crate::{
     AnalysisLimits, empty_file_row, is_infra_lang, is_test_path, normalize_path, normalize_root,
     now_ms, path_depth,
 };
+use std::path::{Path, PathBuf};
 
 // ===========================================================================
 // 1. normalize_path exhaustive tests

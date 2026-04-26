@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::{fs, io::BufRead, io::BufReader};
 
+use tokmd_analysis_types::normalize_path;
 use tokmd_analysis_types::{EffortSizeBasis, EffortTagSizeRow};
-use tokmd_analysis_util::normalize_path;
 use tokmd_types::{ExportData, FileRow};
 
 #[derive(Debug, Clone, Copy)]
@@ -353,7 +353,7 @@ fn looks_build_path(path: &str) -> bool {
 }
 
 fn looks_infra_path(row: &FileRow) -> bool {
-    tokmd_analysis_util::is_infra_lang(&row.lang)
+    tokmd_analysis_types::is_infra_lang(&row.lang)
 }
 
 fn load_gitattributes(root: &Path) -> Vec<GitAttrRule> {

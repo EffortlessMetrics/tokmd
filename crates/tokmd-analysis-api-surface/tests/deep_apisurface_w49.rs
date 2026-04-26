@@ -8,8 +8,8 @@ use std::path::PathBuf;
 
 use tempfile::tempdir;
 use tokmd_analysis_api_surface::build_api_surface_report;
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::ApiSurfaceReport;
-use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────

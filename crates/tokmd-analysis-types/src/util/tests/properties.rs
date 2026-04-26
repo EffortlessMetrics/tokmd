@@ -1,10 +1,10 @@
-//! Property-based tests for `tokmd-analysis-util`.
+//! Property-based tests for `analysis types util module`.
 
 use std::path::PathBuf;
 
 use proptest::prelude::*;
 
-use tokmd_analysis_util::{
+use crate::{
     gini_coefficient, is_infra_lang, is_test_path, normalize_path, path_depth, percentile,
     round_f64, safe_ratio,
 };

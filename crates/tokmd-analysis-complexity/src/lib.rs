@@ -9,7 +9,7 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use tokmd_analysis_util::{AnalysisLimits, normalize_path};
+use tokmd_analysis_types::{AnalysisLimits, normalize_path};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;

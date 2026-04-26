@@ -1,8 +1,8 @@
-//! W61 depth tests for tokmd-analysis-util: BDD edge cases, determinism, proptest.
+//! W61 depth tests for analysis types util module: BDD edge cases, determinism, proptest.
 
 use std::path::PathBuf;
 
-use tokmd_analysis_util::{
+use crate::{
     AnalysisLimits, empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path,
     normalize_root, path_depth, percentile, round_f64, safe_ratio,
 };
@@ -421,11 +421,9 @@ fn empty_file_row_deterministic() {
 // ---------------------------------------------------------------------------
 
 mod properties {
+    use crate::{is_infra_lang, is_test_path, normalize_path, path_depth, round_f64, safe_ratio};
     use proptest::prelude::*;
     use std::path::PathBuf;
-    use tokmd_analysis_util::{
-        is_infra_lang, is_test_path, normalize_path, path_depth, round_f64, safe_ratio,
-    };
 
     proptest! {
         #[test]

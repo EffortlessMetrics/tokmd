@@ -91,9 +91,9 @@ fn publish_surface_json_distinguishes_current_and_target_surfaces() {
         .expect("new_unapproved_support_crates should be an array");
 
     assert_eq!(current_public.len(), 13);
-    assert_eq!(current_support.len(), 24);
+    assert_eq!(current_support.len(), 23);
     assert_eq!(target_support.len(), 23);
-    assert_eq!(target_gap.len(), 1);
+    assert!(target_gap.is_empty());
     assert!(new_unapproved.is_empty());
     assert_eq!(summary["public_surface"], summary["current_public_surface"]);
     assert_eq!(
