@@ -1,0 +1,2 @@
+{"cmd": "cargo test -p xtask", "status": "failed", "summary": "gate_runtime_guard_keeps_curated_jules_deps_history failed"}
+{"cmd": "sed -i 's/\".jules\\/runtime\",/\".jules\\/runtime\",\\n    \".jules\\/runs\",/' xtask/src/tasks/gate.rs", "status": "success", "summary": "Added .jules/runs to TRACKED_AGENT_RUNTIME_PATHS"}
