@@ -636,14 +636,14 @@ pub mod analysis_facade {
     /// Returns error if:
     /// - JSON/XML serialization fails
     /// - `fun` feature is disabled but OBJ/MIDI format requested
-    pub use tokmd_analysis_format::render;
+    pub use tokmd_format::analysis::render;
 
     /// Output container for rendered analysis.
     ///
     /// ## Variants
     /// - `Text(String)` — Textual formats: Markdown, JSON, XML, SVG, Mermaid, Tree, HTML
     /// - `Binary(Vec<u8>)` — Binary formats: MIDI (requires `fun` feature)
-    pub use tokmd_analysis_format::RenderedOutput;
+    pub use tokmd_format::analysis::RenderedOutput;
 }
 
 // =============================================================================

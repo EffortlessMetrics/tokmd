@@ -1,0 +1,214 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshots.rs
+assertion_line: 307
+expression: rendered
+---
+{
+  "schema_version": 9,
+  "generated_at_ms": 0,
+  "tool": {
+    "name": "tokmd",
+    "version": "0.0.0-test"
+  },
+  "mode": "analyze",
+  "status": "complete",
+  "warnings": [],
+  "source": {
+    "inputs": [
+      "."
+    ],
+    "export_path": null,
+    "base_receipt_path": null,
+    "export_schema_version": null,
+    "export_generated_at_ms": null,
+    "base_signature": null,
+    "module_roots": [],
+    "module_depth": 1,
+    "children": "collapse"
+  },
+  "args": {
+    "preset": "receipt",
+    "format": "md",
+    "window_tokens": null,
+    "git": null,
+    "max_files": null,
+    "max_bytes": null,
+    "max_commits": null,
+    "max_commit_files": null,
+    "max_file_bytes": null,
+    "import_granularity": "module"
+  },
+  "archetype": null,
+  "topics": null,
+  "entropy": null,
+  "predictive_churn": null,
+  "corporate_fingerprint": null,
+  "license": null,
+  "derived": {
+    "totals": {
+      "files": 5,
+      "code": 500,
+      "comments": 80,
+      "blanks": 40,
+      "lines": 620,
+      "bytes": 5000,
+      "tokens": 1200
+    },
+    "doc_density": {
+      "total": {
+        "key": "total",
+        "numerator": 80,
+        "denominator": 580,
+        "ratio": 0.1379
+      },
+      "by_lang": [
+        {
+          "key": "Rust",
+          "numerator": 70,
+          "denominator": 470,
+          "ratio": 0.1489
+        }
+      ],
+      "by_module": []
+    },
+    "whitespace": {
+      "total": {
+        "key": "total",
+        "numerator": 40,
+        "denominator": 620,
+        "ratio": 0.0645
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "verbosity": {
+      "total": {
+        "key": "total",
+        "numerator": 5000,
+        "denominator": 620,
+        "rate": 8.06
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "max_file": {
+      "overall": {
+        "path": "src/main.rs",
+        "module": "src",
+        "lang": "Rust",
+        "code": 200,
+        "comments": 30,
+        "blanks": 15,
+        "lines": 245,
+        "bytes": 2000,
+        "tokens": 500,
+        "doc_pct": 0.13,
+        "bytes_per_line": 8.16,
+        "depth": 1
+      },
+      "by_lang": [],
+      "by_module": []
+    },
+    "lang_purity": {
+      "rows": []
+    },
+    "nesting": {
+      "max": 4,
+      "avg": 2.0,
+      "by_module": []
+    },
+    "test_density": {
+      "test_lines": 100,
+      "prod_lines": 400,
+      "test_files": 2,
+      "prod_files": 3,
+      "ratio": 0.25
+    },
+    "boilerplate": {
+      "infra_lines": 50,
+      "logic_lines": 570,
+      "ratio": 0.0877,
+      "infra_langs": [
+        "TOML"
+      ]
+    },
+    "polyglot": {
+      "lang_count": 2,
+      "entropy": 0.72,
+      "dominant_lang": "Rust",
+      "dominant_lines": 450,
+      "dominant_pct": 0.9
+    },
+    "distribution": {
+      "count": 5,
+      "min": 25,
+      "max": 245,
+      "mean": 124.0,
+      "median": 100.0,
+      "p90": 245.0,
+      "p99": 245.0,
+      "gini": 0.32
+    },
+    "histogram": [
+      {
+        "label": "Small",
+        "min": 0,
+        "max": 100,
+        "files": 3,
+        "pct": 0.6
+      },
+      {
+        "label": "Medium",
+        "min": 101,
+        "max": 500,
+        "files": 2,
+        "pct": 0.4
+      }
+    ],
+    "top": {
+      "largest_lines": [
+        {
+          "path": "src/main.rs",
+          "module": "src",
+          "lang": "Rust",
+          "code": 200,
+          "comments": 30,
+          "blanks": 15,
+          "lines": 245,
+          "bytes": 2000,
+          "tokens": 500,
+          "doc_pct": 0.13,
+          "bytes_per_line": 8.16,
+          "depth": 1
+        }
+      ],
+      "largest_tokens": [],
+      "largest_bytes": [],
+      "least_documented": [],
+      "most_dense": []
+    },
+    "tree": null,
+    "reading_time": {
+      "minutes": 31.0,
+      "lines_per_minute": 20,
+      "basis_lines": 620
+    },
+    "context_window": null,
+    "cocomo": null,
+    "todo": null,
+    "integrity": {
+      "algo": "blake3",
+      "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "entries": 5
+    }
+  },
+  "assets": null,
+  "deps": null,
+  "git": null,
+  "imports": null,
+  "dup": null,
+  "complexity": null,
+  "api_surface": null,
+  "effort": null,
+  "fun": null
+}

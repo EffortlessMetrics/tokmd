@@ -1,0 +1,12 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w54.rs
+assertion_line: 283
+expression: "text(render(&r, AnalysisFormat::Md).unwrap())"
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`

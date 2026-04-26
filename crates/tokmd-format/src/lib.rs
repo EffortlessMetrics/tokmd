@@ -11,11 +11,12 @@
 //! * Output file writing
 //! * Redaction integration (via internal `redact` module)
 //! * ScanArgs integration (via internal `scan_args` module)
+//! * Analysis receipt rendering under [`analysis`]
 //!
 //! ## What does NOT belong here
 //! * Business logic (calculating stats)
 //! * CLI argument parsing
-//! * Analysis-specific formatting (use tokmd-analysis-format)
+//! * Analysis computation (use tokmd-analysis)
 
 use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;
@@ -39,6 +40,7 @@ use tokmd_types::{
     ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
+pub mod analysis;
 pub mod badge;
 pub mod export_tree;
 pub mod redact;

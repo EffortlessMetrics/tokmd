@@ -1,0 +1,8 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w54.rs
+assertion_line: 427
+expression: "text(render(&r, AnalysisFormat::Mermaid).unwrap())"
+---
+graph TD
+  core -->|10| utils
+  cli -->|5| core

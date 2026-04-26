@@ -1,0 +1,152 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_fmt_depth_w62.rs
+assertion_line: 850
+expression: md
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Totals
+
+|Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
+|---:|---:|---:|---:|---:|---:|---:|
+|10|500|50|100|650|20000|3000|
+
+## Ratios
+
+|Metric|Value|
+|---|---:|
+|Doc density|9.1%|
+|Whitespace ratio|18.2%|
+|Bytes per line|30.77|
+
+### Doc density by language
+
+|Lang|Doc%|Comments|Code|
+|---|---:|---:|---:|
+|Rust|10.0%|30|270|
+
+### Whitespace ratio by language
+
+|Lang|Blank%|Blanks|Code+Comments|
+|---|---:|---:|---:|
+
+### Verbosity by language
+
+|Lang|Bytes/Line|Bytes|Lines|
+|---|---:|---:|---:|
+
+## Distribution
+
+|Count|Min|Max|Mean|Median|P90|P99|Gini|
+|---:|---:|---:|---:|---:|---:|---:|---:|
+|10|10|200|65.00|50.00|180.00|200.00|0.3500|
+
+## File size histogram
+
+|Bucket|Min|Max|Files|Pct|
+|---|---:|---:|---:|---:|
+|tiny|0|50|4|40.0%|
+|large|51|∞|6|60.0%|
+
+## Top offenders
+
+### Largest files by lines
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+|src/main.rs|Rust|250|200|8000|1200|10.0%|32.00|
+
+### Largest files by tokens
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Largest files by bytes
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Least documented (min LOC)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+### Most dense (bytes/line)
+
+|Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
+|---|---|---:|---:|---:|---:|---:|---:|
+
+## Structure
+
+- Max depth: `3`
+- Avg depth: `1.50`
+
+## Test density
+
+- Test lines: `100`
+- Prod lines: `400`
+- Test ratio: `25.0%`
+
+## TODOs
+
+- Total: `5`
+- Density (per KLOC): `10.00`
+
+|Tag|Count|
+|---|---:|
+|TODO|3|
+|FIXME|2|
+
+## Boilerplate ratio
+
+- Infra lines: `50`
+- Logic lines: `450`
+- Infra ratio: `10.0%`
+
+## Polyglot
+
+- Languages: `2`
+- Dominant: `Rust` (80.0%)
+- Entropy: `0.5000`
+
+## Reading time
+
+- Minutes: `3.25` (200 lines/min)
+
+## Context window
+
+- Window tokens: `128000`
+- Total tokens: `3000`
+- Utilization: `2.3%`
+- Fits: `true`
+
+## Effort estimate
+
+### Size basis
+
+- Source lines: `500`
+- Total lines: `650`
+- KLOC: `0.5000`
+
+### Headline
+
+- Effort: `1.20` person-months
+- Duration: `2.50` months
+- Staff: `0.48`
+
+### Why
+
+- Model: `COCOMO` (`organic` mode)
+- Formula: `E = a * KLOC^b`
+- Coefficients: `a=2.40`, `b=1.05`, `c=2.50`, `d=0.38`
+
+### Delta
+
+- Baseline comparison is not available for this receipt.
+
+## Integrity
+
+- Hash: `abcdef1234567890` (`blake3`)
+- Entries: `10`

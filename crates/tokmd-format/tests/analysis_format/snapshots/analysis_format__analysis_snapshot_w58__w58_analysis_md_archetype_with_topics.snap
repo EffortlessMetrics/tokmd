@@ -1,0 +1,22 @@
+---
+source: crates/tokmd-format/tests/analysis_format/analysis_snapshot_w58.rs
+assertion_line: 495
+expression: "text(render(&r, AnalysisFormat::Md).unwrap())"
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Archetype
+
+- Kind: `monorepo`
+- Evidence: `Cargo.toml workspace`, `crates/`, `multiple Cargo.toml`
+
+## Topics
+
+- Overall: `parsing, formatting`
+- `core`: analysis

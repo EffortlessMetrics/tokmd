@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_v2.rs
+assertion_line: 320
+expression: rendered
+---
+<analysis></analysis>

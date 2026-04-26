@@ -83,5 +83,5 @@ Use `BTreeMap` for deterministic key ordering in maps.
 ## Do NOT
 
 - Add analysis computation logic (belongs in tokmd-analysis)
-- Add formatting logic (belongs in tokmd-analysis-format)
+- Add formatting logic (belongs in tokmd-format::analysis)
 - Add I/O operations

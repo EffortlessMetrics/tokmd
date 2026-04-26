@@ -52,7 +52,7 @@ Run the scan once. Derive all views (lang, module, export, analysis) from that s
 │  │                                                  │       │
 │  │  tokmd-scan → tokmd-model → tokmd-format        │       │
 │  │       ↓                          ↓              │       │
-│  │  tokmd-analysis → tokmd-analysis-format         │       │
+│  │  tokmd-analysis → tokmd-format::analysis        │       │
 │  │                                                  │       │
 │  └──────────────────────────────────────────────────┘       │
 └─────────────────────────────────────────────────────────────┘

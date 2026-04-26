@@ -74,14 +74,12 @@ remain public or collapse into owner modules.
 - `tokmd-substrate`
 - `tokmd-walk`
 
-### Internal module families still packaged today (3)
+### Internal module families still packaged today (1)
 
 These are current crates.io package boundaries that should be treated as
 transitional implementation seams, not the desired final registry surface.
 
 - `tokmd-analysis-explain`
-- `tokmd-analysis-format`
-- `tokmd-analysis-html`
 
 ### Dev-only package under policy review (1)
 
@@ -90,7 +88,7 @@ transitional implementation seams, not the desired final registry surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (25 crates published + 4 non-crates.io)
+## Current compatibility surface (23 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -111,12 +109,10 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (12, compatibility classification)
+### Published support crates (10, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-analysis-explain`
-- `tokmd-analysis-format`
-- `tokmd-analysis-html`
 - `tokmd-content`
 - `tokmd-format`
 - `tokmd-fun`
@@ -126,7 +122,7 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 12 published support crates.
+**Count:** 10 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -150,12 +146,10 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (12)
+### Target support crates (10)
 
 - `tokmd-analysis`
 - `tokmd-analysis-explain`
-- `tokmd-analysis-format`
-- `tokmd-analysis-html`
 - `tokmd-content`
 - `tokmd-format`
 - `tokmd-fun`
@@ -190,8 +184,8 @@ Publish-surface policy work is **truth-first**:
 - machine-readable classification
 - CI `--json --verify-publish` checks
 
-Crate-collapse work should stay in focused follow-ups. Deeper analysis-crate
-consolidation, renderer migration, and gray-zone decisions remain future work.
+Crate-collapse work should stay in focused follow-ups. Deeper gray-zone
+decisions remain future work.
 
 ## Hard rule
 
@@ -201,7 +195,7 @@ consolidation, renderer migration, and gray-zone decisions remain future work.
 ## Completed target-gap folder merges
 
 The former analysis Markdown crate now lives under
-`crates/tokmd-analysis-format/src/markdown.rs`.
+`crates/tokmd-format/src/analysis/markdown.rs`.
 The former analysis assets and fun crates now live under
 `crates/tokmd-analysis/src/assets/` and `crates/tokmd-analysis/src/fun/`.
 The former analysis archetype, derived, fingerprint, grid, and topics support
@@ -217,6 +211,8 @@ The former analysis content and imports crates now live under
 `crates/tokmd-analysis/src/content/` and `crates/tokmd-analysis/src/imports/`.
 The former analysis Git crate now lives under
 `crates/tokmd-analysis/src/git/`.
+The former analysis format and HTML crates now live under
+`crates/tokmd-format/src/analysis/`.
 
 ## Publish closure audit
 

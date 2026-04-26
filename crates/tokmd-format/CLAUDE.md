@@ -11,7 +11,7 @@ Output formatting and serialization. This is a **Tier 2** crate that renders tok
 - Output file writing
 - CycloneDX SBOM generation
 - Redaction integration
-- **NOT** for analysis-specific formatting (see tokmd-analysis-format)
+- Owns analysis-specific formatting under `src/analysis/`.
 
 ## Public API
 
@@ -108,6 +108,6 @@ Tests cover:
 
 ## Do NOT
 
-- Add analysis-specific formatting (use tokmd-analysis-format)
+- Add analysis-specific formatting under `src/analysis/`
 - Add scanning logic
 - Modify JSON schema without updating version

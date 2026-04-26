@@ -1,0 +1,11 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshots.rs
+assertion_line: 418
+expression: rendered
+---
+root
+  src/
+    lib.rs (500 lines)
+    main.rs (245 lines)
+  tests/
+    smoke.rs (65 lines)

@@ -1,0 +1,21 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_v2.rs
+assertion_line: 224
+expression: rendered
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Duplicates
+
+- Wasted bytes: `512`
+- Strategy: `blake3`
+
+|Hash|Bytes|Files|
+|---|---:|---:|
+|abc123|512|2|

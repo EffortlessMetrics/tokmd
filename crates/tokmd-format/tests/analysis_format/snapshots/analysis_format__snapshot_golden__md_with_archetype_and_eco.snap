@@ -1,0 +1,24 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_golden.rs
+assertion_line: 323
+expression: out
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Archetype
+
+- Kind: `monorepo`
+- Evidence: `Cargo.toml`, `package.json`
+
+## Eco label
+
+- Label: `B`
+- Score: `80.0`
+- Bytes: `5000000`
+- Notes: `Size-based eco label (4.77 MB)`

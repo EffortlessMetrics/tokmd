@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_analysis_w50.rs
+assertion_line: 423
+expression: text
+---
+(tree unavailable)

@@ -11,7 +11,7 @@
 //!
 //! ## What does NOT belong here
 //! * Analysis computation logic (use tokmd-analysis)
-//! * Formatting logic (use tokmd-analysis-format)
+//! * Formatting logic (use tokmd-format::analysis)
 //! * File I/O operations
 
 pub mod findings;

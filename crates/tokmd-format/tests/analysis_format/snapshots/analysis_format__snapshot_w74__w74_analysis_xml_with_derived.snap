@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_w74.rs
+assertion_line: 404
+expression: out
+---
+<analysis><totals files="12" code="2400" comments="310" blanks="160" lines="2870" bytes="72000" tokens="19200"/></analysis>

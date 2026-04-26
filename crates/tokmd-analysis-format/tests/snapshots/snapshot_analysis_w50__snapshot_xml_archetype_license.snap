@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-format/tests/snapshot_analysis_w50.rs
-expression: text
----
-<analysis></analysis>

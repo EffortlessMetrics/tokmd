@@ -1,0 +1,6 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshots.rs
+assertion_line: 408
+expression: rendered
+---
+(tree unavailable)

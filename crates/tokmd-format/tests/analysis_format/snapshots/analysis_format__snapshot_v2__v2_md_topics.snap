@@ -1,0 +1,17 @@
+---
+source: crates/tokmd-format/tests/analysis_format/snapshot_v2.rs
+assertion_line: 202
+expression: rendered
+---
+# tokmd analysis
+
+Preset: `receipt`
+
+## Inputs
+
+- `.`
+
+## Topics
+
+- Overall: `compiler, optimization`
+- `src`: parsing, ast
