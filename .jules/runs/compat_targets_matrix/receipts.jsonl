@@ -1,0 +1,4 @@
+{"command": "cargo check -p tokmd-wasm --no-default-features", "status": "ok"}
+{"command": "npm test --prefix web/runner", "status": "failed before patch"}
+{"command": "patch web/runner/messages.js", "status": "ok"}
+{"command": "npm test --prefix web/runner", "status": "passed after patch"}
