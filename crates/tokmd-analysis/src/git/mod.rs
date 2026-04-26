@@ -12,11 +12,15 @@ use tokmd_types::{ExportData, FileKind, FileRow};
 use tokmd_analysis_types::normalize_path;
 use tokmd_scan::{percentile, round_f64};
 
+mod churn;
+
+pub(crate) use churn::build_predictive_churn_report;
+
 const SECONDS_PER_DAY: i64 = 86_400;
 const REFRESH_WINDOW_DAYS: i64 = 30;
 const REFRESH_TREND_EPSILON: f64 = 0.10;
 
-pub fn build_git_report(
+pub(crate) fn build_git_report(
     repo_root: &Path,
     export: &ExportData,
     commits: &[tokmd_git::GitCommit],
@@ -437,3 +441,7 @@ fn normalize_git_path(path: &str) -> String {
     }
     out
 }
+
+#[cfg(test)]
+#[path = "tests.rs"]
+mod moved_tests;

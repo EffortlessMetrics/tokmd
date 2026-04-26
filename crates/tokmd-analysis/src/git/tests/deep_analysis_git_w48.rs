@@ -1,11 +1,11 @@
-//! Deep tests (w48) for tokmd-analysis-git: git enricher pipeline,
+//! Deep tests (w48) for `tokmd-analysis` Git module: git enricher pipeline,
 //! churn prediction, coupling/freshness report format, and capability
 //! reporting.
 
 use std::path::Path;
 
+use super::super::{build_git_report, build_predictive_churn_report};
 use proptest::prelude::*;
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

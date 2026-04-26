@@ -1,4 +1,4 @@
-//! Depth tests for `tokmd-analysis-git` — w57
+//! Depth tests for ``tokmd-analysis` Git module` — w57
 //!
 //! Covers hotspot detection, freshness scoring, coupling detection,
 //! churn calculation, empty/single/many commit scenarios, deterministic
@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

@@ -1,4 +1,4 @@
-//! BDD-style scenario tests for `tokmd-analysis-git`.
+//! BDD-style scenario tests for ``tokmd-analysis` Git module`.
 //!
 //! Each test follows Given / When / Then structure exercising the public API:
 //! - `build_git_report`
@@ -6,7 +6,7 @@
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

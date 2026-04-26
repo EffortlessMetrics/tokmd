@@ -23,8 +23,8 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-explain,
-                       tokmd-analysis-format, tokmd-analysis-git,
-                       tokmd-analysis-html, tokmd-cockpit, tokmd-fun,
+                       tokmd-analysis-format, tokmd-analysis-html,
+                       tokmd-cockpit, tokmd-fun,
                        tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
@@ -37,7 +37,7 @@ single-responsibility owner modules: module-key logic in `tokmd-model`,
 path/exclude/math/tokeignore helpers in `tokmd-scan`, shared analysis limits
 and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
 export-tree rendering in `tokmd-format`, assets/fun and metric/security
-analysis enrichers and content/import adapters in `tokmd-analysis`, context policy/git helpers in
+analysis enrichers and content/import/Git adapters in `tokmd-analysis`, context policy/git helpers in
 `tokmd-core`, and
 CLI/config/progress/tool-schema wiring in `tokmd`.
 
@@ -86,7 +86,6 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 | `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
-| `tokmd-analysis-git` | Git history analysis adapters |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
@@ -134,7 +133,7 @@ Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-for
                  ┌──────────────┴─────────────────────────────┐
                  ↓                                            ↓
        Core enrichers                                  Optional adapters
-        - tokmd-analysis derived/grid modules           - tokmd-git / tokmd-analysis-git
+        - tokmd-analysis derived/grid modules           - tokmd-git / analysis git module
         - tokmd-analysis assets/fun modules             - tokmd-walk / license / entropy / topics
         - tokmd-analysis complexity/halstead modules    - tokmd-content / content modules
         - tokmd-analysis API surface/effort/import modules

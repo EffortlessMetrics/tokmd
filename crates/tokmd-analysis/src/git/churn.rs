@@ -9,7 +9,7 @@ const SECONDS_PER_WEEK: i64 = 7 * 86_400;
 const RECENT_WEEKS: i64 = 4;
 const SLOPE_EPSILON: f64 = 0.01;
 
-pub fn build_predictive_churn_report(
+pub(crate) fn build_predictive_churn_report(
     export: &ExportData,
     commits: &[tokmd_git::GitCommit],
     repo_root: &std::path::Path,

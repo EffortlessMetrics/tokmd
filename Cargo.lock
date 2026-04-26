@@ -2559,7 +2559,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "tokmd-analysis-git",
  "tokmd-analysis-types",
  "tokmd-content",
  "tokmd-format",
@@ -2590,19 +2589,6 @@ dependencies = [
  "tokmd-analysis-html",
  "tokmd-analysis-types",
  "tokmd-fun",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-git"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
- "tokmd-git",
- "tokmd-scan",
  "tokmd-types",
 ]
 

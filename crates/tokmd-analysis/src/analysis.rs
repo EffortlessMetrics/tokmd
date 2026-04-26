@@ -20,8 +20,6 @@ use crate::api_surface::build_api_surface_report;
 use crate::archetype::detect_archetype;
 #[cfg(feature = "walk")]
 use crate::assets::{build_assets_report, build_dependency_report};
-#[cfg(feature = "git")]
-use crate::churn::build_predictive_churn_report;
 #[cfg(feature = "content")]
 use crate::content::{
     ContentLimits, ImportGranularity as ContentImportGranularity, build_duplicate_report,
@@ -33,7 +31,7 @@ use crate::fingerprint::build_corporate_fingerprint;
 #[cfg(feature = "fun")]
 use crate::fun::build_fun_report;
 #[cfg(feature = "git")]
-use crate::git::build_git_report;
+use crate::git::{build_git_report, build_predictive_churn_report};
 use crate::grid::{PresetKind, PresetPlan, preset_plan_for};
 #[cfg(feature = "content")]
 use crate::near_dup::{NearDupLimits, build_near_dup_report};

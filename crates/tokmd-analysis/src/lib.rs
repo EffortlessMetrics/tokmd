@@ -23,8 +23,6 @@ mod api_surface;
 mod archetype;
 #[cfg(feature = "walk")]
 mod assets;
-#[cfg(feature = "git")]
-mod churn;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod complexity;
 #[cfg(feature = "content")]
