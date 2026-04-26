@@ -160,9 +160,6 @@ fn test_resolve_export_with_config() {
     };
 
     let mut config = ResolvedConfig::default();
-    // In Rust we typically construct via fields if the lifetimes are tight.
-    // Or if `toml` is `&'a TomlConfig`, let's just make it a local reference.
-    // The previous test failed because `ResolvedConfig::toml` expects an `Option<&'a TomlConfig>`.
     let toml_ref = &toml;
     config.toml = Some(toml_ref);
 
@@ -235,7 +232,7 @@ fn test_resolve_export_no_args_no_profile() {
     assert_eq!(resolved.module_depth, 2);
     assert_eq!(resolved.min_code, 0);
     assert_eq!(resolved.max_rows, 0);
-    assert_eq!(resolved.meta, true);
+    assert!(resolved.meta);
 }
 
 #[test]

@@ -1,2 +1,0 @@
-{"timestamp": "2024-04-26T11:45:00Z", "command": "cargo build", "result": "success"}
-{"timestamp": "2024-04-26T11:45:10Z", "command": "cargo test -p tokmd-settings", "result": "success"}
