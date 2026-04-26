@@ -1,10 +1,10 @@
-//! Deep coverage tests for `tokmd-ffi-envelope`.
+//! Deep coverage tests for `tokmd-envelope::ffi`.
 //!
 //! Exercises envelope creation with various payloads, serialization validity,
 //! error envelope format, version field consistency, and edge cases.
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };

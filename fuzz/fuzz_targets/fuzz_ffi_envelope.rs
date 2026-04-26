@@ -9,7 +9,7 @@
 
 use libfuzzer_sys::fuzz_target;
 use serde_json::Value;
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, parse_envelope,
 };
 

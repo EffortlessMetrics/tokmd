@@ -17,8 +17,7 @@ The canonical detailed inventory lives in [docs/architecture.md](docs/architectu
 At a high level:
 
 - Tier 0: pure contracts and shared DTOs such as `tokmd-types`,
-  `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, and
-  `tokmd-ffi-envelope`
+  `tokmd-analysis-types`, `tokmd-settings`, and `tokmd-envelope`
 - Tier 1: core processing such as scanning, modeling, and sensor substrate
   building
 - Tier 2: adapters such as formatting, file walking, content scanning, and git

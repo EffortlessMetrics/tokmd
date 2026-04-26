@@ -8,6 +8,7 @@
 //!
 //! ## What belongs here
 //! * `SensorReport` (the cross-fleet envelope)
+//! * FFI `run_json` response parsing/extraction helpers
 //! * `Verdict`, `Finding`, `FindingSeverity`, `FindingLocation`
 //! * `GateResults`, `GateItem`, `Artifact`
 //! * Finding ID constants
@@ -16,6 +17,7 @@
 //! * tokmd-specific analysis types (use tokmd-analysis-types)
 //! * I/O operations or business logic
 
+pub mod ffi;
 pub mod findings;
 
 use serde::{Deserialize, Serialize};

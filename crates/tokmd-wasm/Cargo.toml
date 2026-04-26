@@ -23,7 +23,7 @@ js-sys = "0.3.91"
 serde_json.workspace = true
 tokmd-analysis-types = { workspace = true, optional = true }
 tokmd-core.workspace = true
-tokmd-ffi-envelope.workspace = true
+tokmd-envelope.workspace = true
 wasm-bindgen = "0.2.114"
 
 [dev-dependencies]

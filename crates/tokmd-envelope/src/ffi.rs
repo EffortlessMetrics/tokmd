@@ -38,7 +38,7 @@ impl std::error::Error for EnvelopeExtractError {}
 /// # Examples
 ///
 /// ```
-/// use tokmd_ffi_envelope::parse_envelope;
+/// use tokmd_envelope::ffi::parse_envelope;
 ///
 /// let val = parse_envelope(r#"{"ok": true, "data": 42}"#).unwrap();
 /// assert_eq!(val["ok"], true);
@@ -60,7 +60,7 @@ pub fn parse_envelope(result_json: &str) -> Result<Value, EnvelopeExtractError> 
 /// # Examples
 ///
 /// ```
-/// use tokmd_ffi_envelope::format_error_message;
+/// use tokmd_envelope::ffi::format_error_message;
 /// use serde_json::json;
 ///
 /// let err = json!({"code": "scan_failed", "message": "Path not found"});
@@ -103,7 +103,7 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
 /// # Examples
 ///
 /// ```
-/// use tokmd_ffi_envelope::extract_data;
+/// use tokmd_envelope::ffi::extract_data;
 /// use serde_json::json;
 ///
 /// let envelope = json!({"ok": true, "data": {"count": 5}});
@@ -137,7 +137,7 @@ pub fn extract_data(envelope: Value) -> Result<Value, EnvelopeExtractError> {
 /// # Examples
 ///
 /// ```
-/// use tokmd_ffi_envelope::extract_data_from_json;
+/// use tokmd_envelope::ffi::extract_data_from_json;
 ///
 /// let json_str = r#"{"ok": true, "data": {"mode": "lang"}}"#;
 /// let data = extract_data_from_json(json_str).unwrap();
@@ -153,7 +153,7 @@ pub fn extract_data_from_json(result_json: &str) -> Result<Value, EnvelopeExtrac
 /// # Examples
 ///
 /// ```
-/// use tokmd_ffi_envelope::extract_data_json;
+/// use tokmd_envelope::ffi::extract_data_json;
 ///
 /// let input = r#"{"ok": true, "data": {"v": 1}}"#;
 /// let json_out = extract_data_json(input).unwrap();

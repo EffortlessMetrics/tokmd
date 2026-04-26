@@ -15,8 +15,7 @@ tokmd follows a tiered microcrate architecture with strict dependency rules.
 
 ```
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
-                       tokmd-envelope, tokmd-ffi-envelope, tokmd-substrate,
-                       tokmd-io-port
+                       tokmd-envelope, tokmd-substrate, tokmd-io-port
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
@@ -47,8 +46,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 | `tokmd-types` | Core receipt DTOs (`LangRow`, `ModuleRow`, `FileRow`, `Totals`) | `serde` only |
 | `tokmd-analysis-types` | Analysis receipt DTOs | `serde`, `tokmd-types` |
 | `tokmd-settings` | Clap-free settings types (`ScanOptions`, `LangSettings`, etc.) | `serde`, `tokmd-types` |
-| `tokmd-envelope` | Cross-fleet `SensorReport` contract (`Verdict`, `Finding`, `GateResults`) | `serde`, `serde_json` |
-| `tokmd-ffi-envelope` | Shared FFI envelope parser/extractor for Python/Node bindings | `serde_json` |
+| `tokmd-envelope` | Cross-fleet `SensorReport` contract plus FFI envelope parser/extractor helpers | `serde`, `serde_json` |
 | `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
 | `tokmd-io-port` | Host-abstracted file access contracts (`ReadFs`, `HostFs`, `MemFs`) | `std` only |
 

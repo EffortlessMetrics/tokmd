@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Locked rounded COCOMO effort semantics with a retained regression seed and synced the schema/version docs that describe the estimate surface
-- Replaced remaining unwrap/panic-heavy test paths in `tokmd-analysis-types` and `tokmd-ffi-envelope`, and hardened a Windows-sensitive traversal property test
+- Replaced remaining unwrap/panic-heavy test paths in `tokmd-analysis-types` and the FFI envelope helpers, and hardened a Windows-sensitive traversal property test
 
 ## [1.8.0] - 2026-03-18
 
@@ -121,7 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added context-aware scanning and policy microcrates: `tokmd-context-git`, `tokmd-context-policy`.
-- Added deterministic utility microcrates: `tokmd-exclude`, `tokmd-module-key`, `tokmd-path`, `tokmd-scan-args`, `tokmd-export-tree`, `tokmd-ffi-envelope`, `tokmd-math`.
+- Added deterministic utility seams: `tokmd-exclude`, `tokmd-module-key`, `tokmd-path`, `tokmd-scan-args`, `tokmd-export-tree`, FFI envelope helpers, and `tokmd-math`.
 - Added explainability, schema, and import analysis components: the analysis explain catalog, import analysis modules, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, and analysis HTML rendering.
 
 ### Changed

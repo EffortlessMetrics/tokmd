@@ -18,4 +18,4 @@ serde_json.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
-
+tokmd-core.workspace = true

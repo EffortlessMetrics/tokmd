@@ -47,7 +47,7 @@ tokmd-types = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
 tokmd-format = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
-tokmd-ffi-envelope = { workspace = true, optional = true }
+tokmd-envelope = { workspace = true, optional = true }
 tokmd-core = { workspace = true, optional = true }
 
 # ============================================================================
@@ -114,9 +114,9 @@ scan_args = [
 # Targets: fuzz_import_parser
 analysis_imports = []
 
-# FFI response-envelope parsing/extraction helpers (tokmd-ffi-envelope)
+# FFI response-envelope parsing/extraction helpers (tokmd-envelope::ffi)
 # Targets: fuzz_ffi_envelope
-ffi_envelope = ["dep:tokmd-ffi-envelope", "dep:serde_json"]
+ffi_envelope = ["dep:tokmd-envelope", "dep:serde_json"]
 
 # ExportData tree rendering helpers (tokmd-format/export_tree)
 # Targets: fuzz_export_tree

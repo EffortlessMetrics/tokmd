@@ -57,13 +57,13 @@ fn encode_args<T: Serialize>(args: &T) -> Result<String> {
     serde_json::to_string(args).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
 }
 
-fn map_envelope_error(err: tokmd_ffi_envelope::EnvelopeExtractError) -> Error {
+fn map_envelope_error(err: tokmd_envelope::ffi::EnvelopeExtractError) -> Error {
     Error::from_reason(err.to_string())
 }
 
 #[cfg(test)]
 fn parse_envelope(result_json: &str) -> Result<serde_json::Value> {
-    tokmd_ffi_envelope::parse_envelope(result_json).map_err(map_envelope_error)
+    tokmd_envelope::ffi::parse_envelope(result_json).map_err(map_envelope_error)
 }
 
 async fn run_blocking<F>(f: F) -> Result<String>
@@ -83,7 +83,7 @@ pub async fn run_json(mode: String, args_json: String) -> Result<String> {
 
 fn parse_and_extract(result_json: Result<String>) -> Result<serde_json::Value> {
     let result_json = result_json?;
-    tokmd_ffi_envelope::extract_data_from_json(&result_json).map_err(map_envelope_error)
+    tokmd_envelope::ffi::extract_data_from_json(&result_json).map_err(map_envelope_error)
 }
 
 async fn run_with_args_json(mode: String, args_json: Result<String>) -> Result<serde_json::Value> {
@@ -98,7 +98,7 @@ fn options_or_empty(options: Option<serde_json::Value>) -> serde_json::Value {
 
 #[cfg(test)]
 fn extract_envelope(envelope: serde_json::Value) -> Result<serde_json::Value> {
-    tokmd_ffi_envelope::extract_data(envelope).map_err(map_envelope_error)
+    tokmd_envelope::ffi::extract_data(envelope).map_err(map_envelope_error)
 }
 
 /// Run a tokmd operation and return the result as a JavaScript object.
@@ -529,7 +529,7 @@ mod tests {
 
     #[test]
     fn map_envelope_error_preserves_message() {
-        let err = tokmd_ffi_envelope::EnvelopeExtractError::JsonParse("test error".to_string());
+        let err = tokmd_envelope::ffi::EnvelopeExtractError::JsonParse("test error".to_string());
         let napi_err = map_envelope_error(err);
         assert!(napi_err.to_string().contains("test error"));
     }

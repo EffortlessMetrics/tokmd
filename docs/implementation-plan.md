@@ -227,7 +227,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 1. **Tier 1 microcrates**: `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-exclude`, `tokmd-path`, `tokmd-module-key`
 2. **Tier 2 microcrates**: `tokmd-context-git`, `tokmd-export-tree`
 3. **Tier 3 seams**: CLI-local analysis explanations, analysis implementation modules, and analysis renderers under `tokmd-format`
-4. **Tier 4 microcrates**: `tokmd-tool-schema`, `tokmd-ffi-envelope`
+4. **Tier 4 seams**: `tokmd-tool-schema`, `tokmd-envelope/src/ffi.rs`
 5. **Architectural**: Moved `AnalysisFormat` to `tokmd-types` (Tier 0)
 
 ### Schema Changes

@@ -1,8 +1,8 @@
-//! Deep tests for tokmd-ffi-envelope: exhaustive coverage of envelope parsing,
+//! Deep tests for tokmd-envelope::ffi: exhaustive coverage of envelope parsing,
 //! extraction, error formatting, and round-trip invariants.
 
 use serde_json::{Value, json};
-use tokmd_ffi_envelope::{
+use tokmd_envelope::ffi::{
     EnvelopeExtractError, extract_data, extract_data_from_json, extract_data_json,
     format_error_message, parse_envelope,
 };
