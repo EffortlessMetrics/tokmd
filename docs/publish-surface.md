@@ -63,14 +63,13 @@ automation.
 - `tokmd-model`
 - `tokmd-scan`
 
-### Conditional public crates (3)
+### Conditional public crates (2)
 
 These packages need focused boundary memos before the repo decides whether they
 remain public or collapse into owner modules.
 
 - `tokmd-content`
 - `tokmd-fun`
-- `tokmd-walk`
 
 ### Internal module families still packaged today (0)
 
@@ -83,7 +82,7 @@ No packaged internal module families remain in the compatibility surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (20 crates published + 4 non-crates.io)
+## Current compatibility surface (19 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -102,7 +101,7 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (9, compatibility classification)
+### Published support crates (8, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-content`
@@ -112,9 +111,8 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-model`
 - `tokmd-scan`
 - `tokmd-test-support`
-- `tokmd-walk`
 
-**Count:** 9 published support crates.
+**Count:** 8 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -138,7 +136,7 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (9)
+### Target support crates (8)
 
 - `tokmd-analysis`
 - `tokmd-content`
@@ -148,7 +146,6 @@ Same as the current supported public crates.
 - `tokmd-model`
 - `tokmd-scan`
 - `tokmd-test-support`
-- `tokmd-walk`
 
 ### Target gap: planned compatibility support retirements (0)
 
@@ -210,6 +207,8 @@ The former FFI envelope crate now lives under
 `crates/tokmd-envelope/src/ffi.rs`.
 The former substrate crate now lives under
 `crates/tokmd-sensor/src/substrate.rs`.
+The former walk crate now lives under
+`crates/tokmd-scan/src/walk/`.
 
 ## Publish closure audit
 

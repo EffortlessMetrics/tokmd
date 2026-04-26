@@ -1,4 +1,4 @@
-//! Depth tests for tokmd-walk (wave 63).
+//! Depth tests for tokmd-scan walk helpers (wave 63).
 //!
 //! Covers walk configuration, gitignore respect, hidden file handling,
 //! symlink behavior, empty directories, file extension filtering,
@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ============================================================================
 // Helpers

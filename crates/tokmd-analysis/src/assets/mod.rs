@@ -28,7 +28,7 @@ pub(crate) fn build_assets_report(root: &Path, files: &[PathBuf]) -> Result<Asse
             Some(cat) => cat,
             None => continue,
         };
-        let bytes = tokmd_walk::file_size(root, rel).unwrap_or(0);
+        let bytes = tokmd_scan::walk::file_size(root, rel).unwrap_or(0);
         total_files += 1;
         total_bytes += bytes;
 

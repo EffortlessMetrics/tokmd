@@ -2565,7 +2565,6 @@ dependencies = [
  "tokmd-scan",
  "tokmd-test-support",
  "tokmd-types",
- "tokmd-walk",
 ]
 
 [[package]]
@@ -2767,9 +2766,11 @@ name = "tokmd-scan"
 version = "1.9.0"
 dependencies = [
  "anyhow",
+ "ignore",
  "proptest",
  "tempfile",
  "tokei",
+ "tokmd-io-port",
  "tokmd-model",
  "tokmd-settings",
  "tokmd-types",
@@ -2823,17 +2824,6 @@ dependencies = [
  "tokmd-format",
  "tokmd-model",
  "tokmd-scan",
-]
-
-[[package]]
-name = "tokmd-walk"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "ignore",
- "proptest",
- "tempfile",
- "tokmd-io-port",
 ]
 
 [[package]]

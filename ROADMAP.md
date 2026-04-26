@@ -90,8 +90,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 1    | `tokmd-tokeignore`      | Template generation                   |
 | 1    | `tokmd-redact`          | BLAKE3-based path redaction utilities |
 | 1    | `tokmd-sensor`          | `EffortlessSensor` trait + builder    |
+| 1    | `tokmd-scan::walk`      | File system traversal helpers         |
 | 2    | `tokmd-format`          | Output rendering                      |
-| 2    | `tokmd-walk`            | File system traversal                 |
 | 2    | `tokmd-content`         | File content scanning                 |
 | 2    | `tokmd-git`             | Git history analysis                  |
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
@@ -164,7 +164,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 - [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
 - [x] **Testing**: Comprehensive integration tests across all major crates
-- [x] **Testing**: Property-based tests for tokmd-redact, tokmd-tokeignore, tokmd-walk
+- [x] **Testing**: Property-based tests for tokmd-redact, tokmd-tokeignore, and tokmd-scan walk helpers
 - [x] **Testing**: Fuzz targets for path redaction and JSON deserialization
 - [x] **Testing**: Mutation testing with cargo-mutants and CI gate
 - [x] **CI/CD**: Enhanced publish workflow via `cargo xtask publish`
@@ -425,7 +425,7 @@ UX work is explicitly **incremental and non-breaking**:
 | :--- | :------------- | :--------------- |
 | 0 | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope` | Determinism regression, contract expansion, boundary props |
 | 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
-| 2 | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
+| 2 | `tokmd-format`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
 | 3 | All `tokmd-analysis-*` microcrates, `tokmd-gate`, `tokmd-fun` | BDD scenarios, enricher contract verification, deep proptests |
 | 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-envelope/src/ffi.rs` | FFI workflow integration, JSON API round-trip tests |
 | 5 | `tokmd` CLI | E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`, `sensor`, and `baseline` |

@@ -1,9 +1,9 @@
-//! Tests for tokmd-walk file listing utilities.
+//! Tests for tokmd-scan walk helpers file listing utilities.
 
 use std::path::PathBuf;
 
 use tempfile::TempDir;
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ========================
 // License Candidates Tests

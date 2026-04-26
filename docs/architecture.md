@@ -19,7 +19,7 @@ Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
-Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
+Tier 2 (Adapters)      tokmd-format, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-cockpit, tokmd-fun,
                        tokmd-gate
@@ -31,9 +31,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
-path/exclude/math/tokeignore helpers in `tokmd-scan`, shared analysis limits
-and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
-export-tree and analysis rendering in `tokmd-format`, assets/fun and
+path/exclude/math/tokeignore/walk helpers in `tokmd-scan`, shared analysis
+limits and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge
+and export-tree and analysis rendering in `tokmd-format`, assets/fun and
 metric/security analysis enrichers and content/import/Git adapters in
 `tokmd-analysis`, context policy/git helpers in
 `tokmd-core`, sensor substrate context in `tokmd-sensor`, and
@@ -61,7 +61,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-scan` | Wraps tokei library for code scanning |
+| `tokmd-scan` | Wraps tokei library for code scanning and owns file walking helpers |
 | `tokmd-model` | Aggregation logic: tokei results → tokmd receipts |
 | `tokmd-sensor` | `EffortlessSensor` trait + `build_substrate()` builder |
 
@@ -70,7 +70,6 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 | Crate | Purpose | Feature Flag |
 |-------|---------|--------------|
 | `tokmd-format` | Output rendering (Markdown, TSV, JSON, CSV, JSONL, CycloneDX) | — |
-| `tokmd-walk` | Filesystem traversal with gitignore support | `walk` |
 | `tokmd-content` | File content scanning (entropy, tags, hashing) | `content` |
 | `tokmd-git` | Git history analysis via shell `git log` | `git` |
 
@@ -112,7 +111,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 ### Flow A: Repository Inventory (lang/module/export)
 
 ```
-Filesystem → tokmd-walk → tokmd-scan (tokei) → tokmd-model → tokmd-format → Output
+Filesystem → tokmd-scan::walk → tokmd-scan (tokei) → tokmd-model → tokmd-format → Output
                                 ↓
                           BTreeMap (deterministic)
                                 ↓
@@ -128,7 +127,7 @@ Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-format::anal
                  ↓                                            ↓
        Core enrichers                                  Optional adapters
         - tokmd-analysis derived/grid modules           - tokmd-git / analysis git module
-        - tokmd-analysis assets/fun modules             - tokmd-walk / license / entropy / topics
+        - tokmd-analysis assets/fun modules             - tokmd-scan::walk / license / entropy / topics
         - tokmd-analysis complexity/halstead modules    - tokmd-content / content modules
         - tokmd-analysis API surface/effort/import modules
 ```

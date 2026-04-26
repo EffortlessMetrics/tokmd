@@ -7,7 +7,7 @@
 use proptest::prelude::*;
 use std::path::PathBuf;
 use tempfile::TempDir;
-use tokmd_walk::{file_size, list_files};
+use tokmd_scan::walk::{file_size, list_files};
 
 // ============================================================================
 // Strategies

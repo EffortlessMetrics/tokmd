@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-walk – wave 69.
+//! Deep tests for tokmd-scan walk helpers – wave 69.
 //!
 //! Covers file discovery with tempdir fixtures, license/metadata candidate
 //! detection, file_size, max-file limits, hidden file handling, gitignore
@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ── helpers ─────────────────────────────────────────────────────────────
 

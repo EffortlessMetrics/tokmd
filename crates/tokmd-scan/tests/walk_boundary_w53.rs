@@ -1,12 +1,12 @@
 //! Walk module boundary tests.
 //!
-//! Verifies that tokmd-walk functions handle empty directories, non-existent
+//! Verifies that tokmd-scan walk helpers handle empty directories, non-existent
 //! paths, ignored files, and asset detection edge cases gracefully.
 
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ── list_files: empty directory ──────────────────────────────────────
 

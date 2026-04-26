@@ -1,11 +1,11 @@
-//! Deep tests for tokmd-walk (wave 43).
+//! Deep tests for tokmd-scan walk helpers (wave 43).
 //!
 //! Covers gitignore handling, symlink behavior, file metadata edge cases,
 //! traversal with mixed content, and license_candidates corner cases.
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ============================================================================
 // 1. list_files — .gitignore handling (non-git fallback walker)

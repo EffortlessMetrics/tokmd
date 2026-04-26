@@ -1,4 +1,4 @@
-//! W74 deep tests for tokmd-walk: file walking, gitignore patterns,
+//! W74 deep tests for tokmd-scan walk helpers: file walking, gitignore patterns,
 //! empty directories, nested structures, asset/binary detection,
 //! license candidate edge cases, and file-size boundaries.
 
@@ -6,7 +6,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,7 +50,7 @@ fn make_repo(tag: &str) -> Option<TempRepo> {
         std::process::id(),
         std::thread::current().id(),
     );
-    let dir = std::env::temp_dir().join(format!("tokmd-walk-w74-{}", id));
+    let dir = std::env::temp_dir().join(format!("tokmd-scan-walk-w74-{}", id));
     if dir.exists() {
         fs::remove_dir_all(&dir).ok();
     }

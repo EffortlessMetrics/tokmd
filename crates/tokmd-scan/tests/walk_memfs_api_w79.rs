@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use tokmd_io_port::MemFs;
-use tokmd_walk::{file_size_from_memfs, list_files_from_memfs};
+use tokmd_scan::walk::{file_size_from_memfs, list_files_from_memfs};
 
 fn sample_memfs() -> MemFs {
     let mut fs = MemFs::new();

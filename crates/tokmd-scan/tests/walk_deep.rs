@@ -1,8 +1,8 @@
-//! Deep tests for tokmd-walk filesystem traversal.
+//! Deep tests for tokmd-scan walk helpers filesystem traversal.
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ---- list_files basic ----
 
@@ -294,7 +294,7 @@ fn license_candidates_clone() {
 mod properties {
     use proptest::prelude::*;
     use std::path::PathBuf;
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     proptest! {
         #[test]

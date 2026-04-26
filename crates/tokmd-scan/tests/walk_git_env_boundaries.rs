@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::Command;
 
 use tempfile::TempDir;
-use tokmd_walk::list_files;
+use tokmd_scan::walk::list_files;
 
 fn git_in(dir: &Path) -> Command {
     let mut cmd = Command::new("git");

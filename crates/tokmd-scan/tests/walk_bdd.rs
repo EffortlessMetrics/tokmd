@@ -1,4 +1,4 @@
-//! BDD-style scenario tests for tokmd-walk.
+//! BDD-style scenario tests for tokmd-scan walk helpers.
 //!
 //! These tests exercise filesystem traversal edge cases:
 //! gitignore support, symlinks, hidden files, and empty directories.
@@ -6,7 +6,7 @@
 use std::path::PathBuf;
 
 use tempfile::TempDir;
-use tokmd_walk::{file_size, list_files};
+use tokmd_scan::walk::{file_size, list_files};
 
 // ============================================================================
 // Helpers
@@ -431,7 +431,7 @@ fn file_size_for_deeply_nested_file() {
 
 #[test]
 fn given_license_variants_when_candidates_checked_then_all_detected() {
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     let files = vec![
         PathBuf::from("LICENSE"),
@@ -452,7 +452,7 @@ fn given_license_variants_when_candidates_checked_then_all_detected() {
 
 #[test]
 fn given_metadata_files_when_candidates_checked_then_correctly_classified() {
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     let files = vec![
         PathBuf::from("Cargo.toml"),
@@ -468,7 +468,7 @@ fn given_metadata_files_when_candidates_checked_then_correctly_classified() {
 
 #[test]
 fn given_empty_file_list_when_candidates_checked_then_empty_results() {
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     let result = license_candidates(&[]);
     assert!(result.license_files.is_empty());
@@ -477,7 +477,7 @@ fn given_empty_file_list_when_candidates_checked_then_empty_results() {
 
 #[test]
 fn given_nested_license_files_when_candidates_checked_then_sorted_by_path() {
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     let files = vec![
         PathBuf::from("z/LICENSE"),
@@ -634,7 +634,7 @@ fn scenario_license_candidates_notice_with_extensions() {
     ];
 
     // When we classify them
-    let result = tokmd_walk::license_candidates(&files);
+    let result = tokmd_scan::walk::license_candidates(&files);
 
     // Then all NOTICE variants are detected as license files
     assert_eq!(result.license_files.len(), 3);
@@ -653,7 +653,7 @@ fn scenario_license_candidates_ignores_readme_and_source() {
     ];
 
     // When we classify them
-    let result = tokmd_walk::license_candidates(&files);
+    let result = tokmd_scan::walk::license_candidates(&files);
 
     // Then nothing is detected
     assert!(result.license_files.is_empty());

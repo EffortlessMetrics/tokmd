@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-walk (wave 38).
+//! Deep tests for tokmd-scan walk helpers (wave 38).
 //!
 //! Covers list_files traversal, file_size, license_candidates,
 //! ignore pattern handling, symlink behavior, empty directories,
@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ============================================================================
 // 1. list_files — basic traversal

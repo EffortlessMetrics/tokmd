@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-walk (wave 48).
+//! Deep tests for tokmd-scan walk helpers (wave 48).
 //!
 //! Covers filesystem traversal with tempdir fixtures, .gitignore/.tokeignore
 //! handling, hidden file behavior, symlink handling, asset detection,
@@ -6,7 +6,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ============================================================================
 // 1. Filesystem traversal with tempdir fixtures
@@ -177,7 +177,7 @@ fn gitignore_nested_in_subdirectory() {
 
 #[test]
 fn tokeignore_pattern_via_custom_ignore_file() {
-    // The ignore crate supports custom ignore files; tokmd-walk's WalkBuilder
+    // The ignore crate supports custom ignore files; the scan walk helper's WalkBuilder
     // uses git_ignore(true) which picks up .gitignore. Test the pattern with
     // a .gitignore since the walker doesn't explicitly load .tokeignore.
     let dir = tempfile::tempdir().unwrap();
@@ -377,7 +377,7 @@ fn walk_includes_lockfiles() {
 mod properties {
     use proptest::prelude::*;
     use std::fs;
-    use tokmd_walk::list_files;
+    use tokmd_scan::walk::list_files;
 
     proptest! {
         #[test]

@@ -1,4 +1,4 @@
-//! Extended BDD-style tests for tokmd-walk.
+//! Extended BDD-style tests for tokmd-scan walk helpers.
 //!
 //! These tests cover edge cases not addressed by the existing test suite:
 //! empty directories, invalid paths, relative path stripping, Unicode
@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
-use tokmd_walk::{LicenseCandidates, file_size, license_candidates, list_files};
+use tokmd_scan::walk::{LicenseCandidates, file_size, license_candidates, list_files};
 
 // ============================================================================
 // Helpers

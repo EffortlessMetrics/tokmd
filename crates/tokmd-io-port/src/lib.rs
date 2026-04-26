@@ -11,7 +11,7 @@
 //! * `MemFs` – in-memory store for tests and WASM
 //!
 //! ## What does NOT belong here
-//! * Directory traversal / walking (use tokmd-walk)
+//! * Directory traversal / walking (use tokmd-scan::walk)
 //! * Content scanning (use tokmd-scan)
 
 use std::collections::BTreeMap;
