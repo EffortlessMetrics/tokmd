@@ -35,6 +35,8 @@ use std::fmt::Write;
 use tokmd_analysis_types::AnalysisReceipt;
 use tokmd_types::AnalysisFormat;
 
+mod markdown;
+
 pub enum RenderedOutput {
     Text(String),
     Binary(Vec<u8>),
@@ -56,7 +58,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
 }
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
-    tokmd_analysis_format_md::render_md(receipt)
+    markdown::render_md(receipt)
 }
 
 fn render_jsonld(receipt: &AnalysisReceipt) -> String {
