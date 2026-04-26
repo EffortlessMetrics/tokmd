@@ -26,7 +26,7 @@ For publishability, every intended public crate must have a full non-dev workspa
 
 If a public or support crate depends on anything else, that dependency must be merged into an owner module first.
 
-## Current publish surface (45 crates published + 4 non-crates.io)
+## Current publish surface (44 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It is not the target promise.
 
@@ -46,7 +46,7 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (32)
+### Published support crates (31)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
@@ -60,7 +60,6 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-analysis-explain`
 - `tokmd-analysis-fingerprint`
 - `tokmd-analysis-format`
-- `tokmd-analysis-format-md`
 - `tokmd-analysis-fun`
 - `tokmd-analysis-git`
 - `tokmd-analysis-grid`
@@ -81,7 +80,7 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 32 published support crates.
+**Count:** 31 published support crates.
 
 ## Non-crates.io packages (intentional exceptions) (4)
 
@@ -129,13 +128,12 @@ Same as the current supported public crates.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-### Target gap: planned support retirements (9)
+### Target gap: planned support retirements (8)
 
 - `tokmd-analysis-archetype`
 - `tokmd-analysis-assets`
 - `tokmd-analysis-derived`
 - `tokmd-analysis-fingerprint`
-- `tokmd-analysis-format-md`
 - `tokmd-analysis-fun`
 - `tokmd-analysis-grid`
 - `tokmd-analysis-topics`
@@ -176,7 +174,10 @@ consolidation remains future work.
 
 ## Future folder merge targets after policy freeze
 
-- `crates/tokmd-analysis`: `derived`, `util`, `grid`, `assets`, `fun`, `topics`, `archetype`, `fingerprint`, `format/markdown`
+- `crates/tokmd-analysis`: `derived`, `util`, `grid`, `assets`, `fun`, `topics`, `archetype`, `fingerprint`
+
+The former analysis Markdown crate now lives under
+`crates/tokmd-analysis-format/src/markdown.rs`.
 
 ## Publish closure audit
 

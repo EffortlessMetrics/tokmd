@@ -1,11 +1,7 @@
-//! # tokmd-analysis-format-md
+//! Markdown renderer for tokmd analysis receipts.
 //!
-//! **Markdown renderer for tokmd analysis receipts.**
-//!
-//! Extracted from `tokmd-analysis-format` to enforce Single Responsibility
-//! Principle (see issue #998). This crate owns all Markdown formatting logic
-//! and is re-exported by the parent crate so existing call-sites remain
-//! unchanged.
+//! This module owns all Markdown formatting logic behind the
+//! `tokmd-analysis-format` facade.
 //!
 //! ## Effort rendering
 //!
