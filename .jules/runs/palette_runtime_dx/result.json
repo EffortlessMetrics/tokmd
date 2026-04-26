@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "outcome": "pr_ready_patch",
+  "metrics": {
+    "files_changed": 1,
+    "tests_run": 58,
+    "tests_passed": 58
+  }
+}
