@@ -4,8 +4,10 @@ use crate::entropy::build_entropy_report;
 use tempfile::tempdir;
 use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::EntropyClass;
-use tokmd_test_support::crypto;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
+
+#[path = "../../../tests/support/crypto.rs"]
+mod crypto;
 
 fn export_for_paths(paths: &[&str]) -> ExportData {
     let rows = paths

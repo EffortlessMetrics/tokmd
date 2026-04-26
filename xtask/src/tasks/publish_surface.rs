@@ -26,7 +26,6 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-git",
     "tokmd-model",
     "tokmd-scan",
-    "tokmd-test-support",
 ];
 
 const PUBLIC_PRODUCT_CRATES: &[&str] = &["tokmd", "tokmd-core", "tokmd-wasm"];
@@ -53,7 +52,7 @@ const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[];
 
 const INTERNAL_MODULE_FAMILIES: &[&str] = &[];
 
-const DEV_ONLY_PACKAGES: &[&str] = &["tokmd-test-support"];
+const DEV_ONLY_PACKAGES: &[&str] = &[];
 
 const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
@@ -61,7 +60,6 @@ const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-git",
     "tokmd-model",
     "tokmd-scan",
-    "tokmd-test-support",
 ];
 
 const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[];
@@ -745,14 +743,16 @@ mod tests {
     }
 
     #[test]
-    fn publish_surface_keeps_test_support_classified_until_policy_changes() {
+    fn publish_surface_has_no_dev_only_workspace_packages() {
         let current_support = set(PUBLISHED_SUPPORT_CRATES);
         let target_support = set(TARGET_SUPPORT_CRATES);
         let target_gap = set(TARGET_SUPPORT_GAP_CRATES);
+        let dev_only = set(DEV_ONLY_PACKAGES);
 
-        assert!(current_support.contains("tokmd-test-support"));
-        assert!(target_support.contains("tokmd-test-support"));
-        assert!(!target_gap.contains("tokmd-test-support"));
+        assert!(dev_only.is_empty());
+        assert!(current_support.is_disjoint(&dev_only));
+        assert!(target_support.is_disjoint(&dev_only));
+        assert!(target_gap.is_disjoint(&dev_only));
     }
 
     #[test]
@@ -771,6 +771,7 @@ mod tests {
             .iter()
             .chain(PUBLISHED_SUPPORT_CRATES.iter())
             .chain(NON_CRATES_IO_PACKAGES.iter())
+            .chain(DEV_ONLY_PACKAGES.iter())
             .map(|value| (*value).to_string())
             .collect();
 

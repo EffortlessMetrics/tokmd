@@ -7,8 +7,10 @@ use tokmd_analysis::{
     NearDupScope, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource, EntropyClass};
-use tokmd_test_support::crypto;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
+
+mod support;
+use support::crypto;
 
 fn make_request(preset: AnalysisPreset) -> AnalysisRequest {
     AnalysisRequest {
