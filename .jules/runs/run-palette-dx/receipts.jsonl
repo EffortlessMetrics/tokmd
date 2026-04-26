@@ -1,0 +1,1 @@
+{"cmd": "npm test --prefix web/runner", "status": "success", "summary": "All tests passed (1 skipped expectedly because wasm wasn't built)"}

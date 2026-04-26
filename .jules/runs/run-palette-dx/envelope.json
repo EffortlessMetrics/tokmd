@@ -1,0 +1,23 @@
+{
+  "prompt_id": "palette_binding_dx",
+  "persona": "Palette \ud83c\udfa8",
+  "style": "Prover",
+  "primary_shard": "bindings-targets",
+  "allowed_paths": [
+    "crates/tokmd-python/**",
+    "crates/tokmd-node/**",
+    "crates/tokmd-wasm/**",
+    "web/runner/**",
+    "crates/tokmd-core/**",
+    "docs/**"
+  ],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
+  "artifacts": [
+    ".jules/runs/run-palette-dx/envelope.json",
+    ".jules/runs/run-palette-dx/decision.md",
+    ".jules/runs/run-palette-dx/receipts.jsonl",
+    ".jules/runs/run-palette-dx/result.json",
+    ".jules/runs/run-palette-dx/pr_body.md"
+  ]
+}
