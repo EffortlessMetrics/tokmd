@@ -16,7 +16,6 @@ use std::path::Path;
 use crate::cli;
 use anyhow::Result;
 use tokmd_analysis as analysis;
-use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types as analysis_types;
 /// Re-exported from tokmd-core facade to maintain tier boundary compliance.
 /// See ADR-001 for the architectural rationale.
@@ -31,7 +30,7 @@ pub(crate) fn child_include_to_string(mode: tokmd_types::ChildIncludeMode) -> St
 
 pub(crate) fn preset_to_string(preset: cli::AnalysisPreset) -> String {
     let key = format!("{:?}", preset).to_lowercase();
-    PresetKind::from_str(&key)
+    analysis::PresetKind::from_str(&key)
         .map(|preset| preset.as_str().to_string())
         .unwrap_or(key)
 }

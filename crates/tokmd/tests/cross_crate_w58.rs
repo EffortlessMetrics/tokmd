@@ -7,7 +7,7 @@
 mod common;
 
 use tempfile::TempDir;
-use tokmd_analysis_derived::derive_report;
+use tokmd_analysis::derive_report;
 use tokmd_model::{
     collect_file_rows, create_export_data, create_lang_report, create_module_report, normalize_path,
 };

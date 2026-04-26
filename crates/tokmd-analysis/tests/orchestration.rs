@@ -14,11 +14,11 @@
 use std::path::PathBuf;
 
 use proptest::prelude::*;
+use tokmd_analysis::PresetKind;
 use tokmd_analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
     NearDupScope, analyze,
 };
-use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
@@ -1012,7 +1012,7 @@ fn risk_preset_does_not_include_unrelated_enrichers() {
 
 #[test]
 fn deep_plan_is_superset_of_all_non_fun_presets() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
 
     let deep = preset_plan_for(PresetKind::Deep);
 
@@ -1088,7 +1088,7 @@ fn deep_plan_is_superset_of_all_non_fun_presets() {
 
 #[test]
 fn deep_plan_does_not_include_fun() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let deep = preset_plan_for(PresetKind::Deep);
     assert!(!deep.fun, "Deep should not include fun");
 }

@@ -5,11 +5,11 @@
 
 use std::path::PathBuf;
 
+use tokmd_analysis::PresetKind;
 use tokmd_analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
     NearDupScope, analyze,
 };
-use tokmd_analysis_grid::PresetKind;
 use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 

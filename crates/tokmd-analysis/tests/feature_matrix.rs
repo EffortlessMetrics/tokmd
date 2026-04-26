@@ -193,9 +193,11 @@ fn archetype_feature_is_reported_when_disabled() {
         analyze(make_context(export), make_request(AnalysisPreset::Identity)).expect("analyze");
 
     assert!(receipt.archetype.is_none());
-    assert!(receipt.warnings.iter().any(|warning| {
-        warning.contains(tokmd_analysis_grid::DisabledFeature::Archetype.warning())
-    }),);
+    assert!(
+        receipt.warnings.iter().any(|warning| {
+            warning.contains(tokmd_analysis::DisabledFeature::Archetype.warning())
+        }),
+    );
 }
 
 #[cfg(feature = "topics")]
@@ -258,7 +260,7 @@ fn fun_feature_is_reported_when_disabled() {
         receipt
             .warnings
             .iter()
-            .any(|warning| warning.contains(tokmd_analysis_grid::DisabledFeature::Fun.warning())),
+            .any(|warning| warning.contains(tokmd_analysis::DisabledFeature::Fun.warning())),
     );
 }
 
@@ -301,7 +303,7 @@ fn fingerprint_feature_is_reported_when_disabled() {
     let receipt = analyze(make_context(export), request).expect("analyze");
     assert!(receipt.corporate_fingerprint.is_none());
     assert!(receipt.warnings.iter().any(|warning| {
-        warning.contains(tokmd_analysis_grid::DisabledFeature::GitMetrics.warning())
+        warning.contains(tokmd_analysis::DisabledFeature::GitMetrics.warning())
     }),);
 }
 
@@ -325,8 +327,10 @@ fn topics_feature_is_reported_when_disabled() {
         analyze(make_context(export), make_request(AnalysisPreset::Topics)).expect("analyze");
 
     assert!(receipt.topics.is_none());
-    assert!(receipt
-        .warnings
-        .iter()
-        .any(|warning| warning.contains(tokmd_analysis_grid::DisabledFeature::Topics.warning())),);
+    assert!(
+        receipt
+            .warnings
+            .iter()
+            .any(|warning| warning.contains(tokmd_analysis::DisabledFeature::Topics.warning())),
+    );
 }

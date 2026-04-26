@@ -25,24 +25,19 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
 const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
     "tokmd-analysis-api-surface",
-    "tokmd-analysis-archetype",
     "tokmd-analysis-complexity",
     "tokmd-analysis-content",
-    "tokmd-analysis-derived",
     "tokmd-analysis-effort",
     "tokmd-analysis-entropy",
     "tokmd-analysis-explain",
-    "tokmd-analysis-fingerprint",
     "tokmd-analysis-format",
     "tokmd-analysis-git",
-    "tokmd-analysis-grid",
     "tokmd-analysis-halstead",
     "tokmd-analysis-html",
     "tokmd-analysis-imports",
     "tokmd-analysis-license",
     "tokmd-analysis-maintainability",
     "tokmd-analysis-near-dup",
-    "tokmd-analysis-topics",
     "tokmd-analysis-util",
     "tokmd-content",
     "tokmd-format",
@@ -80,14 +75,7 @@ const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-walk",
 ];
 
-const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[
-    "tokmd-analysis-archetype",
-    "tokmd-analysis-derived",
-    "tokmd-analysis-fingerprint",
-    "tokmd-analysis-grid",
-    "tokmd-analysis-topics",
-    "tokmd-analysis-util",
-];
+const TARGET_SUPPORT_GAP_CRATES: &[&str] = &["tokmd-analysis-util"];
 
 const NON_CRATES_IO_PACKAGES: &[&str] = &["tokmd-fuzz", "tokmd-node", "tokmd-python", "xtask"];
 
@@ -611,7 +599,7 @@ mod tests {
         let new_unapproved =
             new_unapproved_support_crates(&current_support, &target_support, &target_gap);
 
-        assert_eq!(target_gap.len(), 6);
+        assert_eq!(target_gap.len(), 1);
         assert!(target_gap.contains("tokmd-analysis-util"));
         assert!(current_support.is_superset(&target_support));
         assert!(current_support.is_superset(&target_gap));

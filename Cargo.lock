@@ -2531,9 +2531,7 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-analysis",
- "tokmd-analysis-derived",
  "tokmd-analysis-explain",
- "tokmd-analysis-grid",
  "tokmd-analysis-types",
  "tokmd-cockpit",
  "tokmd-core",
@@ -2553,29 +2551,27 @@ name = "tokmd-analysis"
 version = "1.9.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "insta",
  "proptest",
  "serde",
  "serde_json",
  "tempfile",
  "tokmd-analysis-api-surface",
- "tokmd-analysis-archetype",
  "tokmd-analysis-complexity",
  "tokmd-analysis-content",
- "tokmd-analysis-derived",
  "tokmd-analysis-effort",
  "tokmd-analysis-entropy",
- "tokmd-analysis-fingerprint",
  "tokmd-analysis-git",
- "tokmd-analysis-grid",
  "tokmd-analysis-halstead",
  "tokmd-analysis-license",
  "tokmd-analysis-maintainability",
  "tokmd-analysis-near-dup",
- "tokmd-analysis-topics",
  "tokmd-analysis-types",
  "tokmd-analysis-util",
+ "tokmd-format",
  "tokmd-git",
+ "tokmd-scan",
  "tokmd-test-support",
  "tokmd-types",
  "tokmd-walk",
@@ -2592,16 +2588,6 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-archetype"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
  "tokmd-types",
 ]
 
@@ -2633,20 +2619,6 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-analysis-util",
  "tokmd-content",
- "tokmd-scan",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-derived"
-version = "1.9.0"
-dependencies = [
- "blake3",
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
- "tokmd-analysis-util",
- "tokmd-format",
  "tokmd-scan",
  "tokmd-types",
 ]
@@ -2688,16 +2660,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokmd-analysis-fingerprint"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
- "tokmd-git",
-]
-
-[[package]]
 name = "tokmd-analysis-format"
 version = "1.9.0"
 dependencies = [
@@ -2724,13 +2686,6 @@ dependencies = [
  "tokmd-git",
  "tokmd-scan",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-grid"
-version = "1.9.0"
-dependencies = [
- "proptest",
 ]
 
 [[package]]
@@ -2800,16 +2755,6 @@ dependencies = [
  "rustc-hash",
  "serde_json",
  "tempfile",
- "tokmd-analysis-types",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-topics"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde_json",
  "tokmd-analysis-types",
  "tokmd-types",
 ]
