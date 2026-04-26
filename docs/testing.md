@@ -126,7 +126,7 @@ Using `proptest` (1.9.0) across 17 crates:
 | `tokmd-scan` | Scanning options, exclude/path/tokeignore helpers, numeric invariants |
 | `tokmd-types` | DTO serialization roundtrips |
 | `tokmd-analysis-types` | Analysis receipt types |
-| `tokmd-analysis-imports` | Import parsing and normalization invariants |
+| `tokmd-analysis::imports` | Import parsing and normalization invariants |
 | `tokmd-gate` | Policy evaluation invariants |
 | `tokmd-git` | Git history collection |
 | `tokmd-content` | Entropy calculation, tag counting |

@@ -1,7 +1,11 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use tokmd_analysis_imports::{normalize_import_target, parse_imports, supports_language};
+
+#[path = "../../crates/tokmd-analysis/src/imports/parser.rs"]
+mod imports;
+
+use imports::{normalize_import_target, parse_imports, supports_language};
 
 fuzz_target!(|data: &[u8]| {
     let text = String::from_utf8_lossy(data);

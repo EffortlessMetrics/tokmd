@@ -122,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added context-aware scanning and policy microcrates: `tokmd-context-git`, `tokmd-context-policy`.
 - Added deterministic utility microcrates: `tokmd-exclude`, `tokmd-module-key`, `tokmd-path`, `tokmd-scan-args`, `tokmd-export-tree`, `tokmd-ffi-envelope`, `tokmd-math`.
-- Added explainability, schema, and import analysis components: `tokmd-analysis-explain`, `tokmd-analysis-imports`, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, `tokmd-analysis-html`.
+- Added explainability, schema, and import analysis components: `tokmd-analysis-explain`, import analysis modules, `tokmd-analysis-maintainability`, `tokmd-tool-schema`, `tokmd-analysis-html`.
 
 ### Changed
 

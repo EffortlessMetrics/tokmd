@@ -22,7 +22,6 @@ walk = [
 ]
 content = [
     "dep:tokmd-content",
-    "dep:tokmd-analysis-content",
     "dep:globset",
     "dep:rustc-hash",
 ]
@@ -52,7 +51,6 @@ tokmd-types.workspace = true
 tokmd-git = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
 tokmd-analysis-git = { workspace = true, optional = true }
-tokmd-analysis-content = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
 
 [dev-dependencies]

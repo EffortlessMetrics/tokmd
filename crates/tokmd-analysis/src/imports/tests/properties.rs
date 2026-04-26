@@ -1,0 +1,216 @@
+//! Property-based tests for tokmd-analysis imports module.
+
+use crate::imports::{normalize_import_target, parse_imports, supports_language};
+use proptest::prelude::*;
+
+fn arb_supported_lang() -> impl Strategy<Value = &'static str> {
+    prop_oneof![
+        Just("rust"),
+        Just("javascript"),
+        Just("typescript"),
+        Just("python"),
+        Just("go"),
+    ]
+}
+
+proptest! {
+    #[test]
+    fn parse_imports_is_deterministic(
+        lang in "[a-zA-Z]{0,16}",
+        lines in prop::collection::vec("[ -~]{0,120}", 0..64)
+    ) {
+        let first = parse_imports(&lang, &lines);
+        let second = parse_imports(&lang, &lines);
+        prop_assert_eq!(first, second);
+    }
+
+    #[test]
+    fn unsupported_languages_return_empty(
+        lang in "[a-zA-Z0-9_]{0,16}",
+        lines in prop::collection::vec("[ -~]{0,120}", 0..64)
+    ) {
+        let lower = lang.to_ascii_lowercase();
+        prop_assume!(!matches!(lower.as_str(), "rust" | "javascript" | "typescript" | "python" | "go"));
+        prop_assert!(parse_imports(&lang, &lines).is_empty());
+    }
+
+    #[test]
+    fn supported_languages_are_case_insensitive(
+        lang in arb_supported_lang(),
+        uppercase in any::<bool>()
+    ) {
+        let candidate = if uppercase {
+            lang.to_ascii_uppercase()
+        } else {
+            lang.to_string()
+        };
+        prop_assert!(supports_language(&candidate));
+    }
+
+    #[test]
+    fn relative_targets_normalize_to_local(
+        suffix in "[a-zA-Z0-9_./-]{0,32}"
+    ) {
+        let target = format!(".{}", suffix);
+        prop_assert_eq!(normalize_import_target(&target), "local");
+    }
+
+    #[test]
+    fn normalize_import_target_is_deterministic(
+        target in "[a-zA-Z0-9_./:'\"-]{0,80}"
+    ) {
+        let first = normalize_import_target(&target);
+        let second = normalize_import_target(&target);
+        prop_assert_eq!(first, second);
+    }
+
+    #[test]
+    fn rust_use_lines_always_produce_one_import(
+        crate_name in "[a-z_][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("use {}::Thing;", crate_name);
+        let imports = parse_imports("rust", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &crate_name);
+    }
+
+    #[test]
+    fn python_import_lines_always_produce_one_import(
+        module in "[a-z][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("import {}", module);
+        let imports = parse_imports("python", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &module);
+    }
+
+    #[test]
+    fn python_from_lines_always_produce_one_import(
+        module in "[a-z][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("from {} import thing", module);
+        let imports = parse_imports("python", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &module);
+    }
+
+    #[test]
+    fn go_single_import_always_produces_one_import(
+        pkg in "[a-z]{1,12}"
+    ) {
+        let line = format!(r#"import "{}""#, pkg);
+        let imports = parse_imports("go", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &pkg);
+    }
+
+    #[test]
+    fn js_require_always_produces_one_import(
+        pkg in "[a-z][a-z0-9-]{0,15}"
+    ) {
+        let line = format!(r#"const x = require("{}");"#, pkg);
+        let imports = parse_imports("javascript", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &pkg);
+    }
+
+    #[test]
+    fn js_import_from_always_produces_one_import(
+        pkg in "[a-z][a-z0-9-]{0,15}"
+    ) {
+        let line = format!(r#"import x from "{}";"#, pkg);
+        let imports = parse_imports("javascript", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &pkg);
+    }
+
+    #[test]
+    fn normalize_never_returns_empty_for_nonempty_alpha(
+        target in "[a-zA-Z][a-zA-Z0-9_./-]{0,30}"
+    ) {
+        let result = normalize_import_target(&target);
+        prop_assert!(!result.is_empty());
+    }
+
+    #[test]
+    fn parse_imports_output_count_le_input_lines(
+        lang in arb_supported_lang(),
+        lines in prop::collection::vec("[ -~]{0,120}", 0..64)
+    ) {
+        let imports = parse_imports(lang, &lines);
+        prop_assert!(imports.len() <= lines.len());
+    }
+
+    #[test]
+    fn typescript_and_javascript_parse_identically(
+        lines in prop::collection::vec("[ -~]{0,120}", 0..32)
+    ) {
+        let js = parse_imports("javascript", &lines);
+        let ts = parse_imports("typescript", &lines);
+        prop_assert_eq!(js, ts);
+    }
+
+    // ── Graph-oriented property tests ──────────────────────────────
+
+    #[test]
+    fn normalized_targets_never_start_with_dot(
+        target in "[a-zA-Z][a-zA-Z0-9_/-]{0,30}"
+    ) {
+        let result = normalize_import_target(&target);
+        prop_assert!(!result.starts_with('.'), "non-relative target should not normalize to start with dot");
+    }
+
+    #[test]
+    fn parse_then_normalize_always_produces_same_count(
+        lang in arb_supported_lang(),
+        lines in prop::collection::vec("(use|import|from|mod) [a-z_]{1,12}(::| )[a-z_]{0,12};?", 1..8)
+    ) {
+        let imports = parse_imports(lang, &lines);
+        let normalized: Vec<String> = imports.iter().map(|t| normalize_import_target(t)).collect();
+        prop_assert_eq!(imports.len(), normalized.len());
+    }
+
+    #[test]
+    fn normalize_is_idempotent_for_simple_names(
+        name in "[a-z][a-z0-9_]{0,20}"
+    ) {
+        let first = normalize_import_target(&name);
+        let second = normalize_import_target(&first);
+        prop_assert_eq!(first, second, "normalize should be idempotent for simple names");
+    }
+
+    #[test]
+    fn rust_mod_lines_always_produce_one_import(
+        mod_name in "[a-z_][a-z0-9_]{0,15}"
+    ) {
+        let line = format!("mod {};", mod_name);
+        let imports = parse_imports("rust", &[line]);
+        prop_assert_eq!(imports.len(), 1);
+        prop_assert_eq!(&imports[0], &mod_name);
+    }
+
+    #[test]
+    fn go_block_import_count_matches_quoted_lines(
+        pkgs in prop::collection::vec("[a-z]{1,8}", 1..10)
+    ) {
+        let mut lines = vec!["import (".to_string()];
+        for pkg in &pkgs {
+            lines.push(format!(r#""{}""#, pkg));
+        }
+        lines.push(")".to_string());
+        let refs: Vec<&str> = lines.iter().map(|s| s.as_str()).collect();
+        let imports = parse_imports("go", &refs);
+        prop_assert_eq!(imports.len(), pkgs.len());
+    }
+
+    #[test]
+    fn all_relative_js_imports_normalize_to_local(
+        suffix in "[a-zA-Z0-9_/]{1,20}"
+    ) {
+        let line = format!(r#"import x from "./{}";"#, suffix);
+        let imports = parse_imports("javascript", &[line.as_str()]);
+        prop_assert!(!imports.is_empty());
+        let normalized = normalize_import_target(&imports[0]);
+        prop_assert_eq!(normalized, "local");
+    }
+}
