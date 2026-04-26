@@ -92,4 +92,24 @@ test("run messages require ordered in-memory inputs", () => {
         }),
         false
     );
+
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "p",
+            mode: "lang",
+            args: { paths: ["src/lib.rs"] },
+        }),
+        true
+    );
+
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "s",
+            mode: "lang",
+            args: { scan: { root: "." } },
+        }),
+        true
+    );
 });

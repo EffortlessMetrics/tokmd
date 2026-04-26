@@ -1,0 +1,20 @@
+{
+  "summary": "Updated `isRunMessage` validation in the web runner to support `paths` and `scan` payloads.",
+  "why": "The `isRunMessage` validation was overly strict, requiring `inputs` arrays for all run messages. This caused cross-interface drift since the underlying logic supports `paths` and `scan` options just like the CLI.",
+  "options": "Option A (recommended): Fix `isRunMessage` in `web/runner/messages.js` to allow `inputs`, `paths`, or `scan` arguments. Option B: Learning PR. Chose Option A to eliminate the cross-interface drift.",
+  "decision": "Option A to eliminate cross-interface drift, aligning web runner arguments with the rest of the workspace.",
+  "changes": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs"
+  ],
+  "verification": "npm run test --prefix web/runner",
+  "telemetry": "Small web/runner blast radius. Updates validation logic and adds unit test coverage.",
+  "artifacts": [
+    "envelope.json",
+    "decision.md",
+    "receipts.jsonl",
+    "result.json",
+    "pr_body.md"
+  ],
+  "follow_ups": "None"
+}

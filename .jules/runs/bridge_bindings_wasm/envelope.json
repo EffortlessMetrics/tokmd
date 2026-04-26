@@ -1,0 +1,16 @@
+{
+  "prompt_id": "bridge_bindings_wasm",
+  "persona": "Bridge",
+  "style": "Explorer",
+  "primary_shard": "bindings-targets",
+  "allowed_paths": [
+    "crates/tokmd-python/**",
+    "crates/tokmd-node/**",
+    "crates/tokmd-wasm/**",
+    "web/runner/**",
+    "crates/tokmd-core/**",
+    "docs/**"
+  ],
+  "gate_profile": "compat-matrix",
+  "allowed_outcomes": ["patch", "proof", "learning"]
+}
