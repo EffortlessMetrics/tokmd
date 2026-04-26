@@ -1,11 +1,11 @@
-//! Extended BDD-style scenario tests for `tokmd-analysis-git`.
+//! Extended BDD-style scenario tests for ``tokmd-analysis` Git module`.
 //!
 //! Additional coverage for churn falling trend, coupling sort order,
 //! intent unknown percentage, bus factor sorting, and freshness edge cases.
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

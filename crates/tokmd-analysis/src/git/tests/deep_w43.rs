@@ -1,9 +1,9 @@
-//! Deep tests for tokmd-analysis-git: git report building, coupling,
+//! Deep tests for `tokmd-analysis` Git module: git report building, coupling,
 //! freshness, intent classification, and predictive churn.
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

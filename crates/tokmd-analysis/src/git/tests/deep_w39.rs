@@ -1,8 +1,8 @@
-//! Deep tests for tokmd-analysis-git: hotspots, coupling, freshness, churn, intent.
+//! Deep tests for `tokmd-analysis` Git module: hotspots, coupling, freshness, churn, intent.
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 

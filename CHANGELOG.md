@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added explicit error hints for missing diff sources and invalid diff references
 - Locked deterministic review-plan ordering and removed remaining unwrap-heavy test paths in `tokmd-config`
-- Refreshed doctest examples and trimmed a stray unused dev-dependency in `tokmd-analysis-git`
+- Refreshed doctest examples and trimmed a stray unused dev-dependency in the analysis Git adapter
 
 ## [1.7.3] - 2026-03-06
 

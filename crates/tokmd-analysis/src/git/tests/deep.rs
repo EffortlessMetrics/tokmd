@@ -1,11 +1,11 @@
-//! Deep tests for `tokmd-analysis-git`.
+//! Deep tests for ``tokmd-analysis` Git module`.
 //!
 //! Exercises build_git_report and build_predictive_churn_report with edge
 //! cases, serialization roundtrips, and multi-module scenarios.
 
 use std::path::Path;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

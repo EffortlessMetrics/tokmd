@@ -114,7 +114,7 @@ crates/
 ├── tokmd-analysis-entropy/          # Tier 3: High-entropy file detection
 ├── tokmd-analysis-explain/          # Tier 3: Metric explanation catalog
 ├── tokmd-analysis-fingerprint/      # Tier 3: Corporate fingerprint
-├── tokmd-analysis-git/              # Tier 3: Git history adapters
+├── tokmd-analysis/src/git/          # Tier 3: Git history adapters
 ├── tokmd-analysis-grid/             # Tier 3: Preset/feature matrix
 ├── tokmd-analysis-halstead/         # Tier 3: Halstead metrics
 ├── tokmd-analysis-html/             # Tier 3: HTML renderer for analysis

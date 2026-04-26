@@ -1,4 +1,4 @@
-//! Property-based tests for `tokmd-analysis-git`.
+//! Property-based tests for ``tokmd-analysis` Git module`.
 //!
 //! Uses `proptest` to verify invariants that must hold for all inputs.
 
@@ -6,7 +6,7 @@ use std::path::Path;
 
 use proptest::prelude::*;
 
-use tokmd_analysis_git::{build_git_report, build_predictive_churn_report};
+use super::super::{build_git_report, build_predictive_churn_report};
 use tokmd_analysis_types::TrendClass;
 use tokmd_git::GitCommit;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};

@@ -15,7 +15,6 @@ documentation = "https://docs.rs/tokmd-analysis"
 default = ["fun", "topics", "archetype", "effort"]
 git = [
     "dep:tokmd-git",
-    "dep:tokmd-analysis-git",
 ]
 walk = [
     "dep:tokmd-walk",
@@ -50,7 +49,6 @@ tokmd-types.workspace = true
 # Optional adapters
 tokmd-git = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
-tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
 
 [dev-dependencies]
