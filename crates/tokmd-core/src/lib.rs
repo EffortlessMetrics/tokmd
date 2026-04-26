@@ -609,7 +609,7 @@ use anyhow::Context as _;
 ///
 /// ## Example
 ///
-/// ```rust,no_run
+/// ```rust
 /// use tokmd_core::analysis_facade::{render, RenderedOutput};
 /// use tokmd_types::AnalysisFormat;
 /// use tokmd_analysis_types::AnalysisReceipt;
