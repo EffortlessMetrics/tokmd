@@ -1,0 +1,19 @@
+{
+  "prompt_id": "compat_interfaces_matrix",
+  "persona": "Compat \ud83d\udcce",
+  "style": "Builder",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "compat-matrix",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
+}

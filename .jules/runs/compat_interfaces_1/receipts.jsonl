@@ -1,0 +1,6 @@
+{"command": "cargo test -p tokmd --no-default-features", "status": "failed", "details": "Integration tests calling `analyze` and `badge` failed because `analysis` feature was not enabled"}
+{"command": "bash -c 'for file in crates/tokmd/tests/*.rs; do if ! grep -q \"feature = \\\"analysis\\\"\" \"$file\"; then if grep -qE \"(\\\"analyze\\\"|\\\"badge\\\"|\\\"baseline\\\"|\\\"gate\\\"|\\\"run\\\")\" \"$file\"; then echo \"Updating $file\"; echo \"#![cfg(feature = \\\"analysis\\\")]\" | cat - \"$file\" > temp && mv temp \"$file\"; fi; fi; done'", "status": "success"}
+{"command": "cargo test -p tokmd --no-default-features", "status": "success", "details": "All non-analysis tests passed"}
+{"command": "cargo test -p tokmd --all-features", "status": "success", "details": "All tests passed with analysis enabled"}
+{"command": "cargo clippy -- -D warnings", "status": "success", "details": "Clean"}
+{"command": "cargo fmt -- --check", "status": "success", "details": "Clean"}

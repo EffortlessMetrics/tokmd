@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;

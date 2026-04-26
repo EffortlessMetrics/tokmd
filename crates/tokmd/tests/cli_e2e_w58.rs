@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Expanded CLI end-to-end tests covering error handling, output format matrix,
 //! and flag combination behaviour.
 //!
