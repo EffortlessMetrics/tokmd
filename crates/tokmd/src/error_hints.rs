@@ -66,6 +66,8 @@ fn suggestions(err: &Error) -> Vec<String> {
     {
         let mut did_you_mean = false;
 
+        let mut extracted_bad_path = None;
+
         // Check for common typoed subcommands in "Path not found: <bad>"
         if haystack.contains("path not found") {
             // Find the original path string from the chain
@@ -73,6 +75,7 @@ fn suggestions(err: &Error) -> Vec<String> {
                 let e_str = e.to_string();
                 if e_str.starts_with("Path not found: ") {
                     let bad_path = e_str.trim_start_matches("Path not found: ").trim();
+                    extracted_bad_path = Some(bad_path.to_string());
                     if !bad_path.contains('/') && !bad_path.contains('.') && !bad_path.is_empty() {
                         let known = [
                             "lang",
@@ -120,10 +123,21 @@ fn suggestions(err: &Error) -> Vec<String> {
         }
 
         if !did_you_mean {
-            push_hint(
-                &mut out,
-                "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
-            );
+            if let Some(bp) = extracted_bad_path {
+                if !bp.contains('/') && !bp.contains('.') && !bp.contains('\\') {
+                    push_hint(
+                        &mut out,
+                        &format!(
+                            "If `{bp}` was intended as a subcommand, it is not recognized. Use `tokmd --help`."
+                        ),
+                    );
+                }
+            } else {
+                push_hint(
+                    &mut out,
+                    "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
+                );
+            }
         }
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
@@ -249,11 +263,9 @@ mod tests {
         let err = anyhow!("Path not found: does-not-exist");
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("input path exists")));
-        assert!(
-            hints
-                .iter()
-                .any(|h| h.contains("subcommand, it is not recognized"))
-        );
+        assert!(hints.iter().any(|h| {
+            h.contains("If `does-not-exist` was intended as a subcommand, it is not recognized")
+        }));
     }
 
     #[test]
