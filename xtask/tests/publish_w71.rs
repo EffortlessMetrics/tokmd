@@ -89,12 +89,44 @@ fn publish_surface_json_distinguishes_current_and_target_surfaces() {
     let new_unapproved = summary["new_unapproved_support_crates"]
         .as_array()
         .expect("new_unapproved_support_crates should be an array");
+    let public_product = summary["public_product_crates"]
+        .as_array()
+        .expect("public_product_crates should be an array");
+    let public_contract = summary["public_contract_crates"]
+        .as_array()
+        .expect("public_contract_crates should be an array");
+    let public_workflow = summary["public_workflow_crates"]
+        .as_array()
+        .expect("public_workflow_crates should be an array");
+    let public_capability = summary["public_capability_crates"]
+        .as_array()
+        .expect("public_capability_crates should be an array");
+    let conditional_public = summary["conditional_public_crates"]
+        .as_array()
+        .expect("conditional_public_crates should be an array");
+    let internal_modules = summary["internal_module_families"]
+        .as_array()
+        .expect("internal_module_families should be an array");
+    let dev_only = summary["dev_only_packages"]
+        .as_array()
+        .expect("dev_only_packages should be an array");
+    let new_unclassified = summary["new_unclassified_packages"]
+        .as_array()
+        .expect("new_unclassified_packages should be an array");
 
     assert_eq!(current_public.len(), 13);
     assert_eq!(current_support.len(), 23);
     assert_eq!(target_support.len(), 23);
     assert!(target_gap.is_empty());
     assert!(new_unapproved.is_empty());
+    assert_eq!(public_product.len(), 3);
+    assert_eq!(public_contract.len(), 5);
+    assert_eq!(public_workflow.len(), 3);
+    assert_eq!(public_capability.len(), 5);
+    assert_eq!(conditional_public.len(), 5);
+    assert_eq!(internal_modules.len(), 14);
+    assert_eq!(dev_only.len(), 1);
+    assert!(new_unclassified.is_empty());
     assert_eq!(summary["public_surface"], summary["current_public_surface"]);
     assert_eq!(
         summary["support_surface"],
