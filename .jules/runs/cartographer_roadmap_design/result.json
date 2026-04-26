@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "outcome": "pr-ready patch",
+  "files_changed": [
+    "docs/implementation-plan.md"
+  ]
+}
