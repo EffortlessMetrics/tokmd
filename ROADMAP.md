@@ -392,7 +392,7 @@ UX work is explicitly **incremental and non-breaking**:
 | `tokmd-context-git`            | 2    | Git-derived hotspot/churn scoring for context ranking  |
 | `tokmd-export-tree`            | 2    | Deterministic tree renderers for analysis/handoff exports |
 | `tokmd-analysis-explain`       | 3    | Metric/finding explanation catalog and alias lookup    |
-| `tokmd-analysis-imports`       | 3    | Language-aware import parsing + normalization          |
+| `tokmd-analysis/src/imports`   | 3    | Language-aware import parsing + normalization          |
 | `tokmd-analysis-maintainability` | 3  | Maintainability index scoring + Halstead merge         |
 | `tokmd-analysis-html`          | 3    | Single-responsibility HTML renderer for analysis       |
 | `tokmd-tool-schema`            | 4    | AI tool-schema generation from clap command trees      |

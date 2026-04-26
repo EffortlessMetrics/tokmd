@@ -43,6 +43,8 @@ mod git;
 mod grid;
 #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
 mod halstead;
+#[cfg(feature = "content")]
+mod imports;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod license;
 #[cfg(all(feature = "content", feature = "walk"))]

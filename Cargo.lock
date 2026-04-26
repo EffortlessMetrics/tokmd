@@ -2559,7 +2559,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "tokmd-analysis-content",
  "tokmd-analysis-git",
  "tokmd-analysis-types",
  "tokmd-content",
@@ -2569,22 +2568,6 @@ dependencies = [
  "tokmd-test-support",
  "tokmd-types",
  "tokmd-walk",
-]
-
-[[package]]
-name = "tokmd-analysis-content"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "blake3",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-imports",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-scan",
- "tokmd-types",
 ]
 
 [[package]]
@@ -2633,14 +2616,6 @@ dependencies = [
  "time",
  "tokmd-analysis-types",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-imports"
-version = "1.9.0"
-dependencies = [
- "insta",
- "proptest",
 ]
 
 [[package]]
@@ -2761,7 +2736,6 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "serde_json",
- "tokmd-analysis-imports",
  "tokmd-content",
  "tokmd-core",
  "tokmd-ffi-envelope",

@@ -109,7 +109,7 @@ crates/
 ├── tokmd-analysis-archetype/        # Tier 3: Archetype inference
 ├── tokmd-analysis-assets/           # Tier 3: Asset and dependency reports
 ├── tokmd-analysis-complexity/       # Tier 3: Cyclomatic/cognitive complexity
-├── tokmd-analysis-content/          # Tier 3: Content scanning adapters
+├── tokmd-analysis/src/content/      # Tier 3: Content scanning adapters
 ├── tokmd-analysis-derived/          # Tier 3: Core derived metrics
 ├── tokmd-analysis-entropy/          # Tier 3: High-entropy file detection
 ├── tokmd-analysis-explain/          # Tier 3: Metric explanation catalog
@@ -118,7 +118,7 @@ crates/
 ├── tokmd-analysis-grid/             # Tier 3: Preset/feature matrix
 ├── tokmd-analysis-halstead/         # Tier 3: Halstead metrics
 ├── tokmd-analysis-html/             # Tier 3: HTML renderer for analysis
-├── tokmd-analysis-imports/          # Tier 3: Import parsing + normalization
+├── tokmd-analysis/src/imports/      # Tier 3: Import parsing + normalization
 ├── tokmd-analysis-license/          # Tier 3: License radar scanning
 ├── tokmd-analysis-maintainability/  # Tier 3: Maintainability index scoring
 ├── tokmd-analysis-near-dup/         # Tier 3: Near-duplicate detection

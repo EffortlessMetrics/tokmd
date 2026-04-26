@@ -23,7 +23,10 @@ use crate::assets::{build_assets_report, build_dependency_report};
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
 #[cfg(feature = "content")]
-use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
+use crate::content::{
+    ContentLimits, ImportGranularity as ContentImportGranularity, build_duplicate_report,
+    build_import_report, build_todo_report,
+};
 use crate::derived::{build_tree, derive_report};
 #[cfg(feature = "git")]
 use crate::fingerprint::build_corporate_fingerprint;
@@ -52,6 +55,22 @@ pub type AnalysisPreset = PresetKind;
 pub enum ImportGranularity {
     Module,
     File,
+}
+
+#[cfg(feature = "content")]
+fn content_limits(limits: &AnalysisLimits) -> ContentLimits {
+    ContentLimits {
+        max_bytes: limits.max_bytes,
+        max_file_bytes: limits.max_file_bytes,
+    }
+}
+
+#[cfg(feature = "content")]
+fn content_import_granularity(granularity: ImportGranularity) -> ContentImportGranularity {
+    match granularity {
+        ImportGranularity::Module => ContentImportGranularity::Module,
+        ImportGranularity::File => ContentImportGranularity::File,
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -250,7 +269,8 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(feature = "content")]
         {
             if let Some(list) = files.as_deref() {
-                match build_todo_report(&ctx.root, list, &req.limits, derived.totals.code) {
+                let limits = content_limits(&req.limits);
+                match build_todo_report(&ctx.root, list, &limits, derived.totals.code) {
                     Ok(report) => derived.todo = Some(report),
                     Err(err) => warnings.push(format!("todo scan failed: {}", err)),
                 }
@@ -264,7 +284,8 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(feature = "content")]
         {
             if let Some(list) = files.as_deref() {
-                match build_duplicate_report(&ctx.root, list, &ctx.export, &req.limits) {
+                let limits = content_limits(&req.limits);
+                match build_duplicate_report(&ctx.root, list, &ctx.export, &limits) {
                     Ok(report) => dup = Some(report),
                     Err(err) => warnings.push(format!("dup scan failed: {}", err)),
                 }
@@ -329,13 +350,9 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(feature = "content")]
         {
             if let Some(list) = files.as_deref() {
-                match build_import_report(
-                    &ctx.root,
-                    list,
-                    &ctx.export,
-                    req.import_granularity,
-                    &req.limits,
-                ) {
+                let limits = content_limits(&req.limits);
+                let granularity = content_import_granularity(req.import_granularity);
+                match build_import_report(&ctx.root, list, &ctx.export, granularity, &limits) {
                     Ok(report) => imports = Some(report),
                     Err(err) => warnings.push(format!("import scan failed: {}", err)),
                 }
