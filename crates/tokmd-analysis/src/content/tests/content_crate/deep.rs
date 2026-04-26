@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-content scanning functions.
+//! Deep tests for tokmd-analysis content helpers scanning functions.
 //!
 //! Covers entropy computation, high/low entropy detection, import-like tag scanning,
 //! TODO/FIXME scanning, BLAKE3 hashing, empty/binary/unicode file handling,
@@ -7,11 +7,11 @@
 use std::fs::File;
 use std::io::Write;
 
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };

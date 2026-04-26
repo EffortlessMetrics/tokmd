@@ -5,7 +5,6 @@ members = [
     "crates/tokmd-analysis",
     "crates/tokmd-analysis-types",
     "crates/tokmd-core",
-    "crates/tokmd-content",
     "crates/tokmd-envelope",
     "crates/tokmd-format",
     "crates/tokmd-gate",
@@ -61,7 +60,6 @@ name = "tokmd-workspace"
 tokmd = { path = "crates/tokmd", version = "1.9.0" }
 tokmd-analysis = { path = "crates/tokmd-analysis", version = "1.9.0" }
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.9.0" }
-tokmd-content = { path = "crates/tokmd-content", version = "1.9.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.9.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.9.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.9.0" }

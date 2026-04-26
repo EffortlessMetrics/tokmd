@@ -71,7 +71,7 @@ pub fn normalize_root(path: &Path) -> PathBuf
 [features]
 git = ["tokmd-git"]      # Git history analysis
 walk = []                # Asset discovery via tokmd-scan::walk
-content = ["tokmd-content"]  # Content scanning
+content = ["dep:globset", "dep:regex", "dep:rustc-hash"]  # Content scanning
 topics = [] # Topic-cloud extraction module
 archetype = [] # Archetype detection module
 fun = []  # Fun report + novelty outputs module
@@ -81,7 +81,7 @@ fun = []  # Fun report + novelty outputs module
 
 - `blake3`, `serde_json`
 - `tokmd-analysis-types`, `tokmd-types`
-- Optional: `tokmd-git`, `tokmd-content`
+- Optional: `tokmd-git`, content scanning helpers
 
 ## Testing
 

@@ -1,15 +1,15 @@
-//! Deep tests for tokmd-content (wave 43).
+//! Deep tests for tokmd-analysis content helpers (wave 43).
 //!
 //! Covers read_lines edge cases, tag extraction, import parsing,
 //! hash computation, entropy calculation, and is_text_like.
 
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 
 // ============================================================================
 // 1. read_lines — edge cases

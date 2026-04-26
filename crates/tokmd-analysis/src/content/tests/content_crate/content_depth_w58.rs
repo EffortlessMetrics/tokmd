@@ -1,4 +1,4 @@
-//! Depth tests for `tokmd-content` – W58.
+//! Depth tests for tokmd-analysis content helpers - W58.
 //!
 //! Exercises read_text_capped, entropy, is_text_like, hash determinism,
 //! count_tags, and edge cases with binary/empty files.
@@ -6,7 +6,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };

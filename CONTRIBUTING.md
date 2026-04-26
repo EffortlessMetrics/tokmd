@@ -98,7 +98,6 @@ crates/
 ├── tokmd-model/                     # Tier 1: Aggregation logic
 ├── tokmd-sensor/                    # Tier 1: Sensor trait + substrate module/builder
 ├── tokmd-format/                    # Tier 2: Output rendering
-├── tokmd-content/                   # Tier 2: Content scanning
 ├── tokmd-git/                       # Tier 2: Git analysis
 ├── tokmd-analysis/                  # Tier 3: Analysis orchestration
 ├── tokmd-analysis-api-surface/      # Tier 3: API surface analysis

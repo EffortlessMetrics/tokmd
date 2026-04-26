@@ -63,12 +63,9 @@ automation.
 - `tokmd-model`
 - `tokmd-scan`
 
-### Conditional public crates (1)
+### Conditional public crates (0)
 
-These packages need focused boundary memos before the repo decides whether they
-remain public or collapse into owner modules.
-
-- `tokmd-content`
+No conditional public crates remain in the current compatibility surface.
 
 ### Internal module families still packaged today (0)
 
@@ -81,7 +78,7 @@ No packaged internal module families remain in the compatibility surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (18 crates published + 4 non-crates.io)
+## Current compatibility surface (17 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -100,17 +97,16 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (7, compatibility classification)
+### Published support crates (6, compatibility classification)
 
 - `tokmd-analysis`
-- `tokmd-content`
 - `tokmd-format`
 - `tokmd-git`
 - `tokmd-model`
 - `tokmd-scan`
 - `tokmd-test-support`
 
-**Count:** 7 published support crates.
+**Count:** 6 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -134,10 +130,9 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (7)
+### Target support crates (6)
 
 - `tokmd-analysis`
-- `tokmd-content`
 - `tokmd-format`
 - `tokmd-git`
 - `tokmd-model`
@@ -208,6 +203,8 @@ The former walk crate now lives under
 `crates/tokmd-scan/src/walk/`.
 The former novelty renderer crate now lives under
 `crates/tokmd-format/src/fun/`.
+The former content helper crate now lives under
+`crates/tokmd-analysis/src/content/`.
 
 ## Publish closure audit
 

@@ -11,6 +11,9 @@ use tokmd_types::{ExportData, FileKind, FileRow};
 use tokmd_analysis_types::normalize_path;
 use tokmd_scan::round_f64;
 
+pub(crate) mod complexity;
+pub(crate) mod io;
+
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const IMPORT_MAX_LINES: usize = 200;
 
@@ -43,13 +46,13 @@ pub(crate) fn build_todo_report(
             break;
         }
         let path = root.join(rel);
-        let bytes = tokmd_content::read_head(&path, per_file_limit)?;
+        let bytes = crate::content::io::read_head(&path, per_file_limit)?;
         total_bytes += bytes.len() as u64;
-        if !tokmd_content::is_text_like(&bytes) {
+        if !crate::content::io::is_text_like(&bytes) {
             continue;
         }
         let text = String::from_utf8_lossy(&bytes);
-        for (tag, count) in tokmd_content::count_tags(&text, &tags) {
+        for (tag, count) in crate::content::io::count_tags(&text, &tags) {
             *counts.entry(tag).or_insert(0) += count;
         }
     }
@@ -265,7 +268,7 @@ pub(crate) fn build_import_report(
             continue;
         }
         let path = root.join(rel);
-        let lines = match tokmd_content::read_lines(&path, IMPORT_MAX_LINES, per_file_limit) {
+        let lines = match crate::content::io::read_lines(&path, IMPORT_MAX_LINES, per_file_limit) {
             Ok(lines) => lines,
             Err(_) => continue,
         };

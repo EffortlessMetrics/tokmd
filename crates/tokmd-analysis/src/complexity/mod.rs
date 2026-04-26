@@ -89,13 +89,13 @@ pub(crate) fn build_complexity_report(
         }
 
         let path = root.join(rel);
-        let bytes = match tokmd_content::read_head(&path, per_file_limit) {
+        let bytes = match crate::content::io::read_head(&path, per_file_limit) {
             Ok(b) => b,
             Err(_) => continue,
         };
         total_bytes += bytes.len() as u64;
 
-        if !tokmd_content::is_text_like(&bytes) {
+        if !crate::content::io::is_text_like(&bytes) {
             continue;
         }
 
@@ -106,8 +106,8 @@ pub(crate) fn build_complexity_report(
 
         // Compute cognitive complexity and nesting depth
         let cognitive_result =
-            tokmd_content::complexity::estimate_cognitive_complexity(&text, lang_mapped);
-        let nesting_result = tokmd_content::complexity::analyze_nesting_depth(&text, lang_mapped);
+            crate::content::complexity::estimate_cognitive_complexity(&text, lang_mapped);
+        let nesting_result = crate::content::complexity::analyze_nesting_depth(&text, lang_mapped);
 
         let cognitive_complexity = if cognitive_result.function_count > 0 {
             Some(cognitive_result.total)
@@ -842,11 +842,11 @@ fn extract_function_details(lang: &str, text: &str) -> Vec<FunctionComplexityDet
             let cyclomatic = estimate_cyclomatic_inline(mapped_lang, &fn_text);
 
             let cognitive_result =
-                tokmd_content::complexity::estimate_cognitive_complexity(&fn_text, mapped_lang);
+                crate::content::complexity::estimate_cognitive_complexity(&fn_text, mapped_lang);
             let cognitive = Some(cognitive_result.total);
 
             let nesting_result =
-                tokmd_content::complexity::analyze_nesting_depth(&fn_text, mapped_lang);
+                crate::content::complexity::analyze_nesting_depth(&fn_text, mapped_lang);
             let max_nesting = if nesting_result.max_depth > 0 {
                 Some(nesting_result.max_depth)
             } else {

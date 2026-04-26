@@ -1,20 +1,20 @@
-//! Depth tests for tokmd-content (wave 63).
+//! Depth tests for tokmd-analysis content helpers (wave 63).
 //!
 //! Covers: entropy accuracy, import extraction patterns, TODO/FIXME counting
 //! edge cases, BLAKE3 hashing determinism, empty file handling, binary detection,
 //! large file handling, and property-based invariants.
 
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 
 fn tmp() -> tempfile::TempDir {
     tempfile::tempdir().unwrap()

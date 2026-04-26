@@ -1,15 +1,15 @@
-//! Contract tests for tokmd-content: deep coverage of entropy calculation,
+//! Contract tests for tokmd-analysis content helpers: deep coverage of entropy calculation,
 //! tag extraction, hashing, complexity scoring, content reading, text detection,
 //! determinism, and edge/boundary cases.
 
 use std::fs::File;
 use std::io::Write;
 
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };

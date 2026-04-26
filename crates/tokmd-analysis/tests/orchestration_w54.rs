@@ -437,15 +437,21 @@ fn w54_near_dup_disabled_default() {
     req.git = Some(false);
     assert!(!req.near_dup);
     let receipt = analyze(make_ctx(sample_export()), req).unwrap();
-    #[cfg(feature = "content")]
+    #[cfg(all(feature = "content", feature = "walk"))]
     {
-        // Receipt now enables dup; with content feature dup report is present
+        // Receipt enables dup when both content and file-walk support are available,
         // but near section is absent because near_dup=false.
-        let dup = receipt.dup.as_ref().expect("dup present with content");
+        let dup = receipt
+            .dup
+            .as_ref()
+            .expect("dup present with content and walk features");
         assert!(dup.near.is_none(), "near-dup absent because near_dup=false");
     }
-    #[cfg(not(feature = "content"))]
-    assert!(receipt.dup.is_none(), "dup absent without content feature");
+    #[cfg(not(all(feature = "content", feature = "walk")))]
+    assert!(
+        receipt.dup.is_none(),
+        "dup absent without both content and walk features"
+    );
 }
 
 // ===========================================================================

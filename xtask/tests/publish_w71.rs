@@ -115,15 +115,15 @@ fn publish_surface_json_distinguishes_current_and_target_surfaces() {
         .expect("new_unclassified_packages should be an array");
 
     assert_eq!(current_public.len(), 11);
-    assert_eq!(current_support.len(), 7);
-    assert_eq!(target_support.len(), 7);
+    assert_eq!(current_support.len(), 6);
+    assert_eq!(target_support.len(), 6);
     assert!(target_gap.is_empty());
     assert!(new_unapproved.is_empty());
     assert_eq!(public_product.len(), 3);
     assert_eq!(public_contract.len(), 5);
     assert_eq!(public_workflow.len(), 3);
     assert_eq!(public_capability.len(), 5);
-    assert_eq!(conditional_public.len(), 1);
+    assert!(conditional_public.is_empty());
     assert!(internal_modules.is_empty());
     assert_eq!(dev_only.len(), 1);
     assert!(new_unclassified.is_empty());

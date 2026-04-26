@@ -22,7 +22,6 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
 
 const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-content",
     "tokmd-format",
     "tokmd-git",
     "tokmd-model",
@@ -50,7 +49,7 @@ const PUBLIC_CAPABILITY_CRATES: &[&str] = &[
     "tokmd-scan",
 ];
 
-const CONDITIONAL_PUBLIC_CRATES: &[&str] = &["tokmd-content"];
+const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[];
 
 const INTERNAL_MODULE_FAMILIES: &[&str] = &[];
 
@@ -58,7 +57,6 @@ const DEV_ONLY_PACKAGES: &[&str] = &["tokmd-test-support"];
 
 const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-content",
     "tokmd-format",
     "tokmd-git",
     "tokmd-model",
