@@ -24,7 +24,6 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
 
 const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-analysis-explain",
     "tokmd-content",
     "tokmd-format",
     "tokmd-fun",
@@ -63,13 +62,12 @@ const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[
     "tokmd-walk",
 ];
 
-const INTERNAL_MODULE_FAMILIES: &[&str] = &["tokmd-analysis-explain"];
+const INTERNAL_MODULE_FAMILIES: &[&str] = &[];
 
 const DEV_ONLY_PACKAGES: &[&str] = &["tokmd-test-support"];
 
 const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-analysis-explain",
     "tokmd-content",
     "tokmd-format",
     "tokmd-fun",

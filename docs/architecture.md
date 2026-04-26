@@ -22,8 +22,7 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
-Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-explain,
-                       tokmd-cockpit, tokmd-fun,
+Tier 3 (Orchestration) tokmd-analysis, tokmd-cockpit, tokmd-fun,
                        tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
@@ -39,7 +38,7 @@ export-tree and analysis rendering in `tokmd-format`, assets/fun and
 metric/security analysis enrichers and content/import/Git adapters in
 `tokmd-analysis`, context policy/git helpers in
 `tokmd-core`, and
-CLI/config/progress/tool-schema wiring in `tokmd`.
+CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 ### Tier 0: Contracts (Pure Data)
 
@@ -83,7 +82,6 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 | Crate | Purpose |
 |-------|---------|
 | `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, fun, complexity, entropy, Halstead, license, maintainability, API surface, effort, near-duplicate, content, and import enrichers |
-| `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-format::analysis` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |

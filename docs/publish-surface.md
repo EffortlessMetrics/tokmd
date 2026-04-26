@@ -74,12 +74,9 @@ remain public or collapse into owner modules.
 - `tokmd-substrate`
 - `tokmd-walk`
 
-### Internal module families still packaged today (1)
+### Internal module families still packaged today (0)
 
-These are current crates.io package boundaries that should be treated as
-transitional implementation seams, not the desired final registry surface.
-
-- `tokmd-analysis-explain`
+No packaged internal module families remain in the compatibility surface.
 
 ### Dev-only package under policy review (1)
 
@@ -88,7 +85,7 @@ transitional implementation seams, not the desired final registry surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (23 crates published + 4 non-crates.io)
+## Current compatibility surface (22 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -109,10 +106,9 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (10, compatibility classification)
+### Published support crates (9, compatibility classification)
 
 - `tokmd-analysis`
-- `tokmd-analysis-explain`
 - `tokmd-content`
 - `tokmd-format`
 - `tokmd-fun`
@@ -122,7 +118,7 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 10 published support crates.
+**Count:** 9 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -146,10 +142,9 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (10)
+### Target support crates (9)
 
 - `tokmd-analysis`
-- `tokmd-analysis-explain`
 - `tokmd-content`
 - `tokmd-format`
 - `tokmd-fun`
@@ -213,6 +208,8 @@ The former analysis Git crate now lives under
 `crates/tokmd-analysis/src/git/`.
 The former analysis format and HTML crates now live under
 `crates/tokmd-format/src/analysis/`.
+The former analysis explain crate now lives under
+`crates/tokmd/src/analysis_explain/`.
 
 ## Publish closure audit
 
