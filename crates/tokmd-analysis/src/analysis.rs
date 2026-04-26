@@ -15,11 +15,15 @@ use tokmd_analysis_types::{
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
+#[cfg(feature = "walk")]
+use crate::assets::{build_assets_report, build_dependency_report};
 #[cfg(feature = "git")]
 use crate::churn::build_predictive_churn_report;
 #[cfg(feature = "content")]
 use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
 use crate::derived::{build_tree, derive_report};
+#[cfg(feature = "fun")]
+use crate::fun::build_fun_report;
 #[cfg(feature = "git")]
 use crate::git::build_git_report;
 use crate::util::now_ms;
@@ -27,16 +31,12 @@ use crate::util::now_ms;
 use tokmd_analysis_api_surface::build_api_surface_report;
 #[cfg(feature = "archetype")]
 use tokmd_analysis_archetype::detect_archetype;
-#[cfg(feature = "walk")]
-use tokmd_analysis_assets::{build_assets_report, build_dependency_report};
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_complexity::build_complexity_report;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_entropy::build_entropy_report;
 #[cfg(feature = "git")]
 use tokmd_analysis_fingerprint::build_corporate_fingerprint;
-#[cfg(feature = "fun")]
-use tokmd_analysis_fun::build_fun_report;
 #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
 use tokmd_analysis_halstead::build_halstead_report;
 #[cfg(all(feature = "content", feature = "walk"))]

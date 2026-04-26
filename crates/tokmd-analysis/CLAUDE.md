@@ -60,7 +60,8 @@ pub fn normalize_root(path: &Path) -> PathBuf
 | `license` | License radar scanning |
 | `fingerprint` | Corporate domain analysis from git |
 | `churn` | Git-based change trend prediction |
-| `assets` | Asset categorization |
+| `assets` | Asset categorization and dependency lockfile reports |
+| `fun` | Eco-label report generation |
 | `git` | Hotspots, bus factor, freshness, coupling |
 | `content` | TODOs, duplicates, imports |
 
@@ -73,7 +74,7 @@ walk = ["tokmd-walk"]    # Asset discovery
 content = ["tokmd-content"]  # Content scanning
 topics = ["tokmd-analysis-topics"] # Topic-cloud extraction
 archetype = ["tokmd-analysis-archetype"] # Archetype detection
-fun = ["tokmd-analysis-fun"]  # Fun report + novelty outputs
+fun = ["tokmd-analysis-grid/fun"]  # Fun report + novelty outputs
 ```
 
 ## Dependencies

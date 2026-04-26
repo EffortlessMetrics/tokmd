@@ -1,0 +1,13 @@
+---
+source: crates/tokmd-analysis/src/fun/tests/snapshot_eco.rs
+assertion_line: 161
+expression: json
+---
+{
+  "eco_label": {
+    "score": 65.0,
+    "label": "C",
+    "bytes": 26214400,
+    "notes": "Size-based eco label (25 MB)"
+  }
+}

@@ -23,10 +23,10 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysis-archetype,
-                       tokmd-analysis-assets, tokmd-analysis-complexity, tokmd-analysis-content,
+                       tokmd-analysis-complexity, tokmd-analysis-content,
                        tokmd-analysis-derived, tokmd-analysis-effort, tokmd-analysis-entropy,
                        tokmd-analysis-explain, tokmd-analysis-fingerprint, tokmd-analysis-format,
-                       tokmd-analysis-fun, tokmd-analysis-git, tokmd-analysis-grid,
+                       tokmd-analysis-git, tokmd-analysis-grid,
                        tokmd-analysis-halstead, tokmd-analysis-html, tokmd-analysis-imports,
                        tokmd-analysis-license, tokmd-analysis-maintainability,
                        tokmd-analysis-near-dup, tokmd-analysis-topics, tokmd-analysis-util,
@@ -40,8 +40,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
 path/exclude/math/tokeignore helpers in `tokmd-scan`, redaction/scan-args/badge
-and export-tree rendering in `tokmd-format`, context policy/git helpers in
-`tokmd-core`, and CLI/config/progress/tool-schema wiring in `tokmd`.
+and export-tree rendering in `tokmd-format`, assets/fun analysis enrichers in
+`tokmd-analysis`, context policy/git helpers in `tokmd-core`, and
+CLI/config/progress/tool-schema wiring in `tokmd`.
 
 ### Tier 0: Contracts (Pure Data)
 
@@ -87,7 +88,6 @@ and export-tree rendering in `tokmd-format`, context policy/git helpers in
 | `tokmd-analysis` | Analysis orchestration with preset system |
 | `tokmd-analysis-api-surface` | API surface analysis |
 | `tokmd-analysis-archetype` | Archetype inference adapter |
-| `tokmd-analysis-assets` | Asset and dependency reports |
 | `tokmd-analysis-complexity` | Cyclomatic/cognitive complexity |
 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
 | `tokmd-analysis-imports` | Language-aware import parsing + normalization |
@@ -98,7 +98,6 @@ and export-tree rendering in `tokmd-format`, context policy/git helpers in
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
 | `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
-| `tokmd-analysis-fun` | Analysis-side novelty enrichment wiring |
 | `tokmd-analysis-git` | Git history analysis adapters |
 | `tokmd-analysis-grid` | Preset/feature matrix metadata |
 | `tokmd-analysis-halstead` | Halstead metrics |
@@ -155,9 +154,10 @@ Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-for
                  ↓                                            ↓
         Core enrichers                                  Optional adapters
         - tokmd-analysis-derived                        - tokmd-git / tokmd-analysis-git
+        - tokmd-analysis assets/fun modules             - tokmd-walk / license / entropy / topics
         - tokmd-analysis-complexity                     - tokmd-content / tokmd-analysis-content
-        - tokmd-analysis-api-surface                    - tokmd-walk / tokmd-analysis-assets
-        - tokmd-analysis-effort                         - tokmd-analysis-license / entropy / topics
+        - tokmd-analysis-api-surface
+        - tokmd-analysis-effort
 ```
 
 ### Flow C: Sensor Integration (tokmd-sensor)

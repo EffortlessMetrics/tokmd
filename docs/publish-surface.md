@@ -26,7 +26,7 @@ For publishability, every intended public crate must have a full non-dev workspa
 
 If a public or support crate depends on anything else, that dependency must be merged into an owner module first.
 
-## Current publish surface (44 crates published + 4 non-crates.io)
+## Current publish surface (42 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It is not the target promise.
 
@@ -46,12 +46,11 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (31)
+### Published support crates (29)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
 - `tokmd-analysis-archetype`
-- `tokmd-analysis-assets`
 - `tokmd-analysis-complexity`
 - `tokmd-analysis-content`
 - `tokmd-analysis-derived`
@@ -60,7 +59,6 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-analysis-explain`
 - `tokmd-analysis-fingerprint`
 - `tokmd-analysis-format`
-- `tokmd-analysis-fun`
 - `tokmd-analysis-git`
 - `tokmd-analysis-grid`
 - `tokmd-analysis-halstead`
@@ -80,7 +78,7 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 31 published support crates.
+**Count:** 29 published support crates.
 
 ## Non-crates.io packages (intentional exceptions) (4)
 
@@ -128,13 +126,11 @@ Same as the current supported public crates.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-### Target gap: planned support retirements (8)
+### Target gap: planned support retirements (6)
 
 - `tokmd-analysis-archetype`
-- `tokmd-analysis-assets`
 - `tokmd-analysis-derived`
 - `tokmd-analysis-fingerprint`
-- `tokmd-analysis-fun`
 - `tokmd-analysis-grid`
 - `tokmd-analysis-topics`
 - `tokmd-analysis-util`
@@ -174,10 +170,12 @@ consolidation remains future work.
 
 ## Future folder merge targets after policy freeze
 
-- `crates/tokmd-analysis`: `derived`, `util`, `grid`, `assets`, `fun`, `topics`, `archetype`, `fingerprint`
+- `crates/tokmd-analysis`: `derived`, `util`, `grid`, `topics`, `archetype`, `fingerprint`
 
 The former analysis Markdown crate now lives under
 `crates/tokmd-analysis-format/src/markdown.rs`.
+The former analysis assets and fun crates now live under
+`crates/tokmd-analysis/src/assets/` and `crates/tokmd-analysis/src/fun/`.
 
 ## Publish closure audit
 
