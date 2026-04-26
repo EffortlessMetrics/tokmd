@@ -444,13 +444,13 @@ pub(crate) fn build_api_surface_report(
         }
 
         let path = root.join(rel);
-        let bytes = match tokmd_content::read_head(&path, per_file_limit) {
+        let bytes = match crate::content::io::read_head(&path, per_file_limit) {
             Ok(b) => b,
             Err(_) => continue,
         };
         total_bytes += bytes.len() as u64;
 
-        if !tokmd_content::is_text_like(&bytes) {
+        if !crate::content::io::is_text_like(&bytes) {
             continue;
         }
 

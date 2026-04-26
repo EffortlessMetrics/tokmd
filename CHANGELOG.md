@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reduced allocations across git analysis, context packing, cockpit risk/lcov paths, dominant-language detection, polyglot report generation, complexity histogram rendering, and coupling computation
 - Reset planning/reference docs after `1.8.0` so README, roadmap, release instructions, schema docs, and crate READMEs match the shipped command surface
-- Moved unused `blake3`, `serde`, and `tokmd-content` edges out of production dependencies in `tokmd-analysis`
+- Moved unused `blake3`, `serde`, and content-helper edges out of production dependencies in `tokmd-analysis`
 
 ### Fixed
 
@@ -489,7 +489,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Microcrate Architecture**: Split into 16 focused crates for modularity and selective compilation
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
   - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
-  - `tokmd-format`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
+  - `tokmd-format`, `tokmd-git` (Tier 2: I/O)
   - `tokmd-analysis` and analysis rendering (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
   - `tokmd` (Tier 5: CLI binary)

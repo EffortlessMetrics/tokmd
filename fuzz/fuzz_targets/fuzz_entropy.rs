@@ -5,7 +5,11 @@
 
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use tokmd_content::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
+
+#[path = "../../crates/tokmd-analysis/src/content/io.rs"]
+mod content_io;
+
+use content_io::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
 
 /// Max input size - entropy calculation is O(n) so we can be more generous
 const MAX_INPUT_SIZE: usize = 256 * 1024; // 256KB

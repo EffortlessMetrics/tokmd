@@ -37,12 +37,12 @@ pub(crate) fn build_entropy_report(
             .unwrap_or_else(|| "(unknown)".to_string());
 
         let path = root.join(rel);
-        let bytes = tokmd_content::read_head_tail(&path, per_file_limit)?;
+        let bytes = crate::content::io::read_head_tail(&path, per_file_limit)?;
         total_bytes += bytes.len() as u64;
         if bytes.is_empty() {
             continue;
         }
-        let entropy = tokmd_content::entropy_bits_per_byte(&bytes);
+        let entropy = crate::content::io::entropy_bits_per_byte(&bytes);
         let class = classify_entropy(entropy);
         if class != EntropyClass::Normal {
             suspects.push(EntropyFinding {

@@ -129,7 +129,7 @@ Using `proptest` (1.9.0) across 17 crates:
 | `tokmd-analysis::imports` | Import parsing and normalization invariants |
 | `tokmd-gate` | Policy evaluation invariants |
 | `tokmd-git` | Git history collection |
-| `tokmd-content` | Entropy calculation, tag counting |
+| `tokmd-analysis::content` | Entropy calculation, tag counting |
 | `tokmd-scan::walk` | File listing, traversal |
 | `tokmd-format::fun` | Novelty output generation |
 | `tokmd` | CLI output properties |

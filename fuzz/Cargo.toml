@@ -32,6 +32,8 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4.10"
+anyhow = { workspace = true, optional = true }
+blake3 = { workspace = true, optional = true }
 
 # Serialization - only for targets that test JSON/TOML parsing
 serde_json = { version = "1.0", optional = true }
@@ -44,11 +46,13 @@ tokmd-scan = { workspace = true, optional = true }
 
 tokmd-gate = { workspace = true, optional = true }
 tokmd-types = { workspace = true, optional = true }
-tokmd-content = { workspace = true, optional = true }
 tokmd-format = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
 tokmd-envelope = { workspace = true, optional = true }
 tokmd-core = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true
 
 # ============================================================================
 # Features
@@ -94,9 +98,9 @@ gate = ["dep:tokmd-gate", "dep:serde_json"]
 # Needs serde_json for deserialization testing
 types = ["dep:tokmd-types", "dep:serde_json"]
 
-# Content analysis utilities (tokmd-content)
+# Content analysis utilities (tokmd-analysis content helpers)
 # Targets: fuzz_entropy
-content = ["dep:tokmd-content"]
+content = ["dep:anyhow", "dep:blake3"]
 
 # Path redaction utilities (tokmd-format/redact)
 # Targets: fuzz_redact

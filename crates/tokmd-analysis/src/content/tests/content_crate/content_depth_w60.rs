@@ -1,4 +1,4 @@
-//! Depth tests for tokmd-content scanning, entropy, tags, hashing, and complexity.
+//! Depth tests for tokmd-analysis content helpers scanning, entropy, tags, hashing, and complexity.
 //!
 //! 60+ BDD-style and property-based tests covering edge cases, binary handling,
 //! UTF-8 boundaries, determinism, and large/small file behaviour.
@@ -6,15 +6,15 @@
 use std::fs::File;
 use std::io::Write;
 
-use proptest::prelude::*;
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
+use proptest::prelude::*;
 
 // ============================================================================
 // 1. Entropy edge cases

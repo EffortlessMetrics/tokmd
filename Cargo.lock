@@ -2554,12 +2554,12 @@ dependencies = [
  "globset",
  "insta",
  "proptest",
+ "regex",
  "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-content",
  "tokmd-format",
  "tokmd-git",
  "tokmd-scan",
@@ -2597,17 +2597,6 @@ dependencies = [
  "tokmd-envelope",
  "tokmd-git",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-content"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "blake3",
- "proptest",
- "regex",
- "tempfile",
 ]
 
 [[package]]
@@ -2666,9 +2655,11 @@ dependencies = [
 name = "tokmd-fuzz"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
+ "blake3",
  "libfuzzer-sys",
  "serde_json",
- "tokmd-content",
+ "tempfile",
  "tokmd-core",
  "tokmd-envelope",
  "tokmd-format",

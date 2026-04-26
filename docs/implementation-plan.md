@@ -408,7 +408,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - [ ] Evaluate tree-sitter grammar availability and build complexity per language
 - [ ] Create tokmd-treesitter crate with feature-gated dependency
 - [ ] Implement language-specific parsers
-- [ ] Integrate with tokmd-content for precise boundary detection
+- [ ] Integrate with tokmd-analysis content helpers for precise boundary detection
 - [ ] Update complexity calculation to use AST when available
 - [ ] Performance benchmarks (must not regress heuristic-based path)
 

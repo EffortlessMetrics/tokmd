@@ -11,7 +11,7 @@
 //! * String hashing for redaction
 //!
 //! ## What does NOT belong here
-//! * General-purpose file hashing (see `tokmd-content`)
+//! * General-purpose file hashing (see `tokmd-analysis` content helpers)
 //! * Integrity hashing (see `tokmd-analysis`)
 
 use std::path::Path;

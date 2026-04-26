@@ -96,7 +96,7 @@ fn tier_for_crate(name: &str) -> Option<u8> {
         "tokmd-scan" | "tokmd-model" | "tokmd-sensor" => Some(1),
 
         // Tier 2: Adapters
-        "tokmd-format" | "tokmd-content" | "tokmd-git" => Some(2),
+        "tokmd-format" | "tokmd-git" => Some(2),
 
         // Tier 3: Orchestration (all analysis-* crates, gate, cockpit)
         n if n.starts_with("tokmd-analysis") => Some(3),
@@ -247,7 +247,6 @@ fn tier0_crates_never_depend_on_scan_or_higher() {
         "tokmd-scan",
         "tokmd-model",
         "tokmd-format",
-        "tokmd-content",
         "tokmd-git",
         "tokmd-analysis",
         "tokmd-core",

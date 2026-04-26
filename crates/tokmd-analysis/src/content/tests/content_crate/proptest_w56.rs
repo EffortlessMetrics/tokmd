@@ -4,7 +4,7 @@ proptest! {
     /// Entropy of any byte slice is in [0, 8].
     #[test]
     fn entropy_in_valid_range(bytes in proptest::collection::vec(any::<u8>(), 0..1024)) {
-        let e = tokmd_content::entropy_bits_per_byte(&bytes);
+        let e = crate::content::io::entropy_bits_per_byte(&bytes);
         prop_assert!(e >= 0.0, "Entropy should be >= 0, got {}", e);
         prop_assert!(e <= 8.0, "Entropy should be <= 8, got {}", e);
     }
@@ -12,7 +12,7 @@ proptest! {
     /// Entropy of empty byte slice is exactly 0.
     #[test]
     fn entropy_of_empty_is_zero(_dummy in 0..1u8) {
-        let e = tokmd_content::entropy_bits_per_byte(&[]);
+        let e = crate::content::io::entropy_bits_per_byte(&[]);
         prop_assert_eq!(e, 0.0);
     }
 
@@ -20,7 +20,7 @@ proptest! {
     #[test]
     fn entropy_of_uniform_bytes_is_zero(byte_val in any::<u8>(), len in 1usize..256) {
         let bytes = vec![byte_val; len];
-        let e = tokmd_content::entropy_bits_per_byte(&bytes);
+        let e = crate::content::io::entropy_bits_per_byte(&bytes);
         prop_assert!((e - 0.0).abs() < 1e-6,
             "Uniform bytes should have entropy ~0, got {}", e);
     }
@@ -28,15 +28,15 @@ proptest! {
     /// Entropy is deterministic.
     #[test]
     fn entropy_is_deterministic(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        let e1 = tokmd_content::entropy_bits_per_byte(&bytes);
-        let e2 = tokmd_content::entropy_bits_per_byte(&bytes);
+        let e1 = crate::content::io::entropy_bits_per_byte(&bytes);
+        let e2 = crate::content::io::entropy_bits_per_byte(&bytes);
         prop_assert_eq!(e1, e2);
     }
 
     /// hash_bytes produces a 64-char hex string (BLAKE3).
     #[test]
     fn hash_bytes_is_64_hex_chars(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
-        let hash = tokmd_content::hash_bytes(&bytes);
+        let hash = crate::content::io::hash_bytes(&bytes);
         prop_assert_eq!(hash.len(), 64, "BLAKE3 hash should be 64 hex chars");
         prop_assert!(hash.chars().all(|c| c.is_ascii_hexdigit()),
             "Hash should be hex: {}", hash);
@@ -45,8 +45,8 @@ proptest! {
     /// hash_bytes is deterministic.
     #[test]
     fn hash_bytes_is_deterministic(bytes in proptest::collection::vec(any::<u8>(), 0..256)) {
-        let h1 = tokmd_content::hash_bytes(&bytes);
-        let h2 = tokmd_content::hash_bytes(&bytes);
+        let h1 = crate::content::io::hash_bytes(&bytes);
+        let h2 = crate::content::io::hash_bytes(&bytes);
         prop_assert_eq!(h1, h2);
     }
 
@@ -57,8 +57,8 @@ proptest! {
         b in proptest::collection::vec(any::<u8>(), 1..128),
     ) {
         prop_assume!(a != b);
-        let h1 = tokmd_content::hash_bytes(&a);
-        let h2 = tokmd_content::hash_bytes(&b);
+        let h1 = crate::content::io::hash_bytes(&a);
+        let h2 = crate::content::io::hash_bytes(&b);
         prop_assert_ne!(h1, h2,
             "Different inputs should produce different hashes");
     }
@@ -72,14 +72,14 @@ proptest! {
         let mut bytes = prefix;
         bytes.push(0);
         bytes.extend(suffix);
-        prop_assert!(!tokmd_content::is_text_like(&bytes),
+        prop_assert!(!crate::content::io::is_text_like(&bytes),
             "Bytes containing null should not be text-like");
     }
 
     /// is_text_like accepts valid ASCII strings.
     #[test]
     fn is_text_like_accepts_ascii(input in "[a-zA-Z0-9 \t\n]{0,100}") {
-        prop_assert!(tokmd_content::is_text_like(input.as_bytes()),
+        prop_assert!(crate::content::io::is_text_like(input.as_bytes()),
             "Valid ASCII should be text-like");
     }
 
@@ -87,7 +87,7 @@ proptest! {
     #[test]
     fn count_tags_nonnegative(text in "\\PC{0,200}") {
         let tags = &["TODO", "FIXME", "HACK"];
-        let results = tokmd_content::count_tags(&text, tags);
+        let results = crate::content::io::count_tags(&text, tags);
         prop_assert_eq!(results.len(), 3);
         for (tag, count) in &results {
             prop_assert!(!tag.is_empty());
@@ -100,8 +100,8 @@ proptest! {
     #[test]
     fn count_tags_is_deterministic(text in "[a-zA-Z TODO FIXME HACK ]{0,100}") {
         let tags = &["TODO", "FIXME"];
-        let r1 = tokmd_content::count_tags(&text, tags);
-        let r2 = tokmd_content::count_tags(&text, tags);
+        let r1 = crate::content::io::count_tags(&text, tags);
+        let r2 = crate::content::io::count_tags(&text, tags);
         prop_assert_eq!(r1, r2);
     }
 
@@ -113,7 +113,7 @@ proptest! {
         suffix in "[a-zA-Z ]{0,20}",
     ) {
         let text = format!("{}{}{}", prefix, tag_case, suffix);
-        let results = tokmd_content::count_tags(&text, &["TODO"]);
+        let results = crate::content::io::count_tags(&text, &["TODO"]);
         prop_assert!(results[0].1 >= 1,
             "Should find at least 1 TODO in '{}', got {}", text, results[0].1);
     }

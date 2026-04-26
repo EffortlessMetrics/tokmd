@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-content – wave 69.
+//! Deep tests for tokmd-analysis content helpers – wave 69.
 //!
 //! Covers entropy calculation, tag counting, BLAKE3 hashing, text detection,
 //! file reading helpers, and complexity metrics with determinism checks.
@@ -6,11 +6,11 @@
 use std::fs::File;
 use std::io::Write;
 
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines,
 };

@@ -41,7 +41,7 @@ pub(crate) fn build_license_report(
     for rel in text_files {
         let path = root.join(&rel);
         let rel_str = rel.to_string_lossy().replace('\\', "/");
-        let text = tokmd_content::read_text_capped(&path, max_bytes)?;
+        let text = crate::content::io::read_text_capped(&path, max_bytes)?;
         if text.is_empty() {
             continue;
         }
@@ -104,12 +104,13 @@ fn parse_metadata_license_file(path: &Path) -> Result<Option<String>> {
     if file_name != "cargo.toml" {
         return Ok(None);
     }
-    let text = tokmd_content::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize)?;
+    let text = crate::content::io::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize)?;
     Ok(parse_toml_key(&text, "package", "license-file"))
 }
 
 fn parse_toml_license(path: &Path, section: &str) -> Option<String> {
-    let text = tokmd_content::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize).ok()?;
+    let text =
+        crate::content::io::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize).ok()?;
     parse_toml_key(&text, section, "license")
 }
 
@@ -163,7 +164,8 @@ fn extract_quoted(text: &str) -> Option<String> {
 }
 
 fn parse_package_json_license(path: &Path) -> Option<String> {
-    let text = tokmd_content::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize).ok()?;
+    let text =
+        crate::content::io::read_text_capped(path, DEFAULT_MAX_LICENSE_BYTES as usize).ok()?;
     let value: serde_json::Value = serde_json::from_str(&text).ok()?;
     match value.get("license") {
         Some(serde_json::Value::String(s)) => Some(s.trim().to_string()),

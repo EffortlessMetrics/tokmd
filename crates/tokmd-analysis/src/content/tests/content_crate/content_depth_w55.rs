@@ -1,18 +1,18 @@
-//! Comprehensive depth tests for tokmd-content (W55).
+//! Comprehensive depth tests for tokmd-analysis content helpers (W55).
 //!
 //! Covers: entropy, hashing, text detection, tag counting, read helpers,
 //! complexity metrics, and property-based invariants.
 
-use std::fs::File;
-use std::io::Write;
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
+use std::fs::File;
+use std::io::Write;
 
 fn tmp() -> tempfile::TempDir {
     tempfile::tempdir().unwrap()

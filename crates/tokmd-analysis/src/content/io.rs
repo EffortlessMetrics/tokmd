@@ -1,9 +1,7 @@
-//! # tokmd-content
+//! Content I/O helpers for analysis.
 //!
-//! **Tier 2 (Utilities)**
-//!
-//! Content scanning helpers for analysis. Provides file content inspection
-//! capabilities including reading, hashing, and entropy calculation.
+//! These helpers provide file content inspection capabilities including
+//! reading, hashing, tag counting, and entropy calculation.
 //!
 //! ## What belongs here
 //! * File content reading (head, tail, lines)
@@ -11,13 +9,12 @@
 //! * File integrity hashing (BLAKE3)
 //! * Tag counting (TODOs, FIXMEs)
 //! * Entropy calculation
-//! * Function-level complexity metrics
 //!
 //! ## What does NOT belong here
 //! * File listing (use tokmd-scan::walk)
 //! * File modification
 
-pub mod complexity;
+#![allow(dead_code)]
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};

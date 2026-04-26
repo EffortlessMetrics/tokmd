@@ -34,6 +34,8 @@
 //! - Closures and lambdas have limited support
 //! - Keywords in strings/comments may be counted (fast but imperfect)
 
+#![allow(dead_code)]
+
 use regex::Regex;
 use std::sync::LazyLock;
 
@@ -120,8 +122,8 @@ static GO_FUNC: LazyLock<Regex> =
 ///
 /// # Example
 ///
-/// ```
-/// use tokmd_content::complexity::analyze_functions;
+/// ```ignore
+/// use crate::content::complexity::analyze_functions;
 ///
 /// let rust_code = r#"
 /// fn main() {
@@ -404,8 +406,8 @@ const HIGH_COMPLEXITY_THRESHOLD: usize = 10;
 /// unsupported languages.
 ///
 /// # Example
-/// ```
-/// use tokmd_content::complexity::estimate_cyclomatic_complexity;
+/// ```ignore
+/// use crate::content::complexity::estimate_cyclomatic_complexity;
 ///
 /// let rust_code = r#"
 /// fn simple() {
@@ -825,8 +827,8 @@ const HIGH_COGNITIVE_THRESHOLD: usize = 15;
 /// Cognitive complexity analysis results.
 ///
 /// # Example
-/// ```
-/// use tokmd_content::complexity::estimate_cognitive_complexity;
+/// ```ignore
+/// use crate::content::complexity::estimate_cognitive_complexity;
 ///
 /// let rust_code = r#"
 /// fn complex(x: i32) -> i32 {
@@ -1167,8 +1169,8 @@ impl Default for NestingAnalysis {
 /// `NestingAnalysis` with max depth, average depth, and line numbers of max depth.
 ///
 /// # Example
-/// ```
-/// use tokmd_content::complexity::analyze_nesting_depth;
+/// ```ignore
+/// use crate::content::complexity::analyze_nesting_depth;
 ///
 /// let rust_code = r#"
 /// fn main() {

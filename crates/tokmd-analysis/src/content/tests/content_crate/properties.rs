@@ -1,11 +1,11 @@
-//! Property-based tests for tokmd-content functions.
+//! Property-based tests for tokmd-analysis content helpers functions.
 
-use proptest::prelude::*;
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
+use crate::content::io::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
+use proptest::prelude::*;
 
 proptest! {
     // ========================

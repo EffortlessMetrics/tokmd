@@ -121,7 +121,7 @@ git log --numstat → CommitHistory
 Respects --max-commits, --max-commit-files
 ```
 
-### Content Adapter (tokmd-content)
+### Content Helpers (tokmd-analysis::content)
 
 File content analysis:
 ```

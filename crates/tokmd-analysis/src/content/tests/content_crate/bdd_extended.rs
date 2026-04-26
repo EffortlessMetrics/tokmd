@@ -1,4 +1,4 @@
-//! Extended BDD-style tests for tokmd-content.
+//! Extended BDD-style tests for tokmd-analysis content helpers.
 //!
 //! These tests cover edge cases not addressed by the existing test suite:
 //! empty file reads, binary format headers, hash edge cases,
@@ -9,11 +9,11 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-use tokmd_content::complexity::{
+use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
@@ -282,7 +282,7 @@ fn test_given_adjacent_tags_when_counted_then_all_found() {
 
 #[test]
 fn test_given_known_input_when_hashed_then_deterministic_across_calls() {
-    let content = b"tokmd-content deterministic hashing";
+    let content = b"tokmd-analysis content deterministic hashing";
     let h1 = hash_bytes(content);
     let h2 = hash_bytes(content);
     let h3 = hash_bytes(content);

@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-content (wave 48).
+//! Deep tests for tokmd-analysis content helpers (wave 48).
 //!
 //! Covers entropy calculation, high-entropy detection, import/tag extraction,
 //! BLAKE3 hashing, property tests for entropy bounds and hash determinism,
@@ -7,7 +7,7 @@
 use std::fs::File;
 use std::io::Write;
 
-use tokmd_content::{
+use crate::content::io::{
     count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
     read_head_tail, read_lines, read_text_capped,
 };
@@ -277,8 +277,8 @@ fn hash_bytes_lowercase_hex() {
 // ============================================================================
 
 mod properties {
+    use crate::content::io::{entropy_bits_per_byte, hash_bytes};
     use proptest::prelude::*;
-    use tokmd_content::{entropy_bits_per_byte, hash_bytes};
 
     proptest! {
         #[test]

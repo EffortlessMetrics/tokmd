@@ -9,7 +9,7 @@
 //! * File size queries
 //!
 //! ## What does NOT belong here
-//! * Content scanning (use tokmd-content)
+//! * Content scanning (use tokmd-analysis content helpers)
 //! * Git history analysis (use tokmd-git)
 //! * File modification
 
