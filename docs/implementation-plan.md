@@ -51,10 +51,10 @@ This document records completed implementation phases through `1.9.0` and the ne
 
 ### Sensor Integration Crates ✅
 
-As part of this phase, three additional Tier 0 crates were created:
+As part of this phase, the sensor/envelope surfaces were created:
 
 - **`tokmd-envelope`**: Cross-fleet `SensorReport` contract (`sensor.report.v1` schema)
-- **`tokmd-substrate`**: Shared `RepoSubstrate` context for multi-sensor pipelines
+- **`tokmd-sensor::substrate`**: Shared `RepoSubstrate` context for multi-sensor pipelines
 - **`tokmd-sensor`** (Tier 1): `EffortlessSensor` trait + `build_substrate()` builder
 
 ### Work Items

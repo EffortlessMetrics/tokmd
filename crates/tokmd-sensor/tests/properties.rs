@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use proptest::prelude::*;
 use tokmd_envelope::{SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict};
-use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
 /// Generate an arbitrary `SubstrateFile`.
 fn arb_substrate_file() -> impl Strategy<Value = SubstrateFile> {

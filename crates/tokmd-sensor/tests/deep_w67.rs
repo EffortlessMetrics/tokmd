@@ -9,7 +9,7 @@ use tokmd_envelope::{
     Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ---------------------------------------------------------------------------
 // Helpers

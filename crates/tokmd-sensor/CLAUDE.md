@@ -54,7 +54,7 @@ pub fn substrate_builder::build_substrate(
 ## Dependencies
 
 - `tokmd-envelope` (SensorReport contract)
-- `tokmd-substrate` (RepoSubstrate types)
+- `tokmd-sensor::substrate` (RepoSubstrate types)
 - `tokmd-settings` (ScanOptions)
 - `tokmd-scan` (tokei wrapper)
 - `tokmd-model` (file row aggregation)

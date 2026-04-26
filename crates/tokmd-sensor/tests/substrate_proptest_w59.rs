@@ -1,4 +1,4 @@
-//! Property-based tests for `tokmd-substrate` invariants.
+//! Property-based tests for `tokmd-sensor::substrate` invariants.
 //!
 //! Verifies serde roundtrips, totals consistency, and structural
 //! invariants for arbitrary substrate inputs.
@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ── Strategies ───────────────────────────────────────────────────
 

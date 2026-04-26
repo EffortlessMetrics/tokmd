@@ -90,11 +90,7 @@ fn get_features(toml_val: &toml::Value) -> BTreeSet<String> {
 fn tier_for_crate(name: &str) -> Option<u8> {
     match name {
         // Tier 0: Contracts
-        "tokmd-types"
-        | "tokmd-analysis-types"
-        | "tokmd-settings"
-        | "tokmd-envelope"
-        | "tokmd-substrate" => Some(0),
+        "tokmd-types" | "tokmd-analysis-types" | "tokmd-settings" | "tokmd-envelope" => Some(0),
 
         // Tier 1: Core
         "tokmd-scan" | "tokmd-model" | "tokmd-sensor" => Some(1),
@@ -152,7 +148,6 @@ const TIER0_CRATES: &[&str] = &[
     "tokmd-analysis-types",
     "tokmd-settings",
     "tokmd-envelope",
-    "tokmd-substrate",
 ];
 
 #[test]

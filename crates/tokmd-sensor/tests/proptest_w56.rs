@@ -2,7 +2,7 @@ use proptest::prelude::*;
 use std::collections::BTreeMap;
 use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
 use tokmd_sensor::EffortlessSensor;
-use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
 /// A test sensor for property testing.
 struct PropSensor;

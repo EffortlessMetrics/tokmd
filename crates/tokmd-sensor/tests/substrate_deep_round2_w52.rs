@@ -1,11 +1,11 @@
-//! Deep round-2 tests for tokmd-substrate (W52).
+//! Deep round-2 tests for tokmd-sensor::substrate (W52).
 //!
 //! Covers RepoSubstrate construction, field access, serialization,
 //! determinism, and edge cases.
 
 use std::collections::BTreeMap;
 
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ---------------------------------------------------------------------------
 // Helpers

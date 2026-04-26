@@ -15,7 +15,6 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
     "tokmd-io-port",
     "tokmd-sensor",
     "tokmd-settings",
-    "tokmd-substrate",
     "tokmd-types",
     "tokmd-wasm",
     "tokmd-analysis-types",
@@ -53,12 +52,7 @@ const PUBLIC_CAPABILITY_CRATES: &[&str] = &[
     "tokmd-scan",
 ];
 
-const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[
-    "tokmd-content",
-    "tokmd-fun",
-    "tokmd-substrate",
-    "tokmd-walk",
-];
+const CONDITIONAL_PUBLIC_CRATES: &[&str] = &["tokmd-content", "tokmd-fun", "tokmd-walk"];
 
 const INTERNAL_MODULE_FAMILIES: &[&str] = &[];
 

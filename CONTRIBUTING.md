@@ -94,10 +94,9 @@ crates/
 ├── tokmd-analysis-types/            # Tier 0: Analysis receipt types
 ├── tokmd-settings/                  # Tier 0: Clap-free settings types
 ├── tokmd-envelope/                  # Tier 0: Sensor report + FFI envelope contracts
-├── tokmd-substrate/                 # Tier 0: Shared repo context
 ├── tokmd-scan/                      # Tier 1: tokei wrapper
 ├── tokmd-model/                     # Tier 1: Aggregation logic
-├── tokmd-sensor/                    # Tier 1: Sensor trait + substrate builder
+├── tokmd-sensor/                    # Tier 1: Sensor trait + substrate module/builder
 ├── tokmd-format/                    # Tier 2: Output rendering
 ├── tokmd-walk/                      # Tier 2: File system traversal
 ├── tokmd-content/                   # Tier 2: Content scanning

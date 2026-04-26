@@ -503,7 +503,7 @@ fn all_task_modules_declared_in_mod_rs() {
 // ===========================================================================
 
 #[test]
-fn publish_order_envelope_and_substrate_before_sensor() {
+fn publish_order_envelope_before_sensor() {
     let (stdout, _, _) = run_xtask(&["publish", "--plan"]);
     let order = parse_publish_order(&stdout);
     let pos: BTreeMap<&str, usize> = order
@@ -516,12 +516,6 @@ fn publish_order_envelope_and_substrate_before_sensor() {
         assert!(
             env_p < sensor_p,
             "tokmd-envelope must come before tokmd-sensor"
-        );
-    }
-    if let (Some(&sub_p), Some(&sensor_p)) = (pos.get("tokmd-substrate"), pos.get("tokmd-sensor")) {
-        assert!(
-            sub_p < sensor_p,
-            "tokmd-substrate must come before tokmd-sensor"
         );
     }
 }

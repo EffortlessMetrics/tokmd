@@ -15,7 +15,7 @@ tokmd follows a tiered microcrate architecture with strict dependency rules.
 
 ```
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
-                       tokmd-envelope, tokmd-substrate, tokmd-io-port
+                       tokmd-envelope, tokmd-io-port
          ↓
 Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
@@ -36,7 +36,7 @@ and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
 export-tree and analysis rendering in `tokmd-format`, assets/fun and
 metric/security analysis enrichers and content/import/Git adapters in
 `tokmd-analysis`, context policy/git helpers in
-`tokmd-core`, and
+`tokmd-core`, sensor substrate context in `tokmd-sensor`, and
 CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 ### Tier 0: Contracts (Pure Data)
@@ -47,7 +47,6 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 | `tokmd-analysis-types` | Analysis receipt DTOs | `serde`, `tokmd-types` |
 | `tokmd-settings` | Clap-free settings types (`ScanOptions`, `LangSettings`, etc.) | `serde`, `tokmd-types` |
 | `tokmd-envelope` | Cross-fleet `SensorReport` contract plus FFI envelope parser/extractor helpers | `serde`, `serde_json` |
-| `tokmd-substrate` | Shared repo context (`RepoSubstrate`, `SubstrateFile`, `DiffRange`) | `serde` only |
 | `tokmd-io-port` | Host-abstracted file access contracts (`ReadFs`, `HostFs`, `MemFs`) | `std` only |
 
 **Schema Versions** (separate per family):
@@ -217,7 +216,7 @@ among many (cargo-deny, cargo-audit, etc.) in a CI/CD fleet.
 | Crate | Role |
 |-------|------|
 | `tokmd-io-port` | Host-side file access seam used to keep future in-memory/WASM paths honest |
-| `tokmd-substrate` | Shared scan context (files, languages, diff range) — built once |
+| `tokmd-sensor::substrate` | Shared scan context (files, languages, diff range) — built once |
 | `tokmd-envelope` | Standardized report contract (`sensor.report.v1`) |
 | `tokmd-settings` | Clap-free settings for library/FFI consumers |
 | `tokmd-sensor` | `EffortlessSensor` trait + substrate builder |

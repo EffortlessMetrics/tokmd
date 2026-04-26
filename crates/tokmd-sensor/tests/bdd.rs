@@ -11,7 +11,7 @@ use tokmd_envelope::{
     ToolMeta, Verdict,
 };
 use tokmd_sensor::EffortlessSensor;
-use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
 // ---------------------------------------------------------------------------
 // Mock sensors
@@ -248,7 +248,7 @@ fn multi_lang_substrate() -> RepoSubstrate {
         repo_root: "/project".to_string(),
         files,
         lang_summary,
-        diff_range: Some(tokmd_substrate::DiffRange {
+        diff_range: Some(tokmd_sensor::substrate::DiffRange {
             base: "main".to_string(),
             head: "feature".to_string(),
             changed_files: vec!["src/lib.rs".to_string(), "tests/test.py".to_string()],

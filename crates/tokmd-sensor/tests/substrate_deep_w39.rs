@@ -1,7 +1,7 @@
-//! Deep tests for tokmd-substrate – wave 39.
+//! Deep tests for tokmd-sensor::substrate – wave 39.
 
 use std::collections::BTreeMap;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -4,7 +4,7 @@
 //! substrate creation, field access, filtering, and edge cases.
 
 use std::collections::BTreeMap;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ── helpers ──────────────────────────────────────────────────────
 

@@ -18,7 +18,6 @@ default = []
 anyhow.workspace = true
 serde.workspace = true
 tokmd-envelope.workspace = true
-tokmd-substrate.workspace = true
 tokmd-settings.workspace = true
 tokmd-scan.workspace = true
 tokmd-model.workspace = true
@@ -28,5 +27,4 @@ tokmd-types.workspace = true
 proptest.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
-
 

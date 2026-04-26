@@ -84,7 +84,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 0    | `tokmd-analysis-types`  | Analysis receipt types                |
 | 0    | `tokmd-settings`        | Clap-free settings types              |
 | 0    | `tokmd-envelope`        | Cross-fleet sensor report contract    |
-| 0    | `tokmd-substrate`       | Shared repo context (`RepoSubstrate`) |
+| 1    | `tokmd-sensor::substrate` | Shared repo context (`RepoSubstrate`) |
 | 1    | `tokmd-scan`            | tokei wrapper                         |
 | 1    | `tokmd-model`           | Aggregation logic                     |
 | 1    | `tokmd-tokeignore`      | Template generation                   |
@@ -258,7 +258,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | `tokmd sensor` command   | ✅ Complete | Conforming sensor producing `sensor.report.v1` envelope |
 | `tokmd-sensor` crate     | ✅ Complete | `EffortlessSensor` trait + substrate builder          |
 | `tokmd-envelope` crate   | ✅ Complete | Cross-fleet `SensorReport` contract with verdicts    |
-| `tokmd-substrate` crate  | ✅ Complete | Shared `RepoSubstrate` for single-I/O-pass sensors  |
+| `tokmd-sensor::substrate` | ✅ Complete | Shared `RepoSubstrate` for single-I/O-pass sensors  |
 | `tokmd-settings` crate   | ✅ Complete | Clap-free settings types for library/FFI usage       |
 
 ### Derived Metrics
@@ -291,7 +291,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - **New feature flag**: `halstead` in `tokmd-analysis`
 - **Cockpit gates completed**: diff coverage (lcov), semver checks, schema diff
 - **Handoff complexity**: Real data from file analysis (replaces heuristic)
-- **New crates**: `tokmd-sensor`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate`
+- **New crates/seams**: `tokmd-sensor`, `tokmd-settings`, `tokmd-envelope`, `tokmd-sensor::substrate`
 
 ---
 
@@ -423,7 +423,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 | Tier | Crates Covered | Test Types Added |
 | :--- | :------------- | :--------------- |
-| 0 | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate` | Determinism regression, contract expansion, boundary props |
+| 0 | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope` | Determinism regression, contract expansion, boundary props |
 | 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
 | 2 | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git` | Snapshot tests for all renderers, traversal properties |
 | 3 | All `tokmd-analysis-*` microcrates, `tokmd-gate`, `tokmd-fun` | BDD scenarios, enricher contract verification, deep proptests |

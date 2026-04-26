@@ -1,4 +1,4 @@
-//! # tokmd-substrate
+//! # tokmd-sensor::substrate
 //!
 //! **Tier 0 (Pure Data)**
 //!
