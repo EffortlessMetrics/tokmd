@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use assert_cmd::Command;
 use predicates::prelude::*;
 use serde_json::Value;
-use tokmd_analysis_derived::derive_report;
+use tokmd_analysis::derive_report;
 use tokmd_format::{
     badge_svg, compute_diff_rows, compute_diff_totals, create_diff_receipt, write_export_csv_to,
     write_export_json_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,

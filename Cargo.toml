@@ -12,7 +12,6 @@ members = [
     "crates/tokmd-analysis-license",
     "crates/tokmd-analysis-halstead",
     "crates/tokmd-analysis-maintainability",
-    "crates/tokmd-analysis-derived",
     "crates/tokmd-analysis-content",
     "crates/tokmd-analysis-git",
     "crates/tokmd-analysis-util",
@@ -26,10 +25,6 @@ members = [
     "crates/tokmd-ffi-envelope",
     "crates/tokmd-format",
     "crates/tokmd-fun",
-    "crates/tokmd-analysis-grid",
-    "crates/tokmd-analysis-archetype",
-    "crates/tokmd-analysis-topics",
-    "crates/tokmd-analysis-fingerprint",
     "crates/tokmd-gate",
     "crates/tokmd-git",
     "crates/tokmd-model",
@@ -105,13 +100,8 @@ tokmd-ffi-envelope = { path = "crates/tokmd-ffi-envelope", version = "1.9.0" }
 tokmd-core = { path = "crates/tokmd-core", version = "1.9.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.9.0" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.9.0" }
-tokmd-analysis-derived = { path = "crates/tokmd-analysis-derived", version = "1.9.0" }
 tokmd-analysis-git = { path = "crates/tokmd-analysis-git", version = "1.9.0" }
 tokmd-analysis-util = { path = "crates/tokmd-analysis-util", version = "1.9.0" }
-tokmd-analysis-grid = { path = "crates/tokmd-analysis-grid", version = "1.9.0" }
-tokmd-analysis-archetype = { path = "crates/tokmd-analysis-archetype", version = "1.9.0" }
-tokmd-analysis-topics = { path = "crates/tokmd-analysis-topics", version = "1.9.0" }
-tokmd-analysis-fingerprint = { path = "crates/tokmd-analysis-fingerprint", version = "1.9.0" }
 tokmd-analysis-effort = { path = "crates/tokmd-analysis-effort", version = "1.9.0" }
 tokmd-git = { path = "crates/tokmd-git", version = "1.9.0" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.9.0" }

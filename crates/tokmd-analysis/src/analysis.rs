@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use anyhow::Result;
 #[cfg(feature = "effort")]
 use tokmd_analysis_effort::{EffortRequest, build_effort_report};
-use tokmd_analysis_grid::{PresetKind, PresetPlan, preset_plan_for};
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
     ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
@@ -15,6 +14,8 @@ use tokmd_analysis_types::{
 use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
+#[cfg(feature = "archetype")]
+use crate::archetype::detect_archetype;
 #[cfg(feature = "walk")]
 use crate::assets::{build_assets_report, build_dependency_report};
 #[cfg(feature = "git")]
@@ -22,21 +23,22 @@ use crate::churn::build_predictive_churn_report;
 #[cfg(feature = "content")]
 use crate::content::{build_duplicate_report, build_import_report, build_todo_report};
 use crate::derived::{build_tree, derive_report};
+#[cfg(feature = "git")]
+use crate::fingerprint::build_corporate_fingerprint;
 #[cfg(feature = "fun")]
 use crate::fun::build_fun_report;
 #[cfg(feature = "git")]
 use crate::git::build_git_report;
+use crate::grid::{PresetKind, PresetPlan, preset_plan_for};
+#[cfg(feature = "topics")]
+use crate::topics::build_topic_clouds;
 use crate::util::now_ms;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_api_surface::build_api_surface_report;
-#[cfg(feature = "archetype")]
-use tokmd_analysis_archetype::detect_archetype;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_complexity::build_complexity_report;
 #[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_entropy::build_entropy_report;
-#[cfg(feature = "git")]
-use tokmd_analysis_fingerprint::build_corporate_fingerprint;
 #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
 use tokmd_analysis_halstead::build_halstead_report;
 #[cfg(all(feature = "content", feature = "walk"))]
@@ -45,8 +47,6 @@ use tokmd_analysis_license::build_license_report;
 use tokmd_analysis_maintainability::attach_halstead_metrics;
 #[cfg(feature = "content")]
 use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
-#[cfg(feature = "topics")]
-use tokmd_analysis_topics::build_topic_clouds;
 
 /// Canonical preset enum for analysis orchestration.
 pub type AnalysisPreset = PresetKind;
@@ -217,7 +217,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(not(feature = "walk"))]
         {
             warnings.push(
-                tokmd_analysis_grid::DisabledFeature::FileInventory
+                crate::grid::DisabledFeature::FileInventory
                     .warning()
                     .to_string(),
             );
@@ -259,11 +259,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
             }
         }
         #[cfg(not(feature = "content"))]
-        warnings.push(
-            tokmd_analysis_grid::DisabledFeature::TodoScan
-                .warning()
-                .to_string(),
-        );
+        warnings.push(crate::grid::DisabledFeature::TodoScan.warning().to_string());
     }
 
     if plan.dup {
@@ -278,7 +274,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "content"))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::DuplicationScan
+            crate::grid::DisabledFeature::DuplicationScan
                 .warning()
                 .to_string(),
         );
@@ -325,7 +321,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "content"))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::NearDuplicateScan
+            crate::grid::DisabledFeature::NearDuplicateScan
                 .warning()
                 .to_string(),
         );
@@ -349,7 +345,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "content"))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::ImportScan
+            crate::grid::DisabledFeature::ImportScan
                 .warning()
                 .to_string(),
         );
@@ -399,7 +395,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "git"))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::GitMetrics
+            crate::grid::DisabledFeature::GitMetrics
                 .warning()
                 .to_string(),
         );
@@ -413,7 +409,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         #[cfg(not(feature = "archetype"))]
         {
             warnings.push(
-                tokmd_analysis_grid::DisabledFeature::Archetype
+                crate::grid::DisabledFeature::Archetype
                     .warning()
                     .to_string(),
             );
@@ -427,11 +423,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "topics"))]
         {
-            warnings.push(
-                tokmd_analysis_grid::DisabledFeature::Topics
-                    .warning()
-                    .to_string(),
-            );
+            warnings.push(crate::grid::DisabledFeature::Topics.warning().to_string());
         }
     }
 
@@ -447,7 +439,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::EntropyProfiling
+            crate::grid::DisabledFeature::EntropyProfiling
                 .warning()
                 .to_string(),
         );
@@ -465,7 +457,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::LicenseRadar
+            crate::grid::DisabledFeature::LicenseRadar
                 .warning()
                 .to_string(),
         );
@@ -489,7 +481,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::ComplexityAnalysis
+            crate::grid::DisabledFeature::ComplexityAnalysis
                 .warning()
                 .to_string(),
         );
@@ -507,7 +499,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(all(feature = "content", feature = "walk")))]
         warnings.push(
-            tokmd_analysis_grid::DisabledFeature::ApiSurfaceAnalysis
+            crate::grid::DisabledFeature::ApiSurfaceAnalysis
                 .warning()
                 .to_string(),
         );
@@ -536,11 +528,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
         }
         #[cfg(not(feature = "fun"))]
         {
-            warnings.push(
-                tokmd_analysis_grid::DisabledFeature::Fun
-                    .warning()
-                    .to_string(),
-            );
+            warnings.push(crate::grid::DisabledFeature::Fun.warning().to_string());
             fun = None;
         }
     } else {

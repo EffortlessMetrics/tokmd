@@ -22,14 +22,14 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
          ↓
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
-Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface, tokmd-analysis-archetype,
+Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface,
                        tokmd-analysis-complexity, tokmd-analysis-content,
-                       tokmd-analysis-derived, tokmd-analysis-effort, tokmd-analysis-entropy,
-                       tokmd-analysis-explain, tokmd-analysis-fingerprint, tokmd-analysis-format,
-                       tokmd-analysis-git, tokmd-analysis-grid,
+                       tokmd-analysis-effort, tokmd-analysis-entropy,
+                       tokmd-analysis-explain, tokmd-analysis-format,
+                       tokmd-analysis-git,
                        tokmd-analysis-halstead, tokmd-analysis-html, tokmd-analysis-imports,
                        tokmd-analysis-license, tokmd-analysis-maintainability,
-                       tokmd-analysis-near-dup, tokmd-analysis-topics, tokmd-analysis-util,
+                       tokmd-analysis-near-dup, tokmd-analysis-util,
                        tokmd-cockpit, tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
@@ -85,26 +85,21 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-analysis` | Analysis orchestration with preset system |
+| `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, and fun enrichers |
 | `tokmd-analysis-api-surface` | API surface analysis |
-| `tokmd-analysis-archetype` | Archetype inference adapter |
 | `tokmd-analysis-complexity` | Cyclomatic/cognitive complexity |
 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
 | `tokmd-analysis-imports` | Language-aware import parsing + normalization |
-| `tokmd-analysis-derived` | Core derived metrics (density, COCOMO) |
 | `tokmd-analysis-effort` | Effort-estimation engine (COCOMO, delta support, Monte Carlo scaffolding) |
 | `tokmd-analysis-entropy` | High-entropy file detection |
 | `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
-| `tokmd-analysis-fingerprint` | Corporate fingerprint adapter |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-analysis-git` | Git history analysis adapters |
-| `tokmd-analysis-grid` | Preset/feature matrix metadata |
 | `tokmd-analysis-halstead` | Halstead metrics |
 | `tokmd-analysis-maintainability` | Maintainability index scoring + Halstead merge |
 | `tokmd-analysis-license` | License radar scanning |
 | `tokmd-analysis-near-dup` | Near-duplicate detection |
-| `tokmd-analysis-topics` | Topic-cloud extraction adapter |
 | `tokmd-analysis-util` | Shared analysis utilities |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
@@ -152,8 +147,8 @@ Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-for
                                 ↓
                  ┌──────────────┴─────────────────────────────┐
                  ↓                                            ↓
-        Core enrichers                                  Optional adapters
-        - tokmd-analysis-derived                        - tokmd-git / tokmd-analysis-git
+       Core enrichers                                  Optional adapters
+        - tokmd-analysis derived/grid modules           - tokmd-git / tokmd-analysis-git
         - tokmd-analysis assets/fun modules             - tokmd-walk / license / entropy / topics
         - tokmd-analysis-complexity                     - tokmd-content / tokmd-analysis-content
         - tokmd-analysis-api-surface

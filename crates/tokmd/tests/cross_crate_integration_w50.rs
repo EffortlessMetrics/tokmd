@@ -5,7 +5,7 @@ mod common;
 
 use std::path::PathBuf;
 
-use tokmd_analysis_derived::derive_report;
+use tokmd_analysis::derive_report;
 use tokmd_model::{create_export_data, create_lang_report, create_module_report};
 use tokmd_scan::scan;
 use tokmd_settings::{ScanOptions, TomlConfig};

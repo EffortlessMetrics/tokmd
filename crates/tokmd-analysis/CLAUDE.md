@@ -72,9 +72,9 @@ pub fn normalize_root(path: &Path) -> PathBuf
 git = ["tokmd-git"]      # Git history analysis
 walk = ["tokmd-walk"]    # Asset discovery
 content = ["tokmd-content"]  # Content scanning
-topics = ["tokmd-analysis-topics"] # Topic-cloud extraction
-archetype = ["tokmd-analysis-archetype"] # Archetype detection
-fun = ["tokmd-analysis-grid/fun"]  # Fun report + novelty outputs
+topics = [] # Topic-cloud extraction module
+archetype = [] # Archetype detection module
+fun = []  # Fun report + novelty outputs module
 ```
 
 ## Dependencies

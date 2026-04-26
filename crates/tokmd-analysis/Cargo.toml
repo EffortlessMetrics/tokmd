@@ -15,15 +15,12 @@ documentation = "https://docs.rs/tokmd-analysis"
 default = ["fun", "topics", "archetype", "effort"]
 git = [
     "dep:tokmd-git",
-    "dep:tokmd-analysis-fingerprint",
     "dep:tokmd-analysis-git",
-    "tokmd-analysis-grid/git",
     "tokmd-analysis-effort/git",
 ]
 walk = [
     "dep:tokmd-walk",
     "dep:tokmd-analysis-license",
-    "tokmd-analysis-grid/walk",
 ]
 content = [
     "dep:tokmd-analysis-content",
@@ -31,28 +28,28 @@ content = [
     "dep:tokmd-analysis-entropy",
     "dep:tokmd-analysis-api-surface",
     "dep:tokmd-analysis-near-dup",
-    "tokmd-analysis-grid/content",
 ]
 halstead = [
     "content",
     "walk",
     "dep:tokmd-analysis-halstead",
     "dep:tokmd-analysis-maintainability",
-    "tokmd-analysis-grid/halstead",
 ]
 effort = ["dep:tokmd-analysis-effort"]
-fun = ["tokmd-analysis-grid/fun"]
-topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
-archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
+fun = []
+topics = []
+archetype = []
 
 [dependencies]
 anyhow.workspace = true
+blake3.workspace = true
 serde_json.workspace = true
 
 # Core contracts
-tokmd-analysis-derived.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-analysis-util.workspace = true
+tokmd-format.workspace = true
+tokmd-scan.workspace = true
 tokmd-types.workspace = true
 
 # Optional adapters
@@ -60,10 +57,6 @@ tokmd-git = { workspace = true, optional = true }
 tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-analysis-content = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
-tokmd-analysis-grid.workspace = true
-tokmd-analysis-archetype = { workspace = true, optional = true }
-tokmd-analysis-topics = { workspace = true, optional = true }
-tokmd-analysis-fingerprint = { workspace = true, optional = true }
 tokmd-analysis-near-dup = { workspace = true, optional = true }
 tokmd-analysis-api-surface = { workspace = true, optional = true }
 tokmd-analysis-complexity = { workspace = true, optional = true }

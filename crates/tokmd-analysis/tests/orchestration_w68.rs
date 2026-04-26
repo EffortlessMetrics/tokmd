@@ -154,7 +154,7 @@ fn make_context(export: ExportData) -> AnalysisContext {
 
 #[test]
 fn preset_receipt_exists() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Receipt);
     // Receipt now enables dup, git, complexity, api_surface
     assert!(plan.dup, "receipt should request dup");
@@ -171,7 +171,7 @@ fn preset_receipt_exists() {
 
 #[test]
 fn preset_health_enables_todo_and_complexity() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Health);
     assert!(plan.todo);
     assert!(plan.complexity);
@@ -182,7 +182,7 @@ fn preset_health_enables_todo_and_complexity() {
 
 #[test]
 fn preset_risk_enables_git_and_complexity() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Risk);
     assert!(plan.git);
     assert!(plan.complexity);
@@ -192,7 +192,7 @@ fn preset_risk_enables_git_and_complexity() {
 
 #[test]
 fn preset_supply_enables_assets_and_deps() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Supply);
     assert!(plan.assets);
     assert!(plan.deps);
@@ -204,7 +204,7 @@ fn preset_supply_enables_assets_and_deps() {
 
 #[test]
 fn preset_architecture_enables_imports_and_api_surface() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Architecture);
     assert!(plan.imports);
     assert!(plan.api_surface);
@@ -215,7 +215,7 @@ fn preset_architecture_enables_imports_and_api_surface() {
 
 #[test]
 fn preset_deep_enables_everything_except_fun() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Deep);
     assert!(plan.assets);
     assert!(plan.deps);
@@ -234,7 +234,7 @@ fn preset_deep_enables_everything_except_fun() {
 
 #[test]
 fn preset_fun_enables_only_fun() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Fun);
     assert!(plan.fun);
     assert!(!plan.assets);
@@ -248,7 +248,7 @@ fn preset_fun_enables_only_fun() {
 
 #[test]
 fn preset_topics_enables_only_topics() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Topics);
     assert!(plan.topics);
     assert!(!plan.assets);
@@ -259,7 +259,7 @@ fn preset_topics_enables_only_topics() {
 
 #[test]
 fn preset_security_enables_entropy_and_license() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Security);
     assert!(plan.entropy);
     assert!(plan.license);
@@ -270,7 +270,7 @@ fn preset_security_enables_entropy_and_license() {
 
 #[test]
 fn preset_identity_enables_archetype_and_git() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Identity);
     assert!(plan.archetype);
     assert!(plan.git);
@@ -280,7 +280,7 @@ fn preset_identity_enables_archetype_and_git() {
 
 #[test]
 fn preset_git_enables_git() {
-    use tokmd_analysis_grid::preset_plan_for;
+    use tokmd_analysis::preset_plan_for;
     let plan = preset_plan_for(AnalysisPreset::Git);
     assert!(plan.git);
     assert!(!plan.assets);
@@ -290,7 +290,7 @@ fn preset_git_enables_git() {
 
 #[test]
 fn all_presets_have_plans() {
-    use tokmd_analysis_grid::{PresetKind, preset_plan_for};
+    use tokmd_analysis::{PresetKind, preset_plan_for};
     for preset in PresetKind::all() {
         let _plan = preset_plan_for(*preset);
     }
@@ -298,7 +298,7 @@ fn all_presets_have_plans() {
 
 #[test]
 fn preset_from_str_roundtrip() {
-    use tokmd_analysis_grid::PresetKind;
+    use tokmd_analysis::PresetKind;
     for preset in PresetKind::all() {
         let s = preset.as_str();
         let parsed = PresetKind::from_str(s);
@@ -308,7 +308,7 @@ fn preset_from_str_roundtrip() {
 
 #[test]
 fn preset_from_str_unknown_returns_none() {
-    use tokmd_analysis_grid::PresetKind;
+    use tokmd_analysis::PresetKind;
     assert_eq!(PresetKind::from_str("nonexistent"), None);
     assert_eq!(PresetKind::from_str(""), None);
 }

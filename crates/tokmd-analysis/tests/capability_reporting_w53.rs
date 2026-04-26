@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 use tokmd_analysis::{AnalysisContext, AnalysisRequest, ImportGranularity, analyze};
-use tokmd_analysis_grid::{DisabledFeature, PresetKind, preset_plan_for};
+use tokmd_analysis::{DisabledFeature, PresetKind, preset_plan_for};
 use tokmd_analysis_types::{
     ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource, NearDupScope,
 };

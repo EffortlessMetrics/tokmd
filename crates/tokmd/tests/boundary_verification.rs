@@ -284,7 +284,6 @@ fn git_feature_only_in_expected_crates() {
         "tokmd",
         "tokmd-analysis",
         "tokmd-analysis-effort",
-        "tokmd-analysis-grid",
         "tokmd-cockpit",
         "tokmd-core",
         "tokmd-sensor",
@@ -321,9 +320,7 @@ fn git_feature_only_in_expected_crates() {
 #[test]
 fn content_feature_only_in_expected_crates() {
     let members = workspace_crate_members();
-    let expected: BTreeSet<&str> = ["tokmd", "tokmd-analysis", "tokmd-analysis-grid"]
-        .into_iter()
-        .collect();
+    let expected: BTreeSet<&str> = ["tokmd", "tokmd-analysis"].into_iter().collect();
 
     let mut unexpected = Vec::new();
     for member_path in &members {
@@ -354,9 +351,7 @@ fn content_feature_only_in_expected_crates() {
 #[test]
 fn walk_feature_only_in_expected_crates() {
     let members = workspace_crate_members();
-    let expected: BTreeSet<&str> = ["tokmd", "tokmd-analysis", "tokmd-analysis-grid"]
-        .into_iter()
-        .collect();
+    let expected: BTreeSet<&str> = ["tokmd", "tokmd-analysis"].into_iter().collect();
 
     let mut unexpected = Vec::new();
     for member_path in &members {

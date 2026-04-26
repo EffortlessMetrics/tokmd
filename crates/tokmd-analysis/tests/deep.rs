@@ -20,7 +20,7 @@ use tokmd_analysis::{
     AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
     NearDupScope, analyze,
 };
-use tokmd_analysis_grid::{PresetKind, preset_plan_for};
+use tokmd_analysis::{PresetKind, preset_plan_for};
 use tokmd_analysis_types::{ANALYSIS_SCHEMA_VERSION, AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
 
@@ -188,7 +188,7 @@ fn near_dup_scope_variants_do_not_panic() {
 
 #[test]
 fn warnings_from_disabled_features_match_catalog() {
-    use tokmd_analysis_grid::DisabledFeature;
+    use tokmd_analysis::DisabledFeature;
 
     // Deep preset triggers every enricher → without all features, every
     // disabled feature should appear as a warning.

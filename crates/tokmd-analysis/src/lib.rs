@@ -17,6 +17,8 @@
 //! * File modification
 
 mod analysis;
+#[cfg(feature = "archetype")]
+mod archetype;
 #[cfg(feature = "walk")]
 mod assets;
 #[cfg(feature = "git")]
@@ -24,13 +26,23 @@ mod churn;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(feature = "git")]
+mod fingerprint;
 #[cfg(feature = "fun")]
 mod fun;
 #[cfg(feature = "git")]
 mod git;
+mod grid;
+#[cfg(feature = "topics")]
+mod topics;
 mod util;
 
 pub use analysis::{AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze};
+pub use derived::{build_tree, derive_report};
+pub use grid::{
+    DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, PresetPlan, preset_plan_for,
+    preset_plan_for_name,
+};
 #[cfg(feature = "effort")]
 pub use tokmd_analysis_effort::{EffortLayer, EffortModelKind, EffortRequest};
 pub use tokmd_analysis_types::NearDupScope;
