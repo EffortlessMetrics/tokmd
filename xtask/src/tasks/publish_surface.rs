@@ -57,6 +57,44 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-walk",
 ];
 
+const TARGET_SUPPORT_CRATES: &[&str] = &[
+    "tokmd-analysis",
+    "tokmd-analysis-api-surface",
+    "tokmd-analysis-complexity",
+    "tokmd-analysis-content",
+    "tokmd-analysis-effort",
+    "tokmd-analysis-entropy",
+    "tokmd-analysis-explain",
+    "tokmd-analysis-format",
+    "tokmd-analysis-git",
+    "tokmd-analysis-halstead",
+    "tokmd-analysis-html",
+    "tokmd-analysis-imports",
+    "tokmd-analysis-license",
+    "tokmd-analysis-maintainability",
+    "tokmd-analysis-near-dup",
+    "tokmd-content",
+    "tokmd-format",
+    "tokmd-fun",
+    "tokmd-git",
+    "tokmd-model",
+    "tokmd-scan",
+    "tokmd-test-support",
+    "tokmd-walk",
+];
+
+const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[
+    "tokmd-analysis-archetype",
+    "tokmd-analysis-assets",
+    "tokmd-analysis-derived",
+    "tokmd-analysis-fingerprint",
+    "tokmd-analysis-format-md",
+    "tokmd-analysis-fun",
+    "tokmd-analysis-grid",
+    "tokmd-analysis-topics",
+    "tokmd-analysis-util",
+];
+
 const NON_CRATES_IO_PACKAGES: &[&str] = &["tokmd-fuzz", "tokmd-node", "tokmd-python", "xtask"];
 
 #[derive(Debug, Serialize)]
@@ -70,9 +108,19 @@ struct PublishSurface {
 
 #[derive(Debug, Serialize)]
 struct PublishSurfaceSummary {
+    /// Compatibility alias for `current_public_surface`.
     public_surface: Vec<String>,
+    /// Compatibility alias for `current_support_surface`.
     support_surface: Vec<String>,
+    /// Compatibility alias for `current_non_crates_io_surface`.
     non_crates_io_packages: Vec<String>,
+    current_public_surface: Vec<String>,
+    current_support_surface: Vec<String>,
+    current_non_crates_io_surface: Vec<String>,
+    target_public_surface: Vec<String>,
+    target_support_surface: Vec<String>,
+    target_gap: Vec<String>,
+    new_unapproved_support_crates: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -128,6 +176,9 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
     let public_surface = sort_unique(PUBLISHED_PUBLIC_CRATES);
     let support_surface = sort_unique(PUBLISHED_SUPPORT_CRATES);
     let non_crates_io_packages = sort_unique(NON_CRATES_IO_PACKAGES);
+    let target_public_surface = public_surface.clone();
+    let target_support_surface = sort_unique(TARGET_SUPPORT_CRATES);
+    let target_gap = sort_unique(TARGET_SUPPORT_GAP_CRATES);
 
     let publish_surface: BTreeSet<String> = public_surface
         .iter()
@@ -138,8 +189,20 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
     let public_surface_set: BTreeSet<String> = public_surface.iter().cloned().collect();
     let support_surface_set: BTreeSet<String> = support_surface.iter().cloned().collect();
     let non_crates_io_set: BTreeSet<String> = non_crates_io_packages.iter().cloned().collect();
+    let target_support_set: BTreeSet<String> = target_support_surface.iter().cloned().collect();
+    let target_gap_set: BTreeSet<String> = target_gap.iter().cloned().collect();
+    let new_unapproved_support_crates =
+        new_unapproved_support_crates(&support_surface_set, &target_support_set, &target_gap_set);
 
     let mut violations = Vec::new();
+    classify_target_surface_violations(
+        &mut violations,
+        &support_surface_set,
+        &target_support_set,
+        &target_gap_set,
+        &new_unapproved_support_crates,
+    );
+
     let mut crate_reports = Vec::new();
 
     for crate_name in publish_surface.iter() {
@@ -255,9 +318,16 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
     let report = PublishSurface {
         workspace_version,
         summary: PublishSurfaceSummary {
-            public_surface,
-            support_surface,
-            non_crates_io_packages,
+            public_surface: public_surface.clone(),
+            support_surface: support_surface.clone(),
+            non_crates_io_packages: non_crates_io_packages.clone(),
+            current_public_surface: public_surface,
+            current_support_surface: support_surface,
+            current_non_crates_io_surface: non_crates_io_packages,
+            target_public_surface,
+            target_support_surface,
+            target_gap,
+            new_unapproved_support_crates,
         },
         crates: crate_reports,
         packaging_checks,
@@ -363,26 +433,57 @@ fn run_cargo_command(
 fn print_human_report(report: &PublishSurface) {
     println!("Publish surface v{}", report.workspace_version);
     println!(
-        "Public crate surface ({}):",
-        report.summary.public_surface.len()
+        "Current public crate surface ({}):",
+        report.summary.current_public_surface.len()
     );
-    for item in &report.summary.public_surface {
+    for item in &report.summary.current_public_surface {
         println!("  - {item}");
     }
 
     println!(
-        "Published support crates ({}):",
-        report.summary.support_surface.len()
+        "Current published support crates ({}):",
+        report.summary.current_support_surface.len()
     );
-    for item in &report.summary.support_surface {
+    for item in &report.summary.current_support_surface {
         println!("  - {item}");
+    }
+
+    println!(
+        "Target public crate surface ({}):",
+        report.summary.target_public_surface.len()
+    );
+    for item in &report.summary.target_public_surface {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Target support crates ({}):",
+        report.summary.target_support_surface.len()
+    );
+    for item in &report.summary.target_support_surface {
+        println!("  - {item}");
+    }
+
+    println!("Target support gap ({}):", report.summary.target_gap.len());
+    for item in &report.summary.target_gap {
+        println!("  - {item}");
+    }
+
+    if !report.summary.new_unapproved_support_crates.is_empty() {
+        println!(
+            "New unapproved support crates ({}):",
+            report.summary.new_unapproved_support_crates.len()
+        );
+        for item in &report.summary.new_unapproved_support_crates {
+            println!("  - {item}");
+        }
     }
 
     println!(
         "Non-crates.io packages: {}",
-        report.summary.non_crates_io_packages.len()
+        report.summary.current_non_crates_io_surface.len()
     );
-    for item in &report.summary.non_crates_io_packages {
+    for item in &report.summary.current_non_crates_io_surface {
         println!("  - {item}");
     }
 
@@ -432,4 +533,115 @@ fn sort_unique(values: &[&str]) -> Vec<String> {
     out.sort();
     out.dedup();
     out
+}
+
+fn new_unapproved_support_crates(
+    support_surface: &BTreeSet<String>,
+    target_support_surface: &BTreeSet<String>,
+    target_gap: &BTreeSet<String>,
+) -> Vec<String> {
+    let approved_support: BTreeSet<String> = target_support_surface
+        .iter()
+        .chain(target_gap.iter())
+        .cloned()
+        .collect();
+
+    support_surface
+        .difference(&approved_support)
+        .cloned()
+        .collect()
+}
+
+fn classify_target_surface_violations(
+    violations: &mut Vec<PublishViolation>,
+    support_surface: &BTreeSet<String>,
+    target_support_surface: &BTreeSet<String>,
+    target_gap: &BTreeSet<String>,
+    new_unapproved_support_crates: &[String],
+) {
+    let overlap: Vec<String> = target_support_surface
+        .intersection(target_gap)
+        .cloned()
+        .collect();
+    if !overlap.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Target support classification overlaps target gap".to_string(),
+            details: overlap,
+        });
+    }
+
+    let missing_target_support: Vec<String> = target_support_surface
+        .difference(support_surface)
+        .cloned()
+        .collect();
+    if !missing_target_support.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Target support crate is not in current support surface".to_string(),
+            details: missing_target_support,
+        });
+    }
+
+    let missing_target_gap: Vec<String> = target_gap.difference(support_surface).cloned().collect();
+    if !missing_target_gap.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Target-gap crate is no longer in current support surface".to_string(),
+            details: missing_target_gap,
+        });
+    }
+
+    if !new_unapproved_support_crates.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Current support crate is not classified for target policy".to_string(),
+            details: new_unapproved_support_crates.to_vec(),
+        });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn set(values: &[&str]) -> BTreeSet<String> {
+        values.iter().map(|value| (*value).to_string()).collect()
+    }
+
+    #[test]
+    fn publish_surface_target_gap_is_explicit_and_complete() {
+        let current_support = set(PUBLISHED_SUPPORT_CRATES);
+        let target_support = set(TARGET_SUPPORT_CRATES);
+        let target_gap = set(TARGET_SUPPORT_GAP_CRATES);
+        let new_unapproved =
+            new_unapproved_support_crates(&current_support, &target_support, &target_gap);
+
+        assert_eq!(target_gap.len(), 9);
+        assert!(target_gap.contains("tokmd-analysis-format-md"));
+        assert!(target_gap.contains("tokmd-analysis-util"));
+        assert!(current_support.is_superset(&target_support));
+        assert!(current_support.is_superset(&target_gap));
+        assert!(target_support.is_disjoint(&target_gap));
+        assert!(
+            new_unapproved.is_empty(),
+            "all current support crates must be target support or target gap: {new_unapproved:?}"
+        );
+    }
+
+    #[test]
+    fn publish_surface_keeps_test_support_classified_until_policy_changes() {
+        let current_support = set(PUBLISHED_SUPPORT_CRATES);
+        let target_support = set(TARGET_SUPPORT_CRATES);
+        let target_gap = set(TARGET_SUPPORT_GAP_CRATES);
+
+        assert!(current_support.contains("tokmd-test-support"));
+        assert!(target_support.contains("tokmd-test-support"));
+        assert!(!target_gap.contains("tokmd-test-support"));
+    }
+
+    #[test]
+    fn publish_surface_ignores_dev_dependencies_for_closure() {
+        assert!(!is_non_dev_dependency(&DependencyKind::Development));
+    }
 }
