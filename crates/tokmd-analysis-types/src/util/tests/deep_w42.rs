@@ -5,9 +5,7 @@
 
 use std::path::PathBuf;
 
-use tokmd_analysis_util::{
-    empty_file_row, is_infra_lang, is_test_path, normalize_path, path_depth,
-};
+use crate::{empty_file_row, is_infra_lang, is_test_path, normalize_path, path_depth};
 
 // ── 1. path_depth with nested paths ─────────────────────────────
 

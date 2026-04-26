@@ -5,7 +5,7 @@ use anyhow::Result;
 use tokmd_analysis_types::{EntropyClass, EntropyFinding, EntropyReport};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use tokmd_analysis_util::{AnalysisLimits, normalize_path};
+use tokmd_analysis_types::{AnalysisLimits, normalize_path};
 
 const DEFAULT_SAMPLE_BYTES: usize = 1024;
 const MAX_SUSPECTS: usize = 50;

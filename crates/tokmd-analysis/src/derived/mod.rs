@@ -6,7 +6,7 @@ use tokmd_analysis_types::{
     LangPurityRow, MaxFileReport, MaxFileRow, NestingReport, NestingRow, PolyglotReport,
     RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport, TestDensityReport, TopOffenders,
 };
-use tokmd_analysis_util::{empty_file_row, is_infra_lang, is_test_path, path_depth};
+use tokmd_analysis_types::{empty_file_row, is_infra_lang, is_test_path, path_depth};
 use tokmd_format::render_analysis_tree;
 use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 use tokmd_types::{ExportData, FileKind, FileRow};

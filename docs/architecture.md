@@ -29,8 +29,8 @@ Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface,
                        tokmd-analysis-git,
                        tokmd-analysis-halstead, tokmd-analysis-html, tokmd-analysis-imports,
                        tokmd-analysis-license, tokmd-analysis-maintainability,
-                       tokmd-analysis-near-dup, tokmd-analysis-util,
-                       tokmd-cockpit, tokmd-fun, tokmd-gate
+                       tokmd-analysis-near-dup, tokmd-cockpit, tokmd-fun,
+                       tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
          ↓
@@ -39,8 +39,9 @@ Tier 5 (Products)      tokmd (CLI), tokmd-python, tokmd-node, tokmd-wasm
 
 Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
-path/exclude/math/tokeignore helpers in `tokmd-scan`, redaction/scan-args/badge
-and export-tree rendering in `tokmd-format`, assets/fun analysis enrichers in
+path/exclude/math/tokeignore helpers in `tokmd-scan`, shared analysis limits
+and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
+export-tree rendering in `tokmd-format`, assets/fun analysis enrichers in
 `tokmd-analysis`, context policy/git helpers in `tokmd-core`, and
 CLI/config/progress/tool-schema wiring in `tokmd`.
 
@@ -100,7 +101,6 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 | `tokmd-analysis-maintainability` | Maintainability index scoring + Halstead merge |
 | `tokmd-analysis-license` | License radar scanning |
 | `tokmd-analysis-near-dup` | Near-duplicate detection |
-| `tokmd-analysis-util` | Shared analysis utilities |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
 | `tokmd-gate` | Policy evaluation with JSON pointer rules |

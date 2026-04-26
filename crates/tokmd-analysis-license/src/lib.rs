@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use tokmd_analysis_types::{LicenseFinding, LicenseReport, LicenseSourceKind};
 
-use tokmd_analysis_util::AnalysisLimits;
+use tokmd_analysis_types::AnalysisLimits;
 
 const DEFAULT_MAX_LICENSE_BYTES: u64 = 256 * 1024;
 

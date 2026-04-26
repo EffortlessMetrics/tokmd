@@ -8,8 +8,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use tokmd_analysis_complexity::{build_complexity_report, generate_complexity_histogram};
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{ComplexityRisk, FileComplexity};
-use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────

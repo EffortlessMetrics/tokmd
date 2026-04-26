@@ -3,7 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 use tempfile::tempdir;
 use tokmd_analysis_license::build_license_report;
-use tokmd_analysis_util::AnalysisLimits;
+use tokmd_analysis_types::AnalysisLimits;
 
 fn default_limits() -> AnalysisLimits {
     AnalysisLimits::default()

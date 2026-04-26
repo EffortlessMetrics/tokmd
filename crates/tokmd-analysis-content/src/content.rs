@@ -8,7 +8,7 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use tokmd_analysis_util::normalize_path;
+use tokmd_analysis_types::normalize_path;
 use tokmd_scan::round_f64;
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;

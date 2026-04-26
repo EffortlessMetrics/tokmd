@@ -26,9 +26,10 @@ For publishability, every intended public crate must have a full non-dev workspa
 
 If a public or support crate depends on anything else, that dependency must be merged into an owner module first.
 
-## Current publish surface (37 crates published + 4 non-crates.io)
+## Current publish surface (36 crates published + 4 non-crates.io)
 
-This is the current honest crates.io closure. It is not the target promise.
+This is the current honest crates.io closure, and it matches the encoded target
+publish surface.
 
 ### Supported public crates (13)
 
@@ -46,7 +47,7 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (24)
+### Published support crates (23)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
@@ -63,7 +64,6 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-analysis-license`
 - `tokmd-analysis-maintainability`
 - `tokmd-analysis-near-dup`
-- `tokmd-analysis-util`
 - `tokmd-content`
 - `tokmd-format`
 - `tokmd-fun`
@@ -73,7 +73,7 @@ This is the current honest crates.io closure. It is not the target promise.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 24 published support crates.
+**Count:** 23 published support crates.
 
 ## Non-crates.io packages (intentional exceptions) (4)
 
@@ -87,9 +87,7 @@ This is the current honest crates.io closure. It is not the target promise.
 ## Target publish surface
 
 The target public surface remains the supported public API surface. The target
-support surface is smaller than the current closure, and the remaining delta is
-reported as `target_gap` until those support crates are absorbed into owner
-modules.
+support surface now matches the current closure. `target_gap` is zero.
 
 ### Target public crates (13)
 
@@ -121,13 +119,10 @@ Same as the current supported public crates.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-### Target gap: planned support retirements (1)
-
-- `tokmd-analysis-util`
+### Target gap: planned support retirements (0)
 
 The checker hard-fails if a current support crate is not classified as either
-target support or target gap. It reports the remaining target gap without
-failing solely because the gap exists.
+target support or target gap.
 
 ### `tokmd-test-support`
 
@@ -158,9 +153,7 @@ consolidation remains future work.
 - Do not leave non-published internal crates on the production path as `publish = false` placeholders.
 - Absorb non-essential packaging noise crates into SRP module folders under the owning public crate.
 
-## Future folder merge targets after policy freeze
-
-- `crates/tokmd-analysis`: `util`
+## Completed target-gap folder merges
 
 The former analysis Markdown crate now lives under
 `crates/tokmd-analysis-format/src/markdown.rs`.
@@ -168,6 +161,9 @@ The former analysis assets and fun crates now live under
 `crates/tokmd-analysis/src/assets/` and `crates/tokmd-analysis/src/fun/`.
 The former analysis archetype, derived, fingerprint, grid, and topics support
 crates now live under `crates/tokmd-analysis/src/`.
+The former shared analysis utility crate is split between
+`crates/tokmd-analysis-types/src/util.rs` for shared contracts/helpers and
+`crates/tokmd-analysis/src/util.rs` for the owner facade.
 
 ## Publish closure audit
 

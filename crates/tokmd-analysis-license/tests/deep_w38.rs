@@ -21,8 +21,8 @@ use std::fs;
 use std::path::PathBuf;
 use tempfile::tempdir;
 use tokmd_analysis_license::build_license_report;
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{LicenseFinding, LicenseReport, LicenseSourceKind};
-use tokmd_analysis_util::AnalysisLimits;
 
 fn limits() -> AnalysisLimits {
     AnalysisLimits::default()

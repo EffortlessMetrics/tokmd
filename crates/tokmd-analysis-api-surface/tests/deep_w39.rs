@@ -8,7 +8,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use tokmd_analysis_api_surface::build_api_surface_report;
-use tokmd_analysis_util::AnalysisLimits;
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-//! Deep tests for tokmd-analysis-util (w70 wave).
+//! Deep tests for analysis types util module (w70 wave).
 //!
 //! ~20 tests covering normalize_path, path_depth, is_test_path,
 //! is_infra_lang, empty_file_row, AnalysisLimits, re-exported math helpers,
@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use tokmd_analysis_util::{
+use crate::{
     AnalysisLimits, empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path,
     path_depth, percentile, round_f64, safe_ratio,
 };

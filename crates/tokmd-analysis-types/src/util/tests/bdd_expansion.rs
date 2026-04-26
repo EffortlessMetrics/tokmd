@@ -1,11 +1,11 @@
-//! Expanded BDD-style tests for tokmd-analysis-util.
+//! Expanded BDD-style tests for analysis types util module.
 //!
 //! Covers edge cases and boundary values for utility functions: normalize_path,
 //! path_depth, is_test_path, is_infra_lang, math re-exports, and empty_file_row.
 
 use std::path::PathBuf;
 
-use tokmd_analysis_util::{
+use crate::{
     empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path, path_depth,
     percentile, round_f64, safe_ratio,
 };

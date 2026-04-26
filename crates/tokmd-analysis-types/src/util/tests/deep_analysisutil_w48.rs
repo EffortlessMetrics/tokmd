@@ -7,7 +7,7 @@
 
 use std::path::{Path, PathBuf};
 
-use tokmd_analysis_util::{
+use crate::{
     AnalysisLimits, empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path,
     normalize_root, now_ms, path_depth, percentile, round_f64, safe_ratio,
 };

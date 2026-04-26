@@ -1,8 +1,8 @@
-//! Unit tests for `tokmd-analysis-util` utility functions and edge cases.
+//! Unit tests for `analysis types util module` utility functions and edge cases.
 
 use std::path::{Path, PathBuf};
 
-use tokmd_analysis_util::{
+use crate::{
     AnalysisLimits, empty_file_row, gini_coefficient, is_infra_lang, is_test_path, normalize_path,
     normalize_root, now_ms, path_depth, percentile, round_f64, safe_ratio,
 };

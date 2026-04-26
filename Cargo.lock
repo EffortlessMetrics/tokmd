@@ -2568,7 +2568,6 @@ dependencies = [
  "tokmd-analysis-maintainability",
  "tokmd-analysis-near-dup",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-format",
  "tokmd-git",
  "tokmd-scan",
@@ -2586,7 +2585,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-types",
 ]
@@ -2601,7 +2599,6 @@ dependencies = [
  "tempfile",
  "tokmd-analysis-maintainability",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-types",
 ]
@@ -2617,7 +2614,6 @@ dependencies = [
  "tempfile",
  "tokmd-analysis-imports",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-scan",
  "tokmd-types",
@@ -2631,7 +2627,6 @@ dependencies = [
  "proptest",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-git",
  "tokmd-types",
 ]
@@ -2645,7 +2640,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-test-support",
  "tokmd-types",
@@ -2682,7 +2676,6 @@ dependencies = [
  "proptest",
  "serde_json",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-git",
  "tokmd-scan",
  "tokmd-types",
@@ -2697,7 +2690,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-types",
 ]
@@ -2731,7 +2723,6 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis-types",
- "tokmd-analysis-util",
  "tokmd-content",
  "tokmd-walk",
 ]
@@ -2768,16 +2759,8 @@ dependencies = [
  "serde",
  "serde_json",
  "tokmd-envelope",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-util"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "tokmd-analysis-types",
  "tokmd-scan",
+ "tokmd-types",
 ]
 
 [[package]]

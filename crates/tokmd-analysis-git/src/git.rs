@@ -9,7 +9,7 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, FileKind, FileRow};
 
-use tokmd_analysis_util::normalize_path;
+use tokmd_analysis_types::normalize_path;
 use tokmd_scan::{percentile, round_f64};
 
 const SECONDS_PER_DAY: i64 = 86_400;

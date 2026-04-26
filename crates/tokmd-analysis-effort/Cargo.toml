@@ -19,7 +19,6 @@ git = ["dep:tokmd-git"]
 anyhow.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-types.workspace = true
-tokmd-analysis-util.workspace = true
 tokmd-git = { workspace = true, optional = true }
 
 [dev-dependencies]

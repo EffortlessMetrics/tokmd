@@ -11,8 +11,8 @@ use std::path::{Path, PathBuf};
 use proptest::prelude::*;
 use tempfile::tempdir;
 use tokmd_analysis_entropy::build_entropy_report;
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{EntropyClass, EntropyReport};
-use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────

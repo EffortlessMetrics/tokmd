@@ -38,7 +38,6 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis-license",
     "tokmd-analysis-maintainability",
     "tokmd-analysis-near-dup",
-    "tokmd-analysis-util",
     "tokmd-content",
     "tokmd-format",
     "tokmd-fun",
@@ -75,7 +74,7 @@ const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-walk",
 ];
 
-const TARGET_SUPPORT_GAP_CRATES: &[&str] = &["tokmd-analysis-util"];
+const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[];
 
 const NON_CRATES_IO_PACKAGES: &[&str] = &["tokmd-fuzz", "tokmd-node", "tokmd-python", "xtask"];
 
@@ -599,10 +598,8 @@ mod tests {
         let new_unapproved =
             new_unapproved_support_crates(&current_support, &target_support, &target_gap);
 
-        assert_eq!(target_gap.len(), 1);
-        assert!(target_gap.contains("tokmd-analysis-util"));
+        assert!(target_gap.is_empty());
         assert!(current_support.is_superset(&target_support));
-        assert!(current_support.is_superset(&target_gap));
         assert!(target_support.is_disjoint(&target_gap));
         assert!(
             new_unapproved.is_empty(),

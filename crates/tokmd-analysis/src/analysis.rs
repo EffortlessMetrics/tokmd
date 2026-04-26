@@ -5,13 +5,13 @@ use std::path::PathBuf;
 use anyhow::Result;
 #[cfg(feature = "effort")]
 use tokmd_analysis_effort::{EffortRequest, build_effort_report};
+use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
     ComplexityReport, CorporateFingerprint, DependencyReport, DuplicateReport, EntropyReport,
     FunReport, GitReport, ImportReport, LicenseReport, NearDupScope, PredictiveChurnReport,
     TopicClouds,
 };
-use tokmd_analysis_util::AnalysisLimits;
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
 #[cfg(feature = "archetype")]
