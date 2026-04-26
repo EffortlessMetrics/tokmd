@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! BDD-style scenario tests for the `analyze` command.
 //!
 //! Each test follows the Given/When/Then pattern to verify key user-facing

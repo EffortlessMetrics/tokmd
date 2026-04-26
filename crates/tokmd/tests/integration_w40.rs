@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Wave-40 CLI integration tests.
 //!
 //! End-to-end tests that invoke the real `tokmd` binary and verify

@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Wave 42 — comprehensive CLI E2E tests covering all major subcommands,
 //! flag combinations, error cases, and edge conditions.
 

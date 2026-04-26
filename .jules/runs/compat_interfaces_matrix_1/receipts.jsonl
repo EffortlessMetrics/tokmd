@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd --no-default-features", "status": "failed", "note": "Tests failed because they lacked #![cfg(feature = \"...\")]"}
+{"command": "python3 fix_all_tests.py", "status": "success", "note": "Added #![cfg(feature = \"...\")] to the top of the failing test files"}
+{"command": "cargo test -p tokmd --no-default-features", "status": "success", "note": "Tests pass successfully after applying conditionally compiled features"}

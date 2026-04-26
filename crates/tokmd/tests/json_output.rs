@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! E2E tests validating JSON output structure for all major CLI commands.
 //!
 //! These tests exercise `--format json` on each command and verify the

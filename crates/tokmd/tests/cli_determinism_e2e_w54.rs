@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Determinism end-to-end tests verifying that repeated CLI invocations
 //! produce identical output.  Timestamps and tool versions are normalized
 //! before comparison so that only true non-determinism triggers failures.

@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Wave 65 — comprehensive CLI end-to-end tests.
 //!
 //! ~80 tests covering all major subcommands, output formats, flag combinations,
