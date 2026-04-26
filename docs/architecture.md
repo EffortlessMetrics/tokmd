@@ -23,14 +23,11 @@ Tier 1 (Core)          tokmd-scan, tokmd-model, tokmd-sensor
 Tier 2 (Adapters)      tokmd-format, tokmd-walk, tokmd-content, tokmd-git
          ↓
 Tier 3 (Orchestration) tokmd-analysis, tokmd-analysis-api-surface,
-                       tokmd-analysis-complexity, tokmd-analysis-content,
-                       tokmd-analysis-effort, tokmd-analysis-entropy,
+                       tokmd-analysis-content, tokmd-analysis-effort,
                        tokmd-analysis-explain, tokmd-analysis-format,
-                       tokmd-analysis-git,
-                       tokmd-analysis-halstead, tokmd-analysis-html, tokmd-analysis-imports,
-                       tokmd-analysis-license, tokmd-analysis-maintainability,
-                       tokmd-analysis-near-dup, tokmd-cockpit, tokmd-fun,
-                       tokmd-gate
+                       tokmd-analysis-git, tokmd-analysis-html,
+                       tokmd-analysis-imports, tokmd-analysis-near-dup,
+                       tokmd-cockpit, tokmd-fun, tokmd-gate
          ↓
 Tier 4 (Facade)        tokmd-core
          ↓
@@ -41,8 +38,9 @@ Helper boundaries that do not need an independent crates.io package live as
 single-responsibility owner modules: module-key logic in `tokmd-model`,
 path/exclude/math/tokeignore helpers in `tokmd-scan`, shared analysis limits
 and path helpers in `tokmd-analysis-types`, redaction/scan-args/badge and
-export-tree rendering in `tokmd-format`, assets/fun analysis enrichers in
-`tokmd-analysis`, context policy/git helpers in `tokmd-core`, and
+export-tree rendering in `tokmd-format`, assets/fun and metric/security
+analysis enrichers in `tokmd-analysis`, context policy/git helpers in
+`tokmd-core`, and
 CLI/config/progress/tool-schema wiring in `tokmd`.
 
 ### Tier 0: Contracts (Pure Data)
@@ -86,20 +84,15 @@ CLI/config/progress/tool-schema wiring in `tokmd`.
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, and fun enrichers |
+| `tokmd-analysis` | Analysis orchestration with preset system; owner modules for derived metrics, archetype, fingerprint, preset grid, topics, assets, fun, complexity, entropy, Halstead, license, and maintainability enrichers |
 | `tokmd-analysis-api-surface` | API surface analysis |
-| `tokmd-analysis-complexity` | Cyclomatic/cognitive complexity |
 | `tokmd-analysis-content` | Content scanning adapters (TODO, dup, imports) |
 | `tokmd-analysis-imports` | Language-aware import parsing + normalization |
 | `tokmd-analysis-effort` | Effort-estimation engine (COCOMO, delta support, Monte Carlo scaffolding) |
-| `tokmd-analysis-entropy` | High-entropy file detection |
 | `tokmd-analysis-explain` | Metric/finding explanation catalog and alias lookup |
 | `tokmd-analysis-html` | Single-responsibility HTML renderer for analysis receipts |
 | `tokmd-analysis-format` | Analysis output rendering (Markdown, JSON, SVG, HTML, etc.) |
 | `tokmd-analysis-git` | Git history analysis adapters |
-| `tokmd-analysis-halstead` | Halstead metrics |
-| `tokmd-analysis-maintainability` | Maintainability index scoring + Halstead merge |
-| `tokmd-analysis-license` | License radar scanning |
 | `tokmd-analysis-near-dup` | Near-duplicate detection |
 | `tokmd-cockpit` | PR cockpit metrics computation and rendering |
 | `tokmd-fun` | Novelty outputs (eco-label, MIDI, OBJ) |
@@ -150,7 +143,7 @@ Receipt / export / paths → tokmd-analysis → Enrichers → tokmd-analysis-for
        Core enrichers                                  Optional adapters
         - tokmd-analysis derived/grid modules           - tokmd-git / tokmd-analysis-git
         - tokmd-analysis assets/fun modules             - tokmd-walk / license / entropy / topics
-        - tokmd-analysis-complexity                     - tokmd-content / tokmd-analysis-content
+        - tokmd-analysis complexity/halstead modules    - tokmd-content / tokmd-analysis-content
         - tokmd-analysis-api-surface
         - tokmd-analysis-effort
 ```

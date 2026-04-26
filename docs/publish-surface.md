@@ -74,24 +74,19 @@ remain public or collapse into owner modules.
 - `tokmd-substrate`
 - `tokmd-walk`
 
-### Internal module families still packaged today (14)
+### Internal module families still packaged today (9)
 
 These are current crates.io package boundaries that should be treated as
 transitional implementation seams, not the desired final registry surface.
 
 - `tokmd-analysis-api-surface`
-- `tokmd-analysis-complexity`
 - `tokmd-analysis-content`
 - `tokmd-analysis-effort`
-- `tokmd-analysis-entropy`
 - `tokmd-analysis-explain`
 - `tokmd-analysis-format`
 - `tokmd-analysis-git`
-- `tokmd-analysis-halstead`
 - `tokmd-analysis-html`
 - `tokmd-analysis-imports`
-- `tokmd-analysis-license`
-- `tokmd-analysis-maintainability`
 - `tokmd-analysis-near-dup`
 
 ### Dev-only package under policy review (1)
@@ -101,7 +96,7 @@ transitional implementation seams, not the desired final registry surface.
 It remains publishable in the compatibility support surface until a focused
 test reproducibility decision changes that policy.
 
-## Current compatibility surface (36 crates published + 4 non-crates.io)
+## Current compatibility surface (31 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -122,22 +117,17 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (23, compatibility classification)
+### Published support crates (18, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
-- `tokmd-analysis-complexity`
 - `tokmd-analysis-content`
 - `tokmd-analysis-effort`
-- `tokmd-analysis-entropy`
 - `tokmd-analysis-explain`
 - `tokmd-analysis-format`
 - `tokmd-analysis-git`
-- `tokmd-analysis-halstead`
 - `tokmd-analysis-html`
 - `tokmd-analysis-imports`
-- `tokmd-analysis-license`
-- `tokmd-analysis-maintainability`
 - `tokmd-analysis-near-dup`
 - `tokmd-content`
 - `tokmd-format`
@@ -148,7 +138,7 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-**Count:** 23 published support crates.
+**Count:** 18 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -172,22 +162,17 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (23)
+### Target support crates (18)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
-- `tokmd-analysis-complexity`
 - `tokmd-analysis-content`
 - `tokmd-analysis-effort`
-- `tokmd-analysis-entropy`
 - `tokmd-analysis-explain`
 - `tokmd-analysis-format`
 - `tokmd-analysis-git`
-- `tokmd-analysis-halstead`
 - `tokmd-analysis-html`
 - `tokmd-analysis-imports`
-- `tokmd-analysis-license`
-- `tokmd-analysis-maintainability`
 - `tokmd-analysis-near-dup`
 - `tokmd-content`
 - `tokmd-format`
@@ -242,6 +227,8 @@ crates now live under `crates/tokmd-analysis/src/`.
 The former shared analysis utility crate is split between
 `crates/tokmd-analysis-types/src/util.rs` for shared contracts/helpers and
 `crates/tokmd-analysis/src/util.rs` for the owner facade.
+The former analysis complexity, entropy, halstead, license, and
+maintainability crates now live under `crates/tokmd-analysis/src/`.
 
 ## Publish closure audit
 

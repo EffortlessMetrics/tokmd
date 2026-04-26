@@ -23,9 +23,13 @@ mod archetype;
 mod assets;
 #[cfg(feature = "git")]
 mod churn;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod complexity;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod entropy;
 #[cfg(feature = "git")]
 mod fingerprint;
 #[cfg(feature = "fun")]
@@ -33,6 +37,12 @@ mod fun;
 #[cfg(feature = "git")]
 mod git;
 mod grid;
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+mod halstead;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod license;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod maintainability;
 #[cfg(feature = "topics")]
 mod topics;
 mod util;
