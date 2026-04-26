@@ -54,4 +54,3 @@ tempfile.workspace = true
 proptest.workspace = true
 serde.workspace = true
 insta = { workspace = true }
-tokmd-test-support.workspace = true

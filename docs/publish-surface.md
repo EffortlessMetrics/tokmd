@@ -71,14 +71,11 @@ No conditional public crates remain in the current compatibility surface.
 
 No packaged internal module families remain in the compatibility surface.
 
-### Dev-only package under policy review (1)
+### Dev-only packages (0)
 
-- `tokmd-test-support`
+No dev-only workspace packages remain in the current surface.
 
-It remains publishable in the compatibility support surface until a focused
-test reproducibility decision changes that policy.
-
-## Current compatibility surface (17 crates published + 4 non-crates.io)
+## Current compatibility surface (16 crates published + 4 non-crates.io)
 
 This is the current honest crates.io closure. It matches the encoded
 compatibility target, but it is not the final product/contract/capability model.
@@ -97,16 +94,15 @@ compatibility target, but it is not the final product/contract/capability model.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (6, compatibility classification)
+### Published support crates (5, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-format`
 - `tokmd-git`
 - `tokmd-model`
 - `tokmd-scan`
-- `tokmd-test-support`
 
-**Count:** 6 published support crates.
+**Count:** 5 published support crates.
 
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
@@ -130,14 +126,13 @@ surface. The compatibility support surface now matches the current closure.
 
 Same as the current supported public crates.
 
-### Target support crates (6)
+### Target support crates (5)
 
 - `tokmd-analysis`
 - `tokmd-format`
 - `tokmd-git`
 - `tokmd-model`
 - `tokmd-scan`
-- `tokmd-test-support`
 
 ### Target gap: planned compatibility support retirements (0)
 
@@ -146,14 +141,10 @@ target support or target gap.
 
 ### `tokmd-test-support`
 
-`tokmd-test-support` remains classified as current and target support in this
-baseline because it is publishable today and may be part of packaged test
-reproducibility. Both publish tooling paths already ignore
-`DependencyKind::Development` when computing non-dev publish closure, so
-dev-dependencies alone do not force this crate into the support surface.
-
-Changing `tokmd-test-support` back to internal/dev-only should be a focused
-follow-up that decides the test reproducibility contract first.
+The former `tokmd-test-support` package was removed from the workspace. Its
+synthetic crypto fixture helper now lives under
+`crates/tokmd-analysis/tests/support/`, which avoids a crates.io
+dev-dependency resolution requirement during `tokmd-analysis` packaging.
 
 ## Scope guardrail
 
@@ -205,6 +196,8 @@ The former novelty renderer crate now lives under
 `crates/tokmd-format/src/fun/`.
 The former content helper crate now lives under
 `crates/tokmd-analysis/src/content/`.
+The former test-support helper crate now lives under
+`crates/tokmd-analysis/tests/support/`.
 
 ## Publish closure audit
 

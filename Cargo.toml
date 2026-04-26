@@ -16,7 +16,6 @@ members = [
     "crates/tokmd-scan",
     "crates/tokmd-sensor",
     "crates/tokmd-settings",
-    "crates/tokmd-test-support",
     "crates/tokmd-types",
     "crates/tokmd-cockpit",
     "crates/tokmd-io-port",
@@ -69,7 +68,6 @@ tokmd-wasm = { path = "crates/tokmd-wasm", version = "1.9.0" }
 tokmd-scan = { path = "crates/tokmd-scan", version = "1.9.0" }
 tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.9.0" }
 tokmd-settings = { path = "crates/tokmd-settings", version = "1.9.0" }
-tokmd-test-support = { path = "crates/tokmd-test-support", version = "1.9.0" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.9.0" }
 tokmd-io-port = { path = "crates/tokmd-io-port", version = "1.9.0" }
 tokmd-gate = { path = "crates/tokmd-gate", version = "1.9.0" }
