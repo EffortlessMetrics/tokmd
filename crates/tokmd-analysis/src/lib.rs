@@ -17,11 +17,15 @@
 //! * File modification
 
 mod analysis;
+#[cfg(feature = "walk")]
+mod assets;
 #[cfg(feature = "git")]
 mod churn;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(feature = "fun")]
+mod fun;
 #[cfg(feature = "git")]
 mod git;
 mod util;

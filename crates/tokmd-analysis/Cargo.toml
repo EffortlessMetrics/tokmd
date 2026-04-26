@@ -22,7 +22,6 @@ git = [
 ]
 walk = [
     "dep:tokmd-walk",
-    "dep:tokmd-analysis-assets",
     "dep:tokmd-analysis-license",
     "tokmd-analysis-grid/walk",
 ]
@@ -42,7 +41,7 @@ halstead = [
     "tokmd-analysis-grid/halstead",
 ]
 effort = ["dep:tokmd-analysis-effort"]
-fun = ["dep:tokmd-analysis-fun", "tokmd-analysis-grid/fun"]
+fun = ["tokmd-analysis-grid/fun"]
 topics = ["dep:tokmd-analysis-topics", "tokmd-analysis-grid/topics"]
 archetype = ["dep:tokmd-analysis-archetype", "tokmd-analysis-grid/archetype"]
 
@@ -61,8 +60,6 @@ tokmd-git = { workspace = true, optional = true }
 tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-analysis-content = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
-tokmd-analysis-assets = { workspace = true, optional = true }
-tokmd-analysis-fun = { workspace = true, optional = true }
 tokmd-analysis-grid.workspace = true
 tokmd-analysis-archetype = { workspace = true, optional = true }
 tokmd-analysis-topics = { workspace = true, optional = true }
@@ -80,5 +77,5 @@ tokmd-analysis-effort = { workspace = true, optional = true }
 tempfile.workspace = true
 proptest.workspace = true
 serde.workspace = true
+insta = { workspace = true }
 tokmd-test-support.workspace = true
-

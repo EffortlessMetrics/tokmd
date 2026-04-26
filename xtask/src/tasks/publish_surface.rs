@@ -26,7 +26,6 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
     "tokmd-analysis-api-surface",
     "tokmd-analysis-archetype",
-    "tokmd-analysis-assets",
     "tokmd-analysis-complexity",
     "tokmd-analysis-content",
     "tokmd-analysis-derived",
@@ -35,7 +34,6 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis-explain",
     "tokmd-analysis-fingerprint",
     "tokmd-analysis-format",
-    "tokmd-analysis-fun",
     "tokmd-analysis-git",
     "tokmd-analysis-grid",
     "tokmd-analysis-halstead",
@@ -84,10 +82,8 @@ const TARGET_SUPPORT_CRATES: &[&str] = &[
 
 const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[
     "tokmd-analysis-archetype",
-    "tokmd-analysis-assets",
     "tokmd-analysis-derived",
     "tokmd-analysis-fingerprint",
-    "tokmd-analysis-fun",
     "tokmd-analysis-grid",
     "tokmd-analysis-topics",
     "tokmd-analysis-util",
@@ -615,7 +611,7 @@ mod tests {
         let new_unapproved =
             new_unapproved_support_crates(&current_support, &target_support, &target_gap);
 
-        assert_eq!(target_gap.len(), 8);
+        assert_eq!(target_gap.len(), 6);
         assert!(target_gap.contains("tokmd-analysis-util"));
         assert!(current_support.is_superset(&target_support));
         assert!(current_support.is_superset(&target_gap));

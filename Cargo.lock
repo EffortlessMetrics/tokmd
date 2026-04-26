@@ -2553,20 +2553,19 @@ name = "tokmd-analysis"
 version = "1.9.0"
 dependencies = [
  "anyhow",
+ "insta",
  "proptest",
  "serde",
  "serde_json",
  "tempfile",
  "tokmd-analysis-api-surface",
  "tokmd-analysis-archetype",
- "tokmd-analysis-assets",
  "tokmd-analysis-complexity",
  "tokmd-analysis-content",
  "tokmd-analysis-derived",
  "tokmd-analysis-effort",
  "tokmd-analysis-entropy",
  "tokmd-analysis-fingerprint",
- "tokmd-analysis-fun",
  "tokmd-analysis-git",
  "tokmd-analysis-grid",
  "tokmd-analysis-halstead",
@@ -2604,18 +2603,6 @@ dependencies = [
  "serde_json",
  "tokmd-analysis-types",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-assets"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-walk",
 ]
 
 [[package]]
@@ -2723,16 +2710,6 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-fun",
  "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-fun"
-version = "1.9.0"
-dependencies = [
- "insta",
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
 ]
 
 [[package]]
