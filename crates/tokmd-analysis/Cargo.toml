@@ -16,7 +16,6 @@ default = ["fun", "topics", "archetype", "effort"]
 git = [
     "dep:tokmd-git",
     "dep:tokmd-analysis-git",
-    "tokmd-analysis-effort/git",
 ]
 walk = [
     "dep:tokmd-walk",
@@ -24,14 +23,14 @@ walk = [
 content = [
     "dep:tokmd-content",
     "dep:tokmd-analysis-content",
-    "dep:tokmd-analysis-api-surface",
-    "dep:tokmd-analysis-near-dup",
+    "dep:globset",
+    "dep:rustc-hash",
 ]
 halstead = [
     "content",
     "walk",
 ]
-effort = ["dep:tokmd-analysis-effort"]
+effort = []
 fun = []
 topics = []
 archetype = []
@@ -40,6 +39,8 @@ archetype = []
 anyhow.workspace = true
 blake3.workspace = true
 serde_json.workspace = true
+globset = { version = "0.4.18", optional = true }
+rustc-hash = { version = "2", optional = true }
 
 # Core contracts
 tokmd-analysis-types.workspace = true
@@ -53,9 +54,6 @@ tokmd-content = { workspace = true, optional = true }
 tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-analysis-content = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
-tokmd-analysis-near-dup = { workspace = true, optional = true }
-tokmd-analysis-api-surface = { workspace = true, optional = true }
-tokmd-analysis-effort = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true

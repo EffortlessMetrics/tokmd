@@ -2552,16 +2552,15 @@ version = "1.9.0"
 dependencies = [
  "anyhow",
  "blake3",
+ "globset",
  "insta",
  "proptest",
+ "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",
- "tokmd-analysis-api-surface",
  "tokmd-analysis-content",
- "tokmd-analysis-effort",
  "tokmd-analysis-git",
- "tokmd-analysis-near-dup",
  "tokmd-analysis-types",
  "tokmd-content",
  "tokmd-format",
@@ -2570,19 +2569,6 @@ dependencies = [
  "tokmd-test-support",
  "tokmd-types",
  "tokmd-walk",
-]
-
-[[package]]
-name = "tokmd-analysis-api-surface"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-types",
 ]
 
 [[package]]
@@ -2598,18 +2584,6 @@ dependencies = [
  "tokmd-analysis-types",
  "tokmd-content",
  "tokmd-scan",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-effort"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-git",
  "tokmd-types",
 ]
 
@@ -2667,20 +2641,6 @@ version = "1.9.0"
 dependencies = [
  "insta",
  "proptest",
-]
-
-[[package]]
-name = "tokmd-analysis-near-dup"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "globset",
- "proptest",
- "rustc-hash",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-types",
 ]
 
 [[package]]

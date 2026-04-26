@@ -2,9 +2,9 @@
 use std::path::Path;
 use std::path::PathBuf;
 
-use anyhow::Result;
 #[cfg(feature = "effort")]
-use tokmd_analysis_effort::{EffortRequest, build_effort_report};
+use crate::effort::{EffortRequest, build_effort_report};
+use anyhow::Result;
 use tokmd_analysis_types::AnalysisLimits;
 use tokmd_analysis_types::{
     AnalysisArgsMeta, AnalysisReceipt, AnalysisSource, ApiSurfaceReport, Archetype, AssetReport,
@@ -14,6 +14,8 @@ use tokmd_analysis_types::{
 };
 use tokmd_types::{ExportData, ScanStatus, ToolInfo};
 
+#[cfg(all(feature = "content", feature = "walk"))]
+use crate::api_surface::build_api_surface_report;
 #[cfg(feature = "archetype")]
 use crate::archetype::detect_archetype;
 #[cfg(feature = "walk")]
@@ -30,6 +32,8 @@ use crate::fun::build_fun_report;
 #[cfg(feature = "git")]
 use crate::git::build_git_report;
 use crate::grid::{PresetKind, PresetPlan, preset_plan_for};
+#[cfg(feature = "content")]
+use crate::near_dup::{NearDupLimits, build_near_dup_report};
 #[cfg(feature = "topics")]
 use crate::topics::build_topic_clouds;
 use crate::util::now_ms;
@@ -40,10 +44,6 @@ use crate::{
 };
 #[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
 use crate::{halstead::build_halstead_report, maintainability::attach_halstead_metrics};
-#[cfg(all(feature = "content", feature = "walk"))]
-use tokmd_analysis_api_surface::build_api_surface_report;
-#[cfg(feature = "content")]
-use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
 
 /// Canonical preset enum for analysis orchestration.
 pub type AnalysisPreset = PresetKind;
