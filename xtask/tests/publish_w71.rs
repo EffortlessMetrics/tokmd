@@ -7,6 +7,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
 
+use serde_json::Value;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -57,6 +59,51 @@ fn parse_publish_order(stdout: &str) -> Vec<String> {
         }
     }
     result
+}
+
+#[test]
+fn publish_surface_json_distinguishes_current_and_target_surfaces() {
+    let (stdout, stderr, success) = run_xtask(&["publish-surface", "--json"]);
+    assert!(
+        success,
+        "publish-surface --json failed.\nstderr: {stderr}\nstdout: {stdout}"
+    );
+
+    let report: Value = serde_json::from_str(&stdout).expect("publish-surface JSON should parse");
+    let summary = report
+        .get("summary")
+        .expect("publish-surface report should include summary");
+
+    let current_public = summary["current_public_surface"]
+        .as_array()
+        .expect("current_public_surface should be an array");
+    let current_support = summary["current_support_surface"]
+        .as_array()
+        .expect("current_support_surface should be an array");
+    let target_support = summary["target_support_surface"]
+        .as_array()
+        .expect("target_support_surface should be an array");
+    let target_gap = summary["target_gap"]
+        .as_array()
+        .expect("target_gap should be an array");
+    let new_unapproved = summary["new_unapproved_support_crates"]
+        .as_array()
+        .expect("new_unapproved_support_crates should be an array");
+
+    assert_eq!(current_public.len(), 13);
+    assert_eq!(current_support.len(), 32);
+    assert_eq!(target_support.len(), 23);
+    assert_eq!(target_gap.len(), 9);
+    assert!(new_unapproved.is_empty());
+    assert_eq!(summary["public_surface"], summary["current_public_surface"]);
+    assert_eq!(
+        summary["support_surface"],
+        summary["current_support_surface"]
+    );
+    assert_eq!(
+        summary["non_crates_io_packages"],
+        summary["current_non_crates_io_surface"]
+    );
 }
 
 // ===========================================================================
