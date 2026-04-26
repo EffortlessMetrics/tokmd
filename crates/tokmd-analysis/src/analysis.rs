@@ -34,17 +34,14 @@ use crate::grid::{PresetKind, PresetPlan, preset_plan_for};
 use crate::topics::build_topic_clouds;
 use crate::util::now_ms;
 #[cfg(all(feature = "content", feature = "walk"))]
+use crate::{
+    complexity::build_complexity_report, entropy::build_entropy_report,
+    license::build_license_report,
+};
+#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
+use crate::{halstead::build_halstead_report, maintainability::attach_halstead_metrics};
+#[cfg(all(feature = "content", feature = "walk"))]
 use tokmd_analysis_api_surface::build_api_surface_report;
-#[cfg(all(feature = "content", feature = "walk"))]
-use tokmd_analysis_complexity::build_complexity_report;
-#[cfg(all(feature = "content", feature = "walk"))]
-use tokmd_analysis_entropy::build_entropy_report;
-#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-use tokmd_analysis_halstead::build_halstead_report;
-#[cfg(all(feature = "content", feature = "walk"))]
-use tokmd_analysis_license::build_license_report;
-#[cfg(all(feature = "halstead", feature = "content", feature = "walk"))]
-use tokmd_analysis_maintainability::attach_halstead_metrics;
 #[cfg(feature = "content")]
 use tokmd_analysis_near_dup::{NearDupLimits, build_near_dup_report};
 
@@ -96,7 +93,7 @@ fn preset_plan(preset: AnalysisPreset) -> PresetPlan {
 #[cfg(any(feature = "walk", feature = "content", feature = "git"))]
 const ROOTLESS_FILE_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping file-backed enrichers";
-#[cfg(any(feature = "walk", feature = "content", feature = "git"))]
+#[cfg(feature = "git")]
 const ROOTLESS_GIT_ANALYSIS_WARNING: &str =
     "in-memory analysis has no host root; skipping git-backed enrichers";
 
@@ -200,6 +197,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     let fun: Option<FunReport>;
 
     #[cfg(any(feature = "walk", feature = "content"))]
+    #[cfg_attr(not(feature = "walk"), allow(unused_mut))]
     let mut files: Option<Vec<PathBuf>> = None;
     #[cfg(not(any(feature = "walk", feature = "content")))]
     let _files: Option<Vec<PathBuf>> = None;

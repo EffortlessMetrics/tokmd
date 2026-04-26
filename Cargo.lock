@@ -2558,16 +2558,12 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokmd-analysis-api-surface",
- "tokmd-analysis-complexity",
  "tokmd-analysis-content",
  "tokmd-analysis-effort",
- "tokmd-analysis-entropy",
  "tokmd-analysis-git",
- "tokmd-analysis-halstead",
- "tokmd-analysis-license",
- "tokmd-analysis-maintainability",
  "tokmd-analysis-near-dup",
  "tokmd-analysis-types",
+ "tokmd-content",
  "tokmd-format",
  "tokmd-git",
  "tokmd-scan",
@@ -2584,20 +2580,6 @@ dependencies = [
  "proptest",
  "serde_json",
  "tempfile",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-complexity"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-maintainability",
  "tokmd-analysis-types",
  "tokmd-content",
  "tokmd-types",
@@ -2628,20 +2610,6 @@ dependencies = [
  "tempfile",
  "tokmd-analysis-types",
  "tokmd-git",
- "tokmd-types",
-]
-
-[[package]]
-name = "tokmd-analysis-entropy"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-test-support",
  "tokmd-types",
 ]
 
@@ -2682,19 +2650,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokmd-analysis-halstead"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-types",
-]
-
-[[package]]
 name = "tokmd-analysis-html"
 version = "1.9.0"
 dependencies = [
@@ -2712,28 +2667,6 @@ version = "1.9.0"
 dependencies = [
  "insta",
  "proptest",
-]
-
-[[package]]
-name = "tokmd-analysis-license"
-version = "1.9.0"
-dependencies = [
- "anyhow",
- "proptest",
- "serde_json",
- "tempfile",
- "tokmd-analysis-types",
- "tokmd-content",
- "tokmd-walk",
-]
-
-[[package]]
-name = "tokmd-analysis-maintainability"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde_json",
- "tokmd-analysis-types",
 ]
 
 [[package]]

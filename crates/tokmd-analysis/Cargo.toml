@@ -20,20 +20,16 @@ git = [
 ]
 walk = [
     "dep:tokmd-walk",
-    "dep:tokmd-analysis-license",
 ]
 content = [
+    "dep:tokmd-content",
     "dep:tokmd-analysis-content",
-    "dep:tokmd-analysis-complexity",
-    "dep:tokmd-analysis-entropy",
     "dep:tokmd-analysis-api-surface",
     "dep:tokmd-analysis-near-dup",
 ]
 halstead = [
     "content",
     "walk",
-    "dep:tokmd-analysis-halstead",
-    "dep:tokmd-analysis-maintainability",
 ]
 effort = ["dep:tokmd-analysis-effort"]
 fun = []
@@ -53,16 +49,12 @@ tokmd-types.workspace = true
 
 # Optional adapters
 tokmd-git = { workspace = true, optional = true }
+tokmd-content = { workspace = true, optional = true }
 tokmd-analysis-git = { workspace = true, optional = true }
 tokmd-analysis-content = { workspace = true, optional = true }
 tokmd-walk = { workspace = true, optional = true }
 tokmd-analysis-near-dup = { workspace = true, optional = true }
 tokmd-analysis-api-surface = { workspace = true, optional = true }
-tokmd-analysis-complexity = { workspace = true, optional = true }
-tokmd-analysis-entropy = { workspace = true, optional = true }
-tokmd-analysis-license = { workspace = true, optional = true }
-tokmd-analysis-halstead = { workspace = true, optional = true }
-tokmd-analysis-maintainability = { workspace = true, optional = true }
 tokmd-analysis-effort = { workspace = true, optional = true }
 
 [dev-dependencies]
