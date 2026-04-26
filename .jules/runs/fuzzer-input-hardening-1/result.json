@@ -1,7 +1,0 @@
-{
-  "outcome": "proof-improvement",
-  "files_changed": [
-    "crates/tokmd/tests/config_resolution.rs"
-  ],
-  "reasoning": "Added boundary constraints mapping defaults to expected behaviors."
-}
