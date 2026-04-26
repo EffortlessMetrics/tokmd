@@ -116,10 +116,16 @@ pub fn short_hash(s: &str) -> String {
 /// ```
 pub fn redact_path(path: &str) -> String {
     let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
+    let mut ext = Path::new(&cleaned)
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
+
+    // Hardening: Prevent arbitrary data leakage through long or non-standard extensions
+    if ext.len() > 8 || !ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+        ext = "";
+    }
+
     let mut out = short_hash(&cleaned);
     if !ext.is_empty() {
         out.push('.');

@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-format test_redact_path_leak", "result": "ok"}
+{"command": "cargo test -p tokmd-format", "result": "ok"}
