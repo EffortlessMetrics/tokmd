@@ -2531,7 +2531,6 @@ dependencies = [
  "tempfile",
  "time",
  "tokmd-analysis",
- "tokmd-analysis-explain",
  "tokmd-analysis-types",
  "tokmd-cockpit",
  "tokmd-core",
@@ -2567,14 +2566,6 @@ dependencies = [
  "tokmd-test-support",
  "tokmd-types",
  "tokmd-walk",
-]
-
-[[package]]
-name = "tokmd-analysis-explain"
-version = "1.9.0"
-dependencies = [
- "insta",
- "proptest",
 ]
 
 [[package]]

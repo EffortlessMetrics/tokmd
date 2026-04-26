@@ -111,7 +111,7 @@ crates/
 ├── tokmd-analysis/src/content/      # Tier 3: Content scanning adapters
 ├── tokmd-analysis-derived/          # Tier 3: Core derived metrics
 ├── tokmd-analysis-entropy/          # Tier 3: High-entropy file detection
-├── tokmd-analysis-explain/          # Tier 3: Metric explanation catalog
+├── tokmd/src/analysis_explain/      # Tier 5: CLI metric explanation catalog
 ├── tokmd-analysis-fingerprint/      # Tier 3: Corporate fingerprint
 ├── tokmd-analysis/src/git/          # Tier 3: Git history adapters
 ├── tokmd-analysis-grid/             # Tier 3: Preset/feature matrix
@@ -340,9 +340,9 @@ exclude_re = ["impl.*Display", "fn main\\("]
 
 ### Adding a New Enricher
 
-Enrichers are implemented as their own microcrates:
+Enrichers are implemented as owner modules:
 
-1. Create a new crate under `crates/` (e.g., `tokmd-analysis-my-enricher/`)
+1. Create a new module under `crates/tokmd-analysis/src/`
 2. Add the data structures to `crates/tokmd-analysis-types/src/lib.rs`
 3. Wire it into the preset system in `crates/tokmd-analysis/src/analysis.rs`
 4. Add formatting support in `crates/tokmd-format/src/analysis/`

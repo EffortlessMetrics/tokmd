@@ -56,7 +56,6 @@ required-features = ["alias-tok"]
 anyhow.workspace = true
 clap = { version = "4.6.0", features = ["derive"] }
 tokmd-analysis = { workspace = true }
-tokmd-analysis-explain.workspace = true
 tokmd-analysis-types.workspace = true
 tokmd-model.workspace = true
 tokmd-envelope.workspace = true

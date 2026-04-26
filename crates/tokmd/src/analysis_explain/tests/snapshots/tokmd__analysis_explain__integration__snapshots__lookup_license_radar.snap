@@ -1,0 +1,5 @@
+---
+source: crates/tokmd/src/analysis_explain/tests/snapshots.rs
+expression: "lookup(\"license_radar\").unwrap()"
+---
+license_radar: Heuristic SPDX/license detection from metadata and text.

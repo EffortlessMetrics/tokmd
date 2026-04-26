@@ -1,5 +1,0 @@
----
-source: crates/tokmd-analysis-explain/tests/snapshots.rs
-expression: "lookup(\"code_age_distribution\").unwrap()"
----
-code_age_distribution: Bucketed file age distribution plus recent-vs-prior refresh trend.
