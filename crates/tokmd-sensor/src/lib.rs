@@ -13,12 +13,14 @@
 //! * Sensor implementations (those go in their respective crates)
 //! * CLI parsing
 
+pub mod substrate;
 pub mod substrate_builder;
+
+pub use substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 use anyhow::Result;
 use serde::{Serialize, de::DeserializeOwned};
 use tokmd_envelope::SensorReport;
-use tokmd_substrate::RepoSubstrate;
 
 /// Trait for effortless code quality sensors.
 ///
@@ -49,7 +51,6 @@ mod tests {
     use super::*;
     use std::collections::BTreeMap;
     use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
-    use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
     /// A trivial test sensor for verifying the trait.
     struct DummySensor;

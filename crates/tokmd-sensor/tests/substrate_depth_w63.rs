@@ -1,11 +1,11 @@
-//! Depth tests (w63) for tokmd-substrate: RepoSubstrate construction, language
+//! Depth tests (w63) for tokmd-sensor::substrate: RepoSubstrate construction, language
 //! summaries, file listing, total aggregation, empty/single-file handling,
 //! substrate sharing, determinism, and property-based verification.
 
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ===========================================================================
 // Helpers

@@ -1,4 +1,4 @@
-//! Deep contract tests for `tokmd-substrate`.
+//! Deep contract tests for `tokmd-sensor::substrate`.
 //!
 //! Covers error handling for malformed input, forward-compatibility
 //! (extra JSON fields), deterministic serialization, double-roundtrip
@@ -8,7 +8,7 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // =============================================================================
 // Helpers

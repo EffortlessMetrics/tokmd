@@ -249,7 +249,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ToolMeta` and `Artifact` metadata types
   - Finding registry with constants for risk, contract, supply, gate, security, and architecture categories
 
-- **New Crate `tokmd-substrate`** (Tier 0): Shared repository context
+- **New substrate seam `tokmd-sensor::substrate`**: Shared repository context
   - `RepoSubstrate` with file metrics, language summaries, diff range, and totals
   - `SubstrateFile` per-file metrics including `in_diff` flag
   - `DiffRange` for git context (base, head, changed files, insertions, deletions)
@@ -277,7 +277,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Hardened tests: replaced sentinel nonexistent paths with `tempdir` in `tokmd-scan` and `tokmd-tokeignore`
 - Added `tempfile` dev-dependency to `tokmd-scan`
-- Added README files for `tokmd-sensor`, `tokmd-envelope`, `tokmd-substrate`, `tokmd-settings`
+- Added README files for `tokmd-sensor`, `tokmd-envelope`, and `tokmd-settings`
 - Added `tokmd sensor` documentation to `reference-cli.md`
 - Updated `docs/schema.json` and `docs/SCHEMA.md` for new envelope fields
 - Added `get_added_lines()` API in `tokmd-git` for per-file added-line extraction from git diff

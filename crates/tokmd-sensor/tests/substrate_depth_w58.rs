@@ -1,10 +1,10 @@
-//! Depth tests for tokmd-substrate (w58).
+//! Depth tests for tokmd-sensor::substrate (w58).
 //!
 //! Covers construction, serde roundtrips, filtering, determinism,
 //! edge cases (empty, minimal), and property-based invariants.
 
 use std::collections::BTreeMap;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 fn make_file(path: &str, lang: &str, code: usize, in_diff: bool) -> SubstrateFile {
     SubstrateFile {

@@ -1,4 +1,4 @@
-//! Deep contract tests (part 2) for `tokmd-substrate`.
+//! Deep contract tests (part 2) for `tokmd-sensor::substrate`.
 //!
 //! Extends coverage beyond `deep.rs` with: Unicode paths, case-sensitive
 //! language filtering, single-file substrates, clone mutation independence,
@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // =============================================================================
 // Helpers

@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use proptest::prelude::*;
 use tokmd_envelope::{SENSOR_REPORT_SCHEMA, SensorReport, ToolMeta, Verdict};
 use tokmd_sensor::EffortlessSensor;
-use tokmd_substrate::{LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{LangSummary, RepoSubstrate, SubstrateFile};
 
 // ── Strategies ───────────────────────────────────────────────────
 

@@ -1,10 +1,10 @@
-//! Property-based tests for `tokmd-substrate` types.
+//! Property-based tests for `tokmd-sensor::substrate` types.
 //!
 //! Uses `proptest` to verify serialization round-trips and
 //! structural invariants hold for arbitrary inputs.
 
 use std::collections::BTreeMap;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 use proptest::prelude::*;
 

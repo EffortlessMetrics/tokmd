@@ -3,9 +3,9 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use crate::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 use anyhow::Result;
 use tokmd_settings::ScanOptions;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 use tokmd_types::ChildIncludeMode;
 
 /// Build a `RepoSubstrate` from a scan of the given repo root.

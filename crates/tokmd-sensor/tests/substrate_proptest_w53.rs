@@ -1,4 +1,4 @@
-//! W53: Property-based tests for `tokmd-substrate` field invariants.
+//! W53: Property-based tests for `tokmd-sensor::substrate` field invariants.
 //!
 //! Covers: serde roundtrip, diff_files/files_for_lang consistency,
 //! BTreeMap ordering, boundary conditions, and determinism.
@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 
 use proptest::prelude::*;
-use tokmd_substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
+use tokmd_sensor::substrate::{DiffRange, LangSummary, RepoSubstrate, SubstrateFile};
 
 // ── Strategies ──────────────────────────────────────────────────────────
 

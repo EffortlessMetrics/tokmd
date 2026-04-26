@@ -2788,7 +2788,6 @@ dependencies = [
  "tokmd-model",
  "tokmd-scan",
  "tokmd-settings",
- "tokmd-substrate",
  "tokmd-types",
 ]
 
@@ -2802,15 +2801,6 @@ dependencies = [
  "tempfile",
  "tokmd-types",
  "toml 1.1.2+spec-1.1.0",
-]
-
-[[package]]
-name = "tokmd-substrate"
-version = "1.9.0"
-dependencies = [
- "proptest",
- "serde",
- "serde_json",
 ]
 
 [[package]]
