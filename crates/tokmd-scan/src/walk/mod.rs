@@ -1,9 +1,7 @@
-//! # tokmd-walk
+//! File walking and repository asset discovery helpers.
 //!
-//! **Tier 2 (Utilities)**
-//!
-//! File listing and asset discovery utilities. Provides filesystem traversal
-//! with gitignore support for analysis workflows.
+//! This module provides deterministic filesystem traversal with gitignore
+//! support for scan and analysis workflows.
 //!
 //! ## What belongs here
 //! * Filesystem traversal respecting gitignore
@@ -363,9 +361,4 @@ mod tests {
         // They should already be sorted correctly, but if they aren't, the test will fail
         assert_eq!(actual, expected);
     }
-}
-
-#[cfg(doctest)]
-pub mod readme_doctests {
-    #![doc = include_str!("../README.md")]
 }

@@ -222,7 +222,7 @@ pub fn analyze(ctx: AnalysisContext, req: AnalysisRequest) -> Result<AnalysisRec
     if plan.needs_files() {
         #[cfg(feature = "walk")]
         if has_host_root {
-            match tokmd_walk::list_files(&ctx.root, req.limits.max_files) {
+            match tokmd_scan::walk::list_files(&ctx.root, req.limits.max_files) {
                 Ok(list) => files = Some(list),
                 Err(err) => warnings.push(format!("walk failed: {}", err)),
             }

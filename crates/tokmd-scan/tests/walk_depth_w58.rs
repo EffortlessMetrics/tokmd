@@ -1,4 +1,4 @@
-//! Depth tests for `tokmd-walk` – W58.
+//! Depth tests for `tokmd-scan::walk` – W58.
 //!
 //! Exercises list_files, license_candidates, and file_size against synthetic
 //! directory trees with various structures, gitignore integration, hidden
@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -13,7 +13,7 @@ pub(crate) fn build_license_report(
     files: &[PathBuf],
     limits: &AnalysisLimits,
 ) -> Result<LicenseReport> {
-    let candidates = tokmd_walk::license_candidates(files);
+    let candidates = tokmd_scan::walk::license_candidates(files);
     let max_bytes = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_LICENSE_BYTES) as usize;
 
     let mut findings: Vec<LicenseFinding> = Vec::new();

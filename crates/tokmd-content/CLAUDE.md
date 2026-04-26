@@ -11,7 +11,7 @@ Content scanning helpers for analysis. This is a **Tier 2** utility crate for fi
 - File integrity hashing
 - Tag counting (TODOs, FIXMEs)
 - Entropy calculation
-- **NOT** for file listing (see tokmd-walk)
+- **NOT** for file listing (see tokmd-scan::walk)
 
 ## Public API
 
@@ -75,6 +75,6 @@ Property-based tests with `proptest`.
 
 ## Do NOT
 
-- List files (use tokmd-walk)
+- List files (use tokmd-scan::walk)
 - Modify files
 - Parse language-specific syntax

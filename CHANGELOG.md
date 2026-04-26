@@ -462,7 +462,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test Robustness**: Replaced `unwrap`/`expect` with `Result` in tests for better error messages
 - **Config Determinism**: Locked deterministic ordering in configuration tests
 - **Comprehensive Test Suite**: Added integration tests across all major crates (model, format, walk, git, analysis, fun, config, types)
-- **Property-Based Tests**: Added proptest coverage for tokmd-redact, tokmd-tokeignore, and tokmd-walk
+- **Property-Based Tests**: Added proptest coverage for tokmd-redact, tokmd-tokeignore, and tokmd-scan walk helpers
 - **Fuzz Targets**: Added fuzz targets for path redaction and JSON deserialization with dictionaries
 - **Mutation Testing**: Added `cargo-mutants` configuration and CI gate for PR quality assurance
   - Enhanced mutation testing workflow with improved file change detection
@@ -489,7 +489,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Microcrate Architecture**: Split into 16 focused crates for modularity and selective compilation
   - `tokmd-types`, `tokmd-analysis-types` (Tier 0: data structures)
   - `tokmd-scan`, `tokmd-model`, `tokmd-tokeignore`, `tokmd-redact` (Tier 1: core logic)
-  - `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
+  - `tokmd-format`, `tokmd-content`, `tokmd-git` (Tier 2: I/O)
   - `tokmd-analysis`, analysis rendering, `tokmd-fun` (Tier 3: enrichment)
   - `tokmd-config`, `tokmd-core` (Tier 4: orchestration)
   - `tokmd` (Tier 5: CLI binary)

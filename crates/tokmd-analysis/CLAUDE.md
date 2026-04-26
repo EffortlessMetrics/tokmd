@@ -70,7 +70,7 @@ pub fn normalize_root(path: &Path) -> PathBuf
 ```toml
 [features]
 git = ["tokmd-git"]      # Git history analysis
-walk = ["tokmd-walk"]    # Asset discovery
+walk = []                # Asset discovery via tokmd-scan::walk
 content = ["tokmd-content"]  # Content scanning
 topics = [] # Topic-cloud extraction module
 archetype = [] # Archetype detection module
@@ -81,7 +81,7 @@ fun = []  # Fun report + novelty outputs module
 
 - `blake3`, `serde_json`
 - `tokmd-analysis-types`, `tokmd-types`
-- Optional: `tokmd-git`, `tokmd-walk`, `tokmd-content`
+- Optional: `tokmd-git`, `tokmd-content`
 
 ## Testing
 

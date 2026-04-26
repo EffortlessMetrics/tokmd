@@ -17,7 +17,6 @@ git = [
     "dep:tokmd-git",
 ]
 walk = [
-    "dep:tokmd-walk",
 ]
 content = [
     "dep:tokmd-content",
@@ -49,7 +48,6 @@ tokmd-types.workspace = true
 # Optional adapters
 tokmd-git = { workspace = true, optional = true }
 tokmd-content = { workspace = true, optional = true }
-tokmd-walk = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true

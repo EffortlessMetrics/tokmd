@@ -1,4 +1,4 @@
-//! Contract tests for `tokmd-walk` crate — W64 batch.
+//! Contract tests for `tokmd-scan::walk` module — W64 batch.
 //!
 //! Covers filesystem traversal, license detection, file sizing, determinism,
 //! and edge-case behaviour of the public API surface.
@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
-use tokmd_walk::{file_size, license_candidates, list_files};
+use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
 // ===========================================================================
 // Helpers
@@ -613,7 +613,7 @@ fn given_nested_tree_when_walking_then_paths_normalized() {
 mod properties {
     use proptest::prelude::*;
     use std::path::PathBuf;
-    use tokmd_walk::license_candidates;
+    use tokmd_scan::walk::license_candidates;
 
     proptest! {
         #[test]

@@ -21,7 +21,6 @@ members = [
     "crates/tokmd-test-support",
     "crates/tokmd-types",
     "crates/tokmd-cockpit",
-    "crates/tokmd-walk",
     "crates/tokmd-io-port",
     "fuzz",
     "xtask",
@@ -76,7 +75,6 @@ tokmd-sensor = { path = "crates/tokmd-sensor", version = "1.9.0" }
 tokmd-settings = { path = "crates/tokmd-settings", version = "1.9.0" }
 tokmd-test-support = { path = "crates/tokmd-test-support", version = "1.9.0" }
 tokmd-types = { path = "crates/tokmd-types", version = "1.9.0" }
-tokmd-walk = { path = "crates/tokmd-walk", version = "1.9.0" }
 tokmd-io-port = { path = "crates/tokmd-io-port", version = "1.9.0" }
 tokmd-gate = { path = "crates/tokmd-gate", version = "1.9.0" }
 tokmd-cockpit = { path = "crates/tokmd-cockpit", version = "1.9.0" }

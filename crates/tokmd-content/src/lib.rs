@@ -14,7 +14,7 @@
 //! * Function-level complexity metrics
 //!
 //! ## What does NOT belong here
-//! * File listing (use tokmd-walk)
+//! * File listing (use tokmd-scan::walk)
 //! * File modification
 
 pub mod complexity;

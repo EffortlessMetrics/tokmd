@@ -1,11 +1,11 @@
-//! Property-based tests for tokmd-walk.
+//! Property-based tests for tokmd-scan walk helpers.
 //!
 //! These tests verify the correctness, determinism, and consistency
 //! of the `license_candidates` function.
 
 use proptest::prelude::*;
 use std::path::PathBuf;
-use tokmd_walk::license_candidates;
+use tokmd_scan::walk::license_candidates;
 
 // ============================================================================
 // Strategies

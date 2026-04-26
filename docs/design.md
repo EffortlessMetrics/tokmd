@@ -130,7 +130,7 @@ File bytes → tag counts (TODO, FIXME)
 File bytes → BLAKE3 hash
 ```
 
-### Walk Adapter (tokmd-walk)
+### Walk Helpers (tokmd-scan::walk)
 
 Filesystem traversal:
 ```

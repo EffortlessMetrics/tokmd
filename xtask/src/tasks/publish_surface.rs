@@ -29,7 +29,6 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-model",
     "tokmd-scan",
     "tokmd-test-support",
-    "tokmd-walk",
 ];
 
 const PUBLIC_PRODUCT_CRATES: &[&str] = &["tokmd", "tokmd-core", "tokmd-wasm"];
@@ -52,7 +51,7 @@ const PUBLIC_CAPABILITY_CRATES: &[&str] = &[
     "tokmd-scan",
 ];
 
-const CONDITIONAL_PUBLIC_CRATES: &[&str] = &["tokmd-content", "tokmd-fun", "tokmd-walk"];
+const CONDITIONAL_PUBLIC_CRATES: &[&str] = &["tokmd-content", "tokmd-fun"];
 
 const INTERNAL_MODULE_FAMILIES: &[&str] = &[];
 
@@ -67,7 +66,6 @@ const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-model",
     "tokmd-scan",
     "tokmd-test-support",
-    "tokmd-walk",
 ];
 
 const TARGET_SUPPORT_GAP_CRATES: &[&str] = &[];

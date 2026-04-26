@@ -447,6 +447,7 @@ pub mod exclude;
 pub mod math;
 pub mod path;
 pub mod tokeignore;
+pub mod walk;
 
 pub use exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
 pub use math::{gini_coefficient, percentile, round_f64, safe_ratio};
