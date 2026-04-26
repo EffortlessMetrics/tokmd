@@ -51,7 +51,7 @@ test("run and cancel helpers produce valid protocol messages", () => {
     assert.equal(isRunMessage(cancel), false);
 });
 
-test("run messages require ordered in-memory inputs", () => {
+test("run messages support inputs, paths, and scan objects", () => {
     assert.equal(
         isInMemoryInput({ path: "src/lib.rs", text: "pub fn alpha() {}\n" }),
         true
@@ -91,5 +91,23 @@ test("run messages require ordered in-memory inputs", () => {
             args: { inputs: [{ path: "", text: "bad\n" }] },
         }),
         false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "paths-test",
+            mode: "lang",
+            args: { paths: ["src/lib.rs"] },
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "scan-test",
+            mode: "lang",
+            args: { scan: { paths: ["src/lib.rs"] } },
+        }),
+        true
     );
 });

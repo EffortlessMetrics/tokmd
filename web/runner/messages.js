@@ -99,17 +99,23 @@ export function isInMemoryInput(value) {
 }
 
 export function isRunMessage(value) {
-    return Boolean(
-        value &&
-            value.type === MESSAGE_TYPES.RUN &&
-            typeof value.requestId === "string" &&
-            typeof value.mode === "string" &&
-            value.args &&
-            typeof value.args === "object" &&
-            !Array.isArray(value.args) &&
-            Array.isArray(value.args.inputs) &&
-            value.args.inputs.every(isInMemoryInput)
-    );
+    if (
+        !value ||
+        value.type !== MESSAGE_TYPES.RUN ||
+        typeof value.requestId !== "string" ||
+        typeof value.mode !== "string" ||
+        !value.args ||
+        typeof value.args !== "object" ||
+        Array.isArray(value.args)
+    ) {
+        return false;
+    }
+
+    const hasInputs = Array.isArray(value.args.inputs) && value.args.inputs.every(isInMemoryInput);
+    const hasPaths = Array.isArray(value.args.paths) && value.args.paths.length > 0;
+    const hasScanPaths = value.args.scan && typeof value.args.scan === "object" && Array.isArray(value.args.scan.paths);
+
+    return Boolean(hasInputs || hasPaths || hasScanPaths);
 }
 
 export function isCancelMessage(value) {
