@@ -1,35 +1,110 @@
 # Tokmd Publish Surface and Closure Policy
 
-Status: canonical current/target publish policy baseline.
+Status: canonical publish-surface classification baseline.
 
 ## Why this exists (ADR-level rationale)
 
 The current architecture moved too far from microcrate-as-architecture to microcrate-as-surface-area.
 
-The packaging direction is now explicit:
+The packaging direction is explicit:
 
-- keep an intentional published/public surface;
-- keep genuine reusable contracts as published support crates;
-- absorb everything else into SRP folders inside owning public crates;
+- publish product, contract, workflow, and capability boundaries;
+- keep internal SRP seams as module families under owner crates;
+- treat conditional public crates as pending boundary decisions, not default promises;
+- keep dev/tool/binding packages off the crates.io dependency closure;
 - enforce publishability with a closure proof, not package-count aesthetics.
 
 This is the hard rule: publishing correctness is defined by dependency closure, not by a broad `publish = false` pass.
+
+A published crate is a support promise. A module folder is an architecture seam.
 
 ## Publication model
 
 `publish = false` is policy-only and valid only for crates that are truly outside the crates.io closure.
 
 For publishability, every intended public crate must have a full non-dev workspace dependency closure that references only:
-- published public crates
-- published support crates
-- crates intentionally outside the product surface (4 non-crates.io packages)
+- classified published crates
+- conditional public crates while their boundary memo is still pending
+- crates intentionally outside the product surface only when they are not in the non-dev closure
 
-If a public or support crate depends on anything else, that dependency must be merged into an owner module first.
+If a published crate depends on anything else through a normal or build dependency, that dependency must be classified for publication or merged into an owner module first. Dev-dependencies are not part of the publish closure.
 
-## Current publish surface (36 crates published + 4 non-crates.io)
+## Forward policy classes
 
-This is the current honest crates.io closure, and it matches the encoded target
-publish surface.
+These are the policy classes the checker now reports. The older `public_surface`
+and `support_surface` JSON fields remain compatibility fields for existing
+automation.
+
+### Public product crates (3)
+
+- `tokmd`
+- `tokmd-core`
+- `tokmd-wasm`
+
+### Public contract crates (5)
+
+- `tokmd-analysis-types`
+- `tokmd-envelope`
+- `tokmd-io-port`
+- `tokmd-settings`
+- `tokmd-types`
+
+### Public workflow crates (3)
+
+- `tokmd-cockpit`
+- `tokmd-gate`
+- `tokmd-sensor`
+
+### Public capability crates (5)
+
+- `tokmd-analysis`
+- `tokmd-format`
+- `tokmd-git`
+- `tokmd-model`
+- `tokmd-scan`
+
+### Conditional public crates (5)
+
+These packages need focused boundary memos before the repo decides whether they
+remain public or collapse into owner modules.
+
+- `tokmd-content`
+- `tokmd-ffi-envelope`
+- `tokmd-fun`
+- `tokmd-substrate`
+- `tokmd-walk`
+
+### Internal module families still packaged today (14)
+
+These are current crates.io package boundaries that should be treated as
+transitional implementation seams, not the desired final registry surface.
+
+- `tokmd-analysis-api-surface`
+- `tokmd-analysis-complexity`
+- `tokmd-analysis-content`
+- `tokmd-analysis-effort`
+- `tokmd-analysis-entropy`
+- `tokmd-analysis-explain`
+- `tokmd-analysis-format`
+- `tokmd-analysis-git`
+- `tokmd-analysis-halstead`
+- `tokmd-analysis-html`
+- `tokmd-analysis-imports`
+- `tokmd-analysis-license`
+- `tokmd-analysis-maintainability`
+- `tokmd-analysis-near-dup`
+
+### Dev-only package under policy review (1)
+
+- `tokmd-test-support`
+
+It remains publishable in the compatibility support surface until a focused
+test reproducibility decision changes that policy.
+
+## Current compatibility surface (36 crates published + 4 non-crates.io)
+
+This is the current honest crates.io closure. It matches the encoded
+compatibility target, but it is not the final product/contract/capability model.
 
 ### Supported public crates (13)
 
@@ -47,7 +122,7 @@ publish surface.
 - `tokmd-types`
 - `tokmd-wasm`
 
-### Published support crates (23)
+### Published support crates (23, compatibility classification)
 
 - `tokmd-analysis`
 - `tokmd-analysis-api-surface`
@@ -75,6 +150,9 @@ publish surface.
 
 **Count:** 23 published support crates.
 
+Support is now a compatibility classification for existing automation. It is
+not the final desired category.
+
 ## Non-crates.io packages (intentional exceptions) (4)
 
 - `tokmd-fuzz`
@@ -84,10 +162,11 @@ publish surface.
 
 **Count:** 4 non-crates.io packages.
 
-## Target publish surface
+## Compatibility target surface
 
-The target public surface remains the supported public API surface. The target
-support surface now matches the current closure. `target_gap` is zero.
+The compatibility target public surface remains the supported public API
+surface. The compatibility support surface now matches the current closure.
+`target_gap` is zero.
 
 ### Target public crates (13)
 
@@ -119,7 +198,7 @@ Same as the current supported public crates.
 - `tokmd-test-support`
 - `tokmd-walk`
 
-### Target gap: planned support retirements (0)
+### Target gap: planned compatibility support retirements (0)
 
 The checker hard-fails if a current support crate is not classified as either
 target support or target gap.
@@ -135,18 +214,17 @@ dev-dependencies alone do not force this crate into the support surface.
 Changing `tokmd-test-support` back to internal/dev-only should be a focused
 follow-up that decides the test reproducibility contract first.
 
-## PR A scope guardrail
+## Scope guardrail
 
-PR A is **truth-first**:
+Publish-surface policy work is **truth-first**:
 
 - publish-surface documentation
 - closure/reporting command
 - machine-readable classification
 - CI `--json --verify-publish` checks
 
-It makes only the owner-module moves that are needed to remove already-decided
-packaging helper crates from the publish closure. Deeper analysis-crate
-consolidation remains future work.
+Crate-collapse work should stay in focused follow-ups. Deeper analysis-crate
+consolidation, renderer migration, and gray-zone decisions remain future work.
 
 ## Hard rule
 
@@ -191,6 +269,14 @@ The JSON report includes:
 - `summary.target_support_surface`
 - `summary.target_gap`
 - `summary.new_unapproved_support_crates`
+- `summary.public_product_crates`
+- `summary.public_contract_crates`
+- `summary.public_workflow_crates`
+- `summary.public_capability_crates`
+- `summary.conditional_public_crates`
+- `summary.internal_module_families`
+- `summary.dev_only_packages`
+- `summary.new_unclassified_packages`
 - per-target `non_dev_workspace_closure`
 - per-target `required_public`, `required_support`, `required_internal`, `required_non_crates_io`
 - `violations`
@@ -204,4 +290,6 @@ Violations include:
 - non-publishable crates in the current non-dev publish closure
 - current support crates not classified as target support or target gap
 - stale target support or target-gap entries after a crate is retired
+- workspace packages not classified in the forward policy model
+- stale forward policy entries after a package is removed
 - Cargo packaging validation failures

@@ -48,6 +48,53 @@ const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-walk",
 ];
 
+const PUBLIC_PRODUCT_CRATES: &[&str] = &["tokmd", "tokmd-core", "tokmd-wasm"];
+
+const PUBLIC_CONTRACT_CRATES: &[&str] = &[
+    "tokmd-analysis-types",
+    "tokmd-envelope",
+    "tokmd-io-port",
+    "tokmd-settings",
+    "tokmd-types",
+];
+
+const PUBLIC_WORKFLOW_CRATES: &[&str] = &["tokmd-cockpit", "tokmd-gate", "tokmd-sensor"];
+
+const PUBLIC_CAPABILITY_CRATES: &[&str] = &[
+    "tokmd-analysis",
+    "tokmd-format",
+    "tokmd-git",
+    "tokmd-model",
+    "tokmd-scan",
+];
+
+const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[
+    "tokmd-content",
+    "tokmd-ffi-envelope",
+    "tokmd-fun",
+    "tokmd-substrate",
+    "tokmd-walk",
+];
+
+const INTERNAL_MODULE_FAMILIES: &[&str] = &[
+    "tokmd-analysis-api-surface",
+    "tokmd-analysis-complexity",
+    "tokmd-analysis-content",
+    "tokmd-analysis-effort",
+    "tokmd-analysis-entropy",
+    "tokmd-analysis-explain",
+    "tokmd-analysis-format",
+    "tokmd-analysis-git",
+    "tokmd-analysis-halstead",
+    "tokmd-analysis-html",
+    "tokmd-analysis-imports",
+    "tokmd-analysis-license",
+    "tokmd-analysis-maintainability",
+    "tokmd-analysis-near-dup",
+];
+
+const DEV_ONLY_PACKAGES: &[&str] = &["tokmd-test-support"];
+
 const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
     "tokmd-analysis-api-surface",
@@ -102,6 +149,14 @@ struct PublishSurfaceSummary {
     target_support_surface: Vec<String>,
     target_gap: Vec<String>,
     new_unapproved_support_crates: Vec<String>,
+    public_product_crates: Vec<String>,
+    public_contract_crates: Vec<String>,
+    public_workflow_crates: Vec<String>,
+    public_capability_crates: Vec<String>,
+    conditional_public_crates: Vec<String>,
+    internal_module_families: Vec<String>,
+    dev_only_packages: Vec<String>,
+    new_unclassified_packages: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -160,6 +215,13 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
     let target_public_surface = public_surface.clone();
     let target_support_surface = sort_unique(TARGET_SUPPORT_CRATES);
     let target_gap = sort_unique(TARGET_SUPPORT_GAP_CRATES);
+    let public_product_crates = sort_unique(PUBLIC_PRODUCT_CRATES);
+    let public_contract_crates = sort_unique(PUBLIC_CONTRACT_CRATES);
+    let public_workflow_crates = sort_unique(PUBLIC_WORKFLOW_CRATES);
+    let public_capability_crates = sort_unique(PUBLIC_CAPABILITY_CRATES);
+    let conditional_public_crates = sort_unique(CONDITIONAL_PUBLIC_CRATES);
+    let internal_module_families = sort_unique(INTERNAL_MODULE_FAMILIES);
+    let dev_only_packages = sort_unique(DEV_ONLY_PACKAGES);
 
     let publish_surface: BTreeSet<String> = public_surface
         .iter()
@@ -174,6 +236,24 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
     let target_gap_set: BTreeSet<String> = target_gap.iter().cloned().collect();
     let new_unapproved_support_crates =
         new_unapproved_support_crates(&support_surface_set, &target_support_set, &target_gap_set);
+    let workspace_package_names: BTreeSet<String> = workspace_packages
+        .iter()
+        .map(|package| package.name.to_string())
+        .collect();
+    let policy_classification_set = union_policy_classifications(&[
+        public_product_crates.as_slice(),
+        public_contract_crates.as_slice(),
+        public_workflow_crates.as_slice(),
+        public_capability_crates.as_slice(),
+        conditional_public_crates.as_slice(),
+        internal_module_families.as_slice(),
+        dev_only_packages.as_slice(),
+        non_crates_io_packages.as_slice(),
+    ]);
+    let new_unclassified_packages: Vec<String> = workspace_package_names
+        .difference(&policy_classification_set)
+        .cloned()
+        .collect();
 
     let mut violations = Vec::new();
     classify_target_surface_violations(
@@ -182,6 +262,12 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
         &target_support_set,
         &target_gap_set,
         &new_unapproved_support_crates,
+    );
+    classify_policy_surface_violations(
+        &mut violations,
+        &workspace_package_names,
+        &policy_classification_set,
+        &new_unclassified_packages,
     );
 
     let mut crate_reports = Vec::new();
@@ -309,6 +395,14 @@ pub fn run(args: PublishSurfaceArgs) -> Result<()> {
             target_support_surface,
             target_gap,
             new_unapproved_support_crates,
+            public_product_crates,
+            public_contract_crates,
+            public_workflow_crates,
+            public_capability_crates,
+            conditional_public_crates,
+            internal_module_families,
+            dev_only_packages,
+            new_unclassified_packages,
         },
         crates: crate_reports,
         packaging_checks,
@@ -461,6 +555,72 @@ fn print_human_report(report: &PublishSurface) {
     }
 
     println!(
+        "Public product crates ({}):",
+        report.summary.public_product_crates.len()
+    );
+    for item in &report.summary.public_product_crates {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Public contract crates ({}):",
+        report.summary.public_contract_crates.len()
+    );
+    for item in &report.summary.public_contract_crates {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Public workflow crates ({}):",
+        report.summary.public_workflow_crates.len()
+    );
+    for item in &report.summary.public_workflow_crates {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Public capability crates ({}):",
+        report.summary.public_capability_crates.len()
+    );
+    for item in &report.summary.public_capability_crates {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Conditional public crates ({}):",
+        report.summary.conditional_public_crates.len()
+    );
+    for item in &report.summary.conditional_public_crates {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Internal module families ({}):",
+        report.summary.internal_module_families.len()
+    );
+    for item in &report.summary.internal_module_families {
+        println!("  - {item}");
+    }
+
+    println!(
+        "Dev-only packages ({}):",
+        report.summary.dev_only_packages.len()
+    );
+    for item in &report.summary.dev_only_packages {
+        println!("  - {item}");
+    }
+
+    if !report.summary.new_unclassified_packages.is_empty() {
+        println!(
+            "New unclassified packages ({}):",
+            report.summary.new_unclassified_packages.len()
+        );
+        for item in &report.summary.new_unclassified_packages {
+            println!("  - {item}");
+        }
+    }
+
+    println!(
         "Non-crates.io packages: {}",
         report.summary.current_non_crates_io_surface.len()
     );
@@ -514,6 +674,13 @@ fn sort_unique(values: &[&str]) -> Vec<String> {
     out.sort();
     out.dedup();
     out
+}
+
+fn union_policy_classifications(groups: &[&[String]]) -> BTreeSet<String> {
+    groups
+        .iter()
+        .flat_map(|group| group.iter().cloned())
+        .collect()
 }
 
 fn new_unapproved_support_crates(
@@ -582,6 +749,33 @@ fn classify_target_surface_violations(
     }
 }
 
+fn classify_policy_surface_violations(
+    violations: &mut Vec<PublishViolation>,
+    workspace_package_names: &BTreeSet<String>,
+    policy_classification_set: &BTreeSet<String>,
+    new_unclassified_packages: &[String],
+) {
+    if !new_unclassified_packages.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Workspace package is not classified in publish-surface policy".to_string(),
+            details: new_unclassified_packages.to_vec(),
+        });
+    }
+
+    let stale_policy_entries: Vec<String> = policy_classification_set
+        .difference(workspace_package_names)
+        .cloned()
+        .collect();
+    if !stale_policy_entries.is_empty() {
+        violations.push(PublishViolation {
+            crate_name: "publish-surface".to_string(),
+            reason: "Publish-surface policy class references missing workspace package".to_string(),
+            details: stale_policy_entries,
+        });
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -616,6 +810,31 @@ mod tests {
         assert!(current_support.contains("tokmd-test-support"));
         assert!(target_support.contains("tokmd-test-support"));
         assert!(!target_gap.contains("tokmd-test-support"));
+    }
+
+    #[test]
+    fn publish_surface_policy_classes_cover_current_workspace_packages() {
+        let classified = union_policy_classifications(&[
+            &sort_unique(PUBLIC_PRODUCT_CRATES),
+            &sort_unique(PUBLIC_CONTRACT_CRATES),
+            &sort_unique(PUBLIC_WORKFLOW_CRATES),
+            &sort_unique(PUBLIC_CAPABILITY_CRATES),
+            &sort_unique(CONDITIONAL_PUBLIC_CRATES),
+            &sort_unique(INTERNAL_MODULE_FAMILIES),
+            &sort_unique(DEV_ONLY_PACKAGES),
+            &sort_unique(NON_CRATES_IO_PACKAGES),
+        ]);
+        let legacy_surface: BTreeSet<String> = PUBLISHED_PUBLIC_CRATES
+            .iter()
+            .chain(PUBLISHED_SUPPORT_CRATES.iter())
+            .chain(NON_CRATES_IO_PACKAGES.iter())
+            .map(|value| (*value).to_string())
+            .collect();
+
+        assert_eq!(
+            classified, legacy_surface,
+            "new policy classes must account for every current workspace package"
+        );
     }
 
     #[test]
