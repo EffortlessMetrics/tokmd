@@ -17,6 +17,8 @@
 //! * File modification
 
 mod analysis;
+#[cfg(all(feature = "content", feature = "walk"))]
+mod api_surface;
 #[cfg(feature = "archetype")]
 mod archetype;
 #[cfg(feature = "walk")]
@@ -28,6 +30,8 @@ mod complexity;
 #[cfg(feature = "content")]
 mod content;
 mod derived;
+#[cfg(feature = "effort")]
+mod effort;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod entropy;
 #[cfg(feature = "git")]
@@ -43,18 +47,20 @@ mod halstead;
 mod license;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod maintainability;
+#[cfg(feature = "content")]
+mod near_dup;
 #[cfg(feature = "topics")]
 mod topics;
 mod util;
 
 pub use analysis::{AnalysisContext, AnalysisPreset, AnalysisRequest, ImportGranularity, analyze};
 pub use derived::{build_tree, derive_report};
+#[cfg(feature = "effort")]
+pub use effort::{EffortLayer, EffortModelKind, EffortRequest};
 pub use grid::{
     DisabledFeature, PRESET_GRID, PRESET_KINDS, PresetKind, PresetPlan, preset_plan_for,
     preset_plan_for_name,
 };
-#[cfg(feature = "effort")]
-pub use tokmd_analysis_effort::{EffortLayer, EffortModelKind, EffortRequest};
 pub use tokmd_analysis_types::AnalysisLimits;
 pub use tokmd_analysis_types::NearDupScope;
 pub use util::normalize_root;

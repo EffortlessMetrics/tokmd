@@ -24,15 +24,12 @@ const PUBLISHED_PUBLIC_CRATES: &[&str] = &[
 
 const PUBLISHED_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-analysis-api-surface",
     "tokmd-analysis-content",
-    "tokmd-analysis-effort",
     "tokmd-analysis-explain",
     "tokmd-analysis-format",
     "tokmd-analysis-git",
     "tokmd-analysis-html",
     "tokmd-analysis-imports",
-    "tokmd-analysis-near-dup",
     "tokmd-content",
     "tokmd-format",
     "tokmd-fun",
@@ -72,30 +69,24 @@ const CONDITIONAL_PUBLIC_CRATES: &[&str] = &[
 ];
 
 const INTERNAL_MODULE_FAMILIES: &[&str] = &[
-    "tokmd-analysis-api-surface",
     "tokmd-analysis-content",
-    "tokmd-analysis-effort",
     "tokmd-analysis-explain",
     "tokmd-analysis-format",
     "tokmd-analysis-git",
     "tokmd-analysis-html",
     "tokmd-analysis-imports",
-    "tokmd-analysis-near-dup",
 ];
 
 const DEV_ONLY_PACKAGES: &[&str] = &["tokmd-test-support"];
 
 const TARGET_SUPPORT_CRATES: &[&str] = &[
     "tokmd-analysis",
-    "tokmd-analysis-api-surface",
     "tokmd-analysis-content",
-    "tokmd-analysis-effort",
     "tokmd-analysis-explain",
     "tokmd-analysis-format",
     "tokmd-analysis-git",
     "tokmd-analysis-html",
     "tokmd-analysis-imports",
-    "tokmd-analysis-near-dup",
     "tokmd-content",
     "tokmd-format",
     "tokmd-fun",

@@ -6,13 +6,10 @@ members = [
     "crates/tokmd-analysis-imports",
     "crates/tokmd-analysis-explain",
     "crates/tokmd-analysis-html",
-    "crates/tokmd-analysis-api-surface",
     "crates/tokmd-analysis-content",
     "crates/tokmd-analysis-git",
-    "crates/tokmd-analysis-near-dup",
     "crates/tokmd-analysis-format",
     "crates/tokmd-analysis-types",
-    "crates/tokmd-analysis-effort",
     "crates/tokmd-core",
     "crates/tokmd-content",
     "crates/tokmd-envelope",
@@ -80,8 +77,6 @@ tokmd-analysis-explain = { path = "crates/tokmd-analysis-explain", version = "1.
 tokmd-analysis-html = { path = "crates/tokmd-analysis-html", version = "1.9.0" }
 tokmd-analysis-format = { path = "crates/tokmd-analysis-format", version = "1.9.0" }
 tokmd-analysis-types = { path = "crates/tokmd-analysis-types", version = "1.9.0" }
-tokmd-analysis-api-surface = { path = "crates/tokmd-analysis-api-surface", version = "1.9.0" }
-tokmd-analysis-near-dup = { path = "crates/tokmd-analysis-near-dup", version = "1.9.0" }
 tokmd-analysis-content = { path = "crates/tokmd-analysis-content", version = "1.9.0" }
 tokmd-content = { path = "crates/tokmd-content", version = "1.9.0" }
 tokmd-envelope = { path = "crates/tokmd-envelope", version = "1.9.0" }
@@ -90,7 +85,6 @@ tokmd-core = { path = "crates/tokmd-core", version = "1.9.0" }
 tokmd-format = { path = "crates/tokmd-format", version = "1.9.0" }
 tokmd-fun = { path = "crates/tokmd-fun", version = "1.9.0" }
 tokmd-analysis-git = { path = "crates/tokmd-analysis-git", version = "1.9.0" }
-tokmd-analysis-effort = { path = "crates/tokmd-analysis-effort", version = "1.9.0" }
 tokmd-git = { path = "crates/tokmd-git", version = "1.9.0" }
 tokmd-model = { path = "crates/tokmd-model", version = "1.9.0" }
 tokmd-wasm = { path = "crates/tokmd-wasm", version = "1.9.0" }

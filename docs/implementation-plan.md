@@ -212,7 +212,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Near-Duplicate Detection (v1.7.0)
 
-1. **Enricher**: `tokmd-analysis-near-dup` crate for content-similarity detection
+1. **Enricher**: near-duplicate module for content-similarity detection
 2. **CLI flags**: `--near-dup`, `--near-dup-threshold`, `--near-dup-scope`, `--near-dup-max-files`
 3. **Types**: `NearDuplicateReport`, `NearDupCluster`, `NearDupPair`
 
@@ -286,7 +286,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Effort Estimation
 
-1. **New crate**: `tokmd-analysis-effort`
+1. **New module**: analysis effort estimation
 2. **Preset**: `estimate`
 3. **CLI surface**: `--effort-model`, `--effort-layer`, `--effort-base-ref`, `--effort-head-ref`, `--monte-carlo`, `--mc-iterations`, `--mc-seed`
 
