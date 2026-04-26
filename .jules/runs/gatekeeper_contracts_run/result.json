@@ -1,0 +1,12 @@
+{
+  "outcome_type": "patch",
+  "reviewer_facing_title": "Fix xtask test failure by correctly guarding .jules/runs in gate.rs",
+  "summary": "Added `.jules/runs` to `TRACKED_AGENT_RUNTIME_PATHS` in `xtask/src/tasks/gate.rs` to satisfy the missing guard rail and restore the test suite.",
+  "target_paths": ["xtask/src/tasks/gate.rs"],
+  "proof_summary": "Running `cargo test -p xtask` now passes successfully.",
+  "gates_run": ["cargo test -p xtask", "cargo xtask gate"],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout xtask/src/tasks/gate.rs",
+  "follow_ups": []
+}
