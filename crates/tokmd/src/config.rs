@@ -325,24 +325,40 @@ pub fn resolve_lang(
 /// # Examples
 ///
 /// ```
-/// use std::path::PathBuf;
 /// use tokmd::cli::CliLangArgs;
-/// use tokmd::{resolve_lang_with_config, ResolvedConfig};
+/// use tokmd::{resolve_lang_with_config, ConfigContext};
+/// use tokmd_settings::{TomlConfig, ViewProfile};
 ///
-/// let cli_args = CliLangArgs {
+/// // Create a config with a TOML view specifying top = 10
+/// let mut toml = TomlConfig::default();
+/// let mut view = ViewProfile::default();
+/// view.top = Some(10);
+/// toml.view.insert("default".to_string(), view);
+///
+/// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
+/// let resolved = tokmd::resolve_config(&ctx, Some("default"));
+///
+/// // CLI args have no top, so it falls back to the resolved config (10)
+/// let cli_args_empty = CliLangArgs {
 ///     paths: None,
 ///     format: None,
 ///     top: None,
 ///     files: false,
 ///     children: None,
 /// };
-/// let resolved = ResolvedConfig::default();
+/// let lang_args_1 = resolve_lang_with_config(&cli_args_empty, &resolved);
+/// assert_eq!(lang_args_1.top, 10);
 ///
-/// let lang_args = resolve_lang_with_config(&cli_args, &resolved);
-///
-/// assert_eq!(lang_args.paths, vec![PathBuf::from(".")]);
-/// assert_eq!(lang_args.top, 0);
-/// assert_eq!(lang_args.files, false);
+/// // CLI arg overrides the config
+/// let cli_args_override = CliLangArgs {
+///     paths: None,
+///     format: None,
+///     top: Some(5),
+///     files: false,
+///     children: None,
+/// };
+/// let lang_args_2 = resolve_lang_with_config(&cli_args_override, &resolved);
+/// assert_eq!(lang_args_2.top, 5);
 /// ```
 pub fn resolve_lang_with_config(
     cli_args: &cli::CliLangArgs,
@@ -447,11 +463,21 @@ pub fn resolve_module(
 /// # Examples
 ///
 /// ```
-/// use std::path::PathBuf;
 /// use tokmd::cli::CliModuleArgs;
-/// use tokmd::{resolve_module_with_config, ResolvedConfig};
+/// use tokmd::{resolve_module_with_config, ConfigContext};
+/// use tokmd_settings::{TomlConfig, ModuleConfig};
 ///
-/// let cli_args = CliModuleArgs {
+/// // Create a config with a custom module depth
+/// let mut toml = TomlConfig::default();
+/// let mut mod_cfg = ModuleConfig::default();
+/// mod_cfg.depth = Some(4);
+/// toml.module = mod_cfg;
+///
+/// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
+/// let resolved = tokmd::resolve_config(&ctx, None);
+///
+/// // CLI args have no module_depth, falls back to config (4)
+/// let cli_args_empty = CliModuleArgs {
 ///     paths: None,
 ///     format: None,
 ///     top: None,
@@ -459,14 +485,22 @@ pub fn resolve_module(
 ///     module_depth: None,
 ///     children: None,
 /// };
-/// let resolved = ResolvedConfig::default();
+/// let module_args_1 = resolve_module_with_config(&cli_args_empty, &resolved);
+/// assert_eq!(module_args_1.module_depth, 4);
 ///
-/// let module_args = resolve_module_with_config(&cli_args, &resolved);
-///
-/// assert_eq!(module_args.paths, vec![PathBuf::from(".")]);
-/// assert_eq!(module_args.top, 0);
+/// // CLI arg overrides config
+/// let cli_args_override = CliModuleArgs {
+///     paths: None,
+///     format: None,
+///     top: None,
+///     module_roots: None,
+///     module_depth: Some(1),
+///     children: None,
+/// };
+/// let module_args_2 = resolve_module_with_config(&cli_args_override, &resolved);
+/// assert_eq!(module_args_2.module_depth, 1);
 /// assert_eq!(
-///     module_args.module_roots,
+///     module_args_2.module_roots,
 ///     vec!["crates".to_string(), "packages".to_string()]
 /// );
 /// ```
@@ -596,11 +630,21 @@ pub fn resolve_export(
 /// # Examples
 ///
 /// ```
-/// use std::path::PathBuf;
-/// use tokmd::cli::CliExportArgs;
-/// use tokmd::{resolve_export_with_config, ResolvedConfig};
+/// use tokmd::cli::{CliExportArgs, ExportFormat};
+/// use tokmd::{resolve_export_with_config, ConfigContext};
+/// use tokmd_settings::{TomlConfig, ExportConfig};
 ///
-/// let cli_args = CliExportArgs {
+/// // Create config with specific export format
+/// let mut toml = TomlConfig::default();
+/// let mut exp_cfg = ExportConfig::default();
+/// exp_cfg.format = Some("csv".to_string());
+/// toml.export = exp_cfg;
+///
+/// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
+/// let resolved = tokmd::resolve_config(&ctx, None);
+///
+/// // Empty CLI arg uses the format from config
+/// let cli_args_empty = CliExportArgs {
 ///     paths: None,
 ///     format: None,
 ///     output: None,
@@ -613,11 +657,25 @@ pub fn resolve_export(
 ///     meta: None,
 ///     strip_prefix: None,
 /// };
-/// let resolved = ResolvedConfig::default();
+/// let export_args_1 = resolve_export_with_config(&cli_args_empty, &resolved);
+/// assert_eq!(export_args_1.format, ExportFormat::Csv);
 ///
-/// let export_args = resolve_export_with_config(&cli_args, &resolved);
-///
-/// assert_eq!(export_args.paths, vec![PathBuf::from(".")]);
+/// // CLI arg overrides config
+/// let cli_args_override = CliExportArgs {
+///     paths: None,
+///     format: Some(ExportFormat::Jsonl),
+///     output: None,
+///     module_roots: None,
+///     module_depth: None,
+///     children: None,
+///     min_code: None,
+///     max_rows: None,
+///     redact: None,
+///     meta: None,
+///     strip_prefix: None,
+/// };
+/// let export_args_2 = resolve_export_with_config(&cli_args_override, &resolved);
+/// assert_eq!(export_args_2.format, ExportFormat::Jsonl);
 /// ```
 pub fn resolve_export_with_config(
     cli_args: &cli::CliExportArgs,
