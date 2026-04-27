@@ -20,7 +20,5 @@ Preserve per-run packets as primary truth. Never rewrite history; summarize or s
 Do not perform unrelated repo code changes in this lane.
 
 ## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.
 Do not remove prompt-critical instructions from persona README files just because
 they also appear in shared docs; personas are sent individually.

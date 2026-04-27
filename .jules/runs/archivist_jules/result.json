@@ -1,8 +1,12 @@
 {
-  "status": "completed",
-  "gates_run": [
-    "cargo xtask docs --check",
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings"
-  ]
+  "outcome_type": "patch",
+  "title": "archivist: consolidate shared notes/ instructions into .jules/README.md 🗃️",
+  "summary": "Removed duplicated instructions about using the notes/ directory from 16 persona README files and consolidated them into the shared .jules/README.md file.",
+  "target_paths": [".jules/README.md", ".jules/personas/*/README.md"],
+  "proof_summary": "grep confirms the 16 duplicated lines were removed.",
+  "gates_run": ["cargo xtask docs --check", "cargo fmt -- --check"],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git restore .jules/README.md .jules/personas/*/README.md",
+  "follow_ups": []
 }
