@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! End-to-end CLI integration tests exercising core commands and flag
 //! combinations.  Each test invokes the real `tokmd` binary against a
 //! hermetic fixture directory.

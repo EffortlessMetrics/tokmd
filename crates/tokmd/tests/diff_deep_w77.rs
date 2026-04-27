@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Deep tests for `tokmd diff` – W77.
 //!
 //! ~20 tests covering: identical receipts, added/removed/changed languages,

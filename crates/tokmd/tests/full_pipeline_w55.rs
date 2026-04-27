@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Cross-crate full-pipeline integration tests (W55).
 //!
 //! Exercises the complete data-flow across the tiered microcrate architecture:

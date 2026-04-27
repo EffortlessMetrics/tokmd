@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! BDD-style scenario tests for the `diff` command.
 //!
 //! Each test follows the Given/When/Then pattern to verify key user-facing

@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Edge-case CLI tests for the tokmd binary.
 
 mod common;

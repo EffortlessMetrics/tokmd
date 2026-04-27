@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Regression test suite – W52
 //!
 //! Captures known-good behavior to prevent future regressions in receipt

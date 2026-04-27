@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! CLI output-format validation tests (w66).
 //!
 //! Verifies that each output format flag produces well-formed output:

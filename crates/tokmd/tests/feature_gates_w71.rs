@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! CLI-level feature gate boundary tests.
 //!
 //! Verifies that the tokmd CLI correctly surfaces feature availability

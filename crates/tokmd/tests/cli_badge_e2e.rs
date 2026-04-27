@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! End-to-end tests for `tokmd badge` — metric variants, SVG structure,
 //! and file-output behaviour.
 

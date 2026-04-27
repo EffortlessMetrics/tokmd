@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! E2E tests for CLI error handling scenarios.
 //!
 //! Validates that tokmd returns non-zero exit codes and helpful error messages

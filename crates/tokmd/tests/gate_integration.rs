@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Integration tests for the `tokmd gate` command.
 
 use assert_cmd::Command;

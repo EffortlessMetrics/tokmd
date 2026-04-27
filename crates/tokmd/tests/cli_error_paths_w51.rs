@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! CLI error-path and help-output integration tests.
 //!
 //! Validates that tokmd produces user-friendly error messages for invalid

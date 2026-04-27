@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! CLI error handling and edge-case tests (w66).
 //!
 //! Validates that tokmd produces helpful error messages for invalid arguments,

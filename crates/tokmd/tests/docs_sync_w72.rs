@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! W72 – Documentation synchronization tests (CLI binary side).
 //!
 //! These tests run the actual `tokmd` binary and verify that help output,

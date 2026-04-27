@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! End-to-end tests for `tokmd tools` — format variants, tool name
 //! enumeration, and structural validation.
 
