@@ -4,7 +4,7 @@
 //! paths, ignored files, and asset detection edge cases gracefully.
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 use tokmd_scan::walk::{file_size, license_candidates, list_files};
 
@@ -179,4 +179,16 @@ fn file_size_nonexistent_file_returns_error() {
     let dir = TempDir::new().unwrap();
     let result = file_size(dir.path(), &PathBuf::from("missing.txt"));
     assert!(result.is_err(), "non-existent file should return error");
+}
+
+#[test]
+fn file_size_rejects_parent_traversal() {
+    let outer = TempDir::new().unwrap();
+    let root = outer.path().join("root");
+    fs::create_dir_all(&root).unwrap();
+    fs::write(outer.path().join("secret.txt"), "secret").unwrap();
+
+    let result = file_size(&root, Path::new("../secret.txt"));
+
+    assert!(result.is_err(), "parent traversal should be rejected");
 }

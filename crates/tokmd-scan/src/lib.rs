@@ -20,6 +20,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use tokei::{Config, Languages};
 
+use crate::path::ValidatedRoot;
 use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
 
@@ -105,14 +106,17 @@ impl MaterializedScan {
 pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
     let cfg = config_from_scan_options(args);
     let ignores = ignored_patterns(args);
-    for path in paths {
-        if !path.exists() {
-            anyhow::bail!("Path not found: {}", path.display());
-        }
-    }
+    let roots: Vec<ValidatedRoot> = paths
+        .iter()
+        .map(ValidatedRoot::new)
+        .collect::<std::result::Result<_, _>>()?;
+    let scan_paths: Vec<PathBuf> = roots
+        .iter()
+        .map(|root| root.input().to_path_buf())
+        .collect();
 
     let mut languages = Languages::new();
-    languages.get_statistics(paths, &ignores, &cfg);
+    languages.get_statistics(&scan_paths, &ignores, &cfg);
 
     Ok(languages)
 }

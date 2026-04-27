@@ -117,3 +117,21 @@ fn file_size_from_memfs_missing_file_errors() {
 
     assert!(result.is_err());
 }
+
+#[test]
+fn list_files_from_memfs_rejects_parent_root() {
+    let fs = sample_memfs();
+
+    let result = list_files_from_memfs(&fs, Path::new("../src"), None);
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn file_size_from_memfs_rejects_parent_relative_path() {
+    let fs = sample_memfs();
+
+    let result = file_size_from_memfs(&fs, Path::new("src"), Path::new("../README.md"));
+
+    assert!(result.is_err());
+}

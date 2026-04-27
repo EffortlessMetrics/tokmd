@@ -20,6 +20,8 @@ use anyhow::{Context, Result};
 use ignore::WalkBuilder;
 use tokmd_io_port::MemFs;
 
+use crate::path::{BoundedPath, PathViolation, ValidatedRoot, normalize_bounded_relative_path};
+
 #[derive(Debug, Clone)]
 pub struct LicenseCandidates {
     pub license_files: Vec<PathBuf>,
@@ -38,7 +40,13 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         return Ok(Vec::new());
     }
 
-    if let Some(mut files) = git_ls_files(root)? {
+    let root = ValidatedRoot::new(root)?;
+
+    if let Some(mut files) = git_ls_files(root.input())? {
+        files = files
+            .into_iter()
+            .map(|path| normalize_bounded_relative_path(&path))
+            .collect::<std::result::Result<Vec<_>, _>>()?;
         if let Some(limit) = max_files
             && files.len() > limit
         {
@@ -48,7 +56,7 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
     }
 
     let mut files: Vec<PathBuf> = Vec::new();
-    let mut builder = WalkBuilder::new(root);
+    let mut builder = WalkBuilder::new(root.input());
     builder.hidden(false);
     builder.git_ignore(true);
     builder.git_exclude(true);
@@ -60,8 +68,9 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         if !entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
             continue;
         }
-        let path = entry.path().to_path_buf();
-        let rel = path.strip_prefix(root).unwrap_or(&path).to_path_buf();
+        let rel = BoundedPath::existing_child(&root, entry.path())?
+            .relative()
+            .to_path_buf();
         files.push(rel);
         if let Some(limit) = max_files
             && files.len() >= limit
@@ -86,7 +95,7 @@ pub fn list_files_from_memfs(
         return Ok(Vec::new());
     }
 
-    let normalized_root = normalize_memfs_path(root);
+    let normalized_root = normalize_memfs_root(root)?;
     let mut files: Vec<PathBuf> = fs
         .file_paths()
         .filter_map(|path| memfs_relative_path(path, &normalized_root))
@@ -168,35 +177,44 @@ fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>> {
 }
 
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
-    let path = root.join(relative);
-    let meta =
-        std::fs::metadata(&path).with_context(|| format!("Failed to stat {}", path.display()))?;
+    let root = ValidatedRoot::new(root)?;
+    let path = BoundedPath::existing_relative(&root, relative)?;
+    let meta = std::fs::metadata(path.canonical())
+        .with_context(|| format!("Failed to stat {}", path.canonical().display()))?;
     Ok(meta.len())
 }
 
 /// Query a file size from an in-memory filesystem backend.
 pub fn file_size_from_memfs(fs: &MemFs, root: &Path, relative: &Path) -> Result<u64> {
-    let normalized_root = normalize_memfs_path(root);
+    let normalized_root = normalize_memfs_root(root)?;
+    let normalized_relative = normalize_bounded_relative_path(relative)?;
     let path = if normalized_root.as_os_str().is_empty() {
-        normalize_memfs_path(relative)
+        normalized_relative
     } else {
-        normalize_memfs_path(&normalized_root.join(relative))
+        normalized_root.join(normalized_relative)
     };
     fs.file_size(&path)
         .with_context(|| format!("Failed to stat {}", path.display()))
 }
 
-fn normalize_memfs_path(path: &Path) -> PathBuf {
+fn normalize_memfs_root(path: &Path) -> Result<PathBuf> {
     let mut normalized = PathBuf::new();
+    if path.as_os_str().is_empty() {
+        return Ok(normalized);
+    }
     for component in path.components() {
         match component {
-            Component::CurDir | Component::RootDir => {}
+            Component::CurDir => {}
             Component::Normal(part) => normalized.push(part),
-            Component::ParentDir => normalized.push(".."),
-            Component::Prefix(prefix) => normalized.push(prefix.as_os_str()),
+            Component::ParentDir => {
+                return Err(PathViolation::ParentTraversal(path.to_path_buf()).into());
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                return Err(PathViolation::Absolute(path.to_path_buf()).into());
+            }
         }
     }
-    normalized
+    Ok(normalized)
 }
 
 fn memfs_relative_path(path: &Path, root: &Path) -> Option<PathBuf> {
