@@ -386,7 +386,10 @@ pub(crate) fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
                 let mut matched = false;
                 let char_count = remaining.chars().count();
                 for len in (1..=char_count.min(4)).rev() {
-                    let (byte_idx, _) = remaining.char_indices().nth(len).unwrap_or((remaining.len(), '\0'));
+                    let (byte_idx, _) = remaining
+                        .char_indices()
+                        .nth(len)
+                        .unwrap_or((remaining.len(), '\0'));
                     let candidate = &remaining[..byte_idx];
                     if op_set.contains(candidate) {
                         *operators.entry(candidate.to_string()).or_insert(0) += 1;
