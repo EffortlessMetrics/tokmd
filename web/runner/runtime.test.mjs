@@ -42,12 +42,12 @@ test("runtime rejects malformed messages", async () => {
     assert.equal(isProtocolMessage(message), true);
 });
 
-test("runtime rejects run messages without valid inputs and retains requestId", async () => {
+test("runtime rejects run messages with invalid inputs shape and retains requestId", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({
             requestId: "run-2",
             mode: "lang",
-            args: {},
+            args: { inputs: [{ path: "", text: "bad\n" }] },
         })
     );
 
