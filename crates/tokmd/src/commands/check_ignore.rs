@@ -353,7 +353,6 @@ mod tests {
     }
 
     #[test]
-    #[test]
     fn check_path_honors_exclude_flag() -> anyhow::Result<()> {
         let dir = tempdir()?;
         let file_path = dir.path().join("skip.rs");
