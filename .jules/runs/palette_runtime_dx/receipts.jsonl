@@ -1,0 +1,5 @@
+{"command": "cargo test -p tokmd --lib error_hints", "status": "success", "output": "test result: ok. 6 passed"}
+{"command": "cargo test -p tokmd --test cli_error_paths_w51", "status": "success", "output": "test result: ok. 22 passed"}
+{"command": "cargo test -p tokmd --test cli_error_help_w73", "status": "success", "output": "test result: ok. 30 passed"}
+{"command": "cargo run -p tokmd -- handoff --no-git nonexistent/something.txt --force", "status": "success", "output": "If `nonexistent/something.txt` was intended as a subcommand... (omitted due to heuristic)"}
+{"command": "cargo run -p tokmd -- handof", "status": "success", "output": "Error: Path not found: handof\\n\\nHints:\\n- Did you mean the subcommand `handoff`?"}
