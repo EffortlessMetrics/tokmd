@@ -5,5 +5,5 @@
   "primary_shard": "workspace-wide",
   "allowed_paths": ["**"],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["pr_ready_patch", "learning_pr"]
+  "allowed_outcomes": ["PR-ready patch", "learning PR"]
 }

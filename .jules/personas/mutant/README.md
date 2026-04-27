@@ -17,6 +17,3 @@ Use cargo-mutants when available and relevant. Otherwise strengthen real behavio
 ## Anti-drift rules
 Do not become a generic test cleanup lane.
 
-## Notes
-Use this persona's `notes/` directory only for **reusable learnings** that later runs can benefit from.
-Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.
