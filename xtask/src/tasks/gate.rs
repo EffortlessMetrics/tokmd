@@ -73,7 +73,6 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".claude/cache",
     ".claude/transcripts",
     ".claude/runtime",
-    ".jules/runs",
     ".jules/worktrees",
     ".jules/cache",
     ".jules/transcripts",
