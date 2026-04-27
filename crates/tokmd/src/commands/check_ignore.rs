@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Stdio;
 
 use crate::cli;
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 use crate::git_support::git_cmd;
 
@@ -64,9 +64,14 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
     let mut reasons = Vec::new();
     let mut ignored = false;
 
-    // Check if path exists
-    if !path.exists() {
-        return Err(anyhow::anyhow!("Path '{}' does not exist", path_str));
+    // Check if path exists before asking git/ignore matchers. `try_exists`
+    // keeps access errors distinct from true missing paths.
+    match path.try_exists() {
+        Ok(true) => {}
+        Ok(false) => return Err(anyhow::anyhow!("Path '{}' does not exist", path_str)),
+        Err(err) => {
+            return Err(err).with_context(|| format!("failed to access path '{}'", path_str));
+        }
     }
 
     // 1. Check git ignore (if git is available and we're in a repo)
@@ -353,6 +358,18 @@ mod tests {
     }
 
     #[test]
+    fn check_path_errors_on_missing_path() -> anyhow::Result<()> {
+        let dir = tempdir()?;
+        let missing = dir.path().join("missing.rs");
+
+        let err = match check_path(&missing, &GlobalArgs::default(), false) {
+            Ok(_) => panic!("missing path should error"),
+            Err(err) => err,
+        };
+        assert!(err.to_string().contains("does not exist"));
+        Ok(())
+    }
+
     #[test]
     fn check_path_honors_exclude_flag() -> anyhow::Result<()> {
         let dir = tempdir()?;
