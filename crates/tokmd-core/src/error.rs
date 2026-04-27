@@ -216,6 +216,18 @@ impl TokmdError {
         Self::new(ErrorCode::PathNotFound, format!("Path not found: {}", path))
     }
 
+    /// Create an invalid path error.
+    pub fn invalid_path(message: impl Into<String>) -> Self {
+        Self::with_suggestions(
+            ErrorCode::InvalidPath,
+            message.into(),
+            vec![
+                "Use paths inside the selected scan root".to_string(),
+                "Avoid parent traversal (`..`) in root-relative paths".to_string(),
+            ],
+        )
+    }
+
     /// Create an invalid JSON error.
     pub fn invalid_json(err: impl fmt::Display) -> Self {
         Self::new(ErrorCode::InvalidJson, format!("Invalid JSON: {}", err))
@@ -268,6 +280,22 @@ impl TokmdError {
             format!(r#"{{"code":"{}","message":"{}"}}"#, self.code, self.message)
         })
     }
+
+    fn from_anyhow(err: anyhow::Error) -> Self {
+        let chain: Vec<String> = err.chain().map(|e| e.to_string()).collect();
+        let primary = chain.first().cloned().unwrap_or_else(|| err.to_string());
+        let haystack = chain.join(" | ").to_ascii_lowercase();
+
+        if let Some(path) = extract_path_not_found(&chain) {
+            return Self::path_not_found_with_suggestions(&path);
+        }
+
+        if is_bounded_path_violation(&haystack) {
+            return Self::invalid_path(primary);
+        }
+
+        Self::internal(primary)
+    }
 }
 
 impl fmt::Display for TokmdError {
@@ -284,8 +312,27 @@ impl std::error::Error for TokmdError {}
 
 impl From<anyhow::Error> for TokmdError {
     fn from(err: anyhow::Error) -> Self {
-        Self::internal(err)
+        Self::from_anyhow(err)
     }
+}
+
+fn extract_path_not_found(chain: &[String]) -> Option<String> {
+    for message in chain {
+        if let Some((_, path)) = message.split_once("Path not found: ") {
+            return Some(path.trim().to_string());
+        }
+    }
+    None
+}
+
+fn is_bounded_path_violation(haystack: &str) -> bool {
+    haystack.contains("scan root must not be empty")
+        || haystack.contains("bounded path must not be empty")
+        || haystack.contains("bounded path must be relative")
+        || haystack.contains("bounded path must not contain parent traversal")
+        || haystack.contains("bounded path escapes scan root")
+        || haystack.contains("failed to resolve scan root")
+        || haystack.contains("failed to resolve bounded path")
 }
 
 impl From<serde_json::Error> for TokmdError {
@@ -475,5 +522,36 @@ mod tests {
         assert_eq!(err.code, ErrorCode::NotGitRepository);
         assert!(err.details.is_some());
         assert!(err.suggestions.is_some());
+    }
+
+    #[test]
+    fn anyhow_path_not_found_maps_to_path_not_found() {
+        let err: TokmdError = anyhow::anyhow!("Path not found: missing-dir").into();
+        assert_eq!(err.code, ErrorCode::PathNotFound);
+        assert!(err.message.contains("missing-dir"));
+        assert!(err.suggestions.is_some());
+    }
+
+    #[test]
+    fn anyhow_parent_traversal_maps_to_invalid_path() {
+        let err: TokmdError =
+            anyhow::anyhow!("Bounded path must not contain parent traversal: ../secret.txt").into();
+        assert_eq!(err.code, ErrorCode::InvalidPath);
+        assert!(err.message.contains("parent traversal"));
+        assert!(err.suggestions.is_some());
+    }
+
+    #[test]
+    fn anyhow_root_escape_maps_to_invalid_path() {
+        let err: TokmdError =
+            anyhow::anyhow!("Bounded path escapes scan root C:/repo: C:/secret.txt").into();
+        assert_eq!(err.code, ErrorCode::InvalidPath);
+        assert!(err.message.contains("escapes scan root"));
+    }
+
+    #[test]
+    fn generic_anyhow_stays_internal() {
+        let err: TokmdError = anyhow::anyhow!("unexpected failure").into();
+        assert_eq!(err.code, ErrorCode::InternalError);
     }
 }

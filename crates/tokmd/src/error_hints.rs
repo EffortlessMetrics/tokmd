@@ -37,6 +37,29 @@ fn suggestions(err: &Error) -> Vec<String> {
         push_hint(&mut out, "Initialize git first if needed: `git init`.");
     }
 
+    if haystack.contains("parent traversal")
+        || haystack.contains("must be relative")
+        || haystack.contains("escapes scan root")
+        || haystack.contains("scan root must not be empty")
+        || haystack.contains("bounded path must not be empty")
+    {
+        push_hint(
+            &mut out,
+            "Pass paths inside the selected scan root; parent traversal (`..`) is rejected.",
+        );
+        push_hint(
+            &mut out,
+            "Use root-relative paths for scanned entries, or choose the containing directory as the root.",
+        );
+
+        if haystack.contains("escapes scan root") {
+            push_hint(
+                &mut out,
+                "Avoid symlinked or redirected paths that resolve outside the scan root.",
+            );
+        }
+    }
+
     if haystack.contains("path not found")
         || haystack.contains("input path does not exist")
         || haystack.contains("no such file or directory")
@@ -231,6 +254,28 @@ mod tests {
                 .iter()
                 .any(|h| h.contains("subcommand, it is not recognized"))
         );
+    }
+
+    #[test]
+    fn suggests_for_parent_traversal() {
+        let err = anyhow!("Bounded path must not contain parent traversal: ../secret.txt");
+        let hints = suggestions(&err);
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("inside the selected scan root"))
+        );
+        assert!(hints.iter().any(|h| h.contains("root-relative paths")));
+    }
+
+    #[test]
+    fn suggests_for_root_escape() {
+        let err = anyhow!("Bounded path escapes scan root C:/repo: C:/secret.txt");
+        let rendered = format(&err);
+        assert!(rendered.contains("Error:"));
+        assert!(rendered.contains("Hints:"));
+        assert!(rendered.contains("inside the selected scan root"));
+        assert!(rendered.contains("resolve outside the scan root"));
     }
 
     #[test]
