@@ -42,20 +42,19 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
 
     let root = ValidatedRoot::new(root)?;
 
-    if let Some(mut files) = git_ls_files(root.input())? {
-        files = files
-            .into_iter()
-            .map(|path| bound_git_relative_path(&root, &path))
-            .collect::<std::result::Result<Vec<_>, _>>()?
-            .into_iter()
-            .flatten()
-            .collect();
-        if let Some(limit) = max_files
-            && files.len() > limit
-        {
-            files.truncate(limit);
+    if let Some(files) = git_ls_files(root.input())? {
+        let mut bounded = Vec::new();
+        for path in files {
+            if let Some(path) = bound_git_relative_path(&root, &path)? {
+                bounded.push(path);
+            }
+            if let Some(limit) = max_files
+                && bounded.len() >= limit
+            {
+                break;
+            }
         }
-        return Ok(files);
+        return Ok(bounded);
     }
 
     let mut files: Vec<PathBuf> = Vec::new();
