@@ -1,0 +1,9 @@
+{
+  "outcome": "patch",
+  "summary": "Fixed `isRunMessage` validation in `web/runner/messages.js` to accept alternative structured args (`paths` and `scan`) instead of strictly requiring `inputs`, resolving a false-negative validation block.",
+  "paths_modified": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs"
+  ],
+  "learning_recorded": false
+}
