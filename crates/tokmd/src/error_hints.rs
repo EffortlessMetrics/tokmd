@@ -279,6 +279,17 @@ mod tests {
     }
 
     #[test]
+    fn resolve_failures_do_not_get_bounded_path_hints() {
+        let err = anyhow!("Failed to resolve scan root C:/repo: permission denied");
+        let hints = suggestions(&err);
+        assert!(
+            !hints
+                .iter()
+                .any(|h| h.contains("parent traversal") || h.contains("root-relative"))
+        );
+    }
+
+    #[test]
     fn suggests_for_unknown_explain_key() {
         let err = anyhow!("Unknown metric/finding key 'foo'.");
         let hints = suggestions(&err);

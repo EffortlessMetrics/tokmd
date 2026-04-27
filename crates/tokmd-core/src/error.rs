@@ -331,8 +331,6 @@ fn is_bounded_path_violation(haystack: &str) -> bool {
         || haystack.contains("bounded path must be relative")
         || haystack.contains("bounded path must not contain parent traversal")
         || haystack.contains("bounded path escapes scan root")
-        || haystack.contains("failed to resolve scan root")
-        || haystack.contains("failed to resolve bounded path")
 }
 
 impl From<serde_json::Error> for TokmdError {
@@ -547,6 +545,24 @@ mod tests {
             anyhow::anyhow!("Bounded path escapes scan root C:/repo: C:/secret.txt").into();
         assert_eq!(err.code, ErrorCode::InvalidPath);
         assert!(err.message.contains("escapes scan root"));
+    }
+
+    #[test]
+    fn anyhow_scan_root_resolve_failure_stays_internal() {
+        let err: TokmdError =
+            anyhow::anyhow!("Failed to resolve scan root C:/repo: permission denied").into();
+        assert_eq!(err.code, ErrorCode::InternalError);
+        assert!(err.message.contains("Failed to resolve scan root"));
+        assert!(err.suggestions.is_none());
+    }
+
+    #[test]
+    fn anyhow_bounded_path_resolve_failure_stays_internal() {
+        let err: TokmdError =
+            anyhow::anyhow!("Failed to resolve bounded path src/lib.rs: permission denied").into();
+        assert_eq!(err.code, ErrorCode::InternalError);
+        assert!(err.message.contains("Failed to resolve bounded path"));
+        assert!(err.suggestions.is_none());
     }
 
     #[test]
