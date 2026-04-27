@@ -1,4 +1,5 @@
 use std::fs;
+use std::io;
 use std::path::{Component, Path, PathBuf};
 
 use super::{PathViolation, ValidatedRoot};
@@ -80,16 +81,24 @@ pub(crate) fn normalize_bounded_relative_path(path: &Path) -> Result<PathBuf, Pa
 }
 
 fn canonicalize_existing(path: &Path) -> Result<PathBuf, PathViolation> {
-    fs::canonicalize(path).map_err(|source| {
-        if !path.exists() {
-            PathViolation::Missing(path.to_path_buf())
-        } else {
-            PathViolation::CanonicalizeFailed {
-                path: path.to_path_buf(),
-                source,
+    match fs::canonicalize(path) {
+        Ok(canonical) => Ok(canonical),
+        Err(source) if source.kind() == io::ErrorKind::NotFound => {
+            match fs::symlink_metadata(path) {
+                Err(meta_err) if meta_err.kind() == io::ErrorKind::NotFound => {
+                    Err(PathViolation::Missing(path.to_path_buf()))
+                }
+                Ok(_) | Err(_) => Err(PathViolation::CanonicalizeFailed {
+                    path: path.to_path_buf(),
+                    source,
+                }),
             }
         }
-    })
+        Err(source) => Err(PathViolation::CanonicalizeFailed {
+            path: path.to_path_buf(),
+            source,
+        }),
+    }
 }
 
 fn ensure_under_root(root: &ValidatedRoot, canonical: &Path) -> Result<(), PathViolation> {

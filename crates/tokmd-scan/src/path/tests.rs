@@ -84,6 +84,33 @@ fn bounded_existing_relative_rejects_symlink_escape_when_supported() {
     assert!(err.to_string().contains("escapes scan root"));
 }
 
+#[test]
+fn bounded_existing_relative_reports_missing_only_for_true_not_found() {
+    let root_dir = tempfile::tempdir().unwrap();
+    let root = ValidatedRoot::new(root_dir.path()).unwrap();
+
+    let err = BoundedPath::existing_relative(&root, Path::new("missing.rs")).unwrap_err();
+
+    assert!(matches!(err, PathViolation::Missing(_)));
+}
+
+#[test]
+fn bounded_existing_relative_dangling_symlink_is_not_missing_when_supported() {
+    let root_dir = tempfile::tempdir().unwrap();
+    let missing_target = root_dir.path().join("missing-target.txt");
+    let link = root_dir.path().join("dangling-link.txt");
+
+    if create_file_symlink(&missing_target, &link).is_err() {
+        return;
+    }
+
+    let root = ValidatedRoot::new(root_dir.path()).unwrap();
+    let err = BoundedPath::existing_relative(&root, Path::new("dangling-link.txt")).unwrap_err();
+
+    assert!(matches!(err, PathViolation::CanonicalizeFailed { .. }));
+    assert!(err.to_string().contains("Failed to resolve bounded path"));
+}
+
 #[cfg(unix)]
 fn create_file_symlink(src: &Path, dst: &Path) -> std::io::Result<()> {
     std::os::unix::fs::symlink(src, dst)
