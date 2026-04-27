@@ -1,0 +1,7 @@
+{"cmd": "grep -n 'WASM' ROADMAP.md", "status": 0}
+{"cmd": "grep -n 'v1.9.0' ROADMAP.md", "status": 0}
+{"cmd": "cat docs/implementation-plan.md | grep 'Phase 5'", "status": 0}
+{"cmd": "sed -i 's/- \\[ \\]/- [x]/' docs/implementation-plan.md", "status": 0}
+{"cmd": "sed -i 's/MCP server mode (Phase 5)/MCP server mode (Phase 6)/' docs/implementation-plan.md", "status": 0}
+{"cmd": "sed -i 's/Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)/Phase 5: WASM-Ready Core + Browser Runner (v1.9.0) ✅ Complete/' docs/implementation-plan.md", "status": 0}
+{"cmd": "cargo xtask docs --check", "status": 0}
