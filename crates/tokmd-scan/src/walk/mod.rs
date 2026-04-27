@@ -211,6 +211,10 @@ pub fn file_size_from_memfs(fs: &MemFs, root: &Path, relative: &Path) -> Result<
 }
 
 fn normalize_memfs_root(path: &Path) -> Result<PathBuf> {
+    // Native roots are filesystem-canonicalized through ValidatedRoot.
+    // MemFs roots are logical roots over an in-memory tree: empty and `.`
+    // are rootless, normal relative paths scope the tree, and absolute or
+    // parent-traversing roots are rejected.
     let mut normalized = PathBuf::new();
     if path.as_os_str().is_empty() {
         return Ok(normalized);

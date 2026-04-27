@@ -13,6 +13,39 @@ fn sample_memfs() -> MemFs {
     fs
 }
 
+fn expected_all_files() -> Vec<std::path::PathBuf> {
+    vec![
+        Path::new("README.md").to_path_buf(),
+        Path::new("assets/logo.svg").to_path_buf(),
+        Path::new("src/lib.rs").to_path_buf(),
+        Path::new("src/main.rs").to_path_buf(),
+        Path::new("src/nested/mod.rs").to_path_buf(),
+    ]
+}
+
+fn assert_parent_traversal_error(message: &str) {
+    assert!(
+        message.contains("parent traversal"),
+        "expected parent traversal error, got: {message}"
+    );
+}
+
+fn assert_absolute_path_error(message: &str) {
+    assert!(
+        message.contains("must be relative"),
+        "expected absolute path error, got: {message}"
+    );
+}
+
+#[test]
+fn list_files_from_memfs_empty_root_returns_all_files() {
+    let fs = sample_memfs();
+
+    let files = list_files_from_memfs(&fs, Path::new(""), None).unwrap();
+
+    assert_eq!(files, expected_all_files());
+}
+
 #[test]
 fn list_files_from_memfs_returns_sorted_root_relative_paths() {
     let fs = sample_memfs();
@@ -35,16 +68,7 @@ fn list_files_from_memfs_root_dot_returns_all_files() {
 
     let files = list_files_from_memfs(&fs, Path::new("."), None).unwrap();
 
-    assert_eq!(
-        files,
-        vec![
-            Path::new("README.md").to_path_buf(),
-            Path::new("assets/logo.svg").to_path_buf(),
-            Path::new("src/lib.rs").to_path_buf(),
-            Path::new("src/main.rs").to_path_buf(),
-            Path::new("src/nested/mod.rs").to_path_buf(),
-        ]
-    );
+    assert_eq!(files, expected_all_files());
 }
 
 #[test]
@@ -100,6 +124,15 @@ fn file_size_from_memfs_reads_relative_bytes() {
 }
 
 #[test]
+fn file_size_from_memfs_empty_root_reads_root_relative_file() {
+    let fs = sample_memfs();
+
+    let size = file_size_from_memfs(&fs, Path::new(""), Path::new("README.md")).unwrap();
+
+    assert_eq!(size, "# repo".len() as u64);
+}
+
+#[test]
 fn file_size_from_memfs_dot_prefixed_root_matches_plain_root() {
     let fs = sample_memfs();
 
@@ -124,7 +157,52 @@ fn list_files_from_memfs_rejects_parent_root() {
 
     let result = list_files_from_memfs(&fs, Path::new("../src"), None);
 
-    assert!(result.is_err());
+    assert_parent_traversal_error(&result.unwrap_err().to_string());
+}
+
+#[test]
+fn file_size_from_memfs_rejects_parent_root() {
+    let fs = sample_memfs();
+
+    let result = file_size_from_memfs(&fs, Path::new("../src"), Path::new("lib.rs"));
+
+    assert_parent_traversal_error(&result.unwrap_err().to_string());
+}
+
+#[test]
+fn list_files_from_memfs_rejects_absolute_scoped_root() {
+    let fs = sample_memfs();
+
+    let result = list_files_from_memfs(&fs, Path::new("/src"), None);
+
+    assert_absolute_path_error(&result.unwrap_err().to_string());
+}
+
+#[test]
+fn file_size_from_memfs_rejects_absolute_scoped_root() {
+    let fs = sample_memfs();
+
+    let result = file_size_from_memfs(&fs, Path::new("/src"), Path::new("lib.rs"));
+
+    assert_absolute_path_error(&result.unwrap_err().to_string());
+}
+
+#[test]
+fn list_files_from_memfs_rejects_slash_root() {
+    let fs = sample_memfs();
+
+    let result = list_files_from_memfs(&fs, Path::new("/"), None);
+
+    assert_absolute_path_error(&result.unwrap_err().to_string());
+}
+
+#[test]
+fn file_size_from_memfs_rejects_slash_root() {
+    let fs = sample_memfs();
+
+    let result = file_size_from_memfs(&fs, Path::new("/"), Path::new("README.md"));
+
+    assert_absolute_path_error(&result.unwrap_err().to_string());
 }
 
 #[test]
@@ -133,5 +211,5 @@ fn file_size_from_memfs_rejects_parent_relative_path() {
 
     let result = file_size_from_memfs(&fs, Path::new("src"), Path::new("../README.md"));
 
-    assert!(result.is_err());
+    assert_parent_traversal_error(&result.unwrap_err().to_string());
 }
