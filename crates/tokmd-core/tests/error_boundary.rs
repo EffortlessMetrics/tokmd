@@ -116,10 +116,12 @@ fn ffi_lang_nonexistent_path_returns_error() {
     );
     let parsed = assert_err(&result);
     let code = parsed["error"]["code"].as_str().unwrap();
-    // Could be scan_error or path_not_found depending on how error is wrapped
+    assert_eq!(code, "path_not_found");
     assert!(
-        code == "scan_error" || code == "path_not_found" || code == "internal_error",
-        "unexpected error code: {code}"
+        parsed["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("tokmd-absolutely-nonexistent-path-xyz")
     );
 }
 
