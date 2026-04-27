@@ -1,0 +1,19 @@
+{
+  "prompt_id": "specsmith_analysis_stack",
+  "outcome": "PR-ready patch",
+  "primary_shard": "analysis-stack",
+  "friction_items_created": [],
+  "personas_notes_added": [],
+  "gates_run": [
+    "cargo build -p tokmd-analysis --verbose",
+    "CI=true cargo test -p tokmd-analysis --features halstead,content,walk --verbose",
+    "cargo fmt -p tokmd-analysis -- --check",
+    "cargo clippy -p tokmd-analysis -- -D warnings"
+  ],
+  "telemetry": {
+    "change_shape": "Behavioral test added + bug fix for halstead tokenizer loop over multi-byte chars.",
+    "blast_radius": "Only touches crates/tokmd-analysis/src/halstead/mod.rs. Fixes localized string slicing index panics.",
+    "risk_class": "Low",
+    "rollback_instructions": "Revert the commit touching crates/tokmd-analysis/src/halstead/mod.rs."
+  }
+}
