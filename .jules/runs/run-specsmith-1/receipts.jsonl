@@ -1,0 +1,5 @@
+{"command": "cargo build -p tokmd-analysis --verbose", "outcome": "passed"}
+{"command": "CI=true cargo test -p tokmd-analysis --features halstead,content,walk --verbose", "outcome": "passed"}
+{"command": "cargo fmt -p tokmd-analysis -- --check", "outcome": "passed"}
+{"command": "cargo clippy -p tokmd-analysis -- -D warnings", "outcome": "passed"}
+{"command": "cargo test -p tokmd-analysis -- halstead::tests::test_tokenize_cjk_panic", "outcome": "passed"}

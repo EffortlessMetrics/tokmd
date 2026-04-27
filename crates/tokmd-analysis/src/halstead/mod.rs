@@ -384,8 +384,10 @@ pub(crate) fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
             if ch.is_ascii_punctuation() && ch != '_' && ch != '"' && ch != '\'' {
                 let remaining: String = chars.clone().take(4).collect();
                 let mut matched = false;
-                for len in (1..=remaining.len().min(4)).rev() {
-                    let candidate = &remaining[..len];
+                let char_count = remaining.chars().count();
+                for len in (1..=char_count.min(4)).rev() {
+                    let (byte_idx, _) = remaining.char_indices().nth(len).unwrap_or((remaining.len(), '\0'));
+                    let candidate = &remaining[..byte_idx];
                     if op_set.contains(candidate) {
                         *operators.entry(candidate.to_string()).or_insert(0) += 1;
                         total_operators += 1;
@@ -614,5 +616,15 @@ def add(a, b):
         let counts = tokenize_for_halstead("", "rust");
         assert_eq!(counts.total_operators, 0);
         assert_eq!(counts.total_operands, 0);
+    }
+
+    #[test]
+    fn test_tokenize_cjk_panic() {
+        // Ensure that slicing a multi-byte character does not panic.
+        let code = "!你好";
+        let counts = tokenize_for_halstead(code, "rust");
+        // '!' is a known operator. '你好' should be captured as an operand.
+        assert_eq!(counts.total_operators, 1);
+        assert!(counts.operators.contains_key("!"));
     }
 }
