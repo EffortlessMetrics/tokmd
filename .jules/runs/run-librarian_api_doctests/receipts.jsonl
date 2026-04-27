@@ -1,0 +1,6 @@
+{"command": "cargo test --doc -p tokmd -- config::resolve_module", "status": "failed_initially"}
+{"command": "cargo test --doc -p tokmd -- config::resolve_lang_with_config config::resolve_module_with_config config::resolve_export_with_config", "status": "ok"}
+{"command": "cargo test --doc -p tokmd", "status": "ok"}
+{"command": "cargo test -p tokmd --lib", "status": "ok"}
+{"command": "cargo fmt -- --check", "status": "ok"}
+{"command": "cargo clippy -- -D warnings", "status": "ok"}

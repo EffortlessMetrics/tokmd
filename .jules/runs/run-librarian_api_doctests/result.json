@@ -1,0 +1,19 @@
+{
+  "prompt_id": "librarian_api_doctests",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd/src/config.rs"
+  ],
+  "gates_run": [
+    "cargo test --doc -p tokmd",
+    "cargo test -p tokmd --lib",
+    "cargo fmt",
+    "cargo clippy"
+  ],
+  "telemetry": {
+    "change_shape": "doctest enhancements",
+    "blast_radius": "docs",
+    "risk_class": "low",
+    "rollback": "revert config.rs"
+  }
+}
