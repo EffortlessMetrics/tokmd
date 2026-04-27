@@ -45,7 +45,7 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
     if let Some(mut files) = git_ls_files(root.input())? {
         files = files
             .into_iter()
-            .map(|path| normalize_bounded_relative_path(&path))
+            .map(|path| bound_git_relative_path(&root, &path))
             .collect::<std::result::Result<Vec<_>, _>>()?;
         if let Some(limit) = max_files
             && files.len() > limit
@@ -174,6 +174,12 @@ fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>> {
     }
 
     Ok(Some(files))
+}
+
+fn bound_git_relative_path(root: &ValidatedRoot, path: &Path) -> Result<PathBuf, PathViolation> {
+    Ok(BoundedPath::existing_relative(root, path)?
+        .relative()
+        .to_path_buf())
 }
 
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
@@ -378,5 +384,37 @@ mod tests {
             .collect();
         // They should already be sorted correctly, but if they aren't, the test will fail
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_bound_git_relative_path_accepts_existing_relative_file() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir_all(dir.path().join("src")).unwrap();
+        fs::write(dir.path().join("src/lib.rs"), "pub fn lib() {}\n").unwrap();
+        let root = ValidatedRoot::new(dir.path()).unwrap();
+
+        let bounded = bound_git_relative_path(&root, Path::new("./src/lib.rs")).unwrap();
+
+        assert_eq!(bounded, PathBuf::from("src/lib.rs"));
+    }
+
+    #[test]
+    fn test_bound_git_relative_path_rejects_parent_traversal() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = ValidatedRoot::new(dir.path()).unwrap();
+
+        let err = bound_git_relative_path(&root, Path::new("../secret.txt")).unwrap_err();
+
+        assert!(err.to_string().contains("parent traversal"));
+    }
+
+    #[test]
+    fn test_bound_git_relative_path_rejects_absolute_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = ValidatedRoot::new(dir.path()).unwrap();
+
+        let err = bound_git_relative_path(&root, Path::new("/secret.txt")).unwrap_err();
+
+        assert!(err.to_string().contains("must be relative"));
     }
 }
