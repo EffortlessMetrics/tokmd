@@ -88,7 +88,11 @@ fn canonicalize_existing(path: &Path) -> Result<PathBuf, PathViolation> {
                 Err(meta_err) if meta_err.kind() == io::ErrorKind::NotFound => {
                     Err(PathViolation::Missing(path.to_path_buf()))
                 }
-                Ok(_) | Err(_) => Err(PathViolation::CanonicalizeFailed {
+                Ok(_) => Err(PathViolation::CanonicalizeFailed {
+                    path: path.to_path_buf(),
+                    source,
+                }),
+                Err(source) => Err(PathViolation::CanonicalizeFailed {
                     path: path.to_path_buf(),
                     source,
                 }),
