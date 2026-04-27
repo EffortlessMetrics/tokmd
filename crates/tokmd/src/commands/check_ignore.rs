@@ -302,11 +302,8 @@ fn print_result(result: &CheckResult, verbose: bool) {
         println!("{}: not ignored", result.path);
         if verbose {
             for reason in &result.reasons {
-                match reason {
-                    IgnoreReason::GitTracked => {
-                        println!("  note: tracked by git; gitignore rules don't apply");
-                    }
-                    _ => {}
+                if let IgnoreReason::GitTracked = reason {
+                    println!("  note: tracked by git; gitignore rules don't apply");
                 }
             }
         }
