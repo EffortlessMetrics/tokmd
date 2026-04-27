@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! W72 – JSON receipt contract validation tests.
 //!
 //! Verifies that every CLI command producing JSON output conforms to the

@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Deep CLI integration tests for `tokmd run`, `tokmd cockpit`, and
 //! `tokmd badge` commands.
 

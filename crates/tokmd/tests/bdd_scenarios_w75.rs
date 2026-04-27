@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! BDD-style scenario tests documenting user-facing behaviour.
 //!
 //! Each test follows the **Given / When / Then** pattern encoded in the

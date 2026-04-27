@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! W73 – CLI error handling and help output tests (~30 tests).
 //!
 //! Validates that:
