@@ -27,8 +27,6 @@ tokmd-envelope.workspace = true
 default = ["extension-module"]
 extension-module = ["pyo3/extension-module"]
 
-[build-dependencies]
-pyo3-build-config = "0.28.3"
 
 [dev-dependencies]
 tempfile.workspace = true

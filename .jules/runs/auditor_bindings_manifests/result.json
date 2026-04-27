@@ -1,0 +1,11 @@
+{
+  "outcome": "pr-ready-patch",
+  "story": "Removed unused `pyo3-build-config` build dependency from `crates/tokmd-python/Cargo.toml` since there is no `build.rs` to consume it, improving dependency hygiene.",
+  "files_changed": [
+    "crates/tokmd-python/Cargo.toml"
+  ],
+  "verification": [
+    "cargo test -p tokmd-python",
+    "cargo deny --all-features check"
+  ]
+}
