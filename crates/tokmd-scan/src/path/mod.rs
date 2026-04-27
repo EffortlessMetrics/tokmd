@@ -1,4 +1,14 @@
-//! Single-responsibility path normalization for deterministic matching.
+//! Single-responsibility path normalization and root bounding.
+
+mod bounded_path;
+mod error;
+#[cfg(test)]
+mod tests;
+mod validated_root;
+
+pub(crate) use bounded_path::{BoundedPath, normalize_bounded_relative_path};
+pub(crate) use error::{PathViolation, RootViolation};
+pub(crate) use validated_root::ValidatedRoot;
 
 /// Normalize path separators to `/`.
 ///
@@ -65,7 +75,7 @@ pub fn normalize_rel_path(path: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
+mod normalization_tests {
     use super::*;
     use proptest::prelude::*;
 
