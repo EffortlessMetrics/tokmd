@@ -1,0 +1,3 @@
+{"command": "cd web/runner && npm test"}
+{"command": "python3 patch.py"}
+{"command": "cd web/runner && npm test"}
