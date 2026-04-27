@@ -1,5 +1,5 @@
 use std::ffi::OsString;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use tempfile::TempDir;
@@ -43,13 +43,22 @@ fn poison_git_env(dir: &TempDir) -> GitEnvGuard {
     guard
 }
 
+fn init_git_repo(dir: &Path) {
+    let status = git_in(dir).arg("init").status().unwrap();
+    assert!(status.success(), "git init failed");
+}
+
+fn git_add(dir: &Path, path: &str) {
+    let status = git_in(dir).args(["add", path]).status().unwrap();
+    assert!(status.success(), "git add {path} failed");
+}
+
 #[test]
 fn list_files_ignores_inherited_git_env_overrides() {
     let repo = tempfile::tempdir().unwrap();
     let poison = tempfile::tempdir().unwrap();
 
-    let status = git_in(repo.path()).arg("init").status().unwrap();
-    assert!(status.success(), "git init failed");
+    init_git_repo(repo.path());
     let status = git_in(repo.path())
         .args(["config", "user.email", "tokmd@example.com"])
         .status()
@@ -62,11 +71,7 @@ fn list_files_ignores_inherited_git_env_overrides() {
     assert!(status.success(), "git config user.name failed");
 
     std::fs::write(repo.path().join("tracked.txt"), "tracked\n").unwrap();
-    let status = git_in(repo.path())
-        .args(["add", "tracked.txt"])
-        .status()
-        .unwrap();
-    assert!(status.success(), "git add tracked.txt failed");
+    git_add(repo.path(), "tracked.txt");
     let status = git_in(repo.path())
         .args(["commit", "-m", "tracked"])
         .status()
@@ -79,4 +84,58 @@ fn list_files_ignores_inherited_git_env_overrides() {
     let files = list_files(repo.path(), None).unwrap();
 
     assert_eq!(files, vec![std::path::PathBuf::from("tracked.txt")]);
+}
+
+#[test]
+fn list_files_git_fast_path_returns_root_relative_tracked_paths() {
+    let repo = tempfile::tempdir().unwrap();
+    init_git_repo(repo.path());
+
+    std::fs::create_dir_all(repo.path().join("src")).unwrap();
+    std::fs::write(repo.path().join("root.txt"), "root\n").unwrap();
+    std::fs::write(repo.path().join("src/lib.rs"), "pub fn lib() {}\n").unwrap();
+    std::fs::write(repo.path().join("untracked.txt"), "untracked\n").unwrap();
+    git_add(repo.path(), "root.txt");
+    git_add(repo.path(), "src/lib.rs");
+
+    let files = list_files(repo.path(), None).unwrap();
+
+    assert_eq!(
+        files,
+        vec![PathBuf::from("root.txt"), PathBuf::from("src/lib.rs")]
+    );
+    assert!(files.iter().all(|path| path.is_relative()));
+}
+
+#[test]
+fn list_files_git_fast_path_rejects_tracked_symlink_escape_when_supported() {
+    let repo = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    init_git_repo(repo.path());
+
+    let outside_file = outside.path().join("secret.txt");
+    let link = repo.path().join("secret-link.txt");
+    std::fs::write(&outside_file, "secret\n").unwrap();
+    if create_file_symlink(&outside_file, &link).is_err() {
+        return;
+    }
+    git_add(repo.path(), "secret-link.txt");
+
+    let err = list_files(repo.path(), None).unwrap_err();
+    let message = err.to_string();
+
+    assert!(
+        message.contains("escapes scan root"),
+        "expected symlink escape rejection, got: {message}"
+    );
+}
+
+#[cfg(unix)]
+fn create_file_symlink(src: &Path, dst: &Path) -> std::io::Result<()> {
+    std::os::unix::fs::symlink(src, dst)
+}
+
+#[cfg(windows)]
+fn create_file_symlink(src: &Path, dst: &Path) -> std::io::Result<()> {
+    std::os::windows::fs::symlink_file(src, dst)
 }
