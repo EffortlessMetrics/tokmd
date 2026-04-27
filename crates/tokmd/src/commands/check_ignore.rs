@@ -57,7 +57,6 @@ enum IgnoreReason {
     ExcludeFlag {
         pattern: String,
     },
-    NotFound,
 }
 
 fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<CheckResult> {
@@ -67,12 +66,7 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
 
     // Check if path exists
     if !path.exists() {
-        reasons.push(IgnoreReason::NotFound);
-        return Ok(CheckResult {
-            path: path_str,
-            ignored: false,
-            reasons,
-        });
+        return Err(anyhow::anyhow!("Path '{}' does not exist", path_str));
     }
 
     // 1. Check git ignore (if git is available and we're in a repo)
@@ -301,9 +295,6 @@ fn print_result(result: &CheckResult, verbose: bool) {
                     IgnoreReason::GitTracked => {
                         println!("  git: tracked (gitignore rules don't apply)");
                     }
-                    IgnoreReason::NotFound => {
-                        println!("  (file not found)");
-                    }
                 }
             }
         }
@@ -312,7 +303,6 @@ fn print_result(result: &CheckResult, verbose: bool) {
         if verbose {
             for reason in &result.reasons {
                 match reason {
-                    IgnoreReason::NotFound => println!("  (file not found)"),
                     IgnoreReason::GitTracked => {
                         println!("  note: tracked by git; gitignore rules don't apply");
                     }
@@ -366,20 +356,6 @@ mod tests {
     }
 
     #[test]
-    fn check_path_reports_not_found() -> anyhow::Result<()> {
-        let dir = tempdir()?;
-        let missing = dir.path().join("missing.rs");
-        let result = check_path(&missing, &GlobalArgs::default(), false)?;
-        assert!(!result.ignored);
-        assert!(
-            result
-                .reasons
-                .iter()
-                .any(|r| matches!(r, IgnoreReason::NotFound))
-        );
-        Ok(())
-    }
-
     #[test]
     fn check_path_honors_exclude_flag() -> anyhow::Result<()> {
         let dir = tempdir()?;
