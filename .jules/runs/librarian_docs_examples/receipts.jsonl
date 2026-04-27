@@ -1,0 +1,4 @@
+{"command": "cargo run -- check-ignore does_not_exist.rs", "outcome": "Success (exit code 0), but docs say: 'As of v1.3.0, specifying a non-existent input path returns exit code 1 with an error message'"}
+{"command": "cargo run -- analyze --preset risk --format md", "outcome": "panic at end byte index 4 is not a char boundary"}
+{"command": "cargo test -p tokmd", "outcome": "test result: ok. 159 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s"}
+{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed."}
