@@ -1,0 +1,13 @@
+{
+  "summary": "Added deterministic JSON serialize properties under proptest for the core pipeline structs in `crates/tokmd-types/tests/determinism_proptest_w80.rs`",
+  "files_changed": [
+    "crates/tokmd-types/tests/determinism_proptest_w80.rs"
+  ],
+  "gates_run": [
+    "cargo test -p tokmd-types --test determinism_proptest_w80",
+    "cargo fmt --manifest-path crates/tokmd-types/Cargo.toml",
+    "cargo clippy -p tokmd-types -- -D warnings"
+  ],
+  "risk_class": "low",
+  "rollback": "git restore --staged crates/tokmd-types/tests/determinism_proptest_w80.rs && rm crates/tokmd-types/tests/determinism_proptest_w80.rs"
+}
