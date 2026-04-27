@@ -108,6 +108,22 @@ fn list_files_git_fast_path_returns_root_relative_tracked_paths() {
 }
 
 #[test]
+fn list_files_git_fast_path_skips_tracked_files_missing_from_worktree() {
+    let repo = tempfile::tempdir().unwrap();
+    init_git_repo(repo.path());
+
+    std::fs::write(repo.path().join("keep.txt"), "keep\n").unwrap();
+    std::fs::write(repo.path().join("gone.txt"), "gone\n").unwrap();
+    git_add(repo.path(), "keep.txt");
+    git_add(repo.path(), "gone.txt");
+    std::fs::remove_file(repo.path().join("gone.txt")).unwrap();
+
+    let files = list_files(repo.path(), None).unwrap();
+
+    assert_eq!(files, vec![PathBuf::from("keep.txt")]);
+}
+
+#[test]
 fn list_files_git_fast_path_rejects_tracked_symlink_escape_when_supported() {
     let repo = tempfile::tempdir().unwrap();
     let outside = tempfile::tempdir().unwrap();

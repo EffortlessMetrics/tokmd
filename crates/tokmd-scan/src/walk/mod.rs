@@ -46,7 +46,10 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
         files = files
             .into_iter()
             .map(|path| bound_git_relative_path(&root, &path))
-            .collect::<std::result::Result<Vec<_>, _>>()?;
+            .collect::<std::result::Result<Vec<_>, _>>()?
+            .into_iter()
+            .flatten()
+            .collect();
         if let Some(limit) = max_files
             && files.len() > limit
         {
@@ -176,10 +179,15 @@ fn git_ls_files(root: &Path) -> Result<Option<Vec<PathBuf>>> {
     Ok(Some(files))
 }
 
-fn bound_git_relative_path(root: &ValidatedRoot, path: &Path) -> Result<PathBuf, PathViolation> {
-    Ok(BoundedPath::existing_relative(root, path)?
-        .relative()
-        .to_path_buf())
+fn bound_git_relative_path(
+    root: &ValidatedRoot,
+    path: &Path,
+) -> Result<Option<PathBuf>, PathViolation> {
+    match BoundedPath::existing_relative(root, path) {
+        Ok(path) => Ok(Some(path.relative().to_path_buf())),
+        Err(PathViolation::Missing(_)) => Ok(None),
+        Err(err) => Err(err),
+    }
 }
 
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
@@ -393,9 +401,21 @@ mod tests {
         fs::write(dir.path().join("src/lib.rs"), "pub fn lib() {}\n").unwrap();
         let root = ValidatedRoot::new(dir.path()).unwrap();
 
-        let bounded = bound_git_relative_path(&root, Path::new("./src/lib.rs")).unwrap();
+        let bounded = bound_git_relative_path(&root, Path::new("./src/lib.rs"))
+            .unwrap()
+            .unwrap();
 
         assert_eq!(bounded, PathBuf::from("src/lib.rs"));
+    }
+
+    #[test]
+    fn test_bound_git_relative_path_skips_missing_worktree_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = ValidatedRoot::new(dir.path()).unwrap();
+
+        let bounded = bound_git_relative_path(&root, Path::new("missing.rs")).unwrap();
+
+        assert!(bounded.is_none());
     }
 
     #[test]
