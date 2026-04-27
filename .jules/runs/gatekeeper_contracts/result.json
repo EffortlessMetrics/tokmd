@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "action": "Updated TRACKED_AGENT_RUNTIME_PATHS to include .jules/runs",
+  "files_changed": [
+    "xtask/src/tasks/gate.rs"
+  ]
+}
