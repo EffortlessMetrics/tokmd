@@ -1,0 +1,3 @@
+{"command": "cargo xtask docs --check", "status": "failed", "output_fragment": "Error: Documentation drift detected in /app/docs/reference-cli.md"}
+{"command": "cargo xtask docs --update", "status": "success", "output_fragment": "Updated /app/docs/reference-cli.md"}
+{"command": "cargo xtask docs --check", "status": "success", "output_fragment": "Documentation is up to date."}
