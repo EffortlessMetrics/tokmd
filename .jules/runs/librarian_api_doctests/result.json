@@ -1,0 +1,7 @@
+{
+  "outcome": "learning PR",
+  "files_changed": [
+    "crates/tokmd-core/src/lib.rs"
+  ],
+  "reason": "Made analysis_facade doctest executable. Could not safely make cockpit_workflow executable without suppressing errors or creating complex Git mock environments, which was logged as a friction item instead."
+}

@@ -1,0 +1,2 @@
+{"command": "python3 fix_core.py", "outcome": "Success - replaced no_run with rust for analysis_facade in tokmd-core/src/lib.rs"}
+{"command": "cargo test -p tokmd-core --doc", "outcome": "Success (6 passed)"}
