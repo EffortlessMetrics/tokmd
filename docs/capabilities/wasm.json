@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "value_legend": {
+    "true": "Supported for this capability dimension.",
+    "false": "Not required or not supported for this capability dimension.",
+    "partial": "Supported only for a documented subset of inputs, formats, or presets.",
+    "native_only": "Available only through native filesystem or git-backed execution."
+  },
+  "commands": {
+    "lang": {
+      "browser_safe": true,
+      "rootless_safe": true,
+      "native_only": false,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": "partial",
+      "requires_validated_root": false
+    },
+    "module": {
+      "browser_safe": true,
+      "rootless_safe": true,
+      "native_only": false,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": "partial",
+      "requires_validated_root": false
+    },
+    "export": {
+      "browser_safe": true,
+      "rootless_safe": true,
+      "native_only": false,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": "partial",
+      "requires_validated_root": false
+    },
+    "analyze": {
+      "browser_safe": "partial",
+      "rootless_safe": "partial",
+      "native_only": false,
+      "requires_filesystem": "partial",
+      "requires_git_history": "partial",
+      "requires_host_clock": "partial",
+      "requires_validated_root": "partial"
+    },
+    "diff": {
+      "browser_safe": "partial",
+      "rootless_safe": "partial",
+      "native_only": false,
+      "requires_filesystem": "partial",
+      "requires_git_history": "native_only",
+      "requires_host_clock": "partial",
+      "requires_validated_root": "partial"
+    },
+    "badge": {
+      "browser_safe": "partial",
+      "rootless_safe": "partial",
+      "native_only": false,
+      "requires_filesystem": "partial",
+      "requires_git_history": "partial",
+      "requires_host_clock": false,
+      "requires_validated_root": "partial"
+    },
+    "gate": {
+      "browser_safe": "partial",
+      "rootless_safe": "partial",
+      "native_only": false,
+      "requires_filesystem": "partial",
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": false
+    },
+    "context": {
+      "browser_safe": "partial",
+      "rootless_safe": "partial",
+      "native_only": false,
+      "requires_filesystem": "partial",
+      "requires_git_history": "native_only",
+      "requires_host_clock": "partial",
+      "requires_validated_root": "partial"
+    },
+    "handoff": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": "partial",
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
+    "cockpit": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": true,
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
+    "sensor": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": true,
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
+    "baseline": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": "partial",
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    }
+  }
+}

@@ -57,6 +57,12 @@ fn schema_json() -> serde_json::Value {
     serde_json::from_str(&raw).expect("docs/schema.json must be valid JSON")
 }
 
+fn wasm_capability_matrix() -> serde_json::Value {
+    let raw = std::fs::read_to_string(workspace_root().join("docs/capabilities/wasm.json"))
+        .expect("docs/capabilities/wasm.json must exist");
+    serde_json::from_str(&raw).expect("docs/capabilities/wasm.json must be valid JSON")
+}
+
 fn readme_md() -> String {
     std::fs::read_to_string(workspace_root().join("README.md")).expect("README.md must exist")
 }
@@ -291,7 +297,87 @@ fn schema_json_receipt_versions_match_source() {
 }
 
 // ===========================================================================
-// 4. Every CLI command in README.md Commands table actually exists
+// 4. Browser/WASM capability matrix structure
+// ===========================================================================
+
+#[test]
+fn wasm_capability_matrix_declares_required_commands_and_fields() {
+    let matrix = wasm_capability_matrix();
+    assert_eq!(
+        matrix["version"].as_u64(),
+        Some(1),
+        "WASM capability matrix version should be 1"
+    );
+
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let required_commands = [
+        "lang", "module", "export", "analyze", "diff", "badge", "gate", "context", "handoff",
+        "cockpit", "sensor", "baseline",
+    ];
+    let required_fields = [
+        "browser_safe",
+        "rootless_safe",
+        "native_only",
+        "requires_filesystem",
+        "requires_git_history",
+        "requires_host_clock",
+        "requires_validated_root",
+    ];
+
+    for command in required_commands {
+        let entry = commands
+            .get(command)
+            .unwrap_or_else(|| panic!("WASM capability matrix missing command {command}"));
+        let object = entry
+            .as_object()
+            .unwrap_or_else(|| panic!("WASM capability entry {command} must be an object"));
+        for field in required_fields {
+            assert!(
+                object.contains_key(field),
+                "WASM capability entry {command} missing field {field}"
+            );
+        }
+    }
+}
+
+#[test]
+fn wasm_capability_matrix_uses_allowed_values() {
+    let matrix = wasm_capability_matrix();
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let capability_fields = [
+        "browser_safe",
+        "rootless_safe",
+        "native_only",
+        "requires_filesystem",
+        "requires_git_history",
+        "requires_host_clock",
+        "requires_validated_root",
+    ];
+
+    for (command, entry) in commands {
+        let object = entry
+            .as_object()
+            .unwrap_or_else(|| panic!("WASM capability entry {command} must be an object"));
+        for field in capability_fields {
+            let value = object
+                .get(field)
+                .unwrap_or_else(|| panic!("WASM capability entry {command} missing {field}"));
+            let allowed =
+                value.is_boolean() || matches!(value.as_str(), Some("partial" | "native_only"));
+            assert!(
+                allowed,
+                "WASM capability entry {command}.{field} must be true, false, partial, or native_only; got {value}"
+            );
+        }
+    }
+}
+
+// ===========================================================================
+// 5. Every CLI command in README.md Commands table actually exists
 // ===========================================================================
 
 /// Extract subcommand names from the README Commands table.
@@ -344,7 +430,7 @@ fn readme_commands_table_matches_reference_cli() {
 }
 
 // ===========================================================================
-// 5. docs/reference-cli.md consistency with subcommands
+// 6. docs/reference-cli.md consistency with subcommands
 // ===========================================================================
 
 #[test]
@@ -366,7 +452,7 @@ fn reference_cli_commands_section_exists() {
 }
 
 // ===========================================================================
-// 6. CHANGELOG.md mentions the latest workspace version
+// 7. CHANGELOG.md mentions the latest workspace version
 // ===========================================================================
 
 fn workspace_version() -> String {
@@ -413,7 +499,7 @@ fn changelog_follows_keepachangelog() {
 }
 
 // ===========================================================================
-// 7. Cross-doc consistency
+// 8. Cross-doc consistency
 // ===========================================================================
 
 #[test]

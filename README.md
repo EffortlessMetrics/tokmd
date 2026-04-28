@@ -204,6 +204,7 @@ Embed them in your own README:
 - Supported today: `lang`, `module`, `export`, and browser-safe `analyze` presets on ordered in-memory inputs.
 - Public repo ingestion uses GitHub tree and contents APIs with built-in caching, progress tracking, and auth handling.
 - Git-history enrichers and full native filesystem flows remain native-first.
+- The machine-readable browser capability contract lives in `docs/capabilities/wasm.json`.
 
 ## What `tokmd` Is Not
 
