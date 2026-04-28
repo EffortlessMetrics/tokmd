@@ -1,0 +1,4 @@
+{
+  "drift": "The `check-ignore` command was documented to return exit code 1 and an error message when given a non-existent path, but actually returned exit code 0 and silently succeeded with '(file not found)' printed to standard output.",
+  "fix": "Modified `crates/tokmd/src/commands/check_ignore.rs` to return `anyhow::Error` when a provided path does not exist, aligning the code with `docs/reference-cli.md`."
+}
