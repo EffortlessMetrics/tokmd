@@ -210,7 +210,7 @@ runs:
 
         fetch_origin_branch() {
           local branch="$1"
-          git fetch --no-tags --depth=1 origin "${branch}:refs/remotes/origin/${branch}" >/dev/null 2>&1
+          git fetch --no-tags --depth=1 origin "${branch}:refs/remotes/origin/${branch}" >/dev/null
         }
 
         resolve_base_ref() {
@@ -227,7 +227,7 @@ runs:
             fi
           else
             if ! git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
-              git remote set-head origin -a >/dev/null 2>&1 || true
+              git remote set-head origin -a >/dev/null || true
             fi
 
             if git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
