@@ -54,6 +54,10 @@ jobs:
             echo "::error::gate-verdict output should be empty for omitted mode"
             exit 1
           fi
+          if [ -n "${{ steps.tokmd.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty for omitted mode"
+            exit 1
+          fi
           echo "✓ Both receipt files generated successfully"
           echo "--- Summary preview ---"
           head -20 tokmd-summary.md
@@ -117,10 +121,14 @@ jobs:
             echo "::error::gate-verdict output should be empty in module mode"
             exit 1
           fi
+          if [ -n "${{ steps.module.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty in module mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd.toml
+        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
 
       - name: Run export mode
         id: export
@@ -149,10 +157,14 @@ jobs:
             echo "::error::gate-verdict output should be empty in export mode"
             exit 1
           fi
+          if [ -n "${{ steps.export.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty in export mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd.toml
+        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
 
       - name: Write gate policy
         shell: bash
@@ -190,6 +202,10 @@ jobs:
           fi
           if [ -n "${{ steps.gate.outputs.receipt }}" ]; then
             echo "::error::receipt output should be empty in gate mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.gate.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty in gate mode"
             exit 1
           fi
           grep -q '"passed": true' tokmd-gate-verdict.json
@@ -231,3 +247,42 @@ jobs:
             echo "::error::gate mode should reject multiline multi-path input"
             exit 1
           fi
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
+
+      - name: Run cockpit mode
+        id: cockpit
+        uses: ./
+        with:
+          mode: cockpit
+          base: HEAD
+          head: HEAD
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify cockpit mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-cockpit-report.json ]; then
+            echo "::error::tokmd-cockpit-report.json not generated in cockpit mode"
+            exit 1
+          fi
+          if [ "${{ steps.cockpit.outputs['cockpit-report'] }}" != "tokmd-cockpit-report.json" ]; then
+            echo "::error::cockpit-report output did not point to tokmd-cockpit-report.json"
+            exit 1
+          fi
+          if [ -n "${{ steps.cockpit.outputs.summary }}" ]; then
+            echo "::error::summary output should be empty in cockpit mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.cockpit.outputs.receipt }}" ]; then
+            echo "::error::receipt output should be empty in cockpit mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.cockpit.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty in cockpit mode"
+            exit 1
+          fi
+          grep -q '"mode": "cockpit"' tokmd-cockpit-report.json
