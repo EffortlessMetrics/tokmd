@@ -1,0 +1,17 @@
+{
+  "outcome": "proof_patch",
+  "title": "palette: unblock path and scan inputs in web runner validation 🎨",
+  "summary": "Updated `isRunMessage` to correctly accept `paths` and `scan` alongside the existing `inputs` property.",
+  "target_paths": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs"
+  ],
+  "proof_summary": "Tests for paths, scan, and inputs payload combinations now pass.",
+  "gates_run": [
+    "npm test --prefix web/runner"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout HEAD -- web/runner/messages.js web/runner/messages.test.mjs",
+  "follow_ups": []
+}
