@@ -51,7 +51,7 @@ test("run and cancel helpers produce valid protocol messages", () => {
     assert.equal(isRunMessage(cancel), false);
 });
 
-test("run messages require valid in-memory inputs or paths", () => {
+test("run messages require explicit in-memory inputs", () => {
     assert.equal(
         isInMemoryInput({ path: "src/lib.rs", text: "pub fn alpha() {}\n" }),
         true
@@ -75,6 +75,18 @@ test("run messages require valid in-memory inputs or paths", () => {
         true
     );
     assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "files",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                files: true,
+            },
+        }),
+        true
+    );
+    assert.equal(
         isInMemoryInput({
             path: "src/lib.rs",
             text: "pub fn alpha() {}\n",
@@ -83,8 +95,54 @@ test("run messages require valid in-memory inputs or paths", () => {
         false
     );
     assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "files-type",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                files: "yes",
+            },
+        }),
+        false
+    );
+    assert.equal(
         isRunMessage({ type: "run", requestId: "x", mode: "lang", args: {} }),
-        true
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: { paths: ["src/lib.rs"] },
+        }),
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                scan: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                },
+            },
+        }),
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                extra: true,
+            },
+        }),
+        false
     );
     assert.equal(
         isRunMessage({
@@ -92,6 +150,47 @@ test("run messages require valid in-memory inputs or paths", () => {
             requestId: "x",
             mode: "lang",
             args: { inputs: [{ path: "", text: "bad\n" }] },
+        }),
+        false
+    );
+});
+
+test("analyze run messages allow only explicit preset options with inputs", () => {
+    const inputs = [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }];
+
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "analyze-1",
+            mode: "analyze",
+            args: { inputs, preset: "estimate" },
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "analyze-2",
+            mode: "analyze",
+            args: { inputs, analyze: { preset: "receipt" } },
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "analyze-3",
+            mode: "analyze",
+            args: { inputs, preset: 1 },
+        }),
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "analyze-4",
+            mode: "analyze",
+            args: { inputs, analyze: { preset: "receipt", extra: true } },
         }),
         false
     );

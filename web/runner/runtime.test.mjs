@@ -56,6 +56,23 @@ test("runtime rejects run messages with invalid inputs shape and retains request
     assert.equal(message.requestId, "run-2");
 });
 
+test("runtime rejects native-only modes before runner execution", async () => {
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-native-mode",
+            mode: "gate",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner: createStubRunner() }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unsupported_mode");
+    assert.equal(message.requestId, "run-native-mode");
+});
+
 test("runtime uses runner-provided mode capabilities", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({
