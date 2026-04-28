@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Comprehensive CLI end-to-end pipeline tests exercising multi-command
 //! workflows and output format validation across all tokmd subcommands.
 

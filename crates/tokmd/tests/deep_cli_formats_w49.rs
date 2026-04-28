@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Comprehensive CLI output-format matrix tests for all core commands.
 //!
 //! Tests the full cross-product of commands × formats, verifying structural

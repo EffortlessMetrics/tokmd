@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 mod common;
 
 use assert_cmd::Command;

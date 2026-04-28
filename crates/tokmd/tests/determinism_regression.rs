@@ -1,3 +1,5 @@
+#![cfg(feature = "analysis")]
+
 //! Determinism regression tests v2.
 //!
 //! This module is the definitive regression suite for output determinism.

@@ -1,0 +1,17 @@
+{
+  "outcome": "patch",
+  "title": "compat: conditionally compile integration tests requiring analysis feature 🧷",
+  "summary": "Added `#![cfg(feature = \"analysis\")]` to 52 integration tests that were failing when `tokmd` was tested with `--no-default-features`.",
+  "target_paths": [
+    "crates/tokmd/tests/"
+  ],
+  "proof_summary": "Running `cargo test --no-default-features -p tokmd --tests` before showed 52 failing test suites because the CLI commands they test (analyze, badge, baseline, run, gate) require the `analysis` feature. After adding the `#![cfg(feature = \"analysis\")]` attribute, the command succeeds.",
+  "gates_run": [
+    "cargo test --no-default-features -p tokmd --tests",
+    "cargo check --all-features -p tokmd"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Remove the `#![cfg(feature = \"analysis\")]` attribute from the modified test files.",
+  "follow_ups": []
+}
