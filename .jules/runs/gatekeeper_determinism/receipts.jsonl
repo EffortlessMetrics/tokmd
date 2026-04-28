@@ -1,0 +1,8 @@
+{"command": "mkdir -p .jules/runs/gatekeeper_determinism && cat ... > envelope.json", "outcome": "success"}
+{"command": "cat ... > .jules/runs/gatekeeper_determinism/decision.md", "outcome": "success"}
+{"command": "cat ... > result.json && cat ... > pr_body.md && git add ...", "outcome": "success"}
+{"command": "cat ... > result.json && cat ... > pr_body.md && git add ...", "outcome": "success"}
+{"command": "cargo clippy -p tokmd-types -- -D warnings", "outcome": "success"}
+{"command": "cargo test -p tokmd-types --test determinism_proptest_w80", "outcome": "success"}
+{"command": "cargo fmt --manifest-path crates/tokmd-types/Cargo.toml", "outcome": "success"}
+{"command": "cat ... > result.json && cat ... > pr_body.md && git add ...", "outcome": "success"}
