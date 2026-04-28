@@ -193,3 +193,41 @@ jobs:
             exit 1
           fi
           grep -q '"passed": true' tokmd-gate-verdict.json
+
+      - name: Run gate mode with same-line multiple paths
+        id: gate_same_line_paths
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: gate
+          paths: ". README.md"
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify same-line gate paths reject
+        shell: bash
+        run: |
+          if [ "${{ steps.gate_same_line_paths.outcome }}" != "failure" ]; then
+            echo "::error::gate mode should reject same-line multi-path input"
+            exit 1
+          fi
+
+      - name: Run gate mode with multiline paths
+        id: gate_multiline_paths
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: gate
+          paths: |
+            .
+            README.md
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify multiline gate paths reject
+        shell: bash
+        run: |
+          if [ "${{ steps.gate_multiline_paths.outcome }}" != "failure" ]; then
+            echo "::error::gate mode should reject multiline multi-path input"
+            exit 1
+          fi

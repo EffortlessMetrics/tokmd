@@ -144,14 +144,31 @@ runs:
     - name: Generate Receipts
       id: generate
       shell: bash
+      env:
+        TOKMD_ACTION_FORMAT: ${{ inputs.format }}
+        TOKMD_ACTION_MODE: ${{ inputs.mode }}
+        TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
+        TOKMD_ACTION_PATHS: ${{ inputs.paths }}
+        TOKMD_ACTION_TOP: ${{ inputs.top }}
       run: |
         set -euo pipefail
         echo "Generating receipts..."
 
         # Split paths input into argv-style arguments so callers can provide
         # multiple paths (space/newline separated) instead of a single quoted blob.
-        IFS=$' \t\n'
-        read -r -a scan_paths <<< "${{ inputs.paths }}"
+        # Keep the complete multiline input; bash `read -a` would only parse the
+        # first line and could make mode=gate silently scan a narrower path set.
+        paths_input="${TOKMD_ACTION_PATHS//$'\r'/ }"
+        scan_paths=()
+        set -f
+        while IFS= read -r path_line || [ -n "$path_line" ]; do
+          for path in $path_line; do
+            scan_paths+=(
+              "$path"
+            )
+          done
+        done <<< "$paths_input"
+        set +f
 
         if [ ${#scan_paths[@]} -eq 0 ]; then
           scan_paths=(
@@ -159,8 +176,8 @@ runs:
           )
         fi
 
-        format="${{ inputs.format }}"
-        mode="${{ inputs.mode }}"
+        format="$TOKMD_ACTION_FORMAT"
+        mode="$TOKMD_ACTION_MODE"
         summary_file=""
         receipt_file=""
         gate_verdict_file=""
@@ -173,13 +190,13 @@ runs:
 
             tokmd module \
               "${scan_paths[@]}" \
-              --module-roots "${{ inputs.module-roots }}" \
-              --top ${{ inputs.top }} \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --top "$TOKMD_ACTION_TOP" \
               --format md > "$summary_file"
 
             tokmd export \
               "${scan_paths[@]}" \
-              --module-roots "${{ inputs.module-roots }}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
               --format "$format" > "$receipt_file"
             ;;
           module)
@@ -187,8 +204,8 @@ runs:
 
             tokmd module \
               "${scan_paths[@]}" \
-              --module-roots "${{ inputs.module-roots }}" \
-              --top ${{ inputs.top }} \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --top "$TOKMD_ACTION_TOP" \
               --format md > "$summary_file"
             ;;
           export)
@@ -196,12 +213,12 @@ runs:
 
             tokmd export \
               "${scan_paths[@]}" \
-              --module-roots "${{ inputs.module-roots }}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
               --format "$format" > "$receipt_file"
             ;;
           gate)
-            if [ ${#scan_paths[@]} -gt 1 ]; then
-              echo "::error::mode=gate accepts a single input path because 'tokmd gate' accepts one INPUT"
+            if [ ${#scan_paths[@]} -ne 1 ]; then
+              echo "::error::mode=gate accepts exactly one input path; received ${#scan_paths[@]} paths"
               exit 1
             fi
 
