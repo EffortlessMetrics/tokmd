@@ -98,54 +98,38 @@ export function isInMemoryInput(value) {
     return (hasText && !hasBase64) || (!hasText && hasBase64);
 }
 
-function hasOnlyKeys(value, allowedKeys) {
-    return Object.keys(value).every((key) => allowedKeys.includes(key));
-}
-
-function isAnalyzeOptions(value) {
-    return Boolean(
-        value &&
-            typeof value === "object" &&
-            !Array.isArray(value) &&
-            hasOnlyKeys(value, ["preset"]) &&
-            (value.preset === undefined || typeof value.preset === "string")
-    );
-}
-
-function isRunArgsForMode(mode, args) {
-    if (!args || typeof args !== "object" || Array.isArray(args)) {
-        return false;
-    }
-
-    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
-        return false;
-    }
-
-    if (mode === "analyze") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
-                (args.preset === undefined || typeof args.preset === "string") &&
-                (args.analyze === undefined || isAnalyzeOptions(args.analyze))
-        );
-    }
-
-    if (mode === "lang") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "files"]) &&
-                (args.files === undefined || typeof args.files === "boolean")
-        );
-    }
-
-    return hasOnlyKeys(args, ["inputs"]);
-}
-
 export function isRunMessage(value) {
     return Boolean(
         value &&
             value.type === MESSAGE_TYPES.RUN &&
             typeof value.requestId === "string" &&
             typeof value.mode === "string" &&
-            isRunArgsForMode(value.mode, value.args)
+            value.args &&
+            typeof value.args === "object" &&
+            !Array.isArray(value.args) &&
+            (() => {
+                const hasValidRootInputs = Array.isArray(value.args.inputs) && value.args.inputs.every(isInMemoryInput);
+                const hasValidScanInputs = value.args.scan && Array.isArray(value.args.scan.inputs) && value.args.scan.inputs.every(isInMemoryInput);
+                const hasValidRootPaths = Array.isArray(value.args.paths) && value.args.paths.every(p => typeof p === "string");
+                const hasValidScanPaths = value.args.scan && Array.isArray(value.args.scan.paths) && value.args.scan.paths.every(p => typeof p === "string");
+
+                const isImplicitEmpty = value.args.inputs === undefined &&
+                    value.args.paths === undefined &&
+                    (!value.args.scan || (value.args.scan.inputs === undefined && value.args.scan.paths === undefined));
+
+                const hasInvalidRootPaths = value.args.paths !== undefined && !hasValidRootPaths;
+                const hasInvalidScanPaths = value.args.scan && value.args.scan.paths !== undefined && !hasValidScanPaths;
+
+                if (hasInvalidRootPaths || hasInvalidScanPaths) {
+                    return false;
+                }
+
+                return hasValidRootInputs ||
+                    hasValidScanInputs ||
+                    hasValidRootPaths ||
+                    hasValidScanPaths ||
+                    isImplicitEmpty;
+            })()
     );
 }
 

@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed drift between `web/runner` validation and `tokmd-core` capabilities by allowing valid payload shapes (like `paths` and `scan.inputs`) instead of strictly requiring `inputs` arrays.",
+  "outcome": "PR-ready patch"
+}
