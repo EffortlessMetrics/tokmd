@@ -1,0 +1,5 @@
+{"command": "cargo tree -p tokmd-node -e features", "outcome": "Verified napi dependency features."}
+{"command": "grep -rn \"tokio::\" crates/tokmd-node/src", "outcome": "Confirmed tokio runtime is managed directly."}
+{"command": "sed -i 's/napi = { version = \"3\", features = \\[\"async\", \"serde-json\", \"tokio_rt\"\\] }/napi = { version = \"3\", features = [\"async\", \"serde-json\"] }/' crates/tokmd-node/Cargo.toml", "outcome": "Removed tokio_rt feature."}
+{"command": "cargo check -p tokmd-node", "outcome": "tokmd-node checked successfully without napi tokio_rt."}
+{"command": "cargo test -p tokmd-node", "outcome": "tokmd-node tested successfully without napi tokio_rt."}

@@ -1,0 +1,8 @@
+{
+  "outcome": "success",
+  "patch_type": "code",
+  "metrics": {
+    "dependencies_removed": 0,
+    "features_removed": 1
+  }
+}
