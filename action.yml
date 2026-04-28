@@ -6,6 +6,9 @@ branding:
   color: 'blue'
 
 inputs:
+  mode:
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate.'
+    default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
     default: 'latest'
@@ -32,6 +35,12 @@ outputs:
   receipt:
     description: 'Path to the generated receipt file'
     value: ${{ steps.generate.outputs.receipt }}
+  summary:
+    description: 'Path to the generated Markdown summary'
+    value: ${{ steps.generate.outputs.summary }}
+  gate-verdict:
+    description: 'Path to the generated gate verdict JSON file'
+    value: ${{ steps.generate.outputs['gate-verdict'] }}
 
 runs:
   using: "composite"
@@ -135,14 +144,31 @@ runs:
     - name: Generate Receipts
       id: generate
       shell: bash
+      env:
+        TOKMD_ACTION_FORMAT: ${{ inputs.format }}
+        TOKMD_ACTION_MODE: ${{ inputs.mode }}
+        TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
+        TOKMD_ACTION_PATHS: ${{ inputs.paths }}
+        TOKMD_ACTION_TOP: ${{ inputs.top }}
       run: |
         set -euo pipefail
         echo "Generating receipts..."
 
         # Split paths input into argv-style arguments so callers can provide
         # multiple paths (space/newline separated) instead of a single quoted blob.
-        IFS=$' \t\n'
-        read -r -a scan_paths <<< "${{ inputs.paths }}"
+        # Keep the complete multiline input; bash `read -a` would only parse the
+        # first line and could make mode=gate silently scan a narrower path set.
+        paths_input="${TOKMD_ACTION_PATHS//$'\r'/ }"
+        scan_paths=()
+        set -f
+        while IFS= read -r path_line || [ -n "$path_line" ]; do
+          for path in $path_line; do
+            scan_paths+=(
+              "$path"
+            )
+          done
+        done <<< "$paths_input"
+        set +f
 
         if [ ${#scan_paths[@]} -eq 0 ]; then
           scan_paths=(
@@ -150,21 +176,70 @@ runs:
           )
         fi
 
-        format="${{ inputs.format }}"
-        receipt_file="tokmd-receipt.${format}"
+        format="$TOKMD_ACTION_FORMAT"
+        mode="$TOKMD_ACTION_MODE"
+        summary_file=""
+        receipt_file=""
+        gate_verdict_file=""
+        command_status=0
 
-        tokmd module \
-          "${scan_paths[@]}" \
-          --module-roots "${{ inputs.module-roots }}" \
-          --top ${{ inputs.top }} \
-          --format md > tokmd-summary.md
+        case "$mode" in
+          "")
+            summary_file="tokmd-summary.md"
+            receipt_file="tokmd-receipt.${format}"
 
-        tokmd export \
-          "${scan_paths[@]}" \
-          --module-roots "${{ inputs.module-roots }}" \
-          --format "$format" > "$receipt_file"
+            tokmd module \
+              "${scan_paths[@]}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --top "$TOKMD_ACTION_TOP" \
+              --format md > "$summary_file"
 
-        echo "receipt=$receipt_file" >> $GITHUB_OUTPUT
+            tokmd export \
+              "${scan_paths[@]}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --format "$format" > "$receipt_file"
+            ;;
+          module)
+            summary_file="tokmd-summary.md"
+
+            tokmd module \
+              "${scan_paths[@]}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --top "$TOKMD_ACTION_TOP" \
+              --format md > "$summary_file"
+            ;;
+          export)
+            receipt_file="tokmd-receipt.${format}"
+
+            tokmd export \
+              "${scan_paths[@]}" \
+              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
+              --format "$format" > "$receipt_file"
+            ;;
+          gate)
+            if [ ${#scan_paths[@]} -ne 1 ]; then
+              echo "::error::mode=gate accepts exactly one input path; received ${#scan_paths[@]} paths"
+              exit 1
+            fi
+
+            gate_verdict_file="tokmd-gate-verdict.json"
+            set +e
+            tokmd gate "${scan_paths[0]}" --format json > "$gate_verdict_file"
+            command_status=$?
+            set -e
+            ;;
+          *)
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate. Omit mode for the default module + export flow."
+            exit 1
+            ;;
+        esac
+
+        {
+          echo "receipt=$receipt_file"
+          echo "summary=$summary_file"
+          echo "gate-verdict=$gate_verdict_file"
+          echo "command-status=$command_status"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Upload Artifact
       if: inputs.artifact == 'true'
@@ -172,12 +247,18 @@ runs:
       with:
         name: tokmd-receipts
         path: |
-          tokmd-summary.md
+          ${{ steps.generate.outputs.summary }}
           ${{ steps.generate.outputs.receipt }}
+          ${{ steps.generate.outputs['gate-verdict'] }}
 
     - name: Comment on PR
-      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      if: inputs.comment == 'true' && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
       uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
       with:
-        file-path: tokmd-summary.md
+        file-path: ${{ steps.generate.outputs.summary }}
         comment_tag: tokmd-summary
+
+    - name: Fail on gate verdict
+      if: steps.generate.outputs['command-status'] != '0'
+      shell: bash
+      run: exit ${{ steps.generate.outputs['command-status'] }}

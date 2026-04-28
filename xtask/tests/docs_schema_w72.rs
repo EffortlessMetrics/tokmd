@@ -4,6 +4,7 @@
 //! code: schema versions, CLI command tables, changelog references, and
 //! docs/schema.json structure.
 
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 /// Workspace root (one level above the xtask crate).
@@ -55,6 +56,17 @@ fn schema_json() -> serde_json::Value {
     let raw = std::fs::read_to_string(workspace_root().join("docs/schema.json"))
         .expect("docs/schema.json must exist");
     serde_json::from_str(&raw).expect("docs/schema.json must be valid JSON")
+}
+
+fn wasm_capability_matrix() -> serde_json::Value {
+    let raw = std::fs::read_to_string(workspace_root().join("docs/capabilities/wasm.json"))
+        .expect("docs/capabilities/wasm.json must exist");
+    serde_json::from_str(&raw).expect("docs/capabilities/wasm.json must be valid JSON")
+}
+
+fn web_runner_messages_js() -> String {
+    std::fs::read_to_string(workspace_root().join("web/runner/messages.js"))
+        .expect("web/runner/messages.js must exist")
 }
 
 fn readme_md() -> String {
@@ -291,7 +303,215 @@ fn schema_json_receipt_versions_match_source() {
 }
 
 // ===========================================================================
-// 4. Every CLI command in README.md Commands table actually exists
+// 4. Browser/WASM capability matrix structure
+// ===========================================================================
+
+#[test]
+fn wasm_capability_matrix_declares_required_commands_and_fields() {
+    let matrix = wasm_capability_matrix();
+    assert_eq!(
+        matrix["version"].as_u64(),
+        Some(1),
+        "WASM capability matrix version should be 1"
+    );
+
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let required_commands = readme_command_names(&readme_md());
+    let required_fields = [
+        "browser_safe",
+        "rootless_safe",
+        "native_only",
+        "requires_filesystem",
+        "requires_git_history",
+        "requires_host_clock",
+        "requires_validated_root",
+    ];
+
+    for command in &required_commands {
+        let entry = commands
+            .get(command.as_str())
+            .unwrap_or_else(|| panic!("WASM capability matrix missing command {command}"));
+        let object = entry
+            .as_object()
+            .unwrap_or_else(|| panic!("WASM capability entry {command} must be an object"));
+        for field in required_fields {
+            assert!(
+                object.contains_key(field),
+                "WASM capability entry {command} missing field {field}"
+            );
+        }
+    }
+}
+
+#[test]
+fn wasm_capability_matrix_matches_readme_command_surface() {
+    let matrix = wasm_capability_matrix();
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let documented: BTreeSet<String> = readme_command_names(&readme_md()).into_iter().collect();
+    let matrix_commands: BTreeSet<String> = commands.keys().cloned().collect();
+
+    assert!(
+        !documented.is_empty(),
+        "README.md command table must define the command surface"
+    );
+
+    for command in &documented {
+        assert!(
+            matrix_commands.contains(command),
+            "WASM capability matrix missing README command {command}"
+        );
+    }
+
+    for command in &matrix_commands {
+        assert!(
+            documented.contains(command),
+            "WASM capability matrix lists undocumented command {command}"
+        );
+    }
+}
+
+#[test]
+fn wasm_capability_matrix_uses_allowed_values() {
+    let matrix = wasm_capability_matrix();
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let capability_fields = [
+        "browser_safe",
+        "rootless_safe",
+        "native_only",
+        "requires_filesystem",
+        "requires_git_history",
+        "requires_host_clock",
+        "requires_validated_root",
+    ];
+
+    for (command, entry) in commands {
+        let object = entry
+            .as_object()
+            .unwrap_or_else(|| panic!("WASM capability entry {command} must be an object"));
+        for field in capability_fields {
+            let value = object
+                .get(field)
+                .unwrap_or_else(|| panic!("WASM capability entry {command} missing {field}"));
+            let allowed =
+                value.is_boolean() || matches!(value.as_str(), Some("partial" | "native_only"));
+            assert!(
+                allowed,
+                "WASM capability entry {command}.{field} must be true, false, partial, or native_only; got {value}"
+            );
+        }
+    }
+}
+
+fn browser_runner_supported_modes() -> BTreeSet<String> {
+    let js = web_runner_messages_js();
+    let mut modes = BTreeSet::new();
+    let mut in_supported_modes = false;
+
+    for line in js.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("export const SUPPORTED_MODES") {
+            in_supported_modes = true;
+            continue;
+        }
+
+        if !in_supported_modes {
+            continue;
+        }
+
+        if trimmed.starts_with("]);") {
+            break;
+        }
+
+        let candidate = trimmed.trim_end_matches(',').trim();
+        if let Some(mode) = candidate
+            .strip_prefix('"')
+            .and_then(|value| value.strip_suffix('"'))
+        {
+            modes.insert(mode.to_string());
+        }
+    }
+
+    assert!(
+        !modes.is_empty(),
+        "web/runner/messages.js SUPPORTED_MODES must not be empty"
+    );
+    modes
+}
+
+#[test]
+fn wasm_capability_matrix_browser_safe_matches_current_runner_modes() {
+    let matrix = wasm_capability_matrix();
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let supported_modes = browser_runner_supported_modes();
+
+    for mode in &supported_modes {
+        assert!(
+            commands.contains_key(mode),
+            "WASM capability matrix missing browser runner mode {mode}"
+        );
+    }
+
+    for (command, entry) in commands {
+        let object = entry
+            .as_object()
+            .unwrap_or_else(|| panic!("WASM capability entry {command} must be an object"));
+        let browser_safe = object
+            .get("browser_safe")
+            .unwrap_or_else(|| panic!("WASM capability entry {command} missing browser_safe"));
+        let native_only = object
+            .get("native_only")
+            .unwrap_or_else(|| panic!("WASM capability entry {command} missing native_only"));
+
+        if supported_modes.contains(command) {
+            let runnable =
+                browser_safe.as_bool() == Some(true) || browser_safe.as_str() == Some("partial");
+            assert!(
+                runnable,
+                "browser runner mode {command} must be marked browser-safe or partial"
+            );
+            assert_eq!(
+                native_only.as_bool(),
+                Some(false),
+                "browser runner mode {command} must not be native_only"
+            );
+        } else {
+            assert_eq!(
+                browser_safe.as_bool(),
+                Some(false),
+                "non-runner command {command} must not claim browser safety"
+            );
+            assert_eq!(
+                native_only.as_bool(),
+                Some(true),
+                "non-runner command {command} must be marked native_only"
+            );
+        }
+    }
+
+    for mode in ["lang", "module", "export"] {
+        assert_eq!(
+            commands[mode]["browser_safe"].as_bool(),
+            Some(true),
+            "{mode} should be fully browser-safe in the current runner"
+        );
+    }
+    assert_eq!(
+        commands["analyze"]["browser_safe"].as_str(),
+        Some("partial"),
+        "analyze is browser-safe only for supported runner presets"
+    );
+}
+
+// ===========================================================================
+// 5. Every CLI command in README.md Commands table actually exists
 // ===========================================================================
 
 /// Extract subcommand names from the README Commands table.
@@ -344,7 +564,7 @@ fn readme_commands_table_matches_reference_cli() {
 }
 
 // ===========================================================================
-// 5. docs/reference-cli.md consistency with subcommands
+// 6. docs/reference-cli.md consistency with subcommands
 // ===========================================================================
 
 #[test]
@@ -366,7 +586,7 @@ fn reference_cli_commands_section_exists() {
 }
 
 // ===========================================================================
-// 6. CHANGELOG.md mentions the latest workspace version
+// 7. CHANGELOG.md mentions the latest workspace version
 // ===========================================================================
 
 fn workspace_version() -> String {
@@ -413,7 +633,7 @@ fn changelog_follows_keepachangelog() {
 }
 
 // ===========================================================================
-// 7. Cross-doc consistency
+// 8. Cross-doc consistency
 // ===========================================================================
 
 #[test]

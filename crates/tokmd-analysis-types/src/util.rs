@@ -15,9 +15,8 @@ pub struct AnalysisLimits {
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 pub fn now_ms() -> u128 {
-    // `std::time` is not implemented on bare wasm. Keep analysis receipts
-    // deterministic until the browser path provides a host clock explicitly.
-    0
+    // Keep wasm receipts from reusing zero as a fake wall-clock sentinel.
+    js_sys::Date::now().max(1.0) as u128
 }
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]

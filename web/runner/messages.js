@@ -107,8 +107,29 @@ export function isRunMessage(value) {
             value.args &&
             typeof value.args === "object" &&
             !Array.isArray(value.args) &&
-            Array.isArray(value.args.inputs) &&
-            value.args.inputs.every(isInMemoryInput)
+            (() => {
+                const hasValidRootInputs = Array.isArray(value.args.inputs) && value.args.inputs.every(isInMemoryInput);
+                const hasValidScanInputs = value.args.scan && Array.isArray(value.args.scan.inputs) && value.args.scan.inputs.every(isInMemoryInput);
+                const hasValidRootPaths = Array.isArray(value.args.paths) && value.args.paths.every(p => typeof p === "string");
+                const hasValidScanPaths = value.args.scan && Array.isArray(value.args.scan.paths) && value.args.scan.paths.every(p => typeof p === "string");
+
+                const isImplicitEmpty = value.args.inputs === undefined &&
+                    value.args.paths === undefined &&
+                    (!value.args.scan || (value.args.scan.inputs === undefined && value.args.scan.paths === undefined));
+
+                const hasInvalidRootPaths = value.args.paths !== undefined && !hasValidRootPaths;
+                const hasInvalidScanPaths = value.args.scan && value.args.scan.paths !== undefined && !hasValidScanPaths;
+
+                if (hasInvalidRootPaths || hasInvalidScanPaths) {
+                    return false;
+                }
+
+                return hasValidRootInputs ||
+                    hasValidScanInputs ||
+                    hasValidRootPaths ||
+                    hasValidScanPaths ||
+                    isImplicitEmpty;
+            })()
     );
 }
 
