@@ -1,0 +1,13 @@
+{
+  "outcome": "success",
+  "files_changed": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs"
+  ],
+  "verification_commands": [
+    "npm test --prefix web/runner"
+  ],
+  "gates_run": [
+    "npm test --prefix web/runner"
+  ]
+}

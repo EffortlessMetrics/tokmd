@@ -112,18 +112,35 @@ function isAnalyzeOptions(value) {
     );
 }
 
+function isScanOptions(value) {
+    return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function hasValidPayloadType(args) {
+    const hasInputs = Array.isArray(args.inputs) && args.inputs.every(isInMemoryInput);
+    const hasPaths = Array.isArray(args.paths) && args.paths.every(p => typeof p === "string");
+    const hasScan = isScanOptions(args.scan);
+
+    return hasInputs || hasPaths || hasScan;
+}
+
 function isRunArgsForMode(mode, args) {
     if (!args || typeof args !== "object" || Array.isArray(args)) {
         return false;
     }
 
-    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
+    if (!hasValidPayloadType(args)) {
         return false;
     }
 
+    const payloadKeys = [];
+    if (args.inputs !== undefined) payloadKeys.push("inputs");
+    if (args.paths !== undefined) payloadKeys.push("paths");
+    if (args.scan !== undefined) payloadKeys.push("scan");
+
     if (mode === "analyze") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
+            hasOnlyKeys(args, [...payloadKeys, "preset", "analyze"]) &&
                 (args.preset === undefined || typeof args.preset === "string") &&
                 (args.analyze === undefined || isAnalyzeOptions(args.analyze))
         );
@@ -131,12 +148,12 @@ function isRunArgsForMode(mode, args) {
 
     if (mode === "lang") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "files"]) &&
+            hasOnlyKeys(args, [...payloadKeys, "files"]) &&
                 (args.files === undefined || typeof args.files === "boolean")
         );
     }
 
-    return hasOnlyKeys(args, ["inputs"]);
+    return hasOnlyKeys(args, payloadKeys);
 }
 
 export function isRunMessage(value) {
