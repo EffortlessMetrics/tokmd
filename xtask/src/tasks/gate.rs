@@ -78,6 +78,7 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".jules/transcripts",
     ".jules/runtime",
     ".jules/tmp",
+    ".jules/runs",
 ];
 
 fn ensure_no_tracked_agent_runtime_state() -> Result<()> {

@@ -1,3 +1,5 @@
 {"command": "cargo xtask docs --check", "status": "failed", "output_fragment": "Error: Documentation drift detected in /app/docs/reference-cli.md"}
 {"command": "cargo xtask docs --update", "status": "success", "output_fragment": "Updated /app/docs/reference-cli.md"}
 {"command": "cargo xtask docs --check", "status": "success", "output_fragment": "Documentation is up to date."}
+{"command": "cargo test -p xtask --test xtask_deep_w74", "status": "failed", "output_fragment": "gate_runtime_guard_keeps_curated_jules_deps_history ... FAILED"}
+{"command": "cargo test -p xtask --test xtask_deep_w74", "status": "success", "output_fragment": "gate_runtime_guard_keeps_curated_jules_deps_history ... ok"}

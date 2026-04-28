@@ -1,6 +1,7 @@
 {
   "outcome": "success",
   "files_changed": [
-    "docs/reference-cli.md"
+    "docs/reference-cli.md",
+    "xtask/src/tasks/gate.rs"
   ]
 }
