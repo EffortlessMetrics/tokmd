@@ -77,6 +77,7 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".jules/cache",
     ".jules/transcripts",
     ".jules/runtime",
+    ".jules/runs",
     ".jules/tmp",
 ];
 
