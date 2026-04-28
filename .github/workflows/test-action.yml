@@ -331,6 +331,34 @@ jobs:
         shell: bash
         run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
 
+      - name: Run cockpit mode with inferred pull request base
+        id: cockpit_inferred_base
+        uses: ./
+        env:
+          GITHUB_BASE_REF: main
+        with:
+          mode: cockpit
+          head: HEAD
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify cockpit inferred base
+        shell: bash
+        run: |
+          if [ ! -f tokmd-cockpit-report.json ]; then
+            echo "::error::tokmd-cockpit-report.json not generated with inferred base"
+            exit 1
+          fi
+          if [ "${{ steps.cockpit_inferred_base.outputs['cockpit-report'] }}" != "tokmd-cockpit-report.json" ]; then
+            echo "::error::cockpit-report output did not point to tokmd-cockpit-report.json with inferred base"
+            exit 1
+          fi
+          grep -q '"mode": "cockpit"' tokmd-cockpit-report.json
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
+
       - name: Run sensor mode
         id: sensor
         uses: ./
@@ -381,6 +409,61 @@ jobs:
             exit 1
           fi
           grep -q '"schema": "sensor.report.v1"' tokmd-sensor-report.json
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
+
+      - name: Run sensor mode with inferred pull request base
+        id: sensor_inferred_base
+        uses: ./
+        env:
+          GITHUB_BASE_REF: main
+        with:
+          mode: sensor
+          head: HEAD
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify sensor inferred base
+        shell: bash
+        run: |
+          if [ ! -f tokmd-sensor-report.json ]; then
+            echo "::error::tokmd-sensor-report.json not generated with inferred base"
+            exit 1
+          fi
+          if [ "${{ steps.sensor_inferred_base.outputs['sensor-report'] }}" != "tokmd-sensor-report.json" ]; then
+            echo "::error::sensor-report output did not point to tokmd-sensor-report.json with inferred base"
+            exit 1
+          fi
+          if [ ! -f comment.md ]; then
+            echo "::error::comment.md not generated in sensor mode with inferred base"
+            exit 1
+          fi
+          if [ "${{ steps.sensor_inferred_base.outputs.summary }}" != "comment.md" ]; then
+            echo "::error::summary output did not point to comment.md in sensor mode with inferred base"
+            exit 1
+          fi
+          grep -q '"schema": "sensor.report.v1"' tokmd-sensor-report.json
+
+      - name: Run cockpit mode with unresolved base
+        id: cockpit_unresolved_base
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: cockpit
+          base: refs/heads/__tokmd_missing_base__
+          head: HEAD
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify unresolved cockpit base rejects
+        shell: bash
+        run: |
+          if [ "${{ steps.cockpit_unresolved_base.outcome }}" != "failure" ]; then
+            echo "::error::cockpit mode should reject an unresolved base ref"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash

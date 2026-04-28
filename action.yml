@@ -25,8 +25,8 @@ inputs:
     description: 'Export format (json, jsonl, csv)'
     default: 'json'
   base:
-    description: 'Base git ref for mode: cockpit or mode: sensor'
-    default: 'main'
+    description: 'Base git ref for mode: cockpit or mode: sensor. Omit to infer from pull request base or origin/HEAD.'
+    default: ''
   head:
     description: 'Head git ref for mode: cockpit or mode: sensor'
     default: 'HEAD'
@@ -203,6 +203,49 @@ runs:
         baseline_report_file=""
         command_status=0
 
+        ensure_git_ref() {
+          local ref="$1"
+          git rev-parse --verify --quiet "${ref}^{commit}" >/dev/null 2>&1
+        }
+
+        fetch_origin_branch() {
+          local branch="$1"
+          git fetch --no-tags --depth=1 origin "${branch}:refs/remotes/origin/${branch}" >/dev/null 2>&1
+        }
+
+        resolve_base_ref() {
+          local mode_name="$1"
+          local base_input="${TOKMD_ACTION_BASE:-}"
+          local resolved_base=""
+
+          if [ -n "$base_input" ]; then
+            resolved_base="$base_input"
+          elif [ -n "${GITHUB_BASE_REF:-}" ]; then
+            resolved_base="origin/${GITHUB_BASE_REF}"
+            if ! ensure_git_ref "$resolved_base"; then
+              fetch_origin_branch "$GITHUB_BASE_REF" || true
+            fi
+          else
+            if ! git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
+              git remote set-head origin -a >/dev/null 2>&1 || true
+            fi
+
+            if git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
+              resolved_base="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)"
+              if ! ensure_git_ref "$resolved_base"; then
+                fetch_origin_branch "${resolved_base#origin/}" || true
+              fi
+            fi
+          fi
+
+          if [ -z "$resolved_base" ] || ! ensure_git_ref "$resolved_base"; then
+            echo "::error::Unable to resolve base ref for mode=${mode_name}. Set the 'base' input explicitly or use actions/checkout with enough git history for the base ref." >&2
+            exit 1
+          fi
+
+          echo "$resolved_base"
+        }
+
         case "$mode" in
           "")
             summary_file="tokmd-summary.md"
@@ -250,18 +293,20 @@ runs:
             ;;
           cockpit)
             cockpit_report_file="tokmd-cockpit-report.json"
+            compare_base="$(resolve_base_ref cockpit)"
 
             tokmd cockpit \
-              --base "$TOKMD_ACTION_BASE" \
+              --base "$compare_base" \
               --head "$TOKMD_ACTION_HEAD" \
               --format json > "$cockpit_report_file"
             ;;
           sensor)
             summary_file="comment.md"
             sensor_report_file="tokmd-sensor-report.json"
+            compare_base="$(resolve_base_ref sensor)"
 
             tokmd sensor \
-              --base "$TOKMD_ACTION_BASE" \
+              --base "$compare_base" \
               --head "$TOKMD_ACTION_HEAD" \
               --output "$sensor_report_file" \
               --format json > /dev/null

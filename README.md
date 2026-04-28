@@ -58,7 +58,7 @@ Inputs:
 | `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
 | `top` | no | `20` | Number of rows shown in `tokmd-summary.md`. |
 | `format` | no | `json` | Receipt export format: `json`, `jsonl`, or `csv`. |
-| `base` | no | `main` | Base git ref for `mode: cockpit` and `mode: sensor`. |
+| `base` | no | `(inferred)` | Base git ref for `mode: cockpit` and `mode: sensor`. Explicit values are used as provided. When omitted, pull request runs use `origin/$GITHUB_BASE_REF`; other runs use `origin/HEAD` when available. |
 | `head` | no | `HEAD` | Head git ref for `mode: cockpit` and `mode: sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
 | `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
@@ -79,8 +79,8 @@ Notes:
 - PR commenting needs `pull-requests: write` and only runs for `pull_request` events.
 - `mode: gate` runs `tokmd gate --format json` and expects policy or ratchet rules from `tokmd.toml` in the checkout. A failing gate still writes `tokmd-gate-verdict.json` before the action fails.
 - `mode: gate` accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd gate` runs.
-- `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. Use `checkout` with enough git history for the configured `base` and `head` refs to resolve.
-- `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`.
+- `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. If `base` is omitted, the action infers a repository-aware base from `origin/$GITHUB_BASE_REF` on pull requests or `origin/HEAD` on other events; if no base can be resolved, set `base` explicitly.
+- `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`. It uses the same inferred `base` behavior as cockpit mode.
 - `mode: baseline` runs `tokmd baseline --force` and writes `tokmd-baseline.json`. It accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd baseline` runs.
 - The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
