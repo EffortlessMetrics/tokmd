@@ -1,0 +1,14 @@
+{
+  "outcome": "learning_pr",
+  "title": "jules: record fuzzer learning on cargo fuzz nightly blocker 🌪️",
+  "summary": "Documented environment blocker: cargo fuzz requires a nightly toolchain and fails due to ASAN in the standard sandbox.",
+  "target_paths": [
+    ".jules/friction/open/FRIC-20260428-001.md"
+  ],
+  "proof_summary": "Attempted to run cargo fuzz list and cargo fuzz run, encountered nightly/ASAN toolchain errors.",
+  "gates_run": ["cargo check"],
+  "friction_items_created": ["FRIC-20260428-001"],
+  "persona_notes_created": [],
+  "rollback": "rm .jules/friction/open/FRIC-20260428-001.md",
+  "follow_ups": []
+}

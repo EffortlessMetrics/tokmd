@@ -1,0 +1,4 @@
+{"cmd": "cargo fuzz list -p tokmd", "status": "error", "summary": "no such command: fuzz"}
+{"cmd": "cargo install cargo-fuzz", "status": "success", "summary": "installed cargo-fuzz"}
+{"cmd": "cargo fuzz run fuzz_policy_toml", "status": "error", "summary": "fails with the option `Z` is only accepted on the nightly compiler"}
+{"cmd": "cargo fuzz run fuzz_toml_config", "status": "error", "summary": "fails with the option `Z` is only accepted on the nightly compiler"}
