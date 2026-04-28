@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Run tokmd-receipt action
+        id: tokmd
         uses: ./
         with:
           comment: 'false'
@@ -39,6 +40,18 @@ jobs:
           fi
           if [ ! -f tokmd-receipt.json ]; then
             echo "::error::tokmd-receipt.json not generated"
+            exit 1
+          fi
+          if [ "${{ steps.tokmd.outputs.summary }}" != "tokmd-summary.md" ]; then
+            echo "::error::summary output did not point to tokmd-summary.md"
+            exit 1
+          fi
+          if [ "${{ steps.tokmd.outputs.receipt }}" != "tokmd-receipt.json" ]; then
+            echo "::error::receipt output did not point to tokmd-receipt.json"
+            exit 1
+          fi
+          if [ -n "${{ steps.tokmd.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty for omitted mode"
             exit 1
           fi
           echo "✓ Both receipt files generated successfully"
@@ -69,3 +82,114 @@ jobs:
             exit 1
           fi
           echo "✓ tokmd-receipt.${{ matrix.format }} generated successfully"
+
+  test-modes:
+    name: Test explicit modes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run module mode
+        id: module
+        uses: ./
+        with:
+          mode: module
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify module mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-summary.md ]; then
+            echo "::error::tokmd-summary.md not generated in module mode"
+            exit 1
+          fi
+          if [ "${{ steps.module.outputs.summary }}" != "tokmd-summary.md" ]; then
+            echo "::error::summary output did not point to tokmd-summary.md"
+            exit 1
+          fi
+          if [ -n "${{ steps.module.outputs.receipt }}" ]; then
+            echo "::error::receipt output should be empty in module mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.module.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty in module mode"
+            exit 1
+          fi
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd.toml
+
+      - name: Run export mode
+        id: export
+        uses: ./
+        with:
+          mode: export
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify export mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-receipt.json ]; then
+            echo "::error::tokmd-receipt.json not generated in export mode"
+            exit 1
+          fi
+          if [ "${{ steps.export.outputs.receipt }}" != "tokmd-receipt.json" ]; then
+            echo "::error::receipt output did not point to tokmd-receipt.json"
+            exit 1
+          fi
+          if [ -n "${{ steps.export.outputs.summary }}" ]; then
+            echo "::error::summary output should be empty in export mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.export.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty in export mode"
+            exit 1
+          fi
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd.toml
+
+      - name: Write gate policy
+        shell: bash
+        run: |
+          cat > tokmd.toml <<'TOML'
+          [[gate.rules]]
+          name = "has_files"
+          pointer = "/derived/totals/files"
+          op = "gte"
+          value = 1
+          TOML
+
+      - name: Run gate mode
+        id: gate
+        uses: ./
+        with:
+          mode: gate
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify gate mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-gate-verdict.json ]; then
+            echo "::error::tokmd-gate-verdict.json not generated in gate mode"
+            exit 1
+          fi
+          if [ "${{ steps.gate.outputs['gate-verdict'] }}" != "tokmd-gate-verdict.json" ]; then
+            echo "::error::gate-verdict output did not point to tokmd-gate-verdict.json"
+            exit 1
+          fi
+          if [ -n "${{ steps.gate.outputs.summary }}" ]; then
+            echo "::error::summary output should be empty in gate mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.gate.outputs.receipt }}" ]; then
+            echo "::error::receipt output should be empty in gate mode"
+            exit 1
+          fi
+          grep -q '"passed": true' tokmd-gate-verdict.json

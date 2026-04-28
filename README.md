@@ -16,8 +16,8 @@
 Use the root composite action when you want a workflow-friendly receipt and PR summary without scripting `tokmd` installation yourself.
 
 - Installs a released `tokmd` binary for the current runner.
-- Generates `tokmd-summary.md` from `tokmd module`.
-- Generates a structured receipt file from `tokmd export`.
+- By default, generates `tokmd-summary.md` from `tokmd module` and a structured receipt file from `tokmd export`.
+- Can run a single explicit mode: `module`, `export`, or `gate`.
 - Optionally uploads both files as workflow artifacts.
 - Optionally posts the summary as a pull request comment.
 
@@ -52,6 +52,7 @@ Inputs:
 
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
+| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, or `gate`. Omit it for the existing module + export flow. |
 | `version` | no | `latest` | `tokmd` release to install. Pass an explicit version if you want the action ref and binary version to stay aligned. |
 | `paths` | no | `.` | Paths to scan. Space/newline-delimited list; each entry is passed as a separate argument. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
@@ -65,10 +66,13 @@ Outputs:
 | Output | Description |
 | :----- | :---------- |
 | `receipt` | Path to the generated receipt file. |
+| `summary` | Path to `tokmd-summary.md` when a summary is generated. |
+| `gate-verdict` | Path to `tokmd-gate-verdict.json` when `mode: gate` is used. |
 
 Notes:
 
 - PR commenting needs `pull-requests: write` and only runs for `pull_request` events.
+- `mode: gate` runs `tokmd gate --format json` and expects policy or ratchet rules from `tokmd.toml` in the checkout. A failing gate still writes `tokmd-gate-verdict.json` before the action fails.
 - The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
 - To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
@@ -78,6 +82,17 @@ Notes:
     src
     packages
   ```
+
+Gate mode:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    mode: gate
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
 
 ## The Problem
 
