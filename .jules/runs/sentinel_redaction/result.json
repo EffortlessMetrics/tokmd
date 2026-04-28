@@ -1,0 +1,9 @@
+{
+  "run_id": "sentinel_redaction",
+  "status": "success",
+  "outcome": "pr-ready-patch",
+  "affected_files": [
+    "crates/tokmd-format/src/redact/mod.rs",
+    "crates/tokmd-format/tests/test_redaction_leak.rs"
+  ]
+}
