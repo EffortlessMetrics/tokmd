@@ -17,7 +17,7 @@ Use the root composite action when you want a workflow-friendly receipt and PR s
 
 - Installs a released `tokmd` binary for the current runner.
 - By default, generates `tokmd-summary.md` from `tokmd module` and a structured receipt file from `tokmd export`.
-- Can run a single explicit mode: `module`, `export`, `gate`, `cockpit`, or `sensor`.
+- Can run a single explicit mode: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`.
 - Optionally uploads generated files as workflow artifacts.
 - Optionally posts the summary as a pull request comment.
 
@@ -52,7 +52,7 @@ Inputs:
 
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
-| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, or `sensor`. Omit it for the existing module + export flow. |
+| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the existing module + export flow. |
 | `version` | no | `latest` | `tokmd` release to install. Pass an explicit version if you want the action ref and binary version to stay aligned. |
 | `paths` | no | `.` | Paths to scan. Space/newline-delimited list; each entry is passed as a separate argument. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
@@ -72,6 +72,7 @@ Outputs:
 | `gate-verdict` | Path to `tokmd-gate-verdict.json` when `mode: gate` is used. |
 | `cockpit-report` | Path to `tokmd-cockpit-report.json` when `mode: cockpit` is used. |
 | `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
+| `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
 
 Notes:
 
@@ -80,6 +81,7 @@ Notes:
 - `mode: gate` accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd gate` runs.
 - `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. Use `checkout` with enough git history for the configured `base` and `head` refs to resolve.
 - `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`.
+- `mode: baseline` runs `tokmd baseline --force` and writes `tokmd-baseline.json`. It accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd baseline` runs.
 - The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
 - To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
@@ -121,6 +123,17 @@ Sensor mode:
     mode: sensor
     base: origin/main
     head: HEAD
+    artifact: 'true'
+    comment: 'false'
+```
+
+Baseline mode:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    mode: baseline
+    paths: .
     artifact: 'true'
     comment: 'false'
 ```

@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -53,6 +53,9 @@ outputs:
   sensor-report:
     description: 'Path to the generated sensor report JSON file'
     value: ${{ steps.generate.outputs['sensor-report'] }}
+  baseline-report:
+    description: 'Path to the generated baseline JSON file'
+    value: ${{ steps.generate.outputs['baseline-report'] }}
 
 runs:
   using: "composite"
@@ -197,6 +200,7 @@ runs:
         gate_verdict_file=""
         cockpit_report_file=""
         sensor_report_file=""
+        baseline_report_file=""
         command_status=0
 
         case "$mode" in
@@ -262,8 +266,21 @@ runs:
               --output "$sensor_report_file" \
               --format json > /dev/null
             ;;
+          baseline)
+            if [ ${#scan_paths[@]} -ne 1 ]; then
+              echo "::error::mode=baseline accepts exactly one input path; received ${#scan_paths[@]} paths"
+              exit 1
+            fi
+
+            baseline_report_file="tokmd-baseline.json"
+
+            tokmd baseline "${scan_paths[0]}" \
+              --output "$baseline_report_file" \
+              --force \
+              --no-progress
+            ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
@@ -274,6 +291,7 @@ runs:
           echo "gate-verdict=$gate_verdict_file"
           echo "cockpit-report=$cockpit_report_file"
           echo "sensor-report=$sensor_report_file"
+          echo "baseline-report=$baseline_report_file"
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
@@ -288,6 +306,7 @@ runs:
           ${{ steps.generate.outputs['gate-verdict'] }}
           ${{ steps.generate.outputs['cockpit-report'] }}
           ${{ steps.generate.outputs['sensor-report'] }}
+          ${{ steps.generate.outputs['baseline-report'] }}
           extras/
 
     - name: Comment on PR

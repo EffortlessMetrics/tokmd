@@ -62,6 +62,10 @@ jobs:
             echo "::error::sensor-report output should be empty for omitted mode"
             exit 1
           fi
+          if [ -n "${{ steps.tokmd.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty for omitted mode"
+            exit 1
+          fi
           echo "✓ Both receipt files generated successfully"
           echo "--- Summary preview ---"
           head -20 tokmd-summary.md
@@ -133,10 +137,14 @@ jobs:
             echo "::error::sensor-report output should be empty in module mode"
             exit 1
           fi
+          if [ -n "${{ steps.module.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty in module mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
 
       - name: Run export mode
         id: export
@@ -173,10 +181,14 @@ jobs:
             echo "::error::sensor-report output should be empty in export mode"
             exit 1
           fi
+          if [ -n "${{ steps.export.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty in export mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
 
       - name: Write gate policy
         shell: bash
@@ -224,6 +236,10 @@ jobs:
             echo "::error::sensor-report output should be empty in gate mode"
             exit 1
           fi
+          if [ -n "${{ steps.gate.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty in gate mode"
+            exit 1
+          fi
           grep -q '"passed": true' tokmd-gate-verdict.json
 
       - name: Run gate mode with same-line multiple paths
@@ -266,7 +282,7 @@ jobs:
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
 
       - name: Run cockpit mode
         id: cockpit
@@ -305,11 +321,15 @@ jobs:
             echo "::error::sensor-report output should be empty in cockpit mode"
             exit 1
           fi
+          if [ -n "${{ steps.cockpit.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty in cockpit mode"
+            exit 1
+          fi
           grep -q '"mode": "cockpit"' tokmd-cockpit-report.json
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
 
       - name: Run sensor mode
         id: sensor
@@ -356,4 +376,84 @@ jobs:
             echo "::error::cockpit-report output should be empty in sensor mode"
             exit 1
           fi
+          if [ -n "${{ steps.sensor.outputs['baseline-report'] }}" ]; then
+            echo "::error::baseline-report output should be empty in sensor mode"
+            exit 1
+          fi
           grep -q '"schema": "sensor.report.v1"' tokmd-sensor-report.json
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras baseline-fixture
+
+      - name: Prepare baseline fixture
+        shell: bash
+        run: |
+          mkdir -p baseline-fixture/src
+          cat > baseline-fixture/src/lib.rs <<'RS'
+          pub fn add(a: i32, b: i32) -> i32 {
+              a + b
+          }
+          RS
+
+      - name: Run baseline mode
+        id: baseline
+        uses: ./
+        with:
+          mode: baseline
+          paths: baseline-fixture
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify baseline mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-baseline.json ]; then
+            echo "::error::tokmd-baseline.json not generated in baseline mode"
+            exit 1
+          fi
+          if [ "${{ steps.baseline.outputs['baseline-report'] }}" != "tokmd-baseline.json" ]; then
+            echo "::error::baseline-report output did not point to tokmd-baseline.json"
+            exit 1
+          fi
+          if [ -n "${{ steps.baseline.outputs.summary }}" ]; then
+            echo "::error::summary output should be empty in baseline mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.baseline.outputs.receipt }}" ]; then
+            echo "::error::receipt output should be empty in baseline mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.baseline.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty in baseline mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.baseline.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty in baseline mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.baseline.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty in baseline mode"
+            exit 1
+          fi
+          grep -q '"baseline_version": 1' tokmd-baseline.json
+
+      - name: Run baseline mode with multiline paths
+        id: baseline_multiline_paths
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: baseline
+          paths: |
+            baseline-fixture
+            README.md
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify multiline baseline paths reject
+        shell: bash
+        run: |
+          if [ "${{ steps.baseline_multiline_paths.outcome }}" != "failure" ]; then
+            echo "::error::baseline mode should reject multiline multi-path input"
+            exit 1
+          fi
