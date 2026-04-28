@@ -58,6 +58,10 @@ jobs:
             echo "::error::cockpit-report output should be empty for omitted mode"
             exit 1
           fi
+          if [ -n "${{ steps.tokmd.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty for omitted mode"
+            exit 1
+          fi
           echo "✓ Both receipt files generated successfully"
           echo "--- Summary preview ---"
           head -20 tokmd-summary.md
@@ -125,10 +129,14 @@ jobs:
             echo "::error::cockpit-report output should be empty in module mode"
             exit 1
           fi
+          if [ -n "${{ steps.module.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty in module mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
 
       - name: Run export mode
         id: export
@@ -161,10 +169,14 @@ jobs:
             echo "::error::cockpit-report output should be empty in export mode"
             exit 1
           fi
+          if [ -n "${{ steps.export.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty in export mode"
+            exit 1
+          fi
 
       - name: Clean generated files
         shell: bash
-        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
 
       - name: Write gate policy
         shell: bash
@@ -206,6 +218,10 @@ jobs:
           fi
           if [ -n "${{ steps.gate.outputs['cockpit-report'] }}" ]; then
             echo "::error::cockpit-report output should be empty in gate mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.gate.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty in gate mode"
             exit 1
           fi
           grep -q '"passed": true' tokmd-gate-verdict.json
@@ -250,7 +266,7 @@ jobs:
 
       - name: Clean generated files
         shell: bash
-        run: rm -f tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd.toml
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
 
       - name: Run cockpit mode
         id: cockpit
@@ -285,4 +301,59 @@ jobs:
             echo "::error::gate-verdict output should be empty in cockpit mode"
             exit 1
           fi
+          if [ -n "${{ steps.cockpit.outputs['sensor-report'] }}" ]; then
+            echo "::error::sensor-report output should be empty in cockpit mode"
+            exit 1
+          fi
           grep -q '"mode": "cockpit"' tokmd-cockpit-report.json
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd.toml comment.md extras
+
+      - name: Run sensor mode
+        id: sensor
+        uses: ./
+        with:
+          mode: sensor
+          base: HEAD
+          head: HEAD
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify sensor mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-sensor-report.json ]; then
+            echo "::error::tokmd-sensor-report.json not generated in sensor mode"
+            exit 1
+          fi
+          if [ "${{ steps.sensor.outputs['sensor-report'] }}" != "tokmd-sensor-report.json" ]; then
+            echo "::error::sensor-report output did not point to tokmd-sensor-report.json"
+            exit 1
+          fi
+          if [ ! -f comment.md ]; then
+            echo "::error::comment.md not generated in sensor mode"
+            exit 1
+          fi
+          if [ "${{ steps.sensor.outputs.summary }}" != "comment.md" ]; then
+            echo "::error::summary output did not point to comment.md in sensor mode"
+            exit 1
+          fi
+          if [ ! -f extras/cockpit_receipt.json ]; then
+            echo "::error::sensor sidecar extras/cockpit_receipt.json not generated"
+            exit 1
+          fi
+          if [ -n "${{ steps.sensor.outputs.receipt }}" ]; then
+            echo "::error::receipt output should be empty in sensor mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.sensor.outputs['gate-verdict'] }}" ]; then
+            echo "::error::gate-verdict output should be empty in sensor mode"
+            exit 1
+          fi
+          if [ -n "${{ steps.sensor.outputs['cockpit-report'] }}" ]; then
+            echo "::error::cockpit-report output should be empty in sensor mode"
+            exit 1
+          fi
+          grep -q '"schema": "sensor.report.v1"' tokmd-sensor-report.json

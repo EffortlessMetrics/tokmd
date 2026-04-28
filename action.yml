@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -25,16 +25,16 @@ inputs:
     description: 'Export format (json, jsonl, csv)'
     default: 'json'
   base:
-    description: 'Base git ref for mode: cockpit'
+    description: 'Base git ref for mode: cockpit or mode: sensor'
     default: 'main'
   head:
-    description: 'Head git ref for mode: cockpit'
+    description: 'Head git ref for mode: cockpit or mode: sensor'
     default: 'HEAD'
   artifact:
     description: 'Whether to upload generated tokmd files as workflow artifacts'
     default: 'true'
   comment:
-    description: 'Whether to post tokmd-summary.md as a pull request comment'
+    description: 'Whether to post the generated Markdown summary as a pull request comment'
     default: 'true'
 
 outputs:
@@ -42,7 +42,7 @@ outputs:
     description: 'Path to the generated receipt file'
     value: ${{ steps.generate.outputs.receipt }}
   summary:
-    description: 'Path to the generated Markdown summary'
+    description: 'Path to the generated Markdown summary/comment file'
     value: ${{ steps.generate.outputs.summary }}
   gate-verdict:
     description: 'Path to the generated gate verdict JSON file'
@@ -50,6 +50,9 @@ outputs:
   cockpit-report:
     description: 'Path to the generated cockpit report JSON file'
     value: ${{ steps.generate.outputs['cockpit-report'] }}
+  sensor-report:
+    description: 'Path to the generated sensor report JSON file'
+    value: ${{ steps.generate.outputs['sensor-report'] }}
 
 runs:
   using: "composite"
@@ -193,6 +196,7 @@ runs:
         receipt_file=""
         gate_verdict_file=""
         cockpit_report_file=""
+        sensor_report_file=""
         command_status=0
 
         case "$mode" in
@@ -248,8 +252,18 @@ runs:
               --head "$TOKMD_ACTION_HEAD" \
               --format json > "$cockpit_report_file"
             ;;
+          sensor)
+            summary_file="comment.md"
+            sensor_report_file="tokmd-sensor-report.json"
+
+            tokmd sensor \
+              --base "$TOKMD_ACTION_BASE" \
+              --head "$TOKMD_ACTION_HEAD" \
+              --output "$sensor_report_file" \
+              --format json > /dev/null
+            ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
@@ -259,6 +273,7 @@ runs:
           echo "summary=$summary_file"
           echo "gate-verdict=$gate_verdict_file"
           echo "cockpit-report=$cockpit_report_file"
+          echo "sensor-report=$sensor_report_file"
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
@@ -272,6 +287,8 @@ runs:
           ${{ steps.generate.outputs.receipt }}
           ${{ steps.generate.outputs['gate-verdict'] }}
           ${{ steps.generate.outputs['cockpit-report'] }}
+          ${{ steps.generate.outputs['sensor-report'] }}
+          extras/
 
     - name: Comment on PR
       if: inputs.comment == 'true' && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
