@@ -43,37 +43,46 @@
       "requires_host_clock": "partial",
       "requires_validated_root": "partial"
     },
+    "run": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": "partial",
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
     "diff": {
-      "browser_safe": "partial",
-      "rootless_safe": "partial",
-      "native_only": false,
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
       "requires_filesystem": "partial",
       "requires_git_history": "native_only",
       "requires_host_clock": "partial",
       "requires_validated_root": "partial"
     },
     "badge": {
-      "browser_safe": "partial",
-      "rootless_safe": "partial",
-      "native_only": false,
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
       "requires_filesystem": "partial",
       "requires_git_history": "partial",
       "requires_host_clock": false,
       "requires_validated_root": "partial"
     },
     "gate": {
-      "browser_safe": "partial",
-      "rootless_safe": "partial",
-      "native_only": false,
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
       "requires_filesystem": "partial",
       "requires_git_history": false,
       "requires_host_clock": false,
       "requires_validated_root": false
     },
     "context": {
-      "browser_safe": "partial",
-      "rootless_safe": "partial",
-      "native_only": false,
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
       "requires_filesystem": "partial",
       "requires_git_history": "native_only",
       "requires_host_clock": "partial",
@@ -114,6 +123,42 @@
       "requires_git_history": "partial",
       "requires_host_clock": true,
       "requires_validated_root": true
+    },
+    "tools": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": false
+    },
+    "init": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": false
+    },
+    "check-ignore": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": true
+    },
+    "completions": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": false
     }
   }
 }
