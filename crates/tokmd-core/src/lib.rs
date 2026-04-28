@@ -77,9 +77,8 @@ use tokmd_types::{
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn now_ms() -> u128 {
-    // `std::time` is not implemented on bare wasm. Keep receipts buildable and
-    // deterministic until the browser runner supplies an explicit clock surface.
-    0
+    // Keep wasm receipts from reusing zero as a fake wall-clock sentinel.
+    js_sys::Date::now().max(1.0) as u128
 }
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]

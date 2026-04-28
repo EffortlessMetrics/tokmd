@@ -439,6 +439,36 @@ mod wasm_tests {
         serde_json::from_str(&data_json).expect("valid core JSON value")
     }
 
+    fn assert_generated_at_ms_nonzero(label: &str, value: &Value) {
+        let timestamp = value
+            .get("generated_at_ms")
+            .and_then(Value::as_u64)
+            .unwrap_or_else(|| panic!("{label} missing numeric generated_at_ms"));
+        assert!(timestamp > 0, "{label} generated_at_ms must not be 0");
+    }
+
+    fn normalize_volatile_timestamps(value: &mut Value) {
+        match value {
+            Value::Array(items) => {
+                for item in items {
+                    normalize_volatile_timestamps(item);
+                }
+            }
+            Value::Object(object) => {
+                for (key, value) in object {
+                    if key == "generated_at_ms" || key == "export_generated_at_ms" {
+                        if !value.is_null() {
+                            *value = Value::from(1);
+                        }
+                    } else {
+                        normalize_volatile_timestamps(value);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn values_match_js_boundary(actual: &Value, expected: &Value) -> bool {
         match (actual, expected) {
             (Value::Null, Value::Null)
@@ -510,12 +540,16 @@ mod wasm_tests {
             "files": true
         }"#;
         let data = run_lang(parse_js_args(args_json)).expect("lang data");
-        let parsed = js_value_to_json(&data);
-        let expected = core_mode_value("lang", args_json);
+        let mut parsed = js_value_to_json(&data);
+        let mut expected = core_mode_value("lang", args_json);
 
         assert_eq!(parsed["mode"], "lang");
         assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
         assert_eq!(parsed["total"]["files"], 2);
+        assert_generated_at_ms_nonzero("lang wasm payload", &parsed);
+        assert_generated_at_ms_nonzero("lang core payload", &expected);
+        normalize_volatile_timestamps(&mut parsed);
+        normalize_volatile_timestamps(&mut expected);
         assert!(
             values_match_js_boundary(&parsed, &expected),
             "wasm payload diverged from core payload\nactual: {parsed}\nexpected: {expected}"
@@ -531,12 +565,16 @@ mod wasm_tests {
             ]
         }"#;
         let data = run_module(parse_js_args(args_json)).expect("module data");
-        let parsed = js_value_to_json(&data);
-        let expected = core_mode_value("module", args_json);
+        let mut parsed = js_value_to_json(&data);
+        let mut expected = core_mode_value("module", args_json);
 
         assert_eq!(parsed["mode"], "module");
         assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
         assert!(parsed["rows"].as_array().is_some());
+        assert_generated_at_ms_nonzero("module wasm payload", &parsed);
+        assert_generated_at_ms_nonzero("module core payload", &expected);
+        normalize_volatile_timestamps(&mut parsed);
+        normalize_volatile_timestamps(&mut expected);
         assert!(
             values_match_js_boundary(&parsed, &expected),
             "wasm payload diverged from core payload\nactual: {parsed}\nexpected: {expected}"
@@ -552,12 +590,16 @@ mod wasm_tests {
             ]
         }"#;
         let data = run_export(parse_js_args(args_json)).expect("export data");
-        let parsed = js_value_to_json(&data);
-        let expected = core_mode_value("export", args_json);
+        let mut parsed = js_value_to_json(&data);
+        let mut expected = core_mode_value("export", args_json);
 
         assert_eq!(parsed["mode"], "export");
         assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
         assert_eq!(parsed["rows"][0]["path"], "src/lib.rs");
+        assert_generated_at_ms_nonzero("export wasm payload", &parsed);
+        assert_generated_at_ms_nonzero("export core payload", &expected);
+        normalize_volatile_timestamps(&mut parsed);
+        normalize_volatile_timestamps(&mut expected);
         assert!(
             values_match_js_boundary(&parsed, &expected),
             "wasm payload diverged from core payload\nactual: {parsed}\nexpected: {expected}"
@@ -594,13 +636,17 @@ mod wasm_tests {
             "preset": "estimate"
         }"#;
         let data = run_analyze(parse_js_args(args_json)).expect("analysis data");
-        let parsed = js_value_to_json(&data);
-        let expected = core_mode_value("analyze", args_json);
+        let mut parsed = js_value_to_json(&data);
+        let mut expected = core_mode_value("analyze", args_json);
 
         assert_eq!(analysis_schema_version(), ANALYSIS_SCHEMA_VERSION);
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["source"]["inputs"][0], "crates/app/src/lib.rs");
         assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
+        assert_generated_at_ms_nonzero("analysis estimate wasm payload", &parsed);
+        assert_generated_at_ms_nonzero("analysis estimate core payload", &expected);
+        normalize_volatile_timestamps(&mut parsed);
+        normalize_volatile_timestamps(&mut expected);
         assert!(
             values_match_js_boundary(&parsed, &expected),
             "wasm payload diverged from core payload\nactual: {parsed}\nexpected: {expected}"
@@ -617,13 +663,17 @@ mod wasm_tests {
             "preset": "receipt"
         }"#;
         let data = run_analyze(parse_js_args(args_json)).expect("analysis data");
-        let parsed = js_value_to_json(&data);
-        let expected = core_mode_value("analyze", args_json);
+        let mut parsed = js_value_to_json(&data);
+        let mut expected = core_mode_value("analyze", args_json);
 
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["source"]["inputs"][0], "src/lib.rs");
         assert_eq!(parsed["derived"]["totals"]["files"], 1);
         assert_eq!(parsed["effort"], Value::Null);
+        assert_generated_at_ms_nonzero("analysis receipt wasm payload", &parsed);
+        assert_generated_at_ms_nonzero("analysis receipt core payload", &expected);
+        normalize_volatile_timestamps(&mut parsed);
+        normalize_volatile_timestamps(&mut expected);
         assert!(
             values_match_js_boundary(&parsed, &expected),
             "wasm payload diverged from core payload\nactual: {parsed}\nexpected: {expected}"
