@@ -27,6 +27,8 @@ Inputs are ordered `{ path, text | base64 }` rows.
 
 `lang`, `module`, `export`, and `analyze` are the supported browser workflows today. `analyze` currently accepts only `preset: "receipt"` or `preset: "estimate"`, and `analysisSchemaVersion()` is only exported when the `analysis` feature is enabled.
 
+The command-level browser/rootless capability matrix lives in `../../docs/capabilities/wasm.json`.
+
 ## Distribution
 
 `tokmd-wasm` is intended to be consumed from a stable, versioned artifact in CI and releases, not from a mutable local directory.
