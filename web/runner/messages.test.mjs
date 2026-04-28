@@ -93,3 +93,24 @@ test("run messages require ordered in-memory inputs", () => {
         false
     );
 });
+
+test("run messages support inputs, paths, or scan args", () => {
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "1",
+            mode: "lang",
+            args: { paths: ["src"] }
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "2",
+            mode: "lang",
+            args: { scan: { paths: ["src"] } }
+        }),
+        true
+    );
+});
