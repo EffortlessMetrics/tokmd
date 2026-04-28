@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! CLI output-format verification tests (w76).
 //!
 //! Verifies every command's output format options using isolated temp

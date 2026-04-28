@@ -1,3 +1,4 @@
+#![cfg(feature = "analysis")]
 //! Regression prevention tests (W55).
 //!
 //! Guards known-good behavior, schema version contracts, public API surface,
