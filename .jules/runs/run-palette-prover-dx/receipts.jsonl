@@ -1,0 +1,2 @@
+{"cmd": "npm install --prefix web/runner", "exit_code": 0}
+{"cmd": "npm test --prefix web/runner", "exit_code": 0}

@@ -113,7 +113,7 @@ test("run and cancel helpers produce valid protocol messages", () => {
     assert.equal(isRunMessage(cancel), false);
 });
 
-test("run messages require explicit in-memory inputs", () => {
+test("run messages support inputs, paths, or scan", () => {
     assert.equal(
         isInMemoryInput({ path: "src/lib.rs", text: "pub fn alpha() {}\n" }),
         true
@@ -179,7 +179,7 @@ test("run messages require explicit in-memory inputs", () => {
             mode: "lang",
             args: { paths: ["src/lib.rs"] },
         }),
-        false
+        true
     );
     assert.equal(
         isRunMessage({
@@ -192,7 +192,7 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
-        false
+        true
     );
     assert.equal(
         isRunMessage({
