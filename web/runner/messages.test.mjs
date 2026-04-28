@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
     MESSAGE_TYPES,
@@ -15,6 +16,23 @@ import {
     normalizeAnalyzePreset,
 } from "./messages.js";
 
+function wasmCapabilityMatrix() {
+    return JSON.parse(
+        readFileSync(
+            new URL("../../docs/capabilities/wasm.json", import.meta.url),
+            "utf8"
+        )
+    );
+}
+
+function isBrowserRunnable(capabilities) {
+    return (
+        (capabilities.browser_safe === true ||
+            capabilities.browser_safe === "partial") &&
+        capabilities.native_only === false
+    );
+}
+
 test("ready message exposes protocol version and capabilities", () => {
     const message = createReadyMessage();
 
@@ -27,6 +45,50 @@ test("ready message exposes protocol version and capabilities", () => {
     );
     assert.equal(message.capabilities.wasm, false);
     assert.equal(message.capabilities.zipball, false);
+});
+
+test("supported modes stay aligned with the WASM capability matrix", () => {
+    const matrix = wasmCapabilityMatrix();
+    const commands = matrix.commands;
+    const matrixModes = Object.entries(commands)
+        .filter(([, capabilities]) => isBrowserRunnable(capabilities))
+        .map(([command]) => command)
+        .sort();
+
+    assert.deepEqual([...SUPPORTED_MODES].sort(), matrixModes);
+
+    for (const mode of SUPPORTED_MODES) {
+        const capabilities = commands[mode];
+
+        assert.ok(capabilities, `${mode} missing from WASM capability matrix`);
+        assert.notEqual(capabilities.native_only, true);
+        assert.ok(
+            capabilities.rootless_safe === true ||
+                capabilities.rootless_safe === "partial",
+            `${mode} must be rootless-safe or partial in browser runner`
+        );
+    }
+
+    for (const [command, capabilities] of Object.entries(commands)) {
+        if (capabilities.native_only === true) {
+            assert.equal(
+                SUPPORTED_MODES.includes(command),
+                false,
+                `${command} is native-only and must not be a runner mode`
+            );
+        }
+    }
+});
+
+test("supported analyze presets stay aligned with the WASM capability matrix", () => {
+    const matrix = wasmCapabilityMatrix();
+    const analyze = matrix.commands.analyze;
+
+    assert.ok(analyze, "analyze missing from WASM capability matrix");
+    assert.deepEqual(
+        [...SUPPORTED_ANALYZE_PRESETS].sort(),
+        [...analyze.browser_analyze_presets].sort()
+    );
 });
 
 test("normalizeAnalyzePreset defaults to receipt", () => {

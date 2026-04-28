@@ -36,6 +36,10 @@
     },
     "analyze": {
       "browser_safe": "partial",
+      "browser_analyze_presets": [
+        "receipt",
+        "estimate"
+      ],
       "rootless_safe": "partial",
       "native_only": false,
       "requires_filesystem": "partial",

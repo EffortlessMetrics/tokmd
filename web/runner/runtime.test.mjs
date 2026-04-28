@@ -1,8 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { createCancelMessage, createRunMessage, MESSAGE_TYPES } from "./messages.js";
 import { handleRunnerMessage, isProtocolMessage } from "./runtime.js";
+
+function wasmCapabilityMatrix() {
+    return JSON.parse(
+        readFileSync(
+            new URL("../../docs/capabilities/wasm.json", import.meta.url),
+            "utf8"
+        )
+    );
+}
 
 function createStubRunner() {
     return {
@@ -71,6 +81,31 @@ test("runtime rejects native-only modes before runner execution", async () => {
     assert.equal(message.type, MESSAGE_TYPES.ERROR);
     assert.equal(message.error.code, "unsupported_mode");
     assert.equal(message.requestId, "run-native-mode");
+});
+
+test("runtime rejects every native-only matrix command", async () => {
+    const matrix = wasmCapabilityMatrix();
+    const nativeOnlyCommands = Object.entries(matrix.commands)
+        .filter(([, capabilities]) => capabilities.native_only === true)
+        .map(([command]) => command);
+
+    assert.ok(nativeOnlyCommands.length > 0);
+
+    for (const mode of nativeOnlyCommands) {
+        const message = await handleRunnerMessage(
+            createRunMessage({
+                requestId: `native-${mode}`,
+                mode,
+                args: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                },
+            }),
+            { runner: createStubRunner() }
+        );
+
+        assert.equal(message.type, MESSAGE_TYPES.ERROR, mode);
+        assert.equal(message.error.code, "unsupported_mode", mode);
+    }
 });
 
 test("runtime uses runner-provided mode capabilities", async () => {
