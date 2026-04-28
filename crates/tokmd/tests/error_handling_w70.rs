@@ -225,6 +225,7 @@ fn gate_with_nonexistent_policy_file_fails() {
         .failure();
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_with_nonexistent_receipt_file_fails() {
     tokmd_cmd_fixture()

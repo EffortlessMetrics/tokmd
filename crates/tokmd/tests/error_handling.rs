@@ -164,6 +164,7 @@ fn export_empty_directory_succeeds_with_meta_only() {
 // Gate command: missing required arguments
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_missing_receipt_arg_fails() {
     tokmd_cmd()
@@ -205,6 +206,7 @@ fn unknown_flag_fails() {
 // Gate: nonexistent receipt file
 // ---------------------------------------------------------------------------
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_nonexistent_receipt_file_fails() {
     let dir = tempdir().unwrap();

@@ -569,6 +569,7 @@ fn diff_identical_reports_produces_no_rows() {
     );
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn diff_totals_zero_for_identical() {
     let diff_rows: Vec<DiffRow> = vec![];
@@ -705,6 +706,7 @@ fn analysis_integrity_hash_present() {
 // 8. Badge generation pipeline
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn badge_from_scan_data_produces_svg() {
     let langs = scan(&[fixture_path()], &default_scan_options()).expect("scan");

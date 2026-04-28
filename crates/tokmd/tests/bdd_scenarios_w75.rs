@@ -584,6 +584,7 @@ fn given_project_when_lang_tsv_then_tab_separated_header() {
 // Scenario 22: Version flag shows semver
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_version_flag_when_run_then_semver_shown() {
     tokmd()

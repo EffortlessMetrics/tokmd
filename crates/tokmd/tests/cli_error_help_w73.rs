@@ -227,6 +227,7 @@ fn help_diff_mentions_from_and_to() {
         .stdout(predicate::str::contains("--from").and(predicate::str::contains("--to")));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn help_gate_mentions_policy() {
     tokmd_cmd()

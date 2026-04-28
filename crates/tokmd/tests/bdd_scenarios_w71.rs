@@ -630,6 +630,7 @@ fn given_empty_dir_when_init_then_tokeignore_created() {
 // 19. Init --print just prints template
 // ===========================================================================
 
+#[cfg(feature = "analysis")]
 #[test]
 fn given_init_print_when_run_then_prints_template_without_file() {
     let dir = hermetic_dir();

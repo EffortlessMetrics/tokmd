@@ -912,6 +912,7 @@ fn lang_invalid_children_mode_fails() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[cfg(feature = "analysis")]
 #[test]
 fn gate_missing_args_fails() {
     tokmd_cmd()
