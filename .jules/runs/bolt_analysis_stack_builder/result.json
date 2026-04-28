@@ -1,0 +1,7 @@
+{
+  "run_id": "bolt_analysis_stack_builder",
+  "status": "success",
+  "outcome": "pr-ready-patch",
+  "receipts_count": 2,
+  "artifacts_generated": ["envelope.json", "decision.md", "receipts.jsonl", "result.json", "pr_body.md"]
+}
