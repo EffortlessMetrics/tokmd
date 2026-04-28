@@ -2571,6 +2571,7 @@ name = "tokmd-analysis-types"
 version = "1.9.0"
 dependencies = [
  "chrono",
+ "js-sys",
  "proptest",
  "serde",
  "serde_json",
@@ -2604,6 +2605,7 @@ version = "1.9.0"
 dependencies = [
  "anyhow",
  "base64",
+ "js-sys",
  "proptest",
  "serde",
  "serde_json",

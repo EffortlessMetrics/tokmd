@@ -17,6 +17,9 @@ serde_json.workspace = true
 tokmd-envelope.workspace = true
 tokmd-types.workspace = true
 
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+js-sys = "0.3.91"
+
 [dev-dependencies]
 chrono = "0.4.44"
 proptest.workspace = true
