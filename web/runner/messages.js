@@ -99,17 +99,42 @@ export function isInMemoryInput(value) {
 }
 
 export function isRunMessage(value) {
-    return Boolean(
-        value &&
-            value.type === MESSAGE_TYPES.RUN &&
-            typeof value.requestId === "string" &&
-            typeof value.mode === "string" &&
-            value.args &&
-            typeof value.args === "object" &&
-            !Array.isArray(value.args) &&
-            Array.isArray(value.args.inputs) &&
-            value.args.inputs.every(isInMemoryInput)
-    );
+    if (
+        !value ||
+        value.type !== MESSAGE_TYPES.RUN ||
+        typeof value.requestId !== "string" ||
+        typeof value.mode !== "string" ||
+        !value.args ||
+        typeof value.args !== "object" ||
+        Array.isArray(value.args)
+    ) {
+        return false;
+    }
+
+    let hasValidPayload = false;
+
+    if (value.args.inputs !== undefined) {
+        if (!Array.isArray(value.args.inputs) || !value.args.inputs.every(isInMemoryInput)) {
+            return false;
+        }
+        hasValidPayload = true;
+    }
+
+    if (value.args.paths !== undefined) {
+        if (!Array.isArray(value.args.paths) || !value.args.paths.every((p) => typeof p === "string")) {
+            return false;
+        }
+        hasValidPayload = true;
+    }
+
+    if (value.args.scan !== undefined) {
+        if (!value.args.scan || typeof value.args.scan !== "object" || Array.isArray(value.args.scan)) {
+            return false;
+        }
+        hasValidPayload = true;
+    }
+
+    return hasValidPayload;
 }
 
 export function isCancelMessage(value) {

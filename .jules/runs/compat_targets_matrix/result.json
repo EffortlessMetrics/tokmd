@@ -1,0 +1,7 @@
+{
+  "outcome": "PR-ready patch",
+  "patch_files": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs"
+  ]
+}
