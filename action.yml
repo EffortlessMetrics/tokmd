@@ -361,6 +361,39 @@ runs:
         file-path: ${{ steps.generate.outputs.summary }}
         comment_tag: tokmd-summary
 
+    - name: Publish workflow summary
+      if: always()
+      shell: bash
+      run: |
+        set -euo pipefail
+        {
+          echo "## tokmd action results"
+          echo
+          echo "| Output | Path |"
+          echo "| --- | --- |"
+          echo "| Summary | \`${{ steps.generate.outputs.summary || '(not generated)' }}\` |"
+          echo "| Receipt | \`${{ steps.generate.outputs.receipt || '(not generated)' }}\` |"
+          echo "| Gate verdict | \`${{ steps.generate.outputs['gate-verdict'] || '(not generated)' }}\` |"
+          echo "| Cockpit report | \`${{ steps.generate.outputs['cockpit-report'] || '(not generated)' }}\` |"
+          echo "| Sensor report | \`${{ steps.generate.outputs['sensor-report'] || '(not generated)' }}\` |"
+          echo "| Baseline report | \`${{ steps.generate.outputs['baseline-report'] || '(not generated)' }}\` |"
+          echo
+          echo "- Artifact upload enabled: \`${{ inputs.artifact }}\`"
+          echo "- PR comment enabled: \`${{ inputs.comment }}\`"
+          echo "- Command exit status: \`${{ steps.generate.outputs['command-status'] }}\`"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ -n "${{ steps.generate.outputs.summary }}" ] && [ -f "${{ steps.generate.outputs.summary }}" ]; then
+          {
+            echo
+            echo "<details><summary>Summary preview</summary>"
+            echo
+            cat "${{ steps.generate.outputs.summary }}"
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+
     - name: Fail on gate verdict
       if: steps.generate.outputs['command-status'] != '0'
       shell: bash
