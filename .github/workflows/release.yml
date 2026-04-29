@@ -163,8 +163,11 @@ jobs:
         with:
           files: artifacts/**/*
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'rc') }}
+          make_latest: ${{ contains(github.ref_name, 'rc') && 'false' || 'true' }}
 
       - name: Update major version tag
+        if: ${{ !contains(github.ref_name, 'rc') }}
         run: |
           # Extract major version from tag (v1.2.3 -> v1)
           TAG="${GITHUB_REF#refs/tags/}"
@@ -176,6 +179,7 @@ jobs:
           git push origin "$MAJOR" --force
 
   publish-crates:
+    if: ${{ !contains(github.ref_name, 'rc') }}
     name: Publish to crates.io
     needs: create-release
     runs-on: ubuntu-latest
@@ -191,6 +195,7 @@ jobs:
         run: cargo xtask publish --yes --skip-tests --verbose
 
   docker:
+    if: ${{ !contains(github.ref_name, 'rc') }}
     name: Build and Push Docker Image
     needs: create-release
     runs-on: ubuntu-latest

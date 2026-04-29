@@ -82,6 +82,13 @@ Notes:
 - `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. If `base` is omitted, the action infers a repository-aware base from `origin/$GITHUB_BASE_REF` on pull requests or `origin/HEAD` on other events; if no base can be resolved, set `base` explicitly.
 - `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`. It uses the same inferred `base` behavior as cockpit mode.
 - `mode: baseline` runs `tokmd baseline --force` and writes `tokmd-baseline.json`. It accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd baseline` runs.
+- For external pull request workflows using `mode: cockpit` or `mode: sensor`, use full history checkout to make base-ref behavior predictable:
+
+  ```yaml
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+  ```
 - The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
 - To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
@@ -91,6 +98,29 @@ Notes:
     src
     packages
   ```
+
+Release-candidate example (`v1.10.0rc1`):
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1.10.0rc1
+  with:
+    version: '1.10.0rc1'
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
+Stable examples:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+
+- uses: EffortlessMetrics/tokmd@v1.10.0
+  with:
+    version: '1.10.0'
+```
 
 Gate mode:
 
