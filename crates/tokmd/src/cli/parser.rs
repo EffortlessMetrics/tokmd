@@ -106,6 +106,7 @@ pub struct GlobalArgs {
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
     /// Language summary (default).
+    #[command(visible_alias = "languages")]
     Lang(CliLangArgs),
 
     /// Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`).
@@ -115,6 +116,7 @@ pub enum Commands {
     Export(CliExportArgs),
 
     /// Analyze receipts or paths to produce derived metrics.
+    #[command(visible_alias = "analyse")]
     Analyze(CliAnalyzeArgs),
 
     /// Render a simple SVG badge for a metric.
@@ -124,6 +126,7 @@ pub enum Commands {
     Init(InitArgs),
 
     /// Generate shell completions.
+    #[command(visible_alias = "completion")]
     Completions(CompletionsArgs),
 
     /// Run a full scan and save receipts to a state directory.
@@ -136,6 +139,7 @@ pub enum Commands {
     Context(CliContextArgs),
 
     /// Check why a file is being ignored (for troubleshooting).
+    #[command(visible_alias = "checkignore")]
     CheckIgnore(CliCheckIgnoreArgs),
 
     /// Output CLI schema as JSON for AI agents.
@@ -1026,6 +1030,7 @@ impl From<GlobalArgs> for tokmd_settings::ScanOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::Parser;
 
     // ── Default impls ─────────────────────────────────────────────────
     #[test]
@@ -1246,5 +1251,23 @@ mod tests {
         let opts: tokmd_settings::ScanOptions = g.into();
         assert_eq!(opts.excluded, vec!["vendor"]);
         assert!(!opts.hidden);
+    }
+
+    #[test]
+    fn command_alias_analyse_parses_to_analyze() {
+        let cli = Cli::parse_from(["tokmd", "analyse"]);
+        assert!(matches!(cli.command, Some(Commands::Analyze(_))));
+    }
+
+    #[test]
+    fn command_alias_completion_parses_to_completions() {
+        let cli = Cli::parse_from(["tokmd", "completion", "bash"]);
+        assert!(matches!(cli.command, Some(Commands::Completions(_))));
+    }
+
+    #[test]
+    fn command_alias_checkignore_parses_to_check_ignore() {
+        let cli = Cli::parse_from(["tokmd", "checkignore", "src/main.rs"]);
+        assert!(matches!(cli.command, Some(Commands::CheckIgnore(_))));
     }
 }
