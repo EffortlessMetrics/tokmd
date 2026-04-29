@@ -85,6 +85,8 @@ value = 5000
 
 To add corpus seeds, create files in `fuzz/corpus/<target>/`. The fuzzer will pick them up automatically.
 
+Starter seeds are checked in under `fuzz/corpus/` for several structured targets (e.g., JSON pointer, policy evaluation, scan args, and context policy) to improve first-run path coverage before mutational exploration.
+
 ## Dictionaries
 
 Dictionary files in `fuzz/dict/` improve fuzzing efficiency for structured inputs:

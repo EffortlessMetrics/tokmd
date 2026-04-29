@@ -1,0 +1,6 @@
+--hidden
+--respect-gitignore
+--exclude
+target/**
+--exclude
+node_modules/**

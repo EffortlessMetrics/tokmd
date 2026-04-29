@@ -1,4 +1,12 @@
 target
-corpus
+corpus/*
+!corpus/fuzz_policy_evaluate/
+!corpus/fuzz_policy_evaluate/seed_basic.txt
+!corpus/fuzz_json_pointer/
+!corpus/fuzz_json_pointer/seed_nested.jsonptr
+!corpus/fuzz_scan_args/
+!corpus/fuzz_scan_args/seed_flags.txt
+!corpus/fuzz_context_policy/
+!corpus/fuzz_context_policy/seed_budget.txt
 artifacts
 coverage

@@ -1,0 +1,5 @@
+{"totals":{"code":1000,"comments":100},"schema_version":2}
+[[rule]]
+pointer = "/totals/code"
+op = "gte"
+value = 1
