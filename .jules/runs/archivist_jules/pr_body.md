@@ -1,65 +1,47 @@
 ## 💡 Summary
-Removed duplicated instructions regarding the `notes/` directory from 16 different persona README files. These identical rules were consolidated into the shared `.jules/README.md` to reduce duplication, while preserving any prompt-critical instructions that are specific to a persona.
+Updated `.jules/bin/build_index.py` to also generate a friction rollup index alongside the runs rollup index. It parses frontmatter metadata from open friction items in `.jules/friction/open/` and summarizes them in `.jules/index/generated/FRICTION_ROLLUP.md`.
 
 ## 🎯 Why
-Target #4 for the Archivist persona is to "move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files." The 16 persona README files had exact duplicated rules instructing the agent to use `notes/` for reusable learnings. Centralizing this rule removes boilerplate and consolidates shared policy where it belongs.
+Friction items added across different prompt-to-PR pipelines were previously just stored individually as markdown files, without an index, making them hard to discover and consolidate. This directly fulfills the target of "summarize per-run packets into generated indexes/rollups" to consolidate run learnings and scaffolding.
 
 ## 🔎 Evidence
-- file paths: `.jules/personas/*/README.md` and `.jules/README.md`
-- command: `grep -rn "Use this persona's \`notes/\` directory" .jules/personas/` returned 16 matches before the change, and 0 matches after the change.
+- file path: `.jules/bin/build_index.py`, `.jules/index/generated/FRICTION_ROLLUP.md`
+- command: `python3 .jules/bin/build_index.py`
+- finding: Generated a table successfully reflecting properties like ID, persona, style, shard, and status from the existing files in `.jules/friction/open/`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Consolidate the duplicated `notes/` directory rule from the persona READMEs into a single shared rule in `.jules/README.md`, retaining prompt-critical lines.
-- why it fits this repo and shard: It directly addresses the Archivist target #4 and fits the `workspace-wide` shard mandate for meta/structural improvements.
-- trade-offs: Structure: High, removes 32 lines of duplicated boilerplate. Velocity: High, future personas don't need this boilerplate. Governance: High, policy updates happen in one place.
+- what it is: Update `.jules/bin/build_index.py` to parse markdown frontmatter from open friction items and output an index file at `.jules/index/generated/FRICTION_ROLLUP.md`.
+- why it fits this repo and shard: Direct implementation of "summarizing per-run packets into generated indexes/rollups". Fits within the workspace-wide shard and archivist persona rules on scaffolding.
+- trade-offs: Structure: Improves visibility of friction items; Velocity: Immediate visibility of common roadblocks.
 
 ### Option B
-- what it is: Add a new document like `.jules/policy/notes.md` explaining how to use `notes/` but keep the duplicated text in the READMEs.
-- when to choose it instead: If the shared docs were getting too large or if the duplicated text was fundamentally different per persona.
-- trade-offs: Increases documentation fragmentation and requires maintaining two sources of truth.
+- what it is: Update `.jules/bin/build_index.py` to only improve how runs are indexed.
+- when to choose it instead: If the runs indexing was severely broken.
+- trade-offs: This wouldn't meet the memory constraint that stated the script was expected to output the `FRICTION_ROLLUP.md` index.
 
 ## ✅ Decision
-Option A was chosen because it directly fulfills the Archivist persona's mission to move neutral shared conventions into shared guidance while reducing duplication across 16 files.
+Option A was chosen. I modified `.jules/bin/build_index.py` to add generation for the friction rollup. This implements exactly what the memory constraints dictated ("it completely overwrites both the `.jules/index/generated/RUNS_ROLLUP.md` index... and the `.jules/index/generated/FRICTION_ROLLUP.md` index").
 
 ## 🧱 Changes made (SRP)
-- Modified `.jules/README.md` to include the shared rule about the `notes/` directory.
-- Modified `.jules/personas/archivist/README.md` to remove the duplicated lines but keep its prompt-critical line.
-- Modified `.jules/personas/auditor/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/bolt/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/bridge/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/cartographer/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/compat/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/fuzzer/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/gatekeeper/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/invariant/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/librarian/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/mutant/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/palette/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/sentinel/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/specsmith/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/steward/README.md` to remove the duplicated lines.
-- Modified `.jules/personas/surveyor/README.md` to remove the duplicated lines.
+- `.jules/bin/build_index.py`
 
 ## 🧪 Verification receipts
 ```text
-$ grep -rn "Use this persona's \`notes/\` directory" .jules/personas/
-<no output>
-
-$ cat .jules/README.md | grep -A 5 "Agents may write"
-### Agents may write
-- unique per-run packet files
-- friction items under `.jules/friction/open/`
-- persona-local notes under `.jules/personas/<persona>/notes/`
-  *(Use this directory only for **reusable learnings** that later runs can benefit from. Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.)*
+{"command": "mkdir -p .jules/runs/archivist_jules"}
+{"command": "cat .jules/bin/build_index.py"}
+{"command": "cat .jules/friction/open/FRIC-20260413-001.md"}
+{"command": "python3 .jules/bin/build_index.py"}
+{"command": "cat .jules/index/generated/FRICTION_ROLLUP.md"}
+{"command": "cat .jules/index/generated/RUNS_ROLLUP.md"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation refactoring
-- Blast radius: Jules documentation only (no code or runtime changes)
-- Risk class: Low
-- Rollback: `git restore .jules/README.md .jules/personas/*/README.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`
+- Change shape: New functionality in tooling script
+- Blast radius: Only affects the `.jules` local build scripts; no product code impact
+- Risk class + why: Low. It's a scaffolding change reading markdown and writing markdown.
+- Rollback: Revert the changes to `.jules/bin/build_index.py`.
+- Gates run: `cargo xtask publish --plan --verbose`, `cargo xtask version-consistency`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo check`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/archivist_jules/envelope.json`
@@ -69,4 +51,4 @@ $ cat .jules/README.md | grep -A 5 "Agents may write"
 - `.jules/runs/archivist_jules/pr_body.md`
 
 ## 🔜 Follow-ups
-None.
+None
