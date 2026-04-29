@@ -1,0 +1,2 @@
+{"command": "npm test --prefix web/runner/", "output": "ok 20 - run messages require valid inputs, paths, or scan structures"}
+{"command": "cargo test -p tokmd-wasm --no-default-features", "output": "test result: ok. 5 passed; 0 failed"}
