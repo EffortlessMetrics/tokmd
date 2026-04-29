@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "learning": true,
+  "summary": "Fuzz tooling (cargo-fuzz) is unavailable in the environment. Created a corpus directory structure to enable future fuzzing once tooling is installed."
+}

@@ -1,0 +1,9 @@
+{"command": "cargo fuzz run || true", "output": "error: no such command: `fuzz`"}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"command": "cargo xtask publish --plan", "output": "Workspace version: 1.10.0-rc.1"}
+{"command": "cargo xtask version-consistency", "output": "Version consistency checks passed."}
+{"command": "cargo fmt -- --check", "output": ""}
+{"command": "cargo clippy -- -D warnings", "output": ""}
+{"command": "cargo test -p tokmd --test determinism_regression", "output": "test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s"}
+{"command": "cargo test -p tokmd --test determinism_hardening_w51", "output": "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s"}
+{"command": "cargo test -p tokmd --test determinism_hardening", "output": "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s"}
