@@ -754,6 +754,264 @@ proptest! {
 }
 
 // ============================================================================
+
+// ============================================================================
+// Effort types
+// ============================================================================
+
+fn arb_effort_model() -> impl Strategy<Value = EffortModel> {
+    prop_oneof![
+        Just(EffortModel::Cocomo81Basic),
+        Just(EffortModel::Cocomo2Early),
+        Just(EffortModel::Ensemble),
+    ]
+}
+
+fn arb_effort_confidence_level() -> impl Strategy<Value = EffortConfidenceLevel> {
+    prop_oneof![
+        Just(EffortConfidenceLevel::Low),
+        Just(EffortConfidenceLevel::Medium),
+        Just(EffortConfidenceLevel::High),
+    ]
+}
+
+fn arb_effort_driver_direction() -> impl Strategy<Value = EffortDriverDirection> {
+    prop_oneof![
+        Just(EffortDriverDirection::Raises),
+        Just(EffortDriverDirection::Lowers),
+        Just(EffortDriverDirection::Neutral),
+    ]
+}
+
+fn arb_effort_delta_classification() -> impl Strategy<Value = EffortDeltaClassification> {
+    prop_oneof![
+        Just(EffortDeltaClassification::Low),
+        Just(EffortDeltaClassification::Medium),
+        Just(EffortDeltaClassification::High),
+        Just(EffortDeltaClassification::Critical),
+    ]
+}
+
+proptest! {
+
+
+    /// EffortEstimateReport round-trips through JSON.
+    #[test]
+    fn effort_estimate_report_roundtrip(
+        model in arb_effort_model(),
+        total_lines in 0usize..100000,
+        effort_pm_p50 in 0.0f64..1000.0,
+        level in arb_effort_confidence_level()
+    ) {
+        let size_basis = tokmd_analysis_types::EffortSizeBasis {
+            total_lines,
+            authored_lines: total_lines,
+            generated_lines: 0,
+            vendored_lines: 0,
+            kloc_total: total_lines as f64 / 1000.0,
+            kloc_authored: total_lines as f64 / 1000.0,
+            generated_pct: 0.0,
+            vendored_pct: 0.0,
+            classification_confidence: level,
+            warnings: vec![],
+            by_tag: vec![],
+        };
+
+        let results = tokmd_analysis_types::EffortResults {
+            effort_pm_p50,
+            schedule_months_p50: 1.0,
+            staff_p50: 1.0,
+            effort_pm_low: 1.0,
+            effort_pm_p80: 1.0,
+            schedule_months_low: 1.0,
+            schedule_months_p80: 1.0,
+            staff_low: 1.0,
+            staff_p80: 1.0,
+        };
+
+        let confidence = EffortConfidence {
+            level,
+            reasons: vec![],
+            data_coverage_pct: None,
+        };
+
+        let assumptions = tokmd_analysis_types::EffortAssumptions {
+            notes: vec![],
+            overrides: std::collections::BTreeMap::new(),
+        };
+
+        let report = EffortEstimateReport {
+            model,
+            size_basis,
+            results,
+            confidence,
+            drivers: vec![],
+            assumptions,
+            delta: None,
+        };
+
+        let json = serde_json::to_string(&report).expect("serialize");
+        let parsed: EffortEstimateReport = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(report.model.to_string(), parsed.model.to_string());
+    }
+    /// EffortResults round-trips through JSON.
+    #[test]
+    fn effort_results_roundtrip(
+        effort_pm_p50 in 0.0f64..1000.0,
+        schedule_months_p50 in 0.0f64..100.0,
+        staff_p50 in 0.0f64..100.0,
+        effort_pm_low in 0.0f64..1000.0,
+        effort_pm_p80 in 0.0f64..1000.0,
+        schedule_months_low in 0.0f64..100.0,
+        schedule_months_p80 in 0.0f64..100.0,
+        staff_low in 0.0f64..100.0,
+        staff_p80 in 0.0f64..100.0
+    ) {
+        let results = tokmd_analysis_types::EffortResults {
+            effort_pm_p50,
+            schedule_months_p50,
+            staff_p50,
+            effort_pm_low,
+            effort_pm_p80,
+            schedule_months_low,
+            schedule_months_p80,
+            staff_low,
+            staff_p80,
+        };
+
+        let json = serde_json::to_string(&results).expect("serialize");
+        let parsed: tokmd_analysis_types::EffortResults = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert!((results.effort_pm_p50 - parsed.effort_pm_p50).abs() < 1e-10);
+        prop_assert!((results.schedule_months_p50 - parsed.schedule_months_p50).abs() < 1e-10);
+        prop_assert!((results.staff_p50 - parsed.staff_p50).abs() < 1e-10);
+    }
+    /// EffortDriver round-trips through JSON.
+    #[test]
+    fn effort_driver_roundtrip(
+        key in "[a-z_]{3,15}",
+        label in "[a-z A-Z]{5,30}",
+        weight in 0.1f64..10.0,
+        direction in arb_effort_driver_direction(),
+        evidence in "[a-z A-Z0-9]{10,50}"
+    ) {
+        let driver = EffortDriver {
+            key,
+            label,
+            weight,
+            direction,
+            evidence,
+        };
+
+        let json = serde_json::to_string(&driver).expect("serialize");
+        let parsed: EffortDriver = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(driver.key, parsed.key);
+        prop_assert_eq!(driver.label, parsed.label);
+        prop_assert!((driver.weight - parsed.weight).abs() < 1e-10);
+        prop_assert_eq!(driver.direction, parsed.direction);
+        prop_assert_eq!(driver.evidence, parsed.evidence);
+    }
+
+    /// EffortTagSizeRow round-trips through JSON.
+    #[test]
+    fn effort_tag_size_row_roundtrip(
+        tag in "[a-z0-9_-]{2,15}",
+        lines in 0usize..100000,
+        authored_lines in 0usize..100000,
+        pct_of_total in 0.0f64..1.0
+    ) {
+        let row = EffortTagSizeRow {
+            tag,
+            lines,
+            authored_lines,
+            pct_of_total,
+        };
+
+        let json = serde_json::to_string(&row).expect("serialize");
+        let parsed: EffortTagSizeRow = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(row.tag, parsed.tag);
+        prop_assert_eq!(row.lines, parsed.lines);
+        prop_assert_eq!(row.authored_lines, parsed.authored_lines);
+        prop_assert!((row.pct_of_total - parsed.pct_of_total).abs() < 1e-10);
+    }
+
+    /// EffortConfidence round-trips through JSON.
+    #[test]
+    fn effort_confidence_roundtrip(
+        level in arb_effort_confidence_level(),
+        reasons in prop::collection::vec("[a-z ]{5,30}", 0..5),
+        data_coverage_pct in prop::option::of(0.0f64..1.0)
+    ) {
+        let conf = EffortConfidence {
+            level,
+            reasons,
+            data_coverage_pct,
+        };
+
+        let json = serde_json::to_string(&conf).expect("serialize");
+        let parsed: EffortConfidence = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(conf.level, parsed.level);
+        prop_assert_eq!(conf.reasons, parsed.reasons);
+        if let (Some(a), Some(b)) = (conf.data_coverage_pct, parsed.data_coverage_pct) {
+            prop_assert!((a - b).abs() < 1e-10);
+        } else {
+            prop_assert_eq!(conf.data_coverage_pct, parsed.data_coverage_pct);
+        }
+    }
+
+    /// EffortDeltaReport round-trips through JSON.
+    #[test]
+    fn effort_delta_report_roundtrip(
+        base in "[a-f0-9]{40}",
+        head in "[a-f0-9]{40}",
+        files_changed in 0usize..1000,
+        modules_changed in 0usize..100,
+        langs_changed in 0usize..20,
+        hotspot_files_touched in 0usize..100,
+        coupled_neighbors_touched in 0usize..100,
+        blast_radius in 0.0f64..1.0,
+        classification in arb_effort_delta_classification(),
+        effort_pm_low in 0.0f64..1000.0,
+        effort_pm_est in 0.0f64..1000.0,
+        effort_pm_high in 0.0f64..1000.0
+    ) {
+        let delta = EffortDeltaReport {
+            base,
+            head,
+            files_changed,
+            modules_changed,
+            langs_changed,
+            hotspot_files_touched,
+            coupled_neighbors_touched,
+            blast_radius,
+            classification,
+            effort_pm_low,
+            effort_pm_est,
+            effort_pm_high,
+        };
+
+        let json = serde_json::to_string(&delta).expect("serialize");
+        let parsed: EffortDeltaReport = serde_json::from_str(&json).expect("deserialize");
+
+        prop_assert_eq!(delta.base, parsed.base);
+        prop_assert_eq!(delta.head, parsed.head);
+        prop_assert_eq!(delta.files_changed, parsed.files_changed);
+        prop_assert_eq!(delta.modules_changed, parsed.modules_changed);
+        prop_assert_eq!(delta.langs_changed, parsed.langs_changed);
+        prop_assert_eq!(delta.hotspot_files_touched, parsed.hotspot_files_touched);
+        prop_assert_eq!(delta.coupled_neighbors_touched, parsed.coupled_neighbors_touched);
+        prop_assert!((delta.blast_radius - parsed.blast_radius).abs() < 1e-10);
+        prop_assert_eq!(delta.classification, parsed.classification);
+        prop_assert!((delta.effort_pm_low - parsed.effort_pm_low).abs() < 1e-10);
+        prop_assert!((delta.effort_pm_est - parsed.effort_pm_est).abs() < 1e-10);
+        prop_assert!((delta.effort_pm_high - parsed.effort_pm_high).abs() < 1e-10);
+    }
+}
+
 // Schema version constant test
 // ============================================================================
 
