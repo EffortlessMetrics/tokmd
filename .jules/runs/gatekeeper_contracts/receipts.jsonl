@@ -1,0 +1,4 @@
+{"command": "cargo xtask docs --check", "output": "Documentation drift detected in /app/docs/reference-cli.md. Run `cargo xtask docs --update` to fix.", "note": "Initial state"}
+{"command": "python3 fix.py", "output": "", "note": "Replaced manual tables with HTML markers for xtask update"}
+{"command": "cargo xtask docs --update", "output": "Updated /app/docs/reference-cli.md", "note": "Applied xtask updates"}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date.", "note": "Verified documentation is now in sync with CLI parser"}
