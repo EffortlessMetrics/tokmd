@@ -352,3 +352,56 @@ jobs:
             exit 1
           fi
           echo "All required jobs passed (or were skipped)."
+
+  contributor-help:
+    name: Contributor Failure Guide
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    needs:
+      - msrv
+      - build
+      - build-macos
+      - feature-boundaries
+      - wasm-compile
+      - gate
+      - deny
+      - typos
+      - proptest-smoke
+      - publish-plan
+      - version-consistency
+      - docs-check
+      - nix-pr
+      - mutation
+    steps:
+      - name: Summarize CI results for contributors
+        env:
+          GH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          NEEDS_JSON: ${{ toJson(needs) }}
+        run: |
+          {
+            echo "## CI guide for contributors"
+            echo
+            echo "- Full run: ${GH_RUN_URL}"
+            echo
+            echo "### Job results"
+            python - <<'PY_SUMMARY'
+import json
+import os
+
+needs = json.loads(os.environ["NEEDS_JSON"])
+for name in sorted(needs):
+    result = needs[name].get("result", "unknown")
+    icon = {"success": "✅", "failure": "❌", "cancelled": "⚠️", "skipped": "⏭️"}.get(result, "❔")
+    print(f"- {icon} `{name}`: **{result}**")
+PY_SUMMARY
+            echo
+            echo "### Quick local repro commands"
+            echo '```bash'
+            echo "cargo xtask gate --check"
+            echo "cargo test --all-features --verbose"
+            echo "cargo xtask docs --check"
+            echo '```'
+            echo
+            echo "If the failing job is platform-specific, run the matching workflow commands from .github/workflows/ci.yml."
+          } >> "$GITHUB_STEP_SUMMARY"
+
