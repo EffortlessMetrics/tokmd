@@ -344,6 +344,31 @@ jobs:
       - mutation
       - feature-boundaries
     steps:
+      - name: Summarize CI results for contributors
+        run: |
+          {
+            echo "## CI Required Check Summary"
+            echo
+            echo "| Job | Result |"
+            echo "| --- | --- |"
+            echo "| MSRV Check | ${{ needs.msrv.result }} |"
+            echo "| Build & Test | ${{ needs.build.result }} |"
+            echo "| Build & Test (macOS) | ${{ needs.build-macos.result }} |"
+            echo "| Feature Boundaries | ${{ needs.feature-boundaries.result }} |"
+            echo "| Wasm Compile & Test | ${{ needs.wasm-compile.result }} |"
+            echo "| Quality Gate | ${{ needs.gate.result }} |"
+            echo "| Cargo Deny | ${{ needs.deny.result }} |"
+            echo "| Typos | ${{ needs.typos.result }} |"
+            echo "| Proptest Smoke | ${{ needs.proptest-smoke.result }} |"
+            echo "| Publish Surface | ${{ needs.publish-plan.result }} |"
+            echo "| Version consistency | ${{ needs.version-consistency.result }} |"
+            echo "| Docs Check | ${{ needs.docs-check.result }} |"
+            echo "| Nix PR Package Gate | ${{ needs.nix-pr.result }} |"
+            echo "| Mutation Testing (Required) | ${{ needs.mutation.result }} |"
+            echo
+            echo "If a job failed, open that job's logs for the exact failing command and copy-paste it locally (for example, \\`cargo xtask gate --check\\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Check overall status
         run: |
           # If any needed job failed or was cancelled, fail this job
