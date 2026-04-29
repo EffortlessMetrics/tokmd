@@ -46,8 +46,8 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         "total",
         totals.comments,
         totals.code + totals.comments,
-        group_ratio(&parents, |r| r.lang.clone(), |r| (r.comments, r.code)),
-        group_ratio(&parents, |r| r.module.clone(), |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| r.lang.as_str(), |r| (r.comments, r.code)),
+        group_ratio(&parents, |r| r.module.as_str(), |r| (r.comments, r.code)),
     );
 
     let whitespace = build_ratio_report(
@@ -56,12 +56,12 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         totals.code + totals.comments,
         group_ratio(
             &parents,
-            |r| r.lang.clone(),
+            |r| r.lang.as_str(),
             |r| (r.blanks, r.code + r.comments),
         ),
         group_ratio(
             &parents,
-            |r| r.module.clone(),
+            |r| r.module.as_str(),
             |r| (r.blanks, r.code + r.comments),
         ),
     );
@@ -70,8 +70,8 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         "total",
         totals.bytes,
         totals.lines,
-        group_rate(&parents, |r| r.lang.clone(), |r| (r.bytes, r.lines)),
-        group_rate(&parents, |r| r.module.clone(), |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| r.lang.as_str(), |r| (r.bytes, r.lines)),
+        group_rate(&parents, |r| r.module.as_str(), |r| (r.bytes, r.lines)),
     );
 
     let file_stats = build_file_stats(&parents);
@@ -242,16 +242,16 @@ fn build_rate_rows(map: BTreeMap<String, (usize, usize)>) -> Vec<RateRow> {
     rows
 }
 
-fn group_ratio<FKey, FVals>(
-    rows: &[&FileRow],
+fn group_ratio<'a, FKey, FVals>(
+    rows: &'a [&'a FileRow],
     key_fn: FKey,
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
-    FVals: Fn(&FileRow) -> (usize, usize),
+    FKey: Fn(&'a FileRow) -> &'a str,
+    FVals: Fn(&'a FileRow) -> (usize, usize),
 {
-    let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+    let mut map: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
     for row in rows {
         let key = key_fn(row);
         let (numer, denom_part) = vals_fn(row);
@@ -259,19 +259,19 @@ where
         entry.0 += numer;
         entry.1 += denom_part;
     }
-    map
+    map.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
 }
 
-fn group_rate<FKey, FVals>(
-    rows: &[&FileRow],
+fn group_rate<'a, FKey, FVals>(
+    rows: &'a [&'a FileRow],
     key_fn: FKey,
     vals_fn: FVals,
 ) -> BTreeMap<String, (usize, usize)>
 where
-    FKey: Fn(&FileRow) -> String,
-    FVals: Fn(&FileRow) -> (usize, usize),
+    FKey: Fn(&'a FileRow) -> &'a str,
+    FVals: Fn(&'a FileRow) -> (usize, usize),
 {
-    let mut map: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+    let mut map: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
     for row in rows {
         let key = key_fn(row);
         let (numer, denom) = vals_fn(row);
@@ -279,7 +279,7 @@ where
         entry.0 += numer;
         entry.1 += denom;
     }
-    map
+    map.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
 }
 
 fn build_file_stats(rows: &[&FileRow]) -> Vec<FileStatRow> {
