@@ -117,7 +117,7 @@ If you vendor dependencies (e.g., in `vendor/` or `node_modules/` that are check
 
 ```bash
 # Assuming 'vendor' is a top-level directory
-tokmd module --module-roots vendor,src --children collapse
+tokmd module --module-roots vendor,src --children parents-only
 ```
 
 Output:
