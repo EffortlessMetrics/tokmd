@@ -399,6 +399,13 @@ fn validate_in_memory_input_path(path: &str, idx: usize) -> Result<(), TokmdErro
         ));
     }
 
+    if path.bytes().any(|b| b == 0) {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a path without NUL bytes",
+        ));
+    }
+
     for component in std::path::Path::new(path).components() {
         match component {
             std::path::Component::Prefix(_) | std::path::Component::RootDir => {
@@ -432,6 +439,12 @@ fn validate_in_memory_input_path(path: &str, idx: usize) -> Result<(), TokmdErro
             return Err(TokmdError::invalid_field(
                 &field,
                 "a path without parent traversal (..)",
+            ));
+        }
+        if segment.contains(['\0', '\n', '\r']) {
+            return Err(TokmdError::invalid_field(
+                &field,
+                "a path without control characters",
             ));
         }
     }
@@ -572,9 +585,16 @@ fn parse_import_granularity(args: &Value, default: &str) -> Result<String, Tokmd
 fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
     // Use nested object if present, otherwise use root
     let obj = scan_arg_object(args);
+    let paths = parse_string_array(obj, "paths", vec![".".to_string()])?;
+    if paths.iter().any(|path| path.trim().is_empty()) {
+        return Err(TokmdError::invalid_field(
+            "paths",
+            "paths cannot contain empty or whitespace-only entries",
+        ));
+    }
 
     Ok(ScanSettings {
-        paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
+        paths,
         options: crate::settings::ScanOptions {
             excluded: parse_string_array(obj, "excluded", vec![])?,
             config: parse_config_mode(obj, ConfigMode::Auto)?,
@@ -1513,6 +1533,22 @@ mod tests {
         // Should return valid envelope
         assert!(parsed.get("ok").is_some());
         Ok(())
+    }
+
+    #[test]
+    fn in_memory_input_path_with_newline_rejected() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json("lang", "{\"inputs\":[{\"path\":\"bad\\nfile.rs\",\"text\":\"x\"}]}");
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        Ok(())
+    }
+
+    #[test]
+    fn parse_scan_settings_rejects_whitespace_path() {
+        let args = serde_json::json!({"paths": [" ", "src"]});
+        let err = parse_scan_settings(&args).expect_err("whitespace paths must fail");
+        assert!(err.to_string().contains("paths"));
     }
 
     // ========================================================================
