@@ -97,6 +97,22 @@ Hermetic fixtures in `crates/tokmd/tests/data/`:
 - Configuration files (Cargo.toml, .gitignore)
 - Copied to temp directory with `.git/` marker for gitignore testing
 
+
+## BDD Coverage and Traceability
+
+BDD-style scenarios are maintained across crates using `tests/bdd.rs` files (plus analysis module-local `bdd.rs` suites).
+
+Behavioral intent for those scenarios is defined in:
+
+- `docs/specification.md` (normative SPEC rules)
+- `docs/adrs/README.md` and `docs/adrs/*.md` (design rationale)
+
+When adding or changing BDD behavior:
+
+1. Update or add a SPEC entry.
+2. Add/update an ADR if the change is architectural.
+3. Update BDD scenarios to reflect acceptance behavior.
+
 ## Golden Snapshot Tests
 
 Using `insta` for output stability:
