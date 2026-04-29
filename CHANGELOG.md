@@ -11,15 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- GitHub Action control-plane support for explicit `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline` modes.
-- Browser/WASM capability matrix checks and runner contract guards for supported modes and analyze presets.
-- Additional deterministic receipt, analyze snapshot, and effort/property proof coverage.
+- GitHub Action mode dispatch for `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline`.
+- GitHub Action outputs for `receipt`, `summary`, `gate-verdict`, `cockpit-report`, `sensor-report`, and `baseline-report`.
+- GitHub Action base/head handling for cockpit and sensor workflows, including PR-base inference.
+- Browser/WASM capability matrix documentation for current runner support versus native-only commands.
+- Browser-runner validation checks that keep supported modes and analyze presets aligned with the capability matrix.
+- Deterministic snapshot coverage for `tokmd analyze` JSON and Markdown output.
+- Deterministic receipt coverage for `tokmd run` and `tokmd diff`.
+- BDD coverage for `tokmd analyze --preset estimate`.
+- Additional config-resolution, tokmd-types, effort-model, env-interpreter, and in-memory workflow proof coverage.
 - `run_json("version")` now exposes `analysis_schema_version` when `tokmd-core` is built with analysis support.
 
 ### Changed
 
-- Publish-surface proof now classifies product, contract, workflow, and capability crates explicitly.
+- Public crate surface is now enforced around product, contract, workflow, and capability crates.
+- Former support/helper crate families are collapsed into owner modules where appropriate.
+- GitHub Action omitted mode continues the legacy module + export behavior, while explicit modes run one surface at a time.
 - CLI reference docs are generated through checked `HELP` markers instead of manually maintained flag tables.
+- Release and publish checks now verify the 16 published crates as the intentional crates.io surface.
+- No-default-features integration tests are feature-gated so the CLI test matrix respects optional analysis-dependent commands.
+- Browser-runner payload validation stays rootless/in-memory and rejects native-only command shapes unless the capability matrix changes.
 - Roadmap and implementation docs now separate shipped browser/WASM support from follow-up browser runtime polish.
 
 ### Fixed
@@ -30,16 +41,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3
   - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
 - WASM timestamps now use real millisecond timestamps instead of silently emitting zero.
-- Bounded path/root handling rejects unsafe native, Git, and in-memory filesystem paths.
+- Bounded root/path handling rejects unsafe native, Git-listed, and MemFs/rootless paths consistently.
+- Git-listed paths are bounded under the validated root, including dirty-index and true-missing cases.
+- Metadata diagnostics preserve missing/broken-path classification instead of flattening useful path errors.
+- MemFs root semantics are explicit for `""`, `"."`, scoped subtrees, absolute paths, and parent traversal.
 - Action gate and baseline modes reject multi-path input where the underlying command accepts exactly one path.
+- Action cockpit and sensor base refs no longer assume `main` is fetched.
+- `check-ignore` now fails loudly on missing paths.
 - No-git baseline and `tokmd_git` resolution edge cases now resolve consistently.
 - No-default-features integration tests are gated to avoid false failures in unsupported feature profiles.
+- Redacted path extension handling is limited to avoid extension leakage.
+- Context budget validation rejects invalid negative or non-finite values.
+- FFI in-memory path handling is hardened at the boundary.
 
 ### Internal
 
+- Removed unused `pyo3-build-config` from `tokmd-python`.
+- Bumped dependency keepers including `jsonschema`, `clap_complete`, and `softprops/action-gh-release`.
+- Added cargo-mutants schema cleanup and proof hardening.
+- Added derived-report allocation cleanup.
+- Added cockpit LCOV merge-path performance cleanup.
 - Jules provenance policy was clarified: intentional `.jules/**` provenance is allowed, while normal patch PRs should not carry accidental run packets.
-- Cargo-mutants, dependency metadata, and release proof tooling were cleaned up.
-- Duplicate proof/docs branches were closed after their keepers landed.
+- Closed duplicate/stale PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, and docs-marker drift.
 
 ## [1.9.0] - 2026-03-27
 
@@ -47,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Browser/WASM product surface for `tokmd` via the new `tokmd-wasm` crate and `web/runner` browser runner
 - In-browser `lang`, `module`, `export`, and rootless `analyze` support for ordered in-memory inputs
-- Public GitHub repo ingestion in the browser through tree + contents APIs with explicit progress, caching, and partial-load reporting
+- Public GitHub repo ingestion in the browser through tree + contents APIs with deterministic in-memory input materialization and partial-load reporting
 
 ### Changed
 
