@@ -106,15 +106,19 @@ pub struct GlobalArgs {
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
     /// Language summary (default).
+    #[command(visible_alias = "ls")]
     Lang(CliLangArgs),
 
     /// Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`).
+    #[command(visible_alias = "mod")]
     Module(CliModuleArgs),
 
     /// Export a file-level dataset (CSV / JSONL / JSON).
+    #[command(visible_alias = "exp")]
     Export(CliExportArgs),
 
     /// Analyze receipts or paths to produce derived metrics.
+    #[command(visible_alias = "ana")]
     Analyze(CliAnalyzeArgs),
 
     /// Render a simple SVG badge for a metric.
@@ -124,18 +128,22 @@ pub enum Commands {
     Init(InitArgs),
 
     /// Generate shell completions.
+    #[command(visible_alias = "comp")]
     Completions(CompletionsArgs),
 
     /// Run a full scan and save receipts to a state directory.
     Run(RunArgs),
 
     /// Compare two receipts or runs.
+    #[command(visible_alias = "compare")]
     Diff(DiffArgs),
 
     /// Pack files into an LLM context window within a token budget.
+    #[command(visible_alias = "ctx")]
     Context(CliContextArgs),
 
     /// Check why a file is being ignored (for troubleshooting).
+    #[command(visible_alias = "why-ignore")]
     CheckIgnore(CliCheckIgnoreArgs),
 
     /// Output CLI schema as JSON for AI agents.
