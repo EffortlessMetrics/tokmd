@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+
+### Changed
+
+- Release publishability wording now states that `publish = false` is limited to non-production dev/tooling/fuzz packages outside the production crates.io closure.
+- Added a release-blocker note: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision (publish to crates.io or move out of production Cargo package status) before stable release.
+
 ## [1.9.0] - 2026-03-27
 
 ### Added

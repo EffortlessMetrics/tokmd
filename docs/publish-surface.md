@@ -20,7 +20,16 @@ A published crate is a support promise. A module folder is an architecture seam.
 
 ## Publication model
 
-`publish = false` is policy-only and valid only for crates that are truly outside the crates.io closure.
+### Package definitions
+
+- **Production package**: a Rust package used to build or ship a production deliverable (CLI, library, binding, wasm artifact, or release workflow artifact).
+- **Dev/tooling package**: a Rust package used only for local developer workflows, repository automation, or CI helper utilities.
+- **Fuzz/test package**: a Rust package used only for fuzzing, fixtures, property tests, or non-production validation harnesses.
+- **Binding package**: a Rust package that produces language/runtime bindings (for example npm or PyPI artifacts) and must be explicitly classified as production or external packaging glue.
+
+`publish = false` is policy-only and valid only for packages truly outside the production crates.io dependency closure.
+
+**Hard rule:** No production Rust package may be `publish = false`.
 
 For publishability, every intended public crate must have a full non-dev workspace dependency closure that references only:
 - classified published crates
@@ -107,12 +116,15 @@ compatibility target, but it is not the final product/contract/capability model.
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
 
-## Non-crates.io packages (intentional exceptions) (4)
+## Non-crates.io packages (intentional exceptions, pending binding-surface ADR) (4)
 
 - `tokmd-fuzz`
 - `tokmd-node`
 - `tokmd-python`
 - `xtask`
+
+`tokmd-fuzz` and `xtask` are classified as fuzz/dev tooling-only packages.
+`tokmd-node` and `tokmd-python` are binding packages and require an explicit ADR decision if they remain `publish = false` (publish to crates.io or move out of production Cargo package status).
 
 **Count:** 4 non-crates.io packages.
 
