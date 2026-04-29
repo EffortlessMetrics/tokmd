@@ -97,6 +97,15 @@ Hermetic fixtures in `crates/tokmd/tests/data/`:
 - Configuration files (Cargo.toml, .gitignore)
 - Copied to temp directory with `.git/` marker for gitignore testing
 
+
+## BDD Traceability
+
+Behavior specifications and scenario-to-test mappings live in `docs/specification-bdd.md`.
+
+- Use stable scenario IDs when adding or modifying BDD tests.
+- Ensure each user-visible behavior is linked to at least one executable scenario.
+- Update ADR context in `docs/adrs/0001-tier-facade-and-bdd-traceability.md` when architecture-level behavior policy changes.
+
 ## Golden Snapshot Tests
 
 Using `insta` for output stability:
