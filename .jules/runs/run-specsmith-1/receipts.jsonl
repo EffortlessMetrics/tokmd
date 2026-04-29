@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-analysis halstead:: --all-features", "outcome": "passed"}
+{"command": "cargo fmt-check", "outcome": "passed"}
+{"command": "git diff --check", "outcome": "passed"}
