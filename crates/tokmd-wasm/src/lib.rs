@@ -42,6 +42,12 @@ fn js_args_to_json(args: JsValue) -> Result<String, JsValue> {
         return Ok("{}".to_string());
     }
 
+    if let Some(raw_json) = args.as_string() {
+        serde_json::from_str::<serde_json::Value>(&raw_json)
+            .map_err(|err| to_js_error(format!("failed to parse JSON string arguments: {err}")))?;
+        return Ok(raw_json);
+    }
+
     JSON::stringify(&args)
         .map_err(|_| to_js_error("failed to serialize JS arguments"))?
         .as_string()
