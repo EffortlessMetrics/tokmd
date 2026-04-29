@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
+- Clarified release policy wording: `publish = false` is limited to dev/tooling/fuzz packages outside production and crates.io dependency closure.
+- Added release-blocker note: `tokmd-node` and `tokmd-python` require a binding-surface ADR decision (publish to crates.io or move outside production Cargo package status) before stable release under strict policy.
   - Added `analysis_facade` module in `tokmd-core` with renderer re-exports
   - Removed the direct analysis-renderer dependency from `tokmd` crate
   - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3

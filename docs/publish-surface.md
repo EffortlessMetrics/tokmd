@@ -249,3 +249,43 @@ Violations include:
 - workspace packages not classified in the forward policy model
 - stale forward policy entries after a package is removed
 - Cargo packaging validation failures
+
+## Production package classification additions
+
+To make the publish-surface policy machine-checkable and release-safe, use the
+following package classes in addition to the current forward policy classes.
+
+### Definitions
+
+- **production package**: a Rust package used to produce a shipped deliverable
+  (CLI/library artifact, wasm/browser artifact, or language binding artifact) or
+  participating in the non-dev build chain for one.
+- **dev/tooling package**: workspace-only helper used for development,
+  automation, release tooling, or repository maintenance; not in any production
+  non-dev dependency closure.
+- **fuzz/test package**: package used only for fuzzing, synthetic fixtures, or
+  dedicated test harnesses; not in any production non-dev dependency closure.
+- **binding package**: package that produces language binding deliverables
+  (e.g., npm/PyPI native extension outputs) and may or may not be a crates.io
+  product.
+
+### Hard production rule
+
+- **No production Rust package may be `publish = false`.**
+- `publish = false` is limited to dev/tooling/fuzz packages outside the
+  production and crates.io dependency closure.
+
+If a package participates in the production build chain, it must either:
+1. publish to crates.io,
+2. be collapsed into owner modules under a published crate, or
+3. be moved outside workspace Cargo production package status as external
+   packaging glue.
+
+### Binding decision note (current workspace)
+
+- `tokmd-node` and `tokmd-python` are currently binding packages with
+  `publish = false` and therefore require an explicit binding-surface ADR
+  decision if they remain unpublished.
+- Under strict production publishability policy, this is a release blocker until
+  they are either crates.io-publishable production crates or no longer treated as
+  production Rust workspace packages.
