@@ -194,7 +194,7 @@ pub struct DiffArgs {
     #[arg(value_name = "REF", num_args = 2)]
     pub refs: Vec<String>,
 
-    /// Output format.
+    /// Output format (default: md).
     #[arg(long, value_enum, default_value_t = DiffFormat::Md)]
     pub format: DiffFormat,
 
@@ -791,7 +791,7 @@ pub struct CockpitArgs {
     pub head: String,
 
     /// Output format.
-    #[arg(long, value_enum, default_value_t = CockpitFormat::Json)]
+    #[arg(long, value_enum, default_value_t = CockpitFormat::Md)]
     pub format: CockpitFormat,
 
     /// Output file (stdout if omitted).
@@ -844,11 +844,12 @@ pub struct BaselineArgs {
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum CockpitFormat {
-    /// JSON output with full metrics.
-    #[default]
-    Json,
     /// Markdown output for human readability.
+    #[default]
     Md,
+    /// JSON output with full metrics.
+    Json,
+    
     /// Section-based output for PR template filling.
     Sections,
 }
@@ -1133,8 +1134,8 @@ mod tests {
     }
 
     #[test]
-    fn cockpit_format_default_is_json() {
-        assert_eq!(CockpitFormat::default(), CockpitFormat::Json);
+    fn cockpit_format_default_is_md() {
+        assert_eq!(CockpitFormat::default(), CockpitFormat::Md);
     }
 
     #[test]
