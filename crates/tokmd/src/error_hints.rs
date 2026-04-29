@@ -175,6 +175,46 @@ fn suggestions(err: &Error) -> Vec<String> {
         );
     }
 
+    if haystack.contains("rate limit")
+        || haystack.contains("rate_limit")
+        || haystack.contains("too many requests")
+        || haystack.contains("http 429")
+        || haystack.contains("status 429")
+    {
+        push_hint(
+            &mut out,
+            "The upstream service is throttling requests. Wait briefly, then retry.",
+        );
+        push_hint(
+            &mut out,
+            "Reduce request burstiness (smaller batches, less parallelism) to avoid repeated 429s.",
+        );
+        push_hint(
+            &mut out,
+            "If available in your environment, honor provider retry windows such as `Retry-After`.",
+        );
+    }
+
+    if haystack.contains("timed out")
+        || haystack.contains("timeout")
+        || haystack.contains("temporar")
+        || haystack.contains("connection reset")
+        || haystack.contains("broken pipe")
+        || haystack.contains("dns")
+        || haystack.contains("service unavailable")
+        || haystack.contains("http 503")
+        || haystack.contains("status 503")
+    {
+        push_hint(
+            &mut out,
+            "This looks transient. Retry with exponential backoff and jitter.",
+        );
+        push_hint(
+            &mut out,
+            "Check network stability/VPN/proxy settings if retries keep failing.",
+        );
+    }
+
     if haystack.contains("toml") && (haystack.contains("parse") || haystack.contains("invalid")) {
         push_hint(
             &mut out,
@@ -332,5 +372,30 @@ mod tests {
         let rendered = format(&err);
         assert!(rendered.contains("Error:"));
         assert!(rendered.contains("Hints:"));
+    }
+
+    #[test]
+    fn suggests_for_rate_limit_errors() {
+        let err = anyhow!("HTTP 429 Too Many Requests");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("throttling requests")));
+        assert!(hints.iter().any(|h| h.contains("Reduce request burstiness")));
+        assert!(hints.iter().any(|h| h.contains("Retry-After")));
+    }
+
+    #[test]
+    fn suggests_for_transient_retry_errors() {
+        let err = anyhow!("request timed out while contacting remote service");
+        let hints = suggestions(&err);
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("Retry with exponential backoff and jitter"))
+        );
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("network stability/VPN/proxy settings"))
+        );
     }
 }
