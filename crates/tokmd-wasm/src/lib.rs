@@ -15,6 +15,10 @@ use serde_json::Value;
 use tokmd_core::CORE_ANALYSIS_SCHEMA_VERSION;
 use tokmd_core::error::{ResponseEnvelope, TokmdError};
 
+#[cfg(feature = "analysis")]
+const ROOTLESS_ANALYZE_PRESETS: &[&str] = &["estimate", "receipt"];
+
+
 fn to_js_error(message: impl Into<String>) -> JsValue {
     JsError::new(&message.into()).into()
 }
@@ -54,6 +58,11 @@ fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
     JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
 }
 
+
+fn capabilities_json() -> &'static str {
+    r#"{"modes":["lang","module","export","analyze"],"analyze":{"rootlessPresets":["estimate","receipt"]}}"#
+}
+
 #[cfg(feature = "analysis")]
 fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     let args: serde_json::Value =
@@ -63,7 +72,7 @@ fn validate_analyze_args_json(args_json: &str) -> Result<(), TokmdError> {
     match obj.get("preset").and_then(serde_json::Value::as_str) {
         Some(preset) if tokmd_core::supports_rootless_in_memory_analyze_preset(preset) => Ok(()),
         Some(preset) => Err(TokmdError::not_implemented(format!(
-            "tokmd-wasm currently supports analyze only with preset=\"receipt\" or preset=\"estimate\" for in-memory inputs; got {preset:?}"
+            "tokmd-wasm currently supports analyze only with preset values {ROOTLESS_ANALYZE_PRESETS:?} for in-memory inputs; got {preset:?}"
         ))),
         None => Ok(()),
     }
@@ -106,7 +115,13 @@ pub fn analysis_schema_version() -> u32 {
     CORE_ANALYSIS_SCHEMA_VERSION
 }
 
-/// Run a tokmd mode and return the raw JSON response envelope.
+/// Return the wasm capability matrix for rootless in-memory workflows.
+#[wasm_bindgen(js_name = capabilities)]
+pub fn capabilities() -> Result<JsValue, JsValue> {
+    JSON::parse(capabilities_json())
+    .map_err(|_| to_js_error("failed to parse tokmd wasm capabilities JSON"))
+}
+
 #[wasm_bindgen(js_name = runJson)]
 pub fn run_json(mode: &str, args_json: &str) -> String {
     if let Err(err) = validate_mode_args_json(mode, args_json) {
@@ -171,6 +186,14 @@ mod tests {
                 "text": "# TODO: keep smoke\nprint('ok')\n"
             }
         ])
+    }
+
+    #[test]
+    fn capabilities_reports_rootless_surface() {
+        let obj: Value = serde_json::from_str(capabilities_json()).expect("capabilities JSON value");
+
+        assert_eq!(obj["modes"][0], "lang");
+        assert_eq!(obj["analyze"]["rootlessPresets"], json!(["estimate", "receipt"]));
     }
 
     #[test]
@@ -337,8 +360,8 @@ mod tests {
         )
         .expect_err("unsupported preset should be rejected");
 
-        assert!(err.message.contains("preset=\"receipt\""));
-        assert!(err.message.contains("preset=\"estimate\""));
+        assert!(err.message.contains("preset values"));
+        assert!(err.message.contains("estimate"));
     }
 
     #[cfg(feature = "analysis")]
@@ -359,13 +382,13 @@ mod tests {
             envelope["error"]["message"]
                 .as_str()
                 .expect("error message")
-                .contains("preset=\"receipt\"")
+                .contains("preset values")
         );
         assert!(
             envelope["error"]["message"]
                 .as_str()
                 .expect("error message")
-                .contains("preset=\"estimate\"")
+                .contains("estimate")
         );
     }
 
@@ -713,8 +736,8 @@ mod wasm_tests {
         .expect("js error");
 
         let message = err.message().as_string().expect("js string message");
-        assert!(message.contains("preset=\"receipt\""));
-        assert!(message.contains("preset=\"estimate\""));
+        assert!(message.contains("preset values"));
+        assert!(message.contains("estimate"));
     }
 
     #[cfg(feature = "analysis")]
@@ -755,7 +778,7 @@ mod wasm_tests {
         .expect("js error");
 
         let message = err.message().as_string().expect("js string message");
-        assert!(message.contains("preset=\"receipt\""));
-        assert!(message.contains("preset=\"estimate\""));
+        assert!(message.contains("preset values"));
+        assert!(message.contains("estimate"));
     }
 }
