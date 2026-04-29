@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "changed_files": [
+    ".jules/friction/open/carto_superseded.md"
+  ],
+  "reasoning": "The target to sync the implementation plan with the shipped reality was superseded by PR #1339. As per constraints, falling back to a learning PR and recording the friction.",
+  "outcome": "learning PR"
+}

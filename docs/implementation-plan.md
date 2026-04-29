@@ -314,8 +314,6 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ## Phase 5: WASM-Ready Core + Browser Runner (v1.9.0)
 
-**Status:** ✅ Complete
-
 **Goal**: Turn the new host-abstraction seam into a real in-memory/WASM execution path and ship a browser-first runner.
 
 ### In-Memory Core
@@ -332,17 +330,17 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [x] Route scan and walk through host-provided I/O traits
-- [x] Add wasm CI builds and parity checks against native output
-- [x] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
-- [x] Build a browser runner with progress, cancel, and download flows
-- [x] Add cache/guardrail policy for archive size, file count, and bytes read
+- [ ] Route scan and walk through host-provided I/O traits
+- [ ] Add wasm CI builds and parity checks against native output
+- [ ] Expose JS-friendly wasm bindings for `lang`, `module`, `export`, and `analyze`
+- [ ] Build a browser runner with progress, cancel, and download flows
+- [ ] Add cache/guardrail policy for archive size, file count, and bytes read
 
 ### Tests
 
-- [x] Parity tests: native vs wasm receipt equivalence on fixture repos
-- [x] Integration tests: in-memory scan path using `MemFs`
-- [x] Browser smoke tests: worker execution and tree + contents ingestion
+- Parity tests: native vs wasm receipt equivalence on fixture repos
+- Integration tests: in-memory scan path using `MemFs`
+- Browser smoke tests: worker execution and tree + contents ingestion
 
 ---
 
