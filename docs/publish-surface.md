@@ -16,6 +16,17 @@ The packaging direction is explicit:
 
 This is the hard rule: publishing correctness is defined by dependency closure, not by a broad `publish = false` pass.
 
+## Production package taxonomy
+
+- **Production Rust package**: a Cargo package used to produce a user-facing or supported deliverable (CLI, library, binding, runtime artifact, or release pipeline output).
+- **Dev/tooling package**: a package used only for repository maintenance, developer workflows, or CI tooling.
+- **Fuzz/test package**: a package used only for fuzzing, property testing, fixture generation, or validation harnesses.
+- **Binding package**: a package that builds language bindings (for example npm or PyPI extension artifacts). Binding packages are production packages unless explicitly reclassified as external packaging wrappers outside production Cargo package status.
+
+### Hard invariant
+
+**No production Rust package may be `publish = false`.** Unpublished workspace packages are limited to dev/tooling/fuzz-only classes outside production and crates.io dependency closure.
+
 A published crate is a support promise. A module folder is an architecture seam.
 
 ## Publication model
@@ -107,7 +118,7 @@ compatibility target, but it is not the final product/contract/capability model.
 Support is now a compatibility classification for existing automation. It is
 not the final desired category.
 
-## Non-crates.io packages (intentional exceptions) (4)
+## Non-crates.io packages (intentional exceptions pending binding ADRs) (4)
 
 - `tokmd-fuzz`
 - `tokmd-node`
@@ -115,6 +126,8 @@ not the final desired category.
 - `xtask`
 
 **Count:** 4 non-crates.io packages.
+
+Under the strict production-publishability rule, `xtask` and `tokmd-fuzz` remain valid dev/tooling/fuzz exceptions. `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain `publish = false`; absent that waiver, they are release blockers for stable.
 
 ## Compatibility target surface
 
@@ -160,6 +173,7 @@ decisions remain future work.
 
 ## Hard rule
 
+- No production Rust package may be `publish = false`.
 - Do not leave non-published internal crates on the production path as `publish = false` placeholders.
 - Absorb non-essential packaging noise crates into SRP module folders under the owning public crate.
 
