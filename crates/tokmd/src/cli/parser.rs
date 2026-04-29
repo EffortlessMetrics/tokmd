@@ -851,6 +851,8 @@ pub enum CockpitFormat {
     Md,
     /// Section-based output for PR template filling.
     Sections,
+    /// Compact PR comment markdown.
+    Comment,
 }
 
 #[derive(Args, Debug, Clone)]

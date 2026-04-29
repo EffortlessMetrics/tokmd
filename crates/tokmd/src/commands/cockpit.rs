@@ -94,6 +94,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             cli::CockpitFormat::Json => tokmd_cockpit::render::render_json(&receipt)?,
             cli::CockpitFormat::Md => tokmd_cockpit::render::render_markdown(&receipt),
             cli::CockpitFormat::Sections => tokmd_cockpit::render::render_sections(&receipt),
+            cli::CockpitFormat::Comment => tokmd_cockpit::render::render_comment_md(&receipt),
         };
 
         if let Some(artifacts_dir) = &args.artifacts_dir {
