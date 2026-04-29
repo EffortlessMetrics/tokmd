@@ -48,6 +48,19 @@ jobs:
           comment: 'true'
 ```
 
+RC consumer example (pins both action ref and release asset version):
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1.10.0rc1
+  with:
+    version: '1.10.0rc1'
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
+Stable consumers can keep using `@v1` or pin a stable tag such as `@v1.10.0` with `version: '1.10.0'`.
+
 Inputs:
 
 | Input | Required | Default | Purpose |
@@ -103,9 +116,13 @@ Gate mode:
     comment: 'false'
 ```
 
-Cockpit mode:
+Cockpit mode (recommended checkout for external PR workflows):
 
 ```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
 - uses: EffortlessMetrics/tokmd@v1
   with:
     mode: cockpit
@@ -115,9 +132,13 @@ Cockpit mode:
     comment: 'false'
 ```
 
-Sensor mode:
+Sensor mode (recommended checkout for external PR workflows):
 
 ```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
 - uses: EffortlessMetrics/tokmd@v1
   with:
     mode: sensor
