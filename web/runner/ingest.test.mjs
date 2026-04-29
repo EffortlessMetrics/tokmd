@@ -286,6 +286,58 @@ test("fetchGitHubRepoInputs forwards token auth and tracks auth mode", async () 
     );
 });
 
+test("fetchGitHubRepoInputs partitions cache entries by auth token", async () => {
+    clearGitHubRepoCache();
+
+    const calls = [];
+    const fetchImpl = async (url, options = {}) => {
+        calls.push(options.headers?.Authorization ?? null);
+
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            const suffix = options.headers?.Authorization?.includes("second")
+                ? "second"
+                : "first";
+            return textResponse(`# ${suffix}\n`);
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "first-token",
+        fetchImpl,
+    });
+
+    const second = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "second-token",
+        fetchImpl,
+    });
+
+    const third = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "first-token",
+        fetchImpl,
+    });
+
+    assert.equal(first.ingest.cache.hit, false);
+    assert.equal(second.ingest.cache.hit, false);
+    assert.equal(third.ingest.cache.hit, true);
+    assert.equal(first.inputs[0].text, "# first\n");
+    assert.equal(second.inputs[0].text, "# second\n");
+    assert.equal(calls.length, 4);
+});
+
 test("fetchGitHubRepoInputs surfaces auth and private-repo access errors", async () => {
     clearGitHubRepoCache();
 
