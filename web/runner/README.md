@@ -44,6 +44,38 @@ tokmd-wasm-<tag>.tar.gz
 
 `v1.9.0` becomes `tokmd-wasm-v1.9.0.tar.gz`. Extracting this archive into `vendor/tokmd-wasm` gives the exact layout expected by `web/runner/worker.js` without rebuilding from source.
 
+## GitHub ingest cache semantics
+
+`fetchGitHubRepoInputs()` keeps an in-memory cache (`repoCache`) of in-flight and
+completed loads keyed by a stable JSON key.
+
+### Cache key
+
+The key is built from:
+
+- `owner`
+- `repo`
+- `ref`
+- `authMode` (`"token"` or `"anonymous"`)
+- effective limits (`maxFiles`, `maxBytes`, `maxFileBytes`)
+
+Equivalent requests with the same normalized values share the same cache entry
+for the lifetime of the page.
+
+### Invalidation and lifecycle
+
+- **Success path:** the resolved result remains in memory and is reused.
+- **Failure path:** rejected loads are evicted immediately to allow retries.
+- **Manual invalidation:** call `clearGitHubRepoCache()` to drop all entries.
+- **Process boundary:** cache is not persisted; page refresh/new worker starts
+  with an empty cache.
+
+### Concurrency behavior
+
+The cache stores the in-flight promise, not only final values. Concurrent
+callers for the same key coalesce onto a single network fetch and each waiter
+can still cancel independently through its own `AbortSignal`.
+
 ## Go deeper
 
 Tutorial: [Root README](../../README.md)
