@@ -47,6 +47,8 @@
 //! assert_eq!(parsed["ok"], true);
 //! ```
 
+#![forbid(unsafe_code)]
+
 use std::path::{Path, PathBuf};
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};

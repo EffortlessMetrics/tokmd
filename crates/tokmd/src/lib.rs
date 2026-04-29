@@ -18,6 +18,8 @@
 //!
 //! This crate should contain minimal business logic.
 
+#![forbid(unsafe_code)]
+
 #[cfg(feature = "analysis")]
 mod analysis_explain;
 #[cfg(feature = "analysis")]
