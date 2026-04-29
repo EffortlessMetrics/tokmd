@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
   - Added `analysis_facade` module in `tokmd-core` with renderer re-exports
   - Removed the direct analysis-renderer dependency from `tokmd` crate
@@ -32,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - Hardened browser runner boot and wasm export guardrails so unsupported bundles fail explicitly instead of degrading silently
 - Locked the post-`#807` release-prep lane to a single re-anchored proof chain from current `origin/main`
 
@@ -45,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - Locked rounded COCOMO effort semantics with a retained regression seed and synced the schema/version docs that describe the estimate surface
 - Replaced remaining unwrap/panic-heavy test paths in `tokmd-analysis-types` and the FFI envelope helpers, and hardened a Windows-sensitive traversal property test
 
@@ -78,6 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - Added explicit error hints for missing diff sources and invalid diff references
 - Locked deterministic review-plan ordering and removed remaining unwrap-heavy test paths in `tokmd-config`
 - Refreshed doctest examples and trimmed a stray unused dev-dependency in the analysis Git adapter
@@ -91,6 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - `xtask bump`: corrected `TOOL_SCHEMA_VERSION` path to `crates/tokmd-tool-schema/src/lib.rs`
 - `xtask bump`: fixed help text for `COCKPIT_SCHEMA_VERSION` path and added missing schema constants
 - Strengthened schema location test to fail on any non-existent path reference
@@ -114,6 +124,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - `cargo xtask publish` now handles HTTP 429 rate-limit responses from crates.io by parsing the `retry-after` timestamp, sleeping until the cooldown expires, and retrying automatically instead of failing hard. This prevents partial releases when publishing many crates in sequence.
 
 ## [1.7.1] - 2026-02-24
@@ -131,6 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - Fixed clippy and lint failures to keep strict `--all-targets` check coverage clean.
 - Generalized dependency and publishability checks in `cargo xtask publish`.
 
@@ -153,6 +167,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - Cockpit verdict rendering: exhaustive `GateStatus` match instead of wildcard catch-all
 - `xtask bump`: fixed stale `ANALYSIS_SCHEMA_VERSION` current value (4 → 7), corrected `COCKPIT_SCHEMA_VERSION` path, added missing schema entries (`CONTEXT_SCHEMA_VERSION`, `CONTEXT_BUNDLE_SCHEMA_VERSION`, `HANDOFF_SCHEMA_VERSION`)
 
@@ -181,6 +197,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - **xtask Dry-Run Reliability**: `cargo xtask publish --dry-run` now validates each crate via `cargo package --list`, avoiding false failures from crates.io dependency propagation during lockstep release preparation.
 - **Cockpit Determinism Baseline Validation**: malformed baseline JSON now fails loudly, and determinism auto-skip is limited to explicit cockpit receipts (`"mode": "cockpit"`).
 
@@ -196,6 +214,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - **Bindings Analyze Path**: Python/Node binding tests now validate successful analyze receipts instead of obsolete `not_implemented` behavior
 
 ## [1.6.1] - 2026-02-16
@@ -217,6 +237,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - **Error Serialization**: `ResponseEnvelope::to_json()` fallback now emits actual error code and message instead of placeholders
 
 ## [1.6.0] - 2026-02-11
@@ -270,6 +292,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Publish Surface Policy**: `publish = false` is limited to dev/tooling/fuzz packages outside the production and crates.io dependency closure; production Rust packages must be published or collapsed into owner modules before release.
+- **Binding Surface Follow-up**: `tokmd-node` and `tokmd-python` require an explicit binding-surface ADR decision if they remain non-crates.io workspace packages.
 - **Rust Function Regex**: Fixed pattern to match `(_|XID_Start) XID_Continue*` per Rust language spec; `fn _private_helper()` now correctly detected
 - **Cross-Platform Docs**: xtask docs task now normalizes `tokmd.exe` → `tokmd` and CRLF → LF for platform-independent reference output
 

@@ -11,7 +11,7 @@ The packaging direction is explicit:
 - publish product, contract, workflow, and capability boundaries;
 - keep internal SRP seams as module families under owner crates;
 - treat conditional public crates as pending boundary decisions, not default promises;
-- keep dev/tool/binding packages off the crates.io dependency closure;
+- keep dev/tool/fuzz packages off the crates.io dependency closure;
 - enforce publishability with a closure proof, not package-count aesthetics.
 
 This is the hard rule: publishing correctness is defined by dependency closure, not by a broad `publish = false` pass.
@@ -20,7 +20,9 @@ A published crate is a support promise. A module folder is an architecture seam.
 
 ## Publication model
 
-`publish = false` is policy-only and valid only for crates that are truly outside the crates.io closure.
+`publish = false` is policy-only and valid only for packages that are truly outside both the production build closure and the crates.io closure.
+
+**Hard invariant:** no production Rust package may be `publish = false`.
 
 For publishability, every intended public crate must have a full non-dev workspace dependency closure that references only:
 - classified published crates
@@ -28,6 +30,16 @@ For publishability, every intended public crate must have a full non-dev workspa
 - crates intentionally outside the product surface only when they are not in the non-dev closure
 
 If a published crate depends on anything else through a normal or build dependency, that dependency must be classified for publication or merged into an owner module first. Dev-dependencies are not part of the publish closure.
+
+
+## Package definitions
+
+- **Production package**: a Rust package that contributes directly to a shipped user-facing artifact (CLI, library API, wasm artifact, or binding artifact).
+- **Dev/tooling package**: a package used only for repository automation, maintenance, release tooling, or local developer workflows.
+- **Fuzz/test package**: a package used exclusively for fuzzing, property testing, benchmarks, or other validation harnesses.
+- **Binding package**: a package that builds native integration surfaces for ecosystems such as Node/npm or Python/PyPI.
+
+Binding packages must be classified explicitly as either production packages (publishable) or external packaging wrappers that are outside the production Cargo surface by ADR decision.
 
 ## Forward policy classes
 
@@ -74,6 +86,13 @@ No packaged internal module families remain in the compatibility surface.
 ### Dev-only packages (0)
 
 No dev-only workspace packages remain in the current surface.
+
+### Production non-crates.io packages (2, decision pending)
+
+- `tokmd-node`
+- `tokmd-python`
+
+These are binding packages and require an explicit binding-surface ADR decision if they remain `publish = false`.
 
 ## Current compatibility surface (16 crates published + 4 non-crates.io)
 
