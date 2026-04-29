@@ -171,7 +171,7 @@ proptest! {
 
 // Property 2: Monotonicity
 //
-// Invariant: Adding more invalid inputs should never reduce the error severity
+// Invariant: Adding more invalid inputs should never reduce the error count
 // or produce a success result where an error previously occurred.
 proptest! {
     /// Test that invalid boolean field type produces error (not silent fallback).

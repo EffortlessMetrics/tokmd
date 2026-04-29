@@ -2,10 +2,10 @@
   "name": "@tokmd/browser-runner",
   "private": true,
   "type": "module",
-  "version": "1.9.0",
   "scripts": {
     "build:wasm": "wasm-pack build ../../crates/tokmd-wasm --target web --out-dir ../../web/runner/vendor/tokmd-wasm --features analysis",
     "check": "node --check ./main.js && node --check ./worker.js",
     "test": "node --test ./*.test.mjs"
-  }
+  },
+  "version": "1.9.0"
 }

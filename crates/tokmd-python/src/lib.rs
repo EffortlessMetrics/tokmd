@@ -1592,8 +1592,6 @@ mod tests {
             let dict = PyDict::new(py);
             dict.set_item("test", 42).unwrap();
 
-            // If we reach here, GIL is still valid
-
             // Original result should be available
             let _ = result;
         });
