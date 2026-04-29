@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use std::{
     collections::{BTreeMap, HashSet},
     fs,
@@ -222,14 +224,24 @@ fn read_tracked_paths(workspace_root: &Path) -> Result<Vec<String>> {
         .context("`git ls-files -z` produced non-UTF-8 output")
 }
 
+fn to_lowercase_cow(s: &str) -> Cow<'_, str> {
+    if s.chars().any(|c| c.is_uppercase()) {
+        Cow::Owned(s.to_lowercase())
+    } else {
+        Cow::Borrowed(s)
+    }
+}
+
 fn detect_case_insensitive_collisions(paths: Vec<String>) -> Vec<Vec<String>> {
     let mut by_lowercase = BTreeMap::<String, Vec<String>>::new();
 
     for path in paths {
-        by_lowercase
-            .entry(path.to_lowercase())
-            .or_default()
-            .push(path);
+        let lower = to_lowercase_cow(&path);
+        if let Some(entries) = by_lowercase.get_mut(lower.as_ref()) {
+            entries.push(path);
+        } else {
+            by_lowercase.insert(lower.into_owned(), vec![path]);
+        }
     }
 
     by_lowercase
