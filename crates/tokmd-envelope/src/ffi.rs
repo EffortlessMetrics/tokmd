@@ -86,11 +86,23 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
         .and_then(Value::as_str)
         .unwrap_or("Unknown error");
 
-    if let Some(details) = error_obj.get("details").and_then(Value::as_str) {
+    let mut formatted = if let Some(details) = error_obj.get("details").and_then(Value::as_str) {
         format!("[{code}] {message}: {details}")
     } else {
         format!("[{code}] {message}")
+    };
+
+    if matches!(code, "rate_limit" | "rate_limited" | "too_many_requests") {
+        if let Some(retry_after) = error_obj.get("retry_after_seconds").and_then(Value::as_u64) {
+            formatted.push_str(&format!(" Retry after about {retry_after}s."));
+        } else if let Some(retry_after) = error_obj.get("retry_after").and_then(Value::as_str) {
+            formatted.push_str(&format!(" Retry after {retry_after}."));
+        } else {
+            formatted.push_str(" Retry after a short delay and reduce request concurrency.");
+        }
     }
+
+    formatted
 }
 
 /// Extract `data` from an already-parsed envelope.
@@ -238,6 +250,34 @@ mod tests {
         assert_eq!(
             format_error_message(Some(&err)),
             "[invalid_settings] Invalid value for 'from': expected a string: Check the spelling."
+        );
+    }
+
+
+    #[test]
+    fn format_error_message_adds_rate_limit_guidance_without_retry_after() {
+        let err = json!({
+            "code": "rate_limit",
+            "message": "Too many requests"
+        });
+
+        assert_eq!(
+            format_error_message(Some(&err)),
+            "[rate_limit] Too many requests Retry after a short delay and reduce request concurrency."
+        );
+    }
+
+    #[test]
+    fn format_error_message_adds_retry_after_seconds_for_rate_limit() {
+        let err = json!({
+            "code": "too_many_requests",
+            "message": "Quota exceeded",
+            "retry_after_seconds": 42
+        });
+
+        assert_eq!(
+            format_error_message(Some(&err)),
+            "[too_many_requests] Quota exceeded Retry after about 42s."
         );
     }
 
