@@ -179,12 +179,27 @@ function normalizeToken(value) {
     return trimmed ? trimmed : null;
 }
 
-function buildCacheKey({ owner, repo, ref, limits, authMode }) {
+function tokenPartition(token) {
+    if (!token) {
+        return "anonymous";
+    }
+
+    let hash = 2166136261;
+    for (let index = 0; index < token.length; index += 1) {
+        hash ^= token.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+    }
+
+    return `token:${(hash >>> 0).toString(16)}`;
+}
+
+function buildCacheKey({ owner, repo, ref, limits, authMode, token }) {
     return JSON.stringify({
         owner,
         repo,
         ref,
         auth: authMode ?? "anonymous",
+        authPartition: tokenPartition(token),
         ...limits,
     });
 }
@@ -579,7 +594,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
     const signal = options.signal;
     const onProgress = options.onProgress;
     const authMode = token ? "token" : "anonymous";
-    const cacheKey = buildCacheKey({ owner, repo, ref, limits, authMode });
+    const cacheKey = buildCacheKey({ owner, repo, ref, limits, authMode, token });
 
     throwIfAborted(signal);
 
