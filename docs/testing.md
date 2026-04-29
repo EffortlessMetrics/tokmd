@@ -39,6 +39,19 @@ This document describes the testing infrastructure and strategy for tokmd.
 | `cargo-mutants` | Mutation testing | `.cargo/mutants.toml` |
 | `tempfile` | Isolated test fixtures | Various |
 
+
+## BDD Specifications and ADRs
+
+Behavior-driven contracts are documented in:
+
+- [`docs/specifications/bdd-implementation-spec.md`](./specifications/bdd-implementation-spec.md)
+
+Architecture Decision Records for BDD policy and traceability live in:
+
+- [`docs/adrs/ADR-0001-bdd-specification-and-traceability.md`](./adrs/ADR-0001-bdd-specification-and-traceability.md)
+
+Use these documents as the documentation baseline when adding or refactoring any `bdd*.rs` tests.
+
 ## Unit Tests
 
 In-module tests for domain logic:
