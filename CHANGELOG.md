@@ -22,17 +22,16 @@ Release candidate for `v1.10.0` (`v1.10.0rc1`).
 - Deterministic snapshot coverage for `tokmd analyze` JSON and Markdown output.
 - Deterministic receipt coverage for `tokmd run` and `tokmd diff`.
 - BDD coverage for `tokmd analyze --preset estimate`.
-- Additional config-resolution, tokmd-types, effort-model, env-interpreter, and in-memory workflow proof coverage.
+- Additional config-resolution, tokmd-types, effort-model, env-interpreter, module-children, and in-memory workflow proof coverage.
 - `run_json("version")` now exposes `analysis_schema_version` when `tokmd-core` is built with analysis support.
 
 ### Changed
 
+- Collapsed the previous support-crate sprawl into owner crates and SRP module families, including analysis leaf crates, rendering helpers, content/walk/fun/substrate helpers, and tool-schema helpers.
 - Public crate surface is now enforced around product, contract, workflow, and capability crates.
-- Former support/helper crate families are collapsed into owner modules where appropriate, including analysis leaf crates, rendering helpers, content/walk/fun/substrate helpers, and tool-schema helpers.
-- Internal crates are marked `publish = false`, while release and publish checks distinguish current and target public/support surfaces.
+- Internal crates are marked `publish = false`, while publish-surface verification and package-list proof treat the 16 published crates as the intentional crates.io boundary.
 - GitHub Action omitted mode continues the legacy module + export behavior, while explicit modes run one surface at a time.
 - CLI reference docs are generated through checked `HELP` markers instead of manually maintained flag tables.
-- Release and publish checks now verify the 16 published crates as the intentional crates.io surface.
 - No-default-features integration tests are feature-gated so the CLI test matrix respects optional analysis-dependent commands.
 - Browser-runner payload validation stays rootless/in-memory and rejects native-only command shapes unless the capability matrix changes.
 - Roadmap and implementation docs now separate shipped browser/WASM support from follow-up browser runtime polish.
@@ -44,34 +43,40 @@ Release candidate for `v1.10.0` (`v1.10.0rc1`).
 - Git-listed paths are bounded under the validated root, including dirty-index and true-missing cases.
 - Metadata diagnostics preserve missing/broken-path classification instead of flattening useful path errors.
 - MemFs root semantics are explicit for `""`, `"."`, scoped subtrees, absolute paths, and parent traversal.
+- FFI in-memory path handling rejects absolute paths and parent traversal at the boundary.
+- Core workflows now default empty scan path lists to the current directory instead of reaching an upstream empty-path panic.
+- Halstead tokenization handles CJK / multibyte text adjacent to operators without panicking on invalid UTF-8 byte slicing.
+- Redacted path extension handling is limited to avoid extension leakage.
+- Context budget validation rejects invalid negative or non-finite values.
 - Action gate and baseline modes reject multi-path input where the underlying command accepts exactly one path.
 - Action cockpit and sensor base refs no longer assume `main` is fetched.
 - `check-ignore` now fails loudly on missing paths.
 - No-git baseline and `tokmd_git` resolution edge cases now resolve consistently.
 - No-default-features integration tests are gated to avoid false failures in unsupported feature profiles.
-- Gate JSON pointer parsing now follows strict RFC 6901 token rules, and comparison failures include clearer diagnostics.
-- Cockpit `range_mode` parsing rejects invalid values instead of silently accepting drift.
-- Browser-runner errors preserve/extract codes from structured errors, duck-typed objects, and real `Error` instances.
-- Empty core scan paths default to the current directory.
-- Halstead tokenization handles CJK characters correctly.
+- `tokmd-gate` now rejects malformed RFC 6901 pointer escapes and ambiguous array index tokens.
+- Gate rule comparison failures now surface diagnostic messages for missing or invalid operands while preserving explicit rule messages.
+- Cockpit `range_mode` parsing now validates accepted two-dot / three-dot values and fails clearly on invalid settings.
+- Browser-runner runtime errors now preserve duck-typed `message` and `code` fields across worker / WASM boundaries.
 - Receipt normalizers tolerate harmless whitespace differences in determinism tests.
 - `normalize_path` prefix behavior has mutant-catching regression coverage.
-- Redacted path extension handling is limited to avoid extension leakage.
-- Context budget validation rejects invalid negative or non-finite values.
-- FFI in-memory path handling is hardened at the boundary.
 
 ### Internal
 
 - Removed unused `pyo3-build-config` from `tokmd-python`.
+- Removed redundant `tokio_rt` from `tokmd-node` and tightened `tokmd-wasm` dependency edges.
 - Bumped dependency keepers including `jsonschema`, `clap_complete`, and `softprops/action-gh-release`.
-- Added cargo-mutants schema cleanup and proof hardening.
+- Updated cargo-mutants configuration for the current schema and restored mutation-test gate compatibility.
+- Updated cargo-deny metadata by removing deprecated/stale license configuration and reducing release-check warning noise.
 - Added derived-report allocation cleanup.
 - Added cockpit LCOV merge-path performance cleanup.
+- Added version-consistency allocation cleanup.
 - Removed the vulnerable RSA fixture dependency and added committed-fixture blob checks.
-- Forbid unsafe code at primary interfaces.
-- Consolidated Jules ledgers/instructions and generated run index rollups.
+- Added unsafe-code guardrails at primary interfaces.
+- Expanded Action self-tests across omitted mode, explicit modes, artifact outputs, inferred refs, and multi-path rejection rules.
 - Jules provenance policy was clarified: intentional `.jules/**` provenance is allowed, while normal patch PRs should not carry accidental run packets.
-- Closed duplicate/stale PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, and docs-marker drift.
+- Consolidated Jules persona guidance and run/provenance indexing so intentional learning packets are distinguishable from runtime debris.
+- Added/updated the Jules run index builder to aggregate historical ledgers without rewriting provenance history.
+- Closed duplicate/stale PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, docs-marker drift, and stale architecture-doc updates.
 
 ## [1.9.2] - 2026-04-14
 

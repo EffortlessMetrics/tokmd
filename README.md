@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 
-`tokmd` turns a source tree into stable receipts you can diff, analyze, archive, gate, and pack for downstream automation. It starts with code inventory, then keeps going: saved artifacts, derived metrics, PR review surfaces, policy checks, sensor outputs, and browser-safe context bundles.
+`tokmd` turns a source tree into stable receipts you can diff, analyze, archive, gate, and pack for downstream automation. It starts with code inventory, then keeps going: saved artifacts, derived metrics, PR review surfaces, policy checks, sensor outputs, LLM-ready context bundles, and a browser-safe in-memory analysis slice.
 
 ## GitHub Action
 
