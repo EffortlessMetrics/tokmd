@@ -363,6 +363,22 @@ fn compute_overall_status(
 // Diff coverage gate
 // =============================================================================
 
+#[cfg(feature = "git")]
+fn merge_lcov_record(
+    lcov_data: &mut BTreeMap<String, BTreeMap<usize, usize>>,
+    file: String,
+    lines: BTreeMap<usize, usize>,
+) {
+    match lcov_data.entry(file) {
+        std::collections::btree_map::Entry::Occupied(mut entry) => {
+            entry.get_mut().extend(lines);
+        }
+        std::collections::btree_map::Entry::Vacant(entry) => {
+            entry.insert(lines);
+        }
+    }
+}
+
 /// Compute diff coverage gate.
 /// Looks for coverage artifacts (lcov.info, coverage.json, cobertura.xml) and parses them.
 #[cfg(feature = "git")]
@@ -456,21 +472,13 @@ fn compute_diff_coverage_gate(
             && let Some(file) = current_file.take()
         {
             let lines = std::mem::take(&mut current_lines);
-            if let Some(entry) = lcov_data.get_mut(&file) {
-                entry.extend(lines);
-            } else {
-                lcov_data.insert(file, lines);
-            }
+            merge_lcov_record(&mut lcov_data, file, lines);
         }
     }
 
     if let Some(file) = current_file.take() {
         let lines = std::mem::take(&mut current_lines);
-        if let Some(entry) = lcov_data.get_mut(&file) {
-            entry.extend(lines);
-        } else {
-            lcov_data.insert(file, lines);
-        }
+        merge_lcov_record(&mut lcov_data, file, lines);
     }
 
     // 4. Intersect added lines with LCOV hits
