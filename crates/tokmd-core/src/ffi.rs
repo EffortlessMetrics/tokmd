@@ -327,6 +327,7 @@ fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, Tok
             .and_then(Value::as_str)
             .ok_or_else(|| TokmdError::invalid_field(&format!("inputs[{idx}].path"), "a string"))?
             .to_string();
+        validate_in_memory_input_path(&path, idx)?;
         let text = input.get("text");
         let base64 = input.get("base64");
 
@@ -364,6 +365,75 @@ fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, Tok
     }
 
     Ok(Some(inputs))
+}
+
+fn validate_in_memory_input_path(path: &str, idx: usize) -> Result<(), TokmdError> {
+    let field = format!("inputs[{idx}].path");
+
+    if path.is_empty() {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a non-empty relative file path",
+        ));
+    }
+
+    if path.starts_with('/') || path.starts_with('\\') {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a relative path, not an absolute path",
+        ));
+    }
+
+    if looks_like_windows_drive_path(path) {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a relative path without a Windows drive prefix",
+        ));
+    }
+
+    for component in std::path::Path::new(path).components() {
+        match component {
+            std::path::Component::Prefix(_) | std::path::Component::RootDir => {
+                return Err(TokmdError::invalid_field(
+                    &field,
+                    "a relative path, not an absolute path",
+                ));
+            }
+            std::path::Component::ParentDir => {
+                return Err(TokmdError::invalid_field(
+                    &field,
+                    "a path without parent traversal (..)",
+                ));
+            }
+            std::path::Component::CurDir | std::path::Component::Normal(_) => {}
+        }
+    }
+
+    if path
+        .split(['/', '\\'])
+        .all(|segment| segment.is_empty() || segment == ".")
+    {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a path that resolves to a file",
+        ));
+    }
+
+    for segment in path.split(['/', '\\']) {
+        if segment == ".." {
+            return Err(TokmdError::invalid_field(
+                &field,
+                "a path without parent traversal (..)",
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn looks_like_windows_drive_path(path: &str) -> bool {
+    let bytes = path.as_bytes();
+    bytes.len() >= 2 && bytes[1] == b':' && bytes[0].is_ascii_alphabetic()
 }
 
 /// Parse a ChildrenMode field strictly.
@@ -1233,6 +1303,133 @@ mod tests {
         let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], false);
         assert_eq!(parsed["error"]["code"], "invalid_settings");
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_absolute_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "/absolute/path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("absolute path")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_backslash_root_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "\\absolute\\path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("absolute path")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_windows_drive_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "C:\\absolute\\path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("Windows drive prefix")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_parent_traversal() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "../out/path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("parent traversal")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_backslash_parent_traversal()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "..\\out\\path.rs", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("parent traversal")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_empty_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("non-empty")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_dot_only_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            r#"{"inputs": [{"path": "./.", "text": "fn main() {}"}]}"#,
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("resolves to a file")
+        );
         Ok(())
     }
 
