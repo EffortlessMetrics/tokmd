@@ -33,7 +33,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.x** | ✅ Complete | Deep test expansion across the workspace, sensor determinism, and the first `tokmd-io-port` seam. |
 | **v1.8.0** | ✅ Complete | Effort estimation, estimate preset/reporting, `tokmd-io-port` seam work, and release/devex hardening. |
 | **v1.9.0** | ✅ Complete | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
-| **v1.10.0** | ✅ Complete | CI control plane, bounded trust hardening, WASM truth, and proof stability. |
+| **v1.10.0-rc.1** | 🚢 RC | CI control plane, bounded trust hardening, WASM truth, and proof stability release candidate. |
+| **v1.10.0** | 🔜 Planned | Stable promotion after release-candidate proof. |
 | **v1.11.0** | 🔭 Planned | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
@@ -506,11 +507,11 @@ UX work is explicitly **incremental and non-breaking**:
 - No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
 - No mutation testing or other heavy tooling in-browser.
 
-## v1.10.0 — CI Control Plane, Trust Hardening, and Proof Stability
+## v1.10.0-rc.1 — CI Control Plane, Trust Hardening, and Proof Stability
 
-**Goal:** Cut a stable release train after the Action, path-trust, WASM, publish-surface, and proof-hardening work landed.
+**Goal:** Cut a release candidate after the Action, path-trust, WASM, publish-surface, and proof-hardening work landed.
 
-### What shipped in v1.10.0
+### What is in v1.10.0-rc.1
 
 - [x] GitHub Action explicit modes for `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline`.
 - [x] Bounded path/root handling across native, Git, and in-memory flows.

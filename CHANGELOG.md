@@ -7,13 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.10.0] - 2026-04-29
+## [1.10.0-rc.1] - 2026-04-29
+
+Release candidate for `v1.10.0` (`v1.10.0rc1`).
 
 ### Added
 
 - GitHub Action mode dispatch for `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline`.
 - GitHub Action outputs for `receipt`, `summary`, `gate-verdict`, `cockpit-report`, `sensor-report`, and `baseline-report`.
 - GitHub Action base/head handling for cockpit and sensor workflows, including PR-base inference.
+- GitHub Action test workflow coverage for expanded modes, outputs, artifact behavior, and path handling.
 - Browser/WASM capability matrix documentation for current runner support versus native-only commands.
 - Browser-runner validation checks that keep supported modes and analyze presets aligned with the capability matrix.
 - Deterministic snapshot coverage for `tokmd analyze` JSON and Markdown output.
@@ -25,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Public crate surface is now enforced around product, contract, workflow, and capability crates.
-- Former support/helper crate families are collapsed into owner modules where appropriate.
+- Former support/helper crate families are collapsed into owner modules where appropriate, including analysis leaf crates, rendering helpers, content/walk/fun/substrate helpers, and tool-schema helpers.
+- Internal crates are marked `publish = false`, while release and publish checks distinguish current and target public/support surfaces.
 - GitHub Action omitted mode continues the legacy module + export behavior, while explicit modes run one surface at a time.
 - CLI reference docs are generated through checked `HELP` markers instead of manually maintained flag tables.
 - Release and publish checks now verify the 16 published crates as the intentional crates.io surface.
@@ -35,11 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
-  - Added `analysis_facade` module in `tokmd-core` with renderer re-exports
-  - Removed the direct analysis-renderer dependency from `tokmd` crate
-  - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3
-  - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
 - WASM timestamps now use real millisecond timestamps instead of silently emitting zero.
 - Bounded root/path handling rejects unsafe native, Git-listed, and MemFs/rootless paths consistently.
 - Git-listed paths are bounded under the validated root, including dirty-index and true-missing cases.
@@ -50,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `check-ignore` now fails loudly on missing paths.
 - No-git baseline and `tokmd_git` resolution edge cases now resolve consistently.
 - No-default-features integration tests are gated to avoid false failures in unsupported feature profiles.
+- Gate JSON pointer parsing now follows strict RFC 6901 token rules, and comparison failures include clearer diagnostics.
+- Cockpit `range_mode` parsing rejects invalid values instead of silently accepting drift.
+- Browser-runner errors preserve/extract codes from structured errors, duck-typed objects, and real `Error` instances.
+- Empty core scan paths default to the current directory.
+- Halstead tokenization handles CJK characters correctly.
+- Receipt normalizers tolerate harmless whitespace differences in determinism tests.
+- `normalize_path` prefix behavior has mutant-catching regression coverage.
 - Redacted path extension handling is limited to avoid extension leakage.
 - Context budget validation rejects invalid negative or non-finite values.
 - FFI in-memory path handling is hardened at the boundary.
@@ -61,8 +67,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added cargo-mutants schema cleanup and proof hardening.
 - Added derived-report allocation cleanup.
 - Added cockpit LCOV merge-path performance cleanup.
+- Removed the vulnerable RSA fixture dependency and added committed-fixture blob checks.
+- Forbid unsafe code at primary interfaces.
+- Consolidated Jules ledgers/instructions and generated run index rollups.
 - Jules provenance policy was clarified: intentional `.jules/**` provenance is allowed, while normal patch PRs should not carry accidental run packets.
 - Closed duplicate/stale PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, and docs-marker drift.
+
+## [1.9.2] - 2026-04-14
+
+### Fixed
+
+- GitHub Action path handling was polished for released action usage.
+- README guidance now distinguishes the action ref from the downloaded `tokmd` binary version.
+
+## [1.9.1] - 2026-04-13
+
+### Added
+
+- GitHub Action Marketplace publish surface.
+- Browser runner support for base64 in-memory inputs.
+- Additional executable doctests and docs-as-tests for public APIs, context, diff, check-ignore, cockpit, and tutorial examples.
+- Deterministic ordering coverage for format output, TODO tags, git commits, effort models, and model data generation.
+
+### Changed
+
+- PyO3 stack updated to `0.28.3`.
+- `jsonschema` features were tightened to drop unnecessary network and crypto crates.
+- Workspace dependency pins were normalized.
+- Analysis and redaction hot paths received allocation cleanups.
+
+### Fixed
+
+- **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
+  - Added `analysis_facade` module in `tokmd-core` with renderer re-exports
+  - Removed the direct analysis-renderer dependency from `tokmd` crate
+  - Restored proper tier hierarchy: Tier 5 -> Tier 4 -> Tier 3
+  - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
+- FFI calls no longer panic on non-object JSON payloads.
+- Browser runner protocol keeps `requestId` on error responses and extracts exact error codes.
+- `--no-default-features` builds were repaired by decoupling git utilities and feature-gating unsupported tests.
+- `--redact all` hides module roots and structural row names.
+- CI, format, and clippy gates were restored after docs and PyO3 updates.
 
 ## [1.9.0] - 2026-03-27
 
