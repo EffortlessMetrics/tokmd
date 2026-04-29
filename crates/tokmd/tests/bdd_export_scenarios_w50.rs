@@ -1,3 +1,4 @@
+//! Spec/ADR links: see `docs/specifications.md` and `docs/adrs/ADR-001-specification-traceability.md`.
 //! BDD-style scenario tests for the `export` command.
 //!
 //! Each test follows the Given/When/Then pattern to verify key user-facing

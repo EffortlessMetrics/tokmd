@@ -1,4 +1,5 @@
 #![cfg(feature = "analysis")]
+//! Spec/ADR links: see `docs/specifications.md` and `docs/adrs/ADR-001-specification-traceability.md`.
 
 //! BDD-style scenario tests documenting user-facing behaviour.
 //!
