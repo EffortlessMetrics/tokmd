@@ -39,7 +39,7 @@ jobs:
 
       - uses: EffortlessMetrics/tokmd@v1
         with:
-          version: 'x.y.z'
+          version: '1.10.0'
           paths: .
           module-roots: crates,packages
           top: '20'
@@ -92,6 +92,17 @@ Notes:
     packages
   ```
 
+Release candidate example (`v1.10.0rc1`):
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1.10.0rc1
+  with:
+    version: '1.10.0rc1'
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
 Gate mode:
 
 ```yaml
@@ -106,8 +117,13 @@ Gate mode:
 Cockpit mode:
 
 ```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
 - uses: EffortlessMetrics/tokmd@v1
   with:
+    version: '1.10.0'
     mode: cockpit
     base: origin/main
     head: HEAD
@@ -118,8 +134,13 @@ Cockpit mode:
 Sensor mode:
 
 ```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
 - uses: EffortlessMetrics/tokmd@v1
   with:
+    version: '1.10.0'
     mode: sensor
     base: origin/main
     head: HEAD
