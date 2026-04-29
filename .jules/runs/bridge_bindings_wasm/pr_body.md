@@ -1,52 +1,41 @@
 ## 💡 Summary
-Aligned web runner validation logic with the capabilities supported by tokmd core. The runtime now properly accepts run payloads that utilize `inputs`, `paths`, or `scan` objects instead of artificially restricting them strictly to `inputs`.
+jules: record bridge learning on web runner message validation 🌉
+The web runner's payload validation rules conflict with some internal guidelines, but per #1367, loosening the payload to accept `paths` or `scan` is blocked until the capability matrix explicitly supports it.
 
 ## 🎯 Why
-According to system memory and cross-surface capabilities: "In the `tokmd` `web/runner`, run message arguments can be passed via `inputs` (in-memory file arrays), `paths` (string arrays), or `scan` objects." However, `messages.js` explicitly required only `inputs` arrays, causing valid configuration drifts between what the backend could handle and what the runner verified.
+Agent memory indicated that `isRunMessage` must accept `paths` and `scan`. However, PR review confirmed this behavior is obsolete and the runner remains an in-memory input surface. Native path/scan payloads must stay rejected. I am submitting this as a learning PR to document the conflicting guidelines.
 
 ## 🔎 Evidence
 File path: `web/runner/messages.js`
-Observed: `isRunArgsForMode` hard-enforced `inputs` and returned false for `paths` or `scan`.
+Observed: `isRunArgsForMode` hard-enforces `inputs`. Review comment stated "Superseded by the current browser-runner contract on main and by the #1367 review disposition. The runner remains an in-memory input surface; native path/scan payloads should stay rejected unless the capability matrix changes first."
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Support checking whether valid payloads such as `inputs`, `paths`, or `scan` options are present in the `hasValidPayloadType` capability before rejecting them in `isRunArgsForMode`.
-- Fits the repo and shard since this resolves a structural gap between Rust expectations and runner parsing.
-- Trade-offs: Increases complexity slightly in Javascript validation, but unlocks accurate usage patterns.
+### Option A
+- Modify validation logic to allow `paths` and `scan`.
+- Trade-offs: Bypasses the active browser-runner contract and #1367.
 
-### Option B
-- Record friction item but make no changes to runner logic.
-- When to choose: If adding support in WASM/Javascript causes breaking changes.
-- Trade-offs: Maintains the cross-surface drift without unlocking real paths/scan support.
+### Option B (recommended)
+- Record a friction item.
+- When to choose: When a planned fix is blocked by a deliberate architectural decision or contract.
+- Trade-offs: Respects the repository's governance and schema invariants.
 
 ## ✅ Decision
-Chose Option A to eliminate the drift and correctly authorize `inputs`, `paths`, or `scan` in standard JS payloads, aligning `messages.js` with the stated runtime capabilities.
+Chose Option B to abort the unauthorized code patch and instead log the friction item.
 
 ## 🧱 Changes made (SRP)
-- `web/runner/messages.js`: Updated `isRunArgsForMode`, `hasValidPayloadType`, and `isScanOptions` to support the multiple payload properties.
-- `web/runner/messages.test.mjs`: Adjusted assertions to expect `true` for messages that send `paths` and `scan`.
+- Created `.jules/friction/open/web_runner_messages.md`
 
 ## 🧪 Verification receipts
 ```text
-> test
-> node --test ./*.test.mjs
-
-...
-# tests 45
-# suites 0
-# pass 44
-# fail 0
-# cancelled 0
-# skipped 1
-# todo 0
+Recorded friction item rather than code change.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Structural / Capability Enablement
-- Blast radius: `web/runner` compatibility alignment
-- Risk class: Low, loosens artificial payload restriction cleanly
-- Rollback: Revert to require strictly `inputs`.
-- Gates run: `npm test --prefix web/runner`
+- Change shape: Documentation / Learning
+- Blast radius: None (No code changes)
+- Risk class: Informational
+- Rollback: N/A
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/bridge_bindings_wasm/envelope.json`
@@ -54,6 +43,7 @@ Chose Option A to eliminate the drift and correctly authorize `inputs`, `paths`,
 - `.jules/runs/bridge_bindings_wasm/receipts.jsonl`
 - `.jules/runs/bridge_bindings_wasm/result.json`
 - `.jules/runs/bridge_bindings_wasm/pr_body.md`
+- `.jules/friction/open/web_runner_messages.md`
 
 ## 🔜 Follow-ups
 None.

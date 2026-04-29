@@ -1,2 +1,3 @@
 {"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "envelope.json created", "output": ""}
 {"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "npm test --prefix web/runner", "output": "# tests 45\n# pass 44\n# skipped 1"}
+{"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "git restore web/runner", "output": ""}

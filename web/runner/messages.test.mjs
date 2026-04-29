@@ -179,7 +179,7 @@ test("run messages require explicit in-memory inputs", () => {
             mode: "lang",
             args: { paths: ["src/lib.rs"] },
         }),
-        true
+        false
     );
     assert.equal(
         isRunMessage({
@@ -192,7 +192,7 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
-        true
+        false
     );
     assert.equal(
         isRunMessage({

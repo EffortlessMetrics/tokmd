@@ -1,13 +1,8 @@
 {
-  "outcome": "success",
+  "outcome": "learning_pr",
   "files_changed": [
-    "web/runner/messages.js",
-    "web/runner/messages.test.mjs"
+    ".jules/friction/open/web_runner_messages.md"
   ],
-  "verification_commands": [
-    "npm test --prefix web/runner"
-  ],
-  "gates_run": [
-    "npm test --prefix web/runner"
-  ]
+  "verification_commands": [],
+  "gates_run": []
 }

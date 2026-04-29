@@ -1,10 +1,10 @@
 # Decision
 
 ## Option A
-Update `isRunArgsForMode` in `web/runner/messages.js` to correctly accept `inputs` (in-memory file arrays), `paths` (string arrays), or `scan` objects as valid run arguments, according to the memory guideline: "In the `tokmd` `web/runner`, run message arguments can be passed via `inputs` (in-memory file arrays), `paths` (string arrays), or `scan` objects. Validation logic (e.g., `isRunMessage`) must accept payloads utilizing any of these valid structures, not strictly requiring `inputs` in all cases." Also update `messages.test.mjs` to reflect this change.
+Update `isRunArgsForMode` in `web/runner/messages.js` to correctly accept `inputs` (in-memory file arrays), `paths` (string arrays), or `scan` objects as valid run arguments.
 
 ## Option B
-Do not fix `web/runner/messages.js` but create a learning PR documenting the friction.
+Do not fix `web/runner/messages.js` but create a learning PR documenting the friction. The #1367 review disposition superseded this request, meaning the runner must remain an in-memory input surface and reject native path/scan payloads until the capability matrix explicitly supports it.
 
 ## Decision
-Choose Option A to fix the missing drift between expected run message capabilities and the implemented `web/runner` verification.
+Choose Option B to follow the updated review disposition. The change is obsolete. I will document this friction as a learning PR instead.
