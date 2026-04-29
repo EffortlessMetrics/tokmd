@@ -86,11 +86,30 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
         .and_then(Value::as_str)
         .unwrap_or("Unknown error");
 
-    if let Some(details) = error_obj.get("details").and_then(Value::as_str) {
+    let mut msg = if let Some(details) = error_obj.get("details").and_then(Value::as_str) {
         format!("[{code}] {message}: {details}")
     } else {
         format!("[{code}] {message}")
+    };
+
+    match code {
+        "rate_limit" => {
+            let retry_after = error_obj.get("retry_after_seconds").and_then(Value::as_u64);
+            if let Some(seconds) = retry_after {
+                msg.push_str(&format!(
+                    " Retry after {seconds}s or lower request concurrency."
+                ));
+            } else {
+                msg.push_str(" Retry with backoff or lower request concurrency.");
+            }
+        }
+        "timeout" | "network_error" | "service_unavailable" => {
+            msg.push_str(" This may be transient; retry with backoff.");
+        }
+        _ => {}
     }
+
+    msg
 }
 
 /// Extract `data` from an already-parsed envelope.
@@ -238,6 +257,31 @@ mod tests {
         assert_eq!(
             format_error_message(Some(&err)),
             "[invalid_settings] Invalid value for 'from': expected a string: Check the spelling."
+        );
+    }
+
+    #[test]
+    fn format_error_message_rate_limit_includes_retry_guidance() {
+        let err = json!({
+            "code": "rate_limit",
+            "message": "Too many requests"
+        });
+        assert_eq!(
+            format_error_message(Some(&err)),
+            "[rate_limit] Too many requests Retry with backoff or lower request concurrency."
+        );
+    }
+
+    #[test]
+    fn format_error_message_rate_limit_with_retry_after_seconds() {
+        let err = json!({
+            "code": "rate_limit",
+            "message": "Too many requests",
+            "retry_after_seconds": 12
+        });
+        assert_eq!(
+            format_error_message(Some(&err)),
+            "[rate_limit] Too many requests Retry after 12s or lower request concurrency."
         );
     }
 
