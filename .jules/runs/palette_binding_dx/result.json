@@ -1,0 +1,5 @@
+{
+  "target": "web/runner",
+  "issue": "Duck-typed errors from Web Workers lose prototype chain and are not handled correctly by runtime.js and worker.js, causing missing messages. However, PR #1170 merged similar fixes.",
+  "fix": "Abandoned work. Creating learning PR."
+}
