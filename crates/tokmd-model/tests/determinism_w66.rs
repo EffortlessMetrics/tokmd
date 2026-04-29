@@ -4,6 +4,7 @@
 //! regardless of insertion order.
 
 use proptest::prelude::*;
+use tokmd_model::{sort_file_rows, sort_lang_rows, sort_module_rows};
 use tokmd_types::*;
 
 // -- Helpers --
@@ -61,18 +62,6 @@ fn totals_from_rows(rows: &[LangRow]) -> Totals {
         tokens,
         avg_lines: lines.checked_div(files).unwrap_or(0),
     }
-}
-
-fn sort_lang_rows(rows: &mut [LangRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
-}
-
-fn sort_module_rows(rows: &mut [ModuleRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
-}
-
-fn sort_file_rows(rows: &mut [FileRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 }
 
 // -- 1. Lang rows: different insertion order -> same sorted output --
