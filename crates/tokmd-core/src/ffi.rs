@@ -71,7 +71,15 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
     }
 }
 
+const MAX_ARGS_JSON_BYTES: usize = 16 * 1024 * 1024;
+
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
+    let normalized_mode = sanitize_mode(mode);
+    if args_json.len() > MAX_ARGS_JSON_BYTES {
+        return Err(TokmdError::invalid_json(
+            "JSON payload exceeds maximum size of 16 MiB",
+        ));
+    }
     // Parse common scan settings from the JSON
     let args: Value =
         serde_json::from_str(args_json).map_err(|err| TokmdError::invalid_json(err.to_string()))?;
@@ -85,7 +93,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Extract scan settings (shared by all modes)
     let scan = parse_scan_settings(&args)?;
 
-    match mode {
+    match normalized_mode.as_str() {
         "lang" => {
             let settings = parse_lang_settings(&args)?;
             let receipt = if let Some(inputs) = inputs.as_deref() {
@@ -165,12 +173,20 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
             });
             Ok(version_info)
         }
-        _ => Err(TokmdError::unknown_mode(mode)),
+        _ => Err(TokmdError::unknown_mode(&normalized_mode)),
     }
 }
 
 fn scan_arg_object(args: &Value) -> &Value {
     args.get("scan").unwrap_or(args)
+}
+
+fn sanitize_mode(mode: &str) -> String {
+    mode.trim()
+        .chars()
+        .filter(|ch| !ch.is_control())
+        .collect::<String>()
+        .to_ascii_lowercase()
 }
 
 // ============================================================================
@@ -1574,17 +1590,20 @@ mod tests {
     }
 
     #[test]
-    fn case_sensitive_mode() -> Result<(), Box<dyn std::error::Error>> {
-        // Test that modes are case-sensitive
+    fn mode_is_case_insensitive() -> Result<(), Box<dyn std::error::Error>> {
         let result = run_json("LANG", r#"{"paths": ["."]}"#);
         let parsed: Value = serde_json::from_str(&result)?;
-        assert_eq!(parsed["ok"], false);
-        assert_eq!(parsed["error"]["code"], "unknown_mode");
-
-        // Lowercase should work
-        let result = run_json("lang", r#"{"paths": ["."]}"#);
-        let parsed: Value = serde_json::from_str(&result)?;
         assert_eq!(parsed["ok"], true);
+        Ok(())
+    }
+
+    #[test]
+    fn oversized_json_payload_is_rejected() -> Result<(), Box<dyn std::error::Error>> {
+        let payload = format!(r#"{{"blob":"{}"}}"#, "x".repeat(MAX_ARGS_JSON_BYTES));
+        let result = run_json("lang", &payload);
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_json");
         Ok(())
     }
 }
