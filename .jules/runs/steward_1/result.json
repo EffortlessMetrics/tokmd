@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "changed_files": [
+    "deny.toml"
+  ],
+  "gates": [
+    "cargo deny check licenses",
+    "cargo xtask docs --check",
+    "cargo xtask version-consistency"
+  ],
+  "learning": false
+}
