@@ -23,6 +23,20 @@ fn is_interactive() -> bool {
 }
 
 #[cfg(feature = "ui")]
+fn emit_progress_event(msg: &str) {
+    if std::env::var("TOKMD_PROGRESS_EVENTS").is_ok() {
+        eprintln!("[progress] {msg}");
+    }
+}
+
+#[cfg(not(feature = "ui"))]
+fn emit_progress_event(msg: &str) {
+    if std::env::var("TOKMD_PROGRESS_EVENTS").is_ok() {
+        eprintln!("[progress] {msg}");
+    }
+}
+
+#[cfg(feature = "ui")]
 mod ui_impl {
     use super::is_interactive;
     use indicatif::{ProgressBar, ProgressStyle};
@@ -62,8 +76,10 @@ mod ui_impl {
 
         /// Set the progress message.
         pub fn set_message(&self, msg: impl Into<String>) {
+            let msg = msg.into();
+            super::emit_progress_event(&msg);
             if let Some(bar) = &self.bar {
-                bar.set_message(msg.into());
+                bar.set_message(msg);
             }
         }
 
@@ -191,7 +207,10 @@ mod ui_impl {
         }
 
         /// Set the progress message (no-op without `ui` feature).
-        pub fn set_message(&self, _msg: impl Into<String>) {}
+        pub fn set_message(&self, msg: impl Into<String>) {
+            let msg = msg.into();
+            super::emit_progress_event(&msg);
+        }
 
         /// Finish and clear the spinner (no-op without `ui` feature).
         pub fn finish_and_clear(&self) {}
