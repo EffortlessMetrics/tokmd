@@ -261,7 +261,8 @@ Embed them in your own README:
 `tokmd-wasm` and `web/runner` expose a narrower browser-safe slice of the product.
 
 - Supported today: `lang`, `module`, `export`, and browser-safe `analyze` presets on ordered in-memory inputs.
-- Public repo ingestion uses GitHub tree and contents APIs with built-in caching, progress tracking, and auth handling.
+- Public repo ingestion uses GitHub tree and contents APIs with deterministic in-memory input materialization.
+- Explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch polish are follow-up browser-runtime work.
 - Git-history enrichers and full native filesystem flows remain native-first.
 - The machine-readable browser capability contract lives in `docs/capabilities/wasm.json` and records current runner support, not future browser candidates.
 

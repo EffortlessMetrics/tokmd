@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-04-29
+
+### Added
+
+- GitHub Action control-plane support for explicit `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline` modes.
+- Browser/WASM capability matrix checks and runner contract guards for supported modes and analyze presets.
+- Additional deterministic receipt, analyze snapshot, and effort/property proof coverage.
+- `run_json("version")` now exposes `analysis_schema_version` when `tokmd-core` is built with analysis support.
+
+### Changed
+
+- Publish-surface proof now classifies product, contract, workflow, and capability crates explicitly.
+- CLI reference docs are generated through checked `HELP` markers instead of manually maintained flag tables.
+- Roadmap and implementation docs now separate shipped browser/WASM support from follow-up browser runtime polish.
+
 ### Fixed
 
 - **Tier Boundary Compliance**: Fixed architectural violation where `tokmd` CLI (Tier 5) directly depended on the analysis renderer, bypassing the `tokmd-core` facade (Tier 4) ([#996](https://github.com/EffortlessMetrics/tokmd/issues/996))
@@ -14,8 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed the direct analysis-renderer dependency from `tokmd` crate
   - Restored proper tier hierarchy: Tier 5 → Tier 4 → Tier 3
   - Feature-gated under `analysis` feature flag with explicit `#[cfg(feature = "analysis")]` guards
+- WASM timestamps now use real millisecond timestamps instead of silently emitting zero.
+- Bounded path/root handling rejects unsafe native, Git, and in-memory filesystem paths.
+- Action gate and baseline modes reject multi-path input where the underlying command accepts exactly one path.
+- No-git baseline and `tokmd_git` resolution edge cases now resolve consistently.
+- No-default-features integration tests are gated to avoid false failures in unsupported feature profiles.
 
+### Internal
 
+- Jules provenance policy was clarified: intentional `.jules/**` provenance is allowed, while normal patch PRs should not carry accidental run packets.
+- Cargo-mutants, dependency metadata, and release proof tooling were cleaned up.
+- Duplicate proof/docs branches were closed after their keepers landed.
 
 ## [1.9.0] - 2026-03-27
 

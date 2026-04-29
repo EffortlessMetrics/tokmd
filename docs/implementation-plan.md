@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.9.0` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.10.0` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -326,7 +326,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 1. **Feature profile**: `wasm` / `web`
 2. **Crate**: `tokmd-wasm`
-3. **Runner**: static browser app using a Worker, repo tree + contents ingestion, caching, and artifact download
+3. **Runner**: static browser app using a Worker, repo tree + contents ingestion, and artifact download
 
 ### Work Items
 
@@ -345,6 +345,35 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 Runtime hardening beyond the v1.9.0 browser baseline remains follow-up work:
 cache behavior, progress events, retry/rate-limit UX, and optional authenticated
 fetch.
+
+---
+
+## Phase 5b: Release Train Hardening (v1.10.0) ✅ Complete
+
+**Goal**: Stabilize the shipped control-plane and browser/WASM surfaces without widening product scope.
+
+### Release Fence
+
+1. **No crate-boundary work**: crate surface and facade boundaries stay frozen for the release.
+2. **No browser mode widening**: browser support remains governed by `docs/capabilities/wasm.json`.
+3. **No browser runtime feature expansion**: cache/progress/retry/auth polish moves to `v1.11.0`.
+
+### Work Items
+
+- [x] Ship GitHub Action explicit modes for `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline`
+- [x] Harden bounded path/root handling across native, Git, and in-memory surfaces
+- [x] Make WASM timestamp and capability reporting truthful
+- [x] Enforce publish-surface classification and verify package-list proof for the 16 published crates
+- [x] Replace manual CLI reference tables with checked HELP markers
+- [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
+- [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
+
+### Follow-Up: v1.11.0 Browser Runtime Polish
+
+- [ ] Define cache key and invalidation semantics
+- [ ] Emit explicit progress events
+- [ ] Improve retry and rate-limit UX
+- [ ] Partition authenticated fetch/cache behavior safely
 
 ---
 

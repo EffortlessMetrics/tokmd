@@ -33,6 +33,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.7.x** | ✅ Complete | Deep test expansion across the workspace, sensor determinism, and the first `tokmd-io-port` seam. |
 | **v1.8.0** | ✅ Complete | Effort estimation, estimate preset/reporting, `tokmd-io-port` seam work, and release/devex hardening. |
 | **v1.9.0** | ✅ Complete | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
+| **v1.10.0** | ✅ Complete | CI control plane, bounded trust hardening, WASM truth, and proof stability. |
+| **v1.11.0** | 🔭 Planned | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 | **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
@@ -485,7 +487,7 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] `web/runner` boots the real `tokmd-wasm` bundle in a dedicated worker, reports capabilities, renders the latest successful result, and supports JSON download.
 - [x] Public GitHub repo acquisition uses the browser-safe GitHub tree and contents APIs to materialize deterministic ordered inputs locally in the page.
 - [x] `tokmd-wasm` browser bundle is deployed as a versioned release artifact consumed directly from `web/runner/vendor/tokmd-wasm`.
-- [x] Browser runner guardrails and UX hardening landed, including caching, progress, authenticated fetch options, and rate-limit handling.
+- [x] Browser runner guardrails landed around capability reporting, supported modes, and in-memory input validation.
 
 ### Supported browser-safe surface today
 
@@ -503,6 +505,26 @@ UX work is explicitly **incremental and non-breaking**:
 - No browser-side git-history churn/hotspot metrics; keep those as explicit capability misses or backend follow-ups.
 - No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
 - No mutation testing or other heavy tooling in-browser.
+
+## v1.10.0 — CI Control Plane, Trust Hardening, and Proof Stability
+
+**Goal:** Cut a stable release train after the Action, path-trust, WASM, publish-surface, and proof-hardening work landed.
+
+### What shipped in v1.10.0
+
+- [x] GitHub Action explicit modes for `module`, `export`, `gate`, `cockpit`, `sensor`, and `baseline`.
+- [x] Bounded path/root handling across native, Git, and in-memory flows.
+- [x] WASM capability truth through matrix checks, timestamp correctness, and runner contract validation.
+- [x] Publish-surface enforcement across product, contract, workflow, and capability crates.
+- [x] Determinism and proof coverage for analyze snapshots, run/diff receipts, effort serde, and core CLI behavior.
+- [x] CLI reference docs generated through checked HELP markers.
+
+### Deferred to v1.11.0
+
+- Browser cache key/invalidation semantics.
+- Browser progress events.
+- Retry and rate-limit UX.
+- Auth-safe fetch/cache boundaries.
 
 ## Future Horizons
 
