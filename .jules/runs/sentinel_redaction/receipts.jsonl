@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd-format test_redact_path_leak", "result": "ok"}
+{"command": "cargo test -p tokmd-format redact", "result": "ok"}
+{"command": "cargo fmt-check", "result": "ok"}
+{"command": "git diff --check", "result": "ok"}
