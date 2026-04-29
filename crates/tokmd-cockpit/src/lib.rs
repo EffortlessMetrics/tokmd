@@ -1719,14 +1719,27 @@ fn try_load_ci_artifact(
     }
 }
 
-/// Try to load cached mutation results.
+/// Cache key semantics for mutant evidence:
+/// - key space: `head_commit` (git SHA of the current repo HEAD)
+/// - storage: `.tokmd/cache/mutants/<head_commit>.json`
+///
+/// Invalidation semantics:
+/// - miss if cache directory or cache file is absent
+/// - miss if JSON cannot be parsed as `MutationGate`
+/// - miss if the cached tested scope does not cover every currently relevant file
+///
+/// This intentionally prefers correctness over reuse. A cache entry for a commit is
+/// reused only when the exact commit key exists and still provides full file-scope
+/// coverage for the current query.
 #[cfg(feature = "git")]
 fn try_load_cached(
     repo_root: &Path,
     head_commit: &str,
     relevant_files: &[String],
 ) -> Result<Option<MutationGate>> {
-    let cache_dir = repo_root.join(".tokmd/cache/mutants");
+    const MUTANT_CACHE_DIR: &str = ".tokmd/cache/mutants";
+
+    let cache_dir = repo_root.join(MUTANT_CACHE_DIR);
     if !cache_dir.exists() {
         return Ok(None);
     }
@@ -1736,18 +1749,17 @@ fn try_load_cached(
         return Ok(None);
     }
 
-    let content = std::fs::read_to_string(&cache_file)?;
-    let gate: MutationGate = serde_json::from_str(&content)?;
+    let gate = match std::fs::read_to_string(&cache_file)
+        .ok()
+        .and_then(|content| serde_json::from_str::<MutationGate>(&content).ok())
+    {
+        Some(gate) => gate,
+        None => return Ok(None),
+    };
 
-    // Verify scope hasn't changed significantly
     let tested = &gate.meta.scope.tested;
-    let missing_files: Vec<_> = relevant_files
-        .iter()
-        .filter(|f| !tested.contains(f))
-        .collect();
-
-    if !missing_files.is_empty() {
-        // Cache is partial
+    let is_full_scope = relevant_files.iter().all(|f| tested.contains(f));
+    if !is_full_scope {
         return Ok(None);
     }
 
