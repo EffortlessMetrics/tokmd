@@ -377,11 +377,26 @@ fn parse_in_memory_inputs(args: &Value) -> Result<Option<Vec<InMemoryFile>>, Tok
 
 fn validate_in_memory_input_path(path: &str, idx: usize) -> Result<(), TokmdError> {
     let field = format!("inputs[{idx}].path");
+    const MAX_INPUT_PATH_LEN: usize = 4096;
 
     if path.is_empty() {
         return Err(TokmdError::invalid_field(
             &field,
             "a non-empty relative file path",
+        ));
+    }
+
+    if path.len() > MAX_INPUT_PATH_LEN {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a relative file path no longer than 4096 bytes",
+        ));
+    }
+
+    if path.chars().any(|ch| ch.is_control()) {
+        return Err(TokmdError::invalid_field(
+            &field,
+            "a relative path without control characters",
         ));
     }
 
@@ -1441,6 +1456,47 @@ mod tests {
                 .as_str()
                 .ok_or_else(|| std::io::Error::other("not a string"))?
                 .contains("resolves to a file")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_control_chars_in_path() -> Result<(), Box<dyn std::error::Error>> {
+        let result = run_json(
+            "lang",
+            "{\"inputs\": [{\"path\": \"bad\\npath.rs\", \"text\": \"fn main() {}\"}]}",
+        );
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("control characters")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn in_memory_inputs_rejects_overlong_path() -> Result<(), Box<dyn std::error::Error>> {
+        let long_path = "a".repeat(4097);
+        let args = serde_json::json!({
+            "inputs": [{
+                "path": long_path,
+                "text": "fn main() {}"
+            }]
+        })
+        .to_string();
+        let result = run_json("lang", &args);
+        let parsed: Value = serde_json::from_str(&result)?;
+        assert_eq!(parsed["ok"], false);
+        assert_eq!(parsed["error"]["code"], "invalid_settings");
+        assert!(
+            parsed["error"]["message"]
+                .as_str()
+                .ok_or_else(|| std::io::Error::other("not a string"))?
+                .contains("no longer than 4096 bytes")
         );
         Ok(())
     }
