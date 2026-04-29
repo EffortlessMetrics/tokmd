@@ -36,6 +36,24 @@ fn normalize(output: &str) -> String {
     let re_abs = regex::Regex::new(r#""paths":\["[^"]*"\]"#).unwrap();
     let s = re_abs.replace_all(&s, r#""paths":["<ROOT>"]"#).to_string();
 
+    // Normalize analysis-specific dynamic fields.
+    let re_target = regex::Regex::new(r#""target_path":\s*"[^"]*""#).unwrap();
+    let s = re_target
+        .replace_all(&s, r#""target_path":"<ROOT>""#)
+        .to_string();
+    let re_base_signature = regex::Regex::new(r#""base_signature":\s*"[^"]+""#).unwrap();
+    let s = re_base_signature
+        .replace_all(&s, r#""base_signature":"<BASE_SIGNATURE>""#)
+        .to_string();
+    let re_integrity_hash = regex::Regex::new(r#""hash":\s*"[0-9a-f]{64}""#).unwrap();
+    let s = re_integrity_hash
+        .replace_all(&s, r#""hash":"<INTEGRITY_HASH>""#)
+        .to_string();
+    let re_markdown_hash = regex::Regex::new(r#"Hash: `[0-9a-f]{64}`"#).unwrap();
+    let s = re_markdown_hash
+        .replace_all(&s, "Hash: `<INTEGRITY_HASH>`")
+        .to_string();
+
     // Normalize binary name across platforms (tokmd.exe on Windows -> tokmd)
     s.replace("tokmd.exe", "tokmd")
 }
@@ -188,7 +206,39 @@ fn snapshot_export_csv() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Version output snapshot
+// 6. Analyze output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_analyze_json() {
+    let output = tokmd_cmd()
+        .args([
+            "analyze", ".", "--preset", "receipt", "--format", "json", "--no-git",
+        ])
+        .output()
+        .expect("failed to run tokmd analyze --format json");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_json", normalize(&stdout));
+}
+
+#[test]
+fn snapshot_analyze_markdown() {
+    let output = tokmd_cmd()
+        .args([
+            "analyze", ".", "--preset", "receipt", "--format", "md", "--no-git",
+        ])
+        .output()
+        .expect("failed to run tokmd analyze --format md");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!("analyze_markdown", normalize(&stdout));
+}
+
+// ---------------------------------------------------------------------------
+// 7. Version output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -204,7 +254,7 @@ fn snapshot_version() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Help output snapshot
+// 8. Help output snapshot
 // ---------------------------------------------------------------------------
 
 #[test]
