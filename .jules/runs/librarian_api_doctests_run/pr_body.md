@@ -28,6 +28,7 @@ Option A. It's the most direct and aligned fix for missing executable examples f
 - `crates/tokmd-core/src/ffi.rs`: Standardized `# Example` to `# Examples`.
 - `crates/tokmd-core/src/lib.rs`: Standardized `# Example` to `# Examples`.
 - `crates/tokmd/src/config.rs`: Added executable doctests for `get_profile_name` and `resolve_profile`.
+- `crates/tokmd/tests/snapshots/cli_snapshot_golden__help.snap`: Updated snapshot tests to reflect the updated documentation string.
 
 ## 🧪 Verification receipts
 ```text
@@ -45,7 +46,7 @@ Documentation is up to date.
 - Blast radius: Docs only
 - Risk class: Low
 - Rollback: Revert doc changes
-- Gates run: `cargo xtask docs --check`, `cargo test --doc`, `cargo clippy`
+- Gates run: `cargo xtask docs --check`, `cargo test --doc`, `cargo test cli_snapshot_golden`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests_run/envelope.json`

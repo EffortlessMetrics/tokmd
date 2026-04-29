@@ -1,3 +1,5 @@
+{"cmd": "mkdir -p .jules/runs/librarian_api_doctests_run"}
+{"cmd": "cat > .jules/runs/librarian_api_doctests_run/envelope.json"}
 {"cmd": "cat > .jules/runs/librarian_api_doctests_run/decision.md"}
 {"cmd": "sed -i 's/    \\/\\/\\/ Example:/    \\/\\/\\/ # Examples/' crates/tokmd/src/cli/parser.rs"}
 {"cmd": "sed -i 's/    \\/\\/\\/ Examples:/    \\/\\/\\/ # Examples/' crates/tokmd/src/cli/parser.rs"}
@@ -9,3 +11,5 @@
 {"cmd": "git add docs/reference-cli.md crates/tokmd/src/cli/parser.rs"}
 {"cmd": "cargo xtask docs --check"}
 {"cmd": "cargo test -p tokmd -p tokmd-core -p tokmd-settings --doc"}
+{"cmd": "cargo test -p tokmd cli_snapshot_golden (fix tests failing on snapshot drift)"}
+{"cmd": "cargo insta accept"}
