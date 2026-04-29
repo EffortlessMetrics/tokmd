@@ -117,3 +117,10 @@ tokmd is a gatekeeper-class tool. Minimum evidence:
 - **Not a vulnerability scanner**: Use cargo-audit, npm audit
 - **Not a test runner**: Use cargo test, pytest
 - **Not a scorer**: Provides signals, not judgments
+
+## Specification and ADRs
+
+- `docs/specifications/implementation-spec.md`: behavior-level implementation specification.
+- `docs/specifications/bdd-traceability.md`: BDD traceability matrix mapping behavior -> code -> tests.
+- `docs/adr/0001-bdd-traceability-contract.md`: decision to treat BDD traceability as a contract.
+- `docs/adr/0002-receipt-schema-governance.md`: decision for receipt/schema governance and compatibility.
