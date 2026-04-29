@@ -1,52 +1,40 @@
 ## 💡 Summary
-Updated `web/runner/messages.js` to accept `paths` or `scan` in run messages instead of strictly requiring `inputs`, improving developer experience by supporting multiple valid runner input mechanisms. Updated tests to cover these structural validations.
+Reverting the `web/runner/messages.js` payload path validation relaxation. This is a learning PR.
 
 ## 🎯 Why
-The `web/runner` was strictly failing validation for any run message that did not provide an explicit `inputs` array containing in-memory files. The underlying protocol natively supports passing `paths` (string arrays) and `scan` objects for input discovery, but the overly-strict message validation prevented their usage, severely hindering DX when using the runner API.
+A reviewer pointed out that the current browser-runner contract on main intentionally restricts the runner to in-memory inputs. Relaxing this validation constraint violates the `docs/capabilities/wasm.json` contract. This work was obsolete.
 
 ## 🔎 Evidence
-- `web/runner/messages.js:isRunMessage` previously returned false unless `args.inputs` was explicitly set and populated with valid `isInMemoryInput` objects.
-- Adding tests for `paths` and `scan` natively failed prior to the patch.
-- We fixed `isRunArgsForMode` to validate presence and shape of any valid base key (`inputs`, `paths`, or `scan`).
+```text
+Superseded by the current browser-runner contract on main: the runner accepts in-memory inputs and keeps native path/scan payloads rejected in line with docs/capabilities/wasm.json. This branch would re-open path/scan shapes that the matrix/runner work intentionally closed.
+```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update `isRunArgsForMode` to support all three input modes (`inputs`, `paths`, `scan`) and add extensive validation.
-- why it fits this repo and shard: The `web/runner` acts as a JS binding layer across multiple platforms (WASM/browser). Exposing these inputs significantly improves DX without modifying core runner logic.
-- trade-offs: Structure / Velocity / Governance: Requires structural test updates to verify each branch but allows maximum API flexibility for web clients.
+- Revert the patch and publish a learning PR so that the intention of rejecting path/scan shapes in the WASM runner is clearly recorded.
+- why it fits this repo and shard: Avoids breaking contracts while tracking the learning outcome.
+- trade-offs: Structure / Velocity / Governance: Standard operating procedure.
 
 ### Option B
-- Support only `paths` additionally.
-- when to choose it instead: If `scan` semantics were unsupported in the browser runner at large.
-- trade-offs: Continues to constrain users unnecessarily since `scan` features are exposed.
+- Modify the patch further.
+- when to choose it instead: If the path/scan rejection was an accident and needed a deeper workaround.
+- trade-offs: Violates direct maintainer feedback.
 
 ## ✅ Decision
-Option A. Allows the web runner payload validation to align with full system capabilities.
+Option A. We aborted the patch because it violated the WASM capability matrix contract which intentionally rejected path and scan payload shapes.
 
 ## 🧱 Changes made (SRP)
-- `web/runner/messages.js`
-- `web/runner/messages.test.mjs`
+- Reverted all changes.
 
 ## 🧪 Verification receipts
-```text
-> npm test --prefix web/runner
-1..45
-# tests 45
-# suites 0
-# pass 44
-# fail 0
-# cancelled 0
-# skipped 1
-# todo 0
-# duration_ms 835.551722
-```
+None, patch reverted.
 
 ## 🧭 Telemetry
-- Change shape: Update payload validation logic and tests
-- Blast radius: API (web/runner protocol structure validation)
-- Risk class: Low - Relaxes validation constraints for already-expected payload shapes
-- Rollback: Revert JS file modifications
-- Gates run: `npm test`
+- Change shape: Reverted
+- Blast radius: None
+- Risk class: None
+- Rollback: N/A
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-palette-prover-dx/envelope.json`
@@ -54,6 +42,7 @@ Option A. Allows the web runner payload validation to align with full system cap
 - `.jules/runs/run-palette-prover-dx/receipts.jsonl`
 - `.jules/runs/run-palette-prover-dx/result.json`
 - `.jules/runs/run-palette-prover-dx/pr_body.md`
+- `.jules/friction/open/run-palette-prover-dx-wasm-contract.md`
 
 ## 🔜 Follow-ups
 None at this time.
