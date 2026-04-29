@@ -132,6 +132,32 @@ fn test_resolve_module_profile_overrides_default() {
 }
 
 #[test]
+fn test_resolve_module_cli_overrides_profile_scalars() {
+    use tokmd::cli::{CliModuleArgs, TableFormat};
+    use tokmd::resolve_module;
+
+    let cli = CliModuleArgs {
+        paths: None,
+        format: Some(TableFormat::Tsv),
+        top: Some(100),
+        module_roots: None,
+        module_depth: None,
+        children: None,
+    };
+
+    let profile = Profile {
+        format: Some("json".to_string()),
+        top: Some(20),
+        ..Default::default()
+    };
+
+    let resolved = resolve_module(&cli, Some(&profile));
+
+    assert_eq!(resolved.format, TableFormat::Tsv);
+    assert_eq!(resolved.top, 100);
+}
+
+#[test]
 fn test_resolve_export_with_config() {
     use tokmd::cli::{CliExportArgs, ExportFormat};
     use tokmd::{ResolvedConfig, resolve_export_with_config};
@@ -167,6 +193,35 @@ fn test_resolve_export_with_config() {
 
     assert_eq!(resolved.format, ExportFormat::Csv);
     assert_eq!(resolved.min_code, 25);
+}
+
+#[test]
+fn test_resolve_export_profile_overrides_default_format() {
+    use tokmd::cli::{CliExportArgs, ExportFormat};
+    use tokmd::resolve_export;
+
+    let cli = CliExportArgs {
+        paths: None,
+        format: None,
+        output: None,
+        module_roots: None,
+        module_depth: None,
+        children: None,
+        min_code: None,
+        max_rows: None,
+        redact: None,
+        meta: None,
+        strip_prefix: None,
+    };
+
+    let profile = Profile {
+        format: Some("csv".to_string()),
+        ..Default::default()
+    };
+
+    let resolved = resolve_export(&cli, Some(&profile));
+
+    assert_eq!(resolved.format, ExportFormat::Csv);
 }
 
 #[test]
