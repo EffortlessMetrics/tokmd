@@ -286,6 +286,51 @@ test("fetchGitHubRepoInputs forwards token auth and tracks auth mode", async () 
     );
 });
 
+test("fetchGitHubRepoInputs partitions cache entries by token", async () => {
+    clearGitHubRepoCache();
+
+    let treeCalls = 0;
+    const fetchImpl = async (url, options = {}) => {
+        if (url.includes("/git/trees/")) {
+            treeCalls += 1;
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            const token = options.headers?.Authorization ?? "anonymous";
+            return textResponse(`# ${token}\n`);
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const tokenAFirst = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "secret-a",
+        fetchImpl,
+    });
+    const tokenASecond = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "secret-a",
+        fetchImpl,
+    });
+    const tokenB = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "secret-b",
+        fetchImpl,
+    });
+
+    assert.equal(tokenAFirst.ingest.cache.hit, false);
+    assert.equal(tokenASecond.ingest.cache.hit, true);
+    assert.equal(tokenB.ingest.cache.hit, false);
+    assert.equal(treeCalls, 2);
+});
+
 test("fetchGitHubRepoInputs surfaces auth and private-repo access errors", async () => {
     clearGitHubRepoCache();
 
