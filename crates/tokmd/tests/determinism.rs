@@ -630,3 +630,81 @@ fn export_csv_consistent_column_count() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// 14. Run and diff receipt determinism
+// ---------------------------------------------------------------------------
+
+#[test]
+fn run_receipt_is_deterministic_across_runs() {
+    let temp1 = tempfile::tempdir().unwrap();
+    let temp2 = tempfile::tempdir().unwrap();
+
+    let run = |temp: &tempfile::TempDir| {
+        let output = tokmd_cmd()
+            .arg("run")
+            .arg("--output-dir")
+            .arg(temp.path())
+            .output()
+            .expect("failed to run tokmd run");
+        assert!(output.status.success(), "run command failed");
+
+        let receipt_path = temp.path().join("receipt.json");
+        let contents = std::fs::read_to_string(&receipt_path).unwrap();
+        normalize_envelope(&contents)
+    };
+
+    assert_eq!(
+        run(&temp1),
+        run(&temp2),
+        "run receipt.json must be byte-identical across runs"
+    );
+}
+
+#[test]
+fn diff_receipt_is_deterministic_across_runs() {
+    let temp = tempfile::tempdir().unwrap();
+    let run1_dir = temp.path().join("run1");
+    let run2_dir = temp.path().join("run2");
+
+    for output_dir in [&run1_dir, &run2_dir] {
+        let output = tokmd_cmd()
+            .arg("run")
+            .arg("--output-dir")
+            .arg(output_dir)
+            .output()
+            .expect("failed to run tokmd run");
+        assert!(
+            output.status.success(),
+            "run command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let run_diff = || {
+        let output = tokmd_cmd()
+            .arg("diff")
+            .arg("--from")
+            .arg(run1_dir.join("receipt.json"))
+            .arg("--to")
+            .arg(run2_dir.join("receipt.json"))
+            .arg("--format")
+            .arg("json")
+            .output()
+            .expect("failed to run tokmd diff");
+        assert!(
+            output.status.success(),
+            "diff command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+
+        let contents = String::from_utf8_lossy(&output.stdout).to_string();
+        normalize_envelope(&contents)
+    };
+
+    assert_eq!(
+        run_diff(),
+        run_diff(),
+        "diff receipt json must be byte-identical across runs"
+    );
+}
