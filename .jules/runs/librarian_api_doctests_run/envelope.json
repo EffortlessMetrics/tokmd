@@ -1,0 +1,16 @@
+{
+  "prompt_id": "librarian_api_doctests",
+  "persona": "Librarian",
+  "style": "Prover",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "docs-executable",
+  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
+}

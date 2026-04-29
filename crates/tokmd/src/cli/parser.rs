@@ -53,7 +53,7 @@ pub struct Cli {
 pub struct GlobalArgs {
     /// Exclude pattern(s) using gitignore syntax. Repeatable.
     ///
-    /// Examples:
+    /// # Examples
     ///   --exclude target
     ///   --exclude "**/*.min.js"
     #[arg(
@@ -294,7 +294,7 @@ pub struct CliModuleArgs {
 
     /// How many path segments to include for module roots [default: 2].
     ///
-    /// Example:
+    /// # Examples
     ///   crates/foo/src/lib.rs  (depth=2) => crates/foo
     ///   crates/foo/src/lib.rs  (depth=1) => crates
     #[arg(long)]

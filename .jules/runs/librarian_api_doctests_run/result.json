@@ -1,0 +1,4 @@
+{
+  "success": true,
+  "summary": "Fixed CLI help doc examples to properly render in Rustdoc with `# Examples`, and added missing executable doctests to `tokmd/src/config.rs`."
+}

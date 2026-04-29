@@ -109,7 +109,17 @@ fn load_json_config() -> Option<UserConfig> {
     }
 }
 
-/// Get the profile name from CLI arg, env var, or default.
+/// Get the profile name to use, resolving CLI arguments and environment variables.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::config::get_profile_name;
+///
+/// // CLI argument takes precedence
+/// let name = Some("ci".to_string());
+/// assert_eq!(get_profile_name(name.as_ref()), Some("ci".to_string()));
+/// ```
 pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
     // CLI argument takes precedence
     if let Some(name) = cli_profile {
@@ -123,6 +133,21 @@ pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
 }
 
 /// Resolve a JSON profile by name (legacy).
+///
+/// # Examples
+///
+/// ```
+/// use std::collections::BTreeMap;
+/// use tokmd_settings::{UserConfig, Profile};
+/// use tokmd::config::resolve_profile;
+///
+/// let mut config = UserConfig { profiles: BTreeMap::new(), repos: BTreeMap::new() };
+/// config.profiles.insert("default".to_string(), Profile { format: Some("json".to_string()), ..Default::default() });
+///
+/// let some_config = Some(config);
+/// let resolved = resolve_profile(&some_config, None);
+/// assert_eq!(resolved.unwrap().format.as_deref(), Some("json"));
+/// ```
 pub fn resolve_profile<'a>(
     config: &'a Option<UserConfig>,
     name: Option<&String>,
