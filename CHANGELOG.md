@@ -30,7 +30,7 @@ Release candidate for `v1.10.0` (`v1.10.0rc1`).
 
 - Collapsed the previous support-crate sprawl into owner crates and SRP module families, including analysis leaf crates, rendering helpers, content/walk/fun/substrate helpers, and tool-schema helpers.
 - Public crate surface is now enforced around product, contract, workflow, and capability crates.
-- Internal crates are marked `publish = false`, while publish-surface verification and package-list proof treat the 16 published crates as the intentional crates.io boundary.
+- Release work completed crate-surface collapse and publish-surface verification, with package-list proof treating the 16 published crates as the intentional crates.io boundary (without treating production crates as `publish = false` placeholders).
 - GitHub Action omitted mode continues the legacy module + export behavior, while explicit modes run one surface at a time.
 - CLI reference docs are generated through checked `HELP` markers instead of manually maintained flag tables.
 - No-default-features integration tests are feature-gated so the CLI test matrix respects optional analysis-dependent commands.
