@@ -39,13 +39,35 @@ jobs:
 
       - uses: EffortlessMetrics/tokmd@v1
         with:
-          version: 'x.y.z'
+          version: '1.10.0'
           paths: .
           module-roots: crates,packages
           top: '20'
           format: json
           artifact: 'true'
           comment: 'true'
+```
+
+For release-candidate smoke tests, pin both the Action ref and the downloaded binary:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1.10.0-rc.1
+  with:
+    version: '1.10.0-rc.1'
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
+For stable workflows, use the stable Action ref and an explicit binary version:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+    paths: .
+    artifact: 'true'
+    comment: 'true'
 ```
 
 Inputs:
@@ -82,7 +104,8 @@ Notes:
 - `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. If `base` is omitted, the action infers a repository-aware base from `origin/$GITHUB_BASE_REF` on pull requests or `origin/HEAD` on other events; if no base can be resolved, set `base` explicitly.
 - `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`. It uses the same inferred `base` behavior as cockpit mode.
 - `mode: baseline` runs `tokmd baseline --force` and writes `tokmd-baseline.json`. It accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd baseline` runs.
-- The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: 'x.y.z'` explicitly.
+- For cockpit and sensor in external PR workflows, prefer `actions/checkout` with `fetch-depth: 0` so compare refs are available; otherwise set `base` explicitly.
+- The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: '1.10.0'` explicitly.
 - Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
 - To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
 

@@ -163,8 +163,11 @@ jobs:
         with:
           files: artifacts/**/*
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'true' }}
 
       - name: Update major version tag
+        if: ${{ !contains(github.ref_name, '-') }}
         run: |
           # Extract major version from tag (v1.2.3 -> v1)
           TAG="${GITHUB_REF#refs/tags/}"
@@ -178,6 +181,8 @@ jobs:
   publish-crates:
     name: Publish to crates.io
     needs: create-release
+    # Prerelease tags are distributed as GitHub Release assets only.
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -193,6 +198,8 @@ jobs:
   docker:
     name: Build and Push Docker Image
     needs: create-release
+    # Stable-only: avoid moving Docker semver aliases for prerelease tags.
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

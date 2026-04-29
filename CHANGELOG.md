@@ -71,6 +71,7 @@ Release candidate for `v1.10.0` (`v1.10.0rc1`).
 - Bumped dependency keepers including `jsonschema`, `clap_complete`, and `softprops/action-gh-release`.
 - Updated cargo-mutants configuration for the current schema and restored mutation-test gate compatibility.
 - Updated cargo-deny metadata by removing deprecated/stale license configuration and reducing release-check warning noise.
+- Release workflow prerelease tags are marked as prereleases, excluded from `latest`, and kept away from stable crates.io, Docker, and major Action aliases.
 - Added derived-report allocation cleanup.
 - Added cockpit LCOV merge-path performance cleanup.
 - Added version-consistency allocation cleanup.
