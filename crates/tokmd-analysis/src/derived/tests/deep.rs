@@ -272,6 +272,28 @@ mod cocomo {
     }
 
     #[test]
+    fn cocomo_mode_switches_to_semi_detached_above_50kloc() {
+        let rows = vec![make_simple_row("src/a.rs", "Rust", 60_000)];
+        let report = derive_report(&export(rows), None);
+        let c = report.cocomo.unwrap();
+        assert_eq!(c.mode, "semi-detached");
+        assert!((c.a - 3.0).abs() < 0.001);
+        assert!((c.b - 1.12).abs() < 0.001);
+        assert!((c.d - 0.35).abs() < 0.001);
+    }
+
+    #[test]
+    fn cocomo_mode_switches_to_embedded_above_300kloc() {
+        let rows = vec![make_simple_row("src/a.rs", "Rust", 400_000)];
+        let report = derive_report(&export(rows), None);
+        let c = report.cocomo.unwrap();
+        assert_eq!(c.mode, "embedded");
+        assert!((c.a - 3.6).abs() < 0.001);
+        assert!((c.b - 1.20).abs() < 0.001);
+        assert!((c.d - 0.32).abs() < 0.001);
+    }
+
+    #[test]
     fn cocomo_scales_with_kloc() {
         let small = derive_report(&export(vec![make_simple_row("a.rs", "Rust", 1000)]), None);
         let large = derive_report(
