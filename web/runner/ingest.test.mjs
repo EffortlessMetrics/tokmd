@@ -286,6 +286,49 @@ test("fetchGitHubRepoInputs forwards token auth and tracks auth mode", async () 
     );
 });
 
+test("fetchGitHubRepoInputs partitions token-auth cache by token identity", async () => {
+    clearGitHubRepoCache();
+
+    const calls = [];
+    const fetchImpl = async (url, options = {}) => {
+        calls.push(options.headers?.Authorization ?? "none");
+
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "secret-token-1",
+        fetchImpl,
+    });
+
+    const second = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        token: "secret-token-2",
+        fetchImpl,
+    });
+
+    assert.equal(second.ingest.cache.hit, false);
+    assert.deepEqual(calls, [
+        "token secret-token-1",
+        "token secret-token-1",
+        "token secret-token-2",
+        "token secret-token-2",
+    ]);
+});
+
 test("fetchGitHubRepoInputs surfaces auth and private-repo access errors", async () => {
     clearGitHubRepoCache();
 
