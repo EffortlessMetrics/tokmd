@@ -1027,13 +1027,6 @@ mod tests {
                 None,
                 None,
                 false,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
             )
             .expect("lang should succeed");
             let lang_dict = lang_result.cast_bound::<PyDict>(py).expect("lang dict");
@@ -1139,13 +1132,6 @@ mod tests {
                 Some(1),
                 None,
                 false,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
             )
             .expect("analyze should succeed");
             let analysis_dict = analysis_result
@@ -1467,13 +1453,6 @@ mod tests {
                 None,
                 None,
                 false,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
             ) {
                 Ok(_) => (),
                 Err(_) => (),
