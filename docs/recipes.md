@@ -464,6 +464,39 @@ jobs:
             });
 ```
 
+
+## 15c. One-command PR Artifact Bundle
+
+Produce all PR-ready cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) in one step.
+
+**Goal**: Generate machine-readable evidence and a human-ready comment without extra scripts.
+
+```bash
+# Canonical artifact set for CI uploads
+mkdir -p artifacts/tokmd
+
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --artifacts-dir artifacts/tokmd \
+  --format json \
+  --output artifacts/tokmd/cockpit.json
+
+# Optional: sensor envelope + markdown summary sidecar
+# Writes artifacts/tokmd/comment.md and artifacts/tokmd/extras/cockpit_receipt.json
+# while printing envelope JSON to stdout.
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --sensor-mode \
+  --artifacts-dir artifacts/tokmd > artifacts/tokmd/sensor.report.v1.json
+```
+
+**Why this improves PR flow**:
+- Upload a stable artifact directory for review tooling.
+- Reuse `comment.md` directly as the PR comment body.
+- Keep one source of truth for both humans (Markdown) and automation (JSON).
+
 ## 16. Troubleshooting Ignored Files
 
 When files unexpectedly appear or disappear from scans, use `check-ignore` to debug.
