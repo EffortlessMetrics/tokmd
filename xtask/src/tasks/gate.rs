@@ -73,6 +73,8 @@ const TRACKED_AGENT_RUNTIME_PATHS: &[&str] = &[
     ".claude/cache",
     ".claude/transcripts",
     ".claude/runtime",
+    // `.jules/runs/**` may be intentional PR provenance; do not
+    // blanket-block it as runtime state.
     ".jules/worktrees",
     ".jules/cache",
     ".jules/transcripts",

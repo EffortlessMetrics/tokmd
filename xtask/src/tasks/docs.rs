@@ -60,6 +60,23 @@ pub fn run(args: DocsArgs) -> Result<()> {
                     new_content.replace_range(range_start..end_idx, &replacement);
                 }
             }
+        } else {
+            drift = true;
+            if args.check {
+                bail!(
+                    "Documentation drift detected: Missing marker pair for `{}` in {}. Run `cargo xtask docs --update` to fix.",
+                    marker_id,
+                    ref_md_path.display()
+                );
+            } else if args.update {
+                println!(
+                    "Warning: Missing marker pair for `{}` in {}. You must manually add `<!-- HELP: {} -->` and `<!-- /HELP: {} -->` to the file.",
+                    marker_id,
+                    ref_md_path.display(),
+                    marker_id,
+                    marker_id
+                );
+            }
         }
     }
 
@@ -106,7 +123,9 @@ fn get_tokmd_help(cmd: &str) -> Result<String> {
     // Normalize cross-platform drift:
     // - Windows prints `tokmd.exe` in Usage lines; Unix prints `tokmd`
     // - CRLF vs LF line endings
+    // - clap may indent otherwise blank description spacer lines
     s = s.replace("\r\n", "\n");
     s = s.replace("tokmd.exe", "tokmd");
+    s = s.lines().map(str::trim_end).collect::<Vec<_>>().join("\n");
     Ok(s)
 }
