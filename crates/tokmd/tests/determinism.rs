@@ -636,6 +636,7 @@ fn export_csv_consistent_column_count() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[cfg(feature = "analysis")]
 fn run_receipt_is_deterministic_across_runs() {
     let temp1 = tempfile::tempdir().unwrap();
     let temp2 = tempfile::tempdir().unwrap();
@@ -662,6 +663,7 @@ fn run_receipt_is_deterministic_across_runs() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn diff_receipt_is_deterministic_across_runs() {
     let temp = tempfile::tempdir().unwrap();
     let run1_dir = temp.path().join("run1");

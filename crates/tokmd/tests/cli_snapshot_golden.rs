@@ -210,6 +210,7 @@ fn snapshot_export_csv() {
 // ---------------------------------------------------------------------------
 
 #[test]
+#[cfg(feature = "analysis")]
 fn snapshot_analyze_json() {
     let output = tokmd_cmd()
         .args([
@@ -224,6 +225,7 @@ fn snapshot_analyze_json() {
 }
 
 #[test]
+#[cfg(feature = "analysis")]
 fn snapshot_analyze_markdown() {
     let output = tokmd_cmd()
         .args([
