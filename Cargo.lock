@@ -2812,7 +2812,6 @@ version = "1.9.0"
 dependencies = [
  "js-sys",
  "serde_json",
- "tokmd-analysis-types",
  "tokmd-core",
  "tokmd-envelope",
  "tokmd-types",
