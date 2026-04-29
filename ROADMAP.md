@@ -536,10 +536,11 @@ _Goal: Native integration in CI pipelines and tooling ecosystems._
 - JSON-in/JSON-out FFI boundary via `run_json()`
 - Structured error types for FFI
 
-#### B. MCP Server Mode
+#### B. AI Agent Integration & MCP Server Mode
 
 _Goal: Native integration with Claude and other MCP-compatible clients._
 
+- **Tool definitions** ✅: `tokmd tools` already emits OpenAI, Anthropic, and JSON Schema definitions for agent/tool consumers.
 - `tokmd serve` — Start MCP server for tool-based interaction
 - Resources: Expose receipts as MCP resources
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
