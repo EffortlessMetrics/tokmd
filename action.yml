@@ -1,5 +1,5 @@
 name: 'tokmd'
-description: 'Generate repository receipts and PR summaries with tokmd'
+description: 'Generate deterministic repo receipts, review summaries, gates, and sensor reports with tokmd'
 
 branding:
   icon: 'file-text'

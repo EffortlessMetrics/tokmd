@@ -1,6 +1,6 @@
 # tokmd
 
-> Deterministic repo receipts, analysis, and review artifacts for humans, CI, and LLM workflows.
+> Deterministic repository receipts, review artifacts, and CI gates for humans, automation, and LLM workflows.
 
 [![Crates.io](https://img.shields.io/crates/v/tokmd)](https://crates.io/crates/tokmd)
 [![GitHub Release](https://img.shields.io/github/v/release/EffortlessMetrics/tokmd?display_name=tag)](https://github.com/EffortlessMetrics/tokmd/releases)
@@ -9,17 +9,13 @@
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 
-`tokmd` turns a source tree into stable receipts you can diff, analyze, archive, gate, and pack for downstream automation. It starts with code inventory, then keeps going: saved artifacts, derived metrics, PR review surfaces, policy checks, sensor outputs, LLM-ready context bundles, and a browser-safe in-memory analysis slice.
+`tokmd` turns a source tree into stable Markdown and JSON artifacts: language and module summaries, file receipts, PR review reports, policy gates, baselines, sensor reports, and LLM-ready context bundles.
 
-## GitHub Action
+Use it as a GitHub Action, a CLI, or an embeddable Rust/WASM surface.
 
-Use the root composite action when you want a workflow-friendly receipt and PR summary without scripting `tokmd` installation yourself.
+## GitHub Action Quick Start
 
-- Installs a released `tokmd` binary for the current runner.
-- By default, generates `tokmd-summary.md` from `tokmd module` and a structured receipt file from `tokmd export`.
-- Can run a single explicit mode: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`.
-- Optionally uploads generated files as workflow artifacts.
-- Optionally posts the summary as a pull request comment.
+Use the root composite Action when you want `tokmd` receipts and PR summaries without scripting installation.
 
 ```yaml
 name: tokmd receipt
@@ -35,20 +31,83 @@ jobs:
   receipt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: EffortlessMetrics/tokmd@v1
         with:
           version: '1.10.0'
           paths: .
-          module-roots: crates,packages
-          top: '20'
-          format: json
           artifact: 'true'
           comment: 'true'
 ```
 
-For release-candidate smoke tests, pin both the Action ref and the downloaded binary:
+By default, this writes:
+
+- `tokmd-summary.md`
+- `tokmd-receipt.json`
+
+It can also run explicit modes:
+
+```text
+module
+export
+gate
+cockpit
+sensor
+baseline
+```
+
+Common mode examples:
+
+```yaml
+# Gate a repo with tokmd.toml policy rules.
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+    mode: gate
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+
+# Compare a PR or branch with cockpit metrics.
+- uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
+
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+    mode: cockpit
+    head: HEAD
+    artifact: 'true'
+    comment: 'false'
+
+# Emit a sensor report and Markdown review comment body.
+- uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
+
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+    mode: sensor
+    head: HEAD
+    artifact: 'true'
+    comment: 'false'
+
+# Capture a baseline for later ratchet comparisons.
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.10.0'
+    mode: baseline
+    paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
+For `cockpit` and `sensor`, set `base` only when you want to override the inferred pull-request base or repository default branch. External PR workflows should use `actions/checkout@v6` with `fetch-depth: 0` so compare refs are available.
+
+Marketplace usage separates the Action ref from the downloaded `tokmd` binary version. Stable workflows should use `EffortlessMetrics/tokmd@v1` with an explicit `version: '1.10.0'`. Release-candidate smoke tests should pin both values:
 
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1.10.0-rc.1
@@ -59,128 +118,30 @@ For release-candidate smoke tests, pin both the Action ref and the downloaded bi
     comment: 'false'
 ```
 
-For stable workflows, use the stable Action ref and an explicit binary version:
+For full inputs, outputs, artifact names, mode behavior, failure behavior, release assets, and checkout guidance, see [GitHub Action reference](docs/github-action.md).
 
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    version: '1.10.0'
-    paths: .
-    artifact: 'true'
-    comment: 'true'
-```
+## What tokmd Produces
 
-Inputs:
+| Surface | Output |
+| :------ | :----- |
+| Repository summary | Markdown tables for languages and modules |
+| Receipts | JSON, JSONL, CSV, CycloneDX, HTML, SVG, Mermaid |
+| Review reports | Cockpit reports, sensor reports, gate verdicts |
+| Baselines | Ratchet-ready baseline JSON |
+| LLM context | Bounded bundles, redaction, handoff directories |
 
-| Input | Required | Default | Purpose |
-| :---- | :------- | :------ | :------ |
-| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the existing module + export flow. |
-| `version` | no | `latest` | `tokmd` release to install. Pass an explicit version if you want the action ref and binary version to stay aligned. |
-| `paths` | no | `.` | Paths to scan. Space/newline-delimited list; each entry is passed as a separate argument. |
-| `module-roots` | no | `crates,packages` | Module root prefixes for `tokmd module` and `tokmd export`. |
-| `top` | no | `20` | Number of rows shown in `tokmd-summary.md`. |
-| `format` | no | `json` | Receipt export format: `json`, `jsonl`, or `csv`. |
-| `base` | no | `(inferred)` | Base git ref for `mode: cockpit` and `mode: sensor`. Explicit values are used as provided. When omitted, pull request runs use `origin/$GITHUB_BASE_REF`; other runs use `origin/HEAD` when available. |
-| `head` | no | `HEAD` | Head git ref for `mode: cockpit` and `mode: sensor`. |
-| `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
-| `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
+## Choose a Path
 
-Outputs:
+| If you need to... | Start with... | Typical output |
+| :---------------- | :------------ | :------------- |
+| summarize a repo or PR | GitHub Action, `tokmd`, `cockpit` | Markdown summary, review report |
+| save deterministic artifacts | `run`, `export` | JSON/JSONL/CSV/CycloneDX receipts |
+| analyze code health or risk | `analyze` | Markdown, JSON, HTML, SVG, Mermaid |
+| estimate effort between refs | `analyze --preset estimate` | effort report with optional base/head delta |
+| gate policy in CI | `gate`, `baseline`, `sensor` | verdicts, ratchets, `sensor.report.v1` |
+| pack context for an LLM | `context`, `handoff` | bounded bundle text, JSON receipts, handoff directory |
 
-| Output | Description |
-| :----- | :---------- |
-| `receipt` | Path to the generated receipt file. |
-| `summary` | Path to `tokmd-summary.md` or a mode-specific Markdown summary when one is generated. |
-| `gate-verdict` | Path to `tokmd-gate-verdict.json` when `mode: gate` is used. |
-| `cockpit-report` | Path to `tokmd-cockpit-report.json` when `mode: cockpit` is used. |
-| `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
-| `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
-
-Notes:
-
-- PR commenting needs `pull-requests: write` and only runs for `pull_request` events.
-- `mode: gate` runs `tokmd gate --format json` and expects policy or ratchet rules from `tokmd.toml` in the checkout. A failing gate still writes `tokmd-gate-verdict.json` before the action fails.
-- `mode: gate` accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd gate` runs.
-- `mode: cockpit` runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`. If `base` is omitted, the action infers a repository-aware base from `origin/$GITHUB_BASE_REF` on pull requests or `origin/HEAD` on other events; if no base can be resolved, set `base` explicitly.
-- `mode: sensor` runs `tokmd sensor --format json` and writes `tokmd-sensor-report.json`, `comment.md`, and the `extras/` sidecar directory. The `summary` output points to `comment.md`. It uses the same inferred `base` behavior as cockpit mode.
-- `mode: baseline` runs `tokmd baseline --force` and writes `tokmd-baseline.json`. It accepts exactly one path; same-line or multiline multi-path inputs fail before `tokmd baseline` runs.
-- For cockpit and sensor in external PR workflows, prefer `actions/checkout` with `fetch-depth: 0` so compare refs are available; otherwise set `base` explicitly.
-- The action currently installs the latest `tokmd` release by default. If you publish the action under `@v1` and want a specific binary version, set `with: version: '1.10.0'` explicitly.
-- Release asset support is Linux/macOS `amd64` and `arm64`, plus Windows `amd64`.
-- To scan multiple paths, pass whitespace-separated values (for example, `paths: "src crates"`), or use a multiline input:
-
-  ```yaml
-  paths: |
-    src
-    packages
-  ```
-
-Gate mode:
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    mode: gate
-    paths: .
-    artifact: 'true'
-    comment: 'false'
-```
-
-Cockpit mode:
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    mode: cockpit
-    base: origin/main
-    head: HEAD
-    artifact: 'true'
-    comment: 'false'
-```
-
-Sensor mode:
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    mode: sensor
-    base: origin/main
-    head: HEAD
-    artifact: 'true'
-    comment: 'false'
-```
-
-Baseline mode:
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    mode: baseline
-    paths: .
-    artifact: 'true'
-    comment: 'false'
-```
-
-## The Problem
-
-Raw LOC counts are easy to produce and hard to reuse.
-
-- Terminal output is awkward to diff and archive.
-- CI needs artifacts and gates, not screenshots of a table.
-- LLM workflows need bounded, deterministic context instead of pasted summaries.
-- Review workflows need stable before/after surfaces, not one-off shell output.
-
-`tokmd` exists to turn repository shape into repeatable, machine-friendly truth.
-
-## What `tokmd` Gives You
-
-- Deterministic receipts for `lang`, `module`, `export`, `run`, `diff`, and `analyze`.
-- Review surfaces such as `cockpit`, `gate`, `baseline`, and `sensor`.
-- Saved artifacts in Markdown, JSON, JSONL, CSV, CycloneDX, HTML, SVG, Mermaid, and tree formats.
-- LLM-oriented workflows through `context`, `handoff`, redaction, token budgeting, and tool-schema generation.
-- Multiple product surfaces: CLI, Rust facade, Python bindings, Node bindings, and a browser/WASM slice.
-
-## Start Here
+## CLI Quick Start
 
 Install:
 
@@ -209,25 +170,17 @@ tokmd analyze --preset risk --format md
 tokmd context --budget 128k --mode bundle --output context.txt
 ```
 
-## Choose a Path
+## Why It Exists
 
-| If you need to... | Start with... | Typical output |
-| :---------------- | :------------ | :------------- |
-| summarize a repo or PR | `tokmd`, `diff`, `cockpit` | Markdown summary, diff tables, review plan |
-| save deterministic artifacts | `run`, `export` | JSON/JSONL/CSV/CycloneDX receipts |
-| analyze code health or risk | `analyze` | Markdown, JSON, HTML, SVG, Mermaid |
-| estimate effort between refs | `analyze --preset estimate` | effort report with optional base/head delta |
-| gate policy in CI | `gate`, `baseline`, `sensor` | policy verdicts, ratchets, `sensor.report.v1` |
-| pack context for an LLM | `context`, `handoff` | bounded bundle text, JSON receipts, handoff directory |
+Raw LOC output is easy to generate and hard to reuse.
+
+CI needs artifacts and gates. Review workflows need stable before/after surfaces. LLM workflows need bounded context instead of pasted terminal output.
+
+`tokmd` makes repository shape repeatable, diffable, and machine-readable.
 
 ## What It Looks Like
 
-These are live GitHub Actions badges from this repository:
-
-[![CI](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml)
-[![Release Workflow](https://github.com/EffortlessMetrics/tokmd/actions/workflows/release.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/release.yml)
-
-Example summary output from this repository:
+Representative summary output:
 
 ```md
 |Lang|Code|Lines|Bytes|Tokens|
@@ -239,22 +192,6 @@ Example summary output from this repository:
 |TOML|1947|2387|71514|17855|
 |Other|1978|2758|78806|19691|
 |**Total**|391639|500397|16401068|4099754|
-```
-
-## Generated Badges
-
-The badges above are GitHub-hosted workflow badges. `tokmd badge` produces repo-local SVG badges from your own code data:
-
-```bash
-tokmd badge --metric lines --output badge-lines.svg
-tokmd badge --metric hotspot --preset risk --output badge-hotspot.svg
-```
-
-Embed them in your own README:
-
-```markdown
-![Lines of Code](badge-lines.svg)
-![Hotspot](badge-hotspot.svg)
 ```
 
 ## Command Surface
@@ -281,15 +218,22 @@ Embed them in your own README:
 
 ## Browser And WASM
 
-`tokmd-wasm` and `web/runner` expose a narrower browser-safe slice of the product.
+`tokmd-wasm` and `web/runner` expose a narrower browser-safe slice.
 
-- Supported today: `lang`, `module`, `export`, and browser-safe `analyze` presets on ordered in-memory inputs.
-- Public repo ingestion uses GitHub tree and contents APIs with deterministic in-memory input materialization.
-- Explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch polish are follow-up browser-runtime work.
-- Git-history enrichers and full native filesystem flows remain native-first.
-- The machine-readable browser capability contract lives in `docs/capabilities/wasm.json` and records current runner support, not future browser candidates.
+Supported today:
 
-## What `tokmd` Is Not
+- `lang`
+- `module`
+- `export`
+- browser-safe `analyze` presets on ordered in-memory inputs
+
+Native filesystem flows, Git-history enrichers, `gate`, `cockpit`, `sensor`, `baseline`, `context`, and `handoff` remain native-first.
+
+Browser cache semantics, progress events, retry/rate-limit UX, and authenticated fetch are planned follow-up work.
+
+The machine-readable capability contract lives in [`docs/capabilities/wasm.json`](docs/capabilities/wasm.json).
+
+## What tokmd Is Not
 
 - It is not a formatter, linter, or build system.
 - It is not a developer-scoring tool.
@@ -310,6 +254,7 @@ Embed them in your own README:
 
 ### Reference
 
+- [GitHub Action reference](docs/github-action.md) for Action inputs, outputs, modes, and release assets
 - [CLI Reference](docs/reference-cli.md) for flags, formats, and config
 - [Schema](docs/SCHEMA.md) for receipt contracts
 - [tokmd responsibilities](tokmd-role.md) for the wider sensor/receipt stack
