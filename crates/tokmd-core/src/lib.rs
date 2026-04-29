@@ -119,6 +119,22 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
 }
 
 /// Runs the language summary workflow for ordered in-memory inputs.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{
+///     InMemoryFile, lang_workflow_from_inputs,
+///     settings::{LangSettings, ScanOptions},
+/// };
+///
+/// let inputs = vec![InMemoryFile::new("src/main.rs", b"fn main() {}".to_vec())];
+/// let scan_opts = ScanOptions::default();
+/// let lang = LangSettings::default();
+///
+/// let receipt = lang_workflow_from_inputs(&inputs, &scan_opts, &lang).expect("Scan failed");
+/// assert_eq!(receipt.report.rows.len(), 1);
+/// ```
 pub fn lang_workflow_from_inputs(
     inputs: &[InMemoryFile],
     scan_opts: &ScanOptions,
@@ -178,6 +194,23 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
 }
 
 /// Runs the module summary workflow for ordered in-memory inputs.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{
+///     InMemoryFile, module_workflow_from_inputs,
+///     settings::{ModuleSettings, ScanOptions},
+/// };
+///
+/// let inputs = vec![InMemoryFile::new("src/main.rs", b"fn main() {}".to_vec())];
+/// let scan_opts = ScanOptions::default();
+/// let module = ModuleSettings::default();
+///
+/// let receipt =
+///     module_workflow_from_inputs(&inputs, &scan_opts, &module).expect("Module scan failed");
+/// assert_eq!(receipt.report.rows.len(), 1);
+/// ```
 pub fn module_workflow_from_inputs(
     inputs: &[InMemoryFile],
     scan_opts: &ScanOptions,
@@ -247,6 +280,23 @@ pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<E
 }
 
 /// Runs the file export workflow for ordered in-memory inputs.
+///
+/// # Example
+///
+/// ```rust
+/// use tokmd_core::{
+///     InMemoryFile, export_workflow_from_inputs,
+///     settings::{ExportSettings, ScanOptions},
+/// };
+///
+/// let inputs = vec![InMemoryFile::new("src/main.rs", b"fn main() {}".to_vec())];
+/// let scan_opts = ScanOptions::default();
+/// let export = ExportSettings::default();
+///
+/// let receipt =
+///     export_workflow_from_inputs(&inputs, &scan_opts, &export).expect("Export scan failed");
+/// assert_eq!(receipt.data.rows.len(), 1);
+/// ```
 pub fn export_workflow_from_inputs(
     inputs: &[InMemoryFile],
     scan_opts: &ScanOptions,
