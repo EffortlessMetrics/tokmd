@@ -1,20 +1,28 @@
 use tokmd_analysis_types::EffortResults;
 
-const A: f64 = 2.4;
-const B: f64 = 1.05;
-const C: f64 = 2.5;
-const D: f64 = 0.38;
+fn cocomo81_coefficients(kloc: f64) -> (f64, f64, f64, f64) {
+    // COCOMO'81 basic model switches mode by project size (KLOC).
+    // Organic: <= 50 KLOC, Semi-detached: <= 300 KLOC, Embedded: > 300 KLOC.
+    if kloc <= 50.0 {
+        (2.4, 1.05, 2.5, 0.38)
+    } else if kloc <= 300.0 {
+        (3.0, 1.12, 2.5, 0.35)
+    } else {
+        (3.6, 1.20, 2.5, 0.32)
+    }
+}
 
 pub fn cocomo81_effort_pm(kloc: f64) -> (f64, f64, f64, f64) {
     if kloc <= 0.0 {
         return (0.0, 0.0, 0.0, 0.0);
     }
 
-    let effort_pm = A * kloc.powf(B);
+    let (a, b, c, d) = cocomo81_coefficients(kloc);
+    let effort_pm = a * kloc.powf(b);
     let schedule_months = if effort_pm <= 0.0 {
         0.0
     } else {
-        C * effort_pm.powf(D)
+        c * effort_pm.powf(d)
     };
     let staff = if schedule_months > 0.0 {
         effort_pm / schedule_months
