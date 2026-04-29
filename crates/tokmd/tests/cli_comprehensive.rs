@@ -440,6 +440,18 @@ fn analyze_health_preset_json() {
     assert!(json["derived"].is_object());
 }
 
+#[test]
+fn analyse_alias_works_like_analyze() {
+    let output = tokmd_cmd()
+        .args(["analyse", "--preset", "receipt", "--format", "json"])
+        .output()
+        .expect("failed to run");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(json["schema_version"].is_number());
+}
+
 // ===========================================================================
 // 8. badge subcommand
 // ===========================================================================
@@ -711,6 +723,15 @@ fn completions_powershell_produces_script() {
 fn completions_elvish_produces_script() {
     tokmd_cmd()
         .args(["completions", "elvish"])
+        .assert()
+        .success()
+        .stdout(predicate::str::is_empty().not());
+}
+
+#[test]
+fn completion_alias_produces_script() {
+    tokmd_cmd()
+        .args(["completion", "bash"])
         .assert()
         .success()
         .stdout(predicate::str::is_empty().not());
