@@ -115,6 +115,13 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
     tokmd_core::ffi::run_json(mode, args_json)
 }
 
+
+/// Run a tokmd mode with raw JSON args and return only the extracted data JSON payload.
+#[wasm_bindgen(js_name = runDataJson)]
+pub fn run_data_json(mode: &str, args_json: &str) -> Result<String, JsValue> {
+    extract_mode_data_json(mode, args_json).map_err(to_js_error)
+}
+
 /// Run a tokmd mode with a plain JavaScript object and return the extracted data payload.
 #[wasm_bindgen(js_name = run)]
 pub fn run(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
@@ -180,6 +187,17 @@ mod tests {
 
         assert_eq!(envelope["ok"], true);
         assert_eq!(envelope["data"]["version"], env!("CARGO_PKG_VERSION"));
+    }
+
+
+    #[test]
+    fn run_data_json_returns_payload_without_envelope() {
+        let payload = run_data_json("version", "{}")
+            .expect("version payload");
+        let value: Value = serde_json::from_str(&payload).expect("valid payload json");
+
+        assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
+        assert!(value.get("schema_version").is_some());
     }
 
     #[test]
