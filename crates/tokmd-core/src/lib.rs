@@ -107,7 +107,7 @@ fn now_ms() -> u128 {
 /// A `LangReceipt` containing the language summary.
 pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan);
 
     // Scan
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
@@ -176,7 +176,7 @@ pub fn lang_workflow_from_inputs(
 /// ```
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan);
 
     // Scan
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
@@ -259,7 +259,7 @@ pub fn module_workflow_from_inputs(
 /// ```
 pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
     let scan_opts = settings_to_scan_options(scan);
-    let paths: Vec<PathBuf> = scan.paths.iter().map(PathBuf::from).collect();
+    let paths = scan_paths_or_current_dir(scan);
     let strip_prefix = export.strip_prefix.as_deref();
 
     // Scan
@@ -713,6 +713,14 @@ pub mod analysis_facade {
 /// Convert ScanSettings to ScanOptions for lower-tier crates.
 fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
     scan.options.clone()
+}
+
+fn scan_paths_or_current_dir(scan: &ScanSettings) -> Vec<PathBuf> {
+    if scan.paths.is_empty() {
+        vec![PathBuf::from(".")]
+    } else {
+        scan.paths.iter().map(PathBuf::from).collect()
+    }
 }
 
 fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions {
