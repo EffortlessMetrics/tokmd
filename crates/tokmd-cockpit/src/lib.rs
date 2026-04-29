@@ -1726,18 +1726,33 @@ fn try_load_cached(
     head_commit: &str,
     relevant_files: &[String],
 ) -> Result<Option<MutationGate>> {
+    // Cache key semantics:
+    // - Namespace: ".tokmd/cache/mutants"
+    // - Primary key: git HEAD commit OID at evaluation time
+    // - Physical key encoding: "<head_commit>.json"
+    //
+    // Invalidation semantics:
+    // 1) If the cache namespace or keyed file is missing => cache miss.
+    // 2) If the stored evidence commit disagrees with the requested HEAD commit
+    //    (unless the field is absent for back-compat) => invalidate.
+    // 3) If the stored tested-file scope does not fully cover current relevant files
+    //    => invalidate as partial/stale scope.
     let cache_dir = repo_root.join(".tokmd/cache/mutants");
     if !cache_dir.exists() {
         return Ok(None);
     }
 
-    let cache_file = cache_dir.join(format!("{}.json", head_commit));
+    let cache_file = cache_dir.join(cache_file_name_for_head(head_commit));
     if !cache_file.exists() {
         return Ok(None);
     }
 
     let content = std::fs::read_to_string(&cache_file)?;
     let gate: MutationGate = serde_json::from_str(&content)?;
+
+    if cached_commit_mismatch(&gate, head_commit) {
+        return Ok(None);
+    }
 
     // Verify scope hasn't changed significantly
     let tested = &gate.meta.scope.tested;
@@ -1752,6 +1767,19 @@ fn try_load_cached(
     }
 
     Ok(Some(gate))
+}
+
+#[cfg(feature = "git")]
+fn cache_file_name_for_head(head_commit: &str) -> String {
+    format!("{head_commit}.json")
+}
+
+#[cfg(feature = "git")]
+fn cached_commit_mismatch(gate: &MutationGate, head_commit: &str) -> bool {
+    gate.meta
+        .evidence_commit
+        .as_deref()
+        .is_some_and(|cached| cached != head_commit)
 }
 
 /// Run mutations locally.
