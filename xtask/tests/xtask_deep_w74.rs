@@ -353,11 +353,11 @@ fn gate_check_flag_exists_in_cli() {
 }
 
 #[test]
-fn gate_runtime_guard_keeps_curated_jules_deps_history() {
+fn gate_runtime_guard_allows_curated_jules_provenance() {
     let src = read_source("xtask/src/tasks/gate.rs");
     assert!(
-        src.contains("\".jules/runs\""),
-        "gate should treat root .jules/runs as runtime state"
+        !src.contains("\".jules/runs\""),
+        "gate should not blanket-block intentional .jules/runs provenance"
     );
     assert!(
         src.contains("Curated `.jules/deps/**` history is allowed"),
