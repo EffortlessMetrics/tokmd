@@ -168,6 +168,40 @@ fn suggestions(err: &Error) -> Vec<String> {
         );
     }
 
+
+    if haystack.contains("rate limit")
+        || haystack.contains("rate-limit")
+        || haystack.contains("rate_limit")
+        || haystack.contains("too many requests")
+        || haystack.contains("http 429")
+        || haystack.contains("status 429")
+    {
+        push_hint(
+            &mut out,
+            "The upstream service is throttling requests; wait briefly, then retry.",
+        );
+        push_hint(
+            &mut out,
+            "If available, lower request concurrency or scan a narrower scope to reduce burst traffic.",
+        );
+    }
+
+    if haystack.contains("retry")
+        || haystack.contains("timed out")
+        || haystack.contains("timeout")
+        || haystack.contains("temporar")
+        || haystack.contains("connection reset")
+        || haystack.contains("connection refused")
+    {
+        push_hint(
+            &mut out,
+            "This appears transient; retry the command once network/service health recovers.",
+        );
+        push_hint(
+            &mut out,
+            "For flaky environments, re-run with fewer optional enrichers (for example `--no-git`) to reduce external calls.",
+        );
+    }
     if haystack.contains("unknown metric/finding key") {
         push_hint(
             &mut out,
@@ -326,6 +360,22 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn suggests_for_rate_limit_errors() {
+        let err = anyhow!("[rate_limit] Too many requests (HTTP 429)");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("throttling requests")));
+        assert!(hints.iter().any(|h| h.contains("lower request concurrency")));
+    }
+
+    #[test]
+    fn suggests_for_transient_retry_errors() {
+        let err = anyhow!("request timed out; retry later");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("appears transient")));
+        assert!(hints.iter().any(|h| h.contains("fewer optional enrichers")));
+    }
     #[test]
     fn format_includes_hints_section() {
         let err = anyhow!("Path not found: no-file");
