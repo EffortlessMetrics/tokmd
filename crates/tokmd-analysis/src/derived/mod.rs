@@ -653,20 +653,17 @@ pub fn build_tree(export: &ExportData) -> String {
 }
 
 fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
-    let mut by_lines = rows.to_vec();
+    let mut by_lines: Vec<&FileStatRow> = rows.iter().collect();
     by_lines.sort_by(|a, b| b.lines.cmp(&a.lines).then_with(|| a.path.cmp(&b.path)));
 
-    let mut by_tokens = rows.to_vec();
+    let mut by_tokens: Vec<&FileStatRow> = rows.iter().collect();
     by_tokens.sort_by(|a, b| b.tokens.cmp(&a.tokens).then_with(|| a.path.cmp(&b.path)));
 
-    let mut by_bytes = rows.to_vec();
+    let mut by_bytes: Vec<&FileStatRow> = rows.iter().collect();
     by_bytes.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.path.cmp(&b.path)));
 
-    let mut least_doc: Vec<FileStatRow> = rows
-        .iter()
-        .filter(|r| r.lines >= MIN_DOC_LINES)
-        .cloned()
-        .collect();
+    let mut least_doc: Vec<&FileStatRow> =
+        rows.iter().filter(|r| r.lines >= MIN_DOC_LINES).collect();
     least_doc.sort_by(|a, b| {
         let a_doc = a.doc_pct.unwrap_or(0.0);
         let b_doc = b.doc_pct.unwrap_or(0.0);
@@ -677,11 +674,7 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
             .then_with(|| a.path.cmp(&b.path))
     });
 
-    let mut dense: Vec<FileStatRow> = rows
-        .iter()
-        .filter(|r| r.lines >= MIN_DENSE_LINES)
-        .cloned()
-        .collect();
+    let mut dense: Vec<&FileStatRow> = rows.iter().filter(|r| r.lines >= MIN_DENSE_LINES).collect();
     dense.sort_by(|a, b| {
         let a_rate = a.bytes_per_line.unwrap_or(0.0);
         let b_rate = b.bytes_per_line.unwrap_or(0.0);
@@ -692,11 +685,11 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
     });
 
     TopOffenders {
-        largest_lines: by_lines.into_iter().take(TOP_N).collect(),
-        largest_tokens: by_tokens.into_iter().take(TOP_N).collect(),
-        largest_bytes: by_bytes.into_iter().take(TOP_N).collect(),
-        least_documented: least_doc.into_iter().take(TOP_N).collect(),
-        most_dense: dense.into_iter().take(TOP_N).collect(),
+        largest_lines: by_lines.into_iter().take(TOP_N).cloned().collect(),
+        largest_tokens: by_tokens.into_iter().take(TOP_N).cloned().collect(),
+        largest_bytes: by_bytes.into_iter().take(TOP_N).cloned().collect(),
+        least_documented: least_doc.into_iter().take(TOP_N).cloned().collect(),
+        most_dense: dense.into_iter().take(TOP_N).cloned().collect(),
     }
 }
 

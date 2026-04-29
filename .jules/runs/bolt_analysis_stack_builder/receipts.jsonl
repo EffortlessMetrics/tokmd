@@ -1,0 +1,3 @@
+{"command": "cargo bench -p tokmd-analysis --bench bench_analysis", "output": "top_offenders_original time: [5.6524 ms 5.6713 ms 5.6908 ms] ... top_offenders_optimized time: [953.79 µs 963.12 µs 973.02 µs]"}
+{"command": "cargo test -p tokmd-analysis --release", "output": "test result: ok. 427 passed; 0 failed; 0 ignored; 0 measured; 1101 filtered out"}
+{"command": "cargo check --workspace", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"}
