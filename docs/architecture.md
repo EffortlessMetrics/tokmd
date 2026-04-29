@@ -85,7 +85,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see ADR-001) |
+| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see [ADR-001](adr/ADR-001-facade-boundary-for-tier5-products.md)) |
 
 ### Tier 5: Products
 
@@ -100,7 +100,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 1. **Contracts MUST NOT depend on clap** — Keep `tokmd-types` and `tokmd-analysis-types` pure
 2. **Lower tiers MUST NOT depend on higher tiers** — No upward dependencies
-3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See ADR-001.
+3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See [ADR-001](adr/ADR-001-facade-boundary-for-tier5-products.md).
 4. **Feature flags control optional adapters** — `git`, `walk`, `content` features
 5. **IO adapters depend on domain/contracts, never reverse**
 
