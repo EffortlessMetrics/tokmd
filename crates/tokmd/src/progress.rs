@@ -26,7 +26,22 @@ fn is_interactive() -> bool {
 mod ui_impl {
     use super::is_interactive;
     use indicatif::{ProgressBar, ProgressStyle};
+    use std::io::Write;
     use std::time::{Duration, Instant};
+
+    fn emit_progress_event(stage: &str, message: &str) {
+        let emit_explicit = std::env::var("TOKMD_PROGRESS_EVENTS").is_ok();
+        if !emit_explicit {
+            return;
+        }
+
+        let _ = writeln!(
+            std::io::stderr(),
+            "tokmd.progress.{}\t{}",
+            stage,
+            message
+        );
+    }
 
     /// A progress indicator that wraps indicatif.
     pub struct Progress {
@@ -62,13 +77,16 @@ mod ui_impl {
 
         /// Set the progress message.
         pub fn set_message(&self, msg: impl Into<String>) {
+            let msg = msg.into();
+            emit_progress_event("update", &msg);
             if let Some(bar) = &self.bar {
-                bar.set_message(msg.into());
+                bar.set_message(msg);
             }
         }
 
         /// Finish and clear the spinner.
         pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
             if let Some(bar) = &self.bar {
                 bar.finish_and_clear();
             }
@@ -137,6 +155,7 @@ mod ui_impl {
 
         /// Set the progress message.
         pub fn set_message(&self, msg: &str) {
+            emit_progress_event("update", msg);
             if let Some(bar) = &self.bar {
                 bar.set_message(msg.to_string());
             }
@@ -151,6 +170,7 @@ mod ui_impl {
 
         /// Finish the progress bar with a message.
         pub fn finish_with_message(&self, msg: &str) {
+            emit_progress_event("finish", msg);
             if let Some(bar) = &self.bar {
                 bar.finish_with_message(msg.to_string());
             }
@@ -158,6 +178,7 @@ mod ui_impl {
 
         /// Finish and clear the progress bar.
         pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
             if let Some(bar) = &self.bar {
                 bar.finish_and_clear();
             }
