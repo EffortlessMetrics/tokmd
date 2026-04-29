@@ -139,6 +139,22 @@ fn cocomo_formula_verification() {
     assert!((cocomo.duration_months - expected_duration).abs() < 0.1);
 }
 
+#[test]
+fn cocomo_mode_switches_to_semi_detached_above_50_kloc() {
+    let export = make_export(vec![make_row("a.rs", "Rust", 51_000, 0, 0)]);
+    let cocomo = derive_report(&export, None).cocomo.unwrap();
+    assert_eq!(cocomo.mode, "semi-detached");
+    assert_eq!((cocomo.a, cocomo.b, cocomo.c, cocomo.d), (3.0, 1.12, 2.5, 0.35));
+}
+
+#[test]
+fn cocomo_mode_switches_to_embedded_above_300_kloc() {
+    let export = make_export(vec![make_row("a.rs", "Rust", 301_000, 0, 0)]);
+    let cocomo = derive_report(&export, None).cocomo.unwrap();
+    assert_eq!(cocomo.mode, "embedded");
+    assert_eq!((cocomo.a, cocomo.b, cocomo.c, cocomo.d), (3.6, 1.2, 2.5, 0.32));
+}
+
 // ───────────────────── doc density ─────────────────────
 
 #[test]

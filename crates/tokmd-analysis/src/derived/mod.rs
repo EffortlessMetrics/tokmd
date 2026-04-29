@@ -16,6 +16,16 @@ const TOP_N: usize = 10;
 const MIN_DOC_LINES: usize = 50;
 const MIN_DENSE_LINES: usize = 10;
 
+fn cocomo81_basic_coefficients(kloc: f64) -> (&'static str, f64, f64, f64, f64) {
+    if kloc <= 50.0 {
+        ("organic", 2.4, 1.05, 2.5, 0.38)
+    } else if kloc <= 300.0 {
+        ("semi-detached", 3.0, 1.12, 2.5, 0.35)
+    } else {
+        ("embedded", 3.6, 1.20, 2.5, 0.32)
+    }
+}
+
 pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> DerivedReport {
     let parents: Vec<&FileRow> = export
         .rows
@@ -118,7 +128,7 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         None
     } else {
         let kloc = totals.code as f64 / 1000.0;
-        let (a, b, c, d) = (2.4, 1.05, 2.5, 0.38);
+        let (mode, a, b, c, d) = cocomo81_basic_coefficients(kloc);
         let effort = a * kloc.powf(b);
         let duration = c * effort.powf(d);
         let staff = if duration == 0.0 {
@@ -127,7 +137,7 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
             effort / duration
         };
         Some(CocomoReport {
-            mode: "organic".to_string(),
+            mode: mode.to_string(),
             kloc: round_f64(kloc, 4),
             effort_pm: round_f64(effort, 2),
             duration_months: round_f64(duration, 2),
