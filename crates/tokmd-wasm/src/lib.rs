@@ -25,7 +25,17 @@ fn serialize_args(args: &Value) -> Result<String, String> {
 }
 
 fn extract_mode_data_json(mode: &str, args_json: &str) -> Result<String, String> {
-    validate_mode_args_json(mode, args_json).map_err(|err| err.to_string())?;
+    extract_mode_data_json_with_validation(mode, args_json, true)
+}
+
+fn extract_mode_data_json_with_validation(
+    mode: &str,
+    args_json: &str,
+    validate_args: bool,
+) -> Result<String, String> {
+    if validate_args {
+        validate_mode_args_json(mode, args_json).map_err(|err| err.to_string())?;
+    }
     let result_json = tokmd_core::ffi::run_json(mode, args_json);
     tokmd_envelope::ffi::extract_data_json(&result_json).map_err(|err| err.to_string())
 }
@@ -83,7 +93,8 @@ fn validate_mode_args_json(mode: &str, args_json: &str) -> Result<(), TokmdError
 fn run_analyze_js(args: JsValue) -> Result<JsValue, JsValue> {
     let args_json = js_args_to_json(args)?;
     validate_analyze_args_json(&args_json).map_err(|err| to_js_error(err.to_string()))?;
-    let data_json = extract_mode_data_json("analyze", &args_json).map_err(to_js_error)?;
+    let data_json = extract_mode_data_json_with_validation("analyze", &args_json, false)
+        .map_err(to_js_error)?;
     JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
 }
 
