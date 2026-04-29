@@ -1284,6 +1284,8 @@ mod tests {
     fn is_default_policy_works() {
         assert!(is_default_policy(&InclusionPolicy::Full));
         assert!(!is_default_policy(&InclusionPolicy::Skip));
+        assert!(!is_default_policy(&InclusionPolicy::Summary));
+        assert!(!is_default_policy(&InclusionPolicy::HeadTail));
     }
 
     // ── Struct serde roundtrips ───────────────────────────────────────
@@ -1401,6 +1403,17 @@ mod tests {
         assert_eq!(audit.output_bytes, 1000);
         assert_eq!(audit.overhead_bytes, 200);
         assert!((audit.overhead_pct - 0.2).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn token_audit_from_output_with_divisors() {
+        let audit = TokenAudit::from_output_with_divisors(1000, 800, 4.0, 2.0, 8.0);
+
+        assert_eq!(audit.output_bytes, 1000);
+        assert_eq!(audit.overhead_bytes, 200);
+        assert_eq!(audit.tokens_est, 250);
+        assert_eq!(audit.tokens_min, 125);
+        assert_eq!(audit.tokens_max, 500);
     }
 
     #[test]
