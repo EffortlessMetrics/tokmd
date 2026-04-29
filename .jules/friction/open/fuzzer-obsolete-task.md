@@ -1,0 +1,2 @@
+## Obsolete Fuzzer task
+The task requested work to harden interfaces and fuzz parsers. The chosen path (verifying `tokmd-config` properties tested TOML properly alongside JSON for CLI enums) turned out to be duplicative or obsolete because another PR (#1312) had already provided the necessary config resolution and parse coverage. There was no real problem to fix in the first place, or if there was it was fixed outside of this isolated shard. A learning PR is provided instead of generating churn.
