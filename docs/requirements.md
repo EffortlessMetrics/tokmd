@@ -24,6 +24,12 @@ tokmd produces deterministic code inventory receipts and PR-focused context for:
 2. **Tool schemas**: Generate OpenAI/Anthropic/JSON Schema tool definitions
 3. **Inventory-first**: Provide map before dump (what languages, which modules, will it fit?)
 
+
+## Behavioral Specification and ADRs
+
+- Behavioral spec and BDD traceability matrix: `docs/specification.md`
+- Architecture Decision Records (ADRs): `docs/adr/`
+
 ## Interfaces
 
 ### CLI (Stable Surfaces)
