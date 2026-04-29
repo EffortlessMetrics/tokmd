@@ -1,9 +1,11 @@
 use tokmd_analysis_types::EffortResults;
 
-const A: f64 = 2.4;
-const B: f64 = 1.05;
-const C: f64 = 2.5;
-const D: f64 = 0.38;
+pub const COCOMO81_COEFFICIENTS: (f64, f64, f64, f64) = (2.4, 1.05, 2.5, 0.38);
+
+const A: f64 = COCOMO81_COEFFICIENTS.0;
+const B: f64 = COCOMO81_COEFFICIENTS.1;
+const C: f64 = COCOMO81_COEFFICIENTS.2;
+const D: f64 = COCOMO81_COEFFICIENTS.3;
 
 pub fn cocomo81_effort_pm(kloc: f64) -> (f64, f64, f64, f64) {
     if kloc <= 0.0 {
