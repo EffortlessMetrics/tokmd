@@ -1,0 +1,2 @@
+analyze
+{"root":".","preset":"receipt","format":"json"}

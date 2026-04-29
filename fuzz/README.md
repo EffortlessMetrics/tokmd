@@ -77,6 +77,18 @@ op = "lt"
 value = 5000
 ```
 
+
+## Starter Seed Corpus
+
+This repo now includes starter seeds for high-value structured targets:
+
+- `fuzz/corpus/fuzz_run_json/`
+- `fuzz/corpus/fuzz_policy_evaluate/`
+- `fuzz/corpus/fuzz_json_pointer/`
+
+These seeds exercise valid and invalid control paths early so libFuzzer can
+mutate from realistic envelopes, JSON pointers, and TOML rule sets.
+
 ## Corpus and Artifacts
 
 - **Seed corpus**: `fuzz/corpus/<target>/` - Initial inputs for each target
