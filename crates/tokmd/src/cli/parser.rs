@@ -155,6 +155,9 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
+
+    /// Build a PR review cockpit packet (cockpit + analysis + review map).
+    Review(ReviewArgs),
 }
 
 #[derive(Args, Debug, Clone)]
@@ -1023,6 +1026,34 @@ impl From<GlobalArgs> for tokmd_settings::ScanOptions {
     }
 }
 
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReviewGateMode {
+    #[default]
+    Off,
+    Advisory,
+    Blocking,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ReviewArgs {
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+    #[arg(long)]
+    pub out_dir: Option<PathBuf>,
+    #[arg(long)]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_enum, default_value_t = ReviewGateMode::Off)]
+    pub gate: ReviewGateMode,
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+    pub near_dup: bool,
+    #[arg(long)]
+    pub detail_functions: bool,
+    #[arg(long, default_value_t = 12)]
+    pub max_review_items: usize,
+}
 #[cfg(test)]
 mod tests {
     use super::*;
