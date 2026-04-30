@@ -12,6 +12,7 @@
 
 use proptest::prelude::*;
 use proptest::string::string_regex;
+use tokmd_scan::config_from_scan_options;
 use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
 
@@ -131,6 +132,9 @@ fn arb_global_args_many_excludes() -> impl Strategy<Value = ScanOptions> {
         })
 }
 
+fn effective_flag(value: Option<bool>) -> bool {
+    value.unwrap_or(false)
+}
 // ============================================================================
 // Config Mapping Tests
 // ============================================================================
@@ -606,6 +610,44 @@ proptest! {
         cfg.no_ignore_dot = Some(true);
         cfg.no_ignore_parent = Some(true);
         cfg.no_ignore_vcs = Some(true);
+
+        prop_assert_eq!(cfg.no_ignore, Some(true));
+        prop_assert_eq!(cfg.no_ignore_dot, Some(true));
+        prop_assert_eq!(cfg.no_ignore_parent, Some(true));
+        prop_assert_eq!(cfg.no_ignore_vcs, Some(true));
+    }
+}
+
+proptest! {
+    /// `config_from_scan_options` should preserve monotonic behavior:
+    /// enabling any opt-in flag never disables a previously enabled config field.
+    #[test]
+    fn config_mapping_is_monotonic(args in arb_global_args(), toggle_hidden in any::<bool>(), toggle_no_ignore in any::<bool>(), toggle_dot in any::<bool>(), toggle_parent in any::<bool>(), toggle_vcs in any::<bool>(), toggle_doc in any::<bool>()) {
+        let base = config_from_scan_options(&args);
+
+        let mut stronger = args.clone();
+        stronger.hidden |= toggle_hidden;
+        stronger.no_ignore |= toggle_no_ignore;
+        stronger.no_ignore_dot |= toggle_dot;
+        stronger.no_ignore_parent |= toggle_parent;
+        stronger.no_ignore_vcs |= toggle_vcs;
+        stronger.treat_doc_strings_as_comments |= toggle_doc;
+
+        let raised = config_from_scan_options(&stronger);
+
+        prop_assert!(effective_flag(base.hidden) <= effective_flag(raised.hidden));
+        prop_assert!(effective_flag(base.no_ignore) <= effective_flag(raised.no_ignore));
+        prop_assert!(effective_flag(base.no_ignore_dot) <= effective_flag(raised.no_ignore_dot));
+        prop_assert!(effective_flag(base.no_ignore_parent) <= effective_flag(raised.no_ignore_parent));
+        prop_assert!(effective_flag(base.no_ignore_vcs) <= effective_flag(raised.no_ignore_vcs));
+        prop_assert!(effective_flag(base.treat_doc_strings_as_comments) <= effective_flag(raised.treat_doc_strings_as_comments));
+    }
+
+    /// `config_from_scan_options` must enforce the `no_ignore` implication contract.
+    #[test]
+    fn config_from_scan_options_enforces_no_ignore_implication(mut args in arb_global_args()) {
+        args.no_ignore = true;
+        let cfg = config_from_scan_options(&args);
 
         prop_assert_eq!(cfg.no_ignore, Some(true));
         prop_assert_eq!(cfg.no_ignore_dot, Some(true));
