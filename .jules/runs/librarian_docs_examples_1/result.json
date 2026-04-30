@@ -1,0 +1,20 @@
+{
+  "outcome_type": "patch",
+  "title": "librarian: add missing docs drift test for CONTEXT_BUNDLE_SCHEMA_VERSION \ud83d\udcda",
+  "summary": "Added a missing test to `xtask/tests/docs_w43.rs` to ensure `CONTEXT_BUNDLE_SCHEMA_VERSION` in `crates/tokmd-types/src/lib.rs` matches `docs/SCHEMA.md`. This closes a test coverage gap where all other schema versions were verified for docs drift except this one.",
+  "target_paths": [
+    "xtask/tests/docs_w43.rs"
+  ],
+  "proof_summary": "Added the executable test and verified it passes, ensuring future drift of `CONTEXT_BUNDLE_SCHEMA_VERSION` will be caught.",
+  "gates_run": [
+    "cargo test -p xtask",
+    "cargo check",
+    "cargo fmt",
+    "cargo clippy",
+    "cargo xtask docs --check"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Revert the commit touching `xtask/tests/docs_w43.rs`.",
+  "follow_ups": []
+}
