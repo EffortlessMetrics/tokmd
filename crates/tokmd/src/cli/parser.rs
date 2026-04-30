@@ -147,6 +147,9 @@ pub enum Commands {
     /// Generate PR cockpit metrics for code review.
     Cockpit(CockpitArgs),
 
+    /// Generate a reviewer-oriented PR cockpit packet and review map.
+    Review(ReviewArgs),
+
     /// Generate a complexity baseline for trend tracking.
     Baseline(BaselineArgs),
 
@@ -820,6 +823,46 @@ pub struct CockpitArgs {
     /// - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
     #[arg(long)]
     pub sensor_mode: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ReviewArgs {
+    /// Base reference to compare from.
+    #[arg(long, default_value = "main")]
+    pub base: String,
+    /// Head reference to compare to.
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+    /// Output directory for review artifacts.
+    #[arg(long, default_value = ".tokmd/review")]
+    pub out_dir: PathBuf,
+    /// Optional review config path (`tokmd.review.toml`).
+    #[arg(long)]
+    pub config: Option<PathBuf>,
+    /// Gate mode: off, advisory, or blocking.
+    #[arg(long, value_enum, default_value_t = ReviewGateMode::Advisory)]
+    pub gate: ReviewGateMode,
+    /// Analysis preset used to compute supporting signals.
+    #[arg(long, value_enum, default_value_t = AnalysisPreset::Risk)]
+    pub analysis_preset: AnalysisPreset,
+    /// Enable near-duplicate analysis.
+    #[arg(long = "near-dup", default_value_t = true, action = clap::ArgAction::Set)]
+    pub near_dup: bool,
+    /// Include function-level complexity details.
+    #[arg(long)]
+    pub detail_functions: bool,
+    /// Maximum number of review path items to emit.
+    #[arg(long, default_value_t = 12)]
+    pub max_review_items: usize,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReviewGateMode {
+    Off,
+    #[default]
+    Advisory,
+    Blocking,
 }
 
 #[derive(Args, Debug, Clone)]
