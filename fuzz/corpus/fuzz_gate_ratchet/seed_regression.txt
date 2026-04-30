@@ -1,0 +1,6 @@
+{"totals":{"code":100,"comments":10}}
+{"totals":{"code":90,"comments":14}}
+[[rule]]
+pointer = "/totals/code"
+direction = "non_decreasing"
+allow_equal = false

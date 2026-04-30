@@ -1,4 +1,7 @@
 target
-corpus
+corpus/*
+!corpus/.gitkeep
+!corpus/**/
+!corpus/**/seed_*
 artifacts
 coverage

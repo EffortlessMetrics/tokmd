@@ -32,6 +32,10 @@ cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
 cargo +nightly fuzz run fuzz_export_tree --features export_tree
 cargo +nightly fuzz run fuzz_exclude_pattern --features exclude
 cargo +nightly fuzz run fuzz_context_policy --features context_policy
+cargo +nightly fuzz run fuzz_run_json --features core
+cargo +nightly fuzz run fuzz_ffi_envelope --features ffi_envelope
+cargo +nightly fuzz run fuzz_gate_ratchet --features gate_ratchet
+cargo +nightly fuzz run fuzz_badge_svg --features badge
 ```
 
 Limit input size with libfuzzer flags:
@@ -57,6 +61,10 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_export_tree` | `export_tree` | Path-list text | Tests deterministic analysis/handoff tree rendering |
 | `fuzz_exclude_pattern` | `exclude` | Composite (`root\x1fpath`) | Tests exclude-pattern normalization + dedupe invariants |
 | `fuzz_context_policy` | `context_policy` | Composite (`path\x1ftokens\x1flines\x1fbudget`) | Tests context policy classification, cap, and inclusion invariants |
+| `fuzz_run_json` | `core` | Composite (`mode\nargs_json`) | Tests FFI `run_json` no-panic + envelope invariants |
+| `fuzz_ffi_envelope` | `ffi_envelope` | JSON string | Tests envelope parser/extractor determinism and equivalence |
+| `fuzz_gate_ratchet` | `gate_ratchet` | Composite (`baseline\ncurrent\npolicy`) | Tests ratchet policy evaluation invariants |
+| `fuzz_badge_svg` | `badge` | Composite (`label\nvalue`) | Tests SVG badge renderer no-panic and determinism |
 
 ### Composite Input Formats
 
@@ -75,6 +83,27 @@ Some targets use newline-separated composite inputs:
 pointer = "/totals/code"
 op = "lt"
 value = 5000
+```
+
+**fuzz_run_json**: `mode\nargs_json`
+```
+lang
+{"path":".","format":"json"}
+```
+
+**fuzz_gate_ratchet**: `baseline_json\ncurrent_json\nratchet_toml`
+```
+{"totals":{"code":100}}
+{"totals":{"code":110}}
+[[rule]]
+pointer = "/totals/code"
+direction = "non_decreasing"
+```
+
+**fuzz_badge_svg**: `label\nvalue`
+```
+coverage
+92%
 ```
 
 ## Corpus and Artifacts
