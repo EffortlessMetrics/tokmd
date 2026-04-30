@@ -115,6 +115,39 @@ Snapshots normalize non-deterministic values:
 
 Snapshot files: `<crate>/tests/snapshots/*.snap`
 
+### Snapshot Authoring Guidelines
+
+When adding or updating snapshot tests:
+
+- Prefer `assert_json_snapshot!` for structured output so field ordering and diffs stay readable.
+- Normalize dynamic values before asserting snapshots (timestamps, versions, absolute paths, temp dirs).
+- Keep snapshot names stable and descriptive (`<surface>_<scenario>`), e.g. `lang_md_embedded_separate`.
+- Use one scenario per test to keep failures localized and reviewable.
+- Use inline snapshots (`@r#"..."#`) only for very small outputs; prefer `.snap` files for larger outputs.
+
+Recommended helper patterns (seen across the workspace):
+
+- `normalize_json(&out)` for pretty and deterministic JSON string snapshots.
+- Regex-based timestamp replacement for HTML/SVG outputs that embed wall-clock time.
+- Path redaction helpers that convert platform-specific or temp paths to stable placeholders.
+
+### Snapshot Review Workflow
+
+Use this workflow to reduce accidental snapshot churn:
+
+```bash
+cargo test -p <crate> <snapshot_test_name> --verbose
+cargo insta test -p <crate>
+cargo insta review
+```
+
+Guidance:
+
+- Review each hunk for semantic intent, not just textual differences.
+- If a change is intentional, accept only the relevant snapshots.
+- If a diff is unexpected, fix normalization or logic and rerun tests.
+
+
 ## Property-Based Tests
 
 Using `proptest` (1.9.0) across 17 crates:
