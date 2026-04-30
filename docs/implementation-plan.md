@@ -366,6 +366,7 @@ fetch.
 - [x] Enforce publish-surface classification and verify package-list proof for the 16 published crates
 - [x] Replace manual CLI reference tables with checked HELP markers
 - [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
+- [x] Re-verify release fence checks on main (`cargo test -p tokmd --no-default-features` and `--all-features`) before stable tagging; no-default-features currently passes without extra test gating patches.
 - [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
 
 ### Follow-Up: v1.11.0 Browser Runtime Polish
