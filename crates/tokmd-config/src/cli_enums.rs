@@ -163,3 +163,60 @@ impl From<CliAnalysisFormat> for tokmd_types::AnalysisFormat {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cli_config_mode_defaults_to_auto() {
+        assert_eq!(CliConfigMode::default(), CliConfigMode::Auto);
+    }
+
+    #[test]
+    fn cli_table_format_maps_to_core_type() {
+        assert_eq!(tokmd_types::TableFormat::from(CliTableFormat::Md), tokmd_types::TableFormat::Md);
+        assert_eq!(tokmd_types::TableFormat::from(CliTableFormat::Tsv), tokmd_types::TableFormat::Tsv);
+        assert_eq!(tokmd_types::TableFormat::from(CliTableFormat::Json), tokmd_types::TableFormat::Json);
+    }
+
+    #[test]
+    fn cli_export_format_maps_to_core_type() {
+        assert_eq!(
+            tokmd_types::ExportFormat::from(CliExportFormat::Cyclonedx),
+            tokmd_types::ExportFormat::Cyclonedx
+        );
+        assert_eq!(tokmd_types::ExportFormat::from(CliExportFormat::Csv), tokmd_types::ExportFormat::Csv);
+    }
+
+    #[test]
+    fn cli_analysis_format_maps_to_core_type() {
+        assert_eq!(tokmd_types::AnalysisFormat::from(CliAnalysisFormat::Md), tokmd_types::AnalysisFormat::Md);
+        assert_eq!(tokmd_types::AnalysisFormat::from(CliAnalysisFormat::Html), tokmd_types::AnalysisFormat::Html);
+        assert_eq!(
+            tokmd_types::AnalysisFormat::from(CliAnalysisFormat::Mermaid),
+            tokmd_types::AnalysisFormat::Mermaid
+        );
+    }
+
+    #[test]
+    fn cli_enum_serialization_uses_kebab_case() {
+        assert_eq!(
+            serde_json::to_string(&CliChildIncludeMode::ParentsOnly).expect("serializes"),
+            "\"parents-only\""
+        );
+        assert_eq!(serde_json::to_string(&CliConfigMode::Auto).expect("serializes"), "\"auto\"");
+    }
+
+    #[test]
+    fn cli_enum_deserialization_accepts_kebab_case() {
+        assert_eq!(
+            serde_json::from_str::<CliRedactMode>("\"paths\"").expect("deserializes"),
+            CliRedactMode::Paths
+        );
+        assert_eq!(
+            serde_json::from_str::<CliAnalysisFormat>("\"jsonld\"").expect("deserializes"),
+            CliAnalysisFormat::Jsonld
+        );
+    }
+}
