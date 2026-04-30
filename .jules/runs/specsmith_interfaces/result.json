@@ -1,10 +1,5 @@
 {
-  "outcome": "PR-ready patch",
+  "outcome": "learning PR",
   "primary_shard": "interfaces",
-  "files_touched": [
-    "crates/tokmd/tests/boundary_verification.rs",
-    "crates/tokmd/tests/cli_snapshot_golden.rs",
-    "crates/tokmd/tests/determinism.rs",
-    "crates/tokmd/tests/schema_sync.rs"
-  ]
+  "files_touched": []
 }

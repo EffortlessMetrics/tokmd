@@ -1,51 +1,40 @@
 ## 💡 Summary
-Fixed `cargo test --no-default-features -p tokmd` failures by conditionally compiling integration tests that rely on the `analysis` feature flag.
+Learning PR: The intended patch to conditionally compile integration tests requiring the `analysis` feature has been superseded by #1457. Recorded workflow edge-case friction.
 
 ## 🎯 Why
-Integration tests (`cli_snapshot_golden.rs`, `determinism.rs`, `schema_sync.rs`, and `boundary_verification.rs`) invoke CLI subcommands (like `analyze`, `badge`, `baseline`) that require the `analysis` feature. When run in a `--no-default-features` test matrix, these tests panic, reporting "analysis feature is not enabled" or failing on CLI invocations, breaking test determinism and CI checks.
+During execution, it was found that PR #1457 had already merged an identical clean fix for the `--no-default-features` test gating issue on analysis-dependent snapshot/determinism tests without generating extra runtime artifacts. Continuing would create a redundant PR.
 
 ## 🔎 Evidence
-- `cargo test --no-default-features -p tokmd --tests` failed on `snapshot_analyze_json` and `run_receipt_is_deterministic_across_runs`.
-- Panic messages: `run command failed: Error: analysis feature is not enabled`
-- Identified affected files via grep for `#![cfg(feature = "analysis")]` and `tokmd.*\(analyze\|badge\|baseline\|gate\|run\)`.
+- Review feedback stated: "Superseded by #1457, which landed the cleaned no-default-features test gating fix for analysis-dependent snapshot/determinism tests without runtime artifacts."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add `#![cfg(feature = "analysis")]` to the top of affected test files.
-- Fits this repo and shard as it respects the feature-gate boundaries set in Cargo.toml.
-- Trade-offs: Keeps minimal-feature tests fast while explicitly documenting feature requirements.
+- Abort the code patch and create a Learning PR documenting the redundant work as a friction item.
+- Fits this repo and shard by honoring the 'redundant PR' workflow edge case memory.
+- Trade-offs: Abandons the immediate fix but correctly models system response to overlapping work.
 
 ### Option B
-- Ignore `--no-default-features` test matrix runs entirely.
-- When to choose: Never, as it hides broken boundaries.
-- Trade-offs: Reduces test coverage reliability for users building minimal profiles.
+- Ignore the comment and force the patch through.
+- When to choose: Never.
+- Trade-offs: Clutters the PR board with duplicate work.
 
 ## ✅ Decision
-Option A. It accurately reflects feature dependencies at the test level and directly fixes the `--no-default-features` failures.
+Option A. Strictly following the redundancy fallback rules.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/tests/boundary_verification.rs`
-- `crates/tokmd/tests/cli_snapshot_golden.rs`
-- `crates/tokmd/tests/determinism.rs`
-- `crates/tokmd/tests/schema_sync.rs`
+- None (Code patch aborted).
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test --no-default-features -p tokmd --tests
-...
-test result: ok. 164 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
-...
-test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
-...
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+(Aborted redundant test fixes)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test Configuration Update
-- Blast radius: API (None), IO (None), Docs (None), Schema (None), Concurrency (None), Compatibility (None), Dependencies (None). Tests only.
-- Risk class: Low - Test-only feature gate fix.
-- Rollback: Revert file modifications.
-- Gates run: `core-rust` (test, check)
+- Change shape: Learning PR
+- Blast radius: None (Code patch aborted)
+- Risk class: Low
+- Rollback: N/A
+- Gates run: `core-rust` (check, clippy, fmt, test)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_interfaces/envelope.json`
@@ -53,6 +42,7 @@ test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 - `.jules/runs/specsmith_interfaces/receipts.jsonl`
 - `.jules/runs/specsmith_interfaces/result.json`
 - `.jules/runs/specsmith_interfaces/pr_body.md`
+- `.jules/friction/open/redundant_pr.md`
 
 ## 🔜 Follow-ups
 None.

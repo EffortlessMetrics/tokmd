@@ -1,4 +1,3 @@
-#![cfg(feature = "analysis")]
 //! Golden snapshot tests for CLI output formats.
 //!
 //! These tests capture the full output of each major CLI command and format
