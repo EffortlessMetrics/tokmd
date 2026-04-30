@@ -248,6 +248,103 @@ fn publish_order_every_crate_after_its_deps() {
     }
 }
 
+#[test]
+fn publishable_internal_dev_dependencies_use_loose_versions() {
+    let crates_dir = workspace_root().join("crates");
+    let mut violations = Vec::new();
+
+    for entry in std::fs::read_dir(&crates_dir).expect("crates directory should be readable") {
+        let entry = entry.expect("crate directory entry should be readable");
+        if !entry
+            .file_type()
+            .expect("file type should be readable")
+            .is_dir()
+        {
+            continue;
+        }
+
+        let manifest_path = entry.path().join("Cargo.toml");
+        if !manifest_path.exists() {
+            continue;
+        }
+
+        let manifest = std::fs::read_to_string(&manifest_path)
+            .unwrap_or_else(|err| panic!("{} should be readable: {err}", manifest_path.display()));
+        let table: toml::Table = toml::from_str(&manifest).unwrap_or_else(|err| {
+            panic!("{} should parse as TOML: {err}", manifest_path.display())
+        });
+
+        let Some(package) = table.get("package").and_then(toml::Value::as_table) else {
+            continue;
+        };
+
+        let publishable = match package.get("publish") {
+            Some(toml::Value::Boolean(false)) => false,
+            Some(toml::Value::Array(allow_list)) if allow_list.is_empty() => false,
+            _ => true,
+        };
+        if !publishable {
+            continue;
+        }
+
+        let crate_name = package
+            .get("name")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unknown>");
+        let Some(dev_deps) = table
+            .get("dev-dependencies")
+            .and_then(toml::Value::as_table)
+        else {
+            continue;
+        };
+
+        for (dep_name, dep_value) in dev_deps {
+            if !dep_name.starts_with("tokmd-") {
+                continue;
+            }
+
+            let Some(dep_table) = dep_value.as_table() else {
+                violations.push(format!(
+                    "{crate_name} dev-dependency {dep_name} must use table form with path and loose version"
+                ));
+                continue;
+            };
+
+            if dep_table
+                .get("workspace")
+                .and_then(toml::Value::as_bool)
+                .unwrap_or(false)
+            {
+                violations.push(format!(
+                    "{crate_name} dev-dependency {dep_name} must not use workspace = true"
+                ));
+            }
+
+            if !dep_table.contains_key("path") {
+                violations.push(format!(
+                    "{crate_name} dev-dependency {dep_name} must keep a local path"
+                ));
+            }
+
+            match dep_table.get("version").and_then(toml::Value::as_str) {
+                Some(">=1.9, <2") => {}
+                Some(version) => violations.push(format!(
+                    "{crate_name} dev-dependency {dep_name} uses {version:?}; expected \">=1.9, <2\""
+                )),
+                None => violations.push(format!(
+                    "{crate_name} dev-dependency {dep_name} must declare loose version \">=1.9, <2\""
+                )),
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "publishable internal dev-dependencies must not require unpublished same-version crates:\n  - {}",
+        violations.join("\n  - ")
+    );
+}
+
 // ===========================================================================
 // 2. Rate limit detection (429 codes)
 // ===========================================================================

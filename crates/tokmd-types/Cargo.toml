@@ -22,6 +22,6 @@ clap = { version = "4.6.0", features = ["derive"], optional = true }
 proptest.workspace = true
 serde_json.workspace = true
 insta = { workspace = true }
-tokmd-scan = { workspace = true }
-tokmd-format = { workspace = true }
-tokmd-model = { workspace = true }
+tokmd-scan = { path = "../tokmd-scan", version = ">=1.9, <2" }
+tokmd-format = { path = "../tokmd-format", version = ">=1.9, <2" }
+tokmd-model = { path = "../tokmd-model", version = ">=1.9, <2" }
