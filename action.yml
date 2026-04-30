@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: pr, module, export, gate, cockpit, sensor, baseline.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -34,7 +34,25 @@ inputs:
     description: 'Whether to upload generated tokmd files as workflow artifacts'
     default: 'true'
   comment:
-    description: 'Whether to post the generated Markdown summary as a pull request comment'
+    description: 'Comment mode: auto, true, or false'
+    default: 'auto'
+  gate-mode:
+    description: 'Gate behavior for mode=pr: advisory, blocking, or off'
+    default: 'advisory'
+  fail-no-policy:
+    description: 'When true, fail mode=pr if no gate policy is found'
+    default: 'false'
+  output-dir:
+    description: 'Directory for all generated files'
+    default: '.tokmd/action'
+  artifact-name:
+    description: 'Artifact name used by upload-artifact'
+    default: 'tokmd-${{ github.run_id }}'
+  artifact-retention-days:
+    description: 'Artifact retention in days'
+    default: '14'
+  step-summary:
+    description: 'Write $GITHUB_STEP_SUMMARY from comment.md or summary.md when available'
     default: 'true'
 
 outputs:
@@ -167,9 +185,14 @@ runs:
         TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
         TOKMD_ACTION_PATHS: ${{ inputs.paths }}
         TOKMD_ACTION_TOP: ${{ inputs.top }}
+        TOKMD_ACTION_GATE_MODE: ${{ inputs['gate-mode'] }}
+        TOKMD_ACTION_FAIL_NO_POLICY: ${{ inputs['fail-no-policy'] }}
+        TOKMD_ACTION_OUTPUT_DIR: ${{ inputs['output-dir'] }}
       run: |
         set -euo pipefail
         echo "Generating receipts..."
+        out_dir="${TOKMD_ACTION_OUTPUT_DIR}"
+        mkdir -p "$out_dir" "$out_dir/extras"
 
         # Split paths input into argv-style arguments so callers can provide
         # multiple paths (space/newline separated) instead of a single quoted blob.
@@ -196,6 +219,7 @@ runs:
         format="$TOKMD_ACTION_FORMAT"
         mode="$TOKMD_ACTION_MODE"
         summary_file=""
+        output_summary_file=""
         receipt_file=""
         gate_verdict_file=""
         cockpit_report_file=""
@@ -247,9 +271,43 @@ runs:
         }
 
         case "$mode" in
+          pr)
+            summary_file="$out_dir/tokmd-summary.md"
+            receipt_file="$out_dir/tokmd-receipt.${format}"
+            gate_verdict_file="$out_dir/tokmd-gate-verdict.json"
+            sensor_report_file="$out_dir/tokmd-sensor-report.json"
+            manifest_file="$out_dir/manifest.json"
+            gate_state="skipped"
+            sensor_state="skipped"
+            comment_state="skipped"
+            tokmd module "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --top "$TOKMD_ACTION_TOP" --format md > "$summary_file"
+            tokmd export "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --format "$format" > "$receipt_file"
+            if [ "${GITHUB_EVENT_NAME:-}" = "pull_request" ]; then
+              compare_base="$(resolve_base_ref pr)"
+              if tokmd sensor --base "$compare_base" --head "$TOKMD_ACTION_HEAD" --output "$sensor_report_file" --format json > /dev/null; then
+                sensor_state="passed"
+              else
+                sensor_state="failed"
+              fi
+            fi
+            if [ "${TOKMD_ACTION_GATE_MODE}" != "off" ]; then
+              set +e
+              tokmd gate "${scan_paths[0]}" --format json > "$gate_verdict_file"
+              gate_status=$?
+              set -e
+              if [ $gate_status -eq 0 ]; then
+                gate_state="passed"
+              else
+                gate_state="failed"
+                if [ "${TOKMD_ACTION_GATE_MODE}" = "blocking" ]; then command_status=$gate_status; fi
+              fi
+            fi
+            printf '{"schema_version":"tokmd.action.v1","mode":"pr","status":{"overall":"%s","sensor":"%s","receipt":"passed","gate":"%s"},"files":{"summary":"%s","receipt":"%s","gate_verdict":"%s","sensor_report":"%s"}}
+' "$( [ $command_status -eq 0 ] && echo passed || echo failed )" "$sensor_state" "$gate_state" "$summary_file" "$receipt_file" "$gate_verdict_file" "$sensor_report_file" > "$manifest_file"
+            ;;
           "")
-            summary_file="tokmd-summary.md"
-            receipt_file="tokmd-receipt.${format}"
+            summary_file="$out_dir/tokmd-summary.md"
+            receipt_file="$out_dir/tokmd-receipt.${format}"
 
             tokmd module \
               "${scan_paths[@]}" \
@@ -263,7 +321,7 @@ runs:
               --format "$format" > "$receipt_file"
             ;;
           module)
-            summary_file="tokmd-summary.md"
+            summary_file="$out_dir/tokmd-summary.md"
 
             tokmd module \
               "${scan_paths[@]}" \
@@ -272,7 +330,7 @@ runs:
               --format md > "$summary_file"
             ;;
           export)
-            receipt_file="tokmd-receipt.${format}"
+            receipt_file="$out_dir/tokmd-receipt.${format}"
 
             tokmd export \
               "${scan_paths[@]}" \
@@ -285,14 +343,14 @@ runs:
               exit 1
             fi
 
-            gate_verdict_file="tokmd-gate-verdict.json"
+            gate_verdict_file="$out_dir/tokmd-gate-verdict.json"
             set +e
             tokmd gate "${scan_paths[0]}" --format json > "$gate_verdict_file"
             command_status=$?
             set -e
             ;;
           cockpit)
-            cockpit_report_file="tokmd-cockpit-report.json"
+            cockpit_report_file="$out_dir/tokmd-cockpit-report.json"
             compare_base="$(resolve_base_ref cockpit)"
 
             tokmd cockpit \
@@ -301,8 +359,8 @@ runs:
               --format json > "$cockpit_report_file"
             ;;
           sensor)
-            summary_file="comment.md"
-            sensor_report_file="tokmd-sensor-report.json"
+            summary_file="$out_dir/comment.md"
+            sensor_report_file="$out_dir/tokmd-sensor-report.json"
             compare_base="$(resolve_base_ref sensor)"
 
             tokmd sensor \
@@ -317,7 +375,7 @@ runs:
               exit 1
             fi
 
-            baseline_report_file="tokmd-baseline.json"
+            baseline_report_file="$out_dir/tokmd-baseline.json"
 
             tokmd baseline "${scan_paths[0]}" \
               --output "$baseline_report_file" \
@@ -325,7 +383,7 @@ runs:
               --no-progress
             ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: pr, module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
@@ -344,22 +402,22 @@ runs:
       if: inputs.artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
-        name: tokmd-receipts
-        path: |
-          ${{ steps.generate.outputs.summary }}
-          ${{ steps.generate.outputs.receipt }}
-          ${{ steps.generate.outputs['gate-verdict'] }}
-          ${{ steps.generate.outputs['cockpit-report'] }}
-          ${{ steps.generate.outputs['sensor-report'] }}
-          ${{ steps.generate.outputs['baseline-report'] }}
-          extras/
+        name: ${{ inputs['artifact-name'] }}
+        path: ${{ inputs['output-dir'] }}/
+        retention-days: ${{ inputs['artifact-retention-days'] }}
 
     - name: Comment on PR
-      if: inputs.comment == 'true' && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
+      if: inputs.comment != 'false' && steps.generate.outputs.summary != '' && ( (inputs.comment == 'true' && github.event_name == 'pull_request') || (inputs.comment == 'auto' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) )
       uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
       with:
         file-path: ${{ steps.generate.outputs.summary }}
         comment_tag: tokmd-summary
+
+
+    - name: Write step summary
+      if: inputs['step-summary'] == 'true' && steps.generate.outputs.summary != ''
+      shell: bash
+      run: cat "${{ steps.generate.outputs.summary }}" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Fail on gate verdict
       if: steps.generate.outputs['command-status'] != '0'
