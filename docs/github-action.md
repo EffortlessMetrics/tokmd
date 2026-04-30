@@ -25,7 +25,9 @@ jobs:
           version: '1.10.0'
           paths: .
           artifact: 'true'
-          comment: 'true'
+          mode: pr
+          gate-mode: advisory
+          comment: auto
 ```
 
 ## Versioning Model
@@ -67,7 +69,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
-| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the default module plus export flow. |
+| `mode` | no | `(omitted)` | `tokmd` mode to run: `pr`, `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the default module plus export flow. |
 | `version` | no | `latest` | `tokmd` release to install. Use an explicit version when you want the Action ref and binary version to stay aligned. |
 | `paths` | no | `.` | Paths to scan. Values are split on whitespace and passed as separate path arguments. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `module`, `export`, and the default flow. |
@@ -76,7 +78,13 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `base` | no | `(inferred)` | Base git ref for `cockpit` and `sensor`. Explicit values are used as provided. When omitted, pull request runs use `origin/$GITHUB_BASE_REF`; other runs use `origin/HEAD` when available. |
 | `head` | no | `HEAD` | Head git ref for `cockpit` and `sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
-| `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
+| `comment` | no | `auto` | Comment behavior: `auto`, `true`, or `false`. `auto` comments only on same-repo pull requests. |
+| `gate-mode` | no | `advisory` | `mode: pr` gate behavior: `off`, `advisory`, or `blocking`. |
+| `fail-no-policy` | no | `false` | Reserved compatibility flag for policy bootstrap behavior. |
+| `output-dir` | no | `.tokmd/action` | Directory where all generated outputs are written. |
+| `artifact-name` | no | `tokmd-${{ github.run_id }}` | Artifact upload name when `artifact: 'true'`. |
+| `artifact-retention-days` | no | `14` | Artifact retention period (days). |
+| `step-summary` | no | `true` | Append generated summary markdown to `$GITHUB_STEP_SUMMARY` when available. |
 
 ## Outputs
 
@@ -88,6 +96,8 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `cockpit-report` | Path to `tokmd-cockpit-report.json` when `mode: cockpit` is used. |
 | `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
 | `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
+
+All modes also emit `${output-dir}/manifest.json`.
 
 ## Modes
 
@@ -336,3 +346,14 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
     artifact: 'true'
     comment: 'false'
 ```
+### `pr`
+
+Runs a CI-friendly flow in one step:
+
+- `tokmd module --format md` to `${output-dir}/tokmd-summary.md`
+- `tokmd export --format <format>` to `${output-dir}/tokmd-receipt.<format>`
+- `tokmd sensor` (when base/head can be resolved) to `${output-dir}/tokmd-sensor-report.json`
+- `tokmd gate` based on `gate-mode` to `${output-dir}/tokmd-gate-verdict.json`
+- writes `${output-dir}/comment.md` and `${output-dir}/manifest.json`
+
+`gate-mode: advisory` records gate failures without failing the workflow. `gate-mode: blocking` fails on gate errors.
