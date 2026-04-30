@@ -368,12 +368,21 @@ fetch.
 - [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
 - [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
 
-### Follow-Up: v1.11.0 Browser Runtime Polish
+## Phase 5c: Browser Runtime Polish (v1.11.0)
+
+**Goal**: Deliver polish for the browser runtime environment, handling edge cases, UX for long-running analyses, and fetch boundaries.
+
+### Work Items
 
 - [ ] Define cache key and invalidation semantics
 - [ ] Emit explicit progress events
 - [ ] Improve retry and rate-limit UX
 - [ ] Partition authenticated fetch/cache behavior safely
+
+### Tests
+
+- Unit tests: Cache invalidation logic
+- E2E tests: Progress event emission during long scans
 
 ---
 

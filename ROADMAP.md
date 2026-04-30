@@ -476,7 +476,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 - The full in-memory scan path and wasm CI parity work did not fully land in `1.8.0`; that continuation is now the next milestone instead of implicit spillover.
 
-## v1.9.0 — Browser/WASM Productization
+## Completed: v1.9.0 — Browser/WASM Productization
 
 **Goal:** Finish the browser/WASM product surface around the already-landed in-memory execution path and make the supported browser workflow explicit, repeatable, and capability-honest.
 
@@ -507,7 +507,7 @@ UX work is explicitly **incremental and non-breaking**:
 - No browser zipball ingestion as the primary supported path for `v1.9.0`; tree+contents is the supported browser acquisition strategy.
 - No mutation testing or other heavy tooling in-browser.
 
-## v1.10.0 — CI Control Plane, Trust Hardening, and Proof Stability
+## Completed: v1.10.0 — CI Control Plane, Trust Hardening, and Proof Stability
 
 **Goal:** Ship the stable release after the Action, path-trust, WASM, publish-surface, and proof-hardening work landed and the release candidate was validated.
 
@@ -520,7 +520,11 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] Determinism and proof coverage for analyze snapshots, run/diff receipts, effort serde, and core CLI behavior.
 - [x] CLI reference docs generated through checked HELP markers.
 
-### Deferred to v1.11.0
+## v1.11.0 — Browser Runtime Polish
+
+**Goal:** Deliver polish for the browser runtime environment, handling edge cases, UX for long-running analyses, and fetch boundaries.
+
+### What is planned for v1.11.0
 
 - Browser cache key/invalidation semantics.
 - Browser progress events.

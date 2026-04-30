@@ -1,0 +1,11 @@
+{
+  "outcome": "pr-ready patch",
+  "files_changed": ["ROADMAP.md", "docs/implementation-plan.md"],
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo xtask publish --plan",
+    "cargo xtask version-consistency",
+    "cargo fmt -- --check",
+    "cargo check"
+  ]
+}
