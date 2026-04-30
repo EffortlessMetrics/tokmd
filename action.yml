@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline, review.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -28,7 +28,7 @@ inputs:
     description: 'Base git ref for mode: cockpit or mode: sensor. Omit to infer from pull request base or origin/HEAD.'
     default: ''
   head:
-    description: 'Head git ref for mode: cockpit or mode: sensor'
+    description: 'Head git ref for mode: cockpit, mode: sensor, or mode: review'
     default: 'HEAD'
   artifact:
     description: 'Whether to upload generated tokmd files as workflow artifacts'
@@ -56,6 +56,12 @@ outputs:
   baseline-report:
     description: 'Path to the generated baseline JSON file'
     value: ${{ steps.generate.outputs['baseline-report'] }}
+  review-manifest:
+    description: 'Path to the generated review manifest JSON file'
+    value: ${{ steps.generate.outputs['review-manifest'] }}
+  review-comment:
+    description: 'Path to the generated review comment Markdown file'
+    value: ${{ steps.generate.outputs['review-comment'] }}
 
 runs:
   using: "composite"
@@ -201,6 +207,8 @@ runs:
         cockpit_report_file=""
         sensor_report_file=""
         baseline_report_file=""
+        review_manifest_file=""
+        review_comment_file=""
         command_status=0
 
         ensure_git_ref() {
@@ -311,6 +319,16 @@ runs:
               --output "$sensor_report_file" \
               --format json > /dev/null
             ;;
+          review)
+            compare_base="$(resolve_base_ref review)"
+            tokmd review \
+              --base "$compare_base" \
+              --head "$TOKMD_ACTION_HEAD" \
+              --out-dir .tokmd/review
+            review_manifest_file=".tokmd/review/manifest.json"
+            review_comment_file=".tokmd/review/comment.md"
+            summary_file="$review_comment_file"
+            ;;
           baseline)
             if [ ${#scan_paths[@]} -ne 1 ]; then
               echo "::error::mode=baseline accepts exactly one input path; received ${#scan_paths[@]} paths"
@@ -325,7 +343,7 @@ runs:
               --no-progress
             ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline, review. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
@@ -337,6 +355,8 @@ runs:
           echo "cockpit-report=$cockpit_report_file"
           echo "sensor-report=$sensor_report_file"
           echo "baseline-report=$baseline_report_file"
+          echo "review-manifest=$review_manifest_file"
+          echo "review-comment=$review_comment_file"
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
@@ -352,6 +372,9 @@ runs:
           ${{ steps.generate.outputs['cockpit-report'] }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
+          ${{ steps.generate.outputs['review-manifest'] }}
+          ${{ steps.generate.outputs['review-comment'] }}
+          .tokmd/review/
           extras/
 
     - name: Comment on PR

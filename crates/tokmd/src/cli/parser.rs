@@ -150,6 +150,9 @@ pub enum Commands {
     /// Generate a complexity baseline for trend tracking.
     Baseline(BaselineArgs),
 
+    /// Generate a PR review cockpit packet with prioritized review map.
+    Review(ReviewArgs),
+
     /// Bundle codebase for LLM handoff.
     Handoff(HandoffArgs),
 
@@ -851,6 +854,35 @@ pub enum CockpitFormat {
     Md,
     /// Section-based output for PR template filling.
     Sections,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReviewGateMode {
+    #[default]
+    Off,
+    Advisory,
+    Blocking,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ReviewArgs {
+    #[arg(long, default_value = "main")]
+    pub base: String,
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+    #[arg(long, default_value = ".tokmd/review")]
+    pub out_dir: PathBuf,
+    #[arg(long)]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_enum, default_value_t = ReviewGateMode::Advisory)]
+    pub gate: ReviewGateMode,
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+    pub near_dup: bool,
+    #[arg(long, default_value_t = false)]
+    pub detail_functions: bool,
+    #[arg(long)]
+    pub max_review_items: Option<usize>,
 }
 
 #[derive(Args, Debug, Clone)]
