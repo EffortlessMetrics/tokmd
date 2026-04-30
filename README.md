@@ -1,6 +1,6 @@
 # tokmd
 
-> Deterministic repository receipts, review artifacts, and CI gates for humans, automation, and LLM workflows.
+> Deterministic repository receipts, analysis, review artifacts, and CI gates.
 
 [![Crates.io](https://img.shields.io/crates/v/tokmd)](https://crates.io/crates/tokmd)
 [![GitHub Release](https://img.shields.io/github/v/release/EffortlessMetrics/tokmd?display_name=tag)](https://github.com/EffortlessMetrics/tokmd/releases)
@@ -9,13 +9,64 @@
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 
-`tokmd` turns a source tree into stable Markdown and JSON artifacts: language and module summaries, file receipts, PR review reports, policy gates, baselines, sensor reports, and LLM-ready context bundles.
+`tokmd` turns a source tree into stable Markdown and JSON artifacts: language and module summaries, file receipts, analysis reports, diffs, policy gates, baselines, sensor reports, and LLM-ready context bundles.
 
-Use it as a GitHub Action, a CLI, or an embeddable Rust/WASM surface.
+Use it from the CLI first; wire the same surfaces into CI with the GitHub Action when you want automated receipts, comments, and gates.
 
-## GitHub Action Quick Start
+## CLI Quick Start
 
-Use the root composite Action when you want `tokmd` receipts and PR summaries without scripting installation.
+Install:
+
+```bash
+cargo install tokmd --locked
+# or
+nix run github:EffortlessMetrics/tokmd -- --version
+```
+
+Run the common paths:
+
+```bash
+# Summarize the current repo
+tokmd --format md --top 8
+
+# Save deterministic run artifacts
+tokmd run --analysis receipt --output-dir .runs/current
+
+# Compare two states
+tokmd diff main HEAD
+
+# Analyze risk
+tokmd analyze --preset risk --format md
+
+# Pack code for an LLM budget
+tokmd context --budget 128k --mode bundle --output context.txt
+```
+
+## What tokmd Produces
+
+| Surface | Output |
+| :------ | :----- |
+| Repository summary | Markdown tables for languages and modules |
+| Receipts | JSON, JSONL, CSV, CycloneDX, HTML, SVG, Mermaid |
+| Analysis | Risk, effort, complexity, duplication, git, and API-surface reports |
+| Review reports | Cockpit reports, sensor reports, gate verdicts |
+| Baselines | Ratchet-ready baseline JSON |
+| LLM context | Bounded bundles, redaction, handoff directories |
+
+## Choose a Path
+
+| If you need to... | Start with... | Typical output |
+| :---------------- | :------------ | :------------- |
+| summarize a repo | `tokmd`, `module`, `export` | Markdown summary, file receipt |
+| compare states | `diff`, `run` | deterministic diff and receipts |
+| analyze code health | `analyze` | risk, effort, complexity reports |
+| review a PR | `cockpit`, GitHub Action | review report |
+| gate policy in CI | `gate`, `baseline`, `sensor` | verdicts, ratchets, sensor envelope |
+| pack LLM context | `context`, `handoff` | bounded bundle, handoff directory |
+
+## GitHub Action
+
+Use the root composite Action when you want `tokmd` receipts, PR summaries, artifacts, or gates in CI.
 
 ```yaml
 name: tokmd receipt
@@ -46,21 +97,9 @@ By default, this writes:
 - `tokmd-summary.md`
 - `tokmd-receipt.json`
 
-It can also run explicit modes:
-
-```text
-module
-export
-gate
-cockpit
-sensor
-baseline
-```
-
-Common mode examples:
+For gates:
 
 ```yaml
-# Gate a repo with tokmd.toml policy rules.
 - uses: EffortlessMetrics/tokmd@v1
   with:
     version: '1.10.0'
@@ -68,107 +107,9 @@ Common mode examples:
     paths: .
     artifact: 'true'
     comment: 'false'
-
-# Compare a PR or branch with cockpit metrics.
-- uses: actions/checkout@v6
-  with:
-    fetch-depth: 0
-
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    version: '1.10.0'
-    mode: cockpit
-    head: HEAD
-    artifact: 'true'
-    comment: 'false'
-
-# Emit a sensor report and Markdown review comment body.
-- uses: actions/checkout@v6
-  with:
-    fetch-depth: 0
-
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    version: '1.10.0'
-    mode: sensor
-    head: HEAD
-    artifact: 'true'
-    comment: 'false'
-
-# Capture a baseline for later ratchet comparisons.
-- uses: EffortlessMetrics/tokmd@v1
-  with:
-    version: '1.10.0'
-    mode: baseline
-    paths: .
-    artifact: 'true'
-    comment: 'false'
 ```
 
-For `cockpit` and `sensor`, set `base` only when you want to override the inferred pull-request base or repository default branch. External PR workflows should use `actions/checkout@v6` with `fetch-depth: 0` so compare refs are available.
-
-Marketplace usage separates the Action ref from the downloaded `tokmd` binary version. Stable workflows should use `EffortlessMetrics/tokmd@v1` with an explicit `version: '1.10.0'`. Release-candidate smoke tests should pin both values:
-
-```yaml
-- uses: EffortlessMetrics/tokmd@v1.10.0-rc.1
-  with:
-    version: '1.10.0-rc.1'
-    paths: .
-    artifact: 'true'
-    comment: 'false'
-```
-
-For full inputs, outputs, artifact names, mode behavior, failure behavior, release assets, and checkout guidance, see [GitHub Action reference](docs/github-action.md).
-
-## What tokmd Produces
-
-| Surface | Output |
-| :------ | :----- |
-| Repository summary | Markdown tables for languages and modules |
-| Receipts | JSON, JSONL, CSV, CycloneDX, HTML, SVG, Mermaid |
-| Review reports | Cockpit reports, sensor reports, gate verdicts |
-| Baselines | Ratchet-ready baseline JSON |
-| LLM context | Bounded bundles, redaction, handoff directories |
-
-## Choose a Path
-
-| If you need to... | Start with... | Typical output |
-| :---------------- | :------------ | :------------- |
-| summarize a repo or PR | GitHub Action, `tokmd`, `cockpit` | Markdown summary, review report |
-| save deterministic artifacts | `run`, `export` | JSON/JSONL/CSV/CycloneDX receipts |
-| analyze code health or risk | `analyze` | Markdown, JSON, HTML, SVG, Mermaid |
-| estimate effort between refs | `analyze --preset estimate` | effort report with optional base/head delta |
-| gate policy in CI | `gate`, `baseline`, `sensor` | verdicts, ratchets, `sensor.report.v1` |
-| pack context for an LLM | `context`, `handoff` | bounded bundle text, JSON receipts, handoff directory |
-
-## CLI Quick Start
-
-Install:
-
-```bash
-cargo install tokmd --locked
-# or
-nix run github:EffortlessMetrics/tokmd -- --version
-```
-
-Run the common paths:
-
-```bash
-# Summarize the current repo
-tokmd --format md --top 8
-
-# Save a deterministic run directory for CI or later diffing
-tokmd run --analysis receipt --output-dir .runs/current
-
-# Compare two states
-tokmd diff main HEAD
-
-# Generate a risk-oriented analysis view
-tokmd analyze --preset risk --format md
-
-# Pack code for an LLM budget
-tokmd context --budget 128k --mode bundle --output context.txt
-```
+For all Action modes, inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see [GitHub Action reference](docs/github-action.md).
 
 ## Why It Exists
 
@@ -218,9 +159,7 @@ Representative summary output:
 
 ## Browser And WASM
 
-`tokmd-wasm` and `web/runner` expose a narrower browser-safe slice.
-
-Supported today:
+`tokmd-wasm` and `web/runner` expose a narrower browser-safe slice:
 
 - `lang`
 - `module`
