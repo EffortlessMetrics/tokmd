@@ -562,19 +562,33 @@ mod tests {
     }
 
     #[test]
-    fn gate_status_serde() {
-        let json = serde_json::to_string(&GateStatus::Pass).unwrap();
-        assert_eq!(json, "\"pass\"");
-        let back: GateStatus = serde_json::from_str(&json).unwrap();
-        assert_eq!(back, GateStatus::Pass);
+    fn gate_status_serde_all_variants() {
+        for (status, expected) in [
+            (GateStatus::Pass, "\"pass\""),
+            (GateStatus::Warn, "\"warn\""),
+            (GateStatus::Fail, "\"fail\""),
+            (GateStatus::Skipped, "\"skipped\""),
+            (GateStatus::Pending, "\"pending\""),
+        ] {
+            let json = serde_json::to_string(&status).unwrap();
+            assert_eq!(json, expected);
+            let back: GateStatus = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, status);
+        }
     }
 
     #[test]
-    fn trend_direction_serde() {
-        let json = serde_json::to_string(&TrendDirection::Improving).unwrap();
-        assert_eq!(json, "\"improving\"");
-        let back: TrendDirection = serde_json::from_str(&json).unwrap();
-        assert_eq!(back, TrendDirection::Improving);
+    fn trend_direction_serde_all_variants() {
+        for (direction, expected) in [
+            (TrendDirection::Improving, "\"improving\""),
+            (TrendDirection::Stable, "\"stable\""),
+            (TrendDirection::Degrading, "\"degrading\""),
+        ] {
+            let json = serde_json::to_string(&direction).unwrap();
+            assert_eq!(json, expected);
+            let back: TrendDirection = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, direction);
+        }
     }
 
     #[test]
