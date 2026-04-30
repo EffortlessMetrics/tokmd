@@ -117,7 +117,7 @@ Snapshot files: `<crate>/tests/snapshots/*.snap`
 
 ## Property-Based Tests
 
-Using `proptest` (1.9.0) across 17 crates:
+Using `proptest` (1.11.0) across 17 crates:
 
 | Crate | Properties Tested |
 |-------|-------------------|
@@ -138,7 +138,8 @@ Using `proptest` (1.9.0) across 17 crates:
 
 `proptest.toml`:
 ```toml
-[proptest]
+[default]
+# Default local/CI profile used by this repo
 cases = 256
 max_shrink_iters = 1000
 timeout = 10000
@@ -149,6 +150,8 @@ timeout = 10000
 ```bash
 cargo test -p tokmd-scan properties
 cargo test properties    # All property tests
+# Increase exploration depth temporarily without editing files
+PROPTEST_CASES=1024 cargo test -p tokmd-scan properties
 ```
 
 ### Regression Seeds
