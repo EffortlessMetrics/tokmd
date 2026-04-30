@@ -120,11 +120,12 @@ pub fn redact_path(path: &str) -> String {
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let ext = if ext.len() <= 8 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
-        ext
-    } else {
-        ""
-    };
+    let safe_exts = [
+        "rs", "js", "ts", "py", "go", "c", "cpp", "h", "hpp", "java", "cs", "rb", "php", "json",
+        "toml", "yaml", "yml", "md", "txt", "gz", "tar", "csv", "xml", "html", "css", "sh", "bat",
+        "sql", "vue", "jsx", "tsx", "swift", "kt",
+    ];
+    let ext = if safe_exts.contains(&ext) { ext } else { "" };
     let mut out = short_hash(&cleaned);
     if !ext.is_empty() {
         out.push('.');
