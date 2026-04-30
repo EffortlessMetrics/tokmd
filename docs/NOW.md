@@ -1,18 +1,18 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the `1.9.0` release.
+> One-screen operational truth. Updated after the `1.10.0-rc.1` prerelease.
 
 ## NOW (active)
 
-- **Release aftermath is closed**: `1.9.0` is out, the release pipeline proved green end-to-end, and `main` is back to the normal development lane.
-- **Main must stay boring**: keep CI green, keep `--no-default-features` builds honest, and avoid reintroducing release-only branch noise or operator caveats.
-- **Docs and operator surfaces should match reality**: keep roadmap, release instructions, architecture docs, and repo-native commands aligned with what actually shipped in `1.9.0`.
+- **`1.10.0-rc.1` proof lane is active**: keep the release-candidate CI control-plane, bounded-trust hardening, and WASM truth checks green while gathering stable-promotion confidence.
+- **Stable-promotion hygiene is mandatory**: preserve deterministic outputs, feature-profile coverage, and publish-surface boundaries so `v1.10.0` promotion is a no-surprises tag flip.
+- **Operator docs must track RC reality**: keep roadmap, release instructions, architecture docs, and Action guidance aligned with what shipped in `1.10.0-rc.1` versus what remains for stable.
 
 ## NEXT (short horizon)
 
-- **WASM-ready continuation**: keep wiring `tokmd-io-port` through scan and walk paths so the in-memory substrate stops being just a seam and becomes a real execution path.
-- **Define the next WASM proof bar**: add explicit wasm CI/parity goals for the next milestone instead of leaving the work implied.
-- **Low-blast-radius follow-ons**: prefer narrow docs, compat, and workflow fixes that preserve the newly boring release path and the new effort-estimation surfaces.
+- **Stable `1.10.0` release prep**: finish remaining docs/release checklist items, validate aliases/tags, and confirm prerelease-only rails stay isolated from stable channels.
+- **Browser runtime polish planning**: finalize explicit CI/parity goals and acceptance criteria for the `v1.11.0` browser runtime UX follow-up lane.
+- **Low-blast-radius follow-ons**: prefer narrow docs, compat, and workflow fixes that preserve the RC proof signal while reducing promotion risk.
 
 ## LATER (roadmap)
 
