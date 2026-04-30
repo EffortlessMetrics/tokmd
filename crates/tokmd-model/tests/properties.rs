@@ -293,7 +293,7 @@ proptest! {
         rows in prop::collection::vec(arb_lang_row(), 0..20)
     ) {
         let mut sorted = rows.clone();
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut sorted);
 
         // Verify the sort order: descending by code, ascending by name
         for window in sorted.windows(2) {
@@ -308,10 +308,10 @@ proptest! {
     #[test]
     fn lang_row_sorting_is_idempotent(rows in prop::collection::vec(arb_lang_row(), 0..20)) {
         let mut once = rows.clone();
-        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut once);
 
         let mut twice = once.clone();
-        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut twice);
 
         prop_assert_eq!(once, twice, "Sorting should be idempotent");
     }
@@ -319,7 +319,7 @@ proptest! {
     #[test]
     fn lang_row_sorting_preserves_count(rows in prop::collection::vec(arb_lang_row(), 0..20)) {
         let mut sorted = rows.clone();
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut sorted);
         prop_assert_eq!(sorted.len(), rows.len(), "Sorting should preserve row count");
     }
 
@@ -343,7 +343,7 @@ proptest! {
         rows in prop::collection::vec(arb_module_row(), 0..20)
     ) {
         let mut sorted = rows.clone();
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+        tokmd_model::sort_module_rows(&mut sorted);
 
         for window in sorted.windows(2) {
             let (a, b) = (&window[0], &window[1]);
@@ -357,10 +357,10 @@ proptest! {
     #[test]
     fn module_row_sorting_is_idempotent(rows in prop::collection::vec(arb_module_row(), 0..20)) {
         let mut once = rows.clone();
-        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+        tokmd_model::sort_module_rows(&mut once);
 
         let mut twice = once.clone();
-        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+        tokmd_model::sort_module_rows(&mut twice);
 
         prop_assert_eq!(once, twice, "Sorting should be idempotent");
     }

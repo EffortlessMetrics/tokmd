@@ -155,7 +155,7 @@ proptest! {
     #[test]
     fn lang_sort_invariant(rows in prop::collection::vec(arb_lang_row(), 2..30)) {
         let mut sorted = rows.clone();
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut sorted);
         // After sorting, each adjacent pair must satisfy the ordering
         for pair in sorted.windows(2) {
             let (a, b) = (&pair[0], &pair[1]);
@@ -170,7 +170,7 @@ proptest! {
     #[test]
     fn module_sort_invariant(rows in prop::collection::vec(arb_module_row(), 2..30)) {
         let mut sorted = rows.clone();
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+        tokmd_model::sort_module_rows(&mut sorted);
         for pair in sorted.windows(2) {
             let (a, b) = (&pair[0], &pair[1]);
             prop_assert!(
@@ -185,8 +185,8 @@ proptest! {
     fn sorting_is_deterministic(rows in prop::collection::vec(arb_lang_row(), 1..30)) {
         let mut a = rows.clone();
         let mut b = rows.clone();
-        a.sort_by(|x, y| y.code.cmp(&x.code).then_with(|| x.lang.cmp(&y.lang)));
-        b.sort_by(|x, y| y.code.cmp(&x.code).then_with(|| x.lang.cmp(&y.lang)));
+        tokmd_model::sort_lang_rows(&mut a);
+        tokmd_model::sort_lang_rows(&mut b);
         prop_assert_eq!(a.len(), b.len());
         for (ra, rb) in a.iter().zip(b.iter()) {
             prop_assert_eq!(&ra.lang, &rb.lang);

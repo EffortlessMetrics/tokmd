@@ -124,15 +124,15 @@ fn arb_file_row() -> impl Strategy<Value = FileRow> {
 }
 
 fn sort_langs(v: &mut [LangRow]) {
-    v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+    tokmd_model::sort_lang_rows(v);
 }
 
 fn sort_modules(v: &mut [ModuleRow]) {
-    v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+    tokmd_model::sort_module_rows(v);
 }
 
 fn sort_files(v: &mut [FileRow]) {
-    v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+    tokmd_model::sort_file_rows(v);
 }
 
 // =========================================================================
