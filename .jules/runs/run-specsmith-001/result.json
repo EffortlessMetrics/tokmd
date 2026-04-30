@@ -1,0 +1,6 @@
+{
+  "outcome": "PR-ready patch",
+  "files_touched": ["crates/tokmd/tests/bdd_analyze_scenarios_w50.rs"],
+  "test_results": "11 passed; 0 failed",
+  "lint_results": "no warnings"
+}

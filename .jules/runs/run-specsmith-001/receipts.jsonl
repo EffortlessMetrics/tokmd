@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd --test bdd_analyze_scenarios_w50", "result": "11 passed; 0 failed"}
+{"command": "cargo clippy -- -D warnings", "result": "passed"}
+{"command": "cargo fmt -- --check", "result": "passed"}
+{"command": "cargo check", "result": "passed"}

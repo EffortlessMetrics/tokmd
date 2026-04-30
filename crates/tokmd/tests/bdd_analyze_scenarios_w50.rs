@@ -239,3 +239,64 @@ fn given_project_when_analyze_estimate_then_effort_model_present() {
         .expect("effort drivers should be an array");
     assert!(!drivers.is_empty(), "effort should have drivers");
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 9: Risk preset returns git and complexity data
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_risk_then_risk_data_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "risk", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset risk");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("valid JSON");
+
+    assert!(
+        json.get("complexity").is_some(),
+        "risk should include complexity"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 10: Supply preset returns assets and deps data
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_supply_then_supply_data_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "supply", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset supply");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("valid JSON");
+
+    assert!(json.get("assets").is_some(), "supply should include assets");
+    assert!(json.get("deps").is_some(), "supply should include deps");
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 11: Health preset returns todo and complexity data
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_health_then_health_data_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "health", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset health");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("valid JSON");
+
+    assert!(
+        json.get("complexity").is_some(),
+        "health should include complexity"
+    );
+}
