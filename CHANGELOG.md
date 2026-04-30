@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.10.0-rc.1] - 2026-04-29
+## [1.10.0] - 2026-04-30
 
-Release candidate for `v1.10.0` (`v1.10.0rc1`).
+Stable release following `v1.10.0-rc.1` validation.
 
 ### Added
 
@@ -81,7 +81,7 @@ Release candidate for `v1.10.0` (`v1.10.0rc1`).
 - Jules provenance policy was clarified: intentional `.jules/**` provenance is allowed, while normal patch PRs should not carry accidental run packets.
 - Consolidated Jules persona guidance and run/provenance indexing so intentional learning packets are distinguishable from runtime debris.
 - Added/updated the Jules run index builder to aggregate historical ledgers without rewriting provenance history.
-- Closed duplicate/stale PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, docs-marker drift, and stale architecture-doc updates.
+- Resolved duplicate release-prep PR families for pyo3 cleanup, no-default-features tests, analyze snapshots, browser-runner dynamic payloads, docs-marker drift, RC workflow guards, and ADR publishability policy.
 
 ## [1.9.2] - 2026-04-14
 

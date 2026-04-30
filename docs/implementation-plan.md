@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.10.0-rc.1` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.10.0` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -348,9 +348,9 @@ fetch.
 
 ---
 
-## Phase 5b: Release Train Hardening (v1.10.0-rc.1) 🚢 RC
+## Phase 5b: Release Train Hardening (v1.10.0) ✅ Complete
 
-**Goal**: Stabilize the shipped control-plane and browser/WASM surfaces in a release candidate without widening product scope.
+**Goal**: Stabilize the shipped control-plane and browser/WASM surfaces without widening product scope.
 
 ### Release Fence
 

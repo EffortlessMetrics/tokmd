@@ -5,7 +5,7 @@
 
 ## Context
 
-tokmd includes Node, Python, and WASM binding surfaces with differing packaging and distribution mechanics. Current `publish = false` state for Node/Python Cargo packages requires explicit production-boundary policy.
+tokmd includes Node, Python, and WASM binding surfaces with differing packaging and distribution mechanics. Historical use of `publish = false` for Node/Python Cargo packages requires explicit production-boundary policy and release-time verification.
 
 ## Decision
 
