@@ -1,6 +1,6 @@
 # GitHub Action Reference
 
-The root `EffortlessMetrics/tokmd` composite Action installs a released `tokmd` binary, runs one workflow mode, and optionally uploads generated files or posts a pull request comment.
+The root `EffortlessMetrics/tokmd` composite Action installs a released `tokmd` binary, runs one workflow mode, and optionally uploads generated files, writes a step summary, or posts a pull request comment.
 
 ## Quick Start
 
@@ -67,8 +67,12 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
-| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the default module plus export flow. |
+| `mode` | no | `(omitted)` | `tokmd` mode to run: `pr`, `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the default module plus export flow. |
 | `version` | no | `latest` | `tokmd` release to install. Use an explicit version when you want the Action ref and binary version to stay aligned. |
+| `preset` | no | `''` | Reserved preset selector for higher-level onboarding (for example `rust-workspace` with `mode: pr`). |
+| `gate-mode` | no | `advisory` | Gate behavior in `mode: pr`: `off`, `advisory`, or `blocking`. |
+| `fail-no-policy` | no | `false` | Whether missing gate policy should fail in `mode: pr` when `gate-mode` is not `off`. |
+| `output-dir` | no | `.tokmd/action` | Output directory used by `mode: pr` for grouped artifacts and `manifest.json`. |
 | `paths` | no | `.` | Paths to scan. Values are split on whitespace and passed as separate path arguments. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `module`, `export`, and the default flow. |
 | `top` | no | `20` | Number of rows shown in Markdown summaries. |
@@ -76,7 +80,10 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `base` | no | `(inferred)` | Base git ref for `cockpit` and `sensor`. Explicit values are used as provided. When omitted, pull request runs use `origin/$GITHUB_BASE_REF`; other runs use `origin/HEAD` when available. |
 | `head` | no | `HEAD` | Head git ref for `cockpit` and `sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
-| `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
+| `artifact-name` | no | `tokmd-${{ github.run_id }}` | Artifact name used by upload-artifact. |
+| `artifact-retention-days` | no | `14` | Retention period in days for uploaded artifacts. |
+| `step-summary` | no | `true` | Write `$GITHUB_STEP_SUMMARY` from the generated summary when present. |
+| `comment` | no | `auto` | PR comment behavior: `auto`, `true`, or `false`. |
 
 ## Outputs
 
@@ -88,6 +95,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `cockpit-report` | Path to `tokmd-cockpit-report.json` when `mode: cockpit` is used. |
 | `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
 | `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
+| `manifest` | Path to `.tokmd/action/manifest.json` when `mode: pr` is used. |
 
 ## Modes
 
@@ -99,6 +107,19 @@ When `mode` is omitted, the Action preserves the original workflow behavior:
 - writes `tokmd-summary.md`
 - runs `tokmd export --format <format>`
 - writes `tokmd-receipt.<format>`
+
+
+### `pr`
+
+Runs a PR-oriented orchestration flow and writes grouped output under `output-dir` (default `.tokmd/action`). The mode:
+
+- generates `tokmd-summary.md` and `comment.md`
+- generates `tokmd-receipt.<format>`
+- attempts `sensor` on PR-capable refs
+- runs `gate` according to `gate-mode`
+- writes `manifest.json`
+
+`gate-mode: advisory` never fails the Action. `gate-mode: blocking` fails on gate errors. `gate-mode: off` skips gate generation.
 
 ### `module`
 

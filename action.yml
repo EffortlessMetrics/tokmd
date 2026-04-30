@@ -7,11 +7,14 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: pr, module, export, gate, cockpit, sensor, baseline.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
     default: 'latest'
+  preset:
+    description: 'Reserved preset selector for higher-level onboarding (for example rust-workspace in mode=pr).'
+    default: ''
   paths:
     description: 'Paths to scan'
     default: '.'
@@ -24,18 +27,36 @@ inputs:
   format:
     description: 'Export format (json, jsonl, csv)'
     default: 'json'
+  gate-mode:
+    description: 'Gate behavior: off, advisory, or blocking. In mode=pr this controls if and how gate failures affect the workflow.'
+    default: 'advisory'
+  fail-no-policy:
+    description: 'Whether missing gate policy should fail when gate runs in advisory/blocking mode.'
+    default: 'false'
   base:
-    description: 'Base git ref for mode: cockpit or mode: sensor. Omit to infer from pull request base or origin/HEAD.'
+    description: 'Base git ref for mode: cockpit, sensor, or pr. Omit to infer from pull request base or origin/HEAD.'
     default: ''
   head:
-    description: 'Head git ref for mode: cockpit or mode: sensor'
+    description: 'Head git ref for mode: cockpit, sensor, or pr'
     default: 'HEAD'
+  output-dir:
+    description: 'Directory for generated artifacts and manifest in mode=pr.'
+    default: '.tokmd/action'
   artifact:
     description: 'Whether to upload generated tokmd files as workflow artifacts'
     default: 'true'
-  comment:
-    description: 'Whether to post the generated Markdown summary as a pull request comment'
+  artifact-name:
+    description: 'Artifact name used when uploading receipts.'
+    default: 'tokmd-${{ github.run_id }}'
+  artifact-retention-days:
+    description: 'Retention period in days for uploaded artifacts.'
+    default: '14'
+  step-summary:
+    description: 'Whether to write a GitHub step summary from comment.md or tokmd-summary.md when present.'
     default: 'true'
+  comment:
+    description: 'PR comment behavior: auto, true, or false.'
+    default: 'auto'
 
 outputs:
   receipt:
@@ -56,6 +77,9 @@ outputs:
   baseline-report:
     description: 'Path to the generated baseline JSON file'
     value: ${{ steps.generate.outputs['baseline-report'] }}
+  manifest:
+    description: 'Path to the generated action manifest JSON file'
+    value: ${{ steps.generate.outputs.manifest }}
 
 runs:
   using: "composite"
@@ -68,90 +92,47 @@ runs:
           tokmd --version
           exit 0
         fi
-
         version="${{ inputs.version }}"
         os="${RUNNER_OS}"
         arch="${RUNNER_ARCH:-X64}"
-
         case "$arch" in
           X64|AMD64) arch_suffix="amd64" ;;
           ARM64) arch_suffix="arm64" ;;
-          *)
-            echo "Unsupported runner architecture: $arch" >&2
-            exit 1
-            ;;
+          *) echo "Unsupported runner architecture: $arch" >&2; exit 1 ;;
         esac
-
         case "$os" in
           Linux) asset="tokmd-linux-$arch_suffix" ;;
           macOS) asset="tokmd-macos-$arch_suffix" ;;
-          Windows)
-            if [ "${arch_suffix:-}" != "amd64" ]; then
-              echo "Unsupported runner architecture for Windows releases: $arch" >&2
-              exit 1
-            fi
-            asset="tokmd-windows-amd64.exe"
-            ;;
+          Windows) [ "$arch_suffix" = "amd64" ] || { echo "Unsupported runner architecture for Windows releases: $arch" >&2; exit 1; }; asset="tokmd-windows-amd64.exe" ;;
           *) echo "Unsupported runner OS: $os" >&2; exit 1 ;;
         esac
-
         if [ "$version" = "latest" ]; then
           url="https://github.com/EffortlessMetrics/tokmd/releases/latest/download/$asset"
-        else
-          ver="$version"
-          if [ "${ver#v}" = "$ver" ]; then
-            ver="v$ver"
-          fi
-          url="https://github.com/EffortlessMetrics/tokmd/releases/download/$ver/$asset"
-        fi
-
-        # Determine the checksums URL based on version
-        if [ "$version" = "latest" ]; then
           checksums_url="https://github.com/EffortlessMetrics/tokmd/releases/latest/download/checksums.txt"
         else
+          ver="$version"; [ "${ver#v}" = "$ver" ] && ver="v$ver"
+          url="https://github.com/EffortlessMetrics/tokmd/releases/download/$ver/$asset"
           checksums_url="https://github.com/EffortlessMetrics/tokmd/releases/download/$ver/checksums.txt"
         fi
-
-        echo "Downloading $url"
-        if ! curl -fsSL "$url" -o "$asset"; then
-          echo "::error::Failed to download tokmd from $url"
-          echo "Check that the version exists at https://github.com/EffortlessMetrics/tokmd/releases" >&2
-          exit 1
-        fi
-
-        echo "Downloading checksums from $checksums_url"
+        curl -fsSL "$url" -o "$asset"
         if curl -fsSL "$checksums_url" -o checksums.txt 2>/dev/null; then
-          echo "Verifying checksum for $asset..."
           expected_checksum=$(grep -E "^[a-f0-9]+[[:space:]]+\*?${asset}$" checksums.txt | awk '{print $1}')
-          if [ -z "$expected_checksum" ]; then
-            echo "::warning::Could not find checksum for $asset in checksums.txt - skipping verification"
-          else
-            echo "Expected checksum: $expected_checksum"
+          if [ -n "$expected_checksum" ]; then
             case "$os" in
               Linux) actual_checksum=$(sha256sum "$asset" | awk '{print $1}') ;;
               macOS) actual_checksum=$(shasum -a 256 "$asset" | awk '{print $1}') ;;
               Windows) actual_checksum=$(powershell -Command "(Get-FileHash -Path '$asset' -Algorithm SHA256).Hash.ToLower()") ;;
             esac
-            echo "Actual checksum:   $actual_checksum"
-            if [ "$expected_checksum" != "$actual_checksum" ]; then
-              echo "::error::Checksum verification failed for $asset"
-              exit 1
-            fi
-            echo "Checksum verification passed!"
+            [ "$expected_checksum" = "$actual_checksum" ] || { echo "::error::Checksum verification failed for $asset"; exit 1; }
+          else
+            echo "::warning::Could not find checksum for $asset in checksums.txt - skipping verification"
           fi
           rm -f checksums.txt
         else
           echo "::warning::checksums.txt not available for this release - skipping verification"
         fi
-
-        dest="$HOME/.local/bin"
-        mkdir -p "$dest"
-        if [[ "$asset" == *.exe ]]; then
-          mv "$asset" "$dest/tokmd.exe"
-        else
-          mv "$asset" "$dest/tokmd"
-          chmod +x "$dest/tokmd"
-        fi
+        dest="$HOME/.local/bin"; mkdir -p "$dest"
+        if [[ "$asset" == *.exe ]]; then mv "$asset" "$dest/tokmd.exe"; else mv "$asset" "$dest/tokmd"; chmod +x "$dest/tokmd"; fi
         echo "$dest" >> "$GITHUB_PATH"
         export PATH="$dest:$PATH"
         tokmd --version
@@ -160,192 +141,112 @@ runs:
       id: generate
       shell: bash
       env:
+        TOKMD_ACTION_ARTIFACT_NAME: ${{ inputs.artifact-name }}
         TOKMD_ACTION_BASE: ${{ inputs.base }}
+        TOKMD_ACTION_FAIL_NO_POLICY: ${{ inputs.fail-no-policy }}
         TOKMD_ACTION_FORMAT: ${{ inputs.format }}
+        TOKMD_ACTION_GATE_MODE: ${{ inputs.gate-mode }}
         TOKMD_ACTION_HEAD: ${{ inputs.head }}
         TOKMD_ACTION_MODE: ${{ inputs.mode }}
         TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
+        TOKMD_ACTION_OUTPUT_DIR: ${{ inputs.output-dir }}
         TOKMD_ACTION_PATHS: ${{ inputs.paths }}
         TOKMD_ACTION_TOP: ${{ inputs.top }}
+        TOKMD_ACTION_VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
-        echo "Generating receipts..."
-
-        # Split paths input into argv-style arguments so callers can provide
-        # multiple paths (space/newline separated) instead of a single quoted blob.
-        # Keep the complete multiline input; bash `read -a` would only parse the
-        # first line and could make mode=gate silently scan a narrower path set.
         paths_input="${TOKMD_ACTION_PATHS//$'\r'/ }"
-        scan_paths=()
-        set -f
-        while IFS= read -r path_line || [ -n "$path_line" ]; do
-          for path in $path_line; do
-            scan_paths+=(
-              "$path"
-            )
-          done
-        done <<< "$paths_input"
+        scan_paths=(); set -f
+        while IFS= read -r path_line || [ -n "$path_line" ]; do for path in $path_line; do scan_paths+=("$path"); done; done <<< "$paths_input"
         set +f
+        [ ${#scan_paths[@]} -gt 0 ] || scan_paths=(.)
 
-        if [ ${#scan_paths[@]} -eq 0 ]; then
-          scan_paths=(
-            .
-          )
-        fi
+        format="$TOKMD_ACTION_FORMAT"; mode="$TOKMD_ACTION_MODE"
+        summary_file=""; receipt_file=""; gate_verdict_file=""; cockpit_report_file=""; sensor_report_file=""; baseline_report_file=""; manifest_file=""
+        comment_enabled="false"; command_status=0
+        sensor_status="skipped"; receipt_status="skipped"; gate_status="skipped"; comment_status="skipped"; overall_status="passed"
 
-        format="$TOKMD_ACTION_FORMAT"
-        mode="$TOKMD_ACTION_MODE"
-        summary_file=""
-        receipt_file=""
-        gate_verdict_file=""
-        cockpit_report_file=""
-        sensor_report_file=""
-        baseline_report_file=""
-        command_status=0
-
-        ensure_git_ref() {
-          local ref="$1"
-          git rev-parse --verify --quiet "${ref}^{commit}" >/dev/null 2>&1
-        }
-
-        fetch_origin_branch() {
-          local branch="$1"
-          git fetch --no-tags --depth=1 origin "${branch}:refs/remotes/origin/${branch}" >/dev/null
-        }
-
+        ensure_git_ref() { git rev-parse --verify --quiet "${1}^{commit}" >/dev/null 2>&1; }
+        fetch_origin_branch() { git fetch --no-tags --depth=1 origin "${1}:refs/remotes/origin/${1}" >/dev/null; }
         resolve_base_ref() {
-          local mode_name="$1"
-          local base_input="${TOKMD_ACTION_BASE:-}"
-          local resolved_base=""
-
-          if [ -n "$base_input" ]; then
-            resolved_base="$base_input"
-          elif [ -n "${GITHUB_BASE_REF:-}" ]; then
-            resolved_base="origin/${GITHUB_BASE_REF}"
-            if ! ensure_git_ref "$resolved_base"; then
-              fetch_origin_branch "$GITHUB_BASE_REF" || true
-            fi
-          else
-            if ! git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
-              git remote set-head origin -a >/dev/null || true
-            fi
-
-            if git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then
-              resolved_base="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)"
-              if ! ensure_git_ref "$resolved_base"; then
-                fetch_origin_branch "${resolved_base#origin/}" || true
-              fi
-            fi
+          local mode_name="$1"; local base_input="${TOKMD_ACTION_BASE:-}"; local resolved_base=""
+          if [ -n "$base_input" ]; then resolved_base="$base_input";
+          elif [ -n "${GITHUB_BASE_REF:-}" ]; then resolved_base="origin/${GITHUB_BASE_REF}"; ensure_git_ref "$resolved_base" || fetch_origin_branch "$GITHUB_BASE_REF" || true
+          else git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1 || git remote set-head origin -a >/dev/null || true
+               if git symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null 2>&1; then resolved_base="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)"; ensure_git_ref "$resolved_base" || fetch_origin_branch "${resolved_base#origin/}" || true; fi
           fi
-
-          if [ -z "$resolved_base" ] || ! ensure_git_ref "$resolved_base"; then
-            echo "::error::Unable to resolve base ref for mode=${mode_name}. Set the 'base' input explicitly or use actions/checkout with enough git history for the base ref." >&2
-            exit 1
-          fi
-
+          [ -n "$resolved_base" ] && ensure_git_ref "$resolved_base" || { echo "::error::Unable to resolve base ref for mode=${mode_name}." >&2; exit 1; }
           echo "$resolved_base"
+        }
+
+        run_gate_with_mode() {
+          local gate_target="$1"; local gate_mode="${TOKMD_ACTION_GATE_MODE}"; local fail_no_policy="${TOKMD_ACTION_FAIL_NO_POLICY}"
+          if [ "$gate_mode" = "off" ]; then gate_status="skipped"; return 0; fi
+          gate_verdict_file="${TOKMD_ACTION_OUTPUT_DIR}/tokmd-gate-verdict.json"
+          mkdir -p "$(dirname "$gate_verdict_file")"
+          set +e
+          tokmd gate "$gate_target" --format json > "$gate_verdict_file" 2>"${TOKMD_ACTION_OUTPUT_DIR}/gate.stderr"
+          local gate_rc=$?
+          set -e
+          if [ "$gate_rc" -eq 0 ]; then gate_status="passed"; return 0; fi
+          if [ "$gate_mode" = "advisory" ]; then
+            if rg -q "no policy|policy" "${TOKMD_ACTION_OUTPUT_DIR}/gate.stderr" && [ "$fail_no_policy" != "true" ]; then
+              echo "::notice::No tokmd gate policy found; skipping gate in advisory mode."
+              gate_status="skipped_no_policy"
+            else
+              gate_status="advisory_failed"
+            fi
+            return 0
+          fi
+          gate_status="failed"
+          command_status=$gate_rc
+          return 0
         }
 
         case "$mode" in
           "")
-            summary_file="tokmd-summary.md"
-            receipt_file="tokmd-receipt.${format}"
-
-            tokmd module \
-              "${scan_paths[@]}" \
-              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
-              --top "$TOKMD_ACTION_TOP" \
-              --format md > "$summary_file"
-
-            tokmd export \
-              "${scan_paths[@]}" \
-              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
-              --format "$format" > "$receipt_file"
+            summary_file="tokmd-summary.md"; receipt_file="tokmd-receipt.${format}"
+            tokmd module "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --top "$TOKMD_ACTION_TOP" --format md > "$summary_file"
+            tokmd export "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --format "$format" > "$receipt_file"
             ;;
-          module)
-            summary_file="tokmd-summary.md"
-
-            tokmd module \
-              "${scan_paths[@]}" \
-              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
-              --top "$TOKMD_ACTION_TOP" \
-              --format md > "$summary_file"
-            ;;
-          export)
-            receipt_file="tokmd-receipt.${format}"
-
-            tokmd export \
-              "${scan_paths[@]}" \
-              --module-roots "$TOKMD_ACTION_MODULE_ROOTS" \
-              --format "$format" > "$receipt_file"
-            ;;
-          gate)
-            if [ ${#scan_paths[@]} -ne 1 ]; then
-              echo "::error::mode=gate accepts exactly one input path; received ${#scan_paths[@]} paths"
-              exit 1
+          pr)
+            mkdir -p "$TOKMD_ACTION_OUTPUT_DIR" "$TOKMD_ACTION_OUTPUT_DIR/extras"
+            summary_file="$TOKMD_ACTION_OUTPUT_DIR/comment.md"
+            receipt_file="$TOKMD_ACTION_OUTPUT_DIR/tokmd-receipt.${format}"
+            local_summary="$TOKMD_ACTION_OUTPUT_DIR/tokmd-summary.md"
+            tokmd module "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --top "$TOKMD_ACTION_TOP" --format md > "$local_summary"
+            cp "$local_summary" "$summary_file"
+            tokmd export "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --format "$format" > "$receipt_file"
+            receipt_status="passed"
+            if compare_base="$(resolve_base_ref pr 2>/dev/null)"; then
+              sensor_report_file="$TOKMD_ACTION_OUTPUT_DIR/tokmd-sensor-report.json"
+              tokmd sensor --base "$compare_base" --head "$TOKMD_ACTION_HEAD" --output "$sensor_report_file" --format json >/dev/null && sensor_status="passed" || sensor_status="failed"
             fi
-
-            gate_verdict_file="tokmd-gate-verdict.json"
-            set +e
-            tokmd gate "${scan_paths[0]}" --format json > "$gate_verdict_file"
-            command_status=$?
-            set -e
+            run_gate_with_mode "${scan_paths[0]}"
+            manifest_file="$TOKMD_ACTION_OUTPUT_DIR/manifest.json"
+            printf '{"schema_version":"tokmd.action.v1","mode":"pr","version":"%s","status":{"overall":"%s","sensor":"%s","receipt":"%s","gate":"%s","comment":"%s"},"files":{"comment":"%s","receipt":"%s","summary":"%s","gate_verdict":"%s","sensor_report":"%s"}}\n' \
+              "$TOKMD_ACTION_VERSION" "$overall_status" "$sensor_status" "$receipt_status" "$gate_status" "$comment_status" \
+              "$summary_file" "$receipt_file" "$local_summary" "$gate_verdict_file" "$sensor_report_file" > "$manifest_file"
             ;;
-          cockpit)
-            cockpit_report_file="tokmd-cockpit-report.json"
-            compare_base="$(resolve_base_ref cockpit)"
-
-            tokmd cockpit \
-              --base "$compare_base" \
-              --head "$TOKMD_ACTION_HEAD" \
-              --format json > "$cockpit_report_file"
-            ;;
-          sensor)
-            summary_file="comment.md"
-            sensor_report_file="tokmd-sensor-report.json"
-            compare_base="$(resolve_base_ref sensor)"
-
-            tokmd sensor \
-              --base "$compare_base" \
-              --head "$TOKMD_ACTION_HEAD" \
-              --output "$sensor_report_file" \
-              --format json > /dev/null
-            ;;
-          baseline)
-            if [ ${#scan_paths[@]} -ne 1 ]; then
-              echo "::error::mode=baseline accepts exactly one input path; received ${#scan_paths[@]} paths"
-              exit 1
-            fi
-
-            baseline_report_file="tokmd-baseline.json"
-
-            tokmd baseline "${scan_paths[0]}" \
-              --output "$baseline_report_file" \
-              --force \
-              --no-progress
-            ;;
-          *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
-            exit 1
-            ;;
+          module) summary_file="tokmd-summary.md"; tokmd module "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --top "$TOKMD_ACTION_TOP" --format md > "$summary_file" ;;
+          export) receipt_file="tokmd-receipt.${format}"; tokmd export "${scan_paths[@]}" --module-roots "$TOKMD_ACTION_MODULE_ROOTS" --format "$format" > "$receipt_file" ;;
+          gate) [ ${#scan_paths[@]} -eq 1 ] || { echo "::error::mode=gate accepts exactly one input path"; exit 1; }; gate_verdict_file="tokmd-gate-verdict.json"; set +e; tokmd gate "${scan_paths[0]}" --format json > "$gate_verdict_file"; command_status=$?; set -e ;;
+          cockpit) cockpit_report_file="tokmd-cockpit-report.json"; compare_base="$(resolve_base_ref cockpit)"; tokmd cockpit --base "$compare_base" --head "$TOKMD_ACTION_HEAD" --format json > "$cockpit_report_file" ;;
+          sensor) summary_file="comment.md"; sensor_report_file="tokmd-sensor-report.json"; compare_base="$(resolve_base_ref sensor)"; tokmd sensor --base "$compare_base" --head "$TOKMD_ACTION_HEAD" --output "$sensor_report_file" --format json > /dev/null ;;
+          baseline) [ ${#scan_paths[@]} -eq 1 ] || { echo "::error::mode=baseline accepts exactly one input path"; exit 1; }; baseline_report_file="tokmd-baseline.json"; tokmd baseline "${scan_paths[0]}" --output "$baseline_report_file" --force --no-progress ;;
+          *) echo "::error::Unsupported tokmd action mode '$mode'. Supported values: pr, module, export, gate, cockpit, sensor, baseline."; exit 1 ;;
         esac
 
-        {
-          echo "receipt=$receipt_file"
-          echo "summary=$summary_file"
-          echo "gate-verdict=$gate_verdict_file"
-          echo "cockpit-report=$cockpit_report_file"
-          echo "sensor-report=$sensor_report_file"
-          echo "baseline-report=$baseline_report_file"
-          echo "command-status=$command_status"
-        } >> "$GITHUB_OUTPUT"
+        { echo "receipt=$receipt_file"; echo "summary=$summary_file"; echo "gate-verdict=$gate_verdict_file"; echo "cockpit-report=$cockpit_report_file"; echo "sensor-report=$sensor_report_file"; echo "baseline-report=$baseline_report_file"; echo "manifest=$manifest_file"; echo "command-status=$command_status"; } >> "$GITHUB_OUTPUT"
 
     - name: Upload Artifact
       if: inputs.artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
-        name: tokmd-receipts
+        name: ${{ inputs.artifact-name }}
+        retention-days: ${{ inputs.artifact-retention-days }}
         path: |
+          ${{ inputs.output-dir }}/
           ${{ steps.generate.outputs.summary }}
           ${{ steps.generate.outputs.receipt }}
           ${{ steps.generate.outputs['gate-verdict'] }}
@@ -354,8 +255,13 @@ runs:
           ${{ steps.generate.outputs['baseline-report'] }}
           extras/
 
+    - name: Write step summary
+      if: inputs.step-summary == 'true' && steps.generate.outputs.summary != ''
+      shell: bash
+      run: cat "${{ steps.generate.outputs.summary }}" >> "$GITHUB_STEP_SUMMARY"
+
     - name: Comment on PR
-      if: inputs.comment == 'true' && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
+      if: (inputs.comment == 'true' || (inputs.comment == 'auto' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
       uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
       with:
         file-path: ${{ steps.generate.outputs.summary }}
