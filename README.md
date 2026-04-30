@@ -11,19 +11,18 @@
 
 `tokmd` turns a source tree into stable Markdown and JSON artifacts: language and module summaries, file receipts, analysis reports, diffs, policy gates, baselines, sensor reports, and LLM-ready context bundles.
 
-Use it from the CLI first; wire the same surfaces into CI with the GitHub Action when you want automated receipts, comments, and gates.
+Use it from the CLI first; wire the same surfaces into CI when you want automated receipts, comments, and gates.
 
-## CLI Quick Start
-
-Install:
+## Install
 
 ```bash
 cargo install tokmd --locked
-# or
-nix run github:EffortlessMetrics/tokmd -- --version
+tokmd --version
 ```
 
-Run the common paths:
+See [Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
+
+## First Run
 
 ```bash
 # Summarize the current repo
@@ -69,44 +68,10 @@ tokmd context --budget 128k --mode bundle --output context.txt
 Use the root composite Action when you want `tokmd` receipts, PR summaries, artifacts, or gates in CI.
 
 ```yaml
-name: tokmd receipt
-
-on:
-  pull_request:
-
-permissions:
-  contents: read
-  pull-requests: write
-
-jobs:
-  receipt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: EffortlessMetrics/tokmd@v1
-        with:
-          version: '1.10.0'
-          paths: .
-          artifact: 'true'
-          comment: 'true'
-```
-
-By default, this writes:
-
-- `tokmd-summary.md`
-- `tokmd-receipt.json`
-
-For gates:
-
-```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
     version: '1.10.0'
-    mode: gate
     paths: .
-    artifact: 'true'
-    comment: 'false'
 ```
 
 For all Action modes, inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see [GitHub Action reference](docs/github-action.md).
@@ -187,6 +152,7 @@ The machine-readable capability contract lives in [`docs/capabilities/wasm.json`
 
 ### How-To
 
+- [Install tokmd](docs/install.md) for Cargo, release binaries, Nix, and CI entry points
 - [Recipes](docs/recipes.md) for practical usage patterns
 - [Troubleshooting](docs/troubleshooting.md) for common problems and fixes
 - [Contributing](CONTRIBUTING.md) for local development and release work
