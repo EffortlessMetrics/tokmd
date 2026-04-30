@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline, review.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -37,6 +37,16 @@ inputs:
     description: 'Whether to post the generated Markdown summary as a pull request comment'
     default: 'true'
 
+  out-dir:
+    description: 'Output directory used by mode: review'
+    default: '.tokmd/review'
+  config:
+    description: 'Review config path for mode: review'
+    default: ''
+  gate:
+    description: 'Gate mode for mode: review (off, advisory, blocking)'
+    default: 'advisory'
+
 outputs:
   receipt:
     description: 'Path to the generated receipt file'
@@ -56,6 +66,12 @@ outputs:
   baseline-report:
     description: 'Path to the generated baseline JSON file'
     value: ${{ steps.generate.outputs['baseline-report'] }}
+  review-manifest:
+    description: 'Path to the generated review manifest JSON file'
+    value: ${{ steps.generate.outputs['review-manifest'] }}
+  review-map:
+    description: 'Path to the generated review map JSON file'
+    value: ${{ steps.generate.outputs['review-map'] }}
 
 runs:
   using: "composite"
@@ -167,6 +183,9 @@ runs:
         TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
         TOKMD_ACTION_PATHS: ${{ inputs.paths }}
         TOKMD_ACTION_TOP: ${{ inputs.top }}
+        TOKMD_ACTION_OUT_DIR: ${{ inputs.out-dir }}
+        TOKMD_ACTION_CONFIG: ${{ inputs.config }}
+        TOKMD_ACTION_GATE: ${{ inputs.gate }}
       run: |
         set -euo pipefail
         echo "Generating receipts..."
@@ -201,6 +220,8 @@ runs:
         cockpit_report_file=""
         sensor_report_file=""
         baseline_report_file=""
+        review_manifest_file=""
+        review_map_file=""
         command_status=0
 
         ensure_git_ref() {
@@ -311,6 +332,13 @@ runs:
               --output "$sensor_report_file" \
               --format json > /dev/null
             ;;
+          review)
+            compare_base="$(resolve_base_ref review)"
+            tokmd review --base "$compare_base" --head "$TOKMD_ACTION_HEAD" --out-dir "$TOKMD_ACTION_OUT_DIR" --gate "$TOKMD_ACTION_GATE" ${TOKMD_ACTION_CONFIG:+--config "$TOKMD_ACTION_CONFIG"}
+            summary_file="$TOKMD_ACTION_OUT_DIR/comment.md"
+            review_manifest_file="$TOKMD_ACTION_OUT_DIR/manifest.json"
+            review_map_file="$TOKMD_ACTION_OUT_DIR/review-map.json"
+            ;;
           baseline)
             if [ ${#scan_paths[@]} -ne 1 ]; then
               echo "::error::mode=baseline accepts exactly one input path; received ${#scan_paths[@]} paths"
@@ -325,7 +353,7 @@ runs:
               --no-progress
             ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline, review. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
@@ -337,6 +365,8 @@ runs:
           echo "cockpit-report=$cockpit_report_file"
           echo "sensor-report=$sensor_report_file"
           echo "baseline-report=$baseline_report_file"
+          echo "review-manifest=$review_manifest_file"
+          echo "review-map=$review_map_file"
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
@@ -352,6 +382,9 @@ runs:
           ${{ steps.generate.outputs['cockpit-report'] }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
+          ${{ steps.generate.outputs['review-manifest'] }}
+          ${{ steps.generate.outputs['review-map'] }}
+          .tokmd/review/
           extras/
 
     - name: Comment on PR

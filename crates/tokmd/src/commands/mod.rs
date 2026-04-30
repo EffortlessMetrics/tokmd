@@ -17,6 +17,8 @@ pub(crate) mod init;
 pub(crate) mod lang;
 pub(crate) mod module;
 #[cfg(feature = "analysis")]
+pub(crate) mod review;
+#[cfg(feature = "analysis")]
 pub(crate) mod run;
 pub(crate) mod sensor;
 pub(crate) mod tools;
@@ -50,6 +52,8 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         #[cfg(feature = "analysis")]
         cli::Commands::Baseline(args) => baseline::handle(args, global),
         cli::Commands::Handoff(args) => handoff::handle(args, global),
+        #[cfg(feature = "analysis")]
+        cli::Commands::Review(args) => review::handle(args, global),
         cli::Commands::Sensor(args) => sensor::handle(args, global),
         #[cfg(not(feature = "analysis"))]
         _ => anyhow::bail!("analysis feature is not enabled"),
