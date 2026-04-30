@@ -1,0 +1,2 @@
+{"command": "cargo machete --with-metadata", "outcome": "cargo-machete didn't find any unused dependencies in crates/tokmd-types, crates/tokmd-model, crates/tokmd-format, crates/tokmd-scan"}
+{"command": "cargo tree -p tokmd-model", "outcome": "Verified dependencies, all active."}

@@ -1,0 +1,4 @@
+{
+  "status": "learning",
+  "reason": "No unused direct dependencies found in the core-pipeline shard. Unused dependencies in tokmd-fuzz and tokmd-node were recorded as friction per instructions."
+}
