@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "files_changed": [
+    "crates/tokmd-analysis/src/derived/mod.rs"
+  ],
+  "reason": "Successfully applied zero-allocation aggregation using BTreeMap<&str, ...>."
+}
