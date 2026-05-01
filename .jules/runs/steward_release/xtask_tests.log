@@ -1,0 +1,336 @@
+   Compiling libc v0.2.186
+   Compiling once_cell v1.21.4
+   Compiling getrandom v0.4.2
+   Compiling tempfile v3.27.0
+   Compiling xtask v1.10.0 (/app/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.15s
+     Running unittests src/main.rs (target/debug/deps/xtask-a79a8881f361b6d5)
+
+running 53 tests
+test tasks::build_guard::tests::parse_df_pk_available_bytes_extracts_available_column ... ok
+test tasks::build_guard::tests::configured_min_free_gib_defaults_when_env_is_missing ... ok
+test tasks::build_guard::tests::configured_min_free_gib_honors_env_override ... ok
+test tasks::build_guard::tests::configured_min_free_bytes_uses_current_env_or_default ... ok
+test tasks::bump::tests::replace_json_string_value_preserves_json_line_shape ... ok
+test tasks::bump::tests::test_extract_version_from_dep_line ... ok
+test tasks::bump::tests::test_extract_workspace_version ... ok
+test tasks::bump::tests::test_parse_schema_bump ... ok
+test tasks::bump::tests::test_parse_schema_bump_invalid ... ok
+test tasks::bump::tests::test_replace_version_in_dep_line ... ok
+test tasks::bump::tests::test_update_workspace_package_version ... ok
+test tasks::bump::tests::test_validate_semver_valid ... ok
+test tasks::bump::tests::test_validate_semver_invalid ... ok
+test tasks::bump::tests::updates_node_manifest_versions_in_place ... ok
+test tasks::fixture_blobs_check::tests::detects_forbidden_extension ... ok
+test tasks::fixture_blobs_check::tests::allows_checker_source_file ... ok
+test tasks::fixture_blobs_check::tests::collects_violations_across_multiple_paths ... ok
+test tasks::fixture_blobs_check::tests::detects_forbidden_marker_in_text_file ... ok
+test tasks::publish::tests::test_classify_already_published ... ok
+test tasks::publish::tests::test_classify_auth_error ... ok
+test tasks::publish::tests::test_classify_manifest_error ... ok
+test tasks::fixture_blobs_check::tests::skips_allowlisted_vendor_paths ... ok
+test tasks::publish::tests::test_classify_propagation_error ... ok
+test tasks::publish::tests::test_classify_rate_limit ... ok
+test tasks::publish::tests::test_is_publish_dependency ... ok
+test tasks::publish::tests::test_parse_rate_limit_timestamp ... ok
+test tasks::publish_surface::tests::publish_surface_has_no_dev_only_workspace_packages ... ok
+test tasks::publish_surface::tests::publish_surface_ignores_dev_dependencies_for_closure ... ok
+test tasks::publish_surface::tests::publish_surface_target_gap_is_explicit_and_complete ... ok
+test tasks::publish_surface::tests::publish_surface_policy_classes_cover_current_workspace_packages ... ok
+test tasks::sccache::tests::display_cargo_args_is_human_readable ... ok
+test tasks::sccache::tests::compose_basedirs_falls_back_to_inherited_env ... ok
+test tasks::sccache::tests::default_server_port_is_deterministic_and_in_repo_range ... ok
+test tasks::sccache::tests::install_hint_mentions_known_install_path ... ok
+test tasks::sccache::tests::should_disable_incremental_even_if_the_parent_env_was_set ... ok
+test tasks::sccache::tests::compose_basedirs_prefers_explicit_paths ... ok
+test tasks::sccache::tests::should_disable_incremental_when_unset ... ok
+test tasks::sccache::tests::should_not_use_ephemeral_target_dir_for_build_runs ... ok
+test tasks::sccache::tests::should_respect_keep_incremental_flag ... ok
+test tasks::sccache::tests::should_use_ephemeral_target_dir_for_heavy_validation_commands ... ok
+test tasks::sccache::tests::stable_hash64_is_fixed_for_known_input ... ok
+test tasks::sccache::tests::windows_explicit_candidates_cover_known_user_installs ... ok
+test tasks::sccache::tests::winget_sccache_path_discovers_nested_binary ... ok
+test tasks::trim_target::tests::collect_trim_entries_skips_release_tree_when_debug_root_is_used ... ok
+test tasks::trim_target::tests::collect_trim_entries_finds_incremental_dirs_and_pdb_files ... ok
+test tasks::trim_target::tests::human_bytes_formats_large_values ... ok
+test tasks::version_consistency::tests::detects_case_insensitive_collisions ... ok
+test tasks::version_consistency::tests::detects_internal_node_dependency_version_mismatches ... ok
+test tasks::version_consistency::tests::ignores_unique_paths_when_checking_case_collisions ... ok
+test tasks::trim_target::tests::collect_trim_entries_respects_keep_flags ... ok
+test tasks::version_consistency::tests::test_read_package_manifest_errors ... ok
+test tasks::version_consistency::tests::test_parse_workspace_version ... ok
+test tasks::workspace::tests::workspace_package_names_are_sorted_and_include_known_members ... ok
+
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/deep_w43.rs (target/debug/deps/deep_w43-daf50bc386c8c6bc)
+
+running 17 tests
+test boundaries_analysis_crates_exist ... ok
+test boundaries_forbidden_dep_not_present ... ok
+test boundaries_check_passes ... ok
+test cli_boundaries_check_help ... ok
+test bump_dry_run_invalid_version ... ok
+test bump_dry_run_shows_plan ... ok
+test cli_docs_help_shows_check_and_update ... ok
+test cli_help_succeeds ... ok
+test cli_bump_help_shows_schema_flag ... ok
+test cli_bump_requires_version_arg ... ok
+test cli_publish_help_shows_flags ... ok
+test cli_unknown_subcommand_fails ... ok
+test publish_plan_lists_tokmd_types_first ... ok
+test publish_plan_excludes_xtask ... ok
+test publish_plan_shows_workspace_version ... ok
+test publish_plan_verbose_shows_exclusions ... ok
+test publish_plan_succeeds ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.74s
+
+     Running tests/deep_w71.rs (target/debug/deps/deep_w71-405e9628cb991b0f)
+
+running 34 tests
+test boundaries_analysis_crates_have_src_dir ... ok
+test boundaries_checks_all_dep_tables ... ok
+test boundaries_forbidden_list_is_not_empty ... ok
+test boundaries_only_scans_analysis_crates ... ok
+test boundaries_no_analysis_crate_depends_on_cli ... ok
+test bump_dry_run_does_not_modify_files ... ok
+test boundaries_check_succeeds_on_current_repo ... ok
+test bump_dry_run_is_deterministic ... ok
+test bump_dry_run_shows_planned_changes ... ok
+test bump_dry_run_shows_current_and_new_version ... ok
+test boundaries_check_is_deterministic ... ok
+test bump_schema_dry_run_shows_schema_updates ... ok
+test docs_help_markers_all_paired ... ok
+test docs_markers_cover_known_commands ... ok
+test docs_reference_cli_file_exists ... ok
+test docs_task_normalizes_crlf_and_exe_suffix ... ok
+test bump_rejects_unknown_schema_constant ... ok
+test publish_plan_analysis_types_before_analysis ... ok
+test publish_plan_all_crates_start_with_tokmd ... ok
+test publish_plan_core_before_cli_binary ... ok
+test publish_plan_cli_is_last_or_near_last ... ok
+test bump_rejects_invalid_semver ... ok
+test publish_plan_format_after_scan ... ok
+test publish_plan_no_duplicates ... ok
+test publish_plan_is_deterministic ... ok
+test schema_constants_exist_in_source_files ... ok
+test schema_locations_in_bump_match_actual_files ... ok
+test schema_version_values_are_positive ... ok
+test workspace_has_version_in_workspace_package ... ok
+test workspace_internal_deps_have_path_and_version ... ok
+test workspace_members_include_tokmd_types ... ok
+test publish_plan_shows_flags_section ... ok
+test publish_plan_tier0_before_tier1 ... ok
+test docs_check_mode_either_passes_or_reports_drift ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.42s
+
+     Running tests/deep_xtask_w52.rs (target/debug/deps/deep_xtask_w52-078a566dc5e0d5f1)
+
+running 19 tests
+test boundaries_analysis_crates_are_workspace_members ... ok
+test boundaries_all_analysis_crates_have_cargo_toml ... ok
+test boundaries_analysis_crates_do_not_depend_on_tokmd_config ... ok
+test boundaries_analysis_crates_have_package_name ... ok
+test boundaries_forbidden_list_includes_config ... ok
+test bump_dry_run_detects_schema_locations ... ok
+test bump_schema_constants_exist_in_source ... ok
+test bump_dry_run_rejects_unknown_schema_constant ... ok
+test docs_reference_cli_exists ... ok
+test docs_reference_cli_has_paired_help_markers ... ok
+test boundaries_check_succeeds_on_clean_repo ... ok
+test bump_dry_run_shows_current_and_new_version ... ok
+test publish_plan_excludes_xtask_and_fuzz ... ok
+test publish_plan_crate_count_is_positive ... ok
+test publish_plan_types_before_cli ... ok
+test publish_plan_succeeds_and_shows_version ... ok
+test publish_plan_verbose_shows_exclusion_reasons ... ok
+test docs_task_without_flags_reports_status ... ok
+test docs_check_detects_drift_or_passes ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.69s
+
+     Running tests/docs_schema_w72.rs (target/debug/deps/docs_schema_w72-2c9846da81d46d3c)
+
+running 26 tests
+test changelog_has_unreleased_section ... ok
+test changelog_follows_keepachangelog ... ok
+test changelog_mentions_latest_version ... ok
+test reference_cli_commands_section_exists ... ok
+test reference_cli_global_args_header_exists ... ok
+test readme_and_reference_cli_list_same_subcommands ... ok
+test readme_commands_table_matches_reference_cli ... ok
+test schema_md_analysis_version_matches_source ... ok
+test schema_md_cockpit_version_matches_source ... ok
+test schema_md_context_bundle_version_matches_source ... ok
+test schema_md_context_version_matches_source ... ok
+test schema_md_core_version_matches_source ... ok
+test schema_md_handoff_version_matches_source ... ok
+test schema_md_mentions_analysis_schema_version ... ok
+test schema_md_mentions_cockpit_schema_version ... ok
+test schema_md_mentions_context_bundle_schema_version ... ok
+test schema_md_mentions_context_schema_version ... ok
+test schema_md_mentions_handoff_schema_version ... ok
+test schema_md_mentions_schema_version ... ok
+test wasm_capability_matrix_browser_safe_matches_current_runner_modes ... ok
+test wasm_capability_matrix_declares_required_commands_and_fields ... ok
+test wasm_capability_matrix_matches_readme_command_surface ... ok
+test wasm_capability_matrix_uses_allowed_values ... ok
+test schema_json_has_required_receipt_definitions ... ok
+test schema_json_is_draft7 ... ok
+test schema_json_receipt_versions_match_source ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/docs_w43.rs (target/debug/deps/docs_w43-6e87ae0cba7d18fd)
+
+running 14 tests
+test docs_directory_has_required_files ... ok
+test baseline_schema_json_is_valid ... ok
+test docs_all_md_files_are_nonempty ... ok
+test reference_cli_has_help_markers ... ok
+test handoff_schema_json_is_valid ... ok
+test docs_internal_links_are_valid ... ok
+test schema_md_analysis_version_matches_source ... ok
+test schema_md_cockpit_version_matches_source ... ok
+test schema_md_context_version_matches_source ... ok
+test schema_md_core_version_matches_source ... ok
+test reference_cli_markers_are_paired ... ok
+test schema_md_handoff_version_matches_source ... ok
+test schema_json_has_schema_field ... ok
+test schema_json_is_valid_json ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/fixture_blobs_w83.rs (target/debug/deps/fixture_blobs_w83-00e20f788f02a9c7)
+
+running 3 tests
+test gate_invokes_fixture_blob_guardrail ... ok
+test xtask_help_mentions_fixture_blobs_check ... ok
+test fixture_blobs_check_passes_on_clean_repo ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.83s
+
+     Running tests/publish_w71.rs (target/debug/deps/publish_w71-fd22657f5eeeea98)
+
+running 19 tests
+test publish_classify_rate_limit_too_many_requests ... ok
+test publish_classify_rate_limit_status_429 ... ok
+test publish_dry_run_uses_cargo_package_list ... ok
+test publish_excludes_non_publishable_crates ... ok
+test publish_order_every_crate_after_its_deps ... ok
+test publish_order_respects_tier_hierarchy ... ok
+test publish_all_planned_crates_are_workspace_members ... ok
+test publish_plan_mode_does_not_execute ... ok
+test publish_plan_dependencies_form_dag ... ok
+test publish_order_settings_before_dependents ... ok
+test publish_preflight_excludes_xtask_on_windows ... ok
+test publish_rate_limit_has_max_waits ... ok
+test publish_rate_limit_has_retry_after_parsing ... ok
+test publish_rate_limit_timeout_cli_arg_exists ... ok
+test publish_plan_consistent_crate_count ... ok
+test publishable_internal_dev_dependencies_use_loose_versions ... ok
+test publish_plan_shows_execution_command ... ok
+test publish_surface_json_distinguishes_current_and_target_surfaces ... ok
+test publish_plan_workspace_version_is_semver ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.37s
+
+     Running tests/xtask_contract_w65.rs (target/debug/deps/xtask_contract_w65-c34ec7d8eb446580)
+
+running 50 tests
+test bdd_given_bump_when_invalid_version_then_error ... ok
+test bdd_given_clean_workspace_when_boundaries_check_then_passes ... ok
+test boundaries_all_analysis_crates_are_workspace_members ... ok
+test boundaries_analysis_crates_each_have_package_name ... ok
+test boundaries_analysis_crates_no_config_dep ... ok
+test bdd_given_bump_when_dry_run_then_shows_plan ... ok
+test boundaries_forbidden_list_in_source ... ok
+test bdd_given_publish_when_plan_then_shows_order_no_publish ... ok
+test bump_dry_run_validates_known_schema_constants ... ok
+test boundaries_check_passes_on_clean_repo ... ok
+test bump_dry_run_rejects_unknown_schema ... ok
+test bdd_given_verbose_plan_when_checking_exclusions_then_reasons_shown ... ok
+test cli_bump_requires_version ... ok
+test cli_lint_fix_help_shows_flags ... ok
+test cli_gate_help_shows_check_flag ... ok
+test cli_help_succeeds_and_mentions_tasks ... ok
+test docs_reference_cli_exists ... ok
+test docs_reference_cli_has_paired_markers ... ok
+test cli_unknown_subcommand_fails ... ok
+test gate_check_mode_uses_check_args_for_fmt ... ok
+test gate_excludes_python_crate ... ok
+test gate_source_defines_all_expected_steps ... ok
+test cli_publish_plan_flag_accepted ... ok
+test publish_plan_all_crates_start_with_tokmd ... ok
+test publish_plan_cli_is_last_or_near_last ... ok
+test publish_plan_crate_count_positive ... ok
+test publish_plan_core_before_cli ... ok
+test publish_plan_excludes_fuzz ... ok
+test publish_plan_excludes_xtask ... ok
+test publish_plan_scan_before_format ... ok
+test publish_plan_no_duplicates ... ok
+test publish_plan_shows_execution_command ... ok
+test publish_plan_shows_workspace_version ... ok
+test publish_plan_succeeds ... ok
+test publish_plan_types_before_dependents ... ok
+test publish_plan_types_before_model ... ok
+test publish_plan_types_before_scan ... ok
+test schema_version_analysis_exists ... ok
+test schema_version_cockpit_exists ... ok
+test schema_version_context_exists ... ok
+test schema_version_core_exists ... ok
+test schema_version_handoff_exists ... ok
+test workspace_all_member_dirs_exist ... ok
+test workspace_has_members ... ok
+test workspace_includes_tokmd_types ... ok
+test workspace_includes_xtask ... ok
+test workspace_root_cargo_toml_has_workspace_version ... ok
+test publish_plan_verbose_lists_exclusion_reasons ... ok
+test docs_without_flags_reports_status ... ok
+test docs_check_succeeds_or_reports_drift ... ok
+
+test result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.99s
+
+     Running tests/xtask_deep_w74.rs (target/debug/deps/xtask_deep_w74-408f10d62c9f4531)
+
+running 36 tests
+test all_task_modules_declared_in_mod_rs ... ok
+test boundaries_check_scans_sorted_manifests ... ok
+test boundaries_check_forbidden_list_covers_higher_tiers ... ok
+test all_commands_dispatched_in_main ... ok
+test boundaries_no_analysis_crate_depends_on_core ... ok
+test bump_workspace_dep_update_targets_tokmd_prefix ... ok
+test cockpit_help_shows_base_head_format ... ok
+test bump_schema_invalid_format_rejected ... ok
+test docs_task_markers_list_covers_all_subcommands ... ok
+test docs_task_uses_cargo_run_for_help ... ok
+test gate_check_flag_exists_in_cli ... ok
+test gate_excludes_tokmd_python ... ok
+test gate_excludes_xtask_from_compile_only_step ... ok
+test gate_fmt_step_has_check_mode_variant ... ok
+test gate_reports_pass_fail_count ... ok
+test gate_runtime_guard_allows_curated_jules_provenance ... ok
+test gate_steps_include_fmt_check_clippy_test ... ok
+test bump_same_version_is_noop ... ok
+test publish_classifies_already_published ... ok
+test publish_classifies_auth_errors ... ok
+test publish_classifies_network_errors ... ok
+test publish_classifies_propagation_delay ... ok
+test bump_schema_non_numeric_version_rejected ... ok
+test lint_fix_help_shows_check_and_no_clippy ... ok
+test publish_order_config_before_core ... ok
+test publish_order_analysis_deps_before_analysis ... ok
+test publish_plan_invalid_from_crate_fails ... ok
+test publish_order_envelope_before_sensor ... ok
+test publish_plan_invalid_exclude_dependency_fails ... ok
+test publish_reconstruct_command_includes_scope_filters ... ok
+test sccache_help_shows_wrapper_flags ... ok
+test sccache_task_sets_wrapper_and_incremental_policy ... ok
+test publish_plan_with_crates_filter ... ok
+test publish_plan_with_nonexistent_crate_fails ... ok
+test trim_target_help_shows_trim_flags ... ok
+test docs_no_flags_does_not_fail ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.91s

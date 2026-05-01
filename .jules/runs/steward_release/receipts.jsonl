@@ -1,0 +1,5 @@
+{"cmd": "cargo xtask version-consistency", "status": 0, "summary": "All versions match workspace version 1.10.0"}
+{"cmd": "cargo xtask docs --check", "status": 0, "summary": "Documentation is up to date"}
+{"cmd": "cargo xtask publish --plan", "status": 0, "summary": "Publish order generated successfully"}
+{"cmd": "cargo xtask publish-surface --verify-publish", "status": 0, "summary": "Publish surface validations passed"}
+{"cmd": "cargo test -p xtask", "status": 0, "summary": "All 158 xtask tests passed"}

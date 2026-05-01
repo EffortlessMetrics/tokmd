@@ -1,0 +1,24 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record steward learning on release validation 🚢",
+  "summary": "Release metadata, version consistency, and publish surface checks show the repo is perfectly aligned. Created a learning PR instead of forcing an unnecessary change.",
+  "target_paths": [],
+  "proof_summary": "cargo xtask version-consistency, cargo xtask docs --check, and cargo xtask publish-surface all pass cleanly. xtask test suite passes.",
+  "gates_run": [
+    "cargo xtask version-consistency",
+    "cargo xtask docs --check",
+    "cargo xtask publish --plan",
+    "cargo xtask publish-surface --verify-publish",
+    "cargo test -p xtask",
+    "cargo check",
+    "cargo clippy"
+  ],
+  "friction_items_created": [
+    ".jules/friction/open/steward-gate-timeout.md"
+  ],
+  "persona_notes_created": [
+    ".jules/personas/steward/notes/release-clean-state.md"
+  ],
+  "rollback": "None",
+  "follow_ups": []
+}
