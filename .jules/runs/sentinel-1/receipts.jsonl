@@ -1,0 +1,8 @@
+{"command": "mkdir -p .jules/runs/sentinel-1 && generate envelope.json", "status": "success"}
+{"command": "grep -rn 'env::var' crates/tokmd*/src", "status": "success"}
+{"command": "grep -rn 'Command::new' crates/tokmd*/src", "status": "success"}
+{"command": "write decision.md", "status": "success"}
+{"command": "patch git_cmd in git_support.rs and tokmd-git/src/lib.rs", "status": "success"}
+{"command": "patch GITHUB_BASE_REF/TOKMD_GIT_BASE_REF validation in tokmd-git/src/lib.rs", "status": "success"}
+{"command": "patch GITHUB_BASE_REF/TOKMD_GIT_BASE_REF validation in tokmd-git/src/lib.rs", "status": "success"}
+{"command": "write result.json", "status": "success"}
