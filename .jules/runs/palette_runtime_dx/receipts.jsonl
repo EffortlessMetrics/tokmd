@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd", "outcome": "Success, all tests pass"}
+{"command": "cargo run --bin tokmd -- moduel || true", "outcome": "Error output only contains 'Did you mean the subcommand `module`?' instead of path hints"}
+{"command": "cargo test -p tokmd", "outcome": "Success, all tests passed"}

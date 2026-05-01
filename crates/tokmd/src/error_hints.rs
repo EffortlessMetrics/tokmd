@@ -95,6 +95,7 @@ fn suggestions(err: &Error) -> Vec<String> {
                             "baseline",
                             "handoff",
                             "sensor",
+                            "help",
                         ];
 
                         let mut best_match = None;
@@ -138,12 +139,12 @@ fn suggestions(err: &Error) -> Vec<String> {
                     "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
                 );
             }
+            push_hint(&mut out, "Verify the input path exists and is readable.");
+            push_hint(
+                &mut out,
+                "Use an absolute path to avoid working-directory confusion.",
+            );
         }
-        push_hint(&mut out, "Verify the input path exists and is readable.");
-        push_hint(
-            &mut out,
-            "Use an absolute path to avoid working-directory confusion.",
-        );
     }
 
     if haystack.contains("base ref") && haystack.contains("not found") {

@@ -1,0 +1,8 @@
+{
+  "prompt_id": "palette_runtime_dx",
+  "persona": "palette",
+  "style": "builder",
+  "primary_shard": "interfaces",
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["PR-ready patch", "proof-improvement patch", "learning PR"]
+}
