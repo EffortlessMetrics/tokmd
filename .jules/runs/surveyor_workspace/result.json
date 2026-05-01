@@ -1,0 +1,11 @@
+{
+  "diff_type": "patch",
+  "files_modified": [
+    "crates/tokmd/src/lib.rs"
+  ],
+  "gates_passed": [
+    "cargo test -p tokmd --no-default-features",
+    "cargo clippy -p tokmd --no-default-features -- -D warnings",
+    "cargo clippy --workspace --all-targets -- -D warnings"
+  ]
+}

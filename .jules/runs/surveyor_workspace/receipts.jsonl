@@ -1,0 +1,4 @@
+{"cmd": "mkdir -p .jules/runs/surveyor_workspace", "status": 0}
+{"cmd": "cargo check -p tokmd --no-default-features", "status": 0}
+{"cmd": "cargo clippy -p tokmd --no-default-features -- -D warnings", "status": 0}
+{"cmd": "cargo test -p tokmd --no-default-features", "status": 0}
