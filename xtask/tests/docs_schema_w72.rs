@@ -211,7 +211,6 @@ fn schema_md_baseline_version_matches_source() {
     );
 }
 
-
 #[test]
 fn schema_md_context_version_matches_source() {
     let src = read_const_u32("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION")
@@ -271,7 +270,6 @@ fn schema_json_has_required_receipt_definitions() {
         );
     }
 }
-
 
 fn baseline_schema_json() -> serde_json::Value {
     let raw = std::fs::read_to_string(workspace_root().join("docs/baseline.schema.json"))
