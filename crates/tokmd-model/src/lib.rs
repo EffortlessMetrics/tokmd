@@ -413,7 +413,7 @@ pub fn create_lang_report_from_rows(
         });
     }
 
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+    sort_lang_rows(&mut rows);
 
     let total_code: usize = rows.iter().map(|r| r.code).sum();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
@@ -537,7 +537,7 @@ pub fn create_module_report_from_rows(
     }
 
     // Sort descending by code, then by module name for determinism.
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+    sort_module_rows(&mut rows);
 
     if top > 0 && rows.len() > top {
         let other = fold_other_module(&rows[top..]);
@@ -630,7 +630,7 @@ pub fn create_export_data_from_rows(
     if min_code > 0 {
         rows.retain(|r| r.code >= min_code);
     }
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+    sort_file_rows(&mut rows);
 
     if max_rows > 0 && rows.len() > max_rows {
         rows.truncate(max_rows);
@@ -642,6 +642,21 @@ pub fn create_export_data_from_rows(
         module_depth,
         children,
     }
+}
+
+/// Sort `LangRow`s deterministically by code descending, then by lang name ascending.
+pub fn sort_lang_rows(rows: &mut [LangRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+}
+
+/// Sort `ModuleRow`s deterministically by code descending, then by module name ascending.
+pub fn sort_module_rows(rows: &mut [ModuleRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+}
+
+/// Sort `FileRow`s deterministically by code descending, then by path ascending.
+pub fn sort_file_rows(rows: &mut [FileRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 }
 
 /// Collect per-file contributions, optionally including embedded language reports.

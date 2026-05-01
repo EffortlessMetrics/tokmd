@@ -1,0 +1,4 @@
+{"command": "cargo build", "exit_code": 0}
+{"command": "cargo test -p tokmd-model", "exit_code": 0}
+{"command": "cargo clippy -p tokmd-model -- -D warnings", "exit_code": 0}
+{"command": "cargo fmt -- --check", "exit_code": 0}
