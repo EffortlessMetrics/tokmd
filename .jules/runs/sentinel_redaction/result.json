@@ -1,15 +1,7 @@
 {
-  "run_id": "sentinel_redaction",
-  "status": "success",
-  "outcome": "pr-ready-patch",
-  "affected_files": [
-    "crates/tokmd-format/src/redact/mod.rs",
-    "crates/tokmd-format/tests/test_redaction_leak.rs"
+  "outcome": "PR-ready patch",
+  "files_touched": [
+    "crates/tokmd-format/src/redact/mod.rs"
   ],
-  "gates_run": [
-    "cargo test -p tokmd-format test_redact_path_leak",
-    "cargo test -p tokmd-format redact",
-    "cargo fmt-check",
-    "git diff --check"
-  ]
+  "reason": "Tightened redact_path extension preservation to length <= 4 and strictly alphabetic characters. Verified tests pass and prevents 8-character alphanumeric leaks."
 }

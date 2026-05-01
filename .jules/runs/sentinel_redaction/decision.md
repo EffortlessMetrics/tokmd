@@ -1,527 +1,125 @@
-# Sentinel Decision: Redaction Boundary Hardening
+# Sentinel Redaction Decision
 
-## Option A: Redact `module_roots` in ExportData/ModuleReport
-Currently `module_roots` are strings passed into the `redact_module_roots` function.
-If we look at `crates/tokmd-format/src/lib.rs`, `redact_module_roots` uses `short_hash` directly instead of matching path semantics. Module roots should be redacted via `short_hash` correctly as they are just prefixes, but the paths they apply to are redacted via `redact_path`.
-However, the `redact_path` behavior is quite important: it hashes the path but leaves the extension, using `clean_path` and `short_hash` internally.
-
-Wait, looking at `crates/tokmd-format/src/lib.rs` line 735:
+## Problem
+In `tokmd-format/src/redact/mod.rs`, the function `redact_path` hashes a given string to redact paths, but preserves the extension.
+Currently, the extension is considered "safe" to append to the end of the hash if its length is <= 8 and it contains only ASCII alphanumeric characters:
 ```rust
-    if redact == RedactMode::All {
-        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
-        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
-        for row in &mut final_report.rows {
-            row.module = short_hash(&row.module);
-```
-In `redact_module_roots`:
-```rust
-fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {
-    if redact == RedactMode::All {
-        roots.iter().map(|r| short_hash(r)).collect()
-    ...
+    let ext = if ext.len() <= 8 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+        ext
+    } else {
+        ""
+    };
 ```
 
-Wait, what about `scan_args` redaction?
-In `crates/tokmd-format/src/scan_args/mod.rs`:
-```rust
-    let mut args = ScanArgs {
-        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
-        excluded: if should_redact {
-            global.excluded.iter().map(|p| short_hash(p)).collect()
-        } else {
-            global.excluded.clone()
-        },
-...
-    if should_redact {
-        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
-    }
-```
-Wait, `args.paths` is initialized as a string and then modified again?
-```rust
-        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
-```
-Then later:
-```rust
-    if should_redact {
-        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
-    }
-```
-If `redact_path` takes `&str` and returns `String`, `args.paths.iter().map(|p| redact_path(p))` works because `args.paths` is `Vec<String>`.
+This presents a leakage boundary risk, where any alphanumeric string up to 8 characters after a dot in a path is exposed. An attacker could potentially store sensitive data or secrets disguised as an extension, such as `file.pass1234`, and it will be leaked directly in the redacted logs/receipts because "pass1234" is 8 alphanumeric characters.
 
-But what about the security / leak issue?
-What if `redact_path` is called on something that isn't a path, or leaks something?
+A safer trust-boundary approach would be to only preserve a set of well-known safe extensions, or to use a stricter check (such as only preserving `a-z` lower case letters up to maybe 4 characters like standard file extensions).
+
+## Options Considered
+
+### Option A (recommended)
+Statically define an allowed list of known safe extensions (e.g. `rs`, `js`, `ts`, `py`, `go`, `md`, `txt`, `json`, `toml`, `xml`, `yaml`, `yml`, `c`, `cpp`, `h`, `hpp`, `java`, `rb`, `php`, `sh`, `bat`, `ps1`, etc.).
+Or, simply enforce that an extension must be `<= 4` characters and composed only of `a-z` ascii lowercase letters to be considered safe. Wait, `a-z` lowercase might be enough, but numbers in extensions are common (e.g. `mp3`, `mp4`, `h264`, etc.).
+
+Let's do `< 5` characters (so 1 to 4 characters) and `.is_ascii_alphabetic()` to further limit the boundary, or specifically only allow common extensions. Actually, the simplest boundary hardening that prevents the `pass1234` leak is to reduce the length and enforce alphabetic-only (or small known-list).
+But what if we just enforce that the extension must be `<= 4` length and contain only ascii alphabetic characters, maybe digits for `mp4` or `f90`.
+
+Let's look at `tokmd` scope. It's a token counting tool, so the extensions are for code files.
+If we restrict it to length `<= 5` and `.is_ascii_alphanumeric()`, then `pass1` could still leak.
+The best boundary hardening is to restrict it to a specific length `<= 4` and only `[a-zA-Z]`, or a statically known list. Since it's a "redact" feature, if an unknown extension is dropped and replaced with nothing, it's just a 16-char hash. The purpose of `redact_path` is to hide sensitive paths but keep some identifiability.
+
+Alternatively, since `redact_path`'s goal is to hide everything but the file type, we can restrict extensions to length <= 5 and `is_ascii_alphabetic()`.
+
+Let's look at `crates/tokmd-format/src/redact/mod.rs`:
+Currently:
+```rust
+    let ext = if ext.len() <= 8 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+        ext
+    } else {
+        ""
+    };
+```
+
+If we update this to:
+```rust
+    let ext = if ext.len() <= 5 && ext.chars().all(|c| c.is_ascii_alphabetic()) {
+        ext
+    } else {
+        ""
+    };
+```
+
+Wait, `is_ascii_alphabetic` would drop `.rs`, `.md`, `.js`, etc. But what about `.c++` or `.f90`? `+` is not alphanumeric. `f90` has digits. `mp4` has digits.
+If we use `ext.len() <= 4 && ext.chars().all(|c| c.is_ascii_alphanumeric()) && ext.chars().any(|c| c.is_ascii_alphabetic())`, we prevent pure numbers.
+
+Let's check what `is_ascii_alphanumeric` and `<= 4` does: `pass` (4 chars). It could still leak a 4-char string. Is that a big deal? "redaction correctness and leakage prevention".
+
+If we use a static allowlist, we eliminate the leak entirely.
+
+### Option A: Use a static allowlist of common programming / text extensions.
+Since `tokmd` is for scanning markdown, source code, etc.
+
+Let's grep for supported extensions in `tokmd`.
+
+Wait, `redact_path` preserves extensions to keep them recognizable. Instead of an allowlist (which would need to be updated constantly for new languages), we can enforce that extensions are short (e.g. `<= 4` chars) AND they only contain alphabetical characters `[a-z]` (and maybe digits `[0-9]` but not as the first character, or just lowercase ascii).
+
+Currently, `is_ascii_alphanumeric` allows upper and lower case, and digits. 8 characters is enough to leak `password`, `api_key`, etc., especially if someone uses `file.password` or `file.secret1`.
+
+Let's modify the check to restrict length to `<= 4` characters and require `is_ascii_alphabetic` only, or perhaps `is_ascii_lowercase()`. Wait, `ext.len() <= 5 && ext.chars().all(|c| c.is_ascii_alphanumeric()) && !ext.chars().any(|c| c.is_ascii_digit())`.
+
+Wait! We don't need to overcomplicate it. Reducing `len <= 4` and `all(|c| c.is_ascii_alphabetic())` would work, but `.rs`, `.md`, `.js`, `.py`, `.c`, `.cpp`, `.json` (5 chars!), `.yaml` (4 chars).
+If we need `.json` we need `len <= 5`.
+If we allow `is_ascii_alphabetic()`, we lose `f90`, `h264`, `mp4`. But are those code extensions?
+If we use `is_ascii_alphanumeric()`, a 5 char leak could be `pass1`, `key12`, `token`. "token" is 5 chars.
+Is a 5-char leak acceptable?
+
 Let's look at `redact_path`:
 ```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
+    let ext = if ext.len() <= 5 && ext.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit()) {
+        ext
+    } else {
+        ""
+    };
 ```
-If `ext` is really long or contains sensitive info (e.g. `file.secret_extension`), it's preserved. But more concerningly, what if the path is an absolute path?
-Actually, what about `redact_rows` in `crates/tokmd-format/src/lib.rs`:
-```rust
-fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
-    rows.iter().map(move |r| match mode {
-        RedactMode::None => Cow::Borrowed(r),
-        RedactMode::Paths => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: r.module.clone(),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
-        RedactMode::All => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: short_hash(&r.module),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
-    })
-}
-```
+If we want to restrict it further, we can check for an explicit list of known extensions, OR we can just limit length to 4. If `.json` is common, maybe 5.
 
-Wait! In `RedactMode::Paths`, the `module` is NOT redacted!
-If `module` is derived from the directory path (which it usually is, e.g. `src/secret_path`), then `RedactMode::Paths` LEAKS the directory paths through the `module` field!
-Let's check `crates/tokmd-format/src/lib.rs` redaction tests.
-```rust
-    fn redact_rows_paths_mode() {
-        let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
-        // Paths should be redacted (16 char hash + extension)
-        assert_ne!(redacted[0].path, "src/lib.rs");
-        // Module should NOT be redacted
-        assert_eq!(redacted[0].module, "src");
-```
-Wait, if `RedactMode::Paths` is meant to redact paths, but `module` (which is a path prefix) is kept in plaintext, that's a leak. BUT `RedactMode::Paths` explicitly says "Module should NOT be redacted" in the test. So that might be intentional for `Paths` vs `All`.
+Let's look at Option A: Restrict extension preservation to `<= 5` characters and `is_ascii_alphanumeric()`.
+Wait, the leak test I created `test_redact_path_leak_8_chars` uses `pass1234` which is 8 chars. If I lower the limit to 4, it will prevent this specific leak.
+But what if the test I wrote is exactly what's needed?
+"This presents a leakage boundary risk, where any alphanumeric string up to 8 characters after a dot in a path is exposed. An attacker could potentially store sensitive data or secrets disguised as an extension, such as file.pass1234, and it will be leaked directly in the redacted logs/receipts because "pass1234" is 8 alphanumeric characters."
 
-What about `ScanArgs`?
-In `crates/tokmd-format/src/scan_args/mod.rs`:
-```rust
-    let mut args = ScanArgs {
-        paths: paths.iter().map(|p| normalize_scan_input(p)).collect(),
-        excluded: if should_redact {
-            global.excluded.iter().map(|p| short_hash(p)).collect()
-        } else {
-            global.excluded.clone()
-        },
-```
-Wait, `excluded` uses `short_hash`. What about `paths`?
-```rust
-    if should_redact {
-        args.paths = args.paths.iter().map(|p| redact_path(p)).collect();
-    }
-```
-If `redact` is `RedactMode::Paths`, `global.excluded` is hashed with `short_hash`, but `args.paths` is hashed with `redact_path`.
+Let's reduce the length to `4` for extensions (which covers `.rs`, `.md`, `.js`, `.py`, `.cpp`, `.txt`, `.yaml`, `.toml` etc), and specifically map `.json` -> `.json` if we want, or just let `.json` be redacted if we strictly enforce `< 5`.
+Wait, `.json` is 4 characters! `j-s-o-n` is 4.
+Wait, `ext.len()` for `json` is 4.
+Wait, `config.json` -> `ext` is `json` -> len = 4.
+Ah! So `ext.len() <= 4` covers `json`, `yaml`, `toml`, `html`, `java`, `cpp`, `php`!
+What extension is 5 characters? `.swift` is 5! `.scala` is 5! `.kotlin` is 6!
+If we restrict to 4, we lose `.swift`, `.scala`, `.kotlin` preservation. They would just become bare hashes. Is that a problem for a redacted output? Redaction's priority is security. A bare hash is perfectly secure. It just lacks the `.swift` hint.
 
-Let's look at `RedactMode` in `crates/tokmd-types/src/lib.rs` (if it's there) or `crates/tokmd-settings/src/lib.rs`.
-Actually, `RedactMode::Paths` means "redact file paths". `RedactMode::All` means "redact paths AND module names".
+Let's look at `crates/tokmd-format/tests/format_tests.rs` or similar to see if any tests expect a specific extension length.
 
-Wait, look at `crates/tokmd-format/src/lib.rs` line 737:
-```rust
-    if redact == RedactMode::All {
-        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
-```
-What about `RedactMode::Paths`? If `RedactMode::Paths` redacts paths, should it redact `module_roots`? No, because `module_roots` are modules. But `module_roots` are also paths!
-Wait, what if `args.paths` contains absolute paths or sensitive information?
-Let's consider `tokmd_format::redact::redact_path`:
-```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
-```
-If `ext` is something like `secret_file_name_that_is_long`, wait, what is an extension? `Path::new(...).extension()` gets everything after the last dot. If the file is `config.secret_db_password`, the extension is `secret_db_password`, which is leaked!
-Should `redact_path` restrict the length of the extension or only allow known extensions?
-"Redact a path by hashing it while preserving the file extension. This allows redacted paths to still be recognizable by file type while hiding the actual path structure."
-
-Let's check `crates/tokmd-types/src/lib.rs`: `RedactMode`
-```rust
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RedactMode {
-    #[default]
-    None,
-    Paths,
-    All,
-}
-```
-
-Wait, look at `short_hash`:
-```rust
-pub fn short_hash(s: &str) -> String {
-    let cleaned = clean_path(s);
-    let mut hex = blake3::hash(cleaned.as_bytes()).to_hex().to_string();
-    hex.truncate(16);
-    hex
-}
-```
-If `clean_path` is:
-```rust
-fn clean_path(s: &str) -> String {
-    let mut normalized = s.replace('\\', "/");
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
-    }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
-    }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
-    }
-    normalized
-}
-```
-Is `clean_path` safe against `../`? No, it doesn't resolve `../`! So `src/../secret/file.rs` hashes differently than `secret/file.rs`, which is fine.
-
-Let's check another place in `crates/tokmd-format/src/lib.rs` that might be leaking paths:
-```rust
-pub fn write_export_report_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-...
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-```
-Wait, if `strip_prefix` is a path prefix like `/home/user/my_secret_project`, `redact_path` hashes it and appends the extension (if it has one). E.g. `/home/user/project.git` -> `[hash].git`.
-This seems fine.
-
-But what about CycloneDX export?
-```rust
-fn write_export_cyclonedx_impl<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-    serial_number: Option<&str>,
-    timestamp: Option<&str>,
-) -> Result<()> {
-    // Apply redaction to rows before generating components
-    let components: Vec<CycloneDxComponent> = redact_rows(&export.rows, redact)
-        .map(|row| {
-            // Group is the module, name is the file name
-            // If redaction is Paths or All, the path is already hashed in `row.path`
-            // If redaction is All, the module is already hashed in `row.module`
-...
-            CycloneDxComponent {
-                type_: "file".to_string(),
-                group: if row.module.is_empty() {
-                    None
-                } else {
-                    Some(row.module.to_string())
-                },
-                name: Path::new(&row.path)
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .into_owned(),
-...
-```
-Wait! `Path::new(&row.path).file_name()`!
-If `row.path` is redacted, what does it look like?
-`redact_path("src/secret/config.json")` returns `1234567890abcdef.json` (a 16 char hash + `.json`).
-Wait, `redact_path` returns ONLY the hash + extension! It does NOT preserve the directory structure!
-Let's check `redact_path` again:
-```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
-```
-Ah! `redact_path("src/secret/config.json")` returns something like `a1b2c3d4e5f6g7h8.json`. There are no slashes in the output of `redact_path`!
-
-If there are no slashes, `Path::new(&row.path).file_name()` is just the whole redacted string.
-Wait, if `row.path` is just the hash + extension, then we've lost the directory structure entirely in the exported data! This is correct for redaction (we want to hide the structure).
-
-But wait, look at `CycloneDxComponent` `name`:
-```rust
-                name: Path::new(&row.path)
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .into_owned(),
-```
-If `row.path` has no slashes, `file_name()` is the whole string.
-
-Wait, is there a vulnerability in `redact_path` regarding the file extension?
-```rust
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-```
-If I have a file named `my_secret_password.txt.super_secret_leak`, `ext` is `super_secret_leak`. This leaks information.
-But more importantly, look at how `redact_path` handles paths with no extensions, like `.env`.
-For `.env`, what is `extension()`?
-`Path::new(".env").extension()` is `None`! Wait, no, `Path::new(".env").extension()` is `None` in Rust! Wait, let's verify.
-In Rust, `Path::new(".env").extension()` returns `None`. `file_name()` is `.env`.
-If it returns `None`, `ext` is `""`.
-So `.env` is redacted to just a 16-character hash. That seems correct (it hides `.env`).
-What about `.git/config`? `extension()` is `None`. It hashes to 16 chars.
-
-Wait, look at `strip_prefix` in `write_export_report_to`:
-```rust
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-```
-If `args.strip_prefix` is `/home/user/project`, its redacted form is `hash`. Wait!
-If `strip_prefix` in the output receipt is compared to the redacted paths, it will NEVER match if it was a directory path, because `redact_path` output has no slashes, so the client might not be able to reconstruct or correlate anything, but that's a semantic issue, not a security leak.
-
-What is the actual security leak?
-Let's check the Sentinel assignment:
-"Land one security-significant hardening improvement.
-Target ranking
-1) redaction correctness and leakage prevention
-2) FFI parsing / trust boundaries
-3) subprocess / environment / path boundary hardening
-4) receipt/schema trust and deterministic safety"
-
-Let's look at `redact_path` again:
-```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
-```
-If a user creates a file named `a.my_secret_token_is_12345`, the extension is `my_secret_token_is_12345`.
-`redact_path` will append this entire string to the hash, leaking the token!
-Is there a way to limit the extension length or character set to prevent arbitrary data leakage via extensions?
-Common extensions are short (1-4 chars) and alphanumeric.
-What if we enforce that `ext` only contains alphanumeric characters and is no longer than, say, 8 characters? Or we just sanitize it?
-Wait, if someone names a file `script.sh?token=secret`, the OS allows `?` in file names (except on Windows). `Path::new` will see `sh?token=secret` as the extension!
-
-Let's check `crates/tokmd-format/src/redact/mod.rs`:
-```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
-```
-Wait! What if we restrict the extension to a known safe length?
-```rust
-    let mut ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-
-    // Hardening: limit extension length to prevent data leakage through long extensions
-    if ext.len() > 8 {
-        ext = "";
-    } else if !ext.chars().all(|c| c.is_ascii_alphanumeric()) {
-        ext = "";
-    }
-```
-Actually, many test files use `[a-z]{1,4}` for extensions.
-Wait, look at `crates/tokmd-format/src/lib.rs` property tests:
-```rust
-        fn redact_rows_paths_end_with_extension(ext in "[a-z]{1,4}") {
-            let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
-            prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
-                "Redacted path '{}' should end with .{}", redacted[0].path, ext);
-```
-So up to 4 chars is tested.
-
-Let's see if there's any other leakage.
-What about `LangArgs`?
-In `write_lang_report_to`:
-```rust
-pub fn write_lang_report_to<W: Write>(
-    out: &mut W,
-    report: &LangReport,
-    global: &ScanOptions,
-    args: &LangArgs,
-) -> Result<()> {
-    let should_redact = matches!(args.format, TableFormat::Json | TableFormat::Jsonld)
-        && false; // Wait, is there redaction for LangReport?
-```
-Wait, let's look at `write_lang_report_to` in `crates/tokmd-format/src/lib.rs`!
-
-Looking closer at `tokmd-types/src/lib.rs` and the redact tests, if `redact == RedactMode::Paths`, the path is hashed, but what about the module? `RedactMode::Paths` leaves `module` intact! If `module` is just a directory path from the repo root (e.g. `crates/tokmd-types`), then this *leaks the directory structure*. The prompt mentions: `redaction correctness and leakage prevention`.
-
-Wait, in `RedactMode::Paths`, what IS the module?
-The module is typically a directory prefix. E.g., `src/foo`.
-If a user asks for `tokmd export --redact paths`, they expect file paths to be redacted. But the `module` column in the CSV/JSON contains the plaintext directory structure!
-Wait, the prompt says "Target ranking 1) redaction correctness and leakage prevention".
-
-Let's look at `RedactMode` documentation or its use in `crates/tokmd-format/src/lib.rs`.
-```rust
-    rows.iter().map(move |r| match mode {
-        RedactMode::None => Cow::Borrowed(r),
-        RedactMode::Paths => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: r.module.clone(),
-            lang: r.lang.clone(),
-            ...
-        }),
-        RedactMode::All => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: short_hash(&r.module),
-            ...
-        }),
-    })
-```
-If `Paths` mode is used, `module` is deliberately left unredacted. That seems to be the intended behavior of `Paths` (vs `All`). So maybe that's not a bug but a feature?
-
-Wait, what about `redact_path` file extensions?
-```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
-```
-If I have a file named `my_bank_account_password_is_hunter2.secret`, the extension is `secret`, which is fine. If the file is `config.my_bank_account_password_is_hunter2`, the extension is `my_bank_account_password_is_hunter2`. This is an arbitrary string that leaks through redaction!
-
-Let's test this in `cargo`:
-
-So the `redact_path` function leaks the extension, and the extension could be arbitrarily long and contain sensitive data.
-
-Is there anything else?
-What about CycloneDX component names?
-In `write_export_cyclonedx_impl`:
-```rust
-            CycloneDxComponent {
-                type_: "file".to_string(),
-                group: if row.module.is_empty() {
-                    None
-                } else {
-                    Some(row.module.to_string())
-                },
-                name: Path::new(&row.path)
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .into_owned(),
-```
-Wait!
-If `row.path` was redacted using `RedactMode::Paths`, it looks like `a1b2c3d4e5f6g7h8.ext`.
-`Path::new(&row.path).file_name()` is `a1b2c3d4e5f6g7h8.ext`.
-BUT what if it was NOT redacted?
-`Path::new("src/foo/bar.rs").file_name()` is `bar.rs`.
-Wait, CycloneDX `name` is just the file name!
-BUT the `path` property or `properties` list?
-```rust
-                properties: vec![
-                    CycloneDxProperty {
-                        name: "tokmd:lang".to_string(),
-                        value: row.lang.clone(),
-                    },
-```
-Wait, the actual path is lost in CycloneDX format?
-If `name` is `file_name()`, then CycloneDX component `name` is just the base name. Is the full path stored anywhere in CycloneDX?
-Let's check `crates/tokmd-format/src/lib.rs` CycloneDX export.
-
-Wait, `name: row.path.clone()`. It does not use `file_name()`.
-
-So the main redaction leak is in `redact_path`.
+If I change the length from 8 to 4, I see the proptest in `crates/tokmd-types/tests/determinism_props.rs` generates extensions `\\.[a-z]{1,4}` which is exactly 1 to 4 characters. So my change will pass existing property tests!
 
 ```rust
-pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
-    }
-    out
-}
+    fn redact_path_is_deterministic(input in "[a-z]{1,5}(/[a-z]{1,5}){0,3}/[a-z]{1,8}\\.[a-z]{1,4}") {
 ```
+This implies the test expects 1-4 character extensions. Length 8 was likely arbitrarily large.
 
-If we sanitize `ext` to only allow standard short alphanumeric extensions, we close the data leakage vector.
-For example, we can bound the extension length to `<= 8` and require it to be entirely ASCII alphanumeric. If it violates this, we treat it as having no extension and just use the hash.
+Furthermore, we can tighten `is_ascii_alphanumeric` to `is_ascii_alphabetic` (which handles `rs`, `json`, `cpp`), but maybe allow digits so `h264`, `f90`, `mp4` work. If we allow digits, `len <= 4` still permits `key1`, `pas2`, which are short but still slight leakage. However, 4 characters is significantly smaller entropy than 8 characters, and `pass` or `key` is a 4 character string. To be strictly safe, we could restrict it to an explicitly allowed list of known code extensions. But wait, `tokmd` parses code.
 
-This matches the `Target ranking 1) redaction correctness and leakage prevention` and `security-boundary` gate profile perfectly.
+If I use an explicit array: `["rs", "js", "ts", "py", "c", "cpp", "h", "hpp", "md", "txt", "json", "toml", "yaml", "yml", "xml", "java", "go", "rb", "php", "cs", "swift", "kt", "scala", "sh", "bat", "sql", "html", "css", "scss", "vue", "jsx", "tsx"]`
+Is it worth it? Or does standard boundary hardening just recommend length restriction (e.g., `< 5`) and alphabetical only?
+Let's just use `ext.len() <= 4 && ext.chars().all(|c| c.is_ascii_alphabetic())`. This drops `f90`, `mp4` but for a redaction boundary, dropping an uncommon code extension and just emitting the hash is 100% fine. A redacted receipt will just say `13351972638830f3` instead of `13351972638830f3.mp4`. This is perfectly acceptable for redaction.
 
-Let's write a targeted unit test to prove the leak and then fix it.
-## ✅ Decision
+Wait, if I change it to `is_ascii_alphabetic`, I should check if there are tests expecting `archive.tar.gz`. `gz` is alphabetic. `1.2.3` would fail, but extensions usually don't have dots. `ext` is the string *after* the last dot.
 
-I have chosen Option A: Hardening `redact_path` to sanitize the file extension.
+Let's test `ext.len() <= 4 && ext.chars().all(|c| c.is_ascii_alphabetic())` by running `cargo test -p tokmd-format` and `cargo test -p tokmd-types`.
 
-`redact_path` is the canonical function for redacting paths. It hashed the file path but explicitly preserved the file extension (so that users can still identify the file type) via `Path::new(&cleaned).extension()`. However, `Path::extension()` returns an arbitrary string after the last dot. A file named `a.my_secret_token_is_12345` would result in the extension being `my_secret_token_is_12345`, which `redact_path` appends to the hash, leaking the token in plaintext.
+The test suite passed completely with `ext.len() <= 4 && ext.chars().all(|c| c.is_ascii_alphabetic())` ! This confirms that standard deterministic tests for formatting and core functions are perfectly fine with shorter, restricted extensions.
 
-To fix this, I restricted the extension to alphanumeric ASCII characters only, and set a hard length limit of 8 characters. Any extension failing this check is entirely redacted.
+Wait, the proptest `redact_path_is_deterministic(input in "[a-z]{1,5}(/[a-z]{1,5}){0,3}/[a-z]{1,8}\\.[a-z]{1,4}")` in `crates/tokmd-types/tests/determinism_props.rs` already guarantees that generated paths have alphabetic extensions of length 1 to 4! So the test suite was practically begging for this boundary hardening.
 
-This effectively prevents arbitrary data leakage through the extension while preserving the utility of standard short extensions (e.g. `.rs`, `.md`, `.json`, `.toml`).
+I will formulate my execution plan based on this.
 
-The decision perfectly aligns with the `Sentinel` persona and `security-boundary` gate profile, targeting redaction correctness and leakage prevention.
+Option A is chosen:
+Tighten the `redact_path` boundary in `tokmd-format/src/redact/mod.rs` to only preserve extensions of length <= 4 containing exclusively ASCII alphabetic characters. This prevents 8-character alphanumeric leaks while preserving common codebase extensions (`.rs`, `.js`, `.py`, `.cpp`, `.md`, `.json`, `.yaml`).
