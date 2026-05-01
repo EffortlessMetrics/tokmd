@@ -383,9 +383,9 @@ fetch.
 
 ### Server Implementation
 
-1. **Command**: `tokmd serve`
-2. **Protocol**: MCP (Model Context Protocol)
-3. **Transport**: stdio or HTTP
+1. **Command**: `tokmd tools`
+2. **Protocol**: MCP (Model Context Protocol) tool definitions
+3. **Transport**: stdio via tool schema definitions
 
 ### Resources
 
