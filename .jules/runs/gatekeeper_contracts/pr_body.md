@@ -1,58 +1,61 @@
 ## 💡 Summary
-Removed manual markdown parameter tables from `docs/reference-cli.md` and replaced them with `<!-- HELP: <command> -->` markers. This delegates documentation generation to `cargo xtask docs`, locks in deterministic CLI usage tracking, and closes the silent-skip case where a missing marker pair could make docs checks pass without checking a command.
-
-The restack also updates the xtask gate regression test to match the current queue policy: Jules provenance under `.jules/**` can be intentional PR state, so gate should not blanket-block `.jules/runs/**` while still guarding actual runtime/cache/transcript directories.
+Added baseline schema tests to prevent version drift. The `BASELINE_VERSION` constant was defined in `crates/tokmd-analysis-types/src/lib.rs`, `docs/SCHEMA.md`, and `docs/baseline.schema.json`, but no automated gate ensured they stayed perfectly synchronized.
 
 ## 🎯 Why
-Manual parameter tables in documentation frequently become outdated when CLI arguments change. `tokmd` provides `cargo xtask docs --update` which relies on `<!-- HELP: <command> -->` markers. Several commands were still using hand-maintained markdown tables, meaning updates to CLI args could easily be missed by the xtask check. The final patch also makes missing marker pairs an explicit docs-check failure.
+Schema or contract definitions can easily drift when versions are manually bumped in some places but forgotten in others. As a Gatekeeper, implementing automated enforcement across these truth sources prevents inconsistencies and ensures deterministic outputs remain sound across code and docs.
 
 ## 🔎 Evidence
-- File: `docs/reference-cli.md`
-- Observation: Many subcommands like `module`, `export`, `run`, `handoff` did not have `<!-- HELP: <command> -->` markers and used manual `| Argument | Description |` tables.
-- Verification: Running `cargo xtask docs --check` before the change ignored drift in these subcommands because they had no markers.
+- `crates/tokmd-analysis-types/src/lib.rs` defines `pub const BASELINE_VERSION: u32 = 1;`
+- `docs/SCHEMA.md` documents `BASELINE_VERSION`
+- `docs/baseline.schema.json` requires `baseline_version: 1`
+- `cargo test -p xtask` passed with the newly added tests guarding these relationships.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Replace manual parameter tables with `<!-- HELP: <command> -->` markers for all commands, letting `cargo xtask docs --update` populate them correctly from the clap help output. Also fail `cargo xtask docs --check` when an expected marker pair is absent.
-- Trade-offs:
-  - **Structure**: Eliminates duplication of parameter details.
-  - **Velocity**: Developers no longer have to manually edit markdown tables when updating CLI parameters.
-  - **Governance**: Fits perfectly within the `tooling-governance` shard.
+- Add verification steps to `xtask/tests/docs_w43.rs` and `xtask/tests/docs_schema_w72.rs` to validate `BASELINE_VERSION` sync between source, documentation, and the JSON schema.
+- This perfectly matches the Gatekeeper role by adding missing schema invariants without excessive abstractions.
+- Trade-offs: Minor execution overhead in tests, high confidence in version alignment.
 
 ### Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand.
-- When to choose it: Only if custom columns are needed that clap does not output.
-- Trade-offs: Extreme risk of drift and maintenance burden.
+- Add a dedicated integration test binary specifically for `baseline.schema.json`.
+- When to choose it instead: If the JSON schema validation is extremely expensive or requires massive fixtures.
+- Trade-offs: Increases integration test scaffolding overhead when it's much simpler to bolt on to the existing robust `xtask` docs testing suite.
 
 ## ✅ Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables. The final patch keeps all synchronization in `cargo xtask docs --update` / `cargo xtask docs --check` and verifies that every expected command marker exists.
+Chose Option A to centralize doc and schema assertions inside the existing xtask tests designed for this exact purpose.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Removed manual parameter tables for the CLI command surface and replaced them with `<!-- HELP: <command> -->` markers.
-- `xtask/src/tasks/docs.rs`: Treats missing marker pairs as documentation drift instead of silently skipping those commands.
-- `xtask/src/tasks/gate.rs`, `xtask/tests/xtask_deep_w74.rs`: Document and test that `.jules/runs/**` is not treated as forbidden runtime state because it may be intentional PR provenance.
+- `xtask/tests/docs_w43.rs`: Added `schema_md_baseline_version_matches_source`.
+- `xtask/tests/docs_schema_w72.rs`: Added `schema_md_baseline_version_matches_source` and `baseline_schema_json_version_matches_source`.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --update
-Updated docs/reference-cli.md
+running 28 tests
+test changelog_follows_keepachangelog ... ok
+test changelog_mentions_latest_version ... ok
+test changelog_has_unreleased_section ... ok
+test reference_cli_commands_section_exists ... ok
+test baseline_schema_json_version_matches_source ... ok
+...
+test schema_md_baseline_version_matches_source ... ok
+...
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
-$ cargo xtask docs --check
-Documentation is up to date.
-
-$ cargo test -p tokmd --test docs
-test result: ok
-
-$ cargo test -p xtask
-test result: ok
+running 15 tests
+test baseline_schema_json_is_valid ... ok
+test docs_all_md_files_are_nonempty ... ok
+...
+test schema_md_baseline_version_matches_source ... ok
+...
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Replacement of manual documentation content with auto-generated sync blocks plus docs-check and provenance-policy guardrails.
-- Blast radius: Docs and xtask validation only.
-- Risk class: Low - Does not change application runtime behavior.
-- Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --update`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo test -p tokmd --test docs`, `cargo fmt-check`, `git diff --check`
+- Change shape: Test enhancement
+- Blast radius: Restricted strictly to test scaffolding; no runtime logic affected.
+- Risk class + why: Low risk. Failing test on drift provides immediate feedback before merge.
+- Rollback: Revert the added test functions.
+- Gates run: `cargo test -p xtask` (verified sync logic passes on valid inputs).
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -62,4 +65,4 @@ test result: ok
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
 
 ## 🔜 Follow-ups
-None. All CLI references are now correctly managed via xtask.
+None identified.
