@@ -1,6 +1,21 @@
-# Friction Item: Unused dependencies in Fuzz crate
+# Friction Item
 
-During a surveyor workspace review, we observed that `tokmd-fuzz` contains an unused dependency on `tokmd-config`.
-While this is minor, it is not a structural defect within the crate boundaries of `tokmd-analysis` and `tokmd-core`, and thus does not meet the high bar for a surveyor architectural seam fix.
+id: FRIC-20260429-002
+persona: surveyor
+style: explorer
+shard: workspace-wide
+status: open
 
-Additionally, `cargo machete` is not installed by default in the execution environment, which caused some friction during the workspace scan.
+## Problem
+`tokmd-fuzz` contains an unused dependency on `tokmd-config`. Additionally, `cargo machete` is not installed by default in the execution environment.
+
+## Evidence
+- path: `tokmd-fuzz/Cargo.toml`
+- command: `cargo machete`
+
+## Why it matters
+Minor friction during workspace scans. Does not meet the high bar for surveyor architectural seam fix, but should be tracked for cleanups.
+
+## Done when
+- [ ] `tokmd-config` removed from `tokmd-fuzz` dependencies
+- [ ] `cargo machete` is available or documented
