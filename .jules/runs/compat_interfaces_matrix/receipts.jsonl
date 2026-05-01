@@ -1,0 +1,2 @@
+{"command": "cargo check -p tokmd --no-default-features", "outcome": "Success, no warnings on ExportBundle anymore"}
+{"command": "cargo test -p tokmd --no-default-features", "outcome": "Success"}

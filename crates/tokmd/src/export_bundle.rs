@@ -6,6 +6,7 @@ use tokmd_model as model;
 use tokmd_scan as scan;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub(crate) struct ExportMetaLite {
     pub(crate) schema_version: Option<u32>,
     pub(crate) generated_at_ms: Option<u128>,
@@ -28,6 +29,7 @@ impl Default for ExportMetaLite {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub(crate) struct ExportBundle {
     pub(crate) export: tokmd_types::ExportData,
     pub(crate) meta: ExportMetaLite,
@@ -38,6 +40,7 @@ pub(crate) struct ExportBundle {
     pub(crate) root: PathBuf,
 }
 
+#[allow(dead_code)]
 pub(crate) fn load_export_from_inputs(
     inputs: &[PathBuf],
     global: &cli::GlobalArgs,
@@ -80,6 +83,7 @@ pub(crate) fn load_export_from_inputs(
     scan_export_from_paths(inputs, global)
 }
 
+#[allow(dead_code)]
 fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result<ExportBundle> {
     let scan_opts = tokmd_settings::ScanOptions::from(global);
     let languages = scan::scan(paths, &scan_opts)?;
@@ -102,6 +106,7 @@ fn scan_export_from_paths(paths: &[PathBuf], global: &cli::GlobalArgs) -> Result
     })
 }
 
+#[allow(dead_code)]
 fn load_export_from_receipt(
     path: &PathBuf,
     run_dir: Option<PathBuf>,
@@ -123,6 +128,7 @@ fn load_export_from_receipt(
     Ok(bundle)
 }
 
+#[allow(dead_code)]
 fn load_export_from_file(
     path: &PathBuf,
     run_dir: Option<PathBuf>,
@@ -178,6 +184,7 @@ fn load_export_from_file(
     })
 }
 
+#[allow(dead_code)]
 fn load_export_jsonl_content(content: &str) -> Result<(tokmd_types::ExportData, ExportMetaLite)> {
     let mut rows = Vec::new();
     let mut meta = ExportMetaLite::default();
@@ -220,6 +227,7 @@ fn load_export_jsonl_content(content: &str) -> Result<(tokmd_types::ExportData, 
     ))
 }
 
+#[allow(dead_code)]
 fn load_export_json_content(content: &str) -> Result<(tokmd_types::ExportData, ExportMetaLite)> {
     // Try ExportReceipt wrapper first
     if let Ok(receipt) = serde_json::from_str::<tokmd_types::ExportReceipt>(content) {
