@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch": "false",
+  "learning": "true",
+  "friction_items": ["bolt_core_pipeline_perf_walls"]
+}

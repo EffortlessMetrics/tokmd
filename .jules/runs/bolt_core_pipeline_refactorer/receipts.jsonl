@@ -1,0 +1,2 @@
+{"cmd": "cargo bench -p tokmd-model", "time": "60.00s", "outcome": "Evaluated existing logic performance."}
+{"cmd": "cargo test -p tokmd-model", "time": "10.00s", "outcome": "pass"}
