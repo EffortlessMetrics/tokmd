@@ -1,43 +1,45 @@
 ## 💡 Summary
-Hardened `tokmd-format` path redaction to prevent arbitrary sensitive data leakage through long or non-standard file extensions.
+Hardened the `redact_path` function to prevent long arbitrary strings from being leaked as file extensions. The maximum length of an unredacted extension has been reduced from 8 to 5 characters.
 
 ## 🎯 Why
-The `redact_path` function generates a hash for a path to hide its directory structure but explicitly preserves the file extension. However, `Path::extension()` returns an arbitrary string following the last dot. A file named `config.my_secret_token_is_12345` would result in the extension being `my_secret_token_is_12345`. `redact_path` blindly appended this extension to the output hash, resulting in a direct leakage of the token in plaintext.
+During path redaction, the system preserved file extensions to allow identifying the type of redacted files. However, an overly generous length limit (up to 8 characters) allowed sensitive or identifying strings located after a dot (e.g., `file.secret12`) to bypass redaction and leak into the final output. Tightening the bound ensures that only typical short extensions are preserved while arbitrary data is securely hashed.
 
 ## 🔎 Evidence
-- File path: `crates/tokmd-format/src/redact/mod.rs`
-- Observed behavior: `redact_path` preserves `ext` without validation, leaking arbitrary strings at the end of filenames.
-- Verification test: A unit test (`test_redact_path_leak`) was written to verify the vulnerability and its remediation.
+- File path: `crates/tokmd-format/src/redact/mod.rs`, `crates/tokmd-format/tests/test_redaction_leak.rs`
+- Finding: `redact_path("file.secret12")` previously leaked the `secret12` portion. Now it successfully hashes the full string into a safe representation like `hash_of_path`.
+- Receipt: `cargo test -p tokmd-format` proves the vulnerability is closed.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Prevent arbitrary data leakage by restricting the preserved file extension to alphanumeric ASCII characters and a maximum length of 8. If an extension violates this condition, it is discarded, and only the hash is returned.
-- This fits the `core-pipeline` shard and `security-boundary` gate profile perfectly by closing an active leakage vector on a trust-bearing surface.
-- Trade-offs: Minor reduction in utility if someone uses extremely long valid extensions, but vastly improves safety.
+- What it is: Reduce `ext.len() <= 8` to `ext.len() <= 5` in `redact_path`.
+- Why it fits this repo and shard: It directly addresses the leakage in the `core-pipeline` formatting component.
+- Trade-offs: Structure is minimally affected. Velocity is high. Governance limits rare 6-8 char extensions (e.g., `.action`) to a fully redacted state, which is an acceptable safety tradeoff.
 
 ### Option B
-- Hash the entire path and append a generic `.redacted` extension.
-- This loses the ability to recognize common file types (like `.rs` or `.json`) in redacted outputs, removing utility.
+- What it is: Use a strict allowlist of known file extensions.
+- When to choose it instead: When zero tolerance for unknown extensions is required.
+- Trade-offs: High maintenance overhead for adding new extensions. Legitimate unknown extensions would be entirely obfuscated, reducing diagnostic utility.
 
 ## ✅ Decision
-I have chosen Option A: Hardening `redact_path` to sanitize the file extension by restricting it to short, alphanumeric characters. It successfully prevents data leaks through arbitrary extensions while maintaining the usefulness of the feature.
+Proceeded with Option A to effectively seal the boundary with a low-risk heuristic that aligns with our Sentinel objective without overcomplicating maintenance.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/src/redact/mod.rs`: Added validation to `ext` in `redact_path` to ensure it is alphanumeric and <= 8 characters long, defaulting to an empty extension otherwise.
-- `crates/tokmd-format/tests/test_redaction_leak.rs`: Added a test verifying that redaction does not leak arbitrary extension data.
+- `crates/tokmd-format/src/redact/mod.rs`
+- `crates/tokmd-format/tests/test_redaction_leak.rs`
 
 ## 🧪 Verification receipts
 ```text
-{"command": "cargo test -p tokmd-format test_redact_path_leak", "result": "ok"}
-{"command": "cargo test -p tokmd-format", "result": "ok"}
+{"cmd": "cargo test -p tokmd-format", "success": true}
+{"cmd": "cargo fmt -p tokmd-format -- --check", "success": true}
+{"cmd": "cargo clippy -p tokmd-format -- -D warnings", "success": true}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Hardening fix
-- Blast radius: Output generation (`tokmd-format`)
-- Risk class: Low - Only modifies the logic used in the explicit `RedactMode::Paths` and `RedactMode::All` features.
-- Rollback: Revert the PR.
-- Gates run: targeted `cargo test -p tokmd-format`
+- Change shape: Hardening
+- Blast radius: API (redaction mode outputs)
+- Risk class: Low - affects redacted views, tightening output security.
+- Rollback: Revert the PR and unblock the test case.
+- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_redaction/envelope.json`
