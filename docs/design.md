@@ -28,6 +28,9 @@ Run the scan once. Derive all views (lang, module, export, analysis) from that s
 - Deep analysis is opt-in via presets
 - Feature flags control compilation footprint
 
+### 7. No Green By Omission
+The `capabilities` field explicitly reports which checks were available, unavailable, or skipped. This allows directors to distinguish between "all checks passed" and "no checks ran," preventing false positives in CI pipelines.
+
 ## System Context
 
 ### Standalone Mode
