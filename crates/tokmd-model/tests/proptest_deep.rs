@@ -103,8 +103,8 @@ proptest! {
     ) {
         let mut sorted1 = rows.clone();
         let mut sorted2 = rows.clone();
-        sorted1.sort_by(|a, b| b.code.cmp(&a.code).then(a.lang.cmp(&b.lang)));
-        sorted2.sort_by(|a, b| b.code.cmp(&a.code).then(a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut sorted1);
+        tokmd_model::sort_lang_rows(&mut sorted2);
         prop_assert_eq!(sorted1, sorted2, "Sorting should be deterministic");
     }
 
@@ -113,7 +113,7 @@ proptest! {
         rows in prop::collection::vec(arb_lang_row(), 2..=10),
     ) {
         let mut sorted = rows;
-        sorted.sort_by(|a, b| b.code.cmp(&a.code).then(a.lang.cmp(&b.lang)));
+        tokmd_model::sort_lang_rows(&mut sorted);
         for w in sorted.windows(2) {
             prop_assert!(
                 w[0].code >= w[1].code,
@@ -137,8 +137,8 @@ proptest! {
     ) {
         let mut sorted1 = rows.clone();
         let mut sorted2 = rows.clone();
-        sorted1.sort_by(|a, b| b.code.cmp(&a.code).then(a.module.cmp(&b.module)));
-        sorted2.sort_by(|a, b| b.code.cmp(&a.code).then(a.module.cmp(&b.module)));
+        tokmd_model::sort_module_rows(&mut sorted1);
+        tokmd_model::sort_module_rows(&mut sorted2);
         prop_assert_eq!(sorted1, sorted2, "Module sorting should be deterministic");
     }
 }

@@ -1,0 +1,28 @@
+{
+  "outcome_type": "proof_patch",
+  "reviewer_title": "gatekeeper: extract standalone deterministic sorting functions for core row models ✅",
+  "summary": "Extracted duplicated inline sorting logic into public functions `sort_lang_rows`, `sort_module_rows`, and `sort_file_rows` in `tokmd-model`. Refactored all property and integration tests to use these shared invariants.",
+  "target_paths": [
+    "crates/tokmd-model/src/lib.rs",
+    "crates/tokmd-model/tests/deep_model_w49.rs",
+    "crates/tokmd-model/tests/proptest_deep.rs",
+    "crates/tokmd-model/tests/deep.rs",
+    "crates/tokmd-model/tests/determinism_w66.rs",
+    "crates/tokmd-model/tests/proptest_w72.rs",
+    "crates/tokmd-model/tests/proptest_w42.rs",
+    "crates/tokmd-model/tests/properties.rs",
+    "crates/tokmd-model/tests/mutation_coverage_w50.rs"
+  ],
+  "proof_summary": "Replaced inline closures across 8 test files. `cargo test -p tokmd-model` confirms sorting logic is identical and determinism is preserved.",
+  "gates_run": [
+    "cargo test -p tokmd-model",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan",
+    "cargo clippy -- -D warnings",
+    "cargo fmt -- --check"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout origin/main -- crates/tokmd-model",
+  "follow_ups": []
+}
