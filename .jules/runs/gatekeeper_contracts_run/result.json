@@ -1,0 +1,15 @@
+{
+  "run_id": "gatekeeper_contracts_run",
+  "status": "success",
+  "outcome": "PR-ready patch",
+  "friction_items_created": 0,
+  "telemetry": {
+    "gates_run": [
+      "cargo test -p tokmd-envelope",
+      "cargo test -p tokmd-analysis-types",
+      "cargo xtask docs --check"
+    ],
+    "blast_radius": "docs/schema",
+    "risk_class": "low"
+  }
+}
