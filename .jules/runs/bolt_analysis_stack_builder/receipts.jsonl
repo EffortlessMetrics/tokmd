@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-analysis --test derived", "duration_ms": 2546, "outcome": "success"}
+{"command": "cargo check -p tokmd-analysis", "duration_ms": 620, "outcome": "success"}

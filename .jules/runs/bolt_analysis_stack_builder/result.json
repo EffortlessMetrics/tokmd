@@ -1,0 +1,7 @@
+{
+  "status": "learning",
+  "files_changed": [],
+  "gates_run": [
+    "cargo test -p tokmd-analysis"
+  ]
+}
