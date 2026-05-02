@@ -224,7 +224,18 @@ fn unknown_subcommand_fails() {
         .arg("nonexistent-subcommand")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found: nonexistent-subcommand"))
+        .stderr(predicate::str::contains("If `nonexistent-subcommand` was intended as a subcommand, it is not recognized"));
+}
+
+#[test]
+fn typo_subcommand_suggests_correction() {
+    tokmd_cmd()
+        .arg("anolyze")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Path not found: anolyze"))
+        .stderr(predicate::str::contains("Did you mean the subcommand `analyze`?"));
 }
 
 /// Verify that every expected subcommand responds to --help without error.

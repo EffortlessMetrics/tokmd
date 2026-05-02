@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "receipts_count": 4,
+  "changes": [
+    "crates/tokmd/tests/cli_error_paths_w51.rs"
+  ],
+  "gates_run": [
+    "cargo test -p tokmd --test cli_error_paths_w51"
+  ]
+}
