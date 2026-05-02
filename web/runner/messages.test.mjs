@@ -192,6 +192,18 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "a.rs", text: "" }],
+                scan: { inputs: [{ path: "b.rs", text: "" }] }
+            }
+        }),
         false
     );
     assert.equal(

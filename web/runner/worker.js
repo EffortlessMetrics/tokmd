@@ -38,36 +38,44 @@ if (
 function createStubRunner() {
     const supportedModes = [...SUPPORTED_MODES];
 
+    function resolveInputs(args) {
+        return args.inputs || args.scan?.inputs || [];
+    }
+
     return {
         runLang(args) {
+            const inputs = resolveInputs(args);
             return {
                 mode: "lang",
                 scan: {
-                    paths: args.inputs.map((input) => input.path),
+                    paths: inputs.map((input) => input.path),
                 },
                 total: {
-                    files: args.inputs.length,
+                    files: inputs.length,
                 },
             };
         },
         runModule(args) {
+            const inputs = resolveInputs(args);
             return {
                 mode: "module",
-                rows: args.inputs.map((input) => ({ module: input.path })),
+                rows: inputs.map((input) => ({ module: input.path })),
             };
         },
         runExport(args) {
+            const inputs = resolveInputs(args);
             return {
                 mode: "export",
-                rows: args.inputs.map((input) => ({ path: input.path })),
+                rows: inputs.map((input) => ({ path: input.path })),
             };
         },
         runAnalyze(args) {
+            const inputs = resolveInputs(args);
             return {
                 mode: "analysis",
                 preset: normalizeAnalyzePreset(args),
                 source: {
-                    inputs: args.inputs.map((input) => input.path),
+                    inputs: inputs.map((input) => input.path),
                 },
             };
         },

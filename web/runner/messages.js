@@ -99,6 +99,9 @@ export function isInMemoryInput(value) {
 }
 
 function hasOnlyKeys(value, allowedKeys) {
+    if (value === undefined || value === null) {
+        return true;
+    }
     return Object.keys(value).every((key) => allowedKeys.includes(key));
 }
 
@@ -117,13 +120,23 @@ function isRunArgsForMode(mode, args) {
         return false;
     }
 
-    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
+    const rootInputs = args.inputs;
+    const scanInputs = args.scan?.inputs;
+
+    if (rootInputs !== undefined && scanInputs !== undefined) {
+        return false;
+    }
+
+    const inputs = rootInputs ?? scanInputs;
+
+    if (!Array.isArray(inputs) || !inputs.every(isInMemoryInput)) {
         return false;
     }
 
     if (mode === "analyze") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
+            hasOnlyKeys(args, ["inputs", "scan", "preset", "analyze"]) &&
+                hasOnlyKeys(args.scan, ["inputs"]) &&
                 (args.preset === undefined || typeof args.preset === "string") &&
                 (args.analyze === undefined || isAnalyzeOptions(args.analyze))
         );
@@ -131,12 +144,13 @@ function isRunArgsForMode(mode, args) {
 
     if (mode === "lang") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "files"]) &&
+            hasOnlyKeys(args, ["inputs", "scan", "files"]) &&
+                hasOnlyKeys(args.scan, ["inputs"]) &&
                 (args.files === undefined || typeof args.files === "boolean")
         );
     }
 
-    return hasOnlyKeys(args, ["inputs"]);
+    return hasOnlyKeys(args, ["inputs", "scan"]) && hasOnlyKeys(args.scan, ["inputs"]);
 }
 
 export function isRunMessage(value) {

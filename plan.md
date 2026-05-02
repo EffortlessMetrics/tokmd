@@ -1,15 +1,15 @@
-1. **Remove unwraps from `xtask/src/tasks/publish.rs`**:
-   - In `xtask/src/tasks/publish.rs`, there's a `.unwrap()` around line 254: `let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();`. I will change it to return an error properly using `context` or `ok_or_else`.
-   - In `xtask/src/tasks/publish.rs` tests (around line 1180), change `.unwrap()` to `expect("...")`.
+1.  **Update JS/TS runtime to accept `scan: { inputs }`**
+    - The `isRunArgsForMode` logic in `web/runner/messages.js` does not accept inputs passed under the `scan` property, returning `false` for valid `tokmd-core` inputs.
+    - Modify `web/runner/messages.js` to look for inputs at both `args.inputs` and `args.scan.inputs`.
+    - Adjust test suite in `web/runner/messages.test.mjs` to check for `scan.inputs` being valid.
 
-2. **Remove unwraps from `xtask/src/tasks/bump.rs`**:
-   - Change `.unwrap()` in tests in `xtask/src/tasks/bump.rs` to `.expect("...")`.
+2.  **Update worker runner payload extraction**
+    - The browser runner mock/wasm handler in `web/runner/worker.js` extracts `args.inputs.map` directly, throwing an error if `args.inputs` is undefined when inputs are instead passed under `args.scan.inputs`.
+    - Update `web/runner/worker.js` to first extract `args.inputs || args.scan?.inputs` and then iterate over that array.
+    - Update `web/runner/worker.test.mjs` with matching fixes.
 
-3. **Verify tests and format**:
-   - Run `cargo test -p xtask`
-   - Run `cargo fmt`
-   - Run `cargo clippy -p xtask`
+3.  **Pre-commit steps**
+    - Ensure proper testing, verifications, reviews and reflections are done.
 
-4. **Complete Pre-commit Steps**: Ensure proper testing, verification, review, and reflection are done using `pre_commit_instructions`.
-
-5. **Commit and Submit**: Update envelope and ledger, then submit PR.
+4.  **Submit changes**
+    - Submit the change as a coherently focused story.
