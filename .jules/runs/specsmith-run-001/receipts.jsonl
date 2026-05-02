@@ -4,3 +4,4 @@
 {"cmd": "write modify_test.py and execute to update tests", "exit_code": 0}
 {"cmd": "cargo test -p tokmd --test cli_error_paths_w51", "exit_code": 0}
 {"cmd": "write result.json and pr_body.md artifacts", "exit_code": 0}
+{"cmd": "cargo fmt", "exit_code": 0}
