@@ -531,7 +531,7 @@ export function selectGitHubTreeEntries(entries, options = {}) {
             const leftPath = normalizePath(left.path);
             const rightPath = normalizePath(right.path);
             const priority = pathPriority(leftPath) - pathPriority(rightPath);
-            return priority === 0 ? leftPath.localeCompare(rightPath) : priority;
+            return priority === 0 ? (leftPath < rightPath ? -1 : leftPath > rightPath ? 1 : 0) : priority;
         });
 
     for (const entry of orderedEntries) {
