@@ -2,7 +2,7 @@ use crate::cli::BoundariesCheckArgs;
 use anyhow::{Result, bail};
 
 /// Dependency names that analysis microcrates must never depend on.
-const FORBIDDEN: &[&str] = &["tokmd-config"];
+const FORBIDDEN: &[&str] = &["tokmd-settings"];
 
 /// Cargo.toml tables that declare dependencies.
 const DEP_TABLES: &[&str] = &["dependencies", "dev-dependencies", "build-dependencies"];

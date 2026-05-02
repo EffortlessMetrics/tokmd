@@ -87,10 +87,10 @@ fn boundaries_forbidden_list_is_not_empty() {
         src.contains("const FORBIDDEN: &[&str] = &["),
         "FORBIDDEN list should be declared as a const"
     );
-    // Must contain at least tokmd-config
+    // Must contain at least tokmd-settings
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN must include tokmd-config"
+        src.contains("\"tokmd-settings\""),
+        "FORBIDDEN must include tokmd-settings"
     );
 }
 

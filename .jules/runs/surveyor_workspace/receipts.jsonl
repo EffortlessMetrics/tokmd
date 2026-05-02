@@ -1,0 +1,4 @@
+{"ts_utc": "2024-05-02T13:00:00Z", "phase": "plan", "cmd": "rm -rf crates/tokmd-config", "status": 0, "summary": "Deleted dead microcrate"}
+{"ts_utc": "2024-05-02T13:05:00Z", "phase": "plan", "cmd": "sed -i 's/tokmd-config/tokmd-settings/g' xtask/...", "status": 0, "summary": "Updated boundary checks"}
+{"ts_utc": "2024-05-02T13:10:00Z", "phase": "plan", "cmd": "cp -r crates/tokmd-config/tests/* crates/tokmd-settings/tests/tokmd_config_migrated/", "status": 0, "summary": "Migrated integration tests"}
+{"ts_utc": "2024-05-02T13:15:00Z", "phase": "test", "cmd": "cargo test --workspace", "status": 0, "summary": "Verified workspace compilation and tests"}

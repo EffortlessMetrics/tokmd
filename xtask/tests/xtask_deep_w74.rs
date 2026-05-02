@@ -72,11 +72,11 @@ fn read_source(relative: &str) -> String {
 #[test]
 fn boundaries_check_forbidden_list_covers_higher_tiers() {
     // The FORBIDDEN list must prevent analysis crates (tier 3) from depending
-    // on tier-4 crates. Verify tokmd-config is the minimum set.
+    // on tier-4 crates. Verify tokmd-settings is the minimum set.
     let src = read_source("xtask/src/tasks/boundaries_check.rs");
     assert!(
-        src.contains("tokmd-config"),
-        "FORBIDDEN must block tier-4 tokmd-config"
+        src.contains("tokmd-settings"),
+        "FORBIDDEN must block tier-4 tokmd-settings"
     );
 }
 
@@ -577,10 +577,10 @@ fn publish_order_config_before_core() {
         .map(|(i, n)| (n.as_str(), i))
         .collect();
 
-    if let (Some(&cfg_p), Some(&core_p)) = (pos.get("tokmd-config"), pos.get("tokmd-core")) {
+    if let (Some(&cfg_p), Some(&core_p)) = (pos.get("tokmd-settings"), pos.get("tokmd-core")) {
         assert!(
             cfg_p < core_p,
-            "tokmd-config (tier 4) must come before tokmd-core (tier 4 facade)"
+            "tokmd-settings (tier 4) must come before tokmd-core (tier 4 facade)"
         );
     }
 }

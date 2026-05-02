@@ -1,0 +1,21 @@
+{
+  "outcome_type": "patch",
+  "reviewer_title": "surveyor: remove dead tokmd-config microcrate and unused fuzz deps 🧭",
+  "summary": "Removed the `tokmd-config` microcrate completely, as it was just a dead facade. Migrated its extensive test suite into `tokmd-settings`. Updated `xtask` boundary rules to target `tokmd-settings` instead. Cleaned up unused dependencies in `tokmd-fuzz`.",
+  "target_paths": [
+    "crates/tokmd-config",
+    "crates/tokmd-settings/tests",
+    "xtask/src/tasks/boundaries_check.rs",
+    "xtask/tests",
+    "fuzz/Cargo.toml"
+  ],
+  "proof_summary": "Extensive test migrations pass fully under `cargo test -p tokmd-settings`. `cargo xtask boundaries-check` passes. `cargo machete` reports zero unused dependencies.",
+  "gates_run": [
+    "cargo xtask boundaries-check",
+    "cargo test --workspace"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git revert <commit-hash>",
+  "follow_ups": []
+}

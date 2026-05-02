@@ -261,8 +261,8 @@ fn boundaries_analysis_crates_no_config_dep() {
         for dep_table in &["dependencies", "dev-dependencies", "build-dependencies"] {
             if let Some(toml::Value::Table(deps)) = table.get(*dep_table) {
                 assert!(
-                    !deps.contains_key("tokmd-config"),
-                    "{name} must not depend on tokmd-config in [{dep_table}]"
+                    !deps.contains_key("tokmd-settings"),
+                    "{name} must not depend on tokmd-settings in [{dep_table}]"
                 );
             }
         }
@@ -282,8 +282,8 @@ fn boundaries_forbidden_list_in_source() {
     )
     .unwrap();
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN list must include tokmd-config"
+        src.contains("\"tokmd-settings\""),
+        "FORBIDDEN list must include tokmd-settings"
     );
 }
 

@@ -64,8 +64,8 @@ fn boundaries_analysis_crates_do_not_depend_on_tokmd_config() {
         for dep_table in &["dependencies", "dev-dependencies", "build-dependencies"] {
             if let Some(toml::Value::Table(deps)) = table.get(*dep_table) {
                 assert!(
-                    !deps.contains_key("tokmd-config"),
-                    "{name} has forbidden dep tokmd-config in [{dep_table}]"
+                    !deps.contains_key("tokmd-settings"),
+                    "{name} has forbidden dep tokmd-settings in [{dep_table}]"
                 );
             }
         }
@@ -128,7 +128,7 @@ fn boundaries_analysis_crates_are_workspace_members() {
 
 #[test]
 fn boundaries_forbidden_list_includes_config() {
-    // The boundaries checker's FORBIDDEN list must include tokmd-config.
+    // The boundaries checker's FORBIDDEN list must include tokmd-settings.
     let src = std::fs::read_to_string(
         workspace_root()
             .join("xtask")
@@ -138,8 +138,8 @@ fn boundaries_forbidden_list_includes_config() {
     )
     .unwrap();
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN list should include tokmd-config"
+        src.contains("\"tokmd-settings\""),
+        "FORBIDDEN list should include tokmd-settings"
     );
 }
 

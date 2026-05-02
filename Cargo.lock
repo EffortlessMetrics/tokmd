@@ -2664,8 +2664,6 @@ dependencies = [
 name = "tokmd-fuzz"
 version = "0.0.0"
 dependencies = [
- "anyhow",
- "blake3",
  "libfuzzer-sys",
  "serde_json",
  "tempfile",
