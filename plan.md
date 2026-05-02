@@ -1,15 +1,5 @@
-1. **Remove unwraps from `xtask/src/tasks/publish.rs`**:
-   - In `xtask/src/tasks/publish.rs`, there's a `.unwrap()` around line 254: `let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();`. I will change it to return an error properly using `context` or `ok_or_else`.
-   - In `xtask/src/tasks/publish.rs` tests (around line 1180), change `.unwrap()` to `expect("...")`.
-
-2. **Remove unwraps from `xtask/src/tasks/bump.rs`**:
-   - Change `.unwrap()` in tests in `xtask/src/tasks/bump.rs` to `.expect("...")`.
-
-3. **Verify tests and format**:
-   - Run `cargo test -p xtask`
-   - Run `cargo fmt`
-   - Run `cargo clippy -p xtask`
-
-4. **Complete Pre-commit Steps**: Ensure proper testing, verification, review, and reflection are done using `pre_commit_instructions`.
-
-5. **Commit and Submit**: Update envelope and ledger, then submit PR.
+1. Use a Python script via `run_in_bash_session` to modify `isRunArgsForMode` in `web/runner/messages.js` to correctly handle `args.scan.inputs`. Specifically, read inputs from either `args.inputs` or `args.scan.inputs`, ensuring they are not both present. Ensure it works and verify via `read_file`.
+2. Use a Python script via `run_in_bash_session` to update input handling in `web/runner/worker.js` by checking for inputs in `args.scan?.inputs` when `args.inputs` is absent in the `runLang`, `runModule`, `runExport`, and `runAnalyze` methods of `createStubRunner`. Verify via `read_file`.
+3. Use a Python script via `run_in_bash_session` to update the tests in `web/runner/messages.test.mjs` to add cases for validating inputs provided at `args.scan.inputs` without `args.inputs`, as well as validating that providing both is rejected. Verify via `read_file`.
+4. Use `run_in_bash_session` to execute `npm --prefix web/runner test || true` to run tests and make sure they pass.
+5. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
