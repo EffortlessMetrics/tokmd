@@ -1,0 +1,1 @@
+{"id": "run-steward-release", "prompt_id": "steward_release", "persona": "Steward", "style": "Stabilizer", "primary_shard": "tooling-governance", "gate_profile": "governance-release", "allowed_outcomes": ["PR-ready patch", "learning PR"]}

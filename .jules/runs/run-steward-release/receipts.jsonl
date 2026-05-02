@@ -1,0 +1,4 @@
+cargo xtask version-consistency
+cargo xtask docs --check
+cargo xtask publish --plan --verbose
+cargo deny --all-features check
