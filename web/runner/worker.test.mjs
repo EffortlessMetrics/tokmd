@@ -65,26 +65,26 @@ function createMockWasmBundle(options = {}) {
 
     if (includeRunLang) {
         moduleSourceLines.push(
-            "export function runLang(args) { return { mode: 'lang', scan: { paths: args.inputs.map((input) => input.path) }, total: { files: args.inputs.length } }; }"
+            "export function runLang(args) { return { mode: 'lang', scan: { paths: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => input.path) }, total: { files: (args.inputs || (args.scan && args.scan.inputs) || []).length } }; }"
         );
     }
 
     if (includeRunModule) {
         moduleSourceLines.push(
-            "export function runModule(args) { return { mode: 'module', rows: args.inputs.map((input) => ({ module: input.path, path: input.path })) }; }"
+            "export function runModule(args) { return { mode: 'module', rows: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => ({ module: input.path, path: input.path })) }; }"
         );
     }
 
     if (includeRunExport) {
         moduleSourceLines.push(
-            "export function runExport(args) { return { mode: 'export', rows: args.inputs.map((input) => ({ path: input.path })) }; }"
+            "export function runExport(args) { return { mode: 'export', rows: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => ({ path: input.path })) }; }"
         );
     }
 
     if (includeRunAnalyze) {
         moduleSourceLines.push(
             `export function analysisSchemaVersion() { return ${analysisSchemaVersion}; }`,
-            "export function runAnalyze(args) { return { mode: 'analysis', preset: args.preset ?? 'receipt', source: { inputs: args.inputs.map((input) => input.path) } }; }"
+            "export function runAnalyze(args) { return { mode: 'analysis', preset: args.preset ?? 'receipt', source: { inputs: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => input.path) } }; }"
         );
     }
 

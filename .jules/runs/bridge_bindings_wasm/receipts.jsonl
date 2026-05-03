@@ -1,0 +1,2 @@
+{"command": "cd web/runner && npm test", "status": "success"}
+{"command": "cargo test -p tokmd-wasm", "status": "success"}
