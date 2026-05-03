@@ -974,3 +974,42 @@ fn zero_code_export_valid() {
     assert_eq!(d.totals.code, 0);
     assert_eq!(d.totals.files, 1);
 }
+
+/// Given a request for Health preset
+/// When content analysis is enabled
+/// Then the receipt contains TODO density metrics
+#[test]
+fn bdd_health_preset_includes_todo_metrics() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().to_path_buf();
+
+    // Create a real file with a TODO so `build_todo_report` finds it
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(root.join("src/main.rs"), "// TODO: fix this\n// FIXME: something\nfn main() {}").unwrap();
+
+    let export = ExportData {
+        rows: vec![
+            file_row("src/main.rs", "src", "Rust", 20),
+        ],
+        module_roots: vec!["src".to_string()],
+        module_depth: 2,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut req = make_req(PresetKind::Health);
+    req.git = Some(false);
+    let mut ctx = make_ctx(export);
+    ctx.root = root; // Override root so it scans the real files
+    let receipt = analyze(ctx, req).expect("analyze should not fail");
+
+    // Then
+    assert_eq!(receipt.status, expected_receipt_status());
+    #[cfg(feature = "content")]
+    {
+        let d = receipt.derived.as_ref().unwrap();
+        assert!(d.todo.is_some(), "health preset should populate TODO metrics when content feature is enabled");
+        if let Some(todo) = &d.todo {
+            assert!(todo.total_count >= 2, "Should find the TODO and FIXME tags");
+        }
+    }
+}
