@@ -426,13 +426,57 @@ fn recipe_generate_baseline() {
 
 #[test]
 fn recipe_handoff_bundle() {
-    // "tokmd handoff --out-dir .handoff"
+    // "tokmd handoff"
     let tmp = tempfile::tempdir().unwrap();
     let handoff_dir = tmp.path().join(".handoff");
     tokmd()
+        .current_dir(tmp.path())
+        .arg("handoff")
+        .assert()
+        .success();
+    assert!(handoff_dir.exists());
+    assert!(handoff_dir.join("manifest.json").exists());
+
+    // "tokmd handoff --out-dir ./artifacts/handoff"
+    let out_dir = tmp.path().join("artifacts").join("handoff");
+    tokmd()
+        .current_dir(tmp.path())
         .arg("handoff")
         .arg("--out-dir")
-        .arg(&handoff_dir)
+        .arg("./artifacts/handoff")
+        .assert()
+        .success();
+    assert!(out_dir.exists());
+    assert!(out_dir.join("manifest.json").exists());
+}
+
+#[test]
+fn recipe_handoff_budget_spread() {
+    // "tokmd handoff --budget 128k --strategy spread"
+    let tmp = tempfile::tempdir().unwrap();
+    let handoff_dir = tmp.path().join(".handoff");
+    tokmd()
+        .current_dir(tmp.path())
+        .arg("handoff")
+        .arg("--budget")
+        .arg("128k")
+        .arg("--strategy")
+        .arg("spread")
+        .assert()
+        .success();
+    assert!(handoff_dir.exists());
+    assert!(handoff_dir.join("manifest.json").exists());
+}
+
+#[test]
+fn recipe_handoff_no_git() {
+    // "tokmd handoff --no-git"
+    let tmp = tempfile::tempdir().unwrap();
+    let handoff_dir = tmp.path().join(".handoff");
+    tokmd()
+        .current_dir(tmp.path())
+        .arg("handoff")
+        .arg("--no-git")
         .assert()
         .success();
     assert!(handoff_dir.exists());

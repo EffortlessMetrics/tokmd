@@ -1071,8 +1071,8 @@ tokmd handoff
 # Custom output directory
 tokmd handoff --out-dir ./artifacts/handoff
 
-# Smaller budget and spread strategy
-tokmd handoff --budget 64k --strategy spread
+# Control token budget and strategy
+tokmd handoff --budget 128k --strategy spread
 
 # Disable git enrichment
 tokmd handoff --no-git
