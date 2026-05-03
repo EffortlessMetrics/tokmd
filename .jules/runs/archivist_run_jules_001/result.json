@@ -1,0 +1,19 @@
+{
+  "outcome": "patch",
+  "title": "archivist: consolidate recurring fuzz friction items and clean up stale ones 🗃️",
+  "summary": "Consolidated three duplicate `cargo fuzz` environment blocker issues into a single clean friction item and archived an outdated mutant schema friction item.",
+  "target_paths": [
+    ".jules/friction/open/fuzz_toolchain_blocker.md",
+    ".jules/friction/done/cargo_mutants_schema_drift.md"
+  ],
+  "proof_summary": "Cleaned up file tracking in `.jules/friction` and validated that Jules docs/scaffolding constraints remain clean.",
+  "gates_run": [
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "cargo xtask docs --check"
+  ],
+  "friction_items_created": ["FRIC-fuzz-toolchain-blocker"],
+  "persona_notes_created": [],
+  "rollback": "git restore .jules/friction",
+  "follow_ups": []
+}
