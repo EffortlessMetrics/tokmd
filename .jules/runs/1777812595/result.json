@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "patch_files": ["crates/tokmd-model/src/lib.rs"],
+  "gate_profile_used": "mutation"
+}

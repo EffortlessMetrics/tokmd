@@ -1114,6 +1114,24 @@ mod tests {
     }
 
     #[test]
+    fn test_avg() {
+        // Handle divide by zero
+        assert_eq!(avg(100, 0), 0);
+
+        // Exact integer division
+        assert_eq!(avg(10, 2), 5);
+        assert_eq!(avg(9, 3), 3);
+
+        // Round down (fraction < 0.5)
+        // 10 / 3 = 3.33 -> 3
+        assert_eq!(avg(10, 3), 3);
+
+        // Round up (fraction >= 0.5)
+        // 11 / 3 = 3.66 -> 4
+        assert_eq!(avg(11, 3), 4);
+    }
+
+    #[test]
     fn test_env_interpreter_token() {
         // Simple case
         assert_eq!(
