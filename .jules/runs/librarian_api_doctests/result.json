@@ -1,7 +1,17 @@
 {
-  "outcome": "learning PR",
-  "files_changed": [
+  "outcome_type": "proof_patch",
+  "title": "librarian: Add executable doctests for tokmd-core public workflows 📚",
+  "summary": "Added executable doctest blocks to the primary FFI and config workflows in tokmd-core.",
+  "target_paths": [
     "crates/tokmd-core/src/lib.rs"
   ],
-  "reason": "Made analysis_facade doctest executable. Could not safely make cockpit_workflow executable without suppressing errors or creating complex Git mock environments, which was logged as a friction item instead."
+  "gates_run": [
+    "cargo test -p tokmd --test integration",
+    "cargo test --doc -p tokmd-core --all-features",
+    "cargo xtask docs --check"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git reset HEAD~1 --hard",
+  "follow_ups": []
 }
