@@ -985,12 +985,14 @@ fn bdd_health_preset_includes_todo_metrics() {
 
     // Create a real file with a TODO so `build_todo_report` finds it
     std::fs::create_dir_all(root.join("src")).unwrap();
-    std::fs::write(root.join("src/main.rs"), "// TODO: fix this\n// FIXME: something\nfn main() {}").unwrap();
+    std::fs::write(
+        root.join("src/main.rs"),
+        "// TODO: fix this\n// FIXME: something\nfn main() {}",
+    )
+    .unwrap();
 
     let export = ExportData {
-        rows: vec![
-            file_row("src/main.rs", "src", "Rust", 20),
-        ],
+        rows: vec![file_row("src/main.rs", "src", "Rust", 20)],
         module_roots: vec!["src".to_string()],
         module_depth: 2,
         children: ChildIncludeMode::Separate,
@@ -1007,9 +1009,12 @@ fn bdd_health_preset_includes_todo_metrics() {
     #[cfg(feature = "content")]
     {
         let d = receipt.derived.as_ref().unwrap();
-        assert!(d.todo.is_some(), "health preset should populate TODO metrics when content feature is enabled");
+        assert!(
+            d.todo.is_some(),
+            "health preset should populate TODO metrics when content feature is enabled"
+        );
         if let Some(todo) = &d.todo {
-            assert!(todo.total_count >= 2, "Should find the TODO and FIXME tags");
+            assert!(todo.total >= 2, "Should find the TODO and FIXME tags");
         }
     }
 }
