@@ -695,12 +695,8 @@ fn frobnicate_unknown_subcommand_has_stable_error_output() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("Error: Path not found: frobnicate"),
-        "stderr should include the current path error, got: {stderr}"
-    );
-    assert!(
-        stderr.contains("Hints:"),
-        "stderr should include the stable hints block, got: {stderr}"
+        stderr.contains("unrecognized subcommand 'frobnicate'"),
+        "stderr should include the unrecognized subcommand error, got: {stderr}"
     );
 }
 

@@ -1,0 +1,1 @@
+{"timestamp":"2024-05-24T12:00:00Z","command":"cargo run -- anolyze","exit_code":2,"stdout":"","stderr":"error: unrecognized subcommand 'anolyze'\n\nUsage: tokmd [OPTIONS] [PATH]... [COMMAND]\n\nFor more information, try '--help'."}
