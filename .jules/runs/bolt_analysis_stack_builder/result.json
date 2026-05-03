@@ -1,0 +1,4 @@
+{
+  "status": "success",
+  "reason": "Successfully replaced format! with zero-allocation custom string-comparer in hot path of compare_integrity_rows."
+}

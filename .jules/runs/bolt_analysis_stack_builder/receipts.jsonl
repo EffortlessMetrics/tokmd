@@ -1,0 +1,4 @@
+{"timestamp": "$(date -Iseconds)", "command": "mkdir -p .jules/runs/bolt_analysis_stack_builder", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "python3 replace.py && cargo test -p tokmd-analysis --test derived", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "python3 replace.py && cargo clippy -- -D warnings", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "cargo fmt && cargo clippy -- -D warnings && cargo test -p tokmd-analysis --all-features", "exit_code": 0}
