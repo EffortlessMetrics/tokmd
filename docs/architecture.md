@@ -252,7 +252,5 @@ Host-backed enrichers remain explicit capability misses in browser mode. Git-his
 
 - Broaden browser analysis only where the preset can stay rootless and capability-honest.
 
-### Non-goals for v1.9.0
-
 - No browser-side git-history churn/hotspot metrics or other heavy host tooling.
 - No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy.

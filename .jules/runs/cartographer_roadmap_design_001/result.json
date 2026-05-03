@@ -1,0 +1,8 @@
+{
+  "outcome": "pr_ready_patch",
+  "files_changed": [
+    "docs/NOW.md",
+    "docs/architecture.md"
+  ],
+  "reasoning": "Fixed factual drift between shipped reality (v1.10.0 release is complete) and the operational truth docs (NOW.md and architecture.md which referenced v1.9.0 as active)."
+}
