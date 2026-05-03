@@ -305,7 +305,10 @@ fn invalid_subcommand_fails_with_help() {
     Command::new(env!("CARGO_BIN_EXE_tokmd"))
         .arg("nonexistent-subcommand")
         .assert()
-        .failure();
+        .failure()
+        .stderr(predicates::str::contains(
+            "If `nonexistent-subcommand` was intended as a subcommand, it is not recognized",
+        ));
 }
 
 #[test]

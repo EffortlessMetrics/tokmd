@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "findings": [
+    "Test suites across the `tokmd/tests` interface used vague `predicate::str::is_empty().not()` assertions when validating unknown or misspelled CLI subcommands.",
+    "This failed to lock in the real behavior provided by `tokmd-config/src/error_hints.rs` (like 'Did you mean the subcommand X?' or 'If Y was intended as a subcommand...').",
+    "Tightened assertions in multiple test files to check for precise error suggestion output."
+  ]
+}

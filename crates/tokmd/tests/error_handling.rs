@@ -107,7 +107,7 @@ fn unknown_subcommand_fails() {
         .arg("this-subcommand-does-not-exist")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("If `this-subcommand-does-not-exist` was intended as a subcommand, it is not recognized"));
 }
 
 // ---------------------------------------------------------------------------

@@ -259,7 +259,9 @@ fn unknown_subcommand_produces_helpful_error() {
         .arg("not-a-real-command")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains(
+            "If `not-a-real-command` was intended as a subcommand, it is not recognized",
+        ));
 }
 
 #[test]
