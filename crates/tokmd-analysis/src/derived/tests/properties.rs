@@ -108,6 +108,31 @@ proptest! {
     }
 
     #[test]
+    fn cocomo_effort_monotonically_increases_with_kloc(rows in arb_file_rows(), code_add in 1..=1000usize) {
+        let report1 = derive_report(&export(rows.clone()), None);
+
+        let mut rows2 = rows.clone();
+        rows2.push(FileRow {
+            path: "added.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: code_add,
+            comments: 0,
+            blanks: 0,
+            lines: code_add,
+            bytes: code_add * 20,
+            tokens: code_add * 5,
+        });
+
+        let report2 = derive_report(&export(rows2), None);
+
+        if let (Some(c1), Some(c2)) = (&report1.cocomo, &report2.cocomo) {
+            prop_assert!(c2.effort_pm >= c1.effort_pm, "Effort should monotonically increase with KLOC");
+        }
+    }
+
+    #[test]
     fn context_window_fits_iff_tokens_le_window(rows in arb_file_rows(), window in arb_window_tokens()) {
         let report = derive_report(&export(rows), window);
 
@@ -167,6 +192,13 @@ proptest! {
     }
 
     #[test]
+    fn distribution_gini_is_zero_for_uniform_sizes(row in arb_file_row(), count in 1..=20usize) {
+        let rows = vec![row; count];
+        let report = derive_report(&export(rows), None);
+        prop_assert_eq!(report.distribution.gini, 0.0, "Gini should be exactly 0 for uniformly sized files");
+    }
+
+    #[test]
     fn histogram_file_counts_sum_to_total(rows in arb_file_rows()) {
         let report = derive_report(&export(rows.clone()), None);
         let total: usize = report.histogram.iter().map(|b| b.files).sum();
@@ -223,6 +255,16 @@ proptest! {
     }
 
     #[test]
+    fn polyglot_entropy_is_zero_for_single_language(rows in arb_file_rows()) {
+        let mut uniform_rows = rows.clone();
+        for r in uniform_rows.iter_mut() {
+            r.lang = "Rust".to_string();
+        }
+        let report = derive_report(&export(uniform_rows), None);
+        prop_assert_eq!(report.polyglot.entropy, 0.0, "Entropy should be 0.0 when there's only one language");
+    }
+
+    #[test]
     fn integrity_hash_is_64_hex_chars(rows in arb_file_rows()) {
         let report = derive_report(&export(rows), None);
         prop_assert_eq!(report.integrity.hash.len(), 64);
@@ -256,5 +298,15 @@ proptest! {
             "max ({}) must be >= avg ({})",
             report.nesting.max, report.nesting.avg
         );
+    }
+
+    #[test]
+    fn derive_report_is_deterministic(rows in arb_file_rows(), window in arb_window_tokens()) {
+        let report1 = derive_report(&export(rows.clone()), window);
+        let report2 = derive_report(&export(rows), window);
+
+        let json1 = serde_json::to_string(&report1).unwrap();
+        let json2 = serde_json::to_string(&report2).unwrap();
+        prop_assert_eq!(json1, json2, "derive_report must be fully deterministic");
     }
 }

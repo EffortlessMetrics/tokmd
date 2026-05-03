@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "patch_description": "Added property-based test in derived reporting to ensure COCOMO effort scale monotonically with code length.",
+  "outcome": "proof-improvement patch"
+}
