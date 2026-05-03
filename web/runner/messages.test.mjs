@@ -192,7 +192,7 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
-        false
+        true
     );
     assert.equal(
         isRunMessage({

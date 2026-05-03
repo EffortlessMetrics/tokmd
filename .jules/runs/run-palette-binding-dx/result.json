@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome_type": "PR-ready patch",
+  "patch_description": "Aligned JS runner validation to accept in-memory inputs within the `scan` object, matching core FFI interface requirements."
+}
