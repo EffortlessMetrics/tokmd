@@ -1,0 +1,14 @@
+{
+  "outcome_type": "patch",
+  "title": "steward: remove stale RUSTSEC-2023-0071 advisory ignore from deny.toml \ud83d\udea2",
+  "summary": "Cleaned up release/governance metadata by removing a stale RUSTSEC advisory that is no longer present in the dependency tree.",
+  "target_paths": [
+    "deny.toml"
+  ],
+  "gates_run": [
+    "cargo deny --all-features check",
+    "cargo test --workspace"
+  ],
+  "friction_items": [],
+  "persona_notes": []
+}
