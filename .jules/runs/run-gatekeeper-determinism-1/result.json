@@ -1,0 +1,23 @@
+{
+  "outcome": "learning PR",
+  "title": "jules: record gatekeeper learning on core determinism tests ✅",
+  "summary": "Verified deterministic sorting invariants across tokmd test suites. No functional regressions or drift were discovered, so a learning PR is created.",
+  "target_paths": [
+    "crates/tokmd/tests/determinism.rs",
+    "crates/tokmd/tests/determinism_regression.rs",
+    "crates/tokmd/tests/determinism_hardening.rs",
+    "crates/tokmd-model/src/lib.rs"
+  ],
+  "proof_summary": "Passed all `determinism`, `determinism_regression`, and `determinism_hardening` tests cleanly without requiring changes.",
+  "gates_run": [
+    "cargo test -p tokmd --test determinism",
+    "cargo test -p tokmd --test determinism_regression",
+    "cargo test -p tokmd --test determinism_hardening"
+  ],
+  "friction_items": [
+    "FRIC-20240518-001.md"
+  ],
+  "persona_notes": [],
+  "rollback": "None required.",
+  "follow_ups": "Acknowledge pipeline stability"
+}
