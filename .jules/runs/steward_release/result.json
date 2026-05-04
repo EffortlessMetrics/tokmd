@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_applied": true,
+  "issue": "stale RUSTSEC-2023-0071 advisory ignore throwing a warning in deny.toml",
+  "resolution": "Removed the stale advisory ignore for RUSTSEC-2023-0071 to ensure clean gate execution"
+}
