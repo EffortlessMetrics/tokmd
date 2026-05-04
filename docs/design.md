@@ -141,10 +141,10 @@ Respects .gitignore, .tokeignore
 
 ### I/O Port Contract (tokmd-io-port)
 
-Host-abstracted file access for future in-memory and WASM execution:
+Host-abstracted file access for in-memory and WASM execution:
 ```
 ReadFs trait → HostFs (native std::fs)
-             → MemFs (tests / future in-memory substrates)
+             → MemFs (tests / in-memory substrates)
 ```
 
 ## Analysis Architecture

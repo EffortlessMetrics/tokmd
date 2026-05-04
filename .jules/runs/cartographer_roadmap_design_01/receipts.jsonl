@@ -1,0 +1,10 @@
+{"command": "sed -i 's/Host-abstracted file access for future in-memory and WASM execution:/Host-abstracted file access for in-memory and WASM execution:/g' docs/design.md", "outcome": "success"}
+{"command": "sed -i 's/→ MemFs (tests \\/ future in-memory substrates)/→ MemFs (tests \\/ in-memory substrates)/g' docs/design.md", "outcome": "success"}
+{"command": "git diff docs/design.md", "outcome": "success"}
+{"command": "cargo test -p tokmd-io-port", "outcome": "success"}
+{"command": "cargo xtask docs --check", "outcome": "success"}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "success"}
+{"command": "cargo fmt -- --check", "outcome": "success"}
+{"command": "cargo clippy -- -D warnings", "outcome": "success"}
+{"command": "cargo test -p tokmd --no-default-features", "outcome": "success"}
+{"command": "cargo test -p tokmd --no-default-features --lib", "outcome": "success"}
