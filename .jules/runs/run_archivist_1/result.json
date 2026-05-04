@@ -1,0 +1,13 @@
+{
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    ".jules/friction/open/FRIC-20260413-001.md",
+    ".jules/friction/open/FRIC-20260428-001.md",
+    ".jules/friction/open/cargo_fuzz_asan_linker_failure.md",
+    ".jules/friction/done/FRIC-20260413-001.md",
+    ".jules/friction/done/FRIC-20260428-001.md",
+    ".jules/friction/done/cargo_fuzz_asan_linker_failure.md",
+    ".jules/personas/fuzzer/notes/sandbox_limitations.md"
+  ],
+  "reason": "Consolidated three separate friction items detailing the same cargo fuzz sandbox limitation into a single reusable fuzzer persona note."
+}
