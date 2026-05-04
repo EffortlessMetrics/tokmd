@@ -2,7 +2,57 @@ use anyhow::Error;
 
 pub(crate) fn format(err: &Error) -> String {
     let mut out = format!("Error: {err:#}");
-    let hints = suggestions(err);
+
+    // Check if this is an unrecognized subcommand disguised as a path not found
+    let chain: Vec<String> = err.chain().map(|e| e.to_string()).collect();
+    let haystack = chain.join(" | ").to_ascii_lowercase();
+    let mut rewrote_error = false;
+
+    if haystack.contains("path not found") || haystack.contains("input path does not exist") {
+        for e in err.chain() {
+            let e_str = e.to_string();
+            if e_str.starts_with("Path not found: ")
+                || e_str.starts_with("Input path does not exist: ")
+            {
+                let prefix = if e_str.starts_with("Path not found: ") {
+                    "Path not found: "
+                } else {
+                    "Input path does not exist: "
+                };
+                let bad_path = e_str.trim_start_matches(prefix).trim();
+
+                // If it doesn't look like a path, treat it as an unrecognized subcommand
+                if !bad_path.contains('/')
+                    && !bad_path.contains('.')
+                    && !bad_path.contains('\\')
+                    && !bad_path.is_empty()
+                {
+                    // But don't rewrite if it's a known subcommand typo which will get a "Did you mean?"
+                    // Actually, even if it gets a "Did you mean", it should still say "Unrecognized subcommand" in the main error!
+                    let pos = out.find(&format!("Error: {prefix}")).unwrap_or(0);
+                    if pos > 0 || out.starts_with(&format!("Error: {prefix}")) {
+                        let end = out[pos..].find('\n').unwrap_or(out[pos..].len());
+                        out.replace_range(
+                            pos..pos + end,
+                            &format!("Error: Unrecognized subcommand '{bad_path}'"),
+                        );
+                        rewrote_error = true;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    let mut hints = suggestions(err);
+    if rewrote_error {
+        // Remove hints that don't make sense anymore
+        hints.retain(|h| {
+            !h.contains("If this was meant to be a subcommand, it is not recognized")
+                && !h.contains("was intended as a subcommand")
+        });
+    }
+
     if !hints.is_empty() {
         out.push_str("\n\nHints:\n");
         for hint in hints {

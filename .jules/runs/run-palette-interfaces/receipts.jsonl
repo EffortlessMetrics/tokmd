@@ -1,0 +1,5 @@
+{"cmd": "mkdir -p .jules/runs/run-palette-interfaces", "status": "success"}
+{"cmd": "cargo run -- analyze fake_file", "status": "success", "result": "Error: Path not found: fake_file"}
+{"cmd": "cargo run -- fake_file", "status": "success", "result": "Error: Path not found: fake_file"}
+{"cmd": "cargo run -- frobnicate", "status": "success", "result": "Error: Unrecognized subcommand 'frobnicate'"}
+{"cmd": "cargo test -p tokmd", "status": "success"}

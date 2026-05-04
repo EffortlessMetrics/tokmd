@@ -1,0 +1,12 @@
+{
+  "outcome": "patch",
+  "files_changed": [
+    "crates/tokmd/src/error_hints.rs",
+    "crates/tokmd/tests/cli_e2e_w65.rs"
+  ],
+  "reasoning": "Rewrote 'Path not found' errors to 'Unrecognized subcommand' when the input has no path separators and is likely a mistyped subcommand.",
+  "gates_run": [
+    "cargo test -p tokmd",
+    "cargo check"
+  ]
+}

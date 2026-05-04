@@ -695,7 +695,7 @@ fn frobnicate_unknown_subcommand_has_stable_error_output() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("Error: Path not found: frobnicate"),
+        stderr.contains("Error: Unrecognized subcommand 'frobnicate'"),
         "stderr should include the current path error, got: {stderr}"
     );
     assert!(
