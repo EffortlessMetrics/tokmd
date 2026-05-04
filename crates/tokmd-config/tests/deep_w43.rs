@@ -8,9 +8,9 @@ use std::io::Write;
 
 use tempfile::NamedTempFile;
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CliLangArgs, CliRedactMode, CockpitFormat, ColorMode,
-    ContextOutput, ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs,
-    HandoffPreset, ImportGranularity, InitProfile, NearDupScope, Profile, SensorFormat, Shell,
+    AnalysisPreset, BadgeMetric, CliLangArgs, CockpitFormat, ColorMode, ContextOutput,
+    ContextStrategy, DiffFormat, DiffRangeMode, GateFormat, GlobalArgs, HandoffPreset,
+    ImportGranularity, InitProfile, NearDupScope, Profile, RedactMode, SensorFormat, Shell,
     TomlConfig, UserConfig, ValueMetric, ViewProfile,
 };
 
@@ -27,7 +27,7 @@ fn global_args_default_excluded_empty() {
 #[test]
 fn global_args_default_config_is_auto() {
     let g = GlobalArgs::default();
-    assert_eq!(g.config, tokmd_config::CliConfigMode::Auto);
+    assert_eq!(g.config, tokmd_config::ConfigMode::Auto);
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn user_config_serde_roundtrip_multiple_profiles() {
         "llm_safe".into(),
         Profile {
             format: Some("json".into()),
-            redact: Some(CliRedactMode::All),
+            redact: Some(RedactMode::All),
             top: Some(10),
             ..Default::default()
         },
@@ -270,7 +270,7 @@ fn user_config_serde_roundtrip_multiple_profiles() {
     assert_eq!(back.profiles.len(), 2);
     assert_eq!(back.repos.len(), 2);
     assert_eq!(back.profiles["ci"].top, Some(0));
-    assert_eq!(back.profiles["llm_safe"].redact, Some(CliRedactMode::All));
+    assert_eq!(back.profiles["llm_safe"].redact, Some(RedactMode::All));
 }
 
 #[test]
@@ -459,7 +459,7 @@ fn toml_config_invalid_toml_is_error() {
 fn global_args_to_scan_options_ref_conversion() {
     let g = GlobalArgs {
         excluded: vec!["target".into(), "vendor".into()],
-        config: tokmd_config::CliConfigMode::None,
+        config: tokmd_config::ConfigMode::None,
         hidden: true,
         no_ignore: true,
         no_ignore_parent: false,

@@ -4,9 +4,9 @@
 
 use proptest::prelude::*;
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode,
-    CliConfigMode, CliExportFormat, CliRedactMode, CliTableFormat, CockpitFormat, HandoffPreset,
-    ImportGranularity, InitProfile, Shell,
+    AnalysisFormat, AnalysisPreset, BadgeMetric, ChildIncludeMode, ChildrenMode, CockpitFormat,
+    ConfigMode, ExportFormat, HandoffPreset, ImportGranularity, InitProfile, RedactMode, Shell,
+    TableFormat,
 };
 
 /// Macro to generate round-trip tests for enums that implement Serialize + Deserialize + PartialEq
@@ -24,44 +24,31 @@ macro_rules! roundtrip_test {
 }
 
 // All variants for each enum
-const TABLE_FORMATS: [CliTableFormat; 3] = [
-    CliTableFormat::Md,
-    CliTableFormat::Tsv,
-    CliTableFormat::Json,
-];
+const TABLE_FORMATS: [TableFormat; 3] = [TableFormat::Md, TableFormat::Tsv, TableFormat::Json];
 
-const EXPORT_FORMATS: [CliExportFormat; 3] = [
-    CliExportFormat::Csv,
-    CliExportFormat::Jsonl,
-    CliExportFormat::Json,
-];
+const EXPORT_FORMATS: [ExportFormat; 3] =
+    [ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json];
 
-const CONFIG_MODES: [CliConfigMode; 2] = [CliConfigMode::Auto, CliConfigMode::None];
+const CONFIG_MODES: [ConfigMode; 2] = [ConfigMode::Auto, ConfigMode::None];
 
-const CHILDREN_MODES: [CliChildrenMode; 2] = [CliChildrenMode::Collapse, CliChildrenMode::Separate];
+const CHILDREN_MODES: [ChildrenMode; 2] = [ChildrenMode::Collapse, ChildrenMode::Separate];
 
-const CHILD_INCLUDE_MODES: [CliChildIncludeMode; 2] = [
-    CliChildIncludeMode::Separate,
-    CliChildIncludeMode::ParentsOnly,
-];
+const CHILD_INCLUDE_MODES: [ChildIncludeMode; 2] =
+    [ChildIncludeMode::Separate, ChildIncludeMode::ParentsOnly];
 
-const REDACT_MODES: [CliRedactMode; 3] = [
-    CliRedactMode::None,
-    CliRedactMode::Paths,
-    CliRedactMode::All,
-];
+const REDACT_MODES: [RedactMode; 3] = [RedactMode::None, RedactMode::Paths, RedactMode::All];
 
-const ANALYSIS_FORMATS: [CliAnalysisFormat; 10] = [
-    CliAnalysisFormat::Md,
-    CliAnalysisFormat::Json,
-    CliAnalysisFormat::Jsonld,
-    CliAnalysisFormat::Xml,
-    CliAnalysisFormat::Svg,
-    CliAnalysisFormat::Mermaid,
-    CliAnalysisFormat::Obj,
-    CliAnalysisFormat::Midi,
-    CliAnalysisFormat::Tree,
-    CliAnalysisFormat::Html,
+const ANALYSIS_FORMATS: [AnalysisFormat; 10] = [
+    AnalysisFormat::Md,
+    AnalysisFormat::Json,
+    AnalysisFormat::Jsonld,
+    AnalysisFormat::Xml,
+    AnalysisFormat::Svg,
+    AnalysisFormat::Mermaid,
+    AnalysisFormat::Obj,
+    AnalysisFormat::Midi,
+    AnalysisFormat::Tree,
+    AnalysisFormat::Html,
 ];
 
 const ANALYSIS_PRESETS: [AnalysisPreset; 12] = [
@@ -110,31 +97,27 @@ const SHELLS: [Shell; 5] = [
 ];
 
 // Generate round-trip tests
-roundtrip_test!(
-    table_format_roundtrip,
-    CliTableFormat,
-    TABLE_FORMATS.to_vec()
-);
+roundtrip_test!(table_format_roundtrip, TableFormat, TABLE_FORMATS.to_vec());
 roundtrip_test!(
     export_format_roundtrip,
-    CliExportFormat,
+    ExportFormat,
     EXPORT_FORMATS.to_vec()
 );
-roundtrip_test!(config_mode_roundtrip, CliConfigMode, CONFIG_MODES.to_vec());
+roundtrip_test!(config_mode_roundtrip, ConfigMode, CONFIG_MODES.to_vec());
 roundtrip_test!(
     children_mode_roundtrip,
-    CliChildrenMode,
+    ChildrenMode,
     CHILDREN_MODES.to_vec()
 );
 roundtrip_test!(
     child_include_mode_roundtrip,
-    CliChildIncludeMode,
+    ChildIncludeMode,
     CHILD_INCLUDE_MODES.to_vec()
 );
-roundtrip_test!(redact_mode_roundtrip, CliRedactMode, REDACT_MODES.to_vec());
+roundtrip_test!(redact_mode_roundtrip, RedactMode, REDACT_MODES.to_vec());
 roundtrip_test!(
     analysis_format_roundtrip,
-    CliAnalysisFormat,
+    AnalysisFormat,
     ANALYSIS_FORMATS.to_vec()
 );
 roundtrip_test!(
@@ -156,7 +139,7 @@ roundtrip_test!(shell_roundtrip, Shell, SHELLS.to_vec());
 proptest! {
     #[test]
     fn table_format_kebab_case(_dummy in 0..1u8) {
-        // All CliTableFormat variants should serialize to kebab-case
+        // All TableFormat variants should serialize to kebab-case
         for variant in TABLE_FORMATS {
             let json = serde_json::to_string(&variant).expect("serialize");
             let json_str = json.trim_matches('"');
@@ -202,7 +185,7 @@ proptest! {
         // Ensure random strings don't parse as valid formats (unless they happen to match)
         if !["md", "tsv", "json"].contains(&unknown.as_str()) {
             let json = format!("\"{}\"", unknown);
-            let result: Result<CliTableFormat, _> = serde_json::from_str(&json);
+            let result: Result<TableFormat, _> = serde_json::from_str(&json);
             prop_assert!(result.is_err(), "Unknown format '{}' should fail to parse", unknown);
         }
     }
@@ -247,10 +230,10 @@ proptest! {
 
     #[test]
     fn config_mode_serde_roundtrip(
-        variant in prop::sample::select(vec![CliConfigMode::Auto, CliConfigMode::None])
+        variant in prop::sample::select(vec![ConfigMode::Auto, ConfigMode::None])
     ) {
         let json = serde_json::to_string(&variant).unwrap();
-        let back: CliConfigMode = serde_json::from_str(&json).unwrap();
+        let back: ConfigMode = serde_json::from_str(&json).unwrap();
         prop_assert_eq!(variant, back);
     }
 

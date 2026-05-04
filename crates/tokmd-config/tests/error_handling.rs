@@ -3,7 +3,7 @@
 //! Tests graceful handling of malformed input, missing fields,
 //! invalid field types, and edge cases in config deserialization.
 
-use tokmd_config::{CliRedactMode, Profile, UserConfig};
+use tokmd_config::{Profile, RedactMode, UserConfig};
 
 // =============================================================================
 // UserConfig deserialization errors
@@ -71,7 +71,7 @@ fn profile_invalid_files_type_returns_error() {
 
 #[test]
 fn profile_invalid_redact_variant_returns_error() {
-    // redact should be a valid CliRedactMode variant
+    // redact should be a valid RedactMode variant
     let bad = r#"{"redact": "invalid_variant"}"#;
     let result = serde_json::from_str::<Profile>(bad);
     assert!(result.is_err());
@@ -109,25 +109,21 @@ fn profile_negative_top_returns_error() {
 }
 
 // =============================================================================
-// CliRedactMode deserialization errors
+// RedactMode deserialization errors
 // =============================================================================
 
 #[test]
 fn redact_mode_invalid_string_returns_error() {
     let bad = r#""unknown""#;
-    let result = serde_json::from_str::<CliRedactMode>(bad);
+    let result = serde_json::from_str::<RedactMode>(bad);
     assert!(result.is_err());
 }
 
 #[test]
 fn redact_mode_valid_variants_roundtrip() {
-    for mode in [
-        CliRedactMode::None,
-        CliRedactMode::Paths,
-        CliRedactMode::All,
-    ] {
+    for mode in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
         let json = serde_json::to_string(&mode).unwrap();
-        let back: CliRedactMode = serde_json::from_str(&json).unwrap();
+        let back: RedactMode = serde_json::from_str(&json).unwrap();
         assert_eq!(back, mode);
     }
 }

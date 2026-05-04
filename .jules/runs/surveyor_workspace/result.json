@@ -1,0 +1,5 @@
+{
+  "outcome": "PR",
+  "summary": "Restored orphaned tokmd-config crate to workspace, fixed test bitrot, and resolved workspace bounds errors",
+  "receipts": 15
+}

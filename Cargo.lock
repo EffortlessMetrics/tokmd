@@ -2608,6 +2608,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokmd-config"
+version = "1.10.0"
+dependencies = [
+ "clap",
+ "proptest",
+ "serde_json",
+ "tempfile",
+ "tokmd",
+ "tokmd-settings",
+ "tokmd-types",
+ "toml 1.1.2+spec-1.1.0",
+]
+
+[[package]]
 name = "tokmd-core"
 version = "1.10.0"
 dependencies = [

@@ -5,9 +5,8 @@
 
 use proptest::prelude::*;
 use tokmd_config::{
-    AnalysisPreset, BadgeMetric, CliAnalysisFormat, CliChildIncludeMode, CliChildrenMode,
-    CliConfigMode, CliExportFormat, CliRedactMode, CliTableFormat, ImportGranularity, InitProfile,
-    Shell,
+    AnalysisFormat, AnalysisPreset, BadgeMetric, ChildIncludeMode, ChildrenMode, ConfigMode,
+    ExportFormat, ImportGranularity, InitProfile, RedactMode, Shell, TableFormat,
 };
 
 // =========================================================================
@@ -31,64 +30,49 @@ macro_rules! double_roundtrip_test {
 
 double_roundtrip_test!(
     table_format_double_rt,
-    CliTableFormat,
-    vec![
-        CliTableFormat::Md,
-        CliTableFormat::Tsv,
-        CliTableFormat::Json
-    ]
+    TableFormat,
+    vec![TableFormat::Md, TableFormat::Tsv, TableFormat::Json]
 );
 double_roundtrip_test!(
     export_format_double_rt,
-    CliExportFormat,
-    vec![
-        CliExportFormat::Csv,
-        CliExportFormat::Jsonl,
-        CliExportFormat::Json
-    ]
+    ExportFormat,
+    vec![ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json]
 );
 double_roundtrip_test!(
     config_mode_double_rt,
-    CliConfigMode,
-    vec![CliConfigMode::Auto, CliConfigMode::None]
+    ConfigMode,
+    vec![ConfigMode::Auto, ConfigMode::None]
 );
 double_roundtrip_test!(
     children_mode_double_rt,
-    CliChildrenMode,
-    vec![CliChildrenMode::Collapse, CliChildrenMode::Separate]
+    ChildrenMode,
+    vec![ChildrenMode::Collapse, ChildrenMode::Separate]
 );
 double_roundtrip_test!(
     child_include_mode_double_rt,
-    CliChildIncludeMode,
-    vec![
-        CliChildIncludeMode::Separate,
-        CliChildIncludeMode::ParentsOnly
-    ]
+    ChildIncludeMode,
+    vec![ChildIncludeMode::Separate, ChildIncludeMode::ParentsOnly]
 );
 double_roundtrip_test!(
     redact_mode_double_rt,
-    CliRedactMode,
-    vec![
-        CliRedactMode::None,
-        CliRedactMode::Paths,
-        CliRedactMode::All
-    ]
+    RedactMode,
+    vec![RedactMode::None, RedactMode::Paths, RedactMode::All]
 );
 
 double_roundtrip_test!(
     analysis_format_double_rt,
-    CliAnalysisFormat,
+    AnalysisFormat,
     vec![
-        CliAnalysisFormat::Md,
-        CliAnalysisFormat::Json,
-        CliAnalysisFormat::Jsonld,
-        CliAnalysisFormat::Xml,
-        CliAnalysisFormat::Svg,
-        CliAnalysisFormat::Mermaid,
-        CliAnalysisFormat::Obj,
-        CliAnalysisFormat::Midi,
-        CliAnalysisFormat::Tree,
-        CliAnalysisFormat::Html,
+        AnalysisFormat::Md,
+        AnalysisFormat::Json,
+        AnalysisFormat::Jsonld,
+        AnalysisFormat::Xml,
+        AnalysisFormat::Svg,
+        AnalysisFormat::Mermaid,
+        AnalysisFormat::Obj,
+        AnalysisFormat::Midi,
+        AnalysisFormat::Tree,
+        AnalysisFormat::Html,
     ]
 );
 
@@ -161,12 +145,12 @@ proptest! {
 
     #[test]
     fn all_export_formats_lowercase(_dummy in 0..1u8) {
-        for fmt in [CliExportFormat::Csv, CliExportFormat::Jsonl, CliExportFormat::Json] {
+        for fmt in [ExportFormat::Csv, ExportFormat::Jsonl, ExportFormat::Json] {
             let json = serde_json::to_string(&fmt).unwrap();
             let s = json.trim_matches('"');
             prop_assert!(
                 !s.chars().any(|c| c.is_uppercase()),
-                "CliExportFormat should be lowercase: {}", s
+                "ExportFormat should be lowercase: {}", s
             );
         }
     }
@@ -226,8 +210,8 @@ proptest! {
         let known = ["csv", "jsonl", "json"];
         if !known.contains(&unknown.as_str()) {
             let json = format!("\"{}\"", unknown);
-            let result: Result<CliExportFormat, _> = serde_json::from_str(&json);
-            prop_assert!(result.is_err(), "'{}' should not parse as CliExportFormat", unknown);
+            let result: Result<ExportFormat, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "'{}' should not parse as ExportFormat", unknown);
         }
     }
 
@@ -236,8 +220,8 @@ proptest! {
         let known = ["auto", "none"];
         if !known.contains(&unknown.as_str()) {
             let json = format!("\"{}\"", unknown);
-            let result: Result<CliConfigMode, _> = serde_json::from_str(&json);
-            prop_assert!(result.is_err(), "'{}' should not parse as CliConfigMode", unknown);
+            let result: Result<ConfigMode, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "'{}' should not parse as ConfigMode", unknown);
         }
     }
 
@@ -246,8 +230,8 @@ proptest! {
         let known = ["none", "paths", "all"];
         if !known.contains(&unknown.as_str()) {
             let json = format!("\"{}\"", unknown);
-            let result: Result<CliRedactMode, _> = serde_json::from_str(&json);
-            prop_assert!(result.is_err(), "'{}' should not parse as CliRedactMode", unknown);
+            let result: Result<RedactMode, _> = serde_json::from_str(&json);
+            prop_assert!(result.is_err(), "'{}' should not parse as RedactMode", unknown);
         }
     }
 

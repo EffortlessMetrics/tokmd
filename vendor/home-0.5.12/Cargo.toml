@@ -68,3 +68,5 @@ rust_2018_idioms = "warn"
 
 [lints.rustdoc]
 private_intra_doc_links = "allow"
+
+[workspace]

@@ -4,7 +4,7 @@ expression: stdout
 ---
 path,module,lang,kind,code,comments,blanks,lines,bytes,tokens
 large.rs,(root),Rust,parent,9,2,0,11,182,45
-Cargo.toml,(root),TOML,parent,8,0,1,9,165,41
+Cargo.toml,(root),TOML,parent,4,1,1,6,151,37
 mixed.md,(root),Markdown,parent,4,5,2,11,118,29
 mixed.md,(root),Rust,child,3,0,0,3,0,0
 src/main.rs,src,Rust,parent,3,0,0,3,45,11
