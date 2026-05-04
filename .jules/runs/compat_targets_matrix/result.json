@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "summary": "Replaced non-deterministic `String.prototype.localeCompare` with strict Unicode comparison in `web/runner/ingest.js` to fix cross-platform determinism drift."
+}

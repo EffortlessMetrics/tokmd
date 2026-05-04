@@ -1,0 +1,2 @@
+{"command": "grep -rn \"localeCompare\" web/runner crates/tokmd-node crates/tokmd-wasm crates/tokmd-python", "output": "web/runner/ingest.js:534:            return priority === 0 ? leftPath.localeCompare(rightPath) : priority;"}
+{"command": "cd web/runner && npm test", "output": "Tests passed, 1 skip (built tokmd-wasm bundle not present)"}
