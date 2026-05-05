@@ -1,14 +1,10 @@
 {
-  "outcome_type": "proof_patch",
-  "reviewer_facing_title": "specsmith: add BDD coverage for Health preset TODO scanning \ud83e\uddea",
-  "summary": "Adds an end-to-end BDD scenario to verify the Health preset correctly triggers and reports TODO metrics when scanning real files.",
-  "target_paths": [
-    "crates/tokmd-analysis/tests/analysis_deep_w64.rs"
-  ],
-  "proof_summary": "Added a test that writes a temporary file with TODO tags, invokes the Health preset, and asserts the derived todo metrics are correctly populated.",
-  "gates_run": [
-    "cargo test -p tokmd-analysis"
-  ],
+  "outcome_type": "learning_pr",
+  "reviewer_facing_title": "jules: record specsmith learning on analysis-stack 🧪",
+  "summary": "This run was aborted because the intended work was superseded by #1578.",
+  "target_paths": [],
+  "proof_summary": "N/A",
+  "gates_run": [],
   "friction_items_created": [],
   "persona_notes_created": [],
   "rollback": "git checkout -- crates/tokmd-analysis/tests/analysis_deep_w64.rs",

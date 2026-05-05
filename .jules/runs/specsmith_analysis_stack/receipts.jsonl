@@ -1,1 +1,1 @@
-{"cmd": "cargo test -p tokmd-analysis", "status": "success", "summary": "Identified missing BDD coverage for Health preset TODO metrics, wrote test, verified it."}
+{"cmd": "echo 'Job obsolete'", "status": "success", "summary": "Aborted job since PR was superseded by #1578"}
