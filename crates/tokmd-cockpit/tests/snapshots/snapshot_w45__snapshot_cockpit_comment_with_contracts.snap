@@ -16,5 +16,9 @@ expression: comment
 
 **Evidence gates**: Pass
 
+**Next steps**:
+- [ ] Proceed with reviewer sign-off
+- [ ] Confirm breaking changes are documented
+
 **Priority review items**:
 - crates/tokmd/src/commands/new_cmd.rs (100 lines changed)

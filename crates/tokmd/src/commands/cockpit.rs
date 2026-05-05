@@ -93,6 +93,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let output = match args.format {
             cli::CockpitFormat::Json => tokmd_cockpit::render::render_json(&receipt)?,
             cli::CockpitFormat::Md => tokmd_cockpit::render::render_markdown(&receipt),
+            cli::CockpitFormat::Comment => tokmd_cockpit::render::render_comment_md(&receipt),
             cli::CockpitFormat::Sections => tokmd_cockpit::render::render_sections(&receipt),
         };
 

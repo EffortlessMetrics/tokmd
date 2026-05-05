@@ -414,6 +414,9 @@ tokmd cockpit
 # Markdown summary for PR description
 tokmd cockpit --format md
 
+# Compact Markdown body for PR comments
+tokmd cockpit --format comment
+
 # Compare specific refs
 tokmd cockpit --base origin/main --head feature-branch --format md
 
@@ -448,7 +451,7 @@ jobs:
 
       - name: Generate cockpit metrics
         run: |
-          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format md > cockpit.md
+          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format comment > cockpit.md
 
       - name: Post PR comment
         uses: actions/github-script@v7
@@ -463,6 +466,25 @@ jobs:
               body: body
             });
 ```
+
+## 15c. One-command PR Artifact Bundle
+
+Produce PR-ready cockpit artifacts in one step.
+
+**Goal**: Generate machine-readable evidence and a human-ready comment without extra scripts.
+
+```bash
+mkdir -p artifacts/tokmd
+
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --artifacts-dir artifacts/tokmd \
+  --format json \
+  --output artifacts/tokmd/cockpit.json
+```
+
+This writes `cockpit.json`, `report.json`, and `comment.md` in the artifact directory. Use `comment.md` as the PR comment body and keep `cockpit.json` as the structured review evidence.
 
 ## 16. Troubleshooting Ignored Files
 

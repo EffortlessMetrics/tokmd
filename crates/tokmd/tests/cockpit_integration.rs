@@ -178,6 +178,69 @@ fn test_cockpit_md_format() {
 }
 
 #[test]
+fn test_cockpit_comment_format() {
+    // Given: A git repository with a main branch and a feature branch with code changes
+    // When: User runs `tokmd cockpit --base main --format comment`
+    // Then: Output should be compact PR-comment markdown with actionable next steps
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return;
+    }
+
+    std::fs::write(dir.path().join("main.rs"), "fn main() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+
+    std::fs::write(dir.path().join("review.rs"), "fn review() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Add review file") {
+        return;
+    }
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--format")
+        .arg("comment")
+        .output()
+        .unwrap();
+
+    if !output.status.success() {
+        return;
+    }
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(
+        stdout.contains("## Glass Cockpit Summary"),
+        "should have compact comment header"
+    );
+    assert!(
+        stdout.contains("**Next steps**:"),
+        "should include reviewer next steps"
+    );
+    assert!(
+        !stdout.trim_start().starts_with('{'),
+        "comment format should not emit JSON"
+    );
+}
+
+#[test]
 fn test_cockpit_md_includes_summary_comparison_with_baseline() {
     if !common::git_available() {
         return;

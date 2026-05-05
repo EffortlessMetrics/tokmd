@@ -1235,6 +1235,7 @@ Options:
           Possible values:
           - json:     JSON output with full metrics
           - md:       Markdown output for human readability
+          - comment:  Compact PR comment markdown
           - sections: Section-based output for PR template filling
 
           [default: json]

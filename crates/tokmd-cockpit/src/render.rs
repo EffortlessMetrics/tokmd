@@ -8,7 +8,8 @@ use anyhow::{Context, Result};
 use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
 
 use crate::{
-    CockpitReceipt, GateStatus, format_signed_f64, now_iso8601, sparkline, trend_direction_label,
+    CockpitReceipt, GateStatus, RiskLevel, format_signed_f64, now_iso8601, sparkline,
+    trend_direction_label,
 };
 
 /// Render receipt as JSON.
@@ -514,6 +515,36 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
             "- Complexity: threshold exceeded (max cyclomatic: {})",
             cx.max_cyclomatic
         );
+    }
+    let _ = writeln!(s);
+
+    // Suggested next steps for PR authors and reviewers.
+    let _ = writeln!(s, "**Next steps**:");
+    match receipt.evidence.overall_status {
+        GateStatus::Fail => {
+            let _ = writeln!(s, "- [ ] Address failing evidence gates before merge");
+        }
+        GateStatus::Warn => {
+            let _ = writeln!(
+                s,
+                "- [ ] Review warning evidence gates and capture risk acceptance"
+            );
+        }
+        GateStatus::Pass => {
+            let _ = writeln!(s, "- [ ] Proceed with reviewer sign-off");
+        }
+        GateStatus::Skipped | GateStatus::Pending => {
+            let _ = writeln!(
+                s,
+                "- [ ] Capture missing or pending evidence before relying on this packet"
+            );
+        }
+    }
+    if receipt.contracts.breaking_indicators > 0 {
+        let _ = writeln!(s, "- [ ] Confirm breaking changes are documented");
+    }
+    if matches!(receipt.risk.level, RiskLevel::High | RiskLevel::Critical) {
+        let _ = writeln!(s, "- [ ] Add a domain reviewer for high-risk files");
     }
     let _ = writeln!(s);
 

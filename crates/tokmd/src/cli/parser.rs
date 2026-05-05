@@ -849,6 +849,8 @@ pub enum CockpitFormat {
     Json,
     /// Markdown output for human readability.
     Md,
+    /// Compact PR comment markdown.
+    Comment,
     /// Section-based output for PR template filling.
     Sections,
 }
