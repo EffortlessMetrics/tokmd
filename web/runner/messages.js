@@ -117,31 +117,13 @@ function isRunArgsForMode(mode, args) {
         return false;
     }
 
-    const hasInputs = Array.isArray(args.inputs);
-    const hasPaths = Array.isArray(args.paths);
-    const hasScan = args.scan !== undefined;
-
-    if (!hasInputs && !hasPaths && !hasScan) {
+    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
         return false;
     }
-
-    if (hasInputs && !args.inputs.every(isInMemoryInput)) {
-        return false;
-    }
-
-    if (hasPaths && !args.paths.every(p => typeof p === "string")) {
-        return false;
-    }
-
-    if (hasScan && (typeof args.scan !== "object" || Array.isArray(args.scan))) {
-        return false;
-    }
-
-    const allowedKeys = ["inputs", "paths", "scan"];
 
     if (mode === "analyze") {
         return Boolean(
-            hasOnlyKeys(args, [...allowedKeys, "preset", "analyze"]) &&
+            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
                 (args.preset === undefined || typeof args.preset === "string") &&
                 (args.analyze === undefined || isAnalyzeOptions(args.analyze))
         );
@@ -149,12 +131,12 @@ function isRunArgsForMode(mode, args) {
 
     if (mode === "lang") {
         return Boolean(
-            hasOnlyKeys(args, [...allowedKeys, "files"]) &&
+            hasOnlyKeys(args, ["inputs", "files"]) &&
                 (args.files === undefined || typeof args.files === "boolean")
         );
     }
 
-    return hasOnlyKeys(args, allowedKeys);
+    return hasOnlyKeys(args, ["inputs"]);
 }
 
 export function isRunMessage(value) {

@@ -1,8 +1,5 @@
 {
-  "outcome": "patch",
-  "files_changed": [
-    "web/runner/messages.js",
-    "web/runner/messages.test.mjs"
-  ],
-  "reason": "Updated web runner to correctly validate run messages containing either `inputs`, `paths`, or `scan` correctly aligning with Rust core interface constraints."
+  "outcome": "learning-pr",
+  "files_changed": [],
+  "reason": "The intended patch was found to be superseded by merged PR #1594. Reverting product changes and filing a learning PR."
 }
