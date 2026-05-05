@@ -238,7 +238,7 @@ pub fn rev_exists(repo_root: &Path, rev: &str) -> bool {
     git_cmd()
         .arg("-C")
         .arg(repo_root)
-        .args(["rev-parse", "--verify", "--quiet"])
+        .args(["rev-parse", "--verify", "--quiet", "--end-of-options"])
         .arg(format!("{rev}^{{commit}}"))
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -271,7 +271,7 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
 
     // TOKMD_GIT_BASE_REF env override
     if let Ok(env_ref) = std::env::var("TOKMD_GIT_BASE_REF")
-        && !env_ref.is_empty()
+        && env_base_ref_is_safe(&env_ref)
         && rev_exists(repo_root, &env_ref)
     {
         return Some(env_ref);
@@ -279,7 +279,7 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
 
     // GitHub Actions: origin/$GITHUB_BASE_REF
     if let Ok(gh_base) = std::env::var("GITHUB_BASE_REF")
-        && !gh_base.is_empty()
+        && env_base_ref_is_safe(&gh_base)
     {
         let candidate = format!("origin/{gh_base}");
         if rev_exists(repo_root, &candidate) {
@@ -303,6 +303,14 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
     }
 
     None
+}
+
+fn env_base_ref_is_safe(ref_name: &str) -> bool {
+    !ref_name.is_empty()
+        && !ref_name.starts_with('-')
+        && !ref_name
+            .chars()
+            .any(|c| c.is_whitespace() || c.is_control() || c == '\\')
 }
 
 // -----------------------
@@ -478,6 +486,35 @@ mod tests {
     }
 
     #[test]
+    fn rev_exists_treats_option_like_ref_as_missing() {
+        if !git_available() {
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap();
+
+        test_git(dir.path())
+            .args(["init", "-b", "main"])
+            .output()
+            .unwrap();
+        test_git(dir.path())
+            .args(["config", "user.email", "test@test.com"])
+            .output()
+            .unwrap();
+        test_git(dir.path())
+            .args(["config", "user.name", "Test"])
+            .output()
+            .unwrap();
+        std::fs::write(dir.path().join("f.txt"), "hello").unwrap();
+        test_git(dir.path()).args(["add", "."]).output().unwrap();
+        test_git(dir.path())
+            .args(["commit", "-m", "init"])
+            .output()
+            .unwrap();
+
+        assert!(!rev_exists(dir.path(), "--help"));
+    }
+
+    #[test]
     fn resolve_base_ref_returns_requested_when_valid() {
         if !git_available() {
             return;
@@ -524,5 +561,41 @@ mod tests {
 
         // No commits exist, so even "trunk" won't resolve to a commit
         assert_eq!(resolve_base_ref(dir.path(), "nonexistent"), None);
+    }
+
+    #[test]
+    fn env_base_ref_accepts_common_refs() {
+        for ref_name in [
+            "HEAD",
+            "HEAD~1",
+            "feature/foo",
+            "release/v1.2.3",
+            "dependabot/cargo/foo-1.2.3",
+            "origin/main",
+            "af6004c",
+        ] {
+            assert!(
+                env_base_ref_is_safe(ref_name),
+                "expected env base ref to be safe: {ref_name}"
+            );
+        }
+    }
+
+    #[test]
+    fn env_base_ref_rejects_ambiguous_or_malformed_refs() {
+        for ref_name in [
+            "",
+            "-bad",
+            "--help",
+            "feature foo",
+            "main\nnext",
+            "main\0next",
+            r"feature\foo",
+        ] {
+            assert!(
+                !env_base_ref_is_safe(ref_name),
+                "expected env base ref to be rejected: {ref_name:?}"
+            );
+        }
     }
 }

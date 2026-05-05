@@ -8,7 +8,9 @@
 - Closed #1542/#1512 as superseded by #1551.
 - Merged #1552: synthesized keeper for `export_bundle` no-default-features warning. Gated the module behind `analysis` instead of suppressing dead-code warnings. Gates: `cargo clippy -p tokmd --no-default-features -- -D warnings`; `cargo clippy -p tokmd --no-default-features --features analysis -- -D warnings`; `cargo test -p tokmd --no-default-features`; `git diff --check`; GitHub CI.
 - Closed #1530/#1510/#1502 as superseded by #1552.
-- Next cluster: redaction hardening (#1521, #1507, #1497).
+- Merged #1553: synthesized keeper for redaction hardening. Preserved only allowlisted path extensions and stripped short untrusted tokens such as `passwd`, `secret`, `pass1234`, and `token`. Gates: `cargo test -p tokmd-format test_redact_path_leak`; `cargo test -p tokmd-format redact`; `cargo test -p tokmd-types --test determinism_proptest`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1521/#1507/#1497 as superseded by #1553.
+- Next cluster: Git subprocess hardening (#1503).
 
 ## Operating decisions
 
