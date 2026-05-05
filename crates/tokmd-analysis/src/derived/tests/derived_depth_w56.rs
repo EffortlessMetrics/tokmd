@@ -1,6 +1,8 @@
 //! Depth tests for derived analytics (COCOMO, density, distribution) (W56).
 
+use crate::cocomo81_core::{COCOMO81_COEFFICIENTS, cocomo81_effort_pm};
 use crate::derived::derive_report;
+use tokmd_scan::round_f64;
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ───────────────────── helpers ─────────────────────
@@ -137,6 +139,22 @@ fn cocomo_formula_verification() {
     // Allow small rounding difference
     assert!((cocomo.effort_pm - expected_effort).abs() < 0.1);
     assert!((cocomo.duration_months - expected_duration).abs() < 0.1);
+}
+
+#[test]
+fn cocomo_receipt_matches_shared_cocomo81_model() {
+    let export = make_export(vec![make_row("a.rs", "Rust", 12_345, 0, 0)]);
+    let cocomo = derive_report(&export, None).cocomo.unwrap();
+    let kloc = 12.345_f64;
+    let (a, b, c, d) = COCOMO81_COEFFICIENTS;
+    let (effort, duration, staff, _) = cocomo81_effort_pm(kloc);
+
+    assert_eq!(cocomo.mode, "organic");
+    assert_eq!(cocomo.kloc, round_f64(kloc, 4));
+    assert_eq!(cocomo.effort_pm, round_f64(effort, 2));
+    assert_eq!(cocomo.duration_months, round_f64(duration, 2));
+    assert_eq!(cocomo.staff, round_f64(staff, 2));
+    assert_eq!((cocomo.a, cocomo.b, cocomo.c, cocomo.d), (a, b, c, d));
 }
 
 // ───────────────────── doc density ─────────────────────

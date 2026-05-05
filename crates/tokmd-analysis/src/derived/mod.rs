@@ -11,6 +11,8 @@ use tokmd_format::render_analysis_tree;
 use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
+use crate::cocomo81_core::{COCOMO81_COEFFICIENTS, cocomo81_effort_pm};
+
 const LINES_PER_MINUTE: usize = 20;
 const TOP_N: usize = 10;
 const MIN_DOC_LINES: usize = 50;
@@ -118,14 +120,8 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         None
     } else {
         let kloc = totals.code as f64 / 1000.0;
-        let (a, b, c, d) = (2.4, 1.05, 2.5, 0.38);
-        let effort = a * kloc.powf(b);
-        let duration = c * effort.powf(d);
-        let staff = if duration == 0.0 {
-            0.0
-        } else {
-            effort / duration
-        };
+        let (a, b, c, d) = COCOMO81_COEFFICIENTS;
+        let (effort, duration, staff, _) = cocomo81_effort_pm(kloc);
         Some(CocomoReport {
             mode: "organic".to_string(),
             kloc: round_f64(kloc, 4),
