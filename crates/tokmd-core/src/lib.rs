@@ -107,6 +107,26 @@ fn now_ms() -> u128 {
 /// # Returns
 ///
 /// A `LangReceipt` containing the language summary.
+///
+/// # Example
+///
+/// ```rust
+/// use std::fs;
+///
+/// use tokmd_core::{
+///     lang_workflow,
+///     settings::{LangSettings, ScanSettings},
+/// };
+///
+/// let tmp = tempfile::tempdir().expect("tempdir");
+/// fs::write(tmp.path().join("main.rs"), "fn main() {}").expect("write fixture");
+///
+/// let scan = ScanSettings::for_paths(vec![tmp.path().to_string_lossy().into_owned()]);
+/// let lang = LangSettings::default();
+///
+/// let receipt = lang_workflow(&scan, &lang).expect("language scan");
+/// assert_eq!(receipt.report.rows.len(), 1);
+/// ```
 pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths = scan_paths_or_current_dir(scan);

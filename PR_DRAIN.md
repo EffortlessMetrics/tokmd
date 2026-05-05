@@ -53,7 +53,9 @@
 - Closed #1574 as superseded by #1590.
 - Merged #1591: synthesized keeper for analysis test-path root boundary classification. Detects root `test`, `tests`, `spec`, and `specs` directories as path segments and adds case-insensitive root-directory property coverage while preserving existing `__tests__` behavior. Gates: `cargo test -p tokmd-analysis-types is_test_path_known_root_dirs_always_detected --verbose`; `cargo test -p tokmd-analysis-types is_test_path --verbose`; `cargo test -p tokmd-analysis-types --verbose`; `cargo clippy -p tokmd-analysis-types --all-targets -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1581 as superseded by #1591.
-- Next cluster: doctests/executable docs (#1528/#1563/#1529).
+- Merged #1592: synthesized keeper for executable docs and handoff example drift. Aligned the handoff reference example with the shipped `128k` default, added executable handoff recipe coverage, and salvaged focused config/core doctests from the draft librarian PRs without copying stale run payloads or root scratch files. Gates: `cargo test -p tokmd --test docs recipe_handoff --verbose`; `cargo test -p tokmd --doc`; `cargo test -p tokmd-core --doc --all-features`; `cargo xtask docs --check`; `cargo fmt-check`; `cargo clippy -p tokmd -p tokmd-core --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
+- Closed #1528/#1563/#1529 as superseded by #1592.
+- Next cluster: unknown subcommand UX (#1545/#1536/#1538/#1522/#1506/#1204/#1143).
 
 ## Operating decisions
 
