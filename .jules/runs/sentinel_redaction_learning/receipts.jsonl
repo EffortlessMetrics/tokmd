@@ -1,0 +1,3 @@
+{"cmd": "cargo test -p tokmd-format --test test_redaction_leak", "status": "success"}
+{"cmd": "cargo test -p tokmd-format", "status": "success"}
+{"cmd": "cargo check -p tokmd-format", "status": "success"}

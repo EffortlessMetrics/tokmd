@@ -1704,7 +1704,7 @@ mod tests {
         }
 
         #[test]
-        fn redact_rows_paths_end_with_extension(ext in "rs|js|ts|json") {
+        fn redact_rows_paths_end_with_extension(ext in "[a-z]{1,4}") {
             let path = format!("some/path/file.{}", ext);
             let rows = vec![FileRow {
                 path: path.clone(),
