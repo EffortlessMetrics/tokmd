@@ -1,8 +1,8 @@
 ## 💡 Summary
-Updated the browser runner protocol validation to accept in-memory inputs within the `scan` object (`args.scan.inputs`). This eliminates an interface drift where the JS runner was incorrectly rejecting valid core FFI payloads.
+(Learning PR) This run authored a patch to correctly align the browser runner's FFI validation (`web/runner/messages.js`) to accept `scan.inputs` just like the core Rust API. The patch passed all tests but the PR was superseded by #1594 which merged a similar fix. This learning PR records the successful packet and the duplicated work friction.
 
 ## 🎯 Why
-The core `tokmd` FFI API supports providing in-memory inputs either at the root level (`args.inputs`) or nested within a scan object (`args.scan.inputs`). The browser runner's FFI validation (`web/runner/messages.js`) was overly restrictive, enforcing that inputs could *only* be at the root level. This caused valid payloads configured specifically with `scan: { inputs: [...] }` to be silently rejected with confusing validation errors, damaging runtime DX.
+The core `tokmd` FFI API supports providing in-memory inputs either at the root level (`args.inputs`) or nested within a scan object (`args.scan.inputs`). The browser runner's FFI validation was overly restrictive, enforcing that inputs could *only* be at the root level. While this run built a fix, the issue was concurrently solved elsewhere.
 
 ## 🔎 Evidence
 - `web/runner/messages.js`
@@ -21,7 +21,7 @@ The core `tokmd` FFI API supports providing in-memory inputs either at the root 
 - trade-offs: Suboptimal as it worsens interface drift and forces users to manually reshape compliant standard payloads just for the browser runner.
 
 ## ✅ Decision
-Option A was chosen to directly eliminate the interface drift and allow uniform API usage across bindings.
+Option A was chosen to directly eliminate the interface drift and allow uniform API usage across bindings, though the final patch is not being merged here due to being superseded.
 
 ## 🧱 Changes made (SRP)
 - `web/runner/messages.js`: Updated `isRunArgsForMode` to accept either root inputs or scan inputs. Added checks to enforce mutual exclusivity.
@@ -45,10 +45,10 @@ test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 ```
 
 ## 🧭 Telemetry
-- Change shape: Logic alignment / bug fix
+- Change shape: Logic alignment / bug fix (Superseded)
 - Blast radius: API schema validation boundary
 - Risk class + why: Low risk. Corrects an existing over-restriction in the JS protocol.
-- Rollback: Revert `messages.js` changes.
+- Rollback: N/A (Learning PR)
 - Gates run: `npm --prefix web/runner test`, `cargo test -p tokmd-core`, `cargo test -p tokmd-wasm`
 
 ## 🗂️ .jules artifacts
@@ -57,6 +57,7 @@ test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/run-palette-binding-dx/receipts.jsonl`
 - `.jules/runs/run-palette-binding-dx/result.json`
 - `.jules/runs/run-palette-binding-dx/pr_body.md`
+- `.jules/friction/open/run-palette-binding-dx-superseded.md`
 
 ## 🔜 Follow-ups
 None.
