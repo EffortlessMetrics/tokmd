@@ -74,6 +74,7 @@ pub fn scan_args(paths: &[PathBuf], global: &ScanOptions, redact: Option<RedactM
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn normalize_scan_input_strips_repeated_dot_slash() {
@@ -116,5 +117,91 @@ mod tests {
         assert!(args.no_ignore_parent);
         assert!(args.no_ignore_dot);
         assert!(args.no_ignore_vcs);
+    }
+
+    proptest! {
+        #[test]
+        fn scan_args_preserves_redaction_and_ignore_invariants(
+            paths in prop::collection::vec("[a-zA-Z0-9_\\-\\./\\\\]+", 1..10),
+            excluded in prop::collection::vec("[a-zA-Z0-9_\\-\\.*]+", 0..5),
+            redact_mode in prop::sample::select(vec![
+                None,
+                Some(RedactMode::None),
+                Some(RedactMode::Paths),
+                Some(RedactMode::All),
+            ]),
+            hidden in any::<bool>(),
+            no_ignore in any::<bool>(),
+            no_ignore_parent in any::<bool>(),
+            no_ignore_dot in any::<bool>(),
+            no_ignore_vcs in any::<bool>(),
+            treat_doc_strings_as_comments in any::<bool>(),
+        ) {
+            let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+            let scan_options = ScanOptions {
+                excluded: excluded.clone(),
+                hidden,
+                no_ignore,
+                no_ignore_parent,
+                no_ignore_dot,
+                no_ignore_vcs,
+                treat_doc_strings_as_comments,
+                ..Default::default()
+            };
+
+            let args = scan_args(&path_bufs, &scan_options, redact_mode);
+            let repeat = scan_args(&path_bufs, &scan_options, redact_mode);
+
+            prop_assert_eq!(&args.paths, &repeat.paths);
+            prop_assert_eq!(&args.excluded, &repeat.excluded);
+            prop_assert_eq!(args.excluded_redacted, repeat.excluded_redacted);
+            prop_assert_eq!(args.config, repeat.config);
+            prop_assert_eq!(args.hidden, repeat.hidden);
+            prop_assert_eq!(args.no_ignore, repeat.no_ignore);
+            prop_assert_eq!(args.no_ignore_parent, repeat.no_ignore_parent);
+            prop_assert_eq!(args.no_ignore_dot, repeat.no_ignore_dot);
+            prop_assert_eq!(args.no_ignore_vcs, repeat.no_ignore_vcs);
+            prop_assert_eq!(
+                args.treat_doc_strings_as_comments,
+                repeat.treat_doc_strings_as_comments
+            );
+            prop_assert_eq!(args.paths.len(), paths.len());
+            prop_assert_eq!(args.hidden, hidden);
+            prop_assert_eq!(args.no_ignore, no_ignore);
+            prop_assert_eq!(args.treat_doc_strings_as_comments, treat_doc_strings_as_comments);
+
+            let should_redact = matches!(redact_mode, Some(RedactMode::Paths | RedactMode::All));
+            prop_assert_eq!(args.excluded_redacted, should_redact && !excluded.is_empty());
+
+            if should_redact {
+                prop_assert_eq!(args.excluded.len(), excluded.len());
+                for value in &args.excluded {
+                    prop_assert_eq!(value.len(), 16);
+                    prop_assert!(value.chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+                }
+                for path in &args.paths {
+                    prop_assert!(!path.contains('/'));
+                    prop_assert!(!path.contains('\\'));
+                }
+            } else {
+                let expected_paths: Vec<String> =
+                    path_bufs.iter().map(|p| normalize_scan_input(p)).collect();
+                prop_assert_eq!(&args.paths, &expected_paths);
+                prop_assert_eq!(&args.excluded, &excluded);
+                for path in &args.paths {
+                    prop_assert!(!path.contains('\\'));
+                }
+            }
+
+            if no_ignore {
+                prop_assert!(args.no_ignore_parent);
+                prop_assert!(args.no_ignore_dot);
+                prop_assert!(args.no_ignore_vcs);
+            } else {
+                prop_assert_eq!(args.no_ignore_parent, no_ignore_parent);
+                prop_assert_eq!(args.no_ignore_dot, no_ignore_dot);
+                prop_assert_eq!(args.no_ignore_vcs, no_ignore_vcs);
+            }
+        }
     }
 }

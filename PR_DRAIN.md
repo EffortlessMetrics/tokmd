@@ -49,7 +49,9 @@
 - Closed #1543/#1526/#1516/#1492 as superseded by #1588; closed #1501 in favor of #1588 because `tokmd tools` is shipped tool-schema generation but `tokmd serve` / MCP server resources remain future work.
 - Merged #1589: synthesized keeper for advisory coverage telemetry. Added a standalone `Coverage` workflow, LCOV artifact upload, Codecov upload, informational Codecov project/patch statuses, and docs that keep coverage advisory until maintainers intentionally make it a gate. Gates: YAML syntax check with Python; Codecov config validator; `cargo llvm-cov --version`; `cargo xtask docs --check`; `cargo fmt-check`; `git diff --check`; GitHub CI including `Rust coverage` and informational `codecov/patch`.
 - Closed #1555/#1556/#1557/#1558/#1569/#1570/#1571/#1572 as superseded by #1589.
-- Next cluster: proof/fuzz conversion candidates (#1574, #1581).
+- Merged #1590: synthesized keeper for fuzz-derived deterministic proptests. Moved the useful #1574 scan-args and context-policy invariants into their owner crates while leaving duplicate no-panic wrappers and stale `.jules` run payloads behind. Gates: `cargo test -p tokmd-format scan_args_preserves_redaction_and_ignore_invariants --verbose`; `cargo test -p tokmd-core context_policy_invariants_hold_for_arbitrary_inputs --verbose`; `cargo clippy -p tokmd-format -p tokmd-core --all-targets -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1574 as superseded by #1590.
+- Next cluster: analysis path root boundary invariant (#1581).
 
 ## Operating decisions
 
