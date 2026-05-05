@@ -1,0 +1,7 @@
+{
+  "performance_improvement": true,
+  "metric": "time",
+  "old_value": "1.89 ms",
+  "new_value": "645 us",
+  "change_percentage": "-65.8%"
+}

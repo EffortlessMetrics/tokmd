@@ -740,10 +740,17 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
     if a_bytes.len() == b_bytes.len() {
         // Identical paths. Compare numbers.
         // We must emulate string sort of "bytes:lines".
-        // Format them to ensure correct string sort order.
-        let a_str = format!("{}:{}", a.bytes, a.lines);
-        let b_str = format!("{}:{}", b.bytes, b.lines);
-        return a_str.cmp(&b_str);
+        // To avoid allocation on this hot path, we serialize backwards into fixed buffers.
+        let mut a_buf = [0u8; 64];
+        let mut b_buf = [0u8; 64];
+        let a_len2 = write_num_rev(&mut a_buf, a.lines);
+        a_buf[a_len2 - 1] = b':';
+        let a_len1 = write_num_rev(&mut a_buf[..a_len2 - 1], a.bytes);
+
+        let b_len2 = write_num_rev(&mut b_buf, b.lines);
+        b_buf[b_len2 - 1] = b':';
+        let b_len1 = write_num_rev(&mut b_buf[..b_len2 - 1], b.bytes);
+        return a_buf[a_len1..].cmp(&b_buf[b_len1..]);
     }
 
     // One is shorter.
@@ -761,6 +768,21 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
         // Compare a[min_len] vs ':'
         a_bytes[min_len].cmp(&b':')
     }
+}
+
+fn write_num_rev(buf: &mut [u8], mut n: usize) -> usize {
+    if n == 0 {
+        let i = buf.len() - 1;
+        buf[i] = b'0';
+        return i;
+    }
+    let mut i = buf.len();
+    while n > 0 {
+        i -= 1;
+        buf[i] = b'0' + (n % 10) as u8;
+        n /= 10;
+    }
+    i
 }
 
 #[cfg(test)]
