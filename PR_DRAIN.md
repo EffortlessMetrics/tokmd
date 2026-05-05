@@ -19,7 +19,9 @@
 - Merged #1565: synthesized keeper for `tokmd-types` optional-field serde omission coverage. Added source-local tests for omitted `CapabilityStatus.reason` and `ArtifactEntry.hash`. Gates: `cargo test -p tokmd-types omits_`; `cargo test -p tokmd-types`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1479 as superseded by #1565.
 - Closed #1480 as duplicate coverage: current main already has all-variant cockpit enum serde coverage in integration/contract tests and snapshots.
-- Next cluster: Unit coverage follow-up (#1478).
+- Merged #1566: synthesized keeper for `tokmd-git` intent helper coverage. Added source-local intent classification tests and direct private word-boundary helper assertions after fixing the stale branch formatting issue. Gates: `cargo test -p tokmd-git classify_intent_`; `cargo test -p tokmd-git contains_word_respects_word_boundaries`; `cargo test -p tokmd-git`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1478 as superseded by #1566.
+- Next cluster: Property/proptest improvements (#1463, #1464, #1465, #1466).
 
 ## Operating decisions
 

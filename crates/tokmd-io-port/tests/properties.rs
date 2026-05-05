@@ -144,6 +144,42 @@ proptest! {
 }
 
 proptest! {
+    #[test]
+    fn prop_file_size_matches_bytes_len(
+        path in forward_slash_path(),
+        content in pvec(any::<u8>(), 0..2048),
+    ) {
+        let mut fs = MemFs::new();
+        fs.add_bytes(&path, content.clone());
+        let size = fs.file_size(Path::new(&path)).unwrap();
+        prop_assert_eq!(size as usize, content.len());
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(48))]
+    #[test]
+    fn prop_file_paths_are_sorted_and_unique(
+        entries in pvec((forward_slash_path(), pvec(any::<u8>(), 0..64)), 1..30),
+    ) {
+        let mut fs = MemFs::new();
+        for (path, content) in &entries {
+            fs.add_bytes(path, content.clone());
+        }
+
+        let listed = fs
+            .file_paths()
+            .map(|path| path.to_string_lossy().to_string())
+            .collect::<Vec<_>>();
+
+        prop_assert!(listed.windows(2).all(|window| window[0] < window[1]));
+
+        let unique = listed.iter().collect::<std::collections::BTreeSet<_>>();
+        prop_assert_eq!(listed.len(), unique.len());
+    }
+}
+
+proptest! {
     #![proptest_config(ProptestConfig::with_cases(32))]
     #[test]
     fn prop_bulk_insert_all_retrievable(
