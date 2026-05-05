@@ -6,7 +6,10 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 use tokmd_types::{
-    ExportData, FileRow, LangReport, LangRow, ModuleReport, ModuleRow, RunReceipt, Totals,
+    ConfigMode, ContextBundleManifest, ContextReceipt, DiffReceipt, ExportData, ExportReceipt,
+    FileRow, HandoffManifest, LangReceipt, LangReport, LangRow, ModuleReceipt, ModuleReport,
+    ModuleRow, RedactMode, RunReceipt, Totals,
+    cockpit::{CockpitReceipt, Evidence, ReviewItem},
 };
 
 /// Max input size to prevent pathological parse times
@@ -129,6 +132,24 @@ fuzz_target!(|data: &[u8]| {
         let _ = receipt.module_file.len();
         let _ = receipt.export_file.len();
     }
+
+    // Higher-level receipt envelopes
+    let _ = serde_json::from_str::<LangReceipt>(s);
+    let _ = serde_json::from_str::<ModuleReceipt>(s);
+    let _ = serde_json::from_str::<ExportReceipt>(s);
+    let _ = serde_json::from_str::<DiffReceipt>(s);
+    let _ = serde_json::from_str::<ContextReceipt>(s);
+    let _ = serde_json::from_str::<HandoffManifest>(s);
+    let _ = serde_json::from_str::<ContextBundleManifest>(s);
+
+    // Cockpit family
+    let _ = serde_json::from_str::<CockpitReceipt>(s);
+    let _ = serde_json::from_str::<Evidence>(s);
+    let _ = serde_json::from_str::<ReviewItem>(s);
+
+    // Config and redaction modes
+    let _ = serde_json::from_str::<ConfigMode>(s);
+    let _ = serde_json::from_str::<RedactMode>(s);
 
     // Also try as generic JSON Value and back
     if let Ok(value) = serde_json::from_str::<serde_json::Value>(s) {

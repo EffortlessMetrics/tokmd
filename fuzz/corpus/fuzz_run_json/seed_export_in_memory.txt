@@ -1,0 +1,2 @@
+export
+{"inputs":[{"path":"src/lib.rs","text":"pub fn demo() {}"}],"format":"json"}

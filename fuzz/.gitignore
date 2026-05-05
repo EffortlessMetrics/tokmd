@@ -1,4 +1,6 @@
 target
-corpus
+corpus/**
+!corpus/**/
+!corpus/**/seed_*
 artifacts
 coverage

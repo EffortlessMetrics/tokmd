@@ -1,0 +1,7 @@
+{"totals":{"code":10}}
+[[rules]]
+name = "missing_blanks"
+pointer = "/totals/blanks"
+op = "gt"
+value = 0
+level = "warn"

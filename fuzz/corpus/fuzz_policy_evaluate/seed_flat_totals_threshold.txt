@@ -1,0 +1,7 @@
+{"totals":{"code":1200,"comments":100},"metadata":{"schema_version":2}}
+[[rules]]
+name = "code_under_cap"
+pointer = "/totals/code"
+op = "lt"
+value = 5000
+level = "error"

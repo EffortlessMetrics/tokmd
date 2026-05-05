@@ -32,6 +32,10 @@ cargo +nightly fuzz run fuzz_import_parser --features analysis_imports
 cargo +nightly fuzz run fuzz_export_tree --features export_tree
 cargo +nightly fuzz run fuzz_exclude_pattern --features exclude
 cargo +nightly fuzz run fuzz_context_policy --features context_policy
+cargo +nightly fuzz run fuzz_run_json --features core
+cargo +nightly fuzz run fuzz_ffi_envelope --features ffi_envelope
+cargo +nightly fuzz run fuzz_gate_ratchet --features gate_ratchet
+cargo +nightly fuzz run fuzz_badge_svg --features badge
 ```
 
 Limit input size with libfuzzer flags:
@@ -57,10 +61,14 @@ cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 | `fuzz_export_tree` | `export_tree` | Path-list text | Tests deterministic analysis/handoff tree rendering |
 | `fuzz_exclude_pattern` | `exclude` | Composite (`root\x1fpath`) | Tests exclude-pattern normalization + dedupe invariants |
 | `fuzz_context_policy` | `context_policy` | Composite (`path\x1ftokens\x1flines\x1fbudget`) | Tests context policy classification, cap, and inclusion invariants |
+| `fuzz_run_json` | `core` | Composite (`mode\nargs_json`) | Tests FFI `run_json` no-panic and envelope invariants |
+| `fuzz_ffi_envelope` | `ffi_envelope` | JSON string | Tests envelope parser/extractor determinism and equivalence |
+| `fuzz_gate_ratchet` | `gate_ratchet` | Composite (`baseline\ncurrent\nratchet_toml`) | Tests ratchet policy evaluation invariants |
+| `fuzz_badge_svg` | `badge` | Composite (`label\nvalue`) | Tests SVG badge rendering no-panic and determinism |
 
 ### Composite Input Formats
 
-Some targets use newline-separated composite inputs:
+Some targets use newline-separated or ASCII unit-separator (`\x1f`) composite inputs:
 
 **fuzz_json_pointer**: `json_document\npointer_string`
 ```
@@ -71,10 +79,32 @@ Some targets use newline-separated composite inputs:
 **fuzz_policy_evaluate**: `receipt_json\npolicy_toml`
 ```
 {"totals":{"code":1000}}
-[[rule]]
+[[rules]]
+name = "max_code"
 pointer = "/totals/code"
 op = "lt"
 value = 5000
+```
+
+**fuzz_run_json**: `mode\nargs_json`
+```
+lang
+{"inputs":[{"path":"src/lib.rs","text":"pub fn demo() {}"}]}
+```
+
+**fuzz_gate_ratchet**: `baseline_json\ncurrent_json\nratchet_toml`
+```
+{"totals":{"code":100}}
+{"totals":{"code":110}}
+[[rules]]
+pointer = "/totals/code"
+max_increase_pct = 20.0
+```
+
+**fuzz_badge_svg**: `label\nvalue`
+```
+coverage
+92%
 ```
 
 ## Corpus and Artifacts
@@ -83,7 +113,9 @@ value = 5000
 - **Generated corpus**: Created automatically during fuzzing in the same location
 - **Crash artifacts**: `fuzz/artifacts/<target>/` - Inputs that triggered failures
 
-To add corpus seeds, create files in `fuzz/corpus/<target>/`. The fuzzer will pick them up automatically.
+Curated seed files are checked in as `seed_*` files under `fuzz/corpus/<target>/`.
+Generated corpus files remain ignored by default. To add a durable seed, name it
+`seed_<case>` so it is visible to Git and picked up automatically by the fuzzer.
 
 ## Dictionaries
 
@@ -91,9 +123,9 @@ Dictionary files in `fuzz/dict/` improve fuzzing efficiency for structured input
 
 | Dictionary | Used By |
 |------------|---------|
-| `json.dict` | `fuzz_json_types`, `fuzz_json_pointer`, `fuzz_policy_evaluate` |
+| `json.dict` | `fuzz_json_types`, `fuzz_json_pointer`, `fuzz_policy_evaluate`, `fuzz_ffi_envelope`, `fuzz_run_json`, `fuzz_gate_ratchet` |
 | `toml.dict` | `fuzz_toml_config` |
-| `policy.dict` | `fuzz_policy_toml`, `fuzz_policy_evaluate` |
+| `policy.dict` | `fuzz_policy_toml`, `fuzz_policy_evaluate`, `fuzz_gate_ratchet` |
 | `path.dict` | `fuzz_normalize_path`, `fuzz_module_key`, `fuzz_redact`, `fuzz_exclude_pattern` |
 | `entropy.dict` | `fuzz_entropy` |
 

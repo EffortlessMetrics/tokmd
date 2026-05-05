@@ -1,0 +1,6 @@
+{"totals":{"code":100,"comments":10}}
+{"totals":{"code":110,"comments":12}}
+[[rules]]
+pointer = "/totals/code"
+max_increase_pct = 20.0
+level = "error"
