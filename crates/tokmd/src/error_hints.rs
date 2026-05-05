@@ -74,6 +74,49 @@ fn suggestions(err: &Error) -> Vec<String> {
         push_hint(&mut out, "Initialize git first if needed: `git init`.");
     }
 
+    if haystack.contains("rate limit")
+        || haystack.contains("rate_limit")
+        || haystack.contains("too many requests")
+        || haystack.contains("http 429")
+        || haystack.contains("status 429")
+    {
+        push_hint(
+            &mut out,
+            "The upstream service is limiting requests. Wait briefly, then retry.",
+        );
+        push_hint(
+            &mut out,
+            "Honor provider retry windows such as `Retry-After` when available.",
+        );
+        push_hint(
+            &mut out,
+            "Use a smaller input scope if this command contacts a remote service.",
+        );
+    }
+
+    if haystack.contains("timed out")
+        || haystack.contains("timeout")
+        || haystack.contains("temporary")
+        || haystack.contains("temporarily")
+        || haystack.contains("connection reset")
+        || haystack.contains("connection refused")
+        || haystack.contains("broken pipe")
+        || haystack.contains("dns")
+        || haystack.contains("network error")
+        || haystack.contains("service unavailable")
+        || haystack.contains("http 503")
+        || haystack.contains("status 503")
+    {
+        push_hint(
+            &mut out,
+            "This looks transient. Retry with backoff after network or service health recovers.",
+        );
+        push_hint(
+            &mut out,
+            "Check network, VPN, or proxy settings if retries keep failing.",
+        );
+    }
+
     if haystack.contains("parent traversal")
         || haystack.contains("must be relative")
         || haystack.contains("escapes scan root")
@@ -387,5 +430,22 @@ mod tests {
         let rendered = format(&err);
         assert!(rendered.contains("Error:"));
         assert!(rendered.contains("Hints:"));
+    }
+
+    #[test]
+    fn suggests_for_rate_limit_errors() {
+        let err = anyhow!("GitHub returned HTTP 429 Too Many Requests");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("limiting requests")));
+        assert!(hints.iter().any(|h| h.contains("Retry-After")));
+        assert!(hints.iter().any(|h| h.contains("smaller input scope")));
+    }
+
+    #[test]
+    fn suggests_for_transient_network_errors() {
+        let err = anyhow!("request timed out while contacting remote service");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("looks transient")));
+        assert!(hints.iter().any(|h| h.contains("VPN, or proxy")));
     }
 }
