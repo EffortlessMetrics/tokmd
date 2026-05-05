@@ -1,3 +1,0 @@
-{"timestamp": "2026-05-03T14:36:19Z", "command": "write envelope.json", "outcome": "success"}
-{"timestamp": "2026-05-03T15:01:39Z", "command": "write decision.md", "outcome": "success"}
-{"timestamp": "2026-05-03T15:01:48Z", "command": "write result.json", "outcome": "success"}

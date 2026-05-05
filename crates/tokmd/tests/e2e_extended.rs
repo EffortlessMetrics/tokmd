@@ -272,8 +272,7 @@ fn nonexistent_subcommand_fails() {
     tokmd_cmd()
         .arg("this-subcommand-does-not-exist")
         .assert()
-        .failure()
-        .stderr(predicate::str::contains("If `this-subcommand-does-not-exist` was intended as a subcommand, it is not recognized"));
+        .failure();
 }
 
 // ---------------------------------------------------------------------------

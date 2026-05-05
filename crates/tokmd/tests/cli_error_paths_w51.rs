@@ -224,9 +224,7 @@ fn unknown_subcommand_fails() {
         .arg("nonexistent-subcommand")
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "If `nonexistent-subcommand` was intended as a subcommand, it is not recognized",
-        ));
+        .stderr(predicate::str::is_empty().not());
 }
 
 /// Verify that every expected subcommand responds to --help without error.

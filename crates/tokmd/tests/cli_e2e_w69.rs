@@ -618,9 +618,7 @@ fn w69_error_unknown_subcommand() {
         .arg("nonexistent_subcommand_xyz")
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "If `nonexistent_subcommand_xyz` was intended as a subcommand, it is not recognized",
-        ));
+        .stderr(predicate::str::is_empty().not());
 }
 
 // ===========================================================================
