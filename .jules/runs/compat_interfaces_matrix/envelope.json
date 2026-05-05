@@ -13,7 +13,6 @@
   ],
   "gate_profile": "compat-matrix",
   "allowed_outcomes": [
-    "PR-ready patch",
     "learning PR"
   ]
 }

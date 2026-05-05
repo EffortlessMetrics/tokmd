@@ -1,45 +1,43 @@
 ## 💡 Summary
-Fixed dead code warnings when compiling `tokmd` without default features. The `ExportMetaLite` and `ExportBundle` types and associated load functions were triggering `#[warn(dead_code)]`.
+This is a learning PR. The intended patch addressing `--no-default-features` compilation warnings in `crates/tokmd/src/export_bundle.rs` was gracefully aborted because it was superseded by a merged PR (#1552) that used a structurally superior boundary definition (`#[cfg(feature="analysis")]`).
 
 ## 🎯 Why
-When the `tokmd` crate is built with `--no-default-features`, it triggers a cluster of `#[warn(dead_code)]` warnings on `ExportMetaLite`, `ExportBundle`, and several loading functions in `export_bundle.rs`. Addressing these warnings ensures cleaner builds in restricted toolchain environments or specific feature selections.
+During the resolution of `dead_code` warnings tied to missing default features, it was discovered via PR feedback that PR #1552 had already merged a fix for the exact issue. That upstream fix utilized proper feature gating (`cfg(feature="analysis")`) which is strictly better than the `allow(dead_code)` workaround attempted here. Proceeding with a redundant or weaker fix violates project guidelines.
 
 ## 🔎 Evidence
-- `cargo check -p tokmd --no-default-features` produced multiple `dead_code` warnings.
-- The functions and types in `crates/tokmd/src/export_bundle.rs` are internal tools that may be bypassed by feature selection.
+- PR Comment from reviewer: "Superseded by #1552, which merged the aligned analysis-feature cfg fix. This PR used weaker #[allow(dead_code)] suppression rather than preserving the feature boundary."
+- Codebase state confirms that the issue requires `cfg` boundary updates rather than suppression.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- what it is: Add `#[allow(dead_code)]` attributes to `ExportMetaLite`, `ExportBundle`, and the parsing functions in `export_bundle.rs`.
-- why it fits this repo and shard: It gracefully handles internal dead code without ripping out functionality that may be required by other feature sets.
-- trade-offs: Structure is preserved without large refactoring. Velocity is high. Governance expectations are met by quieting the compiler warnings.
+### Option A
+- what it is: Pivot to find another compatibility issue in the `interfaces` shard.
+- when to choose it instead: If the original task was fully unblocked and time/scope allowed for a new target discovery.
+- trade-offs: Violates the Single Responsibility Principle and prompt constraints which expect one coherent story per run.
 
-### Option B
-- what it is: Remove the unused structs and methods.
-- when to choose it instead: If the code were truly orphaned across all features.
-- trade-offs: Higher risk of breaking active features.
+### Option B (recommended)
+- what it is: Gracefully abort the fix, revert the local changes, and finalize as a learning PR containing a friction item.
+- why it fits this repo and shard: Directly adheres to the rule: "If an intended patch is found to be superseded by another merged PR during execution, gracefully abort the redundant fix and create a 'learning PR'".
+- trade-offs: Structure/Governance are perfectly preserved. No velocity is lost attempting a doomed patch.
 
 ## ✅ Decision
-Option A. It's the safest and most robust path for resolving dead code warnings tied to feature flags.
+Option B. Aborted the redundant fix and documented the workflow edge case as a friction item.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/src/export_bundle.rs`
+- Reverted local changes to `crates/tokmd/src/export_bundle.rs`.
 
 ## 🧪 Verification receipts
 ```text
-cargo check -p tokmd --no-default-features
-cargo test -p tokmd --no-default-features
 cargo xtask version-consistency
 cargo fmt -- --check
 cargo check
 ```
 
 ## 🧭 Telemetry
-- Change shape: Added `#[allow(dead_code)]`
-- Blast radius: Internal compilation only. No runtime behavioral changes.
-- Risk class + why: Very low risk.
-- Rollback: Revert changes to `export_bundle.rs`.
-- Gates run: `--no-default-features` checks, tests, formatting.
+- Change shape: Reversion and learning generation.
+- Blast radius: None.
+- Risk class + why: Zero risk.
+- Rollback: N/A.
+- Gates run: `cargo check`, formatting checks.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/compat_interfaces_matrix/envelope.json`
@@ -47,6 +45,7 @@ cargo check
 - `.jules/runs/compat_interfaces_matrix/receipts.jsonl`
 - `.jules/runs/compat_interfaces_matrix/result.json`
 - `.jules/runs/compat_interfaces_matrix/pr_body.md`
+- `.jules/friction/open/compat_interfaces_matrix_superseded.md`
 
 ## 🔜 Follow-ups
 None.
