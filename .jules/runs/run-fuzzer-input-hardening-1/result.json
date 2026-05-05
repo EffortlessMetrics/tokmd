@@ -1,12 +1,5 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_changed": [
-    "crates/tokmd/tests/fuzz_toml_config_proptests.rs",
-    "crates/tokmd/tests/fuzz_json_types_proptests.rs",
-    "crates/tokmd/tests/fuzz_scan_args_proptests.rs",
-    "crates/tokmd/tests/fuzz_context_policy_proptests.rs",
-    "crates/tokmd/tests/fuzz_import_parser_proptests.rs",
-    "crates/tokmd/tests/fuzz_run_json_proptests.rs"
-  ],
-  "reasoning": "Since `cargo fuzz` requires a nightly Rust toolchain which fails locally (`-Zsanitizer=address` is unsupported), we extracted the deterministic logic from the broken fuzz targets and converted them into comprehensive `proptest` suites inside `crates/tokmd/tests`. This locks in the fuzzable invariant coverage (such as path normalization, JSON extraction, and parser rules) without depending on unrunnable CI tools."
+  "outcome": "learning PR",
+  "files_changed": [],
+  "reasoning": "Attempted to extract unrunnable `fuzz_target` invariants into deterministic `proptest` suites within `crates/tokmd/tests/`. However, PR feedback indicated that this work was superseded by #1590, which already merged the high-signal fuzz-derived invariants directly into their owner crates. Thus, the local patch was abandoned to avoid drift, and a learning PR was created to document the superseded state."
 }

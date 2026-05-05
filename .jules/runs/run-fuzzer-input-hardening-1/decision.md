@@ -7,5 +7,8 @@ Since the standard `cargo fuzz` toolchain requires nightly features that are not
 ## Option B
 Attempt to install nightly Rust to run `cargo fuzz`. This introduces environment-mutating friction, and might not succeed depending on the environment's network/permissions.
 
+## Option C (New Context)
+The PR feedback indicates this effort has been superseded by #1590, which already merged the high-signal fuzz-derived invariants into their owner crates. Therefore, I should abort this patch, record the learning that this work was superseded, and submit a learning PR instead.
+
 ## Decision
-I will proceed with **Option A**, extracting the TOML fuzz target into a deterministic property test suite.
+I will proceed with **Option C**. Since the work has been superseded, I will revert my changes, record a friction item about the superseded work, and submit a learning PR.

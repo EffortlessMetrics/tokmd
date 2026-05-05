@@ -4,3 +4,4 @@
 {"command": "cargo test -p tokmd --test fuzz_context_policy_proptests", "output": "ok. 1 passed"}
 {"command": "cargo test -p tokmd --test fuzz_import_parser_proptests", "output": "ok. 28 passed"}
 {"command": "cargo test -p tokmd --test fuzz_run_json_proptests", "output": "ok. 1 passed"}
+{"command": "git reset --hard HEAD && git clean -fd", "output": "HEAD is now at bea6e23 test(types): cover optional serde omissions\nnothing to commit, working tree clean"}

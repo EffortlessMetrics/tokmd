@@ -1,69 +1,44 @@
 ## 💡 Summary
-Replaced unrunnable fuzz targets with deterministic `proptest` suites for core interfaces and parser invariants.
+Learning PR: The extraction of fuzz targets to proptests was superseded by #1590, which already merged these invariants into their owner crates.
 
 ## 🎯 Why
-The `cargo fuzz` toolchain requires nightly compiler features (`-Zsanitizer=address`) that fail to build in standard sandbox environments. Since the `fuzz` tests inside `fuzz/fuzz_targets` contained highly valuable property invariants for path normalization, redaction, JSON extraction, and import parsing, converting them to `proptest` suites allows us to lock in this determinism without relying on broken fuzz environments.
+The `cargo fuzz` toolchain requires nightly compiler features (`-Zsanitizer=address`) that fail to build in standard sandbox environments. I originally converted the existing fuzz targets to `proptest` suites inside `crates/tokmd/tests/` to lock in this coverage. However, PR feedback indicated this work is obsolete because #1590 has already merged the high-signal fuzz-derived invariants into their respective owner crates on `main`.
 
 ## 🔎 Evidence
 Minimal proof:
-- Attempting to run the existing fuzz tests (e.g. `cargo fuzz run fuzz_toml_config`) fails locally with: `error: the option 'Z' is only accepted on the nightly compiler`.
-- Migrated 6 major target domains to `proptest`:
-  - `cargo test -p tokmd --test fuzz_toml_config_proptests`
-  - `cargo test -p tokmd --test fuzz_json_types_proptests`
-  - `cargo test -p tokmd --test fuzz_scan_args_proptests`
-  - `cargo test -p tokmd --test fuzz_context_policy_proptests`
-  - `cargo test -p tokmd --test fuzz_import_parser_proptests`
-  - `cargo test -p tokmd --test fuzz_run_json_proptests`
+- PR feedback: "Superseded by #1590, which merged the high-signal fuzz-derived scan-args and context-policy invariants into their owner crates on current main."
+- Reverted the local patches to prevent duplicating superseded invariant logic.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- what it is: Extracting the core `fuzz_target` closures and moving them into isolated deterministic `proptest!` suites inside `crates/tokmd/tests/`.
-- why it fits this repo and shard: Fulfills the Fuzzer mission of input hardening around parsers and configs while sidestepping broken dependencies.
-- trade-offs: Structure / Velocity / Governance: Loses the automated mutation exploration of a true fuzzer, but guarantees that the invariants are run reliably on every standard test suite invocation.
+### Option A
+- what it is: Continue pushing the `proptest` extraction.
+- when to choose it instead: If the existing invariants in #1590 missed coverage that this patch provided.
+- trade-offs: Risks duplicating tests, creating drift between `tokmd/tests/` and the actual owner crate test suites.
 
-### Option B
-- what it is: Attempt to upgrade or force nightly installation.
-- when to choose it instead: If true fuzzing is an absolute requirement that justifies environmental mutability risk.
-- trade-offs: Introduces high environment-mutating friction and might break standard CI pipelines.
+### Option B (recommended)
+- what it is: Abandon the test additions and submit a learning PR acknowledging the superseded state.
+- why it fits this repo and shard: Avoids duplicate work and honors the reviewer's guidance.
+- trade-offs: Structure / Velocity / Governance: Aligns perfectly with the governance instruction to defer to merged upstream work.
 
 ## ✅ Decision
-Option A was chosen to maximize deterministic proof surfaces with the current environmental constraints.
+Option B was chosen. The previous code patch was aborted and reverted.
 
 ## 🧱 Changes made (SRP)
-- Created `crates/tokmd/tests/fuzz_toml_config_proptests.rs`
-- Created `crates/tokmd/tests/fuzz_json_types_proptests.rs`
-- Created `crates/tokmd/tests/fuzz_scan_args_proptests.rs`
-- Created `crates/tokmd/tests/fuzz_context_policy_proptests.rs`
-- Created `crates/tokmd/tests/fuzz_import_parser_proptests.rs`
-- Created `crates/tokmd/tests/fuzz_run_json_proptests.rs`
+- Reverted all new `crates/tokmd/tests/fuzz_*_proptests.rs` files.
+- Recorded a learning artifact acknowledging #1590.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test -p tokmd --test fuzz_toml_config_proptests
-ok. 3 passed
-
-$ cargo test -p tokmd --test fuzz_json_types_proptests
-ok. 8 passed
-
-$ cargo test -p tokmd --test fuzz_scan_args_proptests
-ok. 1 passed
-
-$ cargo test -p tokmd --test fuzz_context_policy_proptests
-ok. 1 passed
-
-$ cargo test -p tokmd --test fuzz_import_parser_proptests
-ok. 28 passed
-
-$ cargo test -p tokmd --test fuzz_run_json_proptests
-ok. 1 passed
+$ git reset --hard HEAD && git clean -fd
+HEAD is now at bea6e23 test(types): cover optional serde omissions
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test Addition
-- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): No production changes.
-- Risk class + why: Very low. It purely expands deterministic testing.
-- Rollback: Revert the new test files.
-- Gates run: `cargo test`
+- Change shape: Learning PR
+- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): None.
+- Risk class + why: Zero. No code changes landed.
+- Rollback: N/A
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-fuzzer-input-hardening-1/envelope.json`
@@ -71,6 +46,7 @@ ok. 1 passed
 - `.jules/runs/run-fuzzer-input-hardening-1/receipts.jsonl`
 - `.jules/runs/run-fuzzer-input-hardening-1/result.json`
 - `.jules/runs/run-fuzzer-input-hardening-1/pr_body.md`
+- `.jules/friction/open/fuzzer_superseded_by_1590.md`
 
 ## 🔜 Follow-ups
 None.
