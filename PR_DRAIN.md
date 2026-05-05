@@ -33,7 +33,9 @@
 - Closed #1537 as superseded by #1578; closed #1533/#1496 as duplicate or weaker analysis-proof coverage.
 - Merged #1579: synthesized keeper for CLI snapshot harness cleanup. Replaced repeated command boilerplate with a shared helper that preserves command-aware stderr failure output and shared normalized snapshot assertions. Gates: `cargo test -p tokmd --test cli_snapshot_golden --verbose`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1459/#1461 as superseded by #1579.
-- Next cluster: Snapshot harness/docs (#1460, #1462).
+- Merged #1580: synthesized keeper for snapshot testing docs. Added current authoring and review workflow guidance while allowing table-driven helpers when snapshot names stay stable and failures remain localized. Gates: `cargo xtask docs --check`; `cargo insta test -p tokmd --help`; `git diff --check`; GitHub CI.
+- Closed #1460 as superseded by #1580.
+- Next cluster: Snapshot harness/docs (#1462).
 
 ## Operating decisions
 
