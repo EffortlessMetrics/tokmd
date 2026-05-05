@@ -15,6 +15,9 @@ use serde_json::Value;
 use tokmd_core::CORE_ANALYSIS_SCHEMA_VERSION;
 use tokmd_core::error::{ResponseEnvelope, TokmdError};
 
+#[cfg(feature = "analysis")]
+const ROOTLESS_ANALYZE_PRESETS: &[&str] = &["receipt", "estimate"];
+
 fn to_js_error(message: impl Into<String>) -> JsValue {
     JsError::new(&message.into()).into()
 }
@@ -26,6 +29,10 @@ fn serialize_args(args: &Value) -> Result<String, String> {
 
 fn extract_mode_data_json(mode: &str, args_json: &str) -> Result<String, String> {
     validate_mode_args_json(mode, args_json).map_err(|err| err.to_string())?;
+    extract_mode_data_json_after_validation(mode, args_json)
+}
+
+fn extract_mode_data_json_after_validation(mode: &str, args_json: &str) -> Result<String, String> {
     let result_json = tokmd_core::ffi::run_json(mode, args_json);
     tokmd_envelope::ffi::extract_data_json(&result_json).map_err(|err| err.to_string())
 }
@@ -42,10 +49,20 @@ fn js_args_to_json(args: JsValue) -> Result<String, JsValue> {
         return Ok("{}".to_string());
     }
 
+    if let Some(raw_json) = args.as_string() {
+        return normalize_raw_json_args(&raw_json).map_err(to_js_error);
+    }
+
     JSON::stringify(&args)
         .map_err(|_| to_js_error("failed to serialize JS arguments"))?
         .as_string()
         .ok_or_else(|| to_js_error("failed to serialize JS arguments"))
+}
+
+fn normalize_raw_json_args(raw_json: &str) -> Result<String, String> {
+    serde_json::from_str::<serde_json::Value>(raw_json)
+        .map_err(|err| format!("failed to parse JSON string arguments: {err}"))?;
+    Ok(raw_json.to_string())
 }
 
 fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
@@ -83,7 +100,8 @@ fn validate_mode_args_json(mode: &str, args_json: &str) -> Result<(), TokmdError
 fn run_analyze_js(args: JsValue) -> Result<JsValue, JsValue> {
     let args_json = js_args_to_json(args)?;
     validate_analyze_args_json(&args_json).map_err(|err| to_js_error(err.to_string()))?;
-    let data_json = extract_mode_data_json("analyze", &args_json).map_err(to_js_error)?;
+    let data_json =
+        extract_mode_data_json_after_validation("analyze", &args_json).map_err(to_js_error)?;
     JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
 }
 
@@ -106,6 +124,33 @@ pub fn analysis_schema_version() -> u32 {
     CORE_ANALYSIS_SCHEMA_VERSION
 }
 
+fn capabilities_json() -> String {
+    #[cfg(feature = "analysis")]
+    let modes = vec!["lang", "module", "export", "analyze"];
+    #[cfg(not(feature = "analysis"))]
+    let modes = vec!["lang", "module", "export"];
+
+    #[cfg(feature = "analysis")]
+    let rootless_presets = ROOTLESS_ANALYZE_PRESETS;
+    #[cfg(not(feature = "analysis"))]
+    let rootless_presets: &[&str] = &[];
+
+    serde_json::json!({
+        "modes": modes,
+        "analyze": {
+            "rootlessPresets": rootless_presets,
+        },
+    })
+    .to_string()
+}
+
+/// Return the rootless in-memory capability surface for browser callers.
+#[wasm_bindgen(js_name = capabilities)]
+pub fn capabilities() -> Result<JsValue, JsValue> {
+    JSON::parse(&capabilities_json())
+        .map_err(|_| to_js_error("failed to parse tokmd wasm capabilities JSON"))
+}
+
 /// Run a tokmd mode and return the raw JSON response envelope.
 #[wasm_bindgen(js_name = runJson)]
 pub fn run_json(mode: &str, args_json: &str) -> String {
@@ -113,6 +158,12 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
         return ResponseEnvelope::error(&err).to_json();
     }
     tokmd_core::ffi::run_json(mode, args_json)
+}
+
+/// Run a tokmd mode with raw JSON args and return only the extracted data JSON payload.
+#[wasm_bindgen(js_name = runDataJson)]
+pub fn run_data_json(mode: &str, args_json: &str) -> Result<String, JsValue> {
+    extract_mode_data_json(mode, args_json).map_err(to_js_error)
 }
 
 /// Run a tokmd mode with a plain JavaScript object and return the extracted data payload.
@@ -180,6 +231,56 @@ mod tests {
 
         assert_eq!(envelope["ok"], true);
         assert_eq!(envelope["data"]["version"], env!("CARGO_PKG_VERSION"));
+    }
+
+    #[test]
+    fn run_data_json_returns_payload_without_envelope() {
+        let payload = run_data_json("version", "{}").expect("version payload");
+        let value: Value = serde_json::from_str(&payload).expect("valid payload json");
+
+        assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
+        assert!(value.get("schema_version").is_some());
+    }
+
+    #[test]
+    fn capabilities_reports_rootless_surface() {
+        let obj: Value = serde_json::from_str(&capabilities_json()).expect("capabilities JSON");
+
+        assert_eq!(obj["modes"][0], "lang");
+        assert_eq!(obj["modes"][1], "module");
+        assert_eq!(obj["modes"][2], "export");
+
+        #[cfg(feature = "analysis")]
+        {
+            assert_eq!(obj["modes"][3], "analyze");
+            assert_eq!(
+                obj["analyze"]["rootlessPresets"],
+                json!(["receipt", "estimate"])
+            );
+        }
+
+        #[cfg(not(feature = "analysis"))]
+        {
+            assert_eq!(obj["modes"].as_array().expect("modes").len(), 3);
+            assert_eq!(obj["analyze"]["rootlessPresets"], json!([]));
+        }
+    }
+
+    #[test]
+    fn normalize_raw_json_args_accepts_json_object_strings() {
+        let raw = r#"{"inputs":[{"path":"src/lib.rs","text":"pub fn alpha() {}\n"}]}"#;
+
+        assert_eq!(
+            normalize_raw_json_args(raw).expect("valid raw args"),
+            raw.to_string()
+        );
+    }
+
+    #[test]
+    fn normalize_raw_json_args_rejects_invalid_json_strings() {
+        let err = normalize_raw_json_args("{not json").expect_err("invalid raw args");
+
+        assert!(err.contains("failed to parse JSON string arguments"));
     }
 
     #[test]
@@ -736,6 +837,21 @@ mod wasm_tests {
 
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
+    }
+
+    #[wasm_bindgen_test]
+    fn run_lang_accepts_raw_json_string_args() {
+        let args_json = r#"{
+            "inputs": [
+                { "path": "src/lib.rs", "text": "pub fn alpha() {}\n" }
+            ],
+            "files": true
+        }"#;
+        let data = run_lang(JsValue::from_str(args_json)).expect("lang data");
+        let parsed = js_value_to_json(&data);
+
+        assert_eq!(parsed["mode"], "lang");
+        assert_eq!(parsed["scan"]["paths"][0], "src/lib.rs");
     }
 
     #[cfg(feature = "analysis")]
