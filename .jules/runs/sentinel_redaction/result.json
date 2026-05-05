@@ -1,7 +1,8 @@
 {
-  "outcome": "PR-ready patch",
+  "outcome": "learning PR",
   "files_touched": [
-    "crates/tokmd-format/src/redact/mod.rs"
+    ".jules/friction/open/superseded_pr.md",
+    ".jules/personas/sentinel/notes/redaction.md"
   ],
-  "reason": "Tightened redact_path extension preservation to length <= 4 and strictly alphabetic characters. Verified tests pass and prevents 8-character alphanumeric leaks."
+  "reason": "Intended redact_path boundary hardening was superseded by PR #1553, which implemented an explicit allowlist."
 }

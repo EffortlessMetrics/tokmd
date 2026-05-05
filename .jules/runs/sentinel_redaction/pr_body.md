@@ -1,46 +1,42 @@
 ## 💡 Summary
-Hardened `redact_path` behavior in `tokmd-format` to only preserve file extensions up to 4 characters containing strictly ASCII alphabetical characters. This tightens the trust boundary by preventing longer alphanumeric segments from leaking into redacted artifacts.
+This is a learning PR. The intended boundary hardening for `redact_path` extension preservation was gracefully aborted because it was superseded by another merged PR (#1553) which implemented a strict allowlist.
 
 ## 🎯 Why
-The previous `redact_path` implementation allowed extensions up to 8 characters containing any ASCII alphanumeric character (e.g. `file.pass1234`). This presented a leakage boundary risk where sensitive alphanumeric strings disguised as file extensions could be directly exposed in redacted logs and output receipts instead of being fully hashed.
+The `redact_path` function previously preserved alphanumeric extensions up to 8 characters, introducing a leakage vector where sensitive 8-character strings (e.g., `pass1234`) could be exposed in redacted outputs. This run aimed to harden this boundary. However, the work was superseded by #1553, necessitating a learning PR rather than a redundant code patch.
 
 ## 🔎 Evidence
 - **File:** `crates/tokmd-format/src/redact/mod.rs`
-- **Observed behavior:** `redact_path` preserved alphanumeric extensions up to 8 characters long, exposing potential secrets.
-- **Verification receipt:** Running a custom test case `let path = format!("file.{}", "pass1234");` leaked the "pass1234" segment in the redacted output.
+- **Observed behavior:** PR review comment explicitly noted: "Superseded by #1553, which chose explicit allowlisted extension preservation over the weaker strict-short-alpha fallback and landed with targeted redaction tests."
+- **Receipts:** Reverted my patch in `crates/tokmd-format/src/redact/mod.rs` to keep the code unchanged.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Tighten the `redact_path` condition to `ext.len() <= 4 && ext.chars().all(|c| c.is_ascii_alphabetic())`.
-- Fits the `core-pipeline` shard securely by restricting potential leakage while still identifying code file boundaries (e.g., `.rs`, `.md`, `.js`, `.py`, `.cpp`, `.json`).
-- Trade-offs: Non-alphabetic extensions or longer ones (e.g. `f90`, `mp4`, `swift`) lose their suffix and become purely hashed. For redaction, pure hashing is the fail-safe expected behavior.
+- Create a learning PR to document the workflow edge case where a patch is superseded.
+- Fits the repo style because it avoids forcing a redundant fix or artificial code changes when the primary target is already resolved.
+- Trade-offs: No code is patched in this run, but repository knowledge and friction items are accurately tracked.
 
 ### Option B
-- Maintain an explicit static list of all allowed extensions (e.g., `["rs", "js", "cpp", ...]`).
-- Offers perfect safety but comes with high maintenance overhead as new languages are supported in `tokmd`.
+- Force a different, lower-value refactor inside the shard.
+- This is explicitly against the rules ("Do not force a fake fix").
 
 ## ✅ Decision
-Option A was chosen. Restricting extensions to 4 alphabetical characters or less prevents long alphanumeric token leaks while covering almost all common source file extensions effortlessly.
+Option A was chosen. I gracefully aborted the redundant fix and created a learning PR containing a friction item and persona note to document the occurrence.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/src/redact/mod.rs`
+- `.jules/friction/open/superseded_pr.md`
+- `.jules/personas/sentinel/notes/redaction.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-format && cargo fmt -- --check && cargo clippy -- -D warnings
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
-test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
-test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
-test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
-...
+git checkout crates/tokmd-format/src/redact/mod.rs
 ```
 
 ## 🧭 Telemetry
-- Change shape: Boundary hardening (redact condition tightening).
-- Blast radius: Output / schema. The change affects only the format of the redacted path output (pure hashes vs hashes with extensions). It is fully compatible with determinism and standard `tokmd-types` serialization tests.
-- Risk class: Low risk. Hardens trust boundary. Unrecognized extensions correctly fall back to pure hashes.
-- Rollback: Revert the condition in `redact_path`.
-- Gates run: `cargo check`, `cargo test -p tokmd-format`, `cargo test -p tokmd`, `cargo clippy`, `cargo fmt`.
+- Change shape: Learning PR
+- Blast radius: None (documentation only).
+- Risk class: Zero risk.
+- Rollback: N/A
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_redaction/envelope.json`
@@ -48,6 +44,8 @@ test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/sentinel_redaction/receipts.jsonl`
 - `.jules/runs/sentinel_redaction/result.json`
 - `.jules/runs/sentinel_redaction/pr_body.md`
+- `.jules/friction/open/superseded_pr.md`
+- `.jules/personas/sentinel/notes/redaction.md`
 
 ## 🔜 Follow-ups
-None.
+See friction item `.jules/friction/open/superseded_pr.md`.
