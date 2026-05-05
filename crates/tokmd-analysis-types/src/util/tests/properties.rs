@@ -257,3 +257,48 @@ proptest! {
             "Gini coefficient should be in [0, 1], got {}", g);
     }
 }
+
+proptest! {
+    #[test]
+    fn is_test_path_identifies_root_directories(
+        dir in prop::sample::select(vec!["test", "tests", "__tests__"]),
+        file in "[a-zA-Z][a-zA-Z0-9_]*\\.rs"
+    ) {
+        let path = format!("{}/{}", dir, file);
+        prop_assert!(is_test_path(&path), "Should detect root test dir: {}", path);
+    }
+}
+
+proptest! {
+    #[test]
+    fn is_test_path_identifies_root_spec_directories(
+        dir in prop::sample::select(vec!["spec", "specs"]),
+        file in "[a-zA-Z][a-zA-Z0-9_]*\\.ts"
+    ) {
+        let path = format!("{}/{}", dir, file);
+        prop_assert!(is_test_path(&path), "Should detect root spec dir: {}", path);
+    }
+}
+
+proptest! {
+    #[test]
+    fn is_test_path_identifies_root_dunder_tests_directories(
+        dir in prop::sample::select(vec!["__tests__"]),
+        file in "[a-zA-Z][a-zA-Z0-9_]*\\.ts"
+    ) {
+        let path = format!("{}/{}", dir, file);
+        prop_assert!(is_test_path(&path), "Should detect root dunder tests dir: {}", path);
+    }
+}
+
+proptest! {
+    #[test]
+    fn is_test_path_rejects_non_test_root_directories(
+        dir in r"[a-zA-Z][a-zA-Z0-9_]*",
+        file in "[a-zA-Z][a-zA-Z0-9_]*\\.rs"
+    ) {
+        prop_assume!(dir != "test" && dir != "tests" && dir != "__tests__" && dir != "spec" && dir != "specs");
+        let path = format!("{}/{}", dir, file);
+        prop_assert!(!is_test_path(&path), "Should reject non-test dir: {}", path);
+    }
+}

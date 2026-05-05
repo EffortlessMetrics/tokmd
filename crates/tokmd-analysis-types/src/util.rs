@@ -44,10 +44,14 @@ pub fn path_depth(path: &str) -> usize {
 
 pub fn is_test_path(path: &str) -> bool {
     let lower = path.to_lowercase();
-    if lower.contains("/test/") || lower.contains("/tests/") || lower.contains("__tests__") {
+    let lower_slash = format!("/{}", lower);
+    if lower_slash.contains("/test/")
+        || lower_slash.contains("/tests/")
+        || lower_slash.contains("/__tests__/")
+    {
         return true;
     }
-    if lower.contains("/spec/") || lower.contains("/specs/") {
+    if lower_slash.contains("/spec/") || lower_slash.contains("/specs/") {
         return true;
     }
     let name = lower.rsplit('/').next().unwrap_or(&lower);

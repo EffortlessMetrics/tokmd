@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd-analysis-types --test properties"}
+{"command": "cargo check -p tokmd-analysis-types"}
+{"command": "cargo test -p tokmd-analysis-types"}
+{"command": "cargo test -p tokmd-analysis-types --test properties"}
