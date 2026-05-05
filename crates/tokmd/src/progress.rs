@@ -3,6 +3,29 @@
 #[cfg(feature = "ui")]
 use std::io::IsTerminal;
 
+const PROGRESS_EVENT_NAME: &str = "tokmd.progress";
+const PROGRESS_EVENT_SCHEMA_VERSION: u8 = 1;
+
+fn progress_events_enabled() -> bool {
+    std::env::var_os("TOKMD_PROGRESS_EVENTS").is_some()
+}
+
+fn progress_event_json(kind: &str, message: &str) -> String {
+    serde_json::json!({
+        "event": PROGRESS_EVENT_NAME,
+        "schema_version": PROGRESS_EVENT_SCHEMA_VERSION,
+        "kind": kind,
+        "message": message,
+    })
+    .to_string()
+}
+
+fn emit_progress_event(kind: &str, message: &str) {
+    if progress_events_enabled() {
+        eprintln!("{}", progress_event_json(kind, message));
+    }
+}
+
 /// Check if we should show interactive output.
 #[cfg(feature = "ui")]
 fn is_interactive() -> bool {
@@ -24,7 +47,7 @@ fn is_interactive() -> bool {
 
 #[cfg(feature = "ui")]
 mod ui_impl {
-    use super::is_interactive;
+    use super::{emit_progress_event, is_interactive};
     use indicatif::{ProgressBar, ProgressStyle};
     use std::time::{Duration, Instant};
 
@@ -62,13 +85,16 @@ mod ui_impl {
 
         /// Set the progress message.
         pub fn set_message(&self, msg: impl Into<String>) {
+            let msg = msg.into();
+            emit_progress_event("update", &msg);
             if let Some(bar) = &self.bar {
-                bar.set_message(msg.into());
+                bar.set_message(msg);
             }
         }
 
         /// Finish and clear the spinner.
         pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
             if let Some(bar) = &self.bar {
                 bar.finish_and_clear();
             }
@@ -137,6 +163,7 @@ mod ui_impl {
 
         /// Set the progress message.
         pub fn set_message(&self, msg: &str) {
+            emit_progress_event("update", msg);
             if let Some(bar) = &self.bar {
                 bar.set_message(msg.to_string());
             }
@@ -151,6 +178,7 @@ mod ui_impl {
 
         /// Finish the progress bar with a message.
         pub fn finish_with_message(&self, msg: &str) {
+            emit_progress_event("finish", msg);
             if let Some(bar) = &self.bar {
                 bar.finish_with_message(msg.to_string());
             }
@@ -158,6 +186,7 @@ mod ui_impl {
 
         /// Finish and clear the progress bar.
         pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
             if let Some(bar) = &self.bar {
                 bar.finish_and_clear();
             }
@@ -181,6 +210,8 @@ mod ui_impl {
 
 #[cfg(not(feature = "ui"))]
 mod ui_impl {
+    use super::emit_progress_event;
+
     /// A no-op progress indicator when the `ui` feature is disabled.
     pub struct Progress;
 
@@ -191,10 +222,15 @@ mod ui_impl {
         }
 
         /// Set the progress message (no-op without `ui` feature).
-        pub fn set_message(&self, _msg: impl Into<String>) {}
+        pub fn set_message(&self, msg: impl Into<String>) {
+            let msg = msg.into();
+            emit_progress_event("update", &msg);
+        }
 
         /// Finish and clear the spinner (no-op without `ui` feature).
-        pub fn finish_and_clear(&self) {}
+        pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
+        }
     }
 
     /// A no-op progress bar when `ui` feature is disabled.
@@ -218,16 +254,22 @@ mod ui_impl {
         pub fn set_position(&self, _pos: u64) {}
 
         /// Set the progress message (no-op without `ui` feature).
-        pub fn set_message(&self, _msg: &str) {}
+        pub fn set_message(&self, msg: &str) {
+            emit_progress_event("update", msg);
+        }
 
         /// Update the total length (no-op without `ui` feature).
         pub fn set_length(&self, _len: u64) {}
 
         /// Finish the progress bar (no-op without `ui` feature).
-        pub fn finish_with_message(&self, _msg: &str) {}
+        pub fn finish_with_message(&self, msg: &str) {
+            emit_progress_event("finish", msg);
+        }
 
         /// Finish and clear the progress bar (no-op without `ui` feature).
-        pub fn finish_and_clear(&self) {}
+        pub fn finish_and_clear(&self) {
+            emit_progress_event("finish", "done");
+        }
     }
 }
 
@@ -256,5 +298,23 @@ mod tests {
         progress.set_length(20);
         progress.finish_with_message("done");
         progress.finish_and_clear();
+    }
+
+    #[test]
+    fn progress_event_json_is_stable_and_parseable() {
+        let line = progress_event_json("update", "Scanning codebase...");
+        let parsed: serde_json::Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(parsed["event"], "tokmd.progress");
+        assert_eq!(parsed["schema_version"], 1);
+        assert_eq!(parsed["kind"], "update");
+        assert_eq!(parsed["message"], "Scanning codebase...");
+    }
+
+    #[test]
+    fn progress_event_json_escapes_control_characters() {
+        let line = progress_event_json("update", "line one\nline two");
+        assert!(!line.contains('\n'));
+        let parsed: serde_json::Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(parsed["message"], "line one\nline two");
     }
 }
