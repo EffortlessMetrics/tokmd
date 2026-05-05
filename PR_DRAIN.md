@@ -63,7 +63,9 @@
 - Closed #1419/#1421/#1423/#1425 as superseded by #1595.
 - Merged #1596: synthesized keeper for progress events. Added opt-in newline-delimited JSON progress events on stderr behind `TOKMD_PROGRESS_EVENTS`, covered `update` and `finish` events across UI and no-UI builds, and documented the CLI grammar while leaving browser worker progress as remaining v1.11 scope. Gates: `cargo test -p tokmd progress --lib --verbose`; `cargo check -p tokmd --no-default-features --all-targets`; `cargo check -p tokmd --all-targets`; `cargo xtask docs --check`; `cargo build -p tokmd`; `TOKMD_PROGRESS_EVENTS=1 target/debug/tokmd run --no-progress --output-dir target/tokmd-progress-smoke crates/tokmd`; `cargo clippy -p tokmd --all-targets -- -D warnings`; `cargo fmt-check`; `typos crates/tokmd/src/progress.rs docs/progress-events.md docs/implementation-plan.md PR_DRAIN.md`; `git diff --check`; GitHub CI.
 - Closed #1426/#1428/#1430/#1431 as superseded by #1596.
-- Next cluster: cockpit PR output (#1399/#1401/#1402/#1400) or WASM ergonomics (#1420/#1422/#1424/#1427).
+- Merged #1597: synthesized keeper for WASM ergonomics. Added data-only `runDataJson`, a lightweight binding-surface `capabilities()` export, raw JSON string argument support for JavaScript helpers, and feature-aware validation/tests while keeping `docs/capabilities/wasm.json` as the authoritative runner-support matrix. Gates: `cargo test -p tokmd-wasm --verbose`; `cargo test -p tokmd-wasm --no-default-features --verbose`; `cargo clippy -p tokmd-wasm --all-targets -- -D warnings`; `cargo check -p tokmd-wasm --target wasm32-unknown-unknown`; `npm --prefix web/runner test`; `npm --prefix web/runner run check`; `cargo xtask docs --check`; `cargo test -p xtask wasm_capability_matrix --verbose`; `cargo fmt-check`; `typos crates/tokmd-wasm/src/lib.rs crates/tokmd-wasm/README.md`; `git diff --check`; GitHub CI.
+- Closed #1420/#1422/#1424/#1427 as superseded by #1597.
+- Next cluster: cockpit PR output (#1399/#1401/#1402/#1400).
 
 ## Operating decisions
 
