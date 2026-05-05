@@ -48,6 +48,15 @@ pub fn load_config() -> ConfigContext {
     }
 }
 
+fn sanitize_selector(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() || trimmed.chars().any(char::is_control) {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
 /// Discover TOML configuration following the precedence chain:
 /// 1. TOKMD_CONFIG env var (explicit path)
 /// 2. ./tokmd.toml (current directory)
@@ -55,7 +64,9 @@ pub fn load_config() -> ConfigContext {
 /// 4. ~/.config/tokmd/tokmd.toml (user config)
 fn discover_toml_config() -> Option<(TomlConfig, PathBuf)> {
     // 1. Check TOKMD_CONFIG environment variable
-    if let Ok(config_path) = std::env::var("TOKMD_CONFIG") {
+    if let Ok(config_path) = std::env::var("TOKMD_CONFIG")
+        && let Some(config_path) = sanitize_selector(&config_path)
+    {
         let path = PathBuf::from(&config_path);
         if let Some(result) = try_load_toml(&path) {
             return Some(result);
@@ -112,14 +123,16 @@ fn load_json_config() -> Option<UserConfig> {
 /// Get the profile name from CLI arg, env var, or default.
 pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
     // CLI argument takes precedence
-    if let Some(name) = cli_profile {
-        return Some(name.clone());
+    if let Some(name) = cli_profile
+        && let Some(name) = sanitize_selector(name)
+    {
+        return Some(name);
     }
 
     // Then check TOKMD_PROFILE environment variable
     std::env::var("TOKMD_PROFILE")
         .ok()
-        .filter(|s| !s.is_empty())
+        .and_then(|name| sanitize_selector(&name))
 }
 
 /// Resolve a JSON profile by name (legacy).
@@ -736,5 +749,37 @@ pub fn resolve_export_with_config(
             .unwrap_or(cli::RedactMode::None),
         meta: cli_args.meta.or(resolved.meta()).unwrap_or(true),
         strip_prefix: cli_args.strip_prefix.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{get_profile_name, sanitize_selector};
+
+    #[test]
+    fn sanitize_selector_rejects_empty_and_control_values() {
+        assert_eq!(sanitize_selector("   "), None);
+        assert_eq!(sanitize_selector("bad\nvalue"), None);
+        assert_eq!(sanitize_selector("bad\0value"), None);
+    }
+
+    #[test]
+    fn sanitize_selector_trims_safe_values() {
+        assert_eq!(sanitize_selector("  default  ").as_deref(), Some("default"));
+    }
+
+    #[test]
+    fn get_profile_name_sanitizes_cli_value() {
+        let cli_value = "  secure-profile  ".to_string();
+        assert_eq!(
+            get_profile_name(Some(&cli_value)).as_deref(),
+            Some("secure-profile")
+        );
+    }
+
+    #[test]
+    fn get_profile_name_rejects_control_char_cli_value() {
+        let cli_value = "bad\nprofile".to_string();
+        assert_eq!(get_profile_name(Some(&cli_value)), None);
     }
 }

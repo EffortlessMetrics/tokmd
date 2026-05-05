@@ -10,7 +10,9 @@
 - Closed #1530/#1510/#1502 as superseded by #1552.
 - Merged #1553: synthesized keeper for redaction hardening. Preserved only allowlisted path extensions and stripped short untrusted tokens such as `passwd`, `secret`, `pass1234`, and `token`. Gates: `cargo test -p tokmd-format test_redact_path_leak`; `cargo test -p tokmd-format redact`; `cargo test -p tokmd-types --test determinism_proptest`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1521/#1507/#1497 as superseded by #1553.
-- Next cluster: Git subprocess hardening (#1503).
+- Merged #1554: synthesized keeper for Git subprocess hardening. Added an explicit `--end-of-options` boundary to revision verification and validated fallback base refs without stripping legitimate alternate-index or object-store Git environment variables. Gates: `cargo test -p tokmd-git --verbose`; `cargo test -p tokmd --verbose`; `cargo clippy -p tokmd-git -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1503 as superseded by #1554.
+- Next cluster: FFI/env/path sanitization (#1403, #1404, #1405, #1406).
 
 ## Operating decisions
 
