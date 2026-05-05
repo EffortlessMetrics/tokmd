@@ -1242,6 +1242,36 @@ mod tests {
     }
 
     #[test]
+    fn capability_status_omits_reason_when_none() {
+        let status = CapabilityStatus {
+            name: "git".into(),
+            status: CapabilityState::Available,
+            reason: None,
+        };
+
+        let value = serde_json::to_value(&status).unwrap();
+        assert_eq!(value["name"], "git");
+        assert_eq!(value["status"], "available");
+        assert!(value.get("reason").is_none());
+    }
+
+    #[test]
+    fn artifact_entry_omits_hash_when_none() {
+        let artifact = ArtifactEntry {
+            name: "summary.md".into(),
+            path: "out/summary.md".into(),
+            description: "Markdown summary".into(),
+            bytes: 128,
+            hash: None,
+        };
+
+        let value = serde_json::to_value(&artifact).unwrap();
+        assert_eq!(value["name"], "summary.md");
+        assert_eq!(value["bytes"], 128);
+        assert!(value.get("hash").is_none());
+    }
+
+    #[test]
     fn analysis_format_serde_roundtrip() {
         for variant in [
             AnalysisFormat::Md,

@@ -14,7 +14,9 @@
 - Closed #1503 as superseded by #1554.
 - Merged #1559: synthesized keeper for FFI/env/path sanitization. Added in-memory input path length/control-character validation and config/profile selector trim/control-character sanitization while preserving case-sensitive FFI modes and existing path semantics. Gates: `cargo test -p tokmd-core in_memory_inputs_rejects_`; `cargo test -p tokmd-core --test error_boundary`; `cargo test -p tokmd-core parse_scan_settings`; `cargo test -p tokmd sanitize_selector`; `cargo test -p tokmd get_profile_name`; `cargo clippy -p tokmd-core -p tokmd -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1403/#1404/#1405/#1406 as superseded or declined by #1559.
-- Next cluster: Browser GitHub ingest cache partition (#1411, #1413, #1415, #1417).
+- Merged #1564: synthesized keeper for browser GitHub ingest cache partitioning. Added a token-derived auth partition to in-memory cache keys without storing raw token text and proved token-specific misses plus same-token cache reuse. Gates: `npm --prefix web/runner run check`; `npm --prefix web/runner test`; `node --test web/runner/ingest.test.mjs`; `node --check web/runner/ingest.js`; `git diff --check`; GitHub CI.
+- Closed #1411/#1413/#1415/#1417 as superseded by #1564.
+- Next cluster: Unit coverage (#1478, #1479, #1480).
 
 ## Operating decisions
 
