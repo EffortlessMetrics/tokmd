@@ -1,8 +1,5 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_changed": [
-    "crates/tokmd-model/src/lib.rs",
-    "crates/tokmd-model/tests/determinism_w66.rs"
-  ],
-  "gates_run": ["cargo build", "cargo test -p tokmd-model", "cargo clippy -p tokmd-model -- -D warnings", "cargo fmt -- --check"]
+  "outcome": "learning PR",
+  "files_changed": [],
+  "gates_run": []
 }

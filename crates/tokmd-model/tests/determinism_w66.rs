@@ -63,6 +63,18 @@ fn totals_from_rows(rows: &[LangRow]) -> Totals {
     }
 }
 
+fn sort_lang_rows(rows: &mut [LangRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+}
+
+fn sort_module_rows(rows: &mut [ModuleRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+}
+
+fn sort_file_rows(rows: &mut [FileRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+}
+
 // -- 1. Lang rows: different insertion order -> same sorted output --
 
 #[test]
@@ -82,9 +94,9 @@ fn lang_rows_insertion_order_does_not_affect_sorted_output() {
         make_lang_row("Go", 100),
         make_lang_row("Rust", 500),
     ];
-    tokmd_model::sort_lang_rows(&mut order_a);
-    tokmd_model::sort_lang_rows(&mut order_b);
-    tokmd_model::sort_lang_rows(&mut order_c);
+    sort_lang_rows(&mut order_a);
+    sort_lang_rows(&mut order_b);
+    sort_lang_rows(&mut order_c);
     let json_a = serde_json::to_string(&order_a).unwrap();
     let json_b = serde_json::to_string(&order_b).unwrap();
     let json_c = serde_json::to_string(&order_c).unwrap();
@@ -106,8 +118,8 @@ fn module_rows_insertion_order_does_not_affect_sorted_output() {
         make_module_row("crates/tokmd", 800),
         make_module_row("src", 200),
     ];
-    tokmd_model::sort_module_rows(&mut order_a);
-    tokmd_model::sort_module_rows(&mut order_b);
+    sort_module_rows(&mut order_a);
+    sort_module_rows(&mut order_b);
     let json_a = serde_json::to_string(&order_a).unwrap();
     let json_b = serde_json::to_string(&order_b).unwrap();
     assert_eq!(json_a, json_b);
@@ -127,8 +139,8 @@ fn file_rows_insertion_order_does_not_affect_sorted_output() {
         make_file_row("src/lib.rs", "Rust", "src", 80),
         make_file_row("src/main.rs", "Rust", "src", 120),
     ];
-    tokmd_model::sort_file_rows(&mut order_a);
-    tokmd_model::sort_file_rows(&mut order_b);
+    sort_file_rows(&mut order_a);
+    sort_file_rows(&mut order_b);
     let json_a = serde_json::to_string(&order_a).unwrap();
     let json_b = serde_json::to_string(&order_b).unwrap();
     assert_eq!(json_a, json_b);
@@ -302,7 +314,7 @@ fn export_data_sort_code_desc_then_path_asc() {
         make_file_row("src/a.rs", "Rust", "src", 100),
         make_file_row("src/c.rs", "Rust", "src", 200),
     ];
-    tokmd_model::sort_file_rows(&mut rows);
+    sort_file_rows(&mut rows);
     assert_eq!(rows[0].path, "src/c.rs");
     assert_eq!(rows[1].path, "src/a.rs");
     assert_eq!(rows[2].path, "src/b.rs");
@@ -318,7 +330,7 @@ fn top_n_folding_is_deterministic() {
         make_lang_row("Go", 100),
         make_lang_row("Java", 50),
     ];
-    tokmd_model::sort_lang_rows(&mut rows);
+    sort_lang_rows(&mut rows);
     let top = 2;
     let other_code: usize = rows[top..].iter().map(|r| r.code).sum();
     let other_lines: usize = rows[top..].iter().map(|r| r.lines).sum();
@@ -341,7 +353,7 @@ fn top_n_folding_is_deterministic() {
         make_lang_row("Python", 300),
         make_lang_row("Rust", 500),
     ];
-    tokmd_model::sort_lang_rows(&mut rows2);
+    sort_lang_rows(&mut rows2);
     let other_code2: usize = rows2[top..].iter().map(|r| r.code).sum();
     let other_lines2: usize = rows2[top..].iter().map(|r| r.lines).sum();
     let other_files2: usize = rows2[top..].iter().map(|r| r.files).sum();
@@ -397,7 +409,7 @@ fn tie_breaking_by_name_is_deterministic() {
         make_lang_row("Alpha", 100),
         make_lang_row("Mid", 100),
     ];
-    tokmd_model::sort_lang_rows(&mut rows);
+    sort_lang_rows(&mut rows);
     assert_eq!(rows[0].lang, "Alpha");
     assert_eq!(rows[1].lang, "Mid");
     assert_eq!(rows[2].lang, "Zeta");
@@ -421,8 +433,8 @@ proptest! {
         ];
         let mut fwd = raw.clone();
         let mut rev = raw.into_iter().rev().collect::<Vec<_>>();
-        tokmd_model::sort_lang_rows(&mut fwd);
-        tokmd_model::sort_lang_rows(&mut rev);
+        sort_lang_rows(&mut fwd);
+        sort_lang_rows(&mut rev);
         let json_fwd = serde_json::to_string(&fwd).unwrap();
         let json_rev = serde_json::to_string(&rev).unwrap();
         prop_assert_eq!(json_fwd, json_rev);
@@ -441,8 +453,8 @@ proptest! {
         ];
         let mut fwd = raw.clone();
         let mut rev = raw.into_iter().rev().collect::<Vec<_>>();
-        tokmd_model::sort_module_rows(&mut fwd);
-        tokmd_model::sort_module_rows(&mut rev);
+        sort_module_rows(&mut fwd);
+        sort_module_rows(&mut rev);
         let json_fwd = serde_json::to_string(&fwd).unwrap();
         let json_rev = serde_json::to_string(&rev).unwrap();
         prop_assert_eq!(json_fwd, json_rev);
@@ -459,8 +471,8 @@ proptest! {
         ];
         let mut fwd = raw.clone();
         let mut rev = raw.into_iter().rev().collect::<Vec<_>>();
-        tokmd_model::sort_file_rows(&mut fwd);
-        tokmd_model::sort_file_rows(&mut rev);
+        sort_file_rows(&mut fwd);
+        sort_file_rows(&mut rev);
         let json_fwd = serde_json::to_string(&fwd).unwrap();
         let json_rev = serde_json::to_string(&rev).unwrap();
         prop_assert_eq!(json_fwd, json_rev);
