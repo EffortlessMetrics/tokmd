@@ -1,0 +1,1 @@
+{"command": "cargo test --doc -p tokmd", "output": "all doctests ran in 1.12s; merged doctests compilation took 1.09s\ntest result: ok. 11 passed; 0 failed", "status": "success"}
