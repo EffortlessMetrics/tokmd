@@ -1,0 +1,5 @@
+jules: record steward learning on deny.toml 🚢
+
+This is a learning PR. The planned fix to remove a stale ignored advisory (`RUSTSEC-2023-0071`) from `deny.toml` was superseded by PR #1549, which had already merged the change.
+
+This learning PR records the edge case of a redundant fix attempt to avoid polluting the git history with a duplicate cleanup.
