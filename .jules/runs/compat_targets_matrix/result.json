@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "outcome": "PR-ready patch",
+  "patch_type": "code",
+  "primary_surface": "crates/tokmd-format/src/analysis/templates/report.html",
+  "description": "Replaced platform-dependent `localeCompare` in analysis HTML report generation with explicit strict Unicode code unit comparison to match Rust determinism."
+}

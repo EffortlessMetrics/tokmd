@@ -1,0 +1,5 @@
+{"timestamp": "2024-05-15T12:00:00Z", "command": "cargo test -p tokmd-format --no-default-features", "exit_code": 0}
+{"timestamp": "2024-05-15T12:00:01Z", "command": "cargo test -p tokmd-format --all-features", "exit_code": 0}
+{"timestamp": "2024-05-15T12:00:02Z", "command": "npm --prefix web/runner test", "exit_code": 0}
+{"timestamp": "2024-05-15T12:00:03Z", "command": "cargo fmt -- --check", "exit_code": 0}
+{"timestamp": "2024-05-15T12:00:04Z", "command": "cargo clippy -p tokmd-format -- -D warnings", "exit_code": 0}

@@ -191,7 +191,8 @@ expression: rows_joined
                 if (!isNaN(aNum) && !isNaN(bNum)) {
                     return sortAsc ? aNum - bNum : bNum - aNum;
                 }
-                return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                return sortAsc ? cmp : -cmp;
             });
 
             rows.forEach(row => tbody.appendChild(row));
