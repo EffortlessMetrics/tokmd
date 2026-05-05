@@ -413,7 +413,7 @@ pub fn create_lang_report_from_rows(
         });
     }
 
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+    sort_lang_rows(&mut rows);
 
     let total_code: usize = rows.iter().map(|r| r.code).sum();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
@@ -537,7 +537,7 @@ pub fn create_module_report_from_rows(
     }
 
     // Sort descending by code, then by module name for determinism.
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+    sort_module_rows(&mut rows);
 
     if top > 0 && rows.len() > top {
         let other = fold_other_module(&rows[top..]);
@@ -630,7 +630,7 @@ pub fn create_export_data_from_rows(
     if min_code > 0 {
         rows.retain(|r| r.code >= min_code);
     }
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+    sort_file_rows(&mut rows);
 
     if max_rows > 0 && rows.len() > max_rows {
         rows.truncate(max_rows);
@@ -642,6 +642,18 @@ pub fn create_export_data_from_rows(
         module_depth,
         children,
     }
+}
+
+fn sort_lang_rows(rows: &mut [LangRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+}
+
+fn sort_module_rows(rows: &mut [ModuleRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+}
+
+fn sort_file_rows(rows: &mut [FileRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 }
 
 /// Collect per-file contributions, optionally including embedded language reports.
@@ -1128,6 +1140,90 @@ mod tests {
         assert_eq!(metrics_from_byte_len(12), (12, 3));
         assert_eq!(metrics_from_byte_len(15), (15, 3));
         assert_eq!(metrics_from_bytes(b"hello world!"), (12, 3));
+    }
+
+    fn test_lang_row(lang: &str, code: usize) -> LangRow {
+        LangRow {
+            lang: lang.to_string(),
+            code,
+            lines: code + 20,
+            files: 2,
+            bytes: code * 4,
+            tokens: code,
+            avg_lines: avg(code + 20, 2),
+        }
+    }
+
+    fn test_module_row(module: &str, code: usize) -> ModuleRow {
+        ModuleRow {
+            module: module.to_string(),
+            code,
+            lines: code + 20,
+            files: 2,
+            bytes: code * 4,
+            tokens: code,
+            avg_lines: avg(code + 20, 2),
+        }
+    }
+
+    fn test_file_row(path: &str, code: usize) -> FileRow {
+        FileRow {
+            path: path.to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code,
+            comments: 10,
+            blanks: 5,
+            lines: code + 15,
+            bytes: code * 4,
+            tokens: code,
+        }
+    }
+
+    #[test]
+    fn sort_lang_rows_orders_code_desc_then_name() {
+        let mut rows = vec![
+            test_lang_row("Zeta", 100),
+            test_lang_row("Rust", 300),
+            test_lang_row("Alpha", 100),
+        ];
+
+        sort_lang_rows(&mut rows);
+
+        assert_eq!(rows[0].lang, "Rust");
+        assert_eq!(rows[1].lang, "Alpha");
+        assert_eq!(rows[2].lang, "Zeta");
+    }
+
+    #[test]
+    fn sort_module_rows_orders_code_desc_then_module() {
+        let mut rows = vec![
+            test_module_row("src/zeta", 100),
+            test_module_row("src/core", 300),
+            test_module_row("src/alpha", 100),
+        ];
+
+        sort_module_rows(&mut rows);
+
+        assert_eq!(rows[0].module, "src/core");
+        assert_eq!(rows[1].module, "src/alpha");
+        assert_eq!(rows[2].module, "src/zeta");
+    }
+
+    #[test]
+    fn sort_file_rows_orders_code_desc_then_path() {
+        let mut rows = vec![
+            test_file_row("src/zeta.rs", 100),
+            test_file_row("src/core.rs", 300),
+            test_file_row("src/alpha.rs", 100),
+        ];
+
+        sort_file_rows(&mut rows);
+
+        assert_eq!(rows[0].path, "src/core.rs");
+        assert_eq!(rows[1].path, "src/alpha.rs");
+        assert_eq!(rows[2].path, "src/zeta.rs");
     }
 
     #[test]

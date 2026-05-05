@@ -37,7 +37,9 @@
 - Closed #1460 as superseded by #1580.
 - Merged #1582: synthesized keeper for analysis-explain snapshot helper cleanup. Table-drove lookup snapshot checks while preserving the existing per-metric snapshot names. Gates: `cargo test -p tokmd snapshot_lookup_metrics --verbose`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1462 as superseded by #1582.
-- Next cluster: Mutation/unit coverage (#1165, #1519, #1535).
+- Merged #1583: synthesized keeper for model mutation boundary coverage. Added focused `avg` rounding/boundary and byte-token helper assertions while leaving duplicate env-interpreter coverage and bulky draft run packets behind. Gates: `cargo test -p tokmd-model avg_handles_boundaries_and_rounding`; `cargo test -p tokmd-model byte_metrics_use_floor_token_estimate`; `cargo test -p tokmd-model`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1165/#1519/#1535 as superseded or stale after #1583 landed.
+- Next cluster: Model row sorting extraction (#1513, #1504, #1493, #1453).
 
 ## Operating decisions
 
