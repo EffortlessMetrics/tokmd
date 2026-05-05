@@ -55,7 +55,9 @@
 - Closed #1581 as superseded by #1591.
 - Merged #1592: synthesized keeper for executable docs and handoff example drift. Aligned the handoff reference example with the shipped `128k` default, added executable handoff recipe coverage, and salvaged focused config/core doctests from the draft librarian PRs without copying stale run payloads or root scratch files. Gates: `cargo test -p tokmd --test docs recipe_handoff --verbose`; `cargo test -p tokmd --doc`; `cargo test -p tokmd-core --doc --all-features`; `cargo xtask docs --check`; `cargo fmt-check`; `cargo clippy -p tokmd -p tokmd-core --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
 - Closed #1528/#1563/#1529 as superseded by #1592.
-- Next cluster: unknown subcommand UX (#1545/#1536/#1538/#1522/#1506/#1204/#1143).
+- Merged #1593: synthesized keeper for unknown subcommand UX. Rewrites bare missing-path fallback errors as `Unrecognized subcommand` while preserving path-shaped missing path errors and implicit `tokmd <existing-path>` language-summary behavior. Gates: `cargo test -p tokmd error_hints --lib --verbose`; `cargo test -p tokmd --test cli_error_paths_w51 unknown_subcommand_fails --verbose`; `cargo test -p tokmd --test cli_error_paths_w51 typo_subcommand_suggests_correction --verbose`; `cargo test -p tokmd --test cli_e2e_w65 err_typo_subcommand_fails --verbose`; `cargo test -p tokmd --test cli_e2e_w65 frobnicate_unknown_subcommand_has_stable_error_output --verbose`; `cargo test -p tokmd --test cli_e2e_w65 existing_bare_path_keeps_implicit_lang_mode --verbose`; `target\debug\tokmd.exe anolyze`; `target\debug\tokmd.exe frobnicate`; `target\debug\tokmd.exe crates/tokmd --format json`; `cargo fmt-check`; `cargo clippy -p tokmd --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
+- Closed #1545/#1536/#1538/#1522/#1506/#1204/#1143 as superseded or stale after #1593.
+- Next cluster: browser runner `args.scan.inputs` parity (#1534/#1525/#1517/#1515/#1379).
 
 ## Operating decisions
 
