@@ -1,46 +1,42 @@
 ## 💡 Summary
-Updated the documentation to align with shipped reality regarding MCP integration. The plan originally called for a dedicated `tokmd serve` command, but the functionality was actually delivered via the `tokmd tools` command which generates MCP-compatible tool definitions.
+This is a learning PR. Attempted to resolve documentation drift regarding the MCP Server Mode. The initial patch recast `tokmd serve` to the existing `tokmd tools` command, but this was rejected (superseded by #1588) because the `tokmd serve` functionality remains planned future work.
 
 ## 🎯 Why
-The roadmap and implementation plan referenced a non-existent `tokmd serve` command. This drift creates confusion for users looking for the MCP server and contributors attempting to build upon it. Updating the docs ensures future work is based on the actual shipped surface.
+The documentation currently lists `tokmd serve` as part of Phase 6, leading to confusion since it isn't shipped yet, while `tokmd tools` is shipped. Trying to map the planned server feature entirely to the shipped tools feature was incorrect. This learning PR captures that friction.
 
 ## 🔎 Evidence
-- `tokmd --help` and `tokmd tools --help` reveal the `tools` command exists for generating agent schemas, while `serve` does not exist.
-- Found references to `tokmd serve` in `ROADMAP.md`, `docs/PRODUCT.md`, and `docs/implementation-plan.md`.
+- PR rejection comment: "Closed in favor of #1588. tokmd tools is shipped tool-schema generation, but tokmd serve / MCP server resources remain future work, so this PR's MCP-server recast should not land as written."
+- `ROADMAP.md` and `docs/implementation-plan.md` still mention `tokmd serve`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update the documentation to reflect that MCP integration is achieved via tool schema generation (`tokmd tools`) instead of a dedicated server.
-- Fits the `tooling-governance` shard by keeping design docs aligned with shipped reality.
-- Trade-offs: Structure (improves accuracy), Governance (prevents reliance on non-existent commands).
+- Create a learning PR to document the friction and rollback the incorrect documentation changes.
+- Fits the `tooling-governance` shard by preserving context when a fix is superseded or incorrect.
+- Trade-offs: Structure (captures learning without incorrect changes), Velocity (safely aborts redundant work).
 
 ### Option B
-- Create a Learning PR without fixing the documents.
-- When to choose: If the changes were outside the allowed paths or overly complex.
-- Trade-offs: Leaves documentation misleading and doesn't resolve the factual drift.
+- Force the incorrect documentation changes anyway.
+- When to choose: Never.
+- Trade-offs: Violates the reviewer's feedback and introduces inaccurate information into the truth sources.
 
 ## ✅ Decision
-Option A was chosen. The factual drift is clear, and fixing the documentation aligns it with the shipped reality of `tokmd tools` and prevents confusion.
+Option A was chosen. Since the intended patch was superseded and based on a misunderstanding of the roadmap (treating future work as already shipped via a different command), the correct action is to record the learning and abort the patch.
 
 ## 🧱 Changes made (SRP)
-- `ROADMAP.md`: Updated AI Agent Integration section to focus on tool definitions instead of a server.
-- `docs/PRODUCT.md`: Clarified MCP Server in Future Direction is via tool schema generation.
-- `docs/implementation-plan.md`: Updated Phase 6 implementation to reflect `tokmd tools` command and definitions.
+- Created `.jules/friction/open/FRIC-20231027-001.md` to track the documentation clarity issue.
+- Restored original documentation files (`docs/PRODUCT.md`, `docs/implementation-plan.md`, `ROADMAP.md`).
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask docs --check
-cargo fmt -- --check
-cargo check
-cargo test -p xtask
+git restore docs/PRODUCT.md docs/implementation-plan.md ROADMAP.md
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation update
-- Blast radius: docs
-- Risk class: Low (Documentation only)
-- Rollback: `git checkout ROADMAP.md docs/PRODUCT.md docs/implementation-plan.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo check`, `cargo test -p xtask`
+- Change shape: Learning PR and Friction Item
+- Blast radius: `.jules/` artifacts
+- Risk class: None (no functional changes)
+- Rollback: None needed.
+- Gates run: None applicable to the learning PR.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
@@ -48,6 +44,7 @@ cargo test -p xtask
 - `.jules/runs/cartographer_roadmap_design/receipts.jsonl`
 - `.jules/runs/cartographer_roadmap_design/result.json`
 - `.jules/runs/cartographer_roadmap_design/pr_body.md`
+- `.jules/friction/open/FRIC-20231027-001.md`
 
 ## 🔜 Follow-ups
-None.
+- Address the clarity of MCP Server vs Tool generation in documentation: `FRIC-20231027-001`

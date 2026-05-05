@@ -1,21 +1,16 @@
 {
-  "outcome_type": "patch",
-  "reviewer_title": "cartographer: align MCP Server Mode docs with `tokmd tools` reality 🗺️",
-  "summary": "Updated roadmap, design, and implementation plan documents to reflect that the MCP integration shipped as tool schema generation (`tokmd tools`) rather than a dedicated server (`tokmd serve`).",
-  "target_paths": [
-    "ROADMAP.md",
-    "docs/PRODUCT.md",
-    "docs/implementation-plan.md"
+  "outcome_type": "learning_pr",
+  "reviewer_title": "jules: record cartographer learning on MCP server documentation drift 🗺️",
+  "summary": "Attempted to align MCP Server Mode docs with the reality of the `tokmd tools` command. However, the PR was superseded by #1588 because `tokmd serve` is still intended as future work. Converted to a learning PR to capture the friction around documentation drift.",
+  "target_paths": [],
+  "proof_summary": "The attempt to recast MCP Server as `tokmd tools` was rejected because the server is still future work. A friction item was created to track this documentation clarity issue.",
+  "gates_run": [],
+  "friction_items_created": [
+    "FRIC-20231027-001"
   ],
-  "proof_summary": "Replaced 'tokmd serve' mentions with 'tokmd tools' and updated 'MCP Server' to 'MCP Tooling (via tool schema generation)'",
-  "gates_run": [
-    "cargo xtask docs --check",
-    "cargo fmt -- --check",
-    "cargo check",
-    "cargo test -p xtask"
-  ],
-  "friction_items_created": [],
   "persona_notes_created": [],
-  "rollback": "git checkout ROADMAP.md docs/PRODUCT.md docs/implementation-plan.md",
-  "follow_ups": []
+  "rollback": "git restore docs/PRODUCT.md docs/implementation-plan.md ROADMAP.md",
+  "follow_ups": [
+    "FRIC-20231027-001"
+  ]
 }

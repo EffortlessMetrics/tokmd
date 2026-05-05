@@ -564,7 +564,7 @@ _Goal: Native integration in CI pipelines and tooling ecosystems._
 _Goal: Native integration with Claude and other MCP-compatible clients._
 
 - **Tool definitions** ✅: `tokmd tools` already emits OpenAI, Anthropic, and JSON Schema definitions for agent/tool consumers.
-- MCP Tooling — Generate tool definitions for MCP-compatible clients instead of running a dedicated server
+- `tokmd serve` — Start MCP server for tool-based interaction
 - Resources: Expose receipts as MCP resources
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
 - Streaming: Incremental analysis results

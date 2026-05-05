@@ -114,7 +114,7 @@ Analysis provides information, not judgments:
 
 ## Future Direction
 
-*   **MCP Server**: Native integration with Claude and MCP-compatible tools (via tool schema generation)
+*   **MCP Server**: Native integration with Claude and MCP-compatible tools
 *   **Watch Mode**: Continuous analysis during development
 *   **Plugin System**: WASM-based extensible enrichers
 *   **Smart Suggestions**: Context-aware file recommendations for LLM workflows
