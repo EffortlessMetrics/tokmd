@@ -197,6 +197,35 @@ This document outlines the evolution of `tokmd` and the path forward.
 | PR template with trend section       | ✅ Complete | Template with TREND section markers                                |
 | Automatic PR comment injection       | ✅ Complete | Post cockpit metrics via `thollander/actions-comment-pull-request` |
 
+### Language Bindings (FFI)
+
+_Goal: Native integration in CI pipelines and tooling ecosystems._
+
+**Python (PyPI: `tokmd`)** ✅
+
+- Native bindings via PyO3 + maturin
+- Crate: `tokmd-python/`
+- API: `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
+- Returns native Python dicts
+- Wheels for Linux, macOS, Windows (x64 + arm64)
+- JSON API: `tokmd.run_json(mode, args_json)` for low-level access
+
+**Node.js (npm: `@tokmd/core`)** ✅
+
+- Native bindings via napi-rs
+- Crate: `tokmd-node/`
+- API: `lang()`, `module()`, `export()`, `analyze()`, `diff()` returning JS objects
+- Prebuilds for major platforms
+- All functions return Promises (async/non-blocking)
+
+**Shared Infrastructure** ✅
+
+- `tokmd-core` crate expanded with binding-friendly API
+- Pure settings types (no Clap dependencies)
+- JSON-in/JSON-out FFI boundary via `run_json()`
+- Structured error types for FFI
+
+
 ### Schema Changes
 
 - **Analysis schema version**: 3 → 4
@@ -531,35 +560,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### v2.0 — Platform Evolution
 
-#### A. Language Bindings (FFI) ✅ Complete
-
-_Goal: Native integration in CI pipelines and tooling ecosystems._
-
-**Python (PyPI: `tokmd`)** ✅
-
-- Native bindings via PyO3 + maturin
-- Crate: `tokmd-python/`
-- API: `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
-- Returns native Python dicts
-- Wheels for Linux, macOS, Windows (x64 + arm64)
-- JSON API: `tokmd.run_json(mode, args_json)` for low-level access
-
-**Node.js (npm: `@tokmd/core`)** ✅
-
-- Native bindings via napi-rs
-- Crate: `tokmd-node/`
-- API: `lang()`, `module()`, `export()`, `analyze()`, `diff()` returning JS objects
-- Prebuilds for major platforms
-- All functions return Promises (async/non-blocking)
-
-**Shared Infrastructure** ✅
-
-- `tokmd-core` crate expanded with binding-friendly API
-- Pure settings types (no Clap dependencies)
-- JSON-in/JSON-out FFI boundary via `run_json()`
-- Structured error types for FFI
-
-#### B. AI Agent Integration & MCP Server Mode
+#### AI Agent Integration & MCP Server Mode
 
 _Goal: Native integration with Claude and other MCP-compatible clients._
 
