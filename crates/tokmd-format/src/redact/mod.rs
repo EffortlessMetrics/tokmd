@@ -120,7 +120,7 @@ pub fn redact_path(path: &str) -> String {
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let ext = if ext.len() <= 5 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
+    let ext = if ext.len() <= 8 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
         ext
     } else {
         ""

@@ -1,17 +1,14 @@
 # Decision
 
-## Option A (recommended)
-- **What it is**: Update the length check in `redact_path` in `crates/tokmd-format/src/redact/mod.rs` from `<= 8` to `<= 5`. Standard file extensions (like `.rs`, `.cpp`, `.json`, `.toml`) are typically 2 to 4 characters long, with some rare ones being 5. Limiting the extension length to `<= 5` prevents leaking longer strings that happen to be after a dot (e.g., `file.secret12`), effectively hardening the security boundary while preserving genuine extensions.
-- **Why it fits this repo and shard**: The assignment focuses on redaction correctness and leakage prevention in the `core-pipeline` shard, specifically targeting `tokmd-format`. This limits the risk of exposing sensitive data disguised as an extension.
-- **Trade-offs**:
-  - *Structure*: Minimal modification; updates a hardcoded length threshold.
-  - *Velocity*: Very quick and targeted fix.
-  - *Governance*: Enhances security of redacted outputs. Might redact uncommon but legitimate 6-8 char extensions (like `.groovy`, `.action`), masking them as a bare hash, which is acceptable under redaction mode.
+## Option A
+- **What it is**: Implement the length restriction logic (`<= 5`) in `redact_path` as originally planned.
+- **Why it fits**: It directly addresses the prompt's boundary hardening assignment.
+- **Trade-offs**: Will duplicate work and conflict with PR #1553 which already addressed this via an explicit allowlist.
 
-## Option B
-- **What it is**: Implement a strict allowlist of known safe extensions (e.g., `rs`, `js`, `json`, `md`) instead of a length check.
-- **Why it fits**: Provides an even stricter security guarantee by completely discarding unknown extensions.
-- **Trade-offs**: Requires maintaining an exhaustive list of extensions, which could be cumbersome given the number of languages and file types. Legitimate but unlisted extensions would be fully redacted, potentially confusing users trying to understand the composition of their codebase.
+## Option B (recommended)
+- **What it is**: Abort the code patch and pivot to a "learning PR" acknowledging that the patch is superseded by #1553.
+- **When to choose it instead**: When another merged/active PR has already satisfied the intent of the assigned task in a superior or incompatible way.
+- **Trade-offs**: Sacrifices a code contribution in favor of workflow hygiene and avoiding redundant effort.
 
 ## Decision
-I'm proceeding with **Option A** because it is a low-risk, high-confidence improvement that aligns perfectly with the "Stabilizer" style and "Sentinel" persona. It hardens the trust boundary by preventing the leak without the maintenance burden of an allowlist.
+Proceeding with Option B. The code patch was built and tested successfully, but the review feedback correctly identified that PR #1553 has superseded it. The code changes have been reverted, and this run is now concluding as a learning PR containing a friction item about the collision.

@@ -1,5 +1,5 @@
 {
   "status": "success",
-  "outcome": "PR-ready patch",
-  "target": "redact_path length limit tightening"
+  "outcome": "learning PR",
+  "target": "Superseded redaction hardening"
 }

@@ -1,31 +1,30 @@
 ## 💡 Summary
-Hardened the `redact_path` function to prevent long arbitrary strings from being leaked as file extensions. The maximum length of an unredacted extension has been reduced from 8 to 5 characters.
+This is a learning PR. The planned boundary hardening for `redact_path` extension leakage was superseded by a merged PR (#1553). The original code patch has been aborted, and the run packet is being recorded.
 
 ## 🎯 Why
-During path redaction, the system preserved file extensions to allow identifying the type of redacted files. However, an overly generous length limit (up to 8 characters) allowed sensitive or identifying strings located after a dot (e.g., `file.secret12`) to bypass redaction and leak into the final output. Tightening the bound ensures that only typical short extensions are preserved while arbitrary data is securely hashed.
+During the execution of the `sentinel_redaction` assignment, a valid leakage boundary was identified in `crates/tokmd-format/src/redact/mod.rs` where the `ext.len() <= 8` heuristic could leak short sensitive strings (e.g., `file.secret12`). A patch to tighten the length bound to `5` was prepared and verified. However, review feedback indicated that PR #1553 had already merged an aligned fix using an explicit allowlist. To avoid regression and merge conflict churn, the work was successfully pivoted into a learning PR as per memory policy.
 
 ## 🔎 Evidence
-- File path: `crates/tokmd-format/src/redact/mod.rs`, `crates/tokmd-format/tests/test_redaction_leak.rs`
-- Finding: `redact_path("file.secret12")` previously leaked the `secret12` portion. Now it successfully hashes the full string into a safe representation like `hash_of_path`.
-- Receipt: `cargo test -p tokmd-format` proves the vulnerability is closed.
+- File path: `crates/tokmd-format/src/redact/mod.rs`
+- Finding: `redact_path` extension length heuristic was superseded by an explicit allowlist.
+- Receipt: PR comment 4378162414 confirming #1553 superseded this work.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- What it is: Reduce `ext.len() <= 8` to `ext.len() <= 5` in `redact_path`.
-- Why it fits this repo and shard: It directly addresses the leakage in the `core-pipeline` formatting component.
-- Trade-offs: Structure is minimally affected. Velocity is high. Governance limits rare 6-8 char extensions (e.g., `.action`) to a fully redacted state, which is an acceptable safety tradeoff.
+### Option A
+- what it is: Implement the heuristic length tightening.
+- why it fits this repo and shard: Met the prompt requirements.
+- trade-offs: Would cause conflicts with the already-merged #1553.
 
-### Option B
-- What it is: Use a strict allowlist of known file extensions.
-- When to choose it instead: When zero tolerance for unknown extensions is required.
-- Trade-offs: High maintenance overhead for adding new extensions. Legitimate unknown extensions would be entirely obfuscated, reducing diagnostic utility.
+### Option B (recommended)
+- what it is: Abort code patch and generate a learning PR.
+- when to choose it instead: When intended work is superseded by reality.
+- trade-offs: Zero risk, correctly obeys memory policy for superseded work.
 
 ## ✅ Decision
-Proceeded with Option A to effectively seal the boundary with a low-risk heuristic that aligns with our Sentinel objective without overcomplicating maintenance.
+Chose Option B to gracefully abort the redundant patch, document the conflict via a friction item, and submit the generated run packet.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/src/redact/mod.rs`
-- `crates/tokmd-format/tests/test_redaction_leak.rs`
+- `.jules/friction/open/sentinel_redaction_superseded.md`
 
 ## 🧪 Verification receipts
 ```text
@@ -35,11 +34,11 @@ Proceeded with Option A to effectively seal the boundary with a low-risk heurist
 ```
 
 ## 🧭 Telemetry
-- Change shape: Hardening
-- Blast radius: API (redaction mode outputs)
-- Risk class: Low - affects redacted views, tightening output security.
-- Rollback: Revert the PR and unblock the test case.
-- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`
+- Change shape: Workflow Learning
+- Blast radius: None (documentation only)
+- Risk class: Zero
+- Rollback: Revert the `.jules` artifacts
+- Gates run: N/A (documentation PR)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_redaction/envelope.json`
@@ -47,6 +46,7 @@ Proceeded with Option A to effectively seal the boundary with a low-risk heurist
 - `.jules/runs/sentinel_redaction/receipts.jsonl`
 - `.jules/runs/sentinel_redaction/result.json`
 - `.jules/runs/sentinel_redaction/pr_body.md`
+- `.jules/friction/open/sentinel_redaction_superseded.md`
 
 ## 🔜 Follow-ups
 None
