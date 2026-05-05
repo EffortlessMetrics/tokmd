@@ -1,4 +1,4 @@
 {
   "status": "success",
-  "reason": "Successfully extracted sort_lang_rows, sort_module_rows, and sort_file_rows as public sorting functions and updated the inline references in tokmd-model. We also updated the determinism property tests in crates/tokmd-model/tests/determinism_w66.rs to use the actual library functions instead of redefining matching sort closures in the tests."
+  "reason": "Gracefully aborted the redundant code patch as it was superseded by #1584. Recorded the friction item and generated a learning PR packet."
 }

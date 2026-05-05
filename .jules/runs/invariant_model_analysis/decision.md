@@ -1,17 +1,16 @@
 # Decision
 
-## Option A (recommended)
-Add public sorting functions (`sort_lang_rows`, `sort_module_rows`, `sort_file_rows`) to `tokmd-model` and expose the inline sorting logic so that the determinism tests can directly use the actual library logic instead of defining identical closures in tests.
-- **Why it fits**: The shard memory directly mentions: "In `tokmd`, sorting logic for data rows (like `LangRow`, `FileRow`) is implemented inline within aggregation functions in `tokmd-model` and `tokmd-format`. It is not exposed as standalone public functions (e.g., there are no `sort_lang_rows` functions). To test sorting determinism, tests must either invoke the parent aggregation functions or extract the inline logic into public functions, rather than redefining the sorting closures in the tests."
-- **Trade-offs**:
-  - *Structure*: Improves DRY and makes the public API more testable without redundant internal closures in the test file.
-  - *Velocity*: Fast to implement.
-  - *Governance*: Better lock-in for invariants.
+## Option A
+Proceed with the original plan to extract sorting logic into public functions in `tokmd-model` and update `determinism_w66.rs`.
+- **Trade-offs**: Unnecessary since a similar change (#1584) was already merged, increasing the API surface pointlessly.
 
-## Option B
-Test determinism only through the parent aggregation functions (`create_lang_report_from_rows`, etc.).
-- **When to choose**: If exposing sorting functions bloats the public API undesirably.
-- **Trade-offs**: More cumbersome to write focused property tests.
+## Option B (recommended)
+Abort the code patch and create a learning PR documenting that the PR was superseded by #1584.
+- **Why it fits**: The prompt strictly instructs: "If an intended patch is found to be superseded by another merged PR during execution, gracefully abort the redundant fix and create a 'learning PR'. This involves generating the standard run artifacts and a new friction item (in `.jules/friction/open/`) documenting the workflow edge case."
+- **Trade-offs**:
+  - *Structure*: Ensures no conflicting/redundant patches are opened.
+  - *Velocity*: Fast.
+  - *Governance*: Conforms to memory instructions on graceful aborts.
 
 ## Decision
-**Option A**. It aligns perfectly with the explicit `Invariant` persona memory for this specific shard regarding determinism testing for `tokmd-model` sorting logic. We will extract `sort_lang_rows`, `sort_module_rows`, and `sort_file_rows` into public functions in `tokmd-model/src/lib.rs` and update `determinism_w66.rs` to use them.
+**Option B**. The PR comment explicitly stated that this was superseded by #1584, so the code changes will be rolled back, and a learning PR will be generated.
