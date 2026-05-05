@@ -12,3 +12,4 @@ Add executable doctest code blocks to `crates/tokmd-core/src/lib.rs` for `lang_w
 
 ## Decision
 Selected Option B. Adding actual executable doctests to the core public APIs ensures that the library facade documentation cannot silently drift from the actual implementation. Option A was rejected during code review because it was found to cause clap formatting drift in the generated markdown reference.
+However, PR review noted this work is superseded by #1592. Concluding with a learning PR.

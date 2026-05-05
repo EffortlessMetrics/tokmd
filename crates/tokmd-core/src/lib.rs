@@ -107,17 +107,6 @@ fn now_ms() -> u128 {
 /// # Returns
 ///
 /// A `LangReceipt` containing the language summary.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{lang_workflow, settings::{ScanSettings, LangSettings}};
-///
-/// let scan = ScanSettings::current_dir();
-/// let lang = LangSettings::default();
-///
-/// let receipt = lang_workflow(&scan, &lang).expect("Scan failed");
-/// ```
 pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths = scan_paths_or_current_dir(scan);

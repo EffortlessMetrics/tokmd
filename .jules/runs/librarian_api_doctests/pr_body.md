@@ -1,12 +1,13 @@
 ## 💡 Summary
-Added executable doctests to the core library workflows in `tokmd-core` to ensure the documentation stays in sync with the API behavior and does not silently drift.
+Attempted to add executable doctests to the core library workflows in `tokmd-core`, but the patch was superseded by #1592. Recording learning PR instead.
 
 ## 🎯 Why
-The user requested improved factual documentation and executable example coverage for the core/config/CLI public APIs. The primary workflows (`lang_workflow`, `export_workflow`, `module_workflow`, `diff_workflow`, `analyze_workflow`) only had `/// # Example` headings without corresponding executable code blocks, increasing the risk of the documentation drifting out of sync with actual behavior.
+The user requested improved factual documentation and executable example coverage for the core/config/CLI public APIs. The primary workflows (`lang_workflow`, `export_workflow`, `module_workflow`, `diff_workflow`, `analyze_workflow`) only had `/// # Example` headings without corresponding executable code blocks, increasing the risk of the documentation drifting out of sync with actual behavior. The fix was implemented but superseded during execution.
 
 ## 🔎 Evidence
 - Looked at `crates/tokmd-core/src/lib.rs` and saw that public API functions lacked executable code blocks.
 - `cargo test --doc -p tokmd-core` showed the existing doctests.
+- PR review indicated #1592 merged equivalent coverage.
 
 ## 🧭 Options considered
 ### Option A (rejected)
@@ -20,10 +21,11 @@ The user requested improved factual documentation and executable example coverag
 - Trade-offs: Requires a bit more effort to construct the inputs.
 
 ## ✅ Decision
-Selected Option B. Adding executable doctests ensures the examples cannot silently drift from the actual code. It provides concrete, verifiable usage examples for down-stream consumers of the library.
+Selected Option B to add executable doctests. However, due to the work being superseded by #1592, the code patch is aborted and a learning PR is created instead.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-core/src/lib.rs`: Added `/// ```rust ... ```` doctest blocks to `lang_workflow`, `export_workflow`, `module_workflow`, `diff_workflow`, and `analyze_workflow`.
+- Added a friction item to track the superseded work.
+- Created learning PR artifacts.
 
 ## 🧪 Verification receipts
 ```text
@@ -44,18 +46,17 @@ test crates/tokmd-core/src/lib.rs - module_workflow (line 178) ... ok
 test crates/tokmd-core/src/lib.rs - analyze_workflow (line 395) ... ok
 
 test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
-
-all doctests ran in 1.51s; merged doctests compilation took 0.95s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation enhancements.
-- Blast radius: API docs. Safe.
-- Risk class: Low
-- Rollback: `git reset HEAD~1 --hard`
-- Gates run: `cargo test -p tokmd --test integration`, `cargo test --doc -p tokmd-core --all-features`, `cargo xtask docs --check`
+- Change shape: Learning PR.
+- Blast radius: None.
+- Risk class: None.
+- Rollback: None.
+- Gates run: None for the learning PR itself.
 
 ## 🗂️ .jules artifacts
+- `.jules/friction/open/librarian_api_doctests_superseded.md`
 - `.jules/runs/librarian_api_doctests/envelope.json`
 - `.jules/runs/librarian_api_doctests/decision.md`
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`

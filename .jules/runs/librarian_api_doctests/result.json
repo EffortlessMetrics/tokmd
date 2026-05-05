@@ -1,17 +1,13 @@
 {
-  "outcome_type": "proof_patch",
-  "title": "librarian: Add executable doctests for tokmd-core public workflows 📚",
-  "summary": "Added executable doctest blocks to the primary FFI and config workflows in tokmd-core.",
-  "target_paths": [
-    "crates/tokmd-core/src/lib.rs"
+  "outcome_type": "learning_pr",
+  "title": "jules: record librarian learning on tokmd-core public workflows 📚",
+  "summary": "Attempted to add executable doctests to tokmd-core workflows, but the patch was superseded by #1592.",
+  "target_paths": [],
+  "gates_run": [],
+  "friction_items_created": [
+    ".jules/friction/open/librarian_api_doctests_superseded.md"
   ],
-  "gates_run": [
-    "cargo test -p tokmd --test integration",
-    "cargo test --doc -p tokmd-core --all-features",
-    "cargo xtask docs --check"
-  ],
-  "friction_items_created": [],
   "persona_notes_created": [],
-  "rollback": "git reset HEAD~1 --hard",
+  "rollback": "git reset HEAD --hard",
   "follow_ups": []
 }
