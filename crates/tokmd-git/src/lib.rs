@@ -29,12 +29,7 @@ pub use tokmd_types::CommitIntentKind;
 /// functions in this crate.
 pub fn git_cmd() -> Command {
     let mut cmd = Command::new("git");
-    cmd.env_remove("GIT_DIR")
-        .env_remove("GIT_WORK_TREE")
-        .env_remove("GIT_INDEX_FILE")
-        .env_remove("GIT_OBJECT_DIRECTORY")
-        .env_remove("GIT_ALTERNATE_OBJECT_DIRECTORIES")
-        .env_remove("GIT_CEILING_DIRECTORIES");
+    cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
     cmd
 }
 
@@ -274,18 +269,9 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
         return None;
     }
 
-    // Validate string for safety before shell interpolation / git arguments
-    let is_safe_ref = |s: &str| -> bool {
-        !s.is_empty()
-            && !s.starts_with('-')
-            && !s.contains(|c: char| {
-                c.is_whitespace() || matches!(c, ';' | '&' | '|' | '<' | '>' | '$' | '`' | '\\')
-            })
-    };
-
     // TOKMD_GIT_BASE_REF env override
     if let Ok(env_ref) = std::env::var("TOKMD_GIT_BASE_REF")
-        && is_safe_ref(&env_ref)
+        && !env_ref.is_empty()
         && rev_exists(repo_root, &env_ref)
     {
         return Some(env_ref);
@@ -293,7 +279,7 @@ pub fn resolve_base_ref(repo_root: &Path, requested: &str) -> Option<String> {
 
     // GitHub Actions: origin/$GITHUB_BASE_REF
     if let Ok(gh_base) = std::env::var("GITHUB_BASE_REF")
-        && is_safe_ref(&gh_base)
+        && !gh_base.is_empty()
     {
         let candidate = format!("origin/{gh_base}");
         if rev_exists(repo_root, &candidate) {

@@ -1,49 +1,44 @@
 ## 💡 Summary
-Hardened `git` subprocess boundary and shell interpolation by aggressively removing untrusted environment variables. Improved validation on standard git references (`GITHUB_BASE_REF`, `TOKMD_GIT_BASE_REF`).
+This is a learning PR. The intended sentinel boundary hardening for git ref resolution and subprocess environment (in `tokmd-git` and `tokmd`) was aborted because it was superseded by another merged PR (#1554) during execution.
 
 ## 🎯 Why
-In `crates/tokmd/src/git_support.rs` and `crates/tokmd-git/src/lib.rs`, the `git` command invocation previously only removed `GIT_DIR` and `GIT_WORK_TREE`, allowing `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, and `GIT_CEILING_DIRECTORIES` to leak in from the environment and manipulate the execution boundary. Additionally, the fallback environment variables (`GITHUB_BASE_REF`, `TOKMD_GIT_BASE_REF`) were interpolated into command strings without validating for shell meta-characters.
+During the execution of the prompt, a valid target was identified to harden the trust boundaries around `git_cmd()` and fallback branch reference environment variables. The patch was prepared. However, feedback revealed the intended fix is superseded by an already merged pull request (#1554). Proceeding with the redundant patch would introduce unnecessary churn.
 
 ## 🔎 Evidence
 - File path(s): `crates/tokmd/src/git_support.rs`, `crates/tokmd-git/src/lib.rs`
-- Observed behavior: `git` command allows environment variable leakage which alters the git working graph context unprompted. Ref env vars accept strings containing `;`, `|`, `&`, `$` and spaces.
-- Validation: Unit tests continue to pass and `cargo clippy` succeeds with the stricter string character match.
+- Observed behavior: PR review feedback stated the change is superseded by #1554.
+- Receipt: The pull request comment itself.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `crates/tokmd-git/src/lib.rs` and `crates/tokmd/src/git_support.rs` to harden trust boundaries around the `git` command execution. Strip out additional git context variables (`GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_CEILING_DIRECTORIES`). Harden string validity on `TOKMD_GIT_BASE_REF` and `GITHUB_BASE_REF` using `matches!`.
-- why it fits this repo and shard: The interfaces shard explicitly covers `tokmd` and `tokmd-git` CLI adapters and boundary execution points. It is a textbook Sentinel task.
-- trade-offs: Structure / Velocity / Governance: Hardens environment boundary on command execution with a quick patch.
+- what it is: Abort the fix and generate a learning PR, acknowledging the superseded state and recording a workflow edge case friction item.
+- why it fits this repo and shard: Memory rules explicitly dictate that if an intended patch is found to be superseded by another merged PR during execution, we must gracefully abort the redundant fix and create a 'learning PR', accompanied by a friction item in `.jules/friction/open/` documenting the workflow edge case.
+- trade-offs: Structure: Avoids duplicate work. Velocity: Swiftly closes out the task. Governance: Aligns with stated policies for superseded work.
 
 ### Option B
-- what it is: Record a learning PR.
-- when to choose it instead: If the path didn't exist or targets couldn't be easily remediated without upstream breaking changes.
-- trade-offs: Misses the opportunity to patch the exact security bounds.
+- what it is: Attempt to find a different target.
+- when to choose it instead: If the prompt requires continuing until an actionable patch is found regardless of previously aborted attempts.
+- trade-offs: Time-consuming and potentially risky if no clear secondary targets exist within the shard constraints.
 
 ## ✅ Decision
-Option A was chosen to harden the environment and ref-resolution subprocess boundaries without changing the core business logic.
+Option A. The fix is explicitly confirmed superseded. The memory policy mandates a fallback to a learning PR in this exact scenario.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-git/src/lib.rs`
-- `crates/tokmd/src/git_support.rs`
+- (None - fix aborted)
 
 ## 🧪 Verification receipts
 ```text
 {"command": "mkdir -p .jules/runs/sentinel-1 && generate envelope.json", "status": "success"}
-{"command": "grep -rn 'env::var' crates/tokmd*/src", "status": "success"}
-{"command": "grep -rn 'Command::new' crates/tokmd*/src", "status": "success"}
 {"command": "write decision.md", "status": "success"}
-{"command": "patch git_cmd in git_support.rs and tokmd-git/src/lib.rs", "status": "success"}
-{"command": "patch GITHUB_BASE_REF/TOKMD_GIT_BASE_REF validation in tokmd-git/src/lib.rs", "status": "success"}
 {"command": "write result.json", "status": "success"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Hardening
-- Blast radius: API / IO / Security Bounds
-- Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-git`, `cargo test -p tokmd`, `cargo clippy`, `cargo fmt`
+- Change shape: Learning / Aborted Patch
+- Blast radius: None
+- Risk class: None
+- Rollback: None
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel-1/envelope.json`
@@ -51,6 +46,7 @@ Option A was chosen to harden the environment and ref-resolution subprocess boun
 - `.jules/runs/sentinel-1/receipts.jsonl`
 - `.jules/runs/sentinel-1/result.json`
 - `.jules/runs/sentinel-1/pr_body.md`
+- `.jules/friction/open/superseded_PR_edge_case.md`
 
 ## 🔜 Follow-ups
-None
+Review the `.jules/friction/open/superseded_PR_edge_case.md` to track instances of concurrent duplicated efforts.
