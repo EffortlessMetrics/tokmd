@@ -14,6 +14,27 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+fn run_tokmd(args: &[&str]) -> String {
+    let output = tokmd_cmd()
+        .args(args)
+        .output()
+        .unwrap_or_else(|err| panic!("failed to run tokmd {}: {err}", args.join(" ")));
+
+    assert!(
+        output.status.success(),
+        "tokmd {} failed with status {}\nstderr:\n{}",
+        args.join(" "),
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    String::from_utf8(output.stdout).expect("tokmd output should be valid UTF-8")
+}
+
+fn assert_snapshot_normalized(name: &str, stdout: &str) {
+    insta::assert_snapshot!(name, normalize(stdout));
+}
+
 /// Replace dynamic values (timestamps, versions, absolute paths) with stable
 /// placeholders so snapshots are deterministic across machines and runs.
 fn normalize(output: &str) -> String {
@@ -64,25 +85,13 @@ fn normalize(output: &str) -> String {
 
 #[test]
 fn snapshot_lang_json() {
-    let output = tokmd_cmd()
-        .args(["lang", "--format", "json"])
-        .output()
-        .expect("failed to run tokmd lang --format json");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("lang_json", normalize(&stdout));
+    let stdout = run_tokmd(&["lang", "--format", "json"]);
+    assert_snapshot_normalized("lang_json", &stdout);
 }
 
 #[test]
 fn snapshot_lang_json_structure() {
-    let output = tokmd_cmd()
-        .args(["lang", "--format", "json"])
-        .output()
-        .expect("failed to run tokmd lang --format json");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["lang", "--format", "json"]);
     let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
 
     // Verify structural keys are present — the snapshot captures exact values
@@ -99,13 +108,7 @@ fn snapshot_lang_json_structure() {
 
 #[test]
 fn snapshot_lang_markdown() {
-    let output = tokmd_cmd()
-        .args(["lang"])
-        .output()
-        .expect("failed to run tokmd lang");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["lang"]);
     insta::assert_snapshot!("lang_markdown", stdout);
 }
 
@@ -115,13 +118,7 @@ fn snapshot_lang_markdown() {
 
 #[test]
 fn snapshot_lang_tsv() {
-    let output = tokmd_cmd()
-        .args(["lang", "--format", "tsv"])
-        .output()
-        .expect("failed to run tokmd lang --format tsv");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["lang", "--format", "tsv"]);
     insta::assert_snapshot!("lang_tsv", stdout);
 }
 
@@ -131,37 +128,19 @@ fn snapshot_lang_tsv() {
 
 #[test]
 fn snapshot_module_json() {
-    let output = tokmd_cmd()
-        .args(["module", "--format", "json"])
-        .output()
-        .expect("failed to run tokmd module --format json");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("module_json", normalize(&stdout));
+    let stdout = run_tokmd(&["module", "--format", "json"]);
+    assert_snapshot_normalized("module_json", &stdout);
 }
 
 #[test]
 fn snapshot_module_markdown() {
-    let output = tokmd_cmd()
-        .args(["module"])
-        .output()
-        .expect("failed to run tokmd module");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["module"]);
     insta::assert_snapshot!("module_markdown", stdout);
 }
 
 #[test]
 fn snapshot_module_tsv() {
-    let output = tokmd_cmd()
-        .args(["module", "--format", "tsv"])
-        .output()
-        .expect("failed to run tokmd module --format tsv");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["module", "--format", "tsv"]);
     insta::assert_snapshot!("module_tsv", stdout);
 }
 
@@ -171,37 +150,19 @@ fn snapshot_module_tsv() {
 
 #[test]
 fn snapshot_export_json() {
-    let output = tokmd_cmd()
-        .args(["export", "--format", "json"])
-        .output()
-        .expect("failed to run tokmd export --format json");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("export_json", normalize(&stdout));
+    let stdout = run_tokmd(&["export", "--format", "json"]);
+    assert_snapshot_normalized("export_json", &stdout);
 }
 
 #[test]
 fn snapshot_export_jsonl() {
-    let output = tokmd_cmd()
-        .args(["export", "--format", "jsonl"])
-        .output()
-        .expect("failed to run tokmd export --format jsonl");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("export_jsonl", normalize(&stdout));
+    let stdout = run_tokmd(&["export", "--format", "jsonl"]);
+    assert_snapshot_normalized("export_jsonl", &stdout);
 }
 
 #[test]
 fn snapshot_export_csv() {
-    let output = tokmd_cmd()
-        .args(["export", "--format", "csv"])
-        .output()
-        .expect("failed to run tokmd export --format csv");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = run_tokmd(&["export", "--format", "csv"]);
     insta::assert_snapshot!("export_csv", stdout);
 }
 
@@ -212,31 +173,19 @@ fn snapshot_export_csv() {
 #[test]
 #[cfg(feature = "analysis")]
 fn snapshot_analyze_json() {
-    let output = tokmd_cmd()
-        .args([
-            "analyze", ".", "--preset", "receipt", "--format", "json", "--no-git",
-        ])
-        .output()
-        .expect("failed to run tokmd analyze --format json");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("analyze_json", normalize(&stdout));
+    let stdout = run_tokmd(&[
+        "analyze", ".", "--preset", "receipt", "--format", "json", "--no-git",
+    ]);
+    assert_snapshot_normalized("analyze_json", &stdout);
 }
 
 #[test]
 #[cfg(feature = "analysis")]
 fn snapshot_analyze_markdown() {
-    let output = tokmd_cmd()
-        .args([
-            "analyze", ".", "--preset", "receipt", "--format", "md", "--no-git",
-        ])
-        .output()
-        .expect("failed to run tokmd analyze --format md");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("analyze_markdown", normalize(&stdout));
+    let stdout = run_tokmd(&[
+        "analyze", ".", "--preset", "receipt", "--format", "md", "--no-git",
+    ]);
+    assert_snapshot_normalized("analyze_markdown", &stdout);
 }
 
 // ---------------------------------------------------------------------------
@@ -245,14 +194,8 @@ fn snapshot_analyze_markdown() {
 
 #[test]
 fn snapshot_version() {
-    let output = tokmd_cmd()
-        .arg("--version")
-        .output()
-        .expect("failed to run tokmd --version");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    insta::assert_snapshot!("version", normalize(&stdout));
+    let stdout = run_tokmd(&["--version"]);
+    assert_snapshot_normalized("version", &stdout);
 }
 
 // ---------------------------------------------------------------------------
@@ -261,13 +204,7 @@ fn snapshot_version() {
 
 #[test]
 fn snapshot_help() {
-    let output = tokmd_cmd()
-        .arg("--help")
-        .output()
-        .expect("failed to run tokmd --help");
-
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    // Normalize the version in the help header
-    insta::assert_snapshot!("help", normalize(&stdout));
+    let stdout = run_tokmd(&["--help"]);
+    // Normalize the version in the help header.
+    assert_snapshot_normalized("help", &stdout);
 }

@@ -29,7 +29,9 @@
 - Closed #1465 as superseded by #1575.
 - Merged #1577: synthesized keeper for cockpit property invariants. Added monotonic code-health scoring coverage for breaking indicators and tightened composition percentage assertions to the actual 0..1 fraction contract while preserving existing sparkline coverage. Gates: `cargo test -p tokmd-cockpit --test properties`; `cargo test -p tokmd-cockpit`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1464 as superseded by #1577.
-- Next cluster: Analysis invariant tests (#1533, #1537, #1496).
+- Merged #1578: synthesized keeper for analysis Health TODO pipeline coverage. Added a content+walk analyzer test with a real temp file and exact TODO/FIXME count and density assertions. Gates: `cargo test -p tokmd-analysis --features content,walk --test analysis_deep_w64 health_preset_populates_todo_metrics_from_real_files`; `cargo test -p tokmd-analysis --features content,walk --test analysis_deep_w64`; `cargo test -p tokmd-analysis`; `cargo test -p tokmd-analysis --all-features --test analysis_deep_w64 health_preset_populates_todo_metrics_from_real_files`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1537 as superseded by #1578; closed #1533/#1496 as duplicate or weaker analysis-proof coverage.
+- Next cluster: Snapshot harness/docs (#1459, #1461, #1460, #1462).
 
 ## Operating decisions
 
