@@ -2,3 +2,4 @@
 {"command": "write decision.md", "outcome": "success"}
 {"command": "write result.json", "outcome": "success"}
 {"command": "write pr_body.md", "outcome": "success"}
+{"command": "write friction", "outcome": "success"}

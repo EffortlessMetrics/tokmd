@@ -1,10 +1,5 @@
 {
-  "summary": "Updated web/runner to correctly parse nested in-memory inputs, eliminating drift with tokmd-core API.",
-  "status": "success",
-  "files_changed": [
-    "web/runner/messages.js",
-    "web/runner/messages.test.mjs",
-    "web/runner/worker.js",
-    "web/runner/worker.test.mjs"
-  ]
+  "summary": "Gracefully aborted: PR superseded by #1594.",
+  "status": "learning",
+  "files_changed": []
 }
