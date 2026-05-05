@@ -21,7 +21,9 @@
 - Closed #1480 as duplicate coverage: current main already has all-variant cockpit enum serde coverage in integration/contract tests and snapshots.
 - Merged #1566: synthesized keeper for `tokmd-git` intent helper coverage. Added source-local intent classification tests and direct private word-boundary helper assertions after fixing the stale branch formatting issue. Gates: `cargo test -p tokmd-git classify_intent_`; `cargo test -p tokmd-git contains_word_respects_word_boundaries`; `cargo test -p tokmd-git`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1478 as superseded by #1566.
-- Next cluster: Property/proptest improvements (#1463, #1464, #1465, #1466).
+- Merged #1568: synthesized keeper for `tokmd-io-port` `MemFs` property tests. Added properties for byte-length file size reporting and sorted unique path listing. Gates: `cargo test -p tokmd-io-port --test properties`; `cargo test -p tokmd-io-port`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1463 as superseded by #1568.
+- Next cluster: Property/proptest improvements (#1464, #1465, #1466).
 
 ## Operating decisions
 
