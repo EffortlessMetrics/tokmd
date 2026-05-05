@@ -1,52 +1,41 @@
 ## 💡 Summary
-Refactored inline sorting logic for data rows (`LangRow`, `ModuleRow`, `FileRow`) into exposed public functions in `tokmd-model` (`sort_lang_rows`, `sort_module_rows`, `sort_file_rows`). Updated integration and determinism tests in `tokmd-model` and `tokmd-types` to use these central functions rather than redefining duplicate sorting closures.
+This is a learning PR documenting a workflow edge case. The intended patch to extract duplicated inline row-sorting logic into public determinism functions in `tokmd-model` was superseded by PR #1584, which resolved the duplication. I have reverted the redundant patch and captured the friction.
 
 ## 🎯 Why
-This addresses a memory gap to ensure integration tests test the actual sorting determinism used in production. It centralizes sorting logic and prevents drift or inconsistencies in tests testing row structures.
+This learning PR surfaces the friction of duplicated effort across concurrent PRs, fulfilling the fallback protocol to record a learning packet when an honest patch is no longer justified or needed.
 
 ## 🔎 Evidence
-- Found multiple inline closures across `crates/tokmd-model/tests` and `crates/tokmd-types/tests` testing determinism by sorting rows with `b.code.cmp(&a.code).then_with(...)`.
-- `cargo test -p tokmd --test determinism_regression` passes correctly showing we didn't break deterministic sorting contracts.
+- PR Comment from user: "Superseded by #1584. This draft branch duplicated the row-sorting extraction, had an unstable CI history, and carried extra unrelated/noisy changes."
+- Friction item written documenting the overlap.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Expose `sort_lang_rows`, `sort_module_rows`, and `sort_file_rows` as public functions in `tokmd-model` and refactor tests to use them.
-- **Why it fits**: Directly satisfies the instruction to test sorting determinism using exposed public functions rather than redefining duplicate sorting logic in tests. Resolves a friction point.
-- **Trade-offs**: Adds 3 new utility functions to the public API of `tokmd-model`.
+- Revert the redundant commit, abort the fix, and create a Learning PR instead.
+- **Why it fits**: Directly satisfies the explicit instruction for handling superseded PRs documented in the agent's memory protocol.
+- **Trade-offs**: None, avoids merge conflicts and noisy repo history.
 
 ### Option B
-- Add a macro or test utility function solely within the tests directory.
-- **When to choose it instead**: If exposing these sorting functions to the public API is deemed a stability risk.
-- **Trade-offs**: Doesn't truly test the exact determinism logic used by the library.
+- Ignore the comment and keep pushing the redundant patch.
+- **When to choose it instead**: Never.
+- **Trade-offs**: Clutters the PR board and wastes reviewer time.
 
 ## ✅ Decision
-Option A was chosen as it strictly follows the Gatekeeper instructions to standardize determinism checks via exported standalone functions.
+Option A was chosen. I reverted the patch and documented the friction item since the original fix was superseded.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-model/src/lib.rs`
-- `crates/tokmd-model/tests/deep.rs`
-- `crates/tokmd-model/tests/deep_model_w49.rs`
-- `crates/tokmd-model/tests/determinism_w66.rs`
-- `crates/tokmd-model/tests/mutation_coverage_w50.rs`
-- `crates/tokmd-model/tests/properties.rs`
-- `crates/tokmd-model/tests/proptest_w42.rs`
-- `crates/tokmd-model/tests/proptest_w72.rs`
-- `crates/tokmd-types/tests/determinism_props.rs`
-- `crates/tokmd-types/tests/determinism_proptest.rs`
-- `crates/tokmd-types/tests/mutation_coverage_w50.rs`
+- Reverted code changes.
+- Added friction item: `.jules/friction/open/superseded_determinism.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-model (pass)
-cargo test -p tokmd-types (pass)
 cargo test -p tokmd --test determinism_regression (pass)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Refactoring
-- Blast radius: Internal tests, API addition. Low risk as core determinism logic is untouched, just wrapped.
-- Risk class: Low
-- Rollback: Revert the PR
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class: None
+- Rollback: N/A
 - Gates run: `cargo test`
 
 ## 🗂️ .jules artifacts
@@ -55,6 +44,7 @@ cargo test -p tokmd --test determinism_regression (pass)
 - `.jules/runs/gatekeeper_determinism/receipts.jsonl`
 - `.jules/runs/gatekeeper_determinism/result.json`
 - `.jules/runs/gatekeeper_determinism/pr_body.md`
+- `.jules/friction/open/superseded_determinism.md`
 
 ## 🔜 Follow-ups
 None

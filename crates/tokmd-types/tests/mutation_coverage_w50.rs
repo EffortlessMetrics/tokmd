@@ -96,7 +96,7 @@ fn lang_row_sort_by_code_desc() {
     ];
 
     // Sort descending by code, then by name
-    tokmd_model::sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
     assert_eq!(rows[0].lang, "Rust", "Rust (500 code) should sort first");
     assert_eq!(

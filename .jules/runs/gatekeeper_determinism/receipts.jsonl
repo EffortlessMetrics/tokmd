@@ -1,3 +1,1 @@
-{"cmd": "cargo test -p tokmd-model", "exit_code": 0}
-{"cmd": "cargo test -p tokmd-types", "exit_code": 0}
 {"cmd": "cargo test -p tokmd --test determinism_regression", "exit_code": 0}

@@ -138,7 +138,7 @@ proptest! {
     fn lang_sort_descending_code_then_name(
         mut rows in proptest::collection::vec(arb_lang_row(), 2..20)
     ) {
-        tokmd_model::sort_lang_rows(&mut rows);
+        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
         for pair in rows.windows(2) {
             prop_assert!(
@@ -154,7 +154,7 @@ proptest! {
     fn module_sort_descending_code_then_name(
         mut rows in proptest::collection::vec(arb_module_row(), 2..20)
     ) {
-        tokmd_model::sort_module_rows(&mut rows);
+        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 
         for pair in rows.windows(2) {
             prop_assert!(
@@ -170,7 +170,7 @@ proptest! {
     fn file_sort_descending_code_then_path(
         mut rows in proptest::collection::vec(arb_file_row(), 2..20)
     ) {
-        tokmd_model::sort_file_rows(&mut rows);
+        rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 
         for pair in rows.windows(2) {
             prop_assert!(
@@ -193,7 +193,7 @@ proptest! {
         mut rows in proptest::collection::vec(arb_lang_row(), 2..20)
     ) {
         let sort_fn = |v: &mut Vec<LangRow>| {
-            tokmd_model::sort_lang_rows(v);
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         };
         sort_fn(&mut rows);
         let first_pass: Vec<String> = rows.iter().map(|r| format!("{}:{}", r.lang, r.code)).collect();

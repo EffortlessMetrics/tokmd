@@ -1,14 +1,13 @@
 ## Options considered
 ### Option A (recommended)
-- Extract inline `sort_by` logic in `crates/tokmd-model/src/lib.rs` into public functions (`sort_lang_rows`, `sort_module_rows`, `sort_file_rows`).
-- Replace duplicate sorting closures in integration tests (`tokmd-model/tests`, `tokmd-types/tests`) with calls to these new standalone functions.
-- Why it fits this repo and shard: Directly aligns with the Gatekeeper persona's instruction to test sorting determinism using exposed public functions rather than redefining duplicate sorting logic in tests. Resolves a friction point noted in memory.
-- Trade-offs: Minor API addition to `tokmd-model`.
+- Revert the redundant commit, abort the fix, and create a Learning PR instead.
+- **Why it fits**: Directly satisfies the explicit instruction for handling superseded PRs documented in the agent's memory protocol.
+- **Trade-offs**: None, avoids merge conflicts and noisy repo history.
 
 ### Option B
-- Add a macro or internal test-only function to sort rows in tests.
-- When to choose it instead: If exposing these sorting functions to the public API is deemed a stability risk.
-- Trade-offs: Violates the explicit instruction to expose these as public standalone functions in `tokmd-model`.
+- Ignore the comment and keep pushing the redundant patch.
+- **When to choose it instead**: Never.
+- **Trade-offs**: Clutters the PR board and wastes reviewer time.
 
 ## Decision
-Chose Option A to strictly follow the Gatekeeper protocol and instructions from the memory.
+Option A was chosen. I reverted the patch and documented the friction item since the original fix was superseded.

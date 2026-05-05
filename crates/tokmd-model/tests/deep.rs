@@ -215,7 +215,7 @@ fn sorting_tiebreak_by_name_lang() {
         },
     ];
 
-    tokmd_model::sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
     assert_eq!(rows[0].lang, "Alpha");
     assert_eq!(rows[1].lang, "Middle");
@@ -245,7 +245,7 @@ fn sorting_tiebreak_by_name_module() {
         },
     ];
 
-    tokmd_model::sort_module_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 
     assert_eq!(rows[0].module, "aaa");
     assert_eq!(rows[1].module, "zzz");
@@ -457,7 +457,7 @@ proptest! {
     fn proptest_sorting_preserves_total_code(rows in prop::collection::vec(arb_lang_row(), 1..=15)) {
         let total_before: usize = rows.iter().map(|r| r.code).sum();
         let mut sorted = rows;
-        tokmd_model::sort_lang_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         let total_after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(total_before, total_after, "Sorting must not change total code");
     }
@@ -465,7 +465,7 @@ proptest! {
     #[test]
     fn proptest_sorting_is_descending(rows in prop::collection::vec(arb_lang_row(), 2..=15)) {
         let mut sorted = rows;
-        tokmd_model::sort_lang_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         for window in sorted.windows(2) {
             prop_assert!(
                 window[0].code > window[1].code
@@ -480,9 +480,9 @@ proptest! {
     #[test]
     fn proptest_sorting_is_idempotent(rows in prop::collection::vec(arb_lang_row(), 1..=15)) {
         let mut once = rows.clone();
-        tokmd_model::sort_lang_rows(&mut once);
+        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         let mut twice = once.clone();
-        tokmd_model::sort_lang_rows(&mut twice);
+        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         prop_assert_eq!(once, twice, "Sorting must be idempotent");
     }
 
@@ -490,7 +490,7 @@ proptest! {
     fn proptest_module_sorting_preserves_total(rows in prop::collection::vec(arb_module_row(), 1..=15)) {
         let total_before: usize = rows.iter().map(|r| r.code).sum();
         let mut sorted = rows;
-        tokmd_model::sort_module_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         let total_after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(total_before, total_after);
     }
