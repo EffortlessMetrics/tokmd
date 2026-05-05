@@ -6,7 +6,9 @@
 - Closed #1546/#1540/#1523 as superseded by #1549.
 - Merged #1551: synthesized keeper for JS deterministic sorting. Replaced `localeCompare` with explicit Unicode code point comparison and added a browser-runner regression test. Gates: `npm --prefix web/runner run check`; `npm --prefix web/runner test`; `git diff --check`; GitHub CI.
 - Closed #1542/#1512 as superseded by #1551.
-- Next cluster: `export_bundle` no-default-features warning (#1530, #1510, #1502).
+- Merged #1552: synthesized keeper for `export_bundle` no-default-features warning. Gated the module behind `analysis` instead of suppressing dead-code warnings. Gates: `cargo clippy -p tokmd --no-default-features -- -D warnings`; `cargo clippy -p tokmd --no-default-features --features analysis -- -D warnings`; `cargo test -p tokmd --no-default-features`; `git diff --check`; GitHub CI.
+- Closed #1530/#1510/#1502 as superseded by #1552.
+- Next cluster: redaction hardening (#1521, #1507, #1497).
 
 ## Operating decisions
 

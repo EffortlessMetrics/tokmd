@@ -275,15 +275,28 @@ proptest! {
     }
 
     #[test]
-    fn redact_path_preserves_extension(
+    fn redact_path_preserves_allowlisted_extension(
         stem in "[a-z]{1,5}(/[a-z]{1,5}){0,3}",
-        ext in "[a-z]{1,4}"
+        ext in "rs|js|ts|json|md|toml|gz"
     ) {
         let path = format!("{stem}/file.{ext}");
         let redacted = redact_path(&path);
         prop_assert!(
             redacted.ends_with(&format!(".{ext}")),
             "extension not preserved: input={} redacted={}", path, redacted
+        );
+    }
+
+    #[test]
+    fn redact_path_strips_untrusted_short_extension(
+        stem in "[a-z]{1,5}(/[a-z]{1,5}){0,3}",
+        ext in "passwd|secret|pass1234|token"
+    ) {
+        let path = format!("{stem}/file.{ext}");
+        let redacted = redact_path(&path);
+        prop_assert!(
+            !redacted.ends_with(&format!(".{ext}")),
+            "untrusted extension preserved: input={} redacted={}", path, redacted
         );
     }
 

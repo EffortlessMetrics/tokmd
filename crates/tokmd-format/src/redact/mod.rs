@@ -16,6 +16,15 @@
 
 use std::path::Path;
 
+const SAFE_PATH_EXTENSIONS: &[&str] = &[
+    "astro", "bash", "c", "cc", "cjs", "clj", "cljs", "cpp", "cs", "css", "csv", "cxx", "dart",
+    "erl", "ex", "exs", "fish", "fs", "fsx", "gif", "go", "gz", "h", "hpp", "hrl", "htm", "html",
+    "java", "jpeg", "jpg", "js", "json", "jsonl", "jsx", "kt", "kts", "lock", "lua", "mjs", "md",
+    "otf", "pdf", "php", "pl", "pm", "png", "ps1", "py", "pyi", "r", "rb", "rs", "scala", "scss",
+    "sh", "sql", "svg", "svelte", "swift", "toml", "ts", "tsv", "tsx", "ttf", "txt", "vue", "wasm",
+    "webp", "woff", "woff2", "xml", "yaml", "yml", "zsh",
+];
+
 /// Clean a path by normalizing separators and resolving `.` and `./` segments.
 ///
 /// This ensures that logically identical paths produce the same hash.
@@ -35,6 +44,14 @@ fn clean_path(s: &str) -> String {
         normalized.truncate(normalized.len() - 2);
     }
     normalized
+}
+
+fn safe_path_extension(ext: &str) -> Option<&str> {
+    let lower = ext.to_ascii_lowercase();
+    SAFE_PATH_EXTENSIONS
+        .binary_search(&lower.as_str())
+        .ok()
+        .map(|_| ext)
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -80,10 +97,11 @@ pub fn short_hash(s: &str) -> String {
     hex
 }
 
-/// Redact a path by hashing it while preserving the file extension.
+/// Redact a path by hashing it while preserving a safe file extension.
 ///
 /// This allows redacted paths to still be recognizable by file type
-/// while hiding the actual path structure.
+/// while hiding the actual path structure. Extensions are only preserved
+/// when they are in a small allowlist of common file types.
 ///
 /// Path separators are normalized to forward slashes before hashing
 /// to ensure consistent hashes across operating systems.
@@ -120,11 +138,7 @@ pub fn redact_path(path: &str) -> String {
         .extension()
         .and_then(|e| e.to_str())
         .unwrap_or("");
-    let ext = if ext.len() <= 8 && ext.chars().all(|c| c.is_ascii_alphanumeric()) {
-        ext
-    } else {
-        ""
-    };
+    let ext = safe_path_extension(ext).unwrap_or("");
     let mut out = short_hash(&cleaned);
     if !ext.is_empty() {
         out.push('.');
@@ -161,6 +175,15 @@ mod tests {
     fn test_redact_path_preserves_extension() {
         let redacted = redact_path("src/lib.rs");
         assert!(redacted.ends_with(".rs"));
+    }
+
+    #[test]
+    fn test_redact_path_strips_untrusted_short_extensions() {
+        for path in ["file.secret", "file.passwd", "file.pass1234"] {
+            let redacted = redact_path(path);
+            assert_eq!(redacted.len(), 16);
+            assert!(!redacted.contains('.'));
+        }
     }
 
     #[test]
