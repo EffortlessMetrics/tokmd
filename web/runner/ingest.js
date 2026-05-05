@@ -88,6 +88,29 @@ function normalizePath(value) {
     return value.replaceAll("\\", "/");
 }
 
+function compareByCodePoint(left, right) {
+    let leftIndex = 0;
+    let rightIndex = 0;
+
+    while (leftIndex < left.length && rightIndex < right.length) {
+        const leftCodePoint = left.codePointAt(leftIndex);
+        const rightCodePoint = right.codePointAt(rightIndex);
+
+        if (leftCodePoint !== rightCodePoint) {
+            return leftCodePoint < rightCodePoint ? -1 : 1;
+        }
+
+        leftIndex += leftCodePoint > 0xffff ? 2 : 1;
+        rightIndex += rightCodePoint > 0xffff ? 2 : 1;
+    }
+
+    if (leftIndex === left.length && rightIndex === right.length) {
+        return 0;
+    }
+
+    return leftIndex === left.length ? -1 : 1;
+}
+
 function pathExtension(path) {
     const lastSegment = path.split("/").at(-1) ?? "";
     const dotIndex = lastSegment.lastIndexOf(".");
@@ -531,7 +554,7 @@ export function selectGitHubTreeEntries(entries, options = {}) {
             const leftPath = normalizePath(left.path);
             const rightPath = normalizePath(right.path);
             const priority = pathPriority(leftPath) - pathPriority(rightPath);
-            return priority === 0 ? leftPath.localeCompare(rightPath) : priority;
+            return priority === 0 ? compareByCodePoint(leftPath, rightPath) : priority;
         });
 
     for (const entry of orderedEntries) {

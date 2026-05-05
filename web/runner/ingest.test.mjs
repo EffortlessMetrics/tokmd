@@ -82,6 +82,22 @@ test("selectGitHubTreeEntries filters vendor, binary, and oversized files determ
     assert.equal(result.stats.skippedFileLimit, 0);
 });
 
+test("selectGitHubTreeEntries sorts tied paths by Unicode code point", () => {
+    const result = selectGitHubTreeEntries(
+        [
+            { path: "src/\u{1f600}.rs", size: 10, type: "blob" },
+            { path: "src/\ue000.rs", size: 10, type: "blob" },
+            { path: "src/a.rs", size: 10, type: "blob" },
+        ],
+        { maxFiles: 10, maxFileBytes: 512 }
+    );
+
+    assert.deepEqual(
+        result.selected.map((entry) => entry.path),
+        ["src/a.rs", "src/\ue000.rs", "src/\u{1f600}.rs"]
+    );
+});
+
 test("fetchGitHubRepoInputs materializes ordered inputs and reuses the in-memory cache", async () => {
     clearGitHubRepoCache();
 
