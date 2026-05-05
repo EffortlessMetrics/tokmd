@@ -1,58 +1,46 @@
 ## 💡 Summary
-Added missing BDD scenario tests in `tokmd/tests/bdd_analyze_scenarios_w50.rs` to cover analysis presets: `risk`, `supply`, and `health`.
+This is a learning PR. The previously attempted patch adding BDD test scenarios for analysis presets (`risk`, `supply`, `health`) was closed as redundant, as it duplicated existing coverage in the `health` pipeline proof merged in #1578.
 
 ## 🎯 Why
-While the `receipt`, `estimate`, and `fun` presets were covered in integration scenarios, the other analysis-focused presets (`risk`, `supply`, `health`) were missing behavior-level edge-case coverage to ensure their derived metrics (e.g. `complexity`, `assets`, `deps`) correctly appear in the output artifacts when requested.
+During the run, broad presence-check BDD scenarios were added to `tokmd/tests/bdd_analyze_scenarios_w50.rs`. Upon review, it was discovered that this duplicated coverage already merged into the codebase. To adhere to prompt-to-PR pipeline constraints and prevent abandoned tasks, this run is finalized as a Learning PR capturing the friction edge case.
 
 ## 🔎 Evidence
-- `crates/tokmd/tests/bdd_analyze_scenarios_w50.rs` lacked tests for `risk`, `supply`, and `health` presets.
-- By running `cargo test -p tokmd --test bdd_analyze_scenarios_w50`, it was verified that the new scenarios run successfully and accurately capture expected output behavior.
+- `tokmd/tests/bdd_analyze_scenarios_w50.rs` modifications were attempted.
+- Reviewer feedback: "Reviewed in the analysis invariant cluster. Closing rather than merging: these broad analyze-preset key-presence checks duplicate current CLI/preset coverage and are weaker than the focused fixture-backed Health pipeline proof merged in #1578."
 
 ## 🧭 Options considered
-### Option A (recommended)
+### Option A
 - what it is: Add BDD scenario tests for the missing analysis presets (`supply`, `risk`, `health`) in `crates/tokmd/tests/bdd_analyze_scenarios_w50.rs`.
-- why it fits this repo and shard: Directly fulfills the Specsmith target for "missing BDD/integration coverage for an important path" without altering product-level analysis contracts.
-- trade-offs: Structure / Velocity / Governance: Safest, focused change.
+- when to choose it instead: If the `preset` parsing itself was flaky or core computation was failing under unique workloads without existing coverage.
+- trade-offs: Redundant in this context.
 
-### Option B
-- what it is: Add deep tests in `tokmd-analysis` checking specific git and complexity edge cases.
-- when to choose it instead: If the `preset` parsing itself was flaky or core computation was failing under unique workloads.
-- trade-offs: More invasive, changes analysis internal tests rather than pure user-facing behavior tests.
+### Option B (recommended)
+- what it is: Abandon the redundant BDD test patch since it was superseded by #1578, and record a Learning PR covering this workflow friction edge case.
+- why it fits this repo and shard: Directly fulfills the Specsmith constraint to produce a learning PR containing a friction item when a valid code patch is not justified.
+- trade-offs: Structure / Velocity / Governance: Safest, focused change that accurately reflects the outcome.
 
 ## ✅ Decision
-Chose Option A to add scenario coverage. It's clean, improves our regression suite, and directly matches the Specsmith mission constraint.
+Chose Option B to create a Learning PR and record the friction item.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/tests/bdd_analyze_scenarios_w50.rs`
-  - Added `given_project_when_analyze_risk_then_risk_data_present`
-  - Added `given_project_when_analyze_supply_then_supply_data_present`
-  - Added `given_project_when_analyze_health_then_health_data_present`
+- `.jules/friction/open/specsmith_duplicate_analysis_tests.md`
+- `.jules/runs/run-specsmith-001/envelope.json`
+- `.jules/runs/run-specsmith-001/decision.md`
+- `.jules/runs/run-specsmith-001/receipts.jsonl`
+- `.jules/runs/run-specsmith-001/result.json`
+- `.jules/runs/run-specsmith-001/pr_body.md`
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test -p tokmd --test bdd_analyze_scenarios_w50
-running 11 tests
-test given_project_when_analyze_fun_then_eco_label_present ... ok
-test given_project_when_analyze_health_then_health_data_present ... ok
-test given_project_when_analyze_json_then_has_args_metadata ... ok
-test given_project_when_analyze_estimate_then_effort_model_present ... ok
-test given_project_when_analyze_json_then_has_schema_version ... ok
-test given_project_when_analyze_md_then_markdown_table ... ok
-test given_project_when_analyze_receipt_then_derived_metrics_present ... ok
-test given_project_when_analyze_supply_then_supply_data_present ... ok
-test given_project_when_analyze_risk_then_risk_data_present ... ok
-test given_project_when_analyze_with_output_dir_then_file_created ... ok
-test given_project_when_analyze_xml_then_valid_xml_structure ... ok
-
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+(Run gracefully aborted post-review due to redundant scope.)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Tests only.
-- Blast radius: Testing layer only.
-- Risk class: Low risk. Pure addition of tests.
-- Rollback: Revert the test additions.
-- Gates run: `cargo clippy`, `cargo fmt`, `cargo test -p tokmd --test bdd_analyze_scenarios_w50`
+- Change shape: Learning PR only.
+- Blast radius: None.
+- Risk class: Low risk.
+- Rollback: Revert the artifacts.
+- Gates run: None.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-specsmith-001/envelope.json`
@@ -60,6 +48,7 @@ test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/run-specsmith-001/receipts.jsonl`
 - `.jules/runs/run-specsmith-001/result.json`
 - `.jules/runs/run-specsmith-001/pr_body.md`
+- Added friction item: `.jules/friction/open/specsmith_duplicate_analysis_tests.md`
 
 ## 🔜 Follow-ups
 None.
