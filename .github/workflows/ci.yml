@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -345,10 +348,47 @@ jobs:
       - feature-boundaries
     steps:
       - name: Check overall status
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
         run: |
-          # If any needed job failed or was cancelled, fail this job
-          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "One or more required jobs failed or were cancelled."
-            exit 1
-          fi
-          echo "All required jobs passed (or were skipped)."
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          needs = json.loads(os.environ["NEEDS_JSON"])
+          failed = []
+          cancelled = []
+          lines = [
+              "## Required CI job summary",
+              "",
+              "| Job | Result |",
+              "| --- | --- |",
+          ]
+
+          for job, payload in sorted(needs.items()):
+              result = payload.get("result", "unknown")
+              lines.append(f"| `{job}` | `{result}` |")
+
+              if result == "failure":
+                  failed.append(job)
+              elif result == "cancelled":
+                  cancelled.append(job)
+
+          summary = "\n".join(lines) + "\n"
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary_path:
+              with open(summary_path, "a", encoding="utf-8") as handle:
+                  handle.write(summary)
+
+          print(summary)
+
+          if failed or cancelled:
+              if failed:
+                  print(f"::error::Failed jobs: {', '.join(failed)}")
+              if cancelled:
+                  print(f"::error::Cancelled jobs: {', '.join(cancelled)}")
+              sys.exit(1)
+
+          print("All required jobs passed (or were skipped).")
+          PY

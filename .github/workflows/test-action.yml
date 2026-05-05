@@ -13,6 +13,9 @@ on:
       - '.github/workflows/test-action.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test-action:
     name: Test tokmd-receipt Action

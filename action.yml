@@ -361,6 +361,60 @@ runs:
         file-path: ${{ steps.generate.outputs.summary }}
         comment_tag: tokmd-summary
 
+    - name: Publish workflow summary
+      if: always()
+      shell: bash
+      env:
+        SUMMARY_FILE: ${{ steps.generate.outputs.summary }}
+        RECEIPT_FILE: ${{ steps.generate.outputs.receipt }}
+        GATE_VERDICT_FILE: ${{ steps.generate.outputs['gate-verdict'] }}
+        COCKPIT_REPORT_FILE: ${{ steps.generate.outputs['cockpit-report'] }}
+        SENSOR_REPORT_FILE: ${{ steps.generate.outputs['sensor-report'] }}
+        BASELINE_REPORT_FILE: ${{ steps.generate.outputs['baseline-report'] }}
+        COMMAND_STATUS: ${{ steps.generate.outputs['command-status'] }}
+      run: |
+        set -euo pipefail
+
+        if [ -z "${GITHUB_STEP_SUMMARY:-}" ]; then
+          exit 0
+        fi
+
+        value_or_missing() {
+          if [ -n "$1" ]; then
+            printf '%s' "$1"
+          else
+            printf '(not generated)'
+          fi
+        }
+
+        {
+          echo "## tokmd action results"
+          echo
+          echo "| Output | Path |"
+          echo "| --- | --- |"
+          echo "| Summary | \`$(value_or_missing "$SUMMARY_FILE")\` |"
+          echo "| Receipt | \`$(value_or_missing "$RECEIPT_FILE")\` |"
+          echo "| Gate verdict | \`$(value_or_missing "$GATE_VERDICT_FILE")\` |"
+          echo "| Cockpit report | \`$(value_or_missing "$COCKPIT_REPORT_FILE")\` |"
+          echo "| Sensor report | \`$(value_or_missing "$SENSOR_REPORT_FILE")\` |"
+          echo "| Baseline report | \`$(value_or_missing "$BASELINE_REPORT_FILE")\` |"
+          echo
+          echo "- Artifact upload enabled: \`${{ inputs.artifact }}\`"
+          echo "- PR comment enabled: \`${{ inputs.comment }}\`"
+          echo "- Command exit status: \`$(value_or_missing "$COMMAND_STATUS")\`"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        if [ -n "$SUMMARY_FILE" ] && [ -f "$SUMMARY_FILE" ]; then
+          {
+            echo
+            echo "<details><summary>Summary preview</summary>"
+            echo
+            cat "$SUMMARY_FILE"
+            echo
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+
     - name: Fail on gate verdict
       if: steps.generate.outputs['command-status'] != '0'
       shell: bash
