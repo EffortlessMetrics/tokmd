@@ -1,17 +1,19 @@
-# Option A (recommended)
-Use the `xtask docs --update` tool logic by replacing hardcoded command parameter tables in `docs/reference-cli.md` with auto-updating `<!-- HELP: <command> -->` markers. The xtask command automatically pulls the current `tokmd` help text.
-
-- **Structure**: Automatically synchronizes docs with command changes, removing drift.
-- **Velocity**: Speeds up doc updates since CLI parameters will always stay in sync.
-- **Governance**: Ensures reference documentation acts as a deterministically correct reflection of the program options. Fits well within the 'Gatekeeper' persona and the `tooling-governance` shard.
-
-# Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand, matching them against `cargo run --bin tokmd -- <cmd> --help`.
-
-- **When to choose it**: Only if you strictly want specialized tables with custom columns or manually edited parameter groups that rust `clap` output does not provide.
-- **Trade-offs**: Extreme risk of drift and maintenance burden. Requires a developer to manually verify changes on every new parameter addition.
-
 # Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables (from `.jules/policy/shards.json` or general run memory). The final restack replaces the remaining manual command tables with `<!-- HELP: <command> -->` markers, then makes `cargo xtask docs --check` fail if any expected marker pair is missing. This keeps the deterministic docs path inside `cargo xtask docs --update` / `cargo xtask docs --check` instead of relying on ad hoc post-processing scripts.
 
-The restack also aligns the xtask gate regression test with the current repository rule that Jules provenance under `.jules/**` may be intentional PR state. Gate still blocks cache/transcript/runtime/tmp paths, but it does not blanket-block `.jules/runs/**` provenance packets.
+## Option A (recommended)
+- Update the `docs/reference-cli.md` explicitly with the missing `--profile` flag and verify using `cargo xtask docs --check`.
+- Why it fits: Aligns `reference-cli.md` with the Rust-source parser definition without requiring any larger code-level refactors. It explicitly solves factual and output-contracts drift between source and docs schema.
+- Trade-offs:
+  - Velocity: High. It's a quick fix that leverages existing toolchains (`xtask docs --check`).
+  - Governance: High. Reduces mismatch between `tokmd`'s runtime help output and reference markdown.
+  - Structure: Low risk.
+
+## Option B
+- Modify `xtask docs --check` to automatically parse Rust-level struct fields and enforce mapping for all global arguments dynamically rather than static assertions or text replacements.
+- Why it fits: Automates further preventing manual documentation errors in markdown files altogether.
+- Trade-offs:
+  - Velocity: Slow. Parsing Rust structs using AST analysis or regex requires more complex logic.
+  - Governance: Could make build slower or more complex, bringing unwanted logic to `xtask`.
+
+## Decision
+Chose Option A because it’s minimal, correct, immediately executable, strictly adheres to the one-prompt-per-story principle, and fully satisfies the `Gatekeeper` profile constraint.

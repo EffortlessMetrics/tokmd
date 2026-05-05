@@ -1,17 +1,8 @@
 {
-  "summary": "Fixed documentation drift by replacing manual parameter tables with `<!-- HELP: <command> -->` markers and failing docs checks when expected marker pairs are missing",
-  "files_changed": [
-    "docs/reference-cli.md",
-    "xtask/src/tasks/docs.rs",
-    "xtask/src/tasks/gate.rs",
-    "xtask/tests/xtask_deep_w74.rs"
+  "status": "success",
+  "resolution": "PR-ready patch",
+  "affected_files": [
+    "docs/reference-cli.md"
   ],
-  "gates_run": [
-    "cargo xtask docs --update",
-    "cargo xtask docs --check",
-    "cargo test -p xtask",
-    "cargo test -p tokmd --test docs",
-    "cargo fmt-check",
-    "git diff --check"
-  ]
+  "reasoning": "Detected that the --profile <PROFILE> argument was completely omitted from the Global Arguments table in docs/reference-cli.md despite existing in crates/tokmd/src/cli/parser.rs struct GlobalArgs. Applied a sed replacement to add the missing argument and verified with xtask docs check."
 }

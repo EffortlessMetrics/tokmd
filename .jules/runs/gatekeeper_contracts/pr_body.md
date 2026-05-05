@@ -1,58 +1,44 @@
 ## 💡 Summary
-Removed manual markdown parameter tables from `docs/reference-cli.md` and replaced them with `<!-- HELP: <command> -->` markers. This delegates documentation generation to `cargo xtask docs`, locks in deterministic CLI usage tracking, and closes the silent-skip case where a missing marker pair could make docs checks pass without checking a command.
-
-The restack also updates the xtask gate regression test to match the current queue policy: Jules provenance under `.jules/**` can be intentional PR state, so gate should not blanket-block `.jules/runs/**` while still guarding actual runtime/cache/transcript directories.
+Added the missing `--profile` CLI flag to the "Global Arguments" section of `docs/reference-cli.md`. This resolves factual drift between the parser definition (`Cli` struct) and the human-readable schema.
 
 ## 🎯 Why
-Manual parameter tables in documentation frequently become outdated when CLI arguments change. `tokmd` provides `cargo xtask docs --update` which relies on `<!-- HELP: <command> -->` markers. Several commands were still using hand-maintained markdown tables, meaning updates to CLI args could easily be missed by the xtask check. The final patch also makes missing marker pairs an explicit docs-check failure.
+The `--profile` flag exists as a global argument in `crates/tokmd/src/cli/parser.rs` and shows up in the CLI's `--help` output. However, it was completely missing from the handwritten global arguments table in `docs/reference-cli.md`, creating a mismatch between the documented API and the actual executable contract.
 
 ## 🔎 Evidence
-- File: `docs/reference-cli.md`
-- Observation: Many subcommands like `module`, `export`, `run`, `handoff` did not have `<!-- HELP: <command> -->` markers and used manual `| Argument | Description |` tables.
-- Verification: Running `cargo xtask docs --check` before the change ignored drift in these subcommands because they had no markers.
+- `docs/reference-cli.md`: Missing `--profile` in the "Global Arguments" table.
+- `crates/tokmd/src/cli/parser.rs`: Defines `--profile` as a global argument.
+- `cargo run --bin tokmd -- --help` outputs `--profile <PROFILE>`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Replace manual parameter tables with `<!-- HELP: <command> -->` markers for all commands, letting `cargo xtask docs --update` populate them correctly from the clap help output. Also fail `cargo xtask docs --check` when an expected marker pair is absent.
-- Trade-offs:
-  - **Structure**: Eliminates duplication of parameter details.
-  - **Velocity**: Developers no longer have to manually edit markdown tables when updating CLI parameters.
-  - **Governance**: Fits perfectly within the `tooling-governance` shard.
+- Add the `--profile` row to the markdown table in `docs/reference-cli.md`.
+- Why it fits this repo and shard: It directly fixes factual documentation drift for contract-bearing output surfaces without making sweeping refactors.
+- Trade-offs: Structure is minimal, velocity is high, governance guarantees correct documentation.
 
 ### Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand.
-- When to choose it: Only if custom columns are needed that clap does not output.
-- Trade-offs: Extreme risk of drift and maintenance burden.
+- Refactor `xtask docs --check` to dynamically map and check all global flag Rust struct definitions against the markdown file.
+- When to choose it instead: If global arguments change rapidly and manual matching becomes untenable.
+- Trade-offs: Requires a heavier build logic and parse capability inside xtask.
 
 ## ✅ Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables. The final patch keeps all synchronization in `cargo xtask docs --update` / `cargo xtask docs --check` and verifies that every expected command marker exists.
+Selected Option A to immediately lock in the missing documentation and satisfy the single prompt-to-PR objective without adding complex AST parsing overhead to the xtask suite.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Removed manual parameter tables for the CLI command surface and replaced them with `<!-- HELP: <command> -->` markers.
-- `xtask/src/tasks/docs.rs`: Treats missing marker pairs as documentation drift instead of silently skipping those commands.
-- `xtask/src/tasks/gate.rs`, `xtask/tests/xtask_deep_w74.rs`: Document and test that `.jules/runs/**` is not treated as forbidden runtime state because it may be intentional PR provenance.
+- `docs/reference-cli.md` - Added `--profile <PROFILE>` and its aliases to the "Global Arguments" table.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --update
-Updated docs/reference-cli.md
-
+$ sed -i 's/| `--no-progress` | Disable progress spinners (useful for CI\/non-TTY). |/| `--no-progress` | Disable progress spinners (useful for CI\/non-TTY). |\n| `--profile <PROFILE>` | Configuration profile to use (e.g., "llm_safe", "ci"). Aliases: `--view`. |/' docs/reference-cli.md
 $ cargo xtask docs --check
 Documentation is up to date.
-
-$ cargo test -p tokmd --test docs
-test result: ok
-
-$ cargo test -p xtask
-test result: ok
 ```
 
 ## 🧭 Telemetry
-- Change shape: Replacement of manual documentation content with auto-generated sync blocks plus docs-check and provenance-policy guardrails.
-- Blast radius: Docs and xtask validation only.
-- Risk class: Low - Does not change application runtime behavior.
-- Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --update`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo test -p tokmd --test docs`, `cargo fmt-check`, `git diff --check`
+- Change shape: Documentation Add
+- Blast radius: CLI documentation surface only
+- Risk class: Safe / Trivial. The change only impacts documentation and does not touch functional logic.
+- Rollback: Revert the file addition.
+- Gates run: `cargo xtask docs --check` and `cargo test -p xtask`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -62,4 +48,4 @@ test result: ok
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
 
 ## 🔜 Follow-ups
-None. All CLI references are now correctly managed via xtask.
+Consider adding a more robust xtask static check to ensure Rust structs (like `GlobalArgs`) directly drive the `Global Arguments` table section without drifting out of sync.

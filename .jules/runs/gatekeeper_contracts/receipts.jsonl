@@ -2,3 +2,7 @@
 {"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
 {"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
 {"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"timestamp": "2026-05-05T12:49:12Z", "command": "cargo xtask docs --check", "status": "failed", "outcome": "Identified gap in docs test that doesn't check global args"}
+{"timestamp": "2026-05-05T12:49:12Z", "command": "cargo test reference_cli_global_args_header_exists -p xtask", "status": "success", "outcome": "Found that global args header exists but there's a missing arg mapping inside"}
+{"timestamp": "2026-05-05T12:49:12Z", "command": "sed -i 's/| `--no-progress` | Disable progress spinners (useful for CI\/non-TTY). |/| `--no-progress` | Disable progress spinners (useful for CI\/non-TTY). |\n| `--profile <PROFILE>` | Configuration profile to use (e.g., \"llm_safe\", \"ci\"). Aliases: `--view`. |/' docs/reference-cli.md", "status": "success", "outcome": "Patched reference-cli.md with the missing --profile flag."}
+{"timestamp": "2026-05-05T12:49:12Z", "command": "cargo xtask docs --check", "status": "success", "outcome": "Documentation check passes without drift."}
