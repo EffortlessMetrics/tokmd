@@ -1,0 +1,12 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd/tests/fuzz_toml_config_proptests.rs",
+    "crates/tokmd/tests/fuzz_json_types_proptests.rs",
+    "crates/tokmd/tests/fuzz_scan_args_proptests.rs",
+    "crates/tokmd/tests/fuzz_context_policy_proptests.rs",
+    "crates/tokmd/tests/fuzz_import_parser_proptests.rs",
+    "crates/tokmd/tests/fuzz_run_json_proptests.rs"
+  ],
+  "reasoning": "Since `cargo fuzz` requires a nightly Rust toolchain which fails locally (`-Zsanitizer=address` is unsupported), we extracted the deterministic logic from the broken fuzz targets and converted them into comprehensive `proptest` suites inside `crates/tokmd/tests`. This locks in the fuzzable invariant coverage (such as path normalization, JSON extraction, and parser rules) without depending on unrunnable CI tools."
+}

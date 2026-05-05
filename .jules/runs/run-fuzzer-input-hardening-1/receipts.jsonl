@@ -1,0 +1,6 @@
+{"command": "cargo test -p tokmd --test fuzz_toml_config_proptests", "output": "ok. 3 passed"}
+{"command": "cargo test -p tokmd --test fuzz_json_types_proptests", "output": "ok. 8 passed"}
+{"command": "cargo test -p tokmd --test fuzz_scan_args_proptests", "output": "ok. 1 passed"}
+{"command": "cargo test -p tokmd --test fuzz_context_policy_proptests", "output": "ok. 1 passed"}
+{"command": "cargo test -p tokmd --test fuzz_import_parser_proptests", "output": "ok. 28 passed"}
+{"command": "cargo test -p tokmd --test fuzz_run_json_proptests", "output": "ok. 1 passed"}
