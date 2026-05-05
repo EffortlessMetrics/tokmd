@@ -15,7 +15,7 @@ This document describes the testing infrastructure and strategy for tokmd.
                └────────────────────────┘
           ┌──────────────────────────────────┐
           │    Property-Based Testing        │  proptest
-          │    (invariant verification)      │  17 crates
+          │    (invariant verification)      │  workspace surfaces
           └──────────────────────────────────┘
      ┌────────────────────────────────────────────┐
      │    Integration Tests (CLI contract)        │  assert_cmd
@@ -117,28 +117,31 @@ Snapshot files: `<crate>/tests/snapshots/*.snap`
 
 ## Property-Based Tests
 
-Using `proptest` (1.9.0) across 17 crates:
+The workspace pins `proptest` 1.11.0. Property suites cover active workspace
+crates and owner modules rather than retired helper microcrates:
 
-| Crate | Properties Tested |
-|-------|-------------------|
-| `tokmd-model` | Path normalization, aggregation invariants |
-| `tokmd-format` | Table formatting, redaction, scan metadata, badge/tree rendering determinism |
-| `tokmd-scan` | Scanning options, exclude/path/tokeignore helpers, numeric invariants |
-| `tokmd-types` | DTO serialization roundtrips |
-| `tokmd-analysis-types` | Analysis receipt types |
-| `tokmd-analysis::imports` | Import parsing and normalization invariants |
-| `tokmd-gate` | Policy evaluation invariants |
-| `tokmd-git` | Git history collection |
-| `tokmd-analysis::content` | Entropy calculation, tag counting |
-| `tokmd-scan::walk` | File listing, traversal |
-| `tokmd-format::fun` | Novelty output generation |
-| `tokmd` | CLI output properties |
+| Surface | Properties Tested |
+|---------|-------------------|
+| `tokmd-analysis` | Analysis enrichers, imports, content, metrics, topics, and deterministic derived values |
+| `tokmd-analysis-types` | Analysis DTO serialization and numeric helper invariants |
+| `tokmd-cockpit` | Review metrics, gate status, trend, composition, and health invariants |
+| `tokmd-envelope` | Ecosystem envelope roundtrips and error-shape invariants |
+| `tokmd-format` | Table formatting, redaction, scan metadata, badge/tree rendering, and analysis renderer determinism |
+| `tokmd-gate` | Policy parsing and evaluation invariants |
+| `tokmd-git` | Git history collection and commit intent classification |
+| `tokmd-io-port` | In-memory filesystem contracts and sorted path listing |
+| `tokmd-model` | Path normalization and aggregation invariants |
+| `tokmd-scan` | Scan option mapping, exclude/path helpers, and numeric invariants |
+| `tokmd-sensor` | Substrate and trait analysis invariants |
+| `tokmd-settings` | Settings DTO roundtrips and defaults |
+| `tokmd-types` | Core receipt DTO serialization and schema invariants |
+| `tokmd` | CLI output and command-contract properties |
 
 ### Configuration
 
 `proptest.toml`:
 ```toml
-[proptest]
+[default]
 cases = 256
 max_shrink_iters = 1000
 timeout = 10000
@@ -147,7 +150,8 @@ timeout = 10000
 ### Running Property Tests
 
 ```bash
-cargo test -p tokmd-scan properties
+cargo test -p tokmd-scan --test properties
+PROPTEST_CASES=1024 cargo test -p tokmd-scan --test properties
 cargo test properties    # All property tests
 ```
 

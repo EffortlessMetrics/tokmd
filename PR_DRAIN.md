@@ -23,7 +23,9 @@
 - Closed #1478 as superseded by #1566.
 - Merged #1568: synthesized keeper for `tokmd-io-port` `MemFs` property tests. Added properties for byte-length file size reporting and sorted unique path listing. Gates: `cargo test -p tokmd-io-port --test properties`; `cargo test -p tokmd-io-port`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1463 as superseded by #1568.
-- Next cluster: Property/proptest improvements (#1464, #1465, #1466).
+- Merged #1573: synthesized keeper for `tokmd-scan` config property tests. Added real-helper properties proving monotonic opt-in flag behavior and the `no_ignore` implication across scan config mapping. Gates: `cargo test -p tokmd-scan --test properties`; `cargo test -p tokmd-scan`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1466 as superseded by #1573.
+- Next cluster: Property/proptest improvements (#1464, #1465).
 
 ## Operating decisions
 
