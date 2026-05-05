@@ -112,18 +112,57 @@ function isAnalyzeOptions(value) {
     );
 }
 
+function isPlainObject(value) {
+    return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+export function resolveRunInputs(args) {
+    if (!isPlainObject(args)) {
+        return null;
+    }
+
+    const hasRootInputs = args.inputs !== undefined;
+    const hasScan = args.scan !== undefined;
+
+    if (hasScan && !isPlainObject(args.scan)) {
+        return null;
+    }
+
+    const hasScanInputs = hasScan && args.scan.inputs !== undefined;
+
+    if (hasRootInputs && hasScanInputs) {
+        return null;
+    }
+
+    if (hasRootInputs) {
+        return Array.isArray(args.inputs) ? args.inputs : null;
+    }
+
+    if (hasScanInputs) {
+        return Array.isArray(args.scan.inputs) ? args.scan.inputs : null;
+    }
+
+    return null;
+}
+
+function isScanOptions(value) {
+    return value === undefined || (isPlainObject(value) && hasOnlyKeys(value, ["inputs"]));
+}
+
 function isRunArgsForMode(mode, args) {
-    if (!args || typeof args !== "object" || Array.isArray(args)) {
+    if (!isPlainObject(args)) {
         return false;
     }
 
-    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
+    const inputs = resolveRunInputs(args);
+
+    if (!inputs || !inputs.every(isInMemoryInput) || !isScanOptions(args.scan)) {
         return false;
     }
 
     if (mode === "analyze") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
+            hasOnlyKeys(args, ["inputs", "scan", "preset", "analyze"]) &&
                 (args.preset === undefined || typeof args.preset === "string") &&
                 (args.analyze === undefined || isAnalyzeOptions(args.analyze))
         );
@@ -131,12 +170,12 @@ function isRunArgsForMode(mode, args) {
 
     if (mode === "lang") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "files"]) &&
+            hasOnlyKeys(args, ["inputs", "scan", "files"]) &&
                 (args.files === undefined || typeof args.files === "boolean")
         );
     }
 
-    return hasOnlyKeys(args, ["inputs"]);
+    return hasOnlyKeys(args, ["inputs", "scan"]);
 }
 
 export function isRunMessage(value) {

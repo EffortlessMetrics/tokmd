@@ -192,6 +192,45 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                inputs: [{ path: "root.rs", text: "pub fn root() {}\n" }],
+                scan: {
+                    inputs: [{ path: "nested.rs", text: "pub fn nested() {}\n" }],
+                },
+            },
+        }),
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                scan: null,
+            },
+        }),
+        false
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "x",
+            mode: "lang",
+            args: {
+                scan: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                    paths: ["src/lib.rs"],
+                },
+            },
+        }),
         false
     );
     assert.equal(
@@ -235,6 +274,15 @@ test("analyze run messages allow only explicit preset options with inputs", () =
             requestId: "analyze-2",
             mode: "analyze",
             args: { inputs, analyze: { preset: "receipt" } },
+        }),
+        true
+    );
+    assert.equal(
+        isRunMessage({
+            type: "run",
+            requestId: "analyze-scan",
+            mode: "analyze",
+            args: { scan: { inputs }, preset: "estimate" },
         }),
         true
     );

@@ -57,7 +57,9 @@
 - Closed #1528/#1563/#1529 as superseded by #1592.
 - Merged #1593: synthesized keeper for unknown subcommand UX. Rewrites bare missing-path fallback errors as `Unrecognized subcommand` while preserving path-shaped missing path errors and implicit `tokmd <existing-path>` language-summary behavior. Gates: `cargo test -p tokmd error_hints --lib --verbose`; `cargo test -p tokmd --test cli_error_paths_w51 unknown_subcommand_fails --verbose`; `cargo test -p tokmd --test cli_error_paths_w51 typo_subcommand_suggests_correction --verbose`; `cargo test -p tokmd --test cli_e2e_w65 err_typo_subcommand_fails --verbose`; `cargo test -p tokmd --test cli_e2e_w65 frobnicate_unknown_subcommand_has_stable_error_output --verbose`; `cargo test -p tokmd --test cli_e2e_w65 existing_bare_path_keeps_implicit_lang_mode --verbose`; `target\debug\tokmd.exe anolyze`; `target\debug\tokmd.exe frobnicate`; `target\debug\tokmd.exe crates/tokmd --format json`; `cargo fmt-check`; `cargo clippy -p tokmd --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
 - Closed #1545/#1536/#1538/#1522/#1506/#1204/#1143 as superseded or stale after #1593.
-- Next cluster: browser runner `args.scan.inputs` parity (#1534/#1525/#1517/#1515/#1379).
+- Merged #1594: synthesized keeper for browser runner `args.scan.inputs` parity. Accepts in-memory browser payloads from either `args.inputs` or `args.scan.inputs`, rejects duplicate root+nested inputs, keeps `scan` strict to `scan.inputs`, and proves posted-worker handling through the stub runner. Gates: `npm --prefix web/runner test`; `npm --prefix web/runner run check`; `cargo test -p tokmd-wasm`; `git diff --check`; GitHub CI.
+- Closed #1534/#1525/#1517/#1515/#1379 as superseded by #1594.
+- Next cluster: retry/rate-limit UX (#1419/#1421/#1423/#1425) or progress events (#1426/#1428/#1430/#1431).
 
 ## Operating decisions
 
