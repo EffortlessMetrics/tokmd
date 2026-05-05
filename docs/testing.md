@@ -285,6 +285,22 @@ On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
 For bloated local `target/debug` directories, use `cargo trim-target --check` to inspect reclaimable space and `cargo trim-target` to trim PDB and incremental artifacts.
 For repeated local rebuilds, `cargo with-sccache test --workspace --all-features` enables an opt-in compiler cache wrapper, and `cargo sccache-stats` reports hit rates. For cache reuse across multiple worktrees, use `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
 
+
+## Coverage
+
+Rust coverage is generated in CI with `cargo-llvm-cov` and uploaded to Codecov as LCOV.
+
+Local run:
+
+```bash
+cargo llvm-cov clean --workspace
+cargo llvm-cov --all-features --lcov --output-path lcov.info
+```
+
+The first implementation tracks default product crates with all features enabled. It intentionally excludes `fuzz/`, `xtask/`, `target/`, and vendored code from Codecov reporting.
+
+Coverage is advisory at first. Once the baseline is stable, the Codecov project and patch checks can be made required through branch protection.
+
 ### Scheduled Jobs
 
 - Mutation testing: Weekly or on-demand
