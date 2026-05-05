@@ -29,6 +29,7 @@ mod commands;
 pub mod config;
 mod context_pack;
 mod error_hints;
+#[cfg(feature = "analysis")]
 mod export_bundle;
 mod git_support;
 #[cfg(feature = "ui")]
