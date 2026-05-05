@@ -51,7 +51,9 @@
 - Closed #1555/#1556/#1557/#1558/#1569/#1570/#1571/#1572 as superseded by #1589.
 - Merged #1590: synthesized keeper for fuzz-derived deterministic proptests. Moved the useful #1574 scan-args and context-policy invariants into their owner crates while leaving duplicate no-panic wrappers and stale `.jules` run payloads behind. Gates: `cargo test -p tokmd-format scan_args_preserves_redaction_and_ignore_invariants --verbose`; `cargo test -p tokmd-core context_policy_invariants_hold_for_arbitrary_inputs --verbose`; `cargo clippy -p tokmd-format -p tokmd-core --all-targets -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1574 as superseded by #1590.
-- Next cluster: analysis path root boundary invariant (#1581).
+- Merged #1591: synthesized keeper for analysis test-path root boundary classification. Detects root `test`, `tests`, `spec`, and `specs` directories as path segments and adds case-insensitive root-directory property coverage while preserving existing `__tests__` behavior. Gates: `cargo test -p tokmd-analysis-types is_test_path_known_root_dirs_always_detected --verbose`; `cargo test -p tokmd-analysis-types is_test_path --verbose`; `cargo test -p tokmd-analysis-types --verbose`; `cargo clippy -p tokmd-analysis-types --all-targets -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1581 as superseded by #1591.
+- Next cluster: doctests/executable docs (#1528/#1563/#1529).
 
 ## Operating decisions
 

@@ -123,6 +123,17 @@ proptest! {
     }
 
     #[test]
+    fn is_test_path_known_root_dirs_always_detected(
+        dir in prop::sample::select(vec!["test", "tests", "__tests__", "spec", "specs"]),
+        file in "[a-zA-Z][a-zA-Z0-9_]*\\.(rs|ts|js|py)"
+    ) {
+        let lower_path = format!("{}/{}", dir, file);
+        let upper_path = format!("{}/{}", dir.to_uppercase(), file);
+        prop_assert!(is_test_path(&lower_path), "Should detect root dir: {}", lower_path);
+        prop_assert!(is_test_path(&upper_path), "Should detect uppercase root dir: {}", upper_path);
+    }
+
+    #[test]
     fn is_test_path_known_file_patterns_always_detected(
         pattern in prop::sample::select(vec![
             "foo_test.rs", "test_foo.rs", "foo.test.js", "foo.spec.ts", "bar_test.rs"
