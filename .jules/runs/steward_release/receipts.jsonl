@@ -1,1 +1,0 @@
-{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo deny --all-features check", "exit_code": 0, "stdout": "advisories ok, bans ok, licenses ok, sources ok", "stderr": "warning[advisory-not-detected]: advisory was not encountered"}
