@@ -31,7 +31,9 @@
 - Closed #1464 as superseded by #1577.
 - Merged #1578: synthesized keeper for analysis Health TODO pipeline coverage. Added a content+walk analyzer test with a real temp file and exact TODO/FIXME count and density assertions. Gates: `cargo test -p tokmd-analysis --features content,walk --test analysis_deep_w64 health_preset_populates_todo_metrics_from_real_files`; `cargo test -p tokmd-analysis --features content,walk --test analysis_deep_w64`; `cargo test -p tokmd-analysis`; `cargo test -p tokmd-analysis --all-features --test analysis_deep_w64 health_preset_populates_todo_metrics_from_real_files`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1537 as superseded by #1578; closed #1533/#1496 as duplicate or weaker analysis-proof coverage.
-- Next cluster: Snapshot harness/docs (#1459, #1461, #1460, #1462).
+- Merged #1579: synthesized keeper for CLI snapshot harness cleanup. Replaced repeated command boilerplate with a shared helper that preserves command-aware stderr failure output and shared normalized snapshot assertions. Gates: `cargo test -p tokmd --test cli_snapshot_golden --verbose`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1459/#1461 as superseded by #1579.
+- Next cluster: Snapshot harness/docs (#1460, #1462).
 
 ## Operating decisions
 
