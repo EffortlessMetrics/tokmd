@@ -117,19 +117,13 @@ function isRunArgsForMode(mode, args) {
         return false;
     }
 
-    const inputs = args.inputs || (args.scan && args.scan.inputs);
-
-    if (args.inputs !== undefined && args.scan !== undefined && args.scan.inputs !== undefined) {
-        return false;
-    }
-
-    if (!Array.isArray(inputs) || !inputs.every(isInMemoryInput)) {
+    if (!Array.isArray(args.inputs) || !args.inputs.every(isInMemoryInput)) {
         return false;
     }
 
     if (mode === "analyze") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "preset", "analyze", "scan"]) &&
+            hasOnlyKeys(args, ["inputs", "preset", "analyze"]) &&
                 (args.preset === undefined || typeof args.preset === "string") &&
                 (args.analyze === undefined || isAnalyzeOptions(args.analyze))
         );
@@ -137,12 +131,12 @@ function isRunArgsForMode(mode, args) {
 
     if (mode === "lang") {
         return Boolean(
-            hasOnlyKeys(args, ["inputs", "files", "scan"]) &&
+            hasOnlyKeys(args, ["inputs", "files"]) &&
                 (args.files === undefined || typeof args.files === "boolean")
         );
     }
 
-    return hasOnlyKeys(args, ["inputs", "scan"]);
+    return hasOnlyKeys(args, ["inputs"]);
 }
 
 export function isRunMessage(value) {

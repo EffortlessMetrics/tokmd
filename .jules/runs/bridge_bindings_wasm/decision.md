@@ -1,8 +1,8 @@
 # Option A
-Update `web/runner/messages.js`, `web/runner/messages.test.mjs`, `web/runner/worker.js`, and `web/runner/worker.test.mjs` to allow inputs to be passed via `args.scan.inputs` instead of just `args.inputs`, and explicitly enforce that they cannot be passed in both places.
+Fix the cross-interface drift between Rust core FFI and the browser runner.
 
 # Option B
-Update `crates/tokmd-core/src/ffi.rs` to stop accepting inputs via `args.scan.inputs`.
+Abort the fix and create a learning PR.
 
 # Decision
-Option A was chosen. It fits the 'Bridge' persona mission of reducing cross-interface drift, and matches the fact that the core FFI (which is the source of truth) supports both locations but not simultaneously.
+Option B was chosen. The intended patch is superseded by merged PR #1594, which merged the current browser runner `args.scan.inputs` parity synthesis with strict validation and worker coverage. I will gracefully abort the redundant fix and create a learning PR as per memory instructions.

@@ -1,13 +1,5 @@
 {
-  "outcome": "PR-ready patch",
-  "files_touched": [
-    "web/runner/messages.js",
-    "web/runner/messages.test.mjs",
-    "web/runner/worker.js",
-    "web/runner/worker.test.mjs"
-  ],
-  "gates_run": [
-    "npm test in web/runner",
-    "cargo test -p tokmd-wasm"
-  ]
+  "outcome": "learning PR",
+  "files_touched": [],
+  "gates_run": []
 }

@@ -43,23 +43,23 @@ function createStubRunner() {
             return {
                 mode: "lang",
                 scan: {
-                    paths: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => input.path),
+                    paths: args.inputs.map((input) => input.path),
                 },
                 total: {
-                    files: (args.inputs || (args.scan && args.scan.inputs) || []).length,
+                    files: args.inputs.length,
                 },
             };
         },
         runModule(args) {
             return {
                 mode: "module",
-                rows: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => ({ module: input.path })),
+                rows: args.inputs.map((input) => ({ module: input.path })),
             };
         },
         runExport(args) {
             return {
                 mode: "export",
-                rows: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => ({ path: input.path })),
+                rows: args.inputs.map((input) => ({ path: input.path })),
             };
         },
         runAnalyze(args) {
@@ -67,7 +67,7 @@ function createStubRunner() {
                 mode: "analysis",
                 preset: normalizeAnalyzePreset(args),
                 source: {
-                    inputs: (args.inputs || (args.scan && args.scan.inputs) || []).map((input) => input.path),
+                    inputs: args.inputs.map((input) => input.path),
                 },
             };
         },
