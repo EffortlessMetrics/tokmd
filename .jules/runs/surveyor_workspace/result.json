@@ -1,5 +1,5 @@
 {
-  "outcome": "PR",
-  "summary": "Restored orphaned tokmd-config crate to workspace, fixed test bitrot, and resolved workspace bounds errors",
+  "outcome": "learning_PR",
+  "summary": "Explored tokmd-config workspace membership restoration but found it was superseded by #1585, meaning the repo decision is to retire the crate. Recording learning PR instead.",
   "receipts": 15
 }

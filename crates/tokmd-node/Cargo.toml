@@ -29,6 +29,3 @@ napi-build = "2"
 
 [dev-dependencies]
 tempfile.workspace = true
-
-[package.metadata.cargo-machete]
-ignored = ["napi-build"]

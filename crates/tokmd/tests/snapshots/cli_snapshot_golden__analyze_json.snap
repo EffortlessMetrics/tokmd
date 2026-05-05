@@ -50,19 +50,19 @@ expression: normalize(&stdout)
   "derived": {
     "totals": {
       "files": 7,
-      "code": 22,
-      "comments": 9,
+      "code": 26,
+      "comments": 8,
       "blanks": 3,
-      "lines": 34,
-      "bytes": 569,
-      "tokens": 139
+      "lines": 37,
+      "bytes": 583,
+      "tokens": 143
     },
     "doc_density": {
       "total": {
         "key": "total",
-        "numerator": 9,
-        "denominator": 31,
-        "ratio": 0.2903
+        "numerator": 8,
+        "denominator": 34,
+        "ratio": 0.2353
       },
       "by_lang": [
         {
@@ -70,12 +70,6 @@ expression: normalize(&stdout)
           "numerator": 6,
           "denominator": 4,
           "ratio": 1.5
-        },
-        {
-          "key": "TOML",
-          "numerator": 1,
-          "denominator": 4,
-          "ratio": 0.25
         },
         {
           "key": "Rust",
@@ -88,14 +82,20 @@ expression: normalize(&stdout)
           "numerator": 0,
           "denominator": 1,
           "ratio": 0.0
+        },
+        {
+          "key": "TOML",
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0
         }
       ],
       "by_module": [
         {
           "key": "(root)",
-          "numerator": 9,
-          "denominator": 19,
-          "ratio": 0.4737
+          "numerator": 8,
+          "denominator": 23,
+          "ratio": 0.3478
         },
         {
           "key": "src",
@@ -109,8 +109,8 @@ expression: normalize(&stdout)
       "total": {
         "key": "total",
         "numerator": 3,
-        "denominator": 31,
-        "ratio": 0.0968
+        "denominator": 34,
+        "ratio": 0.0882
       },
       "by_lang": [
         {
@@ -122,8 +122,8 @@ expression: normalize(&stdout)
         {
           "key": "TOML",
           "numerator": 1,
-          "denominator": 5,
-          "ratio": 0.2
+          "denominator": 8,
+          "ratio": 0.125
         },
         {
           "key": "JavaScript",
@@ -142,8 +142,8 @@ expression: normalize(&stdout)
         {
           "key": "(root)",
           "numerator": 3,
-          "denominator": 28,
-          "ratio": 0.1071
+          "denominator": 31,
+          "ratio": 0.0968
         },
         {
           "key": "src",
@@ -156,9 +156,9 @@ expression: normalize(&stdout)
     "verbosity": {
       "total": {
         "key": "total",
-        "numerator": 569,
-        "denominator": 34,
-        "rate": 16.7353
+        "numerator": 583,
+        "denominator": 37,
+        "rate": 15.7568
       },
       "by_lang": [
         {
@@ -169,9 +169,9 @@ expression: normalize(&stdout)
         },
         {
           "key": "TOML",
-          "numerator": 151,
-          "denominator": 6,
-          "rate": 25.1667
+          "numerator": 165,
+          "denominator": 9,
+          "rate": 18.3333
         },
         {
           "key": "Rust",
@@ -189,9 +189,9 @@ expression: normalize(&stdout)
       "by_module": [
         {
           "key": "(root)",
-          "numerator": 524,
-          "denominator": 31,
-          "rate": 16.9032
+          "numerator": 538,
+          "denominator": 34,
+          "rate": 15.8235
         },
         {
           "key": "src",
@@ -274,14 +274,14 @@ expression: normalize(&stdout)
             "path": "Cargo.toml",
             "module": "(root)",
             "lang": "TOML",
-            "code": 4,
-            "comments": 1,
+            "code": 8,
+            "comments": 0,
             "blanks": 1,
-            "lines": 6,
-            "bytes": 151,
-            "tokens": 37,
-            "doc_pct": 0.2,
-            "bytes_per_line": 25.1667,
+            "lines": 9,
+            "bytes": 165,
+            "tokens": 41,
+            "doc_pct": 0.0,
+            "bytes_per_line": 18.3333,
             "depth": 1
           }
         }
@@ -330,7 +330,7 @@ expression: normalize(&stdout)
           "lang_count": 4,
           "dominant_lang": "Markdown",
           "dominant_lines": 12,
-          "dominant_pct": 0.3871
+          "dominant_pct": 0.3529
         },
         {
           "module": "src",
@@ -359,15 +359,15 @@ expression: normalize(&stdout)
     },
     "test_density": {
       "test_lines": 0,
-      "prod_lines": 22,
+      "prod_lines": 26,
       "test_files": 0,
       "prod_files": 7,
       "ratio": 0.0
     },
     "boilerplate": {
-      "infra_lines": 18,
+      "infra_lines": 21,
       "logic_lines": 16,
-      "ratio": 0.5294,
+      "ratio": 0.5676,
       "infra_langs": [
         "Markdown",
         "TOML"
@@ -375,20 +375,20 @@ expression: normalize(&stdout)
     },
     "polyglot": {
       "lang_count": 4,
-      "entropy": 1.5455,
+      "entropy": 1.6195,
       "dominant_lang": "Rust",
       "dominant_lines": 13,
-      "dominant_pct": 0.5909
+      "dominant_pct": 0.5
     },
     "distribution": {
       "count": 7,
       "min": 1,
       "max": 11,
-      "mean": 4.86,
+      "mean": 5.29,
       "median": 3.0,
       "p90": 11.0,
       "p99": 11.0,
-      "gini": 0.4622
+      "gini": 0.4479
     },
     "histogram": [
       {
@@ -461,14 +461,14 @@ expression: normalize(&stdout)
           "path": "Cargo.toml",
           "module": "(root)",
           "lang": "TOML",
-          "code": 4,
-          "comments": 1,
+          "code": 8,
+          "comments": 0,
           "blanks": 1,
-          "lines": 6,
-          "bytes": 151,
-          "tokens": 37,
-          "doc_pct": 0.2,
-          "bytes_per_line": 25.1667,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
           "depth": 1
         },
         {
@@ -547,14 +547,14 @@ expression: normalize(&stdout)
           "path": "Cargo.toml",
           "module": "(root)",
           "lang": "TOML",
-          "code": 4,
-          "comments": 1,
+          "code": 8,
+          "comments": 0,
           "blanks": 1,
-          "lines": 6,
-          "bytes": 151,
-          "tokens": 37,
-          "doc_pct": 0.2,
-          "bytes_per_line": 25.1667,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
           "depth": 1
         },
         {
@@ -647,14 +647,14 @@ expression: normalize(&stdout)
           "path": "Cargo.toml",
           "module": "(root)",
           "lang": "TOML",
-          "code": 4,
-          "comments": 1,
+          "code": 8,
+          "comments": 0,
           "blanks": 1,
-          "lines": 6,
-          "bytes": 151,
-          "tokens": 37,
-          "doc_pct": 0.2,
-          "bytes_per_line": 25.1667,
+          "lines": 9,
+          "bytes": 165,
+          "tokens": 41,
+          "doc_pct": 0.0,
+          "bytes_per_line": 18.3333,
           "depth": 1
         },
         {
@@ -762,16 +762,16 @@ expression: normalize(&stdout)
     },
     "tree": null,
     "reading_time": {
-      "minutes": 1.1,
+      "minutes": 1.3,
       "lines_per_minute": 20,
-      "basis_lines": 22
+      "basis_lines": 26
     },
     "context_window": null,
     "cocomo": {
       "mode": "organic",
-      "kloc": 0.022,
-      "effort_pm": 0.04,
-      "duration_months": 0.76,
+      "kloc": 0.026,
+      "effort_pm": 0.05,
+      "duration_months": 0.81,
       "staff": 0.06,
       "a": 2.4,
       "b": 1.05,
@@ -835,15 +835,15 @@ expression: normalize(&stdout)
       "total": 4
     },
     "maintainability_index": {
-      "score": 152.23,
+      "score": 149.53,
       "avg_cyclomatic": 1.0,
-      "avg_loc": 3.14,
+      "avg_loc": 3.71,
       "grade": "A"
     },
     "technical_debt": {
-      "ratio": 181.82,
+      "ratio": 153.85,
       "complexity_points": 4,
-      "code_kloc": 0.022,
+      "code_kloc": 0.026,
       "level": "critical"
     },
     "files": [

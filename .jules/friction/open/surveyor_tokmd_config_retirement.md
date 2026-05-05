@@ -1,0 +1,1 @@
+We attempted to "fix" `tokmd-config` by adding it back to the workspace and repairing its test bitrot based on `cargo machete` and `cargo metadata` errors. We learned that `tokmd-config` is intentionally being retired via #1585. In the future, when seeing an orphaned crate, we should check ROADMAP or active PRs (if available) before assuming it was accidentally excluded.

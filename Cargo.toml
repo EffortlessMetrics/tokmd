@@ -1,9 +1,5 @@
 [workspace]
 resolver = "2"
-exclude = [
-    "crates/tokmd/tests/data",
-    "vendor/home-0.5.12",
-]
 members = [
     "crates/tokmd",
     "crates/tokmd-analysis",
@@ -25,7 +21,6 @@ members = [
     "crates/tokmd-io-port",
     "fuzz",
     "xtask",
-    "crates/tokmd-config",
 ]
 default-members = [
     "crates/tokmd",
@@ -44,7 +39,6 @@ default-members = [
     "crates/tokmd-settings",
     "crates/tokmd-types",
     "crates/tokmd-wasm",
-    "crates/tokmd-config",
 ]
 # xtask is a workspace member but excluded from default-members
 

@@ -22,5 +22,3 @@ proptest.workspace = true
 tempfile.workspace = true
 serde_json.workspace = true
 toml = "1.1"
-tokmd-settings.workspace = true
-tokmd-types.workspace = true

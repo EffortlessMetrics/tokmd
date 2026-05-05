@@ -342,7 +342,7 @@ fn named_profile_selection_overrides_defaults() {
         Profile {
             format: Some("json".into()),
             top: Some(10),
-            redact: Some(tokmd_config::RedactMode::Paths),
+            redact: Some(tokmd_config::CliRedactMode::Paths),
             ..Profile::default()
         },
     );
@@ -466,7 +466,7 @@ fn user_config_repo_to_profile_mapping() {
         "llm".into(),
         Profile {
             format: Some("json".into()),
-            redact: Some(tokmd_config::RedactMode::Paths),
+            redact: Some(tokmd_config::CliRedactMode::Paths),
             ..Profile::default()
         },
     );
@@ -796,7 +796,7 @@ metric = "tokens"
 fn global_args_to_scan_options_conversion() {
     let g = GlobalArgs {
         excluded: vec!["target".into(), "dist".into()],
-        config: tokmd_config::ConfigMode::None,
+        config: tokmd_config::CliConfigMode::None,
         hidden: true,
         no_ignore: false,
         no_ignore_parent: true,
