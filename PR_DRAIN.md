@@ -12,7 +12,9 @@
 - Closed #1521/#1507/#1497 as superseded by #1553.
 - Merged #1554: synthesized keeper for Git subprocess hardening. Added an explicit `--end-of-options` boundary to revision verification and validated fallback base refs without stripping legitimate alternate-index or object-store Git environment variables. Gates: `cargo test -p tokmd-git --verbose`; `cargo test -p tokmd --verbose`; `cargo clippy -p tokmd-git -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1503 as superseded by #1554.
-- Next cluster: FFI/env/path sanitization (#1403, #1404, #1405, #1406).
+- Merged #1559: synthesized keeper for FFI/env/path sanitization. Added in-memory input path length/control-character validation and config/profile selector trim/control-character sanitization while preserving case-sensitive FFI modes and existing path semantics. Gates: `cargo test -p tokmd-core in_memory_inputs_rejects_`; `cargo test -p tokmd-core --test error_boundary`; `cargo test -p tokmd-core parse_scan_settings`; `cargo test -p tokmd sanitize_selector`; `cargo test -p tokmd get_profile_name`; `cargo clippy -p tokmd-core -p tokmd -- -D warnings`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1403/#1404/#1405/#1406 as superseded or declined by #1559.
+- Next cluster: Browser GitHub ingest cache partition (#1411, #1413, #1415, #1417).
 
 ## Operating decisions
 

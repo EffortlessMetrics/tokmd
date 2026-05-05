@@ -202,12 +202,49 @@ function normalizeToken(value) {
     return trimmed ? trimmed : null;
 }
 
-function buildCacheKey({ owner, repo, ref, limits, authMode }) {
+function bytesToHex(bytes) {
+    return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function fallbackTokenPartition(token) {
+    let hash = 0xcbf29ce484222325n;
+    const prime = 0x100000001b3n;
+    const mask = 0xffffffffffffffffn;
+
+    for (const byte of new TextEncoder().encode(token)) {
+        hash ^= BigInt(byte);
+        hash = (hash * prime) & mask;
+    }
+
+    return `token:fnv1a64:${hash.toString(16).padStart(16, "0")}`;
+}
+
+async function tokenCachePartition(token) {
+    if (!token) {
+        return "anonymous";
+    }
+
+    const encoded = new TextEncoder().encode(token);
+    const digest = globalThis.crypto?.subtle?.digest;
+    if (typeof digest === "function") {
+        try {
+            const hash = await digest.call(globalThis.crypto.subtle, "SHA-256", encoded);
+            return `token:sha256:${bytesToHex(new Uint8Array(hash))}`;
+        } catch {
+            // Fall back to a non-secret in-memory partition if Web Crypto is unavailable.
+        }
+    }
+
+    return fallbackTokenPartition(token);
+}
+
+function buildCacheKey({ owner, repo, ref, limits, authMode, authPartition }) {
     return JSON.stringify({
         owner,
         repo,
         ref,
         auth: authMode ?? "anonymous",
+        authPartition: authPartition ?? "anonymous",
         ...limits,
     });
 }
@@ -602,9 +639,11 @@ export async function fetchGitHubRepoInputs(options = {}) {
     const signal = options.signal;
     const onProgress = options.onProgress;
     const authMode = token ? "token" : "anonymous";
-    const cacheKey = buildCacheKey({ owner, repo, ref, limits, authMode });
 
     throwIfAborted(signal);
+    const authPartition = await tokenCachePartition(token);
+    throwIfAborted(signal);
+    const cacheKey = buildCacheKey({ owner, repo, ref, limits, authMode, authPartition });
 
     if (repoCache.has(cacheKey)) {
         const cached = withCacheHit(await withAbortSignal(repoCache.get(cacheKey), signal));
