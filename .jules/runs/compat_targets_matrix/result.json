@@ -1,7 +1,7 @@
 {
   "status": "success",
-  "outcome": "PR-ready patch",
-  "patch_type": "code",
-  "primary_surface": "crates/tokmd-format/src/analysis/templates/report.html",
-  "description": "Replaced platform-dependent `localeCompare` in analysis HTML report generation with explicit strict Unicode code unit comparison to match Rust determinism."
+  "outcome": "learning PR",
+  "patch_type": "learning",
+  "primary_surface": "none",
+  "description": "Recorded learning PR because the target issue was superseded by PR #1601."
 }
