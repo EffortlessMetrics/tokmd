@@ -1,7 +1,6 @@
 {
-  "outcome": "pr_ready_patch",
-  "files_changed": [
-    "docs/NOW.md",
-    "docs/design.md"
+  "outcome": "learning_pr",
+  "friction_items": [
+    ".jules/friction/open/cartographer-superseded-pr-1588.md"
   ]
 }

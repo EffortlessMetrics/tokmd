@@ -1,50 +1,41 @@
 ## 💡 Summary
-Fixed factual drift in `docs/NOW.md` regarding the shipped status of in-browser receipt generation, and added the missing "No Green By Omission" capabilities design pattern to `docs/design.md` to align architectural documentation with the shipped `schema.json` and `capabilities` payload surfaces.
+The intended patch to fix factual drift regarding in-browser receipt generation in `docs/NOW.md` and document the capabilities design pattern in `docs/design.md` was superseded by PR #1588. This is a learning PR to document the workflow edge case where work overlaps with an already-merged pull request.
 
 ## 🎯 Why
-- `docs/NOW.md` incorrectly listed "in-browser receipt generation" under LATER despite it already shipping in v1.9.0 via `tokmd-wasm` and `web/runner`.
-- `docs/design.md` was missing documentation for the critical `capabilities` reporting pattern. The `capabilities` check is a deliberate architectural defense against false positives in CI pipelines ("No Green By Omission"). Without it in `design.md`, the documented architecture drifts from the shipped runtime guarantees.
+The original goal was to correct factual drift between shipped reality (v1.9.0 browser runner) and the roadmap docs, as well as add missing architectural explanations. Since these changes were superseded by #1588, forcing a redundant patch violates the "no hallucinated work" constraint. Instead, creating a learning PR correctly handles the overlap friction.
 
 ## 🔎 Evidence
-- `ROADMAP.md` correctly states for `v1.9.0`: "web/runner boots the real tokmd-wasm bundle ... renders the latest successful result, and supports JSON download."
-- `docs/schema.json` lines 2072/2085 enforce the `capabilities` array in receipts to detect silent failures.
-- `docs/sensor-report-v1.md` notes: "The capabilities field prevents false positives from missing checks. Directors can distinguish between 'all checks passed' and 'no checks ran'."
+- Pull Request Comment indicating supersession by #1588.
+- The `result.json` outcome reflects a `learning_pr`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Fix the factual drift in `docs/NOW.md` and add the `capabilities` explanation to the core design principles in `docs/design.md`.
-- why it fits this repo and shard: Directly targets the Cartographer persona's goals of fixing factual drift between shipped reality and roadmap/design docs. Keeps the `.jules` artifacts and `docs/` folder truthfully aligned.
-- trade-offs: Structure / Velocity / Governance: Requires editing two core governance files, but ensures that both short-horizon planning (`NOW.md`) and structural reference (`design.md`) are accurate.
+- what it is: Revert the redundant patch and create a learning PR documenting the superseded workflow edgecase.
+- why it fits this repo and shard: This fits the strict "no hallucinated work" constraint and honors the fallback to `learning_pr` documented in the instructions when an honest code/docs patch cannot be justified.
+- trade-offs: Structure / Velocity / Governance: Provides an accurate audit trail of the overlap without introducing redundant commits.
 
 ### Option B
-- what it is: Only update `docs/NOW.md` to remove the LATER label for in-browser receipt generation.
-- when to choose it instead: If the design principle of "No Green By Omission" was out of scope for the Cartographer persona.
-- trade-offs: Misses the opportunity to fix a critical design/reference gap regarding the `capabilities` field, leaving a factual gap blocking clear future work.
+- what it is: Ignore the PR comment and force the redundant changes.
+- when to choose it instead: Never, this directly violates the directive to gracefully abort superseded fixes.
+- trade-offs: Creates noise and redundant changes.
 
 ## ✅ Decision
-Selected Option A. The `capabilities` pattern is a fundamental part of the system's runtime contract (as evidenced by `SCHEMA.md` and `sensor-report-v1.md`), so it must be represented in `docs/design.md`. Simultaneously, `docs/NOW.md` was updated to accurately reflect the v1.9.0 shipped state.
+Selected Option A. The intended fix is redundant, so a learning PR is created with an accompanying friction item to record the workflow edge case.
 
 ## 🧱 Changes made (SRP)
-- `docs/NOW.md`
-- `docs/design.md`
+- `.jules/friction/open/cartographer-superseded-pr-1588.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask publish --plan --verbose
-cargo xtask version-consistency
-cargo xtask docs --check
-cargo check
-cargo fmt -- --check
-cargo clippy -- -D warnings
-cargo test -p xtask
+echo "Documenting superseded PR as learning PR."
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: documentation
-- Risk class + why: Lowest - purely factual and architectural documentation updates, no functional code changes.
+- Change shape: Learning PR
+- Blast radius: `.jules/` artifacts only
+- Risk class + why: None. No repository code or shared documentation is modified.
 - Rollback: Revert the PR
-- Gates run: `cargo xtask version-consistency`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo fmt -- --check`, `cargo clippy`
+- Gates run: None applicable.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-cartographer-builder-1/envelope.json`
@@ -52,6 +43,7 @@ cargo test -p xtask
 - `.jules/runs/run-cartographer-builder-1/receipts.jsonl`
 - `.jules/runs/run-cartographer-builder-1/result.json`
 - `.jules/runs/run-cartographer-builder-1/pr_body.md`
+- `.jules/friction/open/cartographer-superseded-pr-1588.md`
 
 ## 🔜 Follow-ups
-None at this time.
+Friction item created at `.jules/friction/open/cartographer-superseded-pr-1588.md`.
