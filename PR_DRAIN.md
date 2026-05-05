@@ -59,7 +59,9 @@
 - Closed #1545/#1536/#1538/#1522/#1506/#1204/#1143 as superseded or stale after #1593.
 - Merged #1594: synthesized keeper for browser runner `args.scan.inputs` parity. Accepts in-memory browser payloads from either `args.inputs` or `args.scan.inputs`, rejects duplicate root+nested inputs, keeps `scan` strict to `scan.inputs`, and proves posted-worker handling through the stub runner. Gates: `npm --prefix web/runner test`; `npm --prefix web/runner run check`; `cargo test -p tokmd-wasm`; `git diff --check`; GitHub CI.
 - Closed #1534/#1525/#1517/#1515/#1379 as superseded by #1594.
-- Next cluster: retry/rate-limit UX (#1419/#1421/#1423/#1425) or progress events (#1426/#1428/#1430/#1431).
+- Merged #1595: synthesized keeper for retry/rate-limit UX. Added CLI hints for upstream rate limits and transient network/service failures, added rate-limit-only retry guidance to FFI envelope formatting, and preserved existing generic timeout/network envelope formatting semantics.
+- Closed #1419/#1421/#1423/#1425 as superseded by #1595.
+- Next cluster: progress events (#1426/#1428/#1430/#1431).
 
 ## Operating decisions
 
