@@ -1704,7 +1704,7 @@ mod tests {
         }
 
         #[test]
-        fn redact_rows_paths_end_with_extension(ext in "[a-z]{1,4}") {
+        fn redact_rows_paths_preserve_allowlisted_extensions(ext in "rs|js|ts|json|md|toml|gz") {
             let path = format!("some/path/file.{}", ext);
             let rows = vec![FileRow {
                 path: path.clone(),
@@ -1722,6 +1722,28 @@ mod tests {
             let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
             prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
                 "Redacted path '{}' should end with .{}", redacted[0].path, ext);
+        }
+
+        #[test]
+        fn redact_rows_paths_strip_untrusted_extensions(ext in "passwd|secret|pass1234|token") {
+            let path = format!("some/path/file.{}", ext);
+            let rows = vec![FileRow {
+                path: path.clone(),
+                module: "some".to_string(),
+                lang: "Test".to_string(),
+                kind: FileKind::Parent,
+                code: 100,
+                comments: 10,
+                blanks: 5,
+                lines: 115,
+                bytes: 1000,
+                tokens: 250,
+            }];
+
+            let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
+            prop_assert_eq!(redacted[0].path.len(), 16);
+            prop_assert!(!redacted[0].path.contains('.'));
+            prop_assert!(!redacted[0].path.contains(&ext));
         }
     }
 
