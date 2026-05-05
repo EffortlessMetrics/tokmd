@@ -7,8 +7,9 @@
   - *Velocity*: Quick to implement and verify through existing JS tests.
   - *Governance*: Requires no core code changes, keeping risk purely within the browser/node layer.
 
-# Option B: Remove Support from tokmd-core
+# Option B: Create a Learning PR for Superseded Work (Chosen)
 
-- **What it is**: Modify `tokmd-core` to only allow `inputs` at the root, and drop `args.scan.inputs` support.
-- **When to choose**: If nested inputs were proven to be a deprecated mistake in the core API.
-- **Trade-offs**: Changes core API contracts and likely breaks existing native clients relying on `args.scan.inputs`.
+- **What it is**: The intended code changes for Option A have already been merged via #1594. Therefore, instead of forcing redundant changes, gracefully abort the task and create a learning PR documenting the workflow edge case.
+- **Why it fits**: Complies with the `Superseded work fallback rule` constraint in memory, which dictates ending the run safely when a patch has been preempted.
+- **Trade-offs**:
+  - *Velocity*: Quickest path to safely exit without stepping on existing commits.

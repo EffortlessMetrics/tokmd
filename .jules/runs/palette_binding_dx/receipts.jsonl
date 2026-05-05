@@ -1,1 +1,1 @@
-{"command":"npm --prefix web/runner test","status":"success"}
+{"command":"npm --prefix web/runner test","status":"skipped"}

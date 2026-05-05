@@ -192,21 +192,6 @@ test("run messages require explicit in-memory inputs", () => {
                 },
             },
         }),
-        true
-    );
-
-    assert.equal(
-        isRunMessage({
-            type: "run",
-            requestId: "x",
-            mode: "lang",
-            args: {
-                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
-                scan: {
-                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
-                },
-            },
-        }),
         false
     );
     assert.equal(

@@ -1,57 +1,36 @@
 ## 💡 Summary
-Added support for `args.scan.inputs` to the web/WASM runner, aligning its input parsing with the Rust `tokmd-core` FFI. The runner now accepts in-memory inputs at either the root level or nested inside a scan object, but cleanly rejects calls providing both.
+This is a learning PR. The intended work to resolve missing `args.scan.inputs` support in the web runner's validation layer was found to be superseded by PR #1594, which successfully merged the parity fixes.
 
 ## 🎯 Why
-The core Rust API allows in-memory inputs to be passed at `args.inputs` or `args.scan.inputs`. The JavaScript runner in `web/runner` previously lacked this parity and strictly required root `args.inputs`, which broke runtime execution for consumers supplying nested scan configurations. This change eliminates the interface drift between bindings and the core Rust CLI.
+Following the fallback procedure for redundant work: if an intended fix is already present in the active branch or superseded by another PR, do not push redundant/fake patches. Creating a learning PR safely concludes the run while preserving the telemetry artifacts.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/ffi.rs` parses inputs from either `inputs` or `scan.inputs` and throws an error if both are provided.
-- Executing `node -e 'const { isRunMessage } = require("./web/runner/messages.js"); console.log(isRunMessage({ type: "run", requestId: "1", mode: "lang", args: { scan: { inputs: [{ path: "test", text: "test" }] } } }))'` originally returned `false` before our changes.
+- Pull request #1594 was identified by the reviewer/CI as already merging the required `args.scan.inputs` validation parity and test coverage for the browser runner.
 
 ## 🧭 Options considered
 ### Option A (recommended)
 - Enhance `web/runner/messages.js` and `worker.js` to correctly extract and validate inputs from `args.inputs` or `args.scan.inputs`.
-- **Why it fits**: Directly solves the interface drift without altering core functionality.
-- **Trade-offs**: Small addition to parameter parsing complexity in the JS layer.
+- **Trade-offs**: Redundant work since this is already complete.
 
-### Option B
-- Restrict `tokmd-core` to only accept `args.inputs` and drop support for `args.scan.inputs`.
-- **When to choose**: If nested input fields were deemed an anti-pattern.
-- **Trade-offs**: A breaking change for native bindings leveraging the nested input API, violating backward compatibility.
+### Option B (Chosen)
+- Create a learning PR instead of duplicating a fix that has already been merged.
+- **Trade-offs**: Ends the run without code changes, but properly honors repository state and instructions for handled edge cases.
 
 ## ✅ Decision
-Option A. Aligning the JavaScript runner's input parsing logic with `tokmd-core` improves API parity across targets without introducing breaking changes.
+Option B. gracefully exiting via a learning PR due to superseded work.
 
 ## 🧱 Changes made (SRP)
-- `web/runner/messages.js`
-- `web/runner/worker.js`
-- `web/runner/messages.test.mjs`
+- No codebase files modified.
 
 ## 🧪 Verification receipts
-```text
-> npm --prefix web/runner test
-
-TAP version 13
-# Subtest: parseGitHubRepo accepts owner/repo and GitHub URLs
-ok 1 - parseGitHubRepo accepts owner/repo and GitHub URLs
-# ...
-1..49
-# tests 49
-# suites 0
-# pass 48
-# fail 0
-# cancelled 0
-# skipped 1
-# todo 0
-# duration_ms 1080.415997
-```
+No execution tests required for a learning PR.
 
 ## 🧭 Telemetry
-- Change shape: Implementation
-- Blast radius: API/bindings
-- Risk class: Low - Modifies JS payload validation to be slightly more permissive but fully compliant with the core runtime behavior.
-- Rollback: Revert the JS files.
-- Gates run: npm test
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class: None
+- Rollback: None
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/palette_binding_dx/envelope.json`
@@ -59,6 +38,7 @@ ok 1 - parseGitHubRepo accepts owner/repo and GitHub URLs
 - `.jules/runs/palette_binding_dx/receipts.jsonl`
 - `.jules/runs/palette_binding_dx/result.json`
 - `.jules/runs/palette_binding_dx/pr_body.md`
+- `.jules/friction/open/superseded_web_runner_inputs.md`
 
 ## 🔜 Follow-ups
-None.
+Friction recorded for superseded work.
