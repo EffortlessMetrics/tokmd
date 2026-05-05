@@ -1,51 +1,42 @@
 ## 💡 Summary
-Added unit tests to `tokmd-model` targeting edge cases in `env_interpreter_token` and `get_file_metrics`. This is a proof-improvement patch closing a mutation test gap.
+This is a learning PR. The intended test improvement for `tokmd-model` (targeting `env_interpreter_token` and `get_file_metrics`) was superseded by PR #1583. The patch was gracefully aborted.
 
 ## 🎯 Why
-`cargo mutants` indicated that several match arms within `env_interpreter_token` (handling arguments like `-u`, `--chdir`, etc.) were uncovered, meaning this core shebang language detection logic lacked behavioral assertions. Similarly, `get_file_metrics` was missing basic token length check tests.
+PR #1583 already merged the aligned `tokmd-model` boundary coverage from this cluster, making the current patch redundant.
 
 ## 🔎 Evidence
-- File path: `crates/tokmd-model/src/lib.rs`
-- Finding: `env_interpreter_token` and `metrics_from_byte_len` were lacking coverage per `cargo mutants` output.
-- Receipt: `cargo test -p tokmd-model` (all passed).
+- File path: `.jules/friction/open/superseded_pr.md`
+- Finding: PR comment explicitly stated "Superseded by #1583, which merged the aligned tokmd-model boundary coverage from this cluster".
+- Receipt: `echo "Aborted code changes"`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Add tests directly to `tokmd-model/src/lib.rs` for `env_interpreter_token` and `metrics_from_byte_len`.
-- why it fits this repo and shard: Directly targets the missing mutation gap in the core pipeline without changing the API.
-- trade-offs: Fast to implement, strong governance addition.
+- what it is: Abort the patch and submit a learning PR.
+- why it fits this repo and shard: Memory guidelines strictly require gracefully aborting redundant fixes and generating a learning PR with a friction item instead of pushing duplicate work.
+- trade-offs: Structure / Velocity / Governance: Safely avoids duplicate PRs while correctly tracking the learning loop.
 
 ### Option B
-- what it is: Implement an integration test using the `tokmd-cli`.
-- when to choose it instead: If the logic was highly intertwined with OS execution.
-- trade-offs: Slower to run and more brittle.
+- what it is: Ignore the PR comment and attempt to push the patch anyway.
+- when to choose it instead: Never, this would violate the PR supersession and create duplicate code.
+- trade-offs: Would cause git conflicts and duplicate assertions.
 
 ## ✅ Decision
-Option A was chosen as it targets the exact missing mutation paths quickly and deterministically within the library boundary.
+Option A: Abort and record a learning PR with a new friction item.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-model/src/lib.rs`
+- `.jules/friction/open/superseded_pr.md`
 
 ## 🧪 Verification receipts
 ```text
-running 52 tests
-...
-test verify_division_in_tokens ... ok
-test verify_code_accumulation_is_addition ... ok
-test unique_parent_file_count_returns_correct_count ... ok
-
-test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
-
-Version consistency checks passed.
-Documentation is up to date.
+Aborted code changes
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test additions
-- Blast radius: None (tests only)
+- Change shape: Learning PR
+- Blast radius: None
 - Risk class: Low
-- Rollback: Revert the added test lines
-- Gates run: `cargo test -p tokmd-model`, `cargo xtask docs --check`, `cargo xtask version-consistency`, `cargo fmt -- --check`, `cargo clippy`, `cargo check`
+- Rollback: Revert friction item
+- Gates run: None required for learning PR without code changes
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`
@@ -53,6 +44,7 @@ Documentation is up to date.
 - `.jules/runs/mutant_high_value/receipts.jsonl`
 - `.jules/runs/mutant_high_value/result.json`
 - `.jules/runs/mutant_high_value/pr_body.md`
+- `.jules/friction/open/superseded_pr.md`
 
 ## 🔜 Follow-ups
 None

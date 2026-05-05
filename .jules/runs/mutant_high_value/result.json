@@ -1,6 +1,5 @@
 {
   "status": "success",
-  "patch_type": "proof-improvement",
-  "target": "crates/tokmd-model/src/lib.rs",
-  "reason": "Strengthened test suite coverage for env_interpreter_token and get_file_metrics. This prevents regressions in detecting language properties via shebang environment tools."
+  "patch_type": "learning",
+  "reason": "Superseded by PR #1583 which merged the intended tokmd-model boundary coverage. Gracefully aborting and generating a learning PR."
 }

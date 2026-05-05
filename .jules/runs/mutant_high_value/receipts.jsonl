@@ -1,8 +1,1 @@
-{"command": "cargo mutants -p tokmd-model --test-tool nextest || echo \"Failed, continuing\"", "outcome": "Success (Timeout observed but tests were verified later)"}
-{"command": "cargo test -p tokmd-model --test model_tests", "outcome": "Success (52 passed)"}
-{"command": "cargo test -p tokmd-model", "outcome": "Success (Tests pass locally)"}
-{"command": "cargo xtask docs --check", "outcome": "Success"}
-{"command": "cargo xtask version-consistency", "outcome": "Success"}
-{"command": "cargo fmt -- --check", "outcome": "Success"}
-{"command": "cargo clippy -- -D warnings", "outcome": "Success"}
-{"command": "cargo check", "outcome": "Success"}
+{"command": "echo \"Aborted code changes\"", "outcome": "Success"}
