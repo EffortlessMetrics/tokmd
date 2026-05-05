@@ -1,0 +1,21 @@
+{
+  "outcome_type": "patch",
+  "title": "steward: align documentation and schema versions to v1.10.0 release 🚢",
+  "summary": "Updated NOW.md, SCHEMA.md, sensor-report-v1.md, and design.md to reflect v1.10.0 instead of the historical v1.9.0 release.",
+  "target_paths": [
+    "docs/NOW.md",
+    "docs/SCHEMA.md",
+    "docs/sensor-report-v1.md",
+    "docs/design.md"
+  ],
+  "proof_summary": "Replaced hardcoded 1.9.0 references in operational docs. Verified with `cargo xtask docs --check` and `cargo xtask version-consistency`.",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Revert the doc modifications.",
+  "follow_ups": []
+}

@@ -1,0 +1,7 @@
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo xtask docs --check", "status": "success", "summary": "Initial checks pass."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo xtask version-consistency", "status": "success", "summary": "Initial version consistency passes."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo xtask publish --plan --verbose", "status": "success", "summary": "Publish plan succeeds."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "decision", "cwd": "/app", "cmd": "grep -r '1.9.0' docs/", "status": "success", "summary": "Found hardcoded 1.9.0 references in NOW.md, SCHEMA.md, sensor-report-v1.md, and design.md."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "patch", "cwd": "/app", "cmd": "sed -i 's/1\.9\.0/1.10.0/g' docs/NOW.md docs/SCHEMA.md docs/sensor-report-v1.md docs/design.md", "status": "success", "summary": "Patched out-of-date documentation and schema versions from 1.9.0 to 1.10.0."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "verify", "cwd": "/app", "cmd": "cargo xtask docs --check", "status": "success", "summary": "Docs check passes post-patch."}
+{"ts_utc": "2026-05-05T15:49:29Z", "phase": "verify", "cwd": "/app", "cmd": "cargo xtask version-consistency", "status": "success", "summary": "Version consistency passes post-patch."}

@@ -1,0 +1,1 @@
+steward: align documentation and schema versions to v1.10.0 release 🚢
