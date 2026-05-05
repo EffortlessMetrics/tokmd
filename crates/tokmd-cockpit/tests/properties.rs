@@ -125,6 +125,38 @@ proptest! {
             health.grade
         );
     }
+
+    #[test]
+    fn prop_health_is_monotonic_for_breaking_indicators(
+        stats in prop::collection::vec(file_stat_strategy(), 0..20),
+        breaking_a in 0..5usize,
+        breaking_b in 0..5usize,
+    ) {
+        let (low, high) = if breaking_a <= breaking_b {
+            (breaking_a, breaking_b)
+        } else {
+            (breaking_b, breaking_a)
+        };
+        let base = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: low,
+        };
+        let stricter = Contracts {
+            breaking_indicators: high,
+            ..base
+        };
+
+        let health_base = compute_code_health(&stats, &base);
+        let health_stricter = compute_code_health(&stats, &stricter);
+        prop_assert!(
+            health_stricter.score <= health_base.score,
+            "more breaking indicators should not improve score: {} -> {}",
+            health_base.score,
+            health_stricter.score
+        );
+    }
 }
 
 // ===========================================================================
@@ -459,10 +491,13 @@ proptest! {
     #[test]
     fn composition_percentages(files in prop::collection::vec(file_path_strategy(), 1..20)) {
         let comp = compute_composition(&files);
-        prop_assert!((0.0..=100.0).contains(&comp.code_pct));
-        prop_assert!((0.0..=100.0).contains(&comp.test_pct));
-        prop_assert!((0.0..=100.0).contains(&comp.docs_pct));
-        prop_assert!((0.0..=100.0).contains(&comp.config_pct));
+        let sum = comp.code_pct + comp.test_pct + comp.docs_pct + comp.config_pct;
+
+        prop_assert!((0.0..=1.0).contains(&comp.code_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.test_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.docs_pct));
+        prop_assert!((0.0..=1.0).contains(&comp.config_pct));
+        prop_assert!(sum <= 1.001, "sum was {}", sum);
     }
 
     #[test]

@@ -25,7 +25,9 @@
 - Closed #1463 as superseded by #1568.
 - Merged #1573: synthesized keeper for `tokmd-scan` config property tests. Added real-helper properties proving monotonic opt-in flag behavior and the `no_ignore` implication across scan config mapping. Gates: `cargo test -p tokmd-scan --test properties`; `cargo test -p tokmd-scan`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1466 as superseded by #1573.
-- Next cluster: Property/proptest improvements (#1464, #1465).
+- Merged #1575: synthesized keeper for proptest testing docs. Replaced stale retired-helper-crate guidance with current workspace surfaces, updated the pinned `proptest` version, and documented the active `[default]` config section. Gates: `cargo xtask docs --check`; `git diff --check`; GitHub CI.
+- Closed #1465 as superseded by #1575.
+- Next cluster: Property/proptest improvements (#1464).
 
 ## Operating decisions
 
