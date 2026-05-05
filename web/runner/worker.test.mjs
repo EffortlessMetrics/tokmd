@@ -140,6 +140,39 @@ test("worker publishes ready on boot", async () => {
     }
 });
 
+test("worker forwards nested scan inputs through the stub runner", async () => {
+    const worker = new Worker(new URL("./worker.js", import.meta.url), {
+        type: "module",
+        workerData: {
+            runnerMode: "stub",
+        },
+    });
+
+    try {
+        await onceMessage(worker);
+
+        worker.postMessage({
+            type: "run",
+            requestId: "stub-scan-inputs",
+            mode: "analyze",
+            args: {
+                scan: {
+                    inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+                },
+                preset: "estimate",
+            },
+        });
+
+        const result = await onceMessage(worker);
+        assert.equal(result.type, MESSAGE_TYPES.RESULT);
+        assert.equal(result.requestId, "stub-scan-inputs");
+        assert.equal(result.data.mode, "analysis");
+        assert.deepEqual(result.data.source.inputs, ["src/lib.rs"]);
+    } finally {
+        await worker.terminate();
+    }
+});
+
 test("worker advertises only supported modes from a minimal wasm module", async () => {
     const { worker, cleanup } = createWorkerForMockWasm({
         includeRunLang: true,
