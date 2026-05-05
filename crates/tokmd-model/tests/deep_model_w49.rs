@@ -299,7 +299,7 @@ fn lang_rows_tiebreak_ascending_by_name() {
             avg_lines: 20,
         },
     ];
-    tokmd_model::sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
     assert_eq!(rows[0].lang, "Alpha");
     assert_eq!(rows[1].lang, "Mid");
     assert_eq!(rows[2].lang, "Zebra");
@@ -343,7 +343,7 @@ fn module_rows_tiebreak_ascending_by_name() {
             avg_lines: 10,
         },
     ];
-    tokmd_model::sort_module_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
     assert_eq!(rows[0].module, "aaa");
     assert_eq!(rows[1].module, "zzz");
 }
@@ -418,7 +418,7 @@ proptest! {
     fn prop_sort_preserves_code_sum(rows in prop::collection::vec(arb_lang_row(), 1..=20)) {
         let before: usize = rows.iter().map(|r| r.code).sum();
         let mut sorted = rows;
-        tokmd_model::sort_lang_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         let after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(before, after);
     }
@@ -427,9 +427,9 @@ proptest! {
     #[test]
     fn prop_sort_idempotent_lang(rows in prop::collection::vec(arb_lang_row(), 1..=20)) {
         let mut once = rows;
-        tokmd_model::sort_lang_rows(&mut once);
+        once.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         let mut twice = once.clone();
-        tokmd_model::sort_lang_rows(&mut twice);
+        twice.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         prop_assert_eq!(once, twice);
     }
 
@@ -438,7 +438,7 @@ proptest! {
     fn prop_module_sort_preserves_code(rows in prop::collection::vec(arb_module_row(), 1..=20)) {
         let before: usize = rows.iter().map(|r| r.code).sum();
         let mut sorted = rows;
-        tokmd_model::sort_module_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         let after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(before, after);
     }
@@ -447,7 +447,7 @@ proptest! {
     #[test]
     fn prop_module_sort_descending(rows in prop::collection::vec(arb_module_row(), 2..=20)) {
         let mut sorted = rows;
-        tokmd_model::sort_module_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         for w in sorted.windows(2) {
             prop_assert!(
                 w[0].code > w[1].code || (w[0].code == w[1].code && w[0].module <= w[1].module),

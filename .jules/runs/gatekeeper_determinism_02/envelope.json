@@ -20,11 +20,11 @@
     "selected": null
   },
   "artifact_paths": {
-    "envelope": ".jules/runs/gatekeeper_determinism_01/envelope.json",
-    "decision": ".jules/runs/gatekeeper_determinism_01/decision.md",
-    "receipts": ".jules/runs/gatekeeper_determinism_01/receipts.jsonl",
-    "result": ".jules/runs/gatekeeper_determinism_01/result.json",
-    "pr_body": ".jules/runs/gatekeeper_determinism_01/pr_body.md"
+    "envelope": ".jules/runs/gatekeeper_determinism_02/envelope.json",
+    "decision": ".jules/runs/gatekeeper_determinism_02/decision.md",
+    "receipts": ".jules/runs/gatekeeper_determinism_02/receipts.jsonl",
+    "result": ".jules/runs/gatekeeper_determinism_02/result.json",
+    "pr_body": ".jules/runs/gatekeeper_determinism_02/pr_body.md"
   },
   "command_list": []
 }

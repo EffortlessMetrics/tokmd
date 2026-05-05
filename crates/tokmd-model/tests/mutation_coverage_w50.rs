@@ -83,7 +83,7 @@ fn sort_order_descending_by_code() {
         lang_row("Python", 300, 400, 3),
     ];
     // Replicate the model's sorting logic
-    tokmd_model::sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
     assert_eq!(rows[0].lang, "Rust");
     assert_eq!(rows[1].lang, "Python");
@@ -100,7 +100,7 @@ fn sort_order_changes_when_code_changes() {
         lang_row("Rust", 500, 600, 5),
         lang_row("Python", 300, 400, 3),
     ];
-    tokmd_model::sort_lang_rows(&mut rows_before);
+    rows_before.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
     assert_eq!(rows_before[0].lang, "Rust");
 
     // Now Python has more code
@@ -108,7 +108,7 @@ fn sort_order_changes_when_code_changes() {
         lang_row("Rust", 200, 300, 5),
         lang_row("Python", 600, 700, 3),
     ];
-    tokmd_model::sort_lang_rows(&mut rows_after);
+    rows_after.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
     assert_eq!(rows_after[0].lang, "Python");
 }
 
@@ -123,7 +123,7 @@ fn zero_code_languages_sorted_by_name() {
         lang_row("Ada", 0, 5, 1),
         lang_row("Elm", 0, 8, 1),
     ];
-    tokmd_model::sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
     assert_eq!(rows[0].lang, "Ada");
     assert_eq!(rows[1].lang, "Elm");

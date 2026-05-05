@@ -64,15 +64,15 @@ fn totals_from_rows(rows: &[LangRow]) -> Totals {
 }
 
 fn sort_lang_rows(rows: &mut [LangRow]) {
-    tokmd_model::sort_lang_rows(rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 }
 
 fn sort_module_rows(rows: &mut [ModuleRow]) {
-    tokmd_model::sort_module_rows(rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 }
 
 fn sort_file_rows(rows: &mut [FileRow]) {
-    tokmd_model::sort_file_rows(rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 }
 
 // -- 1. Lang rows: different insertion order -> same sorted output --

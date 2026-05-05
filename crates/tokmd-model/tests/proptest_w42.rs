@@ -129,7 +129,7 @@ proptest! {
     #[test]
     fn lang_row_sort_idempotent(rows in prop::collection::vec(arb_lang_row(), 0..30)) {
         let sort_fn = |v: &mut Vec<LangRow>| {
-            tokmd_model::sort_lang_rows(v);
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         };
         let mut once = rows.clone();
         sort_fn(&mut once);
@@ -142,7 +142,7 @@ proptest! {
     #[test]
     fn lang_row_sort_preserves_count(rows in prop::collection::vec(arb_lang_row(), 0..30)) {
         let mut sorted = rows.clone();
-        tokmd_model::sort_lang_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         prop_assert_eq!(sorted.len(), rows.len());
     }
 
@@ -150,7 +150,7 @@ proptest! {
     #[test]
     fn lang_row_sorted_descending(rows in prop::collection::vec(arb_lang_row(), 2..20)) {
         let mut sorted = rows;
-        tokmd_model::sort_lang_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
         for w in sorted.windows(2) {
             prop_assert!(
                 w[0].code > w[1].code || (w[0].code == w[1].code && w[0].lang <= w[1].lang),
@@ -178,7 +178,7 @@ proptest! {
     #[test]
     fn module_row_sort_idempotent(rows in prop::collection::vec(arb_module_row(), 0..30)) {
         let sort_fn = |v: &mut Vec<ModuleRow>| {
-            tokmd_model::sort_module_rows(v);
+            v.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         };
         let mut once = rows.clone();
         sort_fn(&mut once);
@@ -191,7 +191,7 @@ proptest! {
     #[test]
     fn module_row_sorted_descending(rows in prop::collection::vec(arb_module_row(), 2..20)) {
         let mut sorted = rows;
-        tokmd_model::sort_module_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         for w in sorted.windows(2) {
             prop_assert!(
                 w[0].code > w[1].code || (w[0].code == w[1].code && w[0].module <= w[1].module),
@@ -205,7 +205,7 @@ proptest! {
     fn module_row_sort_preserves_code_sum(rows in prop::collection::vec(arb_module_row(), 0..30)) {
         let sum_before: usize = rows.iter().map(|r| r.code).sum();
         let mut sorted = rows;
-        tokmd_model::sort_module_rows(&mut sorted);
+        sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         let sum_after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(sum_before, sum_after);
     }

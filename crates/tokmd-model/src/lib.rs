@@ -316,21 +316,6 @@ pub fn create_lang_report(
     create_lang_report_from_rows(&rows, top, with_files, children)
 }
 
-/// Sorts `LangRow`s descending by code, with ties broken ascending by language name.
-pub fn sort_lang_rows(rows: &mut [LangRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
-}
-
-/// Sorts `ModuleRow`s descending by code, with ties broken ascending by module name.
-pub fn sort_module_rows(rows: &mut [ModuleRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
-}
-
-/// Sorts `FileRow`s descending by code, with ties broken ascending by path.
-pub fn sort_file_rows(rows: &mut [FileRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
-}
-
 pub fn create_lang_report_from_rows(
     file_rows: &[FileRow],
     top: usize,
@@ -428,7 +413,7 @@ pub fn create_lang_report_from_rows(
         });
     }
 
-    sort_lang_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 
     let total_code: usize = rows.iter().map(|r| r.code).sum();
     let total_lines: usize = rows.iter().map(|r| r.lines).sum();
@@ -552,7 +537,7 @@ pub fn create_module_report_from_rows(
     }
 
     // Sort descending by code, then by module name for determinism.
-    sort_module_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 
     if top > 0 && rows.len() > top {
         let other = fold_other_module(&rows[top..]);
@@ -645,7 +630,7 @@ pub fn create_export_data_from_rows(
     if min_code > 0 {
         rows.retain(|r| r.code >= min_code);
     }
-    sort_file_rows(&mut rows);
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 
     if max_rows > 0 && rows.len() > max_rows {
         rows.truncate(max_rows);
