@@ -1,8 +1,18 @@
 use anyhow::Error;
 
 pub(crate) fn format(err: &Error) -> String {
-    let mut out = format!("Error: {err:#}");
-    let hints = suggestions(err);
+    let mut out = if let Some(token) = missing_path_as_unrecognized_subcommand(err) {
+        format!("Error: Unrecognized subcommand '{token}'")
+    } else {
+        format!("Error: {err:#}")
+    };
+    let mut hints = suggestions(err);
+    if out.starts_with("Error: Unrecognized subcommand ") {
+        hints.retain(|h| {
+            !h.contains("was intended as a subcommand")
+                && !h.contains("was meant to be a subcommand")
+        });
+    }
     if !hints.is_empty() {
         out.push_str("\n\nHints:\n");
         for hint in hints {
@@ -12,6 +22,33 @@ pub(crate) fn format(err: &Error) -> String {
         }
     }
     out
+}
+
+fn missing_path_as_unrecognized_subcommand(err: &Error) -> Option<String> {
+    for entry in err.chain() {
+        let message = entry.to_string();
+        let token = message
+            .strip_prefix("Path not found: ")
+            .or_else(|| message.strip_prefix("Input path does not exist: "));
+
+        if let Some(token) = token {
+            let token = token.trim();
+            if looks_like_bare_subcommand_token(token) {
+                return Some(token.to_string());
+            }
+        }
+    }
+
+    None
+}
+
+fn looks_like_bare_subcommand_token(token: &str) -> bool {
+    !token.is_empty()
+        && !token.starts_with('-')
+        && !token.contains('/')
+        && !token.contains('\\')
+        && !token.contains('.')
+        && !token.contains(':')
 }
 
 fn suggestions(err: &Error) -> Vec<String> {
@@ -256,6 +293,24 @@ mod tests {
                 .iter()
                 .any(|h| h.contains("subcommand, it is not recognized"))
         );
+    }
+
+    #[test]
+    fn format_rewrites_bare_missing_path_as_unrecognized_subcommand() {
+        let err = anyhow!("Path not found: frobnicate");
+        let rendered = format(&err);
+        assert!(rendered.contains("Error: Unrecognized subcommand 'frobnicate'"));
+        assert!(!rendered.contains("Error: Path not found: frobnicate"));
+        assert!(!rendered.contains("was intended as a subcommand"));
+        assert!(rendered.contains("Verify the input path exists and is readable."));
+    }
+
+    #[test]
+    fn format_preserves_path_shaped_missing_path_errors() {
+        let err = anyhow!("Path not found: missing/file.rs");
+        let rendered = format(&err);
+        assert!(rendered.contains("Error: Path not found: missing/file.rs"));
+        assert!(!rendered.contains("Unrecognized subcommand"));
     }
 
     #[test]
