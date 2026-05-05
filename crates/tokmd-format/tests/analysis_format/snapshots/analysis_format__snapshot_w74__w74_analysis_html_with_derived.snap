@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd-format/tests/analysis_format/snapshot_w74.rs
-assertion_line: 483
 expression: out
 ---
 <!DOCTYPE html>
@@ -363,6 +362,29 @@ expression: out
         });
     });
 
+    function compareByCodePoint(left, right) {
+        let leftIndex = 0;
+        let rightIndex = 0;
+
+        while (leftIndex < left.length && rightIndex < right.length) {
+            const leftCodePoint = left.codePointAt(leftIndex);
+            const rightCodePoint = right.codePointAt(rightIndex);
+
+            if (leftCodePoint !== rightCodePoint) {
+                return leftCodePoint < rightCodePoint ? -1 : 1;
+            }
+
+            leftIndex += leftCodePoint > 0xffff ? 2 : 1;
+            rightIndex += rightCodePoint > 0xffff ? 2 : 1;
+        }
+
+        if (leftIndex === left.length && rightIndex === right.length) {
+            return 0;
+        }
+
+        return leftIndex === left.length ? -1 : 1;
+    }
+
     // Table sorting
     let sortCol = null, sortAsc = true;
     document.querySelectorAll('#files-table th').forEach(th => {
@@ -382,7 +404,8 @@ expression: out
                 if (!isNaN(aNum) && !isNaN(bNum)) {
                     return sortAsc ? aNum - bNum : bNum - aNum;
                 }
-                return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                const textOrder = compareByCodePoint(aVal, bVal);
+                return sortAsc ? textOrder : -textOrder;
             });
 
             rows.forEach(row => tbody.appendChild(row));

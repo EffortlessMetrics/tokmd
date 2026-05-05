@@ -222,6 +222,15 @@ fn redact_timestamp(html: &str) -> String {
     result
 }
 
+#[test]
+fn table_sort_uses_code_point_comparison() {
+    let html = render(&minimal_receipt());
+
+    assert!(html.contains("function compareByCodePoint"));
+    assert!(html.contains("codePointAt"));
+    assert!(!html.contains("localeCompare"));
+}
+
 // ── Snapshot: Empty receipt ──────────────────────────────────────────
 
 #[test]
