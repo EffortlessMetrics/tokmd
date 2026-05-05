@@ -115,6 +115,7 @@ pub enum Commands {
     Export(CliExportArgs),
 
     /// Analyze receipts or paths to produce derived metrics.
+    #[command(visible_alias = "analyse")]
     Analyze(CliAnalyzeArgs),
 
     /// Render a simple SVG badge for a metric.
@@ -124,6 +125,7 @@ pub enum Commands {
     Init(InitArgs),
 
     /// Generate shell completions.
+    #[command(visible_alias = "completion")]
     Completions(CompletionsArgs),
 
     /// Run a full scan and save receipts to a state directory.

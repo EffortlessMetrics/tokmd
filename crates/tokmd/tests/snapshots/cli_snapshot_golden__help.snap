@@ -11,10 +11,10 @@ Commands:
   lang          Language summary (default)
   module        Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
   export        Export a file-level dataset (CSV / JSONL / JSON)
-  analyze       Analyze receipts or paths to produce derived metrics
+  analyze       Analyze receipts or paths to produce derived metrics [aliases: analyse]
   badge         Render a simple SVG badge for a metric
   init          Write a `.tokeignore` template to the target directory
-  completions   Generate shell completions
+  completions   Generate shell completions [aliases: completion]
   run           Run a full scan and save receipts to a state directory
   diff          Compare two receipts or runs
   context       Pack files into an LLM context window within a token budget
