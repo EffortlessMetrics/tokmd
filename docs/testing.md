@@ -115,6 +115,38 @@ Snapshots normalize non-deterministic values:
 
 Snapshot files: `<crate>/tests/snapshots/*.snap`
 
+### Snapshot Authoring Guidelines
+
+When adding or updating snapshot tests:
+
+- Prefer structured JSON snapshots for structured output so field ordering and diffs stay readable.
+- Normalize dynamic values before asserting snapshots, including timestamps, versions, absolute paths, and temp directories.
+- Keep snapshot names stable and descriptive, such as `<surface>_<scenario>`.
+- Keep failures localized and reviewable. One scenario per test is the default; table-driven helpers are fine when each case has a stable snapshot name and a clear failing command or scenario.
+- Use inline snapshots only for very small outputs; prefer `.snap` files for larger outputs.
+
+Recommended helper patterns:
+
+- Normalization helpers for JSON, Markdown, SVG, and HTML snapshots with dynamic fields.
+- Command helpers that include the invoked CLI arguments and stderr in failure messages.
+- Path redaction helpers that convert platform-specific or temp paths to stable placeholders.
+
+### Snapshot Review Workflow
+
+Use this workflow to reduce accidental snapshot churn:
+
+```bash
+cargo test -p <crate> <snapshot_test_name> --verbose
+cargo insta test -p <crate>
+cargo insta review
+```
+
+Guidance:
+
+- Review each hunk for semantic intent, not just textual differences.
+- If a change is intentional, accept only the relevant snapshots.
+- If a diff is unexpected, fix normalization or logic and rerun tests.
+
 ## Property-Based Tests
 
 The workspace pins `proptest` 1.11.0. Property suites cover active workspace
