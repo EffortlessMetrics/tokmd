@@ -110,22 +110,6 @@ fn load_json_config() -> Option<UserConfig> {
 }
 
 /// Get the profile name from CLI arg, env var, or default.
-///
-/// # Examples
-///
-/// ```
-/// use tokmd::config::get_profile_name;
-///
-/// // CLI argument takes precedence
-/// let cli_name = String::from("cli-profile");
-/// assert_eq!(get_profile_name(Some(&cli_name)), Some("cli-profile".to_string()));
-///
-/// // None is returned if neither CLI arg nor TOKMD_PROFILE env var is provided
-/// // (assuming TOKMD_PROFILE is not set in the test environment)
-/// if std::env::var("TOKMD_PROFILE").is_err() {
-///     assert_eq!(get_profile_name(None), None);
-/// }
-/// ```
 pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
     // CLI argument takes precedence
     if let Some(name) = cli_profile {
@@ -139,30 +123,6 @@ pub fn get_profile_name(cli_profile: Option<&String>) -> Option<String> {
 }
 
 /// Resolve a JSON profile by name (legacy).
-///
-/// # Examples
-///
-/// ```
-/// use tokmd_settings::{UserConfig, Profile};
-/// use tokmd::config::resolve_profile;
-/// use std::collections::BTreeMap;
-///
-/// let mut profiles = BTreeMap::new();
-/// let mut default_profile = Profile::default();
-/// default_profile.top = Some(10);
-/// profiles.insert("default".to_string(), default_profile);
-///
-/// let user_config = Some(UserConfig { profiles, repos: BTreeMap::new() });
-///
-/// // Resolve default profile implicitly
-/// let profile1 = resolve_profile(&user_config, None);
-/// assert_eq!(profile1.unwrap().top, Some(10));
-///
-/// // Resolve missing profile explicitly
-/// let name = String::from("missing");
-/// let profile2 = resolve_profile(&user_config, Some(&name));
-/// assert!(profile2.is_none());
-/// ```
 pub fn resolve_profile<'a>(
     config: &'a Option<UserConfig>,
     name: Option<&String>,

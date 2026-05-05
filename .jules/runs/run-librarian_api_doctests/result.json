@@ -1,12 +1,5 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_changed": [
-    "crates/tokmd/src/config.rs"
-  ],
-  "gates_run": [
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings",
-    "cargo test --doc -p tokmd",
-    "cargo test -p tokmd"
-  ]
+  "outcome": "learning PR",
+  "files_changed": [],
+  "gates_run": []
 }
