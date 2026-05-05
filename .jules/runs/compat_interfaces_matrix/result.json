@@ -1,5 +1,7 @@
 {
-  "outcome": "patch_ready",
-  "friction_items": [],
-  "verification_status": "verified"
+  "outcome": "learning_pr",
+  "friction_items": [
+    ".jules/friction/open/friction_superseded_by_1552.md"
+  ],
+  "verification_status": "aborted_superseded"
 }
