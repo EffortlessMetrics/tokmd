@@ -41,7 +41,9 @@
 - Closed #1165/#1519/#1535 as superseded or stale after #1583 landed.
 - Merged #1584: synthesized keeper for model row sorting extraction. Shared the row-ordering closures as private helpers, added source-local ordering tests, and avoided expanding the `tokmd-model` public API for tests. Gates: `cargo test -p tokmd-model sort_`; `cargo test -p tokmd-model --test determinism_w66`; `cargo test -p tokmd-model`; `cargo fmt-check`; `cargo clippy -p tokmd-model --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
 - Closed #1513/#1504/#1493/#1453 as superseded by #1584.
-- Next cluster: `tokmd-config` retirement (#1544, #1520, #1532, #1481).
+- Merged #1585: synthesized keeper for `tokmd-config` retirement. Deleted the stale non-workspace compatibility shim, retargeted the interface shard to active owners, and kept the retired dependency name as a boundary guard. Gates: `cargo metadata --format-version 1 --no-deps`; `cargo xtask docs --check`; `cargo xtask version-consistency`; `cargo xtask publish-surface --json`; `cargo fmt-check`; `cargo test -p xtask boundaries --verbose`; `cargo check -p tokmd-settings -p tokmd-core -p tokmd --all-targets`; `cargo test -p tokmd-settings`; `cargo test -p tokmd-types`; `cargo test -p tokmd --lib`; `git diff --check`; `cargo xtask publish-surface --json --verify-publish`; GitHub CI.
+- Closed #1544/#1520/#1532/#1481 as superseded by #1585.
+- Next cluster: COCOMO estimate consolidation (#1429, #1432, #1434, #1436).
 
 ## Operating decisions
 

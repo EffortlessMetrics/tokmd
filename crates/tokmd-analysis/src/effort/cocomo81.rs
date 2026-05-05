@@ -1,28 +1,8 @@
+use crate::cocomo81_core::cocomo81_effort_pm as cocomo81_effort_pm_core;
 use tokmd_analysis_types::EffortResults;
 
-const A: f64 = 2.4;
-const B: f64 = 1.05;
-const C: f64 = 2.5;
-const D: f64 = 0.38;
-
 pub fn cocomo81_effort_pm(kloc: f64) -> (f64, f64, f64, f64) {
-    if kloc <= 0.0 {
-        return (0.0, 0.0, 0.0, 0.0);
-    }
-
-    let effort_pm = A * kloc.powf(B);
-    let schedule_months = if effort_pm <= 0.0 {
-        0.0
-    } else {
-        C * effort_pm.powf(D)
-    };
-    let staff = if schedule_months > 0.0 {
-        effort_pm / schedule_months
-    } else {
-        0.0
-    };
-
-    (effort_pm, schedule_months, staff, effort_pm)
+    cocomo81_effort_pm_core(kloc)
 }
 
 pub fn estimate_with_factors(
