@@ -1,80 +1,40 @@
 ## 💡 Summary
-I fixed a parameter drift in `docs/reference-cli.md` for the `tokmd handoff` command, making it consistent with `docs/handoff.md`, and added missing executable coverage for the handoff CLI variations in `crates/tokmd/tests/docs.rs` to ensure they execute successfully without regressions.
+This is a learning PR. The intended patch to fix the `tokmd handoff` parameter drift in `docs/reference-cli.md` and add corresponding executable tests in `crates/tokmd/tests/docs.rs` was superseded by PR #1592, which merged identical coverage on current main.
 
 ## 🎯 Why
-The `docs/reference-cli.md` example for `tokmd handoff` showed a `--budget 64k` value, while `docs/handoff.md` and the actual defaults used `128k`. Additionally, `crates/tokmd/tests/docs.rs` did not actually verify the `tokmd handoff --no-git` nor the `tokmd handoff --budget 128k --strategy spread` variations, violating the `docs-executable` gate profile expectation that examples must execute or compile where possible to prevent silent drift.
+The workflow encountered an edge case where the intended fix was superseded by another merged PR (#1592) during execution. Instead of forcing a redundant or fake fix, the process gracefully aborted and created this learning PR to document the workflow edge case as friction.
 
 ## 🔎 Evidence
-- `docs/reference-cli.md` parameter drift.
-- `docs/handoff.md` examples.
-- `cargo test -p tokmd --test docs` and `cargo xtask docs --check` outputs verifying the fixes.
+- Pull request comment: "Superseded by #1592, which merged the current executable docs and handoff example coverage on current main."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Align `docs/reference-cli.md` parameter with `128k` and add `tokmd handoff --budget 128k --strategy spread` and `tokmd handoff --no-git` tests in `crates/tokmd/tests/docs.rs`.
-- why it fits this repo and shard: Directly fulfills the `docs-executable` expectation for the `tooling-governance` shard.
-- trade-offs: Structure / Velocity / Governance: Improves factual governance without introducing large structural shifts.
+- what it is: Abort the current fix and fall back to creating a 'learning PR' containing the full per-run packet and recording a friction item.
+- why it fits this repo and shard: Directly adheres to the instruction for handling superseded patches in the `tooling-governance` shard.
+- trade-offs: Structure / Velocity / Governance: Prioritizes velocity by gracefully acknowledging superseded work rather than fighting merge conflicts or forcing redundant commits.
 
 ### Option B
-- what it is: Fix drift without adding verification tests.
-- when to choose it instead: If tests were impossible to add or write.
-- trade-offs: Leaves documentation vulnerable to future, silent CLI changes.
+- what it is: Continue trying to push the redundant fix.
+- when to choose it instead: Never, if the work is verifiably superseded by main.
+- trade-offs: Increases review burden and risks introducing merge conflicts or duplicate tests.
 
 ## ✅ Decision
-Option A was chosen to ensure docs remain factually accurate and drift is programmatically prevented.
+Option A was chosen to properly document the workflow edge case without introducing a redundant fix.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Changed `64k` budget example to `128k` for `tokmd handoff`.
-- `crates/tokmd/tests/docs.rs`: Added `recipe_handoff_budget_spread` and `recipe_handoff_no_git` tests.
+- None (Learning PR)
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test -p tokmd --test docs
-running 31 tests
-test recipe_check_ignore ... ok
-test recipe_check_ignore_verbose ... ok
-test recipe_cockpit_format ... ok
-test recipe_ci_workflow_snippet ... ok
-test recipe_context_budget ... ok
-test recipe_context_bundle ... ok
-test recipe_context_bundle_compress ... ok
-test recipe_context_json ... ok
-test recipe_context_list ... ok
-test recipe_context_spread ... ok
-test recipe_badge_generation ... ok
-test recipe_default_map ... ok
-test recipe_context_spread_compress ... ok
-test recipe_export_full_json ... ok
-test recipe_export_map_jsonl ... ok
-test recipe_diff ... ok
-test recipe_gate_default ... ok
-test recipe_gate_json ... ok
-test recipe_gate_fail_fast ... ok
-test recipe_handoff_budget_spread ... ok
-test recipe_generate_baseline ... ok
-test recipe_gate_with_baseline ... ok
-test recipe_handoff_bundle ... ok
-test recipe_init_non_interactive ... ok
-test recipe_handoff_no_git ... ok
-test recipe_analyze_presets ... ok
-test recipe_module_summary_markdown ... ok
-test recipe_sensor_json ... ok
-test recipe_simple_lang_summary ... ok
-test recipe_tools_export_schemas ... ok
-test recipe_run_and_diff ... ok
-
-test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
-
-$ cargo xtask docs --check
-Documentation is up to date.
+N/A - Work superseded by #1592
 ```
 
 ## 🧭 Telemetry
-- Change shape: Additions to CLI recipe tests and minor markdown text modification.
-- Blast radius: Only affects `docs` and tests in `tokmd`. (API / IO / docs / schema / concurrency / compatibility / dependencies)
-- Risk class: Low, only test code and docs text modified.
-- Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --check`, `cargo test -p tokmd --test docs`
+- Change shape: None (Learning PR).
+- Blast radius: None. (API / IO / docs / schema / concurrency / compatibility / dependencies)
+- Risk class: Low, no runtime or docs modified.
+- Rollback: None.
+- Gates run: None.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`
@@ -82,6 +42,7 @@ Documentation is up to date.
 - `.jules/runs/librarian_docs_examples/receipts.jsonl`
 - `.jules/runs/librarian_docs_examples/result.json`
 - `.jules/runs/librarian_docs_examples/pr_body.md`
+- `.jules/friction/open/superseded_by_1592.md`
 
 ## 🔜 Follow-ups
-None
+See friction item `.jules/friction/open/superseded_by_1592.md`
