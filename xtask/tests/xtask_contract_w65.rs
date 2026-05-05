@@ -283,7 +283,7 @@ fn boundaries_forbidden_list_in_source() {
     .unwrap();
     assert!(
         src.contains("\"tokmd-config\""),
-        "FORBIDDEN list must include tokmd-config"
+        "FORBIDDEN list must include retired tokmd-config"
     );
 }
 

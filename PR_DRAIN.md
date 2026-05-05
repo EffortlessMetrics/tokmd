@@ -39,7 +39,9 @@
 - Closed #1462 as superseded by #1582.
 - Merged #1583: synthesized keeper for model mutation boundary coverage. Added focused `avg` rounding/boundary and byte-token helper assertions while leaving duplicate env-interpreter coverage and bulky draft run packets behind. Gates: `cargo test -p tokmd-model avg_handles_boundaries_and_rounding`; `cargo test -p tokmd-model byte_metrics_use_floor_token_estimate`; `cargo test -p tokmd-model`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1165/#1519/#1535 as superseded or stale after #1583 landed.
-- Next cluster: Model row sorting extraction (#1513, #1504, #1493, #1453).
+- Merged #1584: synthesized keeper for model row sorting extraction. Shared the row-ordering closures as private helpers, added source-local ordering tests, and avoided expanding the `tokmd-model` public API for tests. Gates: `cargo test -p tokmd-model sort_`; `cargo test -p tokmd-model --test determinism_w66`; `cargo test -p tokmd-model`; `cargo fmt-check`; `cargo clippy -p tokmd-model --all-targets -- -D warnings`; `git diff --check`; GitHub CI.
+- Closed #1513/#1504/#1493/#1453 as superseded by #1584.
+- Next cluster: `tokmd-config` retirement (#1544, #1520, #1532, #1481).
 
 ## Operating decisions
 

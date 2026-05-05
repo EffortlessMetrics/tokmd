@@ -30,7 +30,7 @@
     },
     "interfaces": {
       "primary_paths": [
-        "crates/tokmd-config/**",
+        "crates/tokmd-settings/**",
         "crates/tokmd-core/**",
         "crates/tokmd/**"
       ],

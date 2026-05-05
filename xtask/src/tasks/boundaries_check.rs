@@ -1,7 +1,7 @@
 use crate::cli::BoundariesCheckArgs;
 use anyhow::{Result, bail};
 
-/// Dependency names that analysis microcrates must never depend on.
+/// Retired dependency names that analysis microcrates must never depend on.
 const FORBIDDEN: &[&str] = &["tokmd-config"];
 
 /// Cargo.toml tables that declare dependencies.

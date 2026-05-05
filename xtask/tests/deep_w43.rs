@@ -154,7 +154,7 @@ fn boundaries_analysis_crates_exist() {
 
 #[test]
 fn boundaries_forbidden_dep_not_present() {
-    // Verify that no analysis crate depends on tokmd-config (the FORBIDDEN list)
+    // Verify that no analysis crate depends on retired tokmd-config.
     let root = workspace_root();
     let crates_dir = root.join("crates");
     for entry in std::fs::read_dir(&crates_dir)
@@ -175,7 +175,7 @@ fn boundaries_forbidden_dep_not_present() {
             if let Some(toml::Value::Table(deps)) = table.get(*dep_table) {
                 assert!(
                     !deps.contains_key("tokmd-config"),
-                    "{name} should not depend on tokmd-config in [{dep_table}]"
+                    "{name} should not depend on retired tokmd-config in [{dep_table}]"
                 );
             }
         }

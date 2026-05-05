@@ -72,11 +72,11 @@ fn read_source(relative: &str) -> String {
 #[test]
 fn boundaries_check_forbidden_list_covers_higher_tiers() {
     // The FORBIDDEN list must prevent analysis crates (tier 3) from depending
-    // on tier-4 crates. Verify tokmd-config is the minimum set.
+    // on retired compatibility crates.
     let src = read_source("xtask/src/tasks/boundaries_check.rs");
     assert!(
         src.contains("tokmd-config"),
-        "FORBIDDEN must block tier-4 tokmd-config"
+        "FORBIDDEN must block retired tokmd-config"
     );
 }
 
@@ -568,7 +568,7 @@ fn publish_order_analysis_deps_before_analysis() {
 }
 
 #[test]
-fn publish_order_config_before_core() {
+fn publish_order_retired_config_before_core_if_present() {
     let (stdout, _, _) = run_xtask(&["publish", "--plan"]);
     let order = parse_publish_order(&stdout);
     let pos: BTreeMap<&str, usize> = order
@@ -580,7 +580,7 @@ fn publish_order_config_before_core() {
     if let (Some(&cfg_p), Some(&core_p)) = (pos.get("tokmd-config"), pos.get("tokmd-core")) {
         assert!(
             cfg_p < core_p,
-            "tokmd-config (tier 4) must come before tokmd-core (tier 4 facade)"
+            "tokmd-config must come before tokmd-core if it ever appears in a legacy publish plan"
         );
     }
 }

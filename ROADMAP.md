@@ -99,7 +99,6 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 2    | `tokmd-git`             | Git history analysis                  |
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
 | 3    | `tokmd-gate`            | Policy evaluation with JSON pointer   |
-| 4    | `tokmd-config`          | Configuration loading                 |
 | 4    | `tokmd-core`            | Library facade with FFI layer         |
 | 5    | `tokmd`                 | CLI binary                            |
 | 5    | `tokmd-python`          | Python bindings (PyO3)                |
@@ -162,7 +161,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Performance**: Reduced allocations in export streaming with `Cow` iterators
 - [x] **Stability**: Non-existent input paths now error instead of silent success
 - [x] **Stability**: Improved error handling in tests (Result instead of unwrap/expect)
-- [x] **Architecture**: Decoupled `tokmd-types` from `tokmd-config` (clap now optional)
+- [x] **Architecture**: Retired `tokmd-config`; pure settings live in `tokmd-settings`, and CLI/config parsing lives in `tokmd`
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 - [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
 - [x] **Testing**: Comprehensive integration tests across all major crates
@@ -429,7 +428,7 @@ UX work is explicitly **incremental and non-breaking**:
 | 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
 | 2 | `tokmd-format`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git`, `tokmd-analysis::content` | Snapshot tests for all renderers, traversal properties |
 | 3 | All `tokmd-analysis-*` microcrates and `tokmd-gate` | BDD scenarios, enricher contract verification, deep proptests |
-| 4 | `tokmd-core`, `tokmd-config`, `tokmd-tool-schema`, `tokmd-envelope/src/ffi.rs` | FFI workflow integration, JSON API round-trip tests |
+| 4 | `tokmd-core`, `tokmd-envelope/src/ffi.rs` | FFI workflow integration, JSON API round-trip tests |
 | 5 | `tokmd` CLI | E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`, `sensor`, and `baseline` |
 
 ### What Landed (36+ PRs first wave, 16 PRs second wave)

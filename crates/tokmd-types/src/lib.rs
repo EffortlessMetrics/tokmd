@@ -583,7 +583,7 @@ pub struct DiffReceipt {
 }
 
 // -----------------------------------------------------------------------------
-// Enums shared with CLI (moved from tokmd-config)
+// Enums shared with CLI and bindings.
 // -----------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

@@ -63,7 +63,7 @@ As part of this phase, the sensor/envelope surfaces were created:
 - [x] Define pure Settings types (no clap derive)
 - [x] Update tokmd-scan to accept `&ScanOptions`
 - [x] Update tokmd-core to use tokmd-settings
-- [x] Update tokmd-config to re-export or wrap
+- [x] Retire tokmd-config after moving active settings and CLI ownership
 - [x] Implement TOML parsing in tokmd-settings (moved from tokmd-config)
 - [x] Update bindings to use new settings directly
 
