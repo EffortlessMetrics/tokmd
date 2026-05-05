@@ -18,6 +18,7 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | `--treat-doc-strings-as-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
 | `-v, --verbose` | Enable verbose logging. |
 | `--no-progress` | Disable progress spinners (useful for CI/non-TTY). |
+| `--profile <PROFILE>` | Configuration profile to use (e.g., `llm_safe`, `ci`). Alias: `--view`. |
 
 > **Note**: Paths to scan are specified as positional arguments on each subcommand (e.g., `tokmd lang ./src`), not as global flags.
 
