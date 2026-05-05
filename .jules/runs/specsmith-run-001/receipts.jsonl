@@ -5,3 +5,4 @@
 {"cmd": "cargo test -p tokmd --test cli_error_paths_w51", "exit_code": 0}
 {"cmd": "write result.json and pr_body.md artifacts", "exit_code": 0}
 {"cmd": "cargo fmt", "exit_code": 0}
+{"cmd": "write learning PR and friction items", "exit_code": 0}

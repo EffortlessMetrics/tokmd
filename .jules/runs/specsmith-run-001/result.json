@@ -1,12 +1,7 @@
 {
-  "status": "success",
-  "receipts_count": 5,
-  "changes": [
-    "crates/tokmd/tests/cli_error_paths_w51.rs"
-  ],
-  "gates_run": [
-    "cargo test -p tokmd --test cli_error_paths_w51",
-    "cargo fmt",
-    "cargo check"
-  ]
+  "status": "aborted",
+  "reason": "superseded by PR #1593",
+  "receipts_count": 6,
+  "changes": [],
+  "gates_run": []
 }
