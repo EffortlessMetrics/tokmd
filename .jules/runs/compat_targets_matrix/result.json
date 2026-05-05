@@ -1,5 +1,5 @@
 {
   "status": "success",
-  "reason": "Replaced localeCompare with exact String comparison, tests pass and cargo checks succeed",
-  "patch_type": "code"
+  "reason": "Intended fix was superseded by PR #1551; produced learning PR instead",
+  "patch_type": "learning"
 }

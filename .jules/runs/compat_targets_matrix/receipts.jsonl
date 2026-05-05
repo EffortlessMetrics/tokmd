@@ -1,5 +1,0 @@
-{"timestamp": "$(date -u -Iseconds)", "event": "run_started", "run_id": "compat_targets_matrix"}
-{"timestamp": "$(date -u -Iseconds)", "event": "fix_ingest.js", "description": "Replaced localeCompare with exact String comparison for determinism"}
-{"timestamp": "$(date -u -Iseconds)", "event": "run_web_runner_tests", "description": "Tests passed successfully"}
-{"timestamp": "$(date -u -Iseconds)", "event": "run_cargo_tests", "description": "cargo test for node and wasm passed"}
-{"timestamp": "$(date -u -Iseconds)", "event": "pre_commit_steps", "description": "Run cargo formats, clippy, checks and docs check"}

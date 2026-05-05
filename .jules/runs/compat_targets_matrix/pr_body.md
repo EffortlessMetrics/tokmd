@@ -1,66 +1,46 @@
 ## 💡 Summary
-Replaced platform-dependent `localeCompare` in the browser runner with strict `<`/`>` Unicode comparisons. This hardens browser/WASM determinism when ingesting inputs by aligning JS path sorting perfectly with Rust's native `String::cmp` and `BTreeMap` traversal ordering.
+This is a learning PR. The intended fix to replace `localeCompare` in `web/runner/ingest.js` with exact Unicode comparisons was superseded by upstream PR #1551.
 
 ## 🎯 Why
-`localeCompare` applies platform and environment-specific collation rules that differ across browsers and Node versions. Because the runner pipeline requires strict path determinism to build consistent input matrices and deterministic content hashes, differing collation caused subtle file ordering discrepancies when processing directories containing mixed-case or multi-byte paths.
+To avoid duplicate effort and merge conflicts, I have cleanly aborted the redundant patch and captured this workflow edge case as a friction item, maintaining repository hygiene.
 
 ## 🔎 Evidence
-- `web/runner/ingest.js` was using `leftPath.localeCompare(rightPath)` for path sorting when priorities tied.
-- Node.js test suites passed locally but the approach left a silent portability trap for downstream JS runtimes without matching locale coverage.
-- Tests passing `selectGitHubTreeEntries filters vendor, binary, and oversized files deterministically` now assert using the exact lexicographic bounds.
+- User feedback indicated: `Superseded by #1551, which merged the aligned browser ingest path ordering fix using explicit Unicode code point comparison and a focused regression test.`
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Replace `localeCompare` with strict `<` and `>` string comparisons.
-- Fits the `bindings-targets` shard focus and guarantees stable deterministic tree ordering, perfectly aligning JS with the native Rust bindings' use of `BTreeMap`.
-- Trade-offs: Structure/Velocity/Governance are stable. Discards natural-language sorting, but sorting here is machine-facing and requires determinism.
+### Option A
+- Proceed with pushing the duplicated fix.
+- Trade-offs: Causes merge conflicts, violates instructions regarding superseded PRs.
 
-### Option B
-- Specify a fixed locale (e.g. `'en-US'`) in `localeCompare`.
-- Still risks drift due to browser-specific ICU library versions and JS engine collation divergences.
+### Option B (recommended)
+- Gracefully abort the fix, revert changes, and create a learning PR documenting the supersession.
+- Trade-offs: Zero risk, adheres to the specific memory guideline for superseded PRs.
 
 ## ✅ Decision
-Option A. Predictability and determinism across bindings are strictly more important than natural-language collation, so falling back to exact code-unit comparison is the correct alignment fix.
+Option B. I generated a learning PR and recorded the friction.
 
 ## 🧱 Changes made (SRP)
-- `web/runner/ingest.js`
+- `.jules/friction/open/compat-superseded-1551.md`
 
 ## 🧪 Verification receipts
 ```text
-> cd web/runner && npm test
-...
-# Subtest: selectGitHubTreeEntries filters vendor, binary, and oversized files deterministically
-ok 2 - selectGitHubTreeEntries filters vendor, binary, and oversized files deterministically
-...
-# tests 49
-# suites 0
-# pass 48
-# fail 0
-# cancelled 0
-# skipped 1
-# todo 0
-
-> cargo test -p tokmd-node --no-default-features
-> cargo test -p tokmd-wasm --no-default-features
-...
-test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
-...
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+> git reset --hard HEAD
+HEAD is now at 7b45e03 release: make crates publish resume-safe (#1483)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Minor logic patch
-- Blast radius: Compat / JS Runner Ingestion Determinism
-- Risk class: Low, standardizing sort order
-- Rollback: Revert the change to `ingest.js`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo check --workspace --no-default-features`, `cargo check --workspace --all-features`, `npm test` in `web/runner`
+- Change shape: Learning PR
+- Blast radius: None (Documentation only)
+- Risk class: Zero
+- Rollback: rm -rf .jules/friction/open/compat-superseded-1551.md
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/compat_targets_matrix/envelope.json`
 - `.jules/runs/compat_targets_matrix/decision.md`
-- `.jules/runs/compat_targets_matrix/receipts.jsonl`
 - `.jules/runs/compat_targets_matrix/result.json`
 - `.jules/runs/compat_targets_matrix/pr_body.md`
+- `.jules/friction/open/compat-superseded-1551.md`
 
 ## 🔜 Follow-ups
 None
