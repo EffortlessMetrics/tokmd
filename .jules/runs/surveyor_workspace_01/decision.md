@@ -17,3 +17,4 @@
 
 ## ✅ Decision
 Option A. The `tokmd-config` crate appears to be largely deprecated or demoted in favor of `tokmd::cli` and `tokmd-settings`, as evidenced by its `src/lib.rs` ("this crate remains as a compatibility shim"). The fact that it isn't in the workspace members, and fixing it to be in the workspace causes its tests to fail (because they rely on outdated type locations that were moved into `tokmd-settings` or `tokmd-types`), means fixing it is a substantial refactor (rewriting ~8 test files) that isn't cleanly providing a forward-moving architectural win. It's more of a generic cleanup. Therefore, a learning PR and a friction item is the correct Surveyor outcome.
+However, since this branch is superseded by #1585 which retires `tokmd-config`, this PR will be closed and work stopped.

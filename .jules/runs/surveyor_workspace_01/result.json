@@ -1,5 +1,5 @@
 {
   "outcome": "learning PR",
-  "reason": "Found workspace structure drift (crates missing from members array causing metadata errors). Adding them back reveals broken test suites in deprecated shim crates (tokmd-config). Fixing the tests is out of scope and crosses into generic cleanup, so recording friction instead.",
-  "friction_items_created": ["FRIC-20240503-001"]
+  "reason": "Superseded by #1585. The tokmd-config retirement decision is now reflected in repo docs/progress and the stale shim has been removed.",
+  "friction_items_created": ["FRIC-20240503-002"]
 }
