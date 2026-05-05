@@ -27,7 +27,9 @@
 - Closed #1466 as superseded by #1573.
 - Merged #1575: synthesized keeper for proptest testing docs. Replaced stale retired-helper-crate guidance with current workspace surfaces, updated the pinned `proptest` version, and documented the active `[default]` config section. Gates: `cargo xtask docs --check`; `git diff --check`; GitHub CI.
 - Closed #1465 as superseded by #1575.
-- Next cluster: Property/proptest improvements (#1464).
+- Merged #1577: synthesized keeper for cockpit property invariants. Added monotonic code-health scoring coverage for breaking indicators and tightened composition percentage assertions to the actual 0..1 fraction contract while preserving existing sparkline coverage. Gates: `cargo test -p tokmd-cockpit --test properties`; `cargo test -p tokmd-cockpit`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1464 as superseded by #1577.
+- Next cluster: Analysis invariant tests (#1533, #1537, #1496).
 
 ## Operating decisions
 

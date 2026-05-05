@@ -974,3 +974,52 @@ fn zero_code_export_valid() {
     assert_eq!(d.totals.code, 0);
     assert_eq!(d.totals.files, 1);
 }
+
+#[cfg(all(feature = "content", feature = "walk"))]
+#[test]
+fn health_preset_populates_todo_metrics_from_real_files() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().to_path_buf();
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    std::fs::write(
+        root.join("src/main.rs"),
+        "// TODO: tighten parser\n// FIXME: cover edge case\nfn main() {}\n",
+    )
+    .unwrap();
+
+    let export = ExportData {
+        rows: vec![file_row("src/main.rs", "src", "Rust", 20)],
+        module_roots: vec!["src".to_string()],
+        module_depth: 2,
+        children: ChildIncludeMode::Separate,
+    };
+
+    let mut req = make_req(PresetKind::Health);
+    req.git = Some(false);
+    let mut ctx = make_ctx(export);
+    ctx.root = root;
+
+    let receipt = analyze(ctx, req).expect("analyze should not fail");
+    let derived = receipt.derived.as_ref().unwrap();
+    let todo = derived
+        .todo
+        .as_ref()
+        .expect("health preset should populate TODO metrics");
+
+    assert_eq!(todo.total, 2);
+    assert_eq!(todo.density_per_kloc, 100.0);
+    assert_eq!(
+        todo.tags
+            .iter()
+            .find(|row| row.tag == "TODO")
+            .map(|row| row.count),
+        Some(1)
+    );
+    assert_eq!(
+        todo.tags
+            .iter()
+            .find(|row| row.tag == "FIXME")
+            .map(|row| row.count),
+        Some(1)
+    );
+}
