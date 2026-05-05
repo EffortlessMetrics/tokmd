@@ -1,11 +1,7 @@
 {
-  "outcome": "pr-ready patch",
-  "files_changed": ["ROADMAP.md", "docs/implementation-plan.md"],
-  "gates_run": [
-    "cargo xtask docs --check",
-    "cargo xtask publish --plan",
-    "cargo xtask version-consistency",
-    "cargo fmt -- --check",
-    "cargo check"
-  ]
+  "outcome": "learning pr",
+  "files_changed": [
+    ".jules/friction/open/superseded_by_pr_1588.md"
+  ],
+  "gates_run": []
 }

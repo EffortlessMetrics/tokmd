@@ -1,7 +1,3 @@
-{"command": "cargo xtask docs --check", "status": "success", "output": "Documentation is up to date."}
-{"command": "cargo xtask publish --plan --verbose", "status": "success", "output": "Workspace version: 1.10.0"}
-{"command": "cargo xtask version-consistency", "status": "success", "output": "Version consistency checks passed."}
-{"command": "cargo fmt -- --check", "status": "success", "output": ""}
-{"command": "cargo check", "status": "success", "output": "Finished `dev` profile [unoptimized + debuginfo]"}
-{"command": "python3 update_roadmap.py", "status": "success", "output": ""}
-{"command": "python3 update_implementation_plan.py", "status": "success", "output": ""}
+{"command": "git restore ROADMAP.md docs/implementation-plan.md", "status": "success", "output": ""}
+{"command": "mkdir -p .jules/friction/open/", "status": "success", "output": ""}
+{"command": "cat << 'EOF' > .jules/friction/open/superseded_by_pr_1588.md", "status": "success", "output": ""}

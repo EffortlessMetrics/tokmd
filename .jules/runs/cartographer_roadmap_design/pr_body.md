@@ -1,46 +1,41 @@
 ## 💡 Summary
-Updated `ROADMAP.md` and `docs/implementation-plan.md` to formally reflect the completion of the `v1.9.0` and `v1.10.0` milestones. Added a formal `v1.11.0` section to structure the planned browser runtime polish work that was previously buried as a deferred item or follow-up note.
+This is a learning PR. The intended fix to align roadmap and implementation-plan synthesis for completed v1.9/v1.10 work and planned v1.11 browser runtime polish was superseded by a merged PR (#1588).
 
 ## 🎯 Why
-The roadmap and implementation plan exhibited factual drift from the shipped reality of `v1.10.0`. While the status table noted these releases as complete, their detailed sections were missing the "Completed" prefix and proper headings. Furthermore, the `v1.11.0` work was hidden as "Deferred to v1.11.0" inside the `v1.10.0` block, which makes the roadmap misleading and obscures the concrete targets for the upcoming release.
+A PR comment indicated that the roadmap fix was superseded by #1588. Following guidelines, if an intended patch is found to be superseded by another merged PR during execution, the agent should gracefully abort the redundant fix and create a 'learning PR' documenting the workflow edge case.
 
 ## 🔎 Evidence
-- `ROADMAP.md` status table listed `v1.10.0` as `✅ Complete`, but `## v1.10.0 — CI Control Plane, Trust Hardening, and Proof Stability` lacked completion indicators.
-- `docs/implementation-plan.md` had `### Follow-Up: v1.11.0 Browser Runtime Polish` rather than treating it as a formal buildout phase matching the roadmap.
-- Run receipt: `cargo xtask docs --check` completed successfully, ensuring the documentation edits did not break generation or anchors.
+- Received PR comment: "Superseded by #1588, which merged the aligned roadmap and implementation-plan synthesis for completed v1.9/v1.10 work and planned v1.11 browser runtime polish."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Make the completed `v1.9.0` and `v1.10.0` milestones uniform with older versions. Extract the `v1.11.0` scope into its own major section in both files.
-- Fits the `tooling-governance` shard by correcting factual drift in roadmap design references.
-- Trade-offs: Minor documentation update but improves future visibility and coherence.
+- Create a Learning PR documenting the superseded edge case.
+- Fits the `tooling-governance` shard by properly handling workflow edge cases and leaving a paper trail.
+- Trade-offs: Aborts the active work but avoids conflict.
 
 ### Option B
-- Ignore the mismatch and consider the status table sufficient.
-- Leaves the `v1.11.0` targets buried and makes future implementation planning harder.
+- Force push the existing patch.
+- Conflicts with explicit user PR comments and causes churn.
 
 ## ✅ Decision
-Chose Option A to cleanly align the roadmap's detailed sections with the shipped status and properly frame the incoming `v1.11.0` milestone, eliminating the contradictory "deferred" state.
+Chose Option A. The intended fix was superseded. Restored the original files, created a friction item, and generated a learning PR.
 
 ## 🧱 Changes made (SRP)
-- `ROADMAP.md`
-- `docs/implementation-plan.md`
+- `.jules/friction/open/superseded_by_pr_1588.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask docs --check -> Documentation is up to date.
-cargo xtask publish --plan --verbose -> Workspace version: 1.10.0
-cargo xtask version-consistency -> Version consistency checks passed.
-cargo fmt -- --check -> success
-cargo check -> Finished `dev` profile
+git restore ROADMAP.md docs/implementation-plan.md -> success
+mkdir -p .jules/friction/open/ -> success
+cat << 'EOF' > .jules/friction/open/superseded_by_pr_1588.md -> success
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs structure fix.
-- Blast radius: `docs` / `ROADMAP.md` (no functional changes).
-- Risk class: Low, pure markdown updates without contract changes.
-- Rollback: `git checkout -- ROADMAP.md docs/implementation-plan.md`
-- Gates run: `xtask docs --check`, `xtask publish --plan`, `xtask version-consistency`, `cargo check`
+- Change shape: Learning PR.
+- Blast radius: `.jules/` (no functional changes).
+- Risk class: Low, pure documentation.
+- Rollback: `rm .jules/friction/open/superseded_by_pr_1588.md`
+- Gates run: None required for reverting and creating a learning PR.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
@@ -48,6 +43,7 @@ cargo check -> Finished `dev` profile
 - `.jules/runs/cartographer_roadmap_design/receipts.jsonl`
 - `.jules/runs/cartographer_roadmap_design/result.json`
 - `.jules/runs/cartographer_roadmap_design/pr_body.md`
+- `.jules/friction/open/superseded_by_pr_1588.md` (Friction item added)
 
 ## 🔜 Follow-ups
-None.
+- Mentioned friction item: `.jules/friction/open/superseded_by_pr_1588.md`
