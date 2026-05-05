@@ -61,7 +61,9 @@
 - Closed #1534/#1525/#1517/#1515/#1379 as superseded by #1594.
 - Merged #1595: synthesized keeper for retry/rate-limit UX. Added CLI hints for upstream rate limits and transient network/service failures, added rate-limit-only retry guidance to FFI envelope formatting, and preserved existing generic timeout/network envelope formatting semantics.
 - Closed #1419/#1421/#1423/#1425 as superseded by #1595.
-- Next cluster: progress events (#1426/#1428/#1430/#1431).
+- Merged #1596: synthesized keeper for progress events. Added opt-in newline-delimited JSON progress events on stderr behind `TOKMD_PROGRESS_EVENTS`, covered `update` and `finish` events across UI and no-UI builds, and documented the CLI grammar while leaving browser worker progress as remaining v1.11 scope. Gates: `cargo test -p tokmd progress --lib --verbose`; `cargo check -p tokmd --no-default-features --all-targets`; `cargo check -p tokmd --all-targets`; `cargo xtask docs --check`; `cargo build -p tokmd`; `TOKMD_PROGRESS_EVENTS=1 target/debug/tokmd run --no-progress --output-dir target/tokmd-progress-smoke crates/tokmd`; `cargo clippy -p tokmd --all-targets -- -D warnings`; `cargo fmt-check`; `typos crates/tokmd/src/progress.rs docs/progress-events.md docs/implementation-plan.md PR_DRAIN.md`; `git diff --check`; GitHub CI.
+- Closed #1426/#1428/#1430/#1431 as superseded by #1596.
+- Next cluster: cockpit PR output (#1399/#1401/#1402/#1400) or WASM ergonomics (#1420/#1422/#1424/#1427).
 
 ## Operating decisions
 
