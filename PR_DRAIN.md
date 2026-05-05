@@ -43,7 +43,9 @@
 - Closed #1513/#1504/#1493/#1453 as superseded by #1584.
 - Merged #1585: synthesized keeper for `tokmd-config` retirement. Deleted the stale non-workspace compatibility shim, retargeted the interface shard to active owners, and kept the retired dependency name as a boundary guard. Gates: `cargo metadata --format-version 1 --no-deps`; `cargo xtask docs --check`; `cargo xtask version-consistency`; `cargo xtask publish-surface --json`; `cargo fmt-check`; `cargo test -p xtask boundaries --verbose`; `cargo check -p tokmd-settings -p tokmd-core -p tokmd --all-targets`; `cargo test -p tokmd-settings`; `cargo test -p tokmd-types`; `cargo test -p tokmd --lib`; `git diff --check`; `cargo xtask publish-surface --json --verify-publish`; GitHub CI.
 - Closed #1544/#1520/#1532/#1481 as superseded by #1585.
-- Next cluster: COCOMO estimate consolidation (#1429, #1432, #1434, #1436).
+- Merged #1586: synthesized keeper for COCOMO estimate consolidation. Reused one private COCOMO'81 core helper for derived receipts and effort estimates without switching receipt mode semantics. Gates: `cargo fmt-check`; `cargo test -p tokmd-analysis cocomo_receipt_matches_shared_cocomo81_model --verbose`; `cargo test -p tokmd-analysis cocomo --verbose`; `cargo test -p tokmd-analysis`; `cargo clippy -p tokmd-analysis -- -D warnings`; `cargo test -p tokmd-analysis --all-features --verbose`; `cargo test -p tokmd-analysis --no-default-features --verbose`; `cargo xtask boundaries-check`; `git diff --check`; GitHub CI.
+- Closed #1429/#1432/#1434/#1436 as superseded or declined by #1586; size-based COCOMO mode switching still needs an explicit estimation-semantics decision.
+- Next cluster: shipped v1.10/v1.11 docs reality (#1543, #1526, #1516, #1492, #1501).
 
 ## Operating decisions
 

@@ -28,6 +28,9 @@ Run the scan once. Derive all views (lang, module, export, analysis) from that s
 - Deep analysis is opt-in via presets
 - Feature flags control compilation footprint
 
+### 7. No Green By Omission
+The `capabilities` field explicitly reports which checks were available, unavailable, or skipped. This lets directors distinguish "all checks passed" from "nothing ran" instead of treating unavailable evidence as success.
+
 ## System Context
 
 ### Standalone Mode
@@ -69,7 +72,7 @@ Every JSON receipt includes:
 {
   "schema_version": 2,
   "tool": "tokmd",
-  "tool_version": "1.9.0",
+  "tool_version": "1.10.0",
   "generated_at_ms": 1706886000000,
   "mode": "lang",
   "scan": { ... },
@@ -141,10 +144,10 @@ Respects .gitignore, .tokeignore
 
 ### I/O Port Contract (tokmd-io-port)
 
-Host-abstracted file access for future in-memory and WASM execution:
+Host-abstracted file access for in-memory and WASM execution:
 ```
 ReadFs trait → HostFs (native std::fs)
-             → MemFs (tests / future in-memory substrates)
+             → MemFs (tests / in-memory substrates)
 ```
 
 ## Analysis Architecture

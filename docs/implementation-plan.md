@@ -342,9 +342,9 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - Integration tests: in-memory scan path using `MemFs`
 - Browser smoke tests: worker execution and tree + contents ingestion
 
-Runtime hardening beyond the v1.9.0 browser baseline remains follow-up work:
-cache behavior, progress events, retry/rate-limit UX, and optional authenticated
-fetch.
+Runtime hardening beyond the v1.9.0 browser baseline is tracked below as
+Phase 5c: cache behavior, progress events, retry/rate-limit UX, and optional
+authenticated fetch.
 
 ---
 
@@ -368,12 +368,22 @@ fetch.
 - [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
 - [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
 
-### Follow-Up: v1.11.0 Browser Runtime Polish
+## Phase 5c: Browser Runtime Polish (v1.11.0)
+
+**Goal**: Deliver browser runtime polish for cache semantics, long-running analysis visibility, fetch resilience, and authenticated-fetch boundaries.
+
+### Work Items
 
 - [ ] Define cache key and invalidation semantics
 - [ ] Emit explicit progress events
 - [ ] Improve retry and rate-limit UX
 - [ ] Partition authenticated fetch/cache behavior safely
+
+### Tests
+
+- Unit tests: cache key and invalidation behavior
+- Worker tests: progress event emission during long scans
+- Runner tests: retry/rate-limit and authenticated-cache partition behavior
 
 ---
 
@@ -382,6 +392,8 @@ fetch.
 **Goal**: Native integration with Claude and MCP clients.
 
 ### Server Implementation
+
+`tokmd tools` already ships tool schema generation for agent consumers. This phase is the future server/resource layer on top of that shipped schema surface.
 
 1. **Command**: `tokmd serve`
 2. **Protocol**: MCP (Model Context Protocol)
