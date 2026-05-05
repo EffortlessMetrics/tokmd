@@ -1,11 +1,5 @@
 ## 2026-05-05 PR drain
 
-## Active cluster
-
-| Cluster | Keeper | Status | Duplicates |
-|---|---:|---|---|
-| Coverage telemetry | TBD | synthesis in progress | #1555/#1556/#1557/#1558/#1569/#1570/#1571/#1572 |
-
 - Merged #1548: dependabot rust minor/patch dependency bump for `jsonschema`, `napi`, `napi-derive`, `tokio`, and `wasm-bindgen-test`. Gates: `cargo check --workspace`; `cargo test --workspace`; `cargo deny --all-features check`; `npm --prefix web/runner test`.
 - Held #1541: external Factory Droid review workflow requires maintainer approval and secret/API-key policy.
 - Merged #1549: synthesized keeper for stale `deny.toml` advisory cleanup. Removed only the obsolete `RUSTSEC-2023-0071` ignore. Gates: `cargo deny --all-features check`; `git diff --check`; GitHub CI.
@@ -53,7 +47,9 @@
 - Closed #1429/#1432/#1434/#1436 as superseded or declined by #1586; size-based COCOMO mode switching still needs an explicit estimation-semantics decision.
 - Merged #1588: synthesized keeper for shipped v1.10/v1.11 docs reality. Updated `NOW.md`, `design.md`, `ROADMAP.md`, `docs/implementation-plan.md`, and `docs/PRODUCT.md` to align shipped v1.10 truth, planned v1.11 browser runtime polish, capability honesty, and the current `tokmd tools` vs future MCP server boundary. Gates: `cargo xtask docs --check`; `cargo xtask version-consistency`; `cargo fmt-check`; `git diff --check`; GitHub CI.
 - Closed #1543/#1526/#1516/#1492 as superseded by #1588; closed #1501 in favor of #1588 because `tokmd tools` is shipped tool-schema generation but `tokmd serve` / MCP server resources remain future work.
-- Next cluster: advisory coverage telemetry (#1555, #1556, #1557, #1558, #1569, #1570, #1571, #1572).
+- Merged #1589: synthesized keeper for advisory coverage telemetry. Added a standalone `Coverage` workflow, LCOV artifact upload, Codecov upload, informational Codecov project/patch statuses, and docs that keep coverage advisory until maintainers intentionally make it a gate. Gates: YAML syntax check with Python; Codecov config validator; `cargo llvm-cov --version`; `cargo xtask docs --check`; `cargo fmt-check`; `git diff --check`; GitHub CI including `Rust coverage` and informational `codecov/patch`.
+- Closed #1555/#1556/#1557/#1558/#1569/#1570/#1571/#1572 as superseded by #1589.
+- Next cluster: proof/fuzz conversion candidates (#1574, #1581).
 
 ## Operating decisions
 
