@@ -270,6 +270,21 @@ JSON outputs are sorted deterministically:
 fn test_git_analysis() { ... }
 ```
 
+## Coverage
+
+Rust coverage is generated in CI with `cargo-llvm-cov` and uploaded to Codecov as LCOV.
+
+Local run:
+
+```bash
+cargo llvm-cov clean --workspace
+cargo llvm-cov --all-features --lcov --output-path lcov.info
+```
+
+The first implementation tracks default product crates with all features enabled. It intentionally excludes `fuzz/`, `xtask/`, `target/`, and vendored code from Codecov reporting.
+
+Coverage is advisory at first. Once the baseline is stable, the Codecov project and patch checks can be made required through branch protection.
+
 ## CI Gates
 
 Minimum requirements for merging:
