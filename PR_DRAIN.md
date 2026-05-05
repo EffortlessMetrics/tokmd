@@ -4,7 +4,9 @@
 - Held #1541: external Factory Droid review workflow requires maintainer approval and secret/API-key policy.
 - Merged #1549: synthesized keeper for stale `deny.toml` advisory cleanup. Removed only the obsolete `RUSTSEC-2023-0071` ignore. Gates: `cargo deny --all-features check`; `git diff --check`; GitHub CI.
 - Closed #1546/#1540/#1523 as superseded by #1549.
-- Next cluster: JS deterministic sorting (#1542, #1512).
+- Merged #1551: synthesized keeper for JS deterministic sorting. Replaced `localeCompare` with explicit Unicode code point comparison and added a browser-runner regression test. Gates: `npm --prefix web/runner run check`; `npm --prefix web/runner test`; `git diff --check`; GitHub CI.
+- Closed #1542/#1512 as superseded by #1551.
+- Next cluster: `export_bundle` no-default-features warning (#1530, #1510, #1502).
 
 ## Operating decisions
 
