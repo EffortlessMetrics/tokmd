@@ -35,7 +35,9 @@
 - Closed #1459/#1461 as superseded by #1579.
 - Merged #1580: synthesized keeper for snapshot testing docs. Added current authoring and review workflow guidance while allowing table-driven helpers when snapshot names stay stable and failures remain localized. Gates: `cargo xtask docs --check`; `cargo insta test -p tokmd --help`; `git diff --check`; GitHub CI.
 - Closed #1460 as superseded by #1580.
-- Next cluster: Snapshot harness/docs (#1462).
+- Merged #1582: synthesized keeper for analysis-explain snapshot helper cleanup. Table-drove lookup snapshot checks while preserving the existing per-metric snapshot names. Gates: `cargo test -p tokmd snapshot_lookup_metrics --verbose`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1462 as superseded by #1582.
+- Next cluster: Mutation/unit coverage (#1165, #1519, #1535).
 
 ## Operating decisions
 

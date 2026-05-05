@@ -1114,6 +1114,23 @@ mod tests {
     }
 
     #[test]
+    fn avg_handles_boundaries_and_rounding() {
+        assert_eq!(avg(100, 0), 0);
+        assert_eq!(avg(10, 2), 5);
+        assert_eq!(avg(9, 3), 3);
+        assert_eq!(avg(10, 3), 3);
+        assert_eq!(avg(11, 3), 4);
+    }
+
+    #[test]
+    fn byte_metrics_use_floor_token_estimate() {
+        assert_eq!(metrics_from_byte_len(0), (0, 0));
+        assert_eq!(metrics_from_byte_len(12), (12, 3));
+        assert_eq!(metrics_from_byte_len(15), (15, 3));
+        assert_eq!(metrics_from_bytes(b"hello world!"), (12, 3));
+    }
+
+    #[test]
     fn test_env_interpreter_token() {
         // Simple case
         assert_eq!(
