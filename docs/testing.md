@@ -321,6 +321,21 @@ On Windows, `cargo fmt-check` avoids the `cargo fmt --all` workspace argv limit.
 For bloated local `target/debug` directories, use `cargo trim-target --check` to inspect reclaimable space and `cargo trim-target` to trim PDB and incremental artifacts.
 For repeated local rebuilds, `cargo with-sccache test --workspace --all-features` enables an opt-in compiler cache wrapper, and `cargo sccache-stats` reports hit rates. For cache reuse across multiple worktrees, use `cargo xtask sccache --basedir <PATH> -- test --workspace --all-features`.
 
+## Coverage Telemetry
+
+Rust coverage is generated in CI with `cargo-llvm-cov`, uploaded as an LCOV artifact, and reported to Codecov.
+
+Local smoke:
+
+```bash
+cargo llvm-cov clean --workspace
+cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+```
+
+Coverage is advisory telemetry in the first pass. The Codecov project and patch statuses are informational, and the upload step uses `fail_ci_if_error: false`; branch protection should not require coverage until the baseline is stable and maintainers explicitly choose a gate.
+
+Codecov ignores fuzz corpora, `xtask` repo tooling, local build output, vendored code, and `.jules` provenance artifacts. Pair coverage trends with mutation and property testing; line coverage alone is not treated as proof quality.
+
 ### Scheduled Jobs
 
 - Mutation testing: Weekly or on-demand
