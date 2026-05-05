@@ -16,7 +16,10 @@
 - Closed #1403/#1404/#1405/#1406 as superseded or declined by #1559.
 - Merged #1564: synthesized keeper for browser GitHub ingest cache partitioning. Added a token-derived auth partition to in-memory cache keys without storing raw token text and proved token-specific misses plus same-token cache reuse. Gates: `npm --prefix web/runner run check`; `npm --prefix web/runner test`; `node --test web/runner/ingest.test.mjs`; `node --check web/runner/ingest.js`; `git diff --check`; GitHub CI.
 - Closed #1411/#1413/#1415/#1417 as superseded by #1564.
-- Next cluster: Unit coverage (#1478, #1479, #1480).
+- Merged #1565: synthesized keeper for `tokmd-types` optional-field serde omission coverage. Added source-local tests for omitted `CapabilityStatus.reason` and `ArtifactEntry.hash`. Gates: `cargo test -p tokmd-types omits_`; `cargo test -p tokmd-types`; `cargo fmt-check`; `git diff --check`; GitHub CI.
+- Closed #1479 as superseded by #1565.
+- Closed #1480 as duplicate coverage: current main already has all-variant cockpit enum serde coverage in integration/contract tests and snapshots.
+- Next cluster: Unit coverage follow-up (#1478).
 
 ## Operating decisions
 

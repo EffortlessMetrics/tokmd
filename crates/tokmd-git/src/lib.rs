@@ -547,6 +547,61 @@ mod tests {
     }
 
     #[test]
+    fn classify_intent_prefers_conventional_commit_prefix() {
+        assert_eq!(
+            classify_intent("feat(parser): add support"),
+            CommitIntentKind::Feat
+        );
+        assert_eq!(
+            classify_intent("fix!: breaking hotfix"),
+            CommitIntentKind::Fix
+        );
+        assert_eq!(
+            classify_intent("docs(readme): update usage"),
+            CommitIntentKind::Docs
+        );
+        assert_eq!(
+            classify_intent("test: add regression"),
+            CommitIntentKind::Test
+        );
+    }
+
+    #[test]
+    fn classify_intent_uses_keyword_heuristics() {
+        assert_eq!(classify_intent("Add caching layer"), CommitIntentKind::Feat);
+        assert_eq!(
+            classify_intent("optimize parser allocations"),
+            CommitIntentKind::Perf
+        );
+        assert_eq!(classify_intent("lint workspace"), CommitIntentKind::Style);
+        assert_eq!(
+            classify_intent("pipeline: update checks"),
+            CommitIntentKind::Ci
+        );
+    }
+
+    #[test]
+    fn classify_intent_handles_revert_and_empty_subjects() {
+        assert_eq!(
+            classify_intent("Revert \"bad commit\""),
+            CommitIntentKind::Revert
+        );
+        assert_eq!(
+            classify_intent("revert: undo change"),
+            CommitIntentKind::Revert
+        );
+        assert_eq!(classify_intent("   \t"), CommitIntentKind::Other);
+    }
+
+    #[test]
+    fn contains_word_respects_word_boundaries() {
+        assert!(contains_word("fix parser", "fix"));
+        assert!(contains_word("fix-parser", "fix"));
+        assert!(!contains_word("prefix parser", "fix"));
+        assert!(!contains_word("fixture", "fix"));
+    }
+
+    #[test]
     fn resolve_base_ref_returns_none_when_nothing_resolves() {
         if !git_available() {
             return;
