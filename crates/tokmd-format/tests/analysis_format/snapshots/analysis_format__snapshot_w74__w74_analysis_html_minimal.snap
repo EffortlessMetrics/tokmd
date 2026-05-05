@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd-format/tests/analysis_format/snapshot_w74.rs
-assertion_line: 490
 expression: out
 ---
 <!DOCTYPE html>
@@ -382,7 +381,7 @@ expression: out
                 if (!isNaN(aNum) && !isNaN(bNum)) {
                     return sortAsc ? aNum - bNum : bNum - aNum;
                 }
-                return sortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                return sortAsc ? (aVal < bVal ? -1 : aVal > bVal ? 1 : 0) : (bVal < aVal ? -1 : bVal > aVal ? 1 : 0);
             });
 
             rows.forEach(row => tbody.appendChild(row));

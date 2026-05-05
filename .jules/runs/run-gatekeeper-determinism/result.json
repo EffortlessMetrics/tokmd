@@ -1,0 +1,7 @@
+{
+  "summary": "Replaced non-deterministic `localeCompare` with strict Unicode code unit comparison for sorting HTML analysis reports.",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd-format/src/analysis/templates/report.html"
+  ]
+}
