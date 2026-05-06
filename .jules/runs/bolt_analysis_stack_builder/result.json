@@ -1,4 +1,5 @@
 {
   "status": "success",
-  "reason": "Successfully replaced format! with zero-allocation custom string-comparer in hot path of compare_integrity_rows."
+  "reason": "PR superseded by #1608. Gracefully aborting the redundant fix and creating a learning PR.",
+  "learning_outcome": true
 }

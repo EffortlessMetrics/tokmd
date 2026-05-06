@@ -1,43 +1,42 @@
 ## 💡 Summary
-Replaced dynamic `format!` string allocations with zero-allocation custom logic on the hot path in `tokmd-analysis` (`build_integrity_report` sorting).
+Learning PR: The intended performance improvement for `build_integrity_report` was superseded by an existing PR (#1608). Recording learning artifacts and friction items.
 
 ## 🎯 Why
-The `compare_integrity_rows` function sorts `FileRow` items for a stable checksum. When two files have the same path but different stats, it used `format!("{}:{}", a.bytes, a.lines)` and string sort to break the tie deterministically. This allocates `String`s inside a hot sorting loop, creating unnecessary allocations and GC pressure.
+Attempted to optimize `compare_integrity_rows` by replacing `format!` allocations. However, PR review identified this was superseded by #1608, which already addressed the issue and avoided provenance path collisions.
 
 ## 🔎 Evidence
-File: `crates/tokmd-analysis/src/derived/mod.rs`
-Observed behavior: `format!` was used in `compare_integrity_rows`. A benchmark demonstrated a ~5x speedup by replacing it with custom formatting.
+- Review comment: "Superseded by #1608. This older integrity-comparator allocation patch duplicated the keeper concept and also collided with another generated Bolt provenance path."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Replace `format!` with an internal `num_str_cmp_with_colon` algorithm using an explicit digit buffer.
-- Fits the repo and shard by strictly optimizing the inner loop without requiring architecture changes.
-- Trade-offs: Structure (slightly more verbose but contained), Velocity (fast to implement), Governance (low risk, deterministic).
+- Record a Learning PR.
+- Fits the scenario where a patch is identified as redundant/superseded during execution.
+- Trade-offs: Structure (generates standard run artifacts without duplicate code), Velocity (fast conclusion), Governance (avoids merge conflicts and duplicated effort).
 
 ### Option B
-- Modify `FileRow` to cache a pre-formatted sort string during ingestion.
-- Choose when sorting is extremely slow and memory is not a concern.
-- Trade-offs: Increases `FileRow` struct size, impacting memory globally.
+- N/A - Path is blocked by superseded status.
 
 ## ✅ Decision
-Option A was chosen. It removes dynamic string allocations in the hot sort loop directly without increasing global memory usage or altering data flow. Output determinism is perfectly preserved.
+Option A was chosen. Aborting the redundant fix and creating a learning PR as instructed.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/mod.rs`: Added `num_str_cmp_with_colon` and modified `compare_integrity_rows` to use it instead of `format!`.
+- Recorded friction item `.jules/friction/open/superseded_pr.md`.
+- Reverted code changes to `crates/tokmd-analysis/src/derived/mod.rs`.
 
 ## 🧪 Verification receipts
 ```text
 `mkdir -p .jules/runs/bolt_analysis_stack_builder` (exit code 0)
 `python3 replace.py && cargo test -p tokmd-analysis --test derived` (exit code 0)
 `python3 replace.py && cargo clippy -- -D warnings` (exit code 0)
+`cargo fmt && cargo clippy -- -D warnings && cargo test -p tokmd-analysis --all-features` (exit code 0)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Optimization
-- Blast radius: `tokmd-analysis` metrics determinism.
-- Risk class: Low - strict deterministic behavior equivalence verified by passing tests.
-- Rollback: Revert to `format!` logic.
-- Gates run: `cargo clippy -- -D warnings`, `cargo test -p tokmd-analysis --all-features`.
+- Change shape: Learning / Friction recording
+- Blast radius: None (code changes reverted)
+- Risk class: None
+- Rollback: None
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/bolt_analysis_stack_builder/envelope.json`
@@ -45,6 +44,7 @@ Option A was chosen. It removes dynamic string allocations in the hot sort loop 
 - `.jules/runs/bolt_analysis_stack_builder/receipts.jsonl`
 - `.jules/runs/bolt_analysis_stack_builder/result.json`
 - `.jules/runs/bolt_analysis_stack_builder/pr_body.md`
+- `.jules/friction/open/superseded_pr.md`
 
 ## 🔜 Follow-ups
-None.
+- Ensure #1608 correctly addresses the `compare_integrity_rows` hotpath.

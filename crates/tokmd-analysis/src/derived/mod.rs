@@ -725,47 +725,6 @@ fn build_integrity_report(rows: &[&FileRow]) -> IntegrityReport {
     }
 }
 
-fn num_str_cmp_with_colon(
-    a_bytes: usize,
-    a_lines: usize,
-    b_bytes: usize,
-    b_lines: usize,
-) -> std::cmp::Ordering {
-    let mut a_buf = [0u8; 45];
-    let mut b_buf = [0u8; 45];
-
-    fn write_num(buf: &mut [u8], mut val: usize, mut offset: usize) -> usize {
-        if val == 0 {
-            buf[offset] = b'0';
-            return offset + 1;
-        }
-        let mut temp = val;
-        let mut len = 0;
-        while temp > 0 {
-            len += 1;
-            temp /= 10;
-        }
-        offset += len;
-        let mut end = offset - 1;
-        while val > 0 {
-            buf[end] = b'0' + (val % 10) as u8;
-            val /= 10;
-            end = end.saturating_sub(1);
-        }
-        offset
-    }
-
-    let a_mid = write_num(&mut a_buf, a_bytes, 0);
-    a_buf[a_mid] = b':';
-    let a_end = write_num(&mut a_buf, a_lines, a_mid + 1);
-
-    let b_mid = write_num(&mut b_buf, b_bytes, 0);
-    b_buf[b_mid] = b':';
-    let b_end = write_num(&mut b_buf, b_lines, b_mid + 1);
-
-    a_buf[..a_end].cmp(&b_buf[..b_end])
-}
-
 fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
     let a_bytes = a.path.as_bytes();
     let b_bytes = b.path.as_bytes();
@@ -782,7 +741,9 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
         // Identical paths. Compare numbers.
         // We must emulate string sort of "bytes:lines".
         // Format them to ensure correct string sort order.
-        return num_str_cmp_with_colon(a.bytes, a.lines, b.bytes, b.lines);
+        let a_str = format!("{}:{}", a.bytes, a.lines);
+        let b_str = format!("{}:{}", b.bytes, b.lines);
+        return a_str.cmp(&b_str);
     }
 
     // One is shorter.
