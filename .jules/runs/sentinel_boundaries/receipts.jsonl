@@ -1,0 +1,3 @@
+{"command": "grep -rn \"git_cmd\" crates/", "exit_code": 0}
+{"command": "cargo test -p tokmd-git", "exit_code": 0}
+{"command": "cargo test -p tokmd", "exit_code": 0}

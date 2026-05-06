@@ -1,0 +1,11 @@
+{
+  "outcome": "PR-ready patch",
+  "primary_shard": "interfaces",
+  "patch_summary": "Hardened git subprocess boundaries by stripping path-mutating env vars.",
+  "gates_run": [
+    "cargo test -p tokmd-git",
+    "cargo test -p tokmd",
+    "cargo test -p tokmd-scan",
+    "cargo test -p tokmd-core"
+  ]
+}
