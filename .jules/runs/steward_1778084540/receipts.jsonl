@@ -1,0 +1,4 @@
+{"command": "cargo xtask version-consistency", "outcome": "Success. All cargo crate versions, workspace dependency versions, and Node package manifest versions match 1.10.0. No case-insensitive tracked-path collisions detected."}
+{"command": "cargo xtask publish --plan", "outcome": "Success. Listed 16 crates in correct order and excluded non-publishable ones."}
+{"command": "cargo xtask docs --check", "outcome": "Success. Documentation is up to date."}
+{"command": "cargo deny --all-features check", "outcome": "Success. Advisories ok, bans ok, licenses ok, sources ok."}

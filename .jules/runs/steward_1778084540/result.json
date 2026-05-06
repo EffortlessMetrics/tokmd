@@ -1,0 +1,10 @@
+{
+  "status": "learning_pr",
+  "reason": "All governance and release hygiene checks pass natively. A fake fix would violate the prompt constraint.",
+  "gates_run": [
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
+    "cargo xtask docs --check",
+    "cargo deny --all-features check"
+  ]
+}
