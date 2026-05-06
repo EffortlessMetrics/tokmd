@@ -45,7 +45,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof --plan --executor-manifest <path>` now writes a planner-selected executor command manifest with the executor policy, guard status, selection rule, stable command ids, and zero executed counts.
 - The PR-only affected-plan CI artifact job now writes and uploads `executor-manifest.json` alongside `affected.json`, `proof-plan.json`, `proof-evidence.json`, `executor-summary.json`, and `proof-plan.md`, without opting into executor command execution.
 - `cargo xtask proof-artifacts-check` now verifies executor summary/manifest consistency without executing planned commands, including schema, guard, count, and command-entry drift checks.
-- Next proof-policy operational slice: wire `proof-artifacts-check` into the affected-plan CI job after artifact generation, still without promoting any executor family to execution.
+- The PR-only affected-plan CI artifact job now runs `cargo xtask proof-artifacts-check` after artifact generation, records its status, and uploads the verifier output while remaining informational.
+- Next proof-policy operational slice: decide whether artifact-verifier failures should fail the affected-plan job or remain reported-only until executor promotion.
 
 ## References
 

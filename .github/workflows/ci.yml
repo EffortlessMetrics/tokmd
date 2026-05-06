@@ -140,9 +140,13 @@ jobs:
           cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
           proof_plan_status=$?
 
+          cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-artifacts-check.txt
+          proof_artifacts_status=$?
+
           {
             echo "affected_status=${affected_status}"
             echo "proof_plan_status=${proof_plan_status}"
+            echo "proof_artifacts_status=${proof_artifacts_status}"
           } > target/proof/status.env
 
           {
@@ -152,8 +156,13 @@ jobs:
             echo "| --- | ---: |"
             echo "| affected | ${affected_status} |"
             echo "| proof plan | ${proof_plan_status} |"
+            echo "| proof artifacts | ${proof_artifacts_status} |"
             echo ""
             echo "This job is informational while proof planning is being adopted; existing CI jobs remain authoritative."
+            if [ -f target/proof/proof-artifacts-check.txt ]; then
+              echo ""
+              cat target/proof/proof-artifacts-check.txt
+            fi
             if [ -f target/proof/proof-plan.md ]; then
               echo ""
               cat target/proof/proof-plan.md
