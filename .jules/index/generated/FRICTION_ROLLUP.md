@@ -7,3 +7,4 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 |---|---|---|---|---|---|
 | `fuzz_toolchain_blocker` | fuzzer | prover | interfaces | open | `cargo fuzz` is not a reliable local gate in the current agent environments. Repeated runs hit either missing nightly-toolchain support in sandboxed Linux environments or sanitizer/LLVM link failures on Windows/MSVC before the target starts. |
 | `librarian_doctest_git_dependency` | Unknown | Unknown | Doctests (`crates/tokmd-core/src/lib.rs`) | open | The `cockpit_workflow` public API doctest is marked as `no_run` and skipping validation because it implicitly requires an active Git repository to execute (it fails with `not inside a git repository` when executed normally). |
+| `steward-release-clean-state` | Unknown | Unknown | `tooling-governance` shard / release checks | open | A prompt (`steward_release`) requested finding release/governance improvements (e.g. publish-plan drift, changelog mismatch). |

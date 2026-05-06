@@ -8,8 +8,10 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `09c9d819-02cd-4f63-b662-921c812f93dd` | Gatekeeper | Builder | quality | completed | 4 | live |
 | `20260428130048-fuzzer` | fuzzer | prover | interfaces | in-progress | 1 | live |
 | `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Explorer | docs | completed | 3 | live |
+| `37581ca1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 2 | live |
 | `auditor_bindings_manifests` | Unknown | Unknown | Unknown | in-progress | 0 | live |
+| `bolt-run-001` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
 | `bolt_analysis_stack_builder` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `cartographer_roadmap_design` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `compat_interfaces_matrix_01` | Unknown | Unknown | Unknown | in-progress | 0 | live |
@@ -22,3 +24,4 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
 | `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 4 | live |
 | `steward_1` | Steward | Stabilizer | tooling-governance | success | 0 | live |
+| `steward_1778084540` | Steward | Stabilizer | tooling-governance | learning_pr | 4 | live |
