@@ -1,46 +1,43 @@
 ## 💡 Summary
-Updated `.jules/bin/build_index.py` to also generate a friction rollup index alongside the runs rollup index. It parses frontmatter metadata from open friction items in `.jules/friction/open/` and summarizes them in `.jules/index/generated/FRICTION_ROLLUP.md`.
+This is a learning PR. The intended task (updating `.jules/bin/build_index.py` to generate a friction rollup index) was completed locally but superseded by PR #1606 before submission. I have rolled back the patch and documented the race condition as a friction item.
 
 ## 🎯 Why
-Friction items added across different prompt-to-PR pipelines were previously just stored individually as markdown files, without an index, making them hard to discover and consolidate. This directly fulfills the target of "summarize per-run packets into generated indexes/rollups" to consolidate run learnings and scaffolding.
+The target improvement was preempted by another PR. This documents the workflow friction and gracefully aborts the redundant code change while preserving the run context.
 
 ## 🔎 Evidence
-- file path: `.jules/bin/build_index.py`, `.jules/index/generated/FRICTION_ROLLUP.md`
-- command: `python3 .jules/bin/build_index.py`
-- finding: Generated a table successfully reflecting properties like ID, persona, style, shard, and status from the existing files in `.jules/friction/open/`.
+- files: `.jules/friction/open/archivist_jules_superseded.md`
+- command: User PR comment indicates PR #1606 merged the target change on main.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `.jules/bin/build_index.py` to parse markdown frontmatter from open friction items and output an index file at `.jules/index/generated/FRICTION_ROLLUP.md`.
-- why it fits this repo and shard: Direct implementation of "summarizing per-run packets into generated indexes/rollups". Fits within the workspace-wide shard and archivist persona rules on scaffolding.
-- trade-offs: Structure: Improves visibility of friction items; Velocity: Immediate visibility of common roadblocks.
+- what it is: Convert the patch to a learning PR that documents the supersession as a friction item.
+- why it fits this repo and shard: Memory rule requires: "If an intended patch is found to be superseded by another merged PR during execution, gracefully abort the redundant fix and create a 'learning PR'. This involves generating the standard run artifacts and a new friction item..."
+- trade-offs: Structure: Maintains pipeline transparency; Velocity: Closes task efficiently without merge conflicts.
 
 ### Option B
-- what it is: Update `.jules/bin/build_index.py` to only improve how runs are indexed.
-- when to choose it instead: If the runs indexing was severely broken.
-- trade-offs: This wouldn't meet the memory constraint that stated the script was expected to output the `FRICTION_ROLLUP.md` index.
+- what it is: Force-push or submit the patch anyway.
+- when to choose it instead: Never, due to the explicit instruction and reality of the remote branch.
+- trade-offs: Causes merge conflicts and duplicate work.
 
 ## ✅ Decision
-Option A was chosen. I modified `.jules/bin/build_index.py` to add generation for the friction rollup. This implements exactly what the memory constraints dictated ("it completely overwrites both the `.jules/index/generated/RUNS_ROLLUP.md` index... and the `.jules/index/generated/FRICTION_ROLLUP.md` index").
+Option A was chosen. I reverted the changes to `.jules/bin/build_index.py` and wrote a new friction item to document the PR race condition.
 
 ## 🧱 Changes made (SRP)
-- `.jules/bin/build_index.py`
+- `.jules/friction/open/archivist_jules_superseded.md`
 
 ## 🧪 Verification receipts
 ```text
 {"command": "mkdir -p .jules/runs/archivist_jules"}
-{"command": "cat .jules/bin/build_index.py"}
-{"command": "cat .jules/friction/open/FRIC-20260413-001.md"}
 {"command": "python3 .jules/bin/build_index.py"}
-{"command": "cat .jules/index/generated/FRICTION_ROLLUP.md"}
-{"command": "cat .jules/index/generated/RUNS_ROLLUP.md"}
+{"command": "git restore .jules/bin/build_index.py"}
+{"command": "rm -f .jules/index/generated/FRICTION_ROLLUP.md"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: New functionality in tooling script
-- Blast radius: Only affects the `.jules` local build scripts; no product code impact
-- Risk class + why: Low. It's a scaffolding change reading markdown and writing markdown.
-- Rollback: Revert the changes to `.jules/bin/build_index.py`.
+- Change shape: Learning run
+- Blast radius: Local artifacts only
+- Risk class + why: None. No product changes.
+- Rollback: Not applicable
 - Gates run: `cargo xtask publish --plan --verbose`, `cargo xtask version-consistency`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo check`
 
 ## 🗂️ .jules artifacts
@@ -49,6 +46,7 @@ Option A was chosen. I modified `.jules/bin/build_index.py` to add generation fo
 - `.jules/runs/archivist_jules/receipts.jsonl`
 - `.jules/runs/archivist_jules/result.json`
 - `.jules/runs/archivist_jules/pr_body.md`
+- `.jules/friction/open/archivist_jules_superseded.md`
 
 ## 🔜 Follow-ups
 None
