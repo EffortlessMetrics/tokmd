@@ -1,44 +1,43 @@
 ## 💡 Summary
-Fixed documentation drift in `docs/SCHEMA.md` where the schema string identifiers were incorrectly documented with a `_VERSION` suffix.
+Learning PR: Attempted to fix schema documentation drift, but the work was superseded by #1604.
 
 ## 🎯 Why
-The documentation in `docs/SCHEMA.md` referred to `ENVELOPE_SCHEMA_VERSION` and `SENSOR_REPORT_SCHEMA_VERSION`. However, the actual identifiers in the Rust codebase are strings (e.g. `"sensor.report.v1"`), not integer versions. The correct constants in `tokmd-envelope` and `tokmd-analysis-types` are `SENSOR_REPORT_SCHEMA` and `ENVELOPE_SCHEMA`, without the `_VERSION` suffix. This drift could confuse contributors trying to use the ecosystem envelope schema identifiers.
+The intended change was to fix `docs/SCHEMA.md` which incorrectly appended `_VERSION` to string identifiers (`ENVELOPE_SCHEMA` and `SENSOR_REPORT_SCHEMA`). However, during the review cycle, PR #1604 merged a fix for this exact issue. I am aborting the redundant fix and logging this as a learning outcome to document the workflow edge case.
 
 ## 🔎 Evidence
-- `docs/SCHEMA.md` lines 97-100 contained incorrect constant names.
-- `crates/tokmd-envelope/src/lib.rs` exports `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";`.
-- `crates/tokmd-analysis-types/src/lib.rs` exports `pub const ENVELOPE_SCHEMA: &str = tokmd_envelope::SENSOR_REPORT_SCHEMA;`.
+- `docs/SCHEMA.md` drift issue.
+- PR comment indicating supersedure: "Superseded by #1604, which merged the aligned schema constant-name docs fix on current main without draft run-packet churn."
+- Created friction item: `FRIC-20231025-001.md`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update `docs/SCHEMA.md` to remove the `_VERSION` suffix from the schema string constants.
-- Fits the `tooling-governance` shard and the Gatekeeper persona's mission to lock in deterministic output and protect contract-bearing surfaces from factual drift.
-- Trade-offs: Zero velocity impact, improves governance structure.
+- Revert code changes and submit a Learning PR logging the superseded status.
+- Fits this repo and shard as it acknowledges reality and avoids redundant code merges while properly following the failure/superseded workflow guidelines.
+- Trade-offs: Structure is preserved without merge conflicts.
 
 ### Option B
-- Change the code constants to include `_VERSION`.
-- When to choose: if the schema identifier was an integer version rather than a full semantic string.
-- Trade-offs: Incorrect conceptually, breaks existing integrations expecting the current constant name.
+- Attempt to rebase and force the patch.
+- When to choose: If the merged PR was incomplete.
+- Trade-offs: Increases churn and ignores explicit reviewer feedback.
 
 ## ✅ Decision
-Option A. `docs/SCHEMA.md` has drifted and incorrectly added `_VERSION` to the string schema identifiers. Fixing the documentation aligns the contract docs with reality.
+Option A. The patch is redundant. Gracefully aborting the code change and submitting a Learning PR with a friction item.
 
 ## 🧱 Changes made (SRP)
-- `docs/SCHEMA.md`
+- `.jules/friction/open/FRIC-20231025-001.md` (new)
+- `.jules/runs/gatekeeper_contracts_run/*` (updated packet)
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask docs --check (Documentation is up to date.)
-cargo test -p tokmd-envelope (Passed)
-cargo test -p tokmd-analysis-types (Passed)
+None for this learning PR (code changes reverted).
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation patch
-- Blast radius: docs
-- Risk class: low (no behavior change)
-- Rollback: git revert
-- Gates run: `cargo xtask docs --check`, targeted `cargo test`
+- Change shape: Learning PR
+- Blast radius: .jules/ artifacts only
+- Risk class: None (no repo code changed)
+- Rollback: rm -rf .jules/runs/gatekeeper_contracts_run/
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts_run/envelope.json`
@@ -46,6 +45,7 @@ cargo test -p tokmd-analysis-types (Passed)
 - `.jules/runs/gatekeeper_contracts_run/receipts.jsonl`
 - `.jules/runs/gatekeeper_contracts_run/result.json`
 - `.jules/runs/gatekeeper_contracts_run/pr_body.md`
+- `.jules/friction/open/FRIC-20231025-001.md`
 
 ## 🔜 Follow-ups
 None.

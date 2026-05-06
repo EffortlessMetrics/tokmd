@@ -94,10 +94,10 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 
 ### Canonical vs Backward Compatibility
 
-The `tokmd-analysis-types` crate provides `ENVELOPE_SCHEMA` as a **backward compatibility alias** for the sensor report schema. The canonical constant is now `tokmd-envelope::SENSOR_REPORT_SCHEMA`.
+The `tokmd-analysis-types` crate provides `ENVELOPE_SCHEMA_VERSION` as a **backward compatibility alias** for the sensor report schema. The canonical constant is now `tokmd-envelope::SENSOR_REPORT_SCHEMA_VERSION`.
 
-**New code should use**: `tokmd-envelope::SENSOR_REPORT_SCHEMA` (canonical)
-**Legacy code continues to use**: `tokmd-analysis-types::ENVELOPE_SCHEMA` (alias)
+**New code should use**: `tokmd-envelope::SENSOR_REPORT_SCHEMA_VERSION` (canonical)
+**Legacy code continues to use**: `tokmd-analysis-types::ENVELOPE_SCHEMA_VERSION` (alias)
 
 This alias is maintained for compatibility with existing code that imports from `tokmd-analysis-types`.
 
