@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 
 mod cli;
+mod proof;
 mod tasks;
 
 use cli::{PublishArgs, XtaskCli};
@@ -15,6 +16,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::PublishSurface(args)) => tasks::publish_surface::run(args),
         Some(cli::Commands::Cockpit(args)) => tasks::cockpit::run(args),
         Some(cli::Commands::Docs(args)) => tasks::docs::run(args),
+        Some(cli::Commands::ProofPolicy(args)) => tasks::proof_policy::run(args),
         Some(cli::Commands::VersionConsistency(args)) => tasks::version_consistency::run(args),
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),

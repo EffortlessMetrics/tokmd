@@ -1,7 +1,7 @@
 ## 2026-05-05 PR drain
 
 - Merged #1548: dependabot rust minor/patch dependency bump for `jsonschema`, `napi`, `napi-derive`, `tokio`, and `wasm-bindgen-test`. Gates: `cargo check --workspace`; `cargo test --workspace`; `cargo deny --all-features check`; `npm --prefix web/runner test`.
-- Held #1541: external Factory Droid review workflow requires maintainer approval and secret/API-key policy.
+- Closed #1541: declined for now. External Factory Droid review workflows require an approved service, API-key, secret-rotation, fork-PR, and failure-behavior policy before introduction.
 - Merged #1549: synthesized keeper for stale `deny.toml` advisory cleanup. Removed only the obsolete `RUSTSEC-2023-0071` ignore. Gates: `cargo deny --all-features check`; `git diff --check`; GitHub CI.
 - Closed #1546/#1540/#1523 as superseded by #1549.
 - Merged #1551: synthesized keeper for JS deterministic sorting. Replaced `localeCompare` with explicit Unicode code point comparison and added a browser-runner regression test. Gates: `npm --prefix web/runner run check`; `npm --prefix web/runner test`; `git diff --check`; GitHub CI.
@@ -103,7 +103,8 @@
 - Closed #1370/#1371/#1372/#1373/#1374/#1375/#1376/#1377/#1378/#1380/#1381/#1382/#1383/#1384/#1385/#1386 as superseded by #1613. The generated variants competed on ADR/spec directory layout, numbering, and stale microcrate framing; #1613 kept the useful deterministic/schema/spec content in the current canonical layout.
 - Closed #1484/#1485/#1486/#1487 as stale generated GitHub Action PR-mode branches. Current main treats cockpit as the PR-review evidence surface after #1598/#1613; any future Action PR/review mode should start fresh from a stabilized review-packet contract.
 - Closed #1488/#1489/#1490/#1491 as stale competing `tokmd review` implementations. #1598 merged explicit cockpit comment output and #1613 records cockpit as the current review evidence surface; a separate command should start fresh only if it has a distinct orchestrator contract.
-- Remaining open PR after this drain: #1541, held for explicit maintainer approval of the external Factory Droid service and API-key/secret policy.
+- Closed #1541 as declined for now. External Factory Droid workflows require an approved external-service, API-key/secret, rotation, fork-PR, and failure-behavior policy before introduction.
+- PR drain is complete. This ledger is historical; active post-drain planning moved to `docs/NEXT.md`.
 
 ## Operating decisions
 

@@ -1,0 +1,29 @@
+# Next Program
+
+The generated PR drain is complete. `PR_DRAIN.md` is now a historical ledger for the duplicate/stale queue and should only change for PR-drain-specific corrections. Active product and control-plane work moves here.
+
+Factory Droid PR #1541 was declined for now. External review services require an approved service, API-key, secret-rotation, fork-PR, and failure-behavior policy before workflow introduction.
+
+## Active Program: Rust-Native Proof Control Plane
+
+Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-owned `xtask` policy and planning logic. GitHub Actions should eventually install tools, restore cache, run `cargo xtask proof ...`, upload artifacts, and show summaries while Rust owns scope mapping, allowlists, dependency boundaries, fixture policy, mutation targeting, coverage targeting, and proof reports.
+
+## Initial Work Packets
+
+1. Add `ci/proof.toml` and `cargo xtask proof-policy --check`.
+2. Move fixture/blob and dependency-boundary allowlists into the proof policy while keeping current behavior as fallback.
+3. Add `cargo xtask affected --base origin/main --head HEAD --json` for changed-file to proof-scope discovery.
+4. Add `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` to print a stable proof plan without running it.
+5. Wire policy validation into CI as a small standalone job before replacing larger workflow logic.
+
+## Directional Rules
+
+- `tokmd-config` is retired. It must remain forbidden by policy, with ownership in `tokmd-settings`, `tokmd-core`, and `tokmd`.
+- `.jules` is an allowed knowledge workspace for durable specs, investigations, friction notes, persona learnings, runbooks, ledgers, envelopes, and generated indexes.
+- Coverage remains advisory telemetry until maintainers intentionally promote it to a gate.
+- Cockpit remains the current PR-review evidence surface until a separate review command has a distinct artifact contract.
+
+## References
+
+- Historical drain ledger: [PR_DRAIN.md](../PR_DRAIN.md)
+- Current testing strategy: [testing.md](testing.md)

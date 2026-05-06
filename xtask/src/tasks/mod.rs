@@ -6,6 +6,7 @@ pub mod docs;
 pub mod fixture_blobs_check;
 pub mod gate;
 pub mod lint_fix;
+pub mod proof_policy;
 pub mod publish;
 pub mod publish_surface;
 pub mod sccache;

@@ -3515,6 +3515,7 @@ dependencies = [
  "cargo_metadata",
  "chrono",
  "clap",
+ "globset",
  "petgraph",
  "semver",
  "serde",

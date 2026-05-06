@@ -20,6 +20,8 @@ pub enum Commands {
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
     Docs(DocsArgs),
+    /// Validate the Rust-native proof policy
+    ProofPolicy(ProofPolicyArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -49,6 +51,21 @@ pub struct DocsArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct VersionConsistencyArgs {}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofPolicyArgs {
+    /// Validate the proof policy and print a human-readable summary
+    #[arg(long)]
+    pub check: bool,
+
+    /// Emit a machine-readable validation report
+    #[arg(long)]
+    pub json: bool,
+
+    /// Policy file to validate
+    #[arg(long, default_value = "ci/proof.toml")]
+    pub policy: std::path::PathBuf,
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct PublishArgs {

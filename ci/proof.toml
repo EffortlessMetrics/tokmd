@@ -1,0 +1,51 @@
+schema = "tokmd.proof_policy.v1"
+
+[defaults]
+mutation_timeout_seconds = 300
+coverage = "scoped"
+fail_on_unknown_non_rust = true
+
+[tools]
+rust = "stable"
+coverage = "cargo-llvm-cov"
+javascript = "npm"
+
+[[scope]]
+name = "tokmd_core_ffi"
+kind = "rust"
+paths = ["crates/tokmd-core/src/ffi.rs", "crates/tokmd-core/tests/**"]
+packages = ["tokmd-core"]
+proof = [
+  "cargo test -p tokmd-core ffi",
+  "cargo test -p tokmd-core --test ffi_parity_w53",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "browser_runner"
+kind = "non_rust"
+paths = ["web/runner/**", "docs/capabilities/wasm.json"]
+proof = [
+  "npm --prefix web/runner test",
+  "npm --prefix web/runner run check",
+]
+reason = "Browser worker and GitHub ingest logic are JavaScript/WASM-facing surfaces."
+mutation = false
+coverage = false
+
+[[allow.workspace_area]]
+name = "jules_knowledge_workspace"
+paths = [".jules/**"]
+reason = "Durable specs, investigations, friction notes, persona learnings, and generated indexes are allowed here."
+discourage = [
+  "raw terminal logs",
+  "duplicated run transcripts",
+  "large binary artifacts",
+]
+
+[[dependency_boundary]]
+name = "retired_tokmd_config_must_not_return"
+packages = ["*"]
+forbid = ["tokmd-config"]
+reason = "tokmd-config is retired; ownership lives in tokmd-settings, tokmd-core, and tokmd."
