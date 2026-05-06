@@ -43,7 +43,12 @@ const ALLOWED_CLASSIFICATIONS: &[&str] =
 pub fn run_check(args: NoPanicArgs) -> Result<()> {
     let root = workspace_root()?;
     let findings = scan_workspace(&root)?;
-    let allowlist = read_allowlist(&root.join(ALLOWLIST_PATH))?;
+    let allowlist_path = root.join(ALLOWLIST_PATH);
+    let allowlist = if args.strict {
+        read_allowlist_strict(&allowlist_path)?
+    } else {
+        read_allowlist(&allowlist_path)?
+    };
 
     let report = evaluate(&findings, &allowlist)?;
 
@@ -219,7 +224,7 @@ struct LastSeenTable {
 impl AllowEntry {
     fn identity(&self) -> Identity {
         Identity {
-            path: PathBuf::from(&self.path),
+            path: normalize_path(&PathBuf::from(&self.path)),
             family: Family::from_str(&self.family).unwrap_or(Family::Unknown),
             kind: SelectorKind::from_str(&self.selector.kind).unwrap_or(SelectorKind::Unknown),
             container: self.selector.container.clone(),
@@ -230,7 +235,21 @@ impl AllowEntry {
 }
 
 fn read_allowlist(path: &Path) -> Result<AllowlistFile> {
+    read_allowlist_inner(path, /* require_present = */ false)
+}
+
+fn read_allowlist_strict(path: &Path) -> Result<AllowlistFile> {
+    read_allowlist_inner(path, /* require_present = */ true)
+}
+
+fn read_allowlist_inner(path: &Path, require_present: bool) -> Result<AllowlistFile> {
     if !path.exists() {
+        if require_present {
+            bail!(
+                "{} does not exist; refusing to run --strict against a missing ledger",
+                path.display()
+            );
+        }
         return Ok(AllowlistFile {
             schema_version: SCHEMA_VERSION.to_string(),
             allow: Vec::new(),
@@ -275,8 +294,8 @@ enum Family {
     Todo,
     Unimplemented,
     Unreachable,
-    Indexing,
-    StringSlice,
+    ElementIndexing,
+    RangeIndexing,
     Unknown,
 }
 
@@ -290,8 +309,8 @@ impl Family {
             Family::Todo => "todo",
             Family::Unimplemented => "unimplemented",
             Family::Unreachable => "unreachable",
-            Family::Indexing => "indexing",
-            Family::StringSlice => "string_slice",
+            Family::ElementIndexing => "element_indexing",
+            Family::RangeIndexing => "range_indexing",
             Family::Unknown => "unknown",
         }
     }
@@ -305,8 +324,8 @@ impl Family {
             "todo" => Family::Todo,
             "unimplemented" => Family::Unimplemented,
             "unreachable" => Family::Unreachable,
-            "indexing" => Family::Indexing,
-            "string_slice" => Family::StringSlice,
+            "element_indexing" => Family::ElementIndexing,
+            "range_indexing" => Family::RangeIndexing,
             _ => return None,
         })
     }
@@ -418,6 +437,7 @@ fn workspace_member_roots(root: &Path) -> Result<Vec<PathBuf>> {
 
 fn scan_workspace(root: &Path) -> Result<Vec<Finding>> {
     let crate_roots = workspace_member_roots(root)?;
+    let canonical_root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let mut findings = Vec::new();
     let mut seen_files: BTreeSet<PathBuf> = BTreeSet::new();
 
@@ -438,8 +458,19 @@ fn scan_workspace(root: &Path) -> Result<Vec<Finding>> {
             if !seen_files.insert(canonical.clone()) {
                 continue;
             }
-            let rel = path.strip_prefix(root).unwrap_or(path).to_path_buf();
-            let mut file_findings = scan_file(&rel, path)?;
+            // Build the identity-stable relative path. We canonicalize both
+            // ends so cargo metadata's UNC-style `\\?\C:\…` workspace_root on
+            // Windows lines up with WalkDir's raw entries, then normalize
+            // separators to `/` so an allowlist authored on one OS still
+            // matches on another.
+            let rel = canonical
+                .strip_prefix(&canonical_root)
+                .ok()
+                .map(PathBuf::from)
+                .or_else(|| path.strip_prefix(root).ok().map(PathBuf::from))
+                .unwrap_or_else(|| path.to_path_buf());
+            let normalized = normalize_path(&rel);
+            let mut file_findings = scan_file(&normalized, path)?;
             findings.append(&mut file_findings);
         }
     }
@@ -451,6 +482,36 @@ fn scan_workspace(root: &Path) -> Result<Vec<Finding>> {
             .then(a.family.cmp(&b.family))
     });
     Ok(findings)
+}
+
+fn normalize_path(p: &Path) -> PathBuf {
+    // Identity is stored as a forward-slash relative path. This keeps a
+    // Linux-authored allowlist matching on Windows and avoids `\\?\` UNC
+    // prefixes leaking into `path = "..."` entries.
+    let mut s = String::new();
+    let mut first = true;
+    for comp in p.components() {
+        use std::path::Component;
+        let part = match comp {
+            Component::Prefix(_) | Component::RootDir => continue,
+            Component::CurDir => continue,
+            Component::ParentDir => "..",
+            Component::Normal(os) => {
+                if !first {
+                    s.push('/');
+                }
+                first = false;
+                s.push_str(&os.to_string_lossy());
+                continue;
+            }
+        };
+        if !first {
+            s.push('/');
+        }
+        first = false;
+        s.push_str(part);
+    }
+    PathBuf::from(s)
 }
 
 fn is_excluded_dir(name: &std::ffi::OsStr) -> bool {
@@ -527,9 +588,32 @@ impl<'ast> Visit<'ast> for PanicVisitor {
 
     fn visit_item_impl(&mut self, item: &'ast syn::ItemImpl) {
         let type_name = type_name_of(&item.self_ty);
-        self.container_stack.push(type_name);
+        // For trait impls, encode the trait so that `impl Display for Foo`
+        // and `impl Debug for Foo` produce different containers for methods
+        // with the same name (e.g. `fmt`).
+        let segment = if let Some((_, trait_path, _)) = &item.trait_ {
+            format!("<{} as {}>", type_name, path_string(trait_path))
+        } else {
+            type_name
+        };
+        self.container_stack.push(segment);
         syn::visit::visit_item_impl(self, item);
         self.container_stack.pop();
+    }
+
+    fn visit_item_mod(&mut self, item: &'ast syn::ItemMod) {
+        // Push inline module names so that `mod a { fn f() {…} }` and
+        // `mod b { fn f() {…} }` produce distinct identities even when their
+        // function names collide. File-level module structure is recovered
+        // via the path component, but inline modules require explicit
+        // tracking.
+        if item.content.is_some() {
+            self.container_stack.push(item.ident.to_string());
+            syn::visit::visit_item_mod(self, item);
+            self.container_stack.pop();
+        } else {
+            syn::visit::visit_item_mod(self, item);
+        }
     }
 
     fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
@@ -586,11 +670,14 @@ impl<'ast> Visit<'ast> for PanicVisitor {
     fn visit_expr_index(&mut self, idx: &'ast syn::ExprIndex) {
         let receiver = fingerprint_expr(&idx.expr);
         let index = fingerprint_expr(&idx.index);
-        // Treat range indexing as string_slice; element indexing as indexing.
+        // Without type info we cannot prove a slice is on `&str`/`String`, so
+        // we report range indexing as a separate family from element indexing
+        // and leave Clippy's `string_slice` (which has type info) to do the
+        // type-narrowed call.
         let family = if matches!(idx.index.as_ref(), syn::Expr::Range(_)) {
-            Family::StringSlice
+            Family::RangeIndexing
         } else {
-            Family::Indexing
+            Family::ElementIndexing
         };
         let selector = Selector {
             kind: SelectorKind::Indexing,
@@ -923,7 +1010,7 @@ mod tests {
     }
 
     #[test]
-    fn detects_indexing_and_string_slice() {
+    fn detects_element_and_range_indexing() {
         let findings = parse(
             r#"
             fn split(s: &str) -> &str {
@@ -933,8 +1020,77 @@ mod tests {
             "#,
         );
         let families: Vec<Family> = findings.iter().map(|f| f.family).collect();
-        assert!(families.contains(&Family::Indexing), "{families:?}");
-        assert!(families.contains(&Family::StringSlice), "{families:?}");
+        assert!(families.contains(&Family::ElementIndexing), "{families:?}");
+        assert!(families.contains(&Family::RangeIndexing), "{families:?}");
+    }
+
+    #[test]
+    fn nested_modules_disambiguate_container() {
+        let findings = parse(
+            r#"
+            mod a {
+                pub fn boom() { panic!("a"); }
+            }
+            mod b {
+                pub fn boom() { panic!("b"); }
+            }
+            "#,
+        );
+        assert_eq!(findings.len(), 2);
+        let containers: Vec<&str> = findings
+            .iter()
+            .map(|f| f.selector.container.as_str())
+            .collect();
+        assert!(containers.contains(&"a::boom"), "{containers:?}");
+        assert!(containers.contains(&"b::boom"), "{containers:?}");
+    }
+
+    #[test]
+    fn trait_impls_disambiguate_container() {
+        let findings = parse(
+            r#"
+            use std::fmt;
+            struct Foo;
+            impl fmt::Display for Foo {
+                fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
+                    panic!("display");
+                }
+            }
+            impl fmt::Debug for Foo {
+                fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
+                    panic!("debug");
+                }
+            }
+            "#,
+        );
+        assert_eq!(findings.len(), 2);
+        let containers: Vec<&str> = findings
+            .iter()
+            .map(|f| f.selector.container.as_str())
+            .collect();
+        assert!(
+            containers
+                .iter()
+                .any(|c| c.contains("Display") && c.contains("fmt")),
+            "{containers:?}"
+        );
+        assert!(
+            containers
+                .iter()
+                .any(|c| c.contains("Debug") && c.contains("fmt")),
+            "{containers:?}"
+        );
+    }
+
+    #[test]
+    fn normalize_path_uses_forward_slashes() {
+        // Mirror what scan_workspace stores: relative path with forward
+        // slashes, no current-dir or root-dir components, no UNC prefixes.
+        let normalized = normalize_path(Path::new("crates/foo/src/lib.rs"));
+        assert_eq!(normalized, PathBuf::from("crates/foo/src/lib.rs"));
+
+        let with_curdir = normalize_path(Path::new("./crates/foo/src/lib.rs"));
+        assert_eq!(with_curdir, PathBuf::from("crates/foo/src/lib.rs"));
     }
 
     #[test]

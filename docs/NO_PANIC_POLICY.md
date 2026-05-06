@@ -21,17 +21,22 @@ in production or tests*. The policy is enforced by two complementary rails:
 
 The semantic checker currently classifies the following families:
 
-| Family          | Detected shape                                                  |
-|-----------------|-----------------------------------------------------------------|
-| `unwrap`        | method call `.unwrap()`                                         |
-| `expect`        | method call `.expect(...)`                                      |
-| `get_unwrap`    | method call `.get_unwrap(...)`                                  |
-| `panic_macro`   | macro invocation `panic!(...)`                                  |
-| `todo`          | macro invocation `todo!(...)`                                   |
-| `unimplemented` | macro invocation `unimplemented!(...)`                          |
-| `unreachable`   | macro invocation `unreachable!(...)`                            |
-| `indexing`      | indexing expression `x[idx]` outside string slice contexts      |
-| `string_slice`  | indexing expression `x[a..b]` whose receiver is a `&str`/`String` literal candidate |
+| Family             | Detected shape                                                |
+|--------------------|---------------------------------------------------------------|
+| `unwrap`           | method call `.unwrap()`                                       |
+| `expect`           | method call `.expect(...)`                                    |
+| `get_unwrap`       | method call `.get_unwrap(...)`                                |
+| `panic_macro`      | macro invocation `panic!(...)`                                |
+| `todo`             | macro invocation `todo!(...)`                                 |
+| `unimplemented`    | macro invocation `unimplemented!(...)`                        |
+| `unreachable`      | macro invocation `unreachable!(...)`                          |
+| `element_indexing` | indexing expression `x[idx]` with a non-range index           |
+| `range_indexing`   | indexing expression `x[a..b]`                                 |
+
+Without type information, the semantic checker cannot prove that a range
+index targets a `&str`/`String` (Clippy's `string_slice` lint does that with
+type info on rail A), so range and element indexing are reported as separate
+families and left to rail A for the type-narrowed call.
 
 Assertion macros (`assert!`, `assert_eq!`, `debug_assert!`, …) are not yet
 classified; making them part of the no-panic ledger is a separate decision and
