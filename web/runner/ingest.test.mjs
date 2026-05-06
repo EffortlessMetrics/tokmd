@@ -584,7 +584,7 @@ test("fetchGitHubRepoInputs emits progress and partial-load markers", async () =
         onProgress: (update) => progress.push(update),
     });
 
-    assert.equal(progress[0].phase, "tree");
+    assert.equal(progress[0].phase, "cache");
     assert.equal(progress.at(-1).phase, "complete");
     assert.equal(result.ingest.partial, true);
     assert.deepEqual(
@@ -919,6 +919,7 @@ test("fetchGitHubRepoInputs handles failed loads with proper eviction", async ()
                 repo: "EffortlessMetrics/tokmd",
                 ref: "main",
                 fetchImpl,
+                retryPolicy: { maxAttempts: 1 },
             }),
         /GitHub request failed/
     );
@@ -933,4 +934,181 @@ test("fetchGitHubRepoInputs handles failed loads with proper eviction", async ()
 
     assert.equal(result.ingest.cache.hit, false);
     assert.equal(fetchCount, 3);
+});
+
+test("fetchGitHubRepoInputs retries on 503 server error", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        if (fetchCount === 1 && url.includes("/git/trees/")) {
+            return new Response(JSON.stringify({ message: "Service Unavailable" }), {
+                status: 503,
+                headers: { "content-type": "application/json" },
+            });
+        }
+
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        retryPolicy: { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 50 },
+    });
+
+    assert.equal(result.ingest.loadedFiles, 1);
+    assert.equal(fetchCount, 3);
+});
+
+test("fetchGitHubRepoInputs does not retry 401 auth error", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ message: "Bad credentials" }), {
+            status: 401,
+            headers: { "content-type": "application/json" },
+        });
+    };
+
+    await assert.rejects(
+        () =>
+            fetchGitHubRepoInputs({
+                repo: "EffortlessMetrics/tokmd",
+                ref: "main",
+                fetchImpl,
+                retryPolicy: { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 50 },
+            }),
+        (error) => error?.code === "github_auth_required"
+    );
+
+    assert.equal(fetchCount, 1);
+});
+
+test("fetchGitHubRepoInputs does not retry 404 not found error", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ message: "Not Found" }), {
+            status: 404,
+            headers: { "content-type": "application/json" },
+        });
+    };
+
+    await assert.rejects(
+        () =>
+            fetchGitHubRepoInputs({
+                repo: "EffortlessMetrics/tokmd",
+                ref: "main",
+                fetchImpl,
+                retryPolicy: { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 50 },
+            }),
+        (error) => error?.code === "github_repo_unavailable"
+    );
+
+    assert.equal(fetchCount, 1);
+});
+
+test("fetchGitHubRepoInputs respects retry-after header", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const delays = [];
+    const fetchImpl = async (url) => {
+        const start = Date.now();
+        fetchCount += 1;
+
+        if (fetchCount === 1 && url.includes("/git/trees/")) {
+            return new Response(JSON.stringify({ message: "You have exceeded a secondary rate limit." }), {
+                status: 429,
+                headers: {
+                    "content-type": "application/json",
+                    "retry-after": "1",
+                },
+            });
+        }
+
+        if (fetchCount >= 2 && url.includes("/git/trees/")) {
+            if (fetchCount === 2) {
+                delays.push(Date.now() - start);
+            }
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        retryPolicy: { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 100, retryAfterCapMs: 30000 },
+    });
+
+    assert.equal(result.ingest.loadedFiles, 1);
+    assert.equal(fetchCount, 3);
+});
+
+test("fetchGitHubRepoInputs emits retry progress events", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const progress = [];
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+
+        if (fetchCount === 1 && url.includes("/git/trees/")) {
+            return new Response(JSON.stringify({ message: "Service Unavailable" }), {
+                status: 503,
+                headers: { "content-type": "application/json" },
+            });
+        }
+
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        retryPolicy: { maxAttempts: 3, baseDelayMs: 10, maxDelayMs: 50 },
+        onProgress: (update) => progress.push(update),
+    });
+
+    const retryPhases = progress.filter((p) => p.phase === "retry_wait");
+    assert.equal(retryPhases.length, 1);
+    assert.equal(retryPhases[0].attempt, 1);
+    assert.equal(retryPhases[0].maxAttempts, 3);
 });

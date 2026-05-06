@@ -86,6 +86,13 @@ const GITHUB_SEGMENT_PATTERN = /^[A-Za-z0-9_.-]+$/;
 const CACHE_KEY_VERSION = 1;
 const CACHE_POLICY_MODES = Object.freeze(["reuse", "reload", "no-store"]);
 const DEFAULT_CACHE_POLICY = Object.freeze({ mode: "reuse", scope: "memory" });
+const DEFAULT_RETRY_POLICY = Object.freeze({
+    maxAttempts: 3,
+    baseDelayMs: 500,
+    maxDelayMs: 8000,
+    retryAfterCapMs: 30000,
+    respectRetryAfter: true,
+});
 
 function normalizePath(value) {
     return value.replaceAll("\\", "/");
@@ -210,6 +217,52 @@ function normalizeCachePolicy(value) {
         mode,
         scope: value.scope === "memory" ? "memory" : "memory",
     });
+}
+
+function normalizeRetryPolicy(value) {
+    if (!value || typeof value !== "object") {
+        return DEFAULT_RETRY_POLICY;
+    }
+
+    const maxAttempts = Math.max(1, Math.floor(value.maxAttempts ?? DEFAULT_RETRY_POLICY.maxAttempts));
+    const baseDelayMs = Math.max(0, Math.floor(value.baseDelayMs ?? DEFAULT_RETRY_POLICY.baseDelayMs));
+    const maxDelayMs = Math.max(baseDelayMs, Math.floor(value.maxDelayMs ?? DEFAULT_RETRY_POLICY.maxDelayMs));
+    const retryAfterCapMs = Math.max(0, Math.floor(value.retryAfterCapMs ?? DEFAULT_RETRY_POLICY.retryAfterCapMs));
+    const respectRetryAfter = value.respectRetryAfter !== false;
+
+    return Object.freeze({
+        maxAttempts,
+        baseDelayMs,
+        maxDelayMs,
+        retryAfterCapMs,
+        respectRetryAfter,
+    });
+}
+
+function isRetryableError(error, response = null) {
+    const status = response?.status ?? error?.status;
+
+    // Do not retry auth/not-found errors
+    if (status === 401 || status === 404) {
+        return false;
+    }
+
+    // Do not auto-retry primary rate limit
+    if (status === 403 && response?.headers?.get("x-ratelimit-remaining") === "0") {
+        return false;
+    }
+
+    // Retry server errors and network errors
+    if (status >= 500 || error?.name === "AbortError" || !status) {
+        return true;
+    }
+
+    // Retry secondary rate limit if retry-after is present
+    if (status === 429 || /secondary rate limit/i.test(error?.message)) {
+        return true;
+    }
+
+    return false;
 }
 
 function deepCloneInputs(inputs) {
@@ -422,6 +475,73 @@ function emitProgress(callback, update) {
     }
 }
 
+async function abortableDelay(ms, signal) {
+    if (ms <= 0) {
+        return;
+    }
+
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(resolve, ms);
+        const onAbort = () => {
+            clearTimeout(timeout);
+            reject(createAbortError());
+        };
+
+        if (signal?.aborted) {
+            clearTimeout(timeout);
+            reject(createAbortError());
+        } else if (signal) {
+            signal.addEventListener("abort", onAbort, { once: true });
+        }
+    });
+}
+
+async function withRetry(operation, options = {}) {
+    const { retryPolicy = DEFAULT_RETRY_POLICY, signal = null, onProgress = null } = options;
+    let lastError;
+
+    for (let attempt = 1; attempt <= retryPolicy.maxAttempts; attempt++) {
+        try {
+            return await operation(attempt);
+        } catch (error) {
+            lastError = error;
+
+            if (!isRetryableError(error, error.response)) {
+                throw error;
+            }
+
+            if (attempt >= retryPolicy.maxAttempts) {
+                throw error;
+            }
+
+            let delayMs;
+            let retryAfterSeconds = error?.retryAfterSeconds ?? null;
+
+            if (retryPolicy.respectRetryAfter && retryAfterSeconds !== null && retryAfterSeconds > 0) {
+                const capMs = Math.min(retryAfterSeconds * 1000, retryPolicy.retryAfterCapMs);
+                delayMs = capMs;
+            } else {
+                const exponentialMs = retryPolicy.baseDelayMs * Math.pow(2, attempt - 1);
+                const jitter = Math.random() * 0.1 * exponentialMs;
+                delayMs = Math.min(exponentialMs + jitter, retryPolicy.maxDelayMs);
+            }
+
+            const waitSeconds = Math.ceil(delayMs / 1000);
+            emitProgress(onProgress, {
+                phase: "retry_wait",
+                attempt,
+                maxAttempts: retryPolicy.maxAttempts,
+                retryAfterSeconds: waitSeconds,
+                message: `GitHub rate limit or server error. Retrying in ${waitSeconds}s (attempt ${attempt}/${retryPolicy.maxAttempts})...`,
+            });
+
+            await abortableDelay(delayMs, signal);
+        }
+    }
+
+    throw lastError;
+}
+
 function withCacheHit(result, policy = DEFAULT_CACHE_POLICY) {
     return {
         ...result,
@@ -518,7 +638,7 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
             authMode === "token"
                 ? "GitHub rejected the supplied token for this repo load."
                 : "GitHub repo access requires a token or a public repository.",
-            { status: response.status }
+            { status: response.status, response }
         );
     }
 
@@ -528,7 +648,7 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
             authMode === "token"
                 ? "GitHub repo or ref was not found for the supplied token."
                 : "GitHub repo or ref was not found, or it requires a token.",
-            { status: response.status }
+            { status: response.status, response }
         );
     }
 
@@ -541,6 +661,7 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
             {
                 status: response.status,
                 resetAt,
+                response,
             }
         );
     }
@@ -554,6 +675,7 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
             {
                 status: response.status,
                 retryAfterSeconds,
+                response,
             }
         );
     }
@@ -564,6 +686,7 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
         {
             status: response.status,
             responseMessage: message,
+            response,
         }
     );
 }
@@ -725,6 +848,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
     const signal = options.signal;
     const onProgress = options.onProgress;
     const cachePolicy = normalizeCachePolicy(options.cachePolicy);
+    const retryPolicy = normalizeRetryPolicy(options.retryPolicy);
     const authMode = token ? "token" : "anonymous";
 
     throwIfAborted(signal);
@@ -756,12 +880,15 @@ export async function fetchGitHubRepoInputs(options = {}) {
 
     const loadPromise = (async () => {
         emitProgress(onProgress, {
-            phase: "tree",
+            phase: "cache",
             current: 0,
             total: 1,
             message: `Fetching GitHub tree for ${owner}/${repo}@${ref}`,
         });
-        const tree = await fetchRepositoryTree(fetchImpl, owner, repo, ref, token, signal);
+        const tree = await withRetry(
+            async () => fetchRepositoryTree(fetchImpl, owner, repo, ref, token, signal),
+            { retryPolicy, signal, onProgress }
+        );
         const selection = selectGitHubTreeEntries(tree.tree, limits);
         const inputs = [];
         let bytesRead = 0;
@@ -787,7 +914,10 @@ export async function fetchGitHubRepoInputs(options = {}) {
                 message: `Loading ${entry.path}`,
             });
 
-            const bytes = await fetchFileBytes(fetchImpl, owner, repo, ref, entry.path, token, signal);
+            const bytes = await withRetry(
+                async () => fetchFileBytes(fetchImpl, owner, repo, ref, entry.path, token, signal),
+                { retryPolicy, signal, onProgress }
+            );
 
             if (bytes.length > limits.maxFileBytes) {
                 selection.stats.skippedTooLarge += 1;
