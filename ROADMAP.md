@@ -196,6 +196,34 @@ This document outlines the evolution of `tokmd` and the path forward.
 | PR template with trend section       | ✅ Complete | Template with TREND section markers                                |
 | Automatic PR comment injection       | ✅ Complete | Post cockpit metrics via `thollander/actions-comment-pull-request` |
 
+### Language Bindings (FFI)
+
+_Goal: Native integration in CI pipelines and tooling ecosystems._
+
+**Python (PyPI: `tokmd`)** ✅
+
+- Native bindings via PyO3 + maturin
+- Crate: `tokmd-python/`
+- API: `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
+- Returns native Python dicts
+- Wheels for Linux, macOS, Windows (x64 + arm64)
+- JSON API: `tokmd.run_json(mode, args_json)` for low-level access
+
+**Node.js (npm: `@tokmd/core`)** ✅
+
+- Native bindings via napi-rs
+- Crate: `tokmd-node/`
+- API: `lang()`, `module()`, `export()`, `analyze()`, `diff()` returning JS objects
+- Prebuilds for major platforms
+- All functions return Promises (async/non-blocking)
+
+**Shared Infrastructure** ✅
+
+- `tokmd-core` crate expanded with binding-friendly API
+- Pure settings types (no Clap dependencies)
+- JSON-in/JSON-out FFI boundary via `run_json()`
+- Structured error types for FFI
+
 ### Schema Changes
 
 - **Analysis schema version**: 3 → 4
@@ -534,35 +562,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### v2.0 — Platform Evolution
 
-#### A. Language Bindings (FFI) ✅ Complete
-
-_Goal: Native integration in CI pipelines and tooling ecosystems._
-
-**Python (PyPI: `tokmd`)** ✅
-
-- Native bindings via PyO3 + maturin
-- Crate: `tokmd-python/`
-- API: `tokmd.lang()`, `tokmd.module()`, `tokmd.export()`, `tokmd.analyze()`, `tokmd.diff()`
-- Returns native Python dicts
-- Wheels for Linux, macOS, Windows (x64 + arm64)
-- JSON API: `tokmd.run_json(mode, args_json)` for low-level access
-
-**Node.js (npm: `@tokmd/core`)** ✅
-
-- Native bindings via napi-rs
-- Crate: `tokmd-node/`
-- API: `lang()`, `module()`, `export()`, `analyze()`, `diff()` returning JS objects
-- Prebuilds for major platforms
-- All functions return Promises (async/non-blocking)
-
-**Shared Infrastructure** ✅
-
-- `tokmd-core` crate expanded with binding-friendly API
-- Pure settings types (no Clap dependencies)
-- JSON-in/JSON-out FFI boundary via `run_json()`
-- Structured error types for FFI
-
-#### B. AI Agent Integration & MCP Server Mode
+#### A. AI Agent Integration & MCP Server Mode
 
 _Goal: Native integration with Claude and other MCP-compatible clients._
 
@@ -572,7 +572,7 @@ _Goal: Native integration with Claude and other MCP-compatible clients._
 - Tools: `scan`, `analyze`, `diff`, `suggest` as MCP tools
 - Streaming: Incremental analysis results
 
-#### C. Streaming Analysis
+#### B. Streaming Analysis
 
 _Goal: Handle massive repositories without memory pressure._
 
@@ -581,7 +581,7 @@ _Goal: Handle massive repositories without memory pressure._
 - Memory-bounded analysis limits
 - Progress reporting via stderr
 
-#### D. Plugin System
+#### C. Plugin System
 
 _Goal: Extensible enrichers without core changes._
 
@@ -591,7 +591,7 @@ _Goal: Extensible enrichers without core changes._
 
 ### v2.1 — Intelligence Features
 
-#### E. Smart Suggestions
+#### D. Smart Suggestions
 
 _Goal: Actionable recommendations, not just metrics._
 
@@ -599,7 +599,7 @@ _Goal: Actionable recommendations, not just metrics._
 - `tokmd suggest --review` — Files likely to need attention
 - `tokmd suggest --test` — Untested code paths
 
-#### F. Diff Intelligence
+#### E. Diff Intelligence
 
 _Goal: Semantic diff beyond structural changes._
 
@@ -607,7 +607,7 @@ _Goal: Semantic diff beyond structural changes._
 - Breaking change indicators
 - Migration path suggestions
 
-#### G. Watch Mode
+#### F. Watch Mode
 
 _Goal: Continuous analysis during development._
 
@@ -617,7 +617,7 @@ _Goal: Continuous analysis during development._
 
 ### v2.2 — Ecosystem Integration
 
-#### H. CI/CD Native
+#### G. CI/CD Native
 
 _Goal: First-class CI pipeline support._
 
@@ -626,7 +626,7 @@ _Goal: First-class CI pipeline support._
 - Trend tracking across commits
 - Threshold-based failures (e.g., fail if complexity increases)
 
-#### I. Editor Extensions
+#### H. Editor Extensions
 
 _Goal: Analysis at your fingertips._
 
@@ -634,7 +634,7 @@ _Goal: Analysis at your fingertips._
 - Neovim plugin for buffer analysis
 - JetBrains plugin
 
-#### J. Cloud Dashboard
+#### I. Cloud Dashboard
 
 _Goal: Historical tracking and team insights._
 
@@ -647,7 +647,7 @@ _Goal: Historical tracking and team insights._
 
 _Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap._
 
-#### K. Tree-sitter AST Parsing
+#### J. Tree-sitter AST Parsing
 
 - `tokmd-treesitter` crate with multi-language AST parsing
 - Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
