@@ -1,8 +1,11 @@
 use crate::cli::{ProofArgs, ProofProfile};
 use crate::proof::policy_ast::ProofPolicy;
-use crate::tasks::affected::{affected_report, changed_files, load_checked_policy};
+use crate::tasks::affected::{
+    AffectedReport, AffectedScope, affected_report, changed_files, load_checked_policy,
+};
 use anyhow::{Result, bail};
 use serde::Serialize;
+use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
 #[derive(Debug, Serialize)]
@@ -21,6 +24,7 @@ struct ProofPlanReport {
 struct ProofPlanCommand {
     scope: String,
     kind: String,
+    required: bool,
     command: String,
 }
 
@@ -53,17 +57,7 @@ fn proof_plan_report(policy: &ProofPolicy, args: &ProofArgs) -> Result<ProofPlan
 fn affected_plan_report(policy: &ProofPolicy, args: &ProofArgs) -> Result<ProofPlanReport> {
     let changed_files = changed_files(&args.base, &args.head)?;
     let affected = affected_report(policy, &args.base, &args.head, changed_files)?;
-    let mut commands = Vec::new();
-
-    for scope in &affected.scopes {
-        for command in &scope.proof {
-            commands.push(ProofPlanCommand {
-                scope: scope.name.clone(),
-                kind: "proof".to_string(),
-                command: command.clone(),
-            });
-        }
-    }
+    let commands = affected_commands(policy, &affected);
 
     Ok(ProofPlanReport {
         schema: "tokmd.proof_plan.v1".to_string(),
@@ -75,6 +69,73 @@ fn affected_plan_report(policy: &ProofPolicy, args: &ProofArgs) -> Result<ProofP
         commands: dedupe_commands(commands),
         unknown_files: affected.unknown_files,
     })
+}
+
+fn affected_commands(policy: &ProofPolicy, affected: &AffectedReport) -> Vec<ProofPlanCommand> {
+    let mut commands = Vec::new();
+
+    for scope in &affected.scopes {
+        for command in &scope.proof {
+            commands.push(command_for_scope(scope, "proof", command));
+        }
+
+        if let Some(command) = coverage_command(policy, scope) {
+            commands.push(command);
+        }
+
+        commands.extend(mutation_commands(policy, scope));
+    }
+
+    dedupe_commands(commands)
+}
+
+fn coverage_command(policy: &ProofPolicy, scope: &AffectedScope) -> Option<ProofPlanCommand> {
+    if !scope.coverage || !matches!(scope.kind, crate::proof::policy_ast::ScopeKind::Rust) {
+        return None;
+    }
+
+    let packages = sorted(scope.packages.clone());
+    if packages.is_empty() {
+        return None;
+    }
+
+    let package_flags = packages
+        .iter()
+        .map(|package| format!("-p {package}"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let tool = coverage_command_tool(policy);
+    let output_path = format!("target/proof/coverage/{}.lcov", artifact_name(&scope.name));
+    let command =
+        format!("{tool} {package_flags} --all-features --lcov --output-path {output_path}");
+
+    Some(advisory_command_for_scope(scope, "coverage", &command))
+}
+
+fn mutation_commands(policy: &ProofPolicy, scope: &AffectedScope) -> Vec<ProofPlanCommand> {
+    if !scope.mutation || !matches!(scope.kind, crate::proof::policy_ast::ScopeKind::Rust) {
+        return Vec::new();
+    }
+
+    let timeout = policy.defaults.mutation_timeout_seconds.unwrap_or(300);
+    let mut commands = scope
+        .matched_files
+        .iter()
+        .filter(|file| is_mutation_candidate(file))
+        .map(|file| {
+            advisory_command_for_scope(
+                scope,
+                "mutation",
+                &format!("cargo mutants --file {file} --timeout {timeout}"),
+            )
+        })
+        .collect::<Vec<_>>();
+
+    if commands.is_empty() {
+        commands.extend(package_mutation_command(scope, timeout));
+    }
+
+    commands
 }
 
 fn static_plan_report(profile: ProofProfile, base: &str, head: &str) -> ProofPlanReport {
@@ -132,16 +193,105 @@ fn command(scope: &str, kind: &str, command: &str) -> ProofPlanCommand {
     ProofPlanCommand {
         scope: scope.to_string(),
         kind: kind.to_string(),
+        required: true,
         command: command.to_string(),
     }
 }
 
+fn advisory_command_for_scope(
+    scope: &AffectedScope,
+    kind: &str,
+    command: &str,
+) -> ProofPlanCommand {
+    ProofPlanCommand {
+        scope: scope.name.clone(),
+        kind: kind.to_string(),
+        required: false,
+        command: command.to_string(),
+    }
+}
+
+fn command_for_scope(scope: &AffectedScope, kind: &str, command_text: &str) -> ProofPlanCommand {
+    command(&scope.name, kind, command_text)
+}
+
 fn dedupe_commands(commands: Vec<ProofPlanCommand>) -> Vec<ProofPlanCommand> {
-    commands
+    let mut commands = commands
         .into_iter()
         .collect::<BTreeSet<_>>()
         .into_iter()
+        .collect::<Vec<_>>();
+    commands.sort_by(compare_commands);
+    commands
+}
+
+fn compare_commands(left: &ProofPlanCommand, right: &ProofPlanCommand) -> Ordering {
+    left.scope
+        .cmp(&right.scope)
+        .then_with(|| kind_rank(&left.kind).cmp(&kind_rank(&right.kind)))
+        .then_with(|| left.kind.cmp(&right.kind))
+        .then_with(|| left.command.cmp(&right.command))
+}
+
+fn kind_rank(kind: &str) -> u8 {
+    match kind {
+        "proof" => 0,
+        "coverage" => 1,
+        "mutation" => 2,
+        "fuzz" => 3,
+        _ => 4,
+    }
+}
+
+fn coverage_command_tool(policy: &ProofPolicy) -> &str {
+    match policy.tools.coverage.as_deref() {
+        Some("cargo-llvm-cov") | None => "cargo llvm-cov",
+        Some(tool) => tool,
+    }
+}
+
+fn sorted(mut values: Vec<String>) -> Vec<String> {
+    values.sort();
+    values.dedup();
+    values
+}
+
+fn package_mutation_command(scope: &AffectedScope, timeout: u64) -> Option<ProofPlanCommand> {
+    let packages = sorted(scope.packages.clone());
+    if packages.is_empty() {
+        return None;
+    }
+
+    let package_flags = packages
+        .iter()
+        .map(|package| format!("-p {package}"))
+        .collect::<Vec<_>>()
+        .join(" ");
+    Some(advisory_command_for_scope(
+        scope,
+        "mutation",
+        &format!("cargo mutants {package_flags} --timeout {timeout}"),
+    ))
+}
+
+fn artifact_name(name: &str) -> String {
+    name.chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() || ch == '-' || ch == '_' {
+                ch
+            } else {
+                '_'
+            }
+        })
         .collect()
+}
+
+fn is_mutation_candidate(path: &str) -> bool {
+    path.ends_with(".rs")
+        && !path.starts_with("fuzz/")
+        && !path.contains("/tests/")
+        && !path.contains("/benches/")
+        && !path.contains("/examples/")
 }
 
 fn profile_name(profile: ProofProfile) -> &'static str {
@@ -155,8 +305,12 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{dedupe_commands, static_profile_commands};
+    use super::{
+        affected_commands, dedupe_commands, is_mutation_candidate, static_profile_commands,
+    };
     use crate::cli::ProofProfile;
+    use crate::proof::policy::parse_policy_str;
+    use crate::tasks::affected::{AffectedReport, AffectedScope};
 
     #[test]
     fn static_profiles_have_deterministic_commands() {
@@ -195,5 +349,119 @@ mod tests {
         assert!(deep.iter().any(|cmd| cmd.kind == "coverage"));
         assert!(deep.iter().any(|cmd| cmd.kind == "mutation"));
         assert!(deep.iter().any(|cmd| cmd.kind == "fuzz"));
+    }
+
+    #[test]
+    fn affected_plan_adds_scoped_coverage_and_mutation_commands() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[defaults]
+mutation_timeout_seconds = 123
+
+[tools]
+coverage = "cargo-llvm-cov"
+"#,
+        )
+        .expect("policy should parse");
+        let affected = AffectedReport {
+            schema: "tokmd.affected.v1".to_string(),
+            ok: true,
+            base: "base".to_string(),
+            head: "head".to_string(),
+            changed_files: vec![
+                "crates/tokmd-core/src/ffi.rs".to_string(),
+                "crates/tokmd-core/tests/ffi.rs".to_string(),
+            ],
+            scopes: vec![AffectedScope {
+                name: "tokmd_core_ffi".to_string(),
+                kind: crate::proof::policy_ast::ScopeKind::Rust,
+                reason: "matched crates/tokmd-core/src/ffi.rs".to_string(),
+                matched_files: vec![
+                    "crates/tokmd-core/src/ffi.rs".to_string(),
+                    "crates/tokmd-core/tests/ffi.rs".to_string(),
+                ],
+                packages: vec!["tokmd-core".to_string()],
+                proof: vec!["cargo test -p tokmd-core ffi".to_string()],
+                mutation: true,
+                coverage: true,
+            }],
+            unknown_files: Vec::new(),
+        };
+
+        let commands = affected_commands(&policy, &affected);
+
+        assert_eq!(commands[0].kind, "proof");
+        assert!(commands[0].required);
+        assert!(
+            commands
+                .iter()
+                .any(|cmd| cmd.command == "cargo test -p tokmd-core ffi")
+        );
+        assert!(commands.iter().any(|cmd| {
+            cmd.kind == "coverage"
+                && !cmd.required
+                && cmd.command == "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov"
+        }));
+        assert!(commands.iter().any(|cmd| {
+            cmd.kind == "mutation"
+                && !cmd.required
+                && cmd.command == "cargo mutants --file crates/tokmd-core/src/ffi.rs --timeout 123"
+        }));
+        assert!(
+            !commands
+                .iter()
+                .any(|cmd| cmd.command.contains("crates/tokmd-core/tests/ffi.rs"))
+        );
+    }
+
+    #[test]
+    fn affected_plan_uses_package_mutation_fallback_without_source_files() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[defaults]
+mutation_timeout_seconds = 77
+"#,
+        )
+        .expect("policy should parse");
+        let affected = AffectedReport {
+            schema: "tokmd.affected.v1".to_string(),
+            ok: true,
+            base: "base".to_string(),
+            head: "head".to_string(),
+            changed_files: vec!["crates/tokmd-core/Cargo.toml".to_string()],
+            scopes: vec![AffectedScope {
+                name: "tokmd_core_manifest".to_string(),
+                kind: crate::proof::policy_ast::ScopeKind::Rust,
+                reason: "matched crates/tokmd-core/Cargo.toml".to_string(),
+                matched_files: vec!["crates/tokmd-core/Cargo.toml".to_string()],
+                packages: vec!["tokmd-core".to_string()],
+                proof: vec!["cargo test -p tokmd-core".to_string()],
+                mutation: true,
+                coverage: false,
+            }],
+            unknown_files: Vec::new(),
+        };
+
+        let commands = affected_commands(&policy, &affected);
+
+        assert!(commands.iter().any(|cmd| {
+            cmd.kind == "mutation"
+                && !cmd.required
+                && cmd.command == "cargo mutants -p tokmd-core --timeout 77"
+        }));
+    }
+
+    #[test]
+    fn mutation_candidates_exclude_test_and_fixture_surfaces() {
+        assert!(is_mutation_candidate("crates/tokmd-core/src/ffi.rs"));
+        assert!(!is_mutation_candidate("crates/tokmd-core/tests/ffi.rs"));
+        assert!(!is_mutation_candidate(
+            "fuzz/fuzz_targets/fuzz_badge_svg.rs"
+        ));
+        assert!(!is_mutation_candidate("crates/tokmd/examples/demo.rs"));
     }
 }
