@@ -46,7 +46,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The PR-only affected-plan CI artifact job now writes and uploads `executor-manifest.json` alongside `affected.json`, `proof-plan.json`, `proof-evidence.json`, `executor-summary.json`, and `proof-plan.md`, without opting into executor command execution.
 - `cargo xtask proof-artifacts-check` now verifies executor summary/manifest consistency without executing planned commands, including schema, guard, count, and command-entry drift checks.
 - The PR-only affected-plan CI artifact job now runs `cargo xtask proof-artifacts-check` after artifact generation, records its status, and uploads the verifier output while remaining informational.
-- Next proof-policy operational slice: decide whether artifact-verifier failures should fail the affected-plan job or remain reported-only until executor promotion.
+- The affected-plan CI job now fails on proof artifact verifier failure, while executor command execution remains disabled and existing proof commands remain separately authoritative.
+- Next proof-policy operational slice: decide whether affected/proof-plan generation failures should stay reported-only or become blocking after more soak time.
 
 ## References
 
