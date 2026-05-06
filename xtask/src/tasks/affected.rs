@@ -10,25 +10,25 @@ use std::path::Path;
 use std::process::Command;
 
 #[derive(Debug, Serialize)]
-struct AffectedReport {
-    schema: String,
-    ok: bool,
-    base: String,
-    head: String,
-    changed_files: Vec<String>,
-    scopes: Vec<AffectedScope>,
-    unknown_files: Vec<String>,
+pub(crate) struct AffectedReport {
+    pub(crate) schema: String,
+    pub(crate) ok: bool,
+    pub(crate) base: String,
+    pub(crate) head: String,
+    pub(crate) changed_files: Vec<String>,
+    pub(crate) scopes: Vec<AffectedScope>,
+    pub(crate) unknown_files: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-struct AffectedScope {
-    name: String,
-    kind: ScopeKind,
-    reason: String,
-    packages: Vec<String>,
-    proof: Vec<String>,
-    mutation: bool,
-    coverage: bool,
+pub(crate) struct AffectedScope {
+    pub(crate) name: String,
+    pub(crate) kind: ScopeKind,
+    pub(crate) reason: String,
+    pub(crate) packages: Vec<String>,
+    pub(crate) proof: Vec<String>,
+    pub(crate) mutation: bool,
+    pub(crate) coverage: bool,
 }
 
 #[derive(Debug)]
@@ -58,19 +58,21 @@ pub fn run(args: AffectedArgs) -> Result<()> {
     }
 }
 
-fn load_checked_policy(path: &Path) -> Result<ProofPolicy> {
+pub(crate) fn load_checked_policy(path: &Path) -> Result<ProofPolicy> {
     let policy = load_policy(path)?;
     let violations = validate_policy(&policy);
     if !violations.is_empty() {
         for violation in &violations {
             eprintln!("::error file={}::{}", path.display(), violation.message);
         }
-        bail!("proof policy is invalid; run `cargo xtask proof-policy --check` before affected");
+        bail!(
+            "proof policy is invalid; run `cargo xtask proof-policy --check` before affected/proof planning"
+        );
     }
     Ok(policy)
 }
 
-fn changed_files(base: &str, head: &str) -> Result<Vec<String>> {
+pub(crate) fn changed_files(base: &str, head: &str) -> Result<Vec<String>> {
     let output = Command::new("git")
         .args(["diff", "--name-only", base, head, "--"])
         .output()
@@ -96,7 +98,7 @@ fn changed_files(base: &str, head: &str) -> Result<Vec<String>> {
     Ok(files)
 }
 
-fn affected_report(
+pub(crate) fn affected_report(
     policy: &ProofPolicy,
     base: &str,
     head: &str,

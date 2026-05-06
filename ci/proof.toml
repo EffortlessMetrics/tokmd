@@ -24,9 +24,11 @@ paths = [
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
   "xtask/src/tasks/proof_policy.rs",
+  "xtask/src/tasks/proof_plan.rs",
   "xtask/tests/affected_w91.rs",
   "xtask/tests/fixture_blobs_w83.rs",
   "xtask/tests/proof_policy_w90.rs",
+  "xtask/tests/proof_plan_w92.rs",
 ]
 packages = ["xtask"]
 proof = [
@@ -34,6 +36,7 @@ proof = [
   "cargo test -p xtask proof_policy --verbose",
   "cargo test -p xtask affected --verbose",
   "cargo test -p xtask fixture_blob --verbose",
+  "cargo test -p xtask proof_plan --verbose",
 ]
 mutation = false
 coverage = false

@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(name = "xtask")]
@@ -24,6 +24,8 @@ pub enum Commands {
     ProofPolicy(ProofPolicyArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
+    /// Print proof command plans without executing them
+    Proof(ProofArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -86,6 +88,37 @@ pub struct AffectedArgs {
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofArgs {
+    /// Proof profile to plan
+    #[arg(long, value_enum, default_value_t = ProofProfile::Affected)]
+    pub profile: ProofProfile,
+
+    /// Base git revision for affected profile discovery
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for affected profile discovery
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Print the proof plan without executing commands
+    #[arg(long)]
+    pub plan: bool,
+
+    /// Policy file to use for scope matching
+    #[arg(long, default_value = "ci/proof.toml")]
+    pub policy: std::path::PathBuf,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum ProofProfile {
+    Fast,
+    Affected,
+    Release,
+    Deep,
 }
 
 #[derive(Args, Debug, Clone, Default)]
