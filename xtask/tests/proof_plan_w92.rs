@@ -142,6 +142,53 @@ fn proof_plan_writes_markdown_summary_artifact() {
     let summary = fs::read_to_string(summary_path).expect("summary should be written");
     assert!(summary.contains("## Proof Plan Summary"));
     assert!(summary.contains("No proof commands planned."));
+    assert!(!summary.contains("### Executor Guard"));
+}
+
+#[test]
+fn proof_plan_markdown_summary_includes_executor_guard_when_requested() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("proof-plan.md");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+    let executor_path = temp.path().join("executor-summary.json");
+    let executor_arg = executor_path.to_string_lossy().to_string();
+    let (_stdout, stderr, success) = run_xtask_with_env(
+        &[
+            "proof",
+            "--profile",
+            "affected",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--plan",
+            "--summary-md",
+            &summary_arg,
+            "--executor-summary",
+            &executor_arg,
+            "--executor-mode",
+            "dry-run",
+        ],
+        &[("CI", "true")],
+    );
+
+    assert!(
+        success,
+        "proof --summary-md with executor summary failed. stderr: {stderr}"
+    );
+    let summary = fs::read_to_string(summary_path).expect("summary should be written");
+    assert!(summary.contains("### Executor Guard"));
+    assert!(summary.contains("| Mode | `dry_run` |"));
+    assert!(summary.contains("| Guard enabled | `false` |"));
+    assert!(summary.contains("| CI | `true` |"));
+    assert!(summary.contains("ci_requires_--allow-ci-evidence-execution"));
+    assert!(summary.contains("| Executed commands | 0 |"));
+
+    let executor = fs::read_to_string(executor_path).expect("executor summary should be written");
+    let executor: serde_json::Value =
+        serde_json::from_str(&executor).expect("executor summary should be valid JSON");
+    assert_eq!(executor["execution_guard"]["enabled"], false);
+    assert_eq!(executor["counts"]["executed"], 0);
 }
 
 #[test]

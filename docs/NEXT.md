@@ -39,7 +39,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof --plan --executor-summary <path>` now writes an informational coverage-only executor summary prototype. It selects non-required coverage commands, records them as skipped with `tool_execution_not_enabled`, and does not invoke `cargo llvm-cov`.
 - `cargo xtask proof --plan --executor-summary <path> --executor-mode dry-run` now exercises the executor selection boundary for at most one non-required coverage command without invoking `cargo llvm-cov`.
 - Executor summaries now include an `execution_guard` block. CI evidence execution remains disabled unless a future workflow explicitly passes `--allow-ci-evidence-execution`, and current executor modes still report zero executed commands.
-- Next proof-policy operational slice: surface executor guard status in the affected-plan summary before any CI job starts executing planner-selected evidence commands.
+- Rust-generated proof-plan Markdown now surfaces executor guard status whenever an executor summary is requested, so the affected-plan CI summary shows whether planner-selected evidence execution is blocked or explicitly opted in.
+- Next proof-policy operational slice: decide the first executor family promotion rule before any CI job starts executing planner-selected evidence commands.
 
 ## References
 

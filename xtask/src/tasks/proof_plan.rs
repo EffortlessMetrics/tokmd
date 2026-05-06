@@ -131,19 +131,21 @@ pub fn run(args: ProofArgs) -> Result<()> {
 
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
+    let executor_summary = args.executor_summary.as_ref().map(|_| {
+        proof_executor_summary(
+            &report,
+            args.executor_mode,
+            proof_executor_execution_guard(args.allow_ci_evidence_execution),
+        )
+    });
     if let Some(path) = &args.summary_md {
-        write_markdown_summary(path, &report)?;
+        write_markdown_summary(path, &report, executor_summary.as_ref())?;
     }
     if let Some(path) = &args.evidence_json {
         write_evidence_json(path, &report)?;
     }
-    if let Some(path) = &args.executor_summary {
-        write_executor_summary(
-            path,
-            &report,
-            args.executor_mode,
-            proof_executor_execution_guard(args.allow_ci_evidence_execution),
-        )?;
+    if let (Some(path), Some(summary)) = (&args.executor_summary, executor_summary.as_ref()) {
+        write_executor_summary(path, summary)?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
@@ -335,9 +337,13 @@ fn dedupe_commands(commands: Vec<ProofPlanCommand>) -> Vec<ProofPlanCommand> {
     commands
 }
 
-fn write_markdown_summary(path: &Path, report: &ProofPlanReport) -> Result<()> {
+fn write_markdown_summary(
+    path: &Path,
+    report: &ProofPlanReport,
+    executor_summary: Option<&ProofExecutorSummary>,
+) -> Result<()> {
     ensure_parent_dir(path)?;
-    fs::write(path, render_markdown_summary(report))?;
+    fs::write(path, render_markdown_summary(report, executor_summary))?;
     Ok(())
 }
 
@@ -350,17 +356,9 @@ fn write_evidence_json(path: &Path, report: &ProofPlanReport) -> Result<()> {
     Ok(())
 }
 
-fn write_executor_summary(
-    path: &Path,
-    report: &ProofPlanReport,
-    mode: ProofExecutorMode,
-    execution_guard: ProofExecutorExecutionGuard,
-) -> Result<()> {
+fn write_executor_summary(path: &Path, summary: &ProofExecutorSummary) -> Result<()> {
     ensure_parent_dir(path)?;
-    fs::write(
-        path,
-        serde_json::to_string_pretty(&proof_executor_summary(report, mode, execution_guard))?,
-    )?;
+    fs::write(path, serde_json::to_string_pretty(summary)?)?;
     Ok(())
 }
 
@@ -604,7 +602,10 @@ fn executor_skip_reason(mode: ProofExecutorMode) -> &'static str {
     }
 }
 
-fn render_markdown_summary(report: &ProofPlanReport) -> String {
+fn render_markdown_summary(
+    report: &ProofPlanReport,
+    executor_summary: Option<&ProofExecutorSummary>,
+) -> String {
     let mut out = String::new();
 
     out.push_str("## Proof Plan Summary\n\n");
@@ -662,6 +663,45 @@ fn render_markdown_summary(report: &ProofPlanReport) -> String {
         for file in &report.unknown_files {
             out.push_str(&format!("- `{}`\n", escape_md(file)));
         }
+    }
+
+    if let Some(summary) = executor_summary {
+        out.push_str("\n### Executor Guard\n\n");
+        out.push_str("| Field | Value |\n");
+        out.push_str("| --- | --- |\n");
+        out.push_str(&format!("| Mode | `{}` |\n", escape_md(&summary.mode)));
+        out.push_str(&format!(
+            "| Execution status | `{}` |\n",
+            escape_md(&summary.execution_status)
+        ));
+        out.push_str(&format!(
+            "| Guard required | `{}` |\n",
+            summary.execution_guard.required
+        ));
+        out.push_str(&format!(
+            "| Guard enabled | `{}` |\n",
+            summary.execution_guard.enabled
+        ));
+        out.push_str(&format!("| CI | `{}` |\n", summary.execution_guard.ci));
+        out.push_str(&format!(
+            "| CI opt-in flag | `{}` |\n",
+            summary.execution_guard.allow_ci_evidence_execution
+        ));
+        out.push_str(&format!(
+            "| Reason | `{}` |\n",
+            escape_md(&summary.execution_guard.reason)
+        ));
+        out.push_str(&format!(
+            "| Selected commands | {} |\n",
+            summary.counts.selected
+        ));
+        out.push_str(&format!(
+            "| Executed commands | {} |\n",
+            summary.counts.executed
+        ));
+        out.push_str(
+            "\nPlanner-selected evidence commands remain informational until executor execution is implemented and intentionally enabled.\n",
+        );
     }
 
     out
@@ -907,13 +947,47 @@ coverage = "cargo-llvm-cov"
             unknown_files: Vec::new(),
         };
 
-        let summary = render_markdown_summary(&report);
+        let summary = render_markdown_summary(&report, None);
 
         assert!(summary.contains("Required commands are the current proof selection"));
         assert!(summary.contains("| `proof` | `true` | 1 |"));
         assert!(summary.contains("| `coverage` | `false` | 1 |"));
         assert!(summary.contains("| `mutation` | `false` | 1 |"));
         assert!(summary.contains("cargo mutants --file crates/tokmd-core/src/ffi.rs"));
+    }
+
+    #[test]
+    fn markdown_summary_surfaces_executor_guard_when_available() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![ProofPlanCommand {
+                scope: "tokmd_core_ffi".to_string(),
+                kind: "coverage".to_string(),
+                required: false,
+                command: "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov".to_string(),
+            }],
+            unknown_files: Vec::new(),
+        };
+        let executor_summary = proof_executor_summary(
+            &report,
+            ProofExecutorMode::DryRun,
+            proof_executor_execution_guard_for(true, false),
+        );
+
+        let summary = render_markdown_summary(&report, Some(&executor_summary));
+
+        assert!(summary.contains("### Executor Guard"));
+        assert!(summary.contains("| Mode | `dry_run` |"));
+        assert!(summary.contains("| Guard enabled | `false` |"));
+        assert!(summary.contains("| CI | `true` |"));
+        assert!(summary.contains("ci_requires_--allow-ci-evidence-execution"));
+        assert!(summary.contains("| Selected commands | 1 |"));
+        assert!(summary.contains("| Executed commands | 0 |"));
     }
 
     #[test]
