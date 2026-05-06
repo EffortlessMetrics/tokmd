@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-format --lib", "status": "success", "output": "test result: ok. 138 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s"}
+{"command": "cargo test -p tokmd-types", "status": "success", "output": "test result: ok. 62 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"}

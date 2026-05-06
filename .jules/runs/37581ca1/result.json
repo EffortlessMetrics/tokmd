@@ -1,0 +1,7 @@
+{
+  "summary": "Fixed redaction correctness by properly sorting the SAFE_PATH_EXTENSIONS array and adding tests to prevent regression.",
+  "files_changed": [
+    "crates/tokmd-format/src/redact/mod.rs"
+  ],
+  "outcome": "PR-ready patch"
+}
