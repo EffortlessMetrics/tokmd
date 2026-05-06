@@ -78,17 +78,6 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
         );
     }
 
-    let guard_enabled = expect_bool(
-        field(summary, "execution_guard.enabled", "executor summary")?,
-        "execution_guard.enabled",
-        "executor summary",
-    )?;
-    if guard_enabled {
-        bail!(
-            "executor artifacts have execution_guard.enabled=true; no-execution verifier requires a blocked guard"
-        );
-    }
-
     let summary_selected = expect_usize(
         field(summary, "counts.selected", "executor summary")?,
         "counts.selected",
@@ -335,16 +324,44 @@ mod tests {
     }
 
     #[test]
-    fn rejects_enabled_execution_guard() {
+    fn accepts_enabled_execution_guard_when_no_commands_executed() {
         let (mut summary, mut manifest) = matching_artifacts();
         summary["execution_guard"]["enabled"] = json!(true);
         manifest["execution_guard"]["enabled"] = json!(true);
+        summary["execution_guard"]["ci"] = json!(true);
+        manifest["execution_guard"]["ci"] = json!(true);
+        summary["execution_guard"]["allow_ci_evidence_execution"] = json!(true);
+        manifest["execution_guard"]["allow_ci_evidence_execution"] = json!(true);
+        summary["execution_guard"]["reason"] = json!("ci_explicit_opt_in_enabled");
+        manifest["execution_guard"]["reason"] = json!("ci_explicit_opt_in_enabled");
+
+        let report = validate_executor_artifacts(&summary, &manifest).unwrap();
+
+        assert_eq!(
+            report,
+            ProofArtifactsReport {
+                selected: 1,
+                execution_status: "dry_run".to_string(),
+                guard_reason: "ci_explicit_opt_in_enabled".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_executed_artifacts_even_when_guard_enabled() {
+        let (mut summary, mut manifest) = matching_artifacts();
+        summary["execution_status"] = json!("executed");
+        manifest["execution_status"] = json!("executed");
+        summary["execution_guard"]["enabled"] = json!(true);
+        manifest["execution_guard"]["enabled"] = json!(true);
+        summary["counts"]["executed"] = json!(1);
+        manifest["selection"]["executed"] = json!(1);
 
         let error = validate_executor_artifacts(&summary, &manifest)
             .unwrap_err()
             .to_string();
 
-        assert!(error.contains("execution_guard.enabled=true"));
+        assert!(error.contains("executed commands"));
     }
 
     fn matching_artifacts() -> (Value, Value) {
