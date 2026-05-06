@@ -26,7 +26,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 ## Checkpoints
 
 - Dependency-boundary checks now read `ci/proof.toml` while preserving the existing sorted `tokmd-analysis*` manifest scan and `dependencies` / `dev-dependencies` / `build-dependencies` coverage.
-- Next proof-policy operational slice: move `fixture-blobs-check` extensions, markers, and allowlists into `ci/proof.toml`.
+- Fixture-blob checks now read `ci/proof.toml` while preserving the existing crypto extension and marker detection plus the `.claude`, `.jules`, `vendor`, proof-policy source, and checker-source allowlist behavior.
+- Next proof-policy operational slice: add `cargo xtask affected --base origin/main --head HEAD --json` for changed-file to proof-scope discovery.
 
 ## References
 

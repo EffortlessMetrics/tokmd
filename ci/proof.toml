@@ -49,3 +49,34 @@ name = "retired_tokmd_config_must_not_return"
 packages = ["*"]
 forbid = ["tokmd-config"]
 reason = "tokmd-config is retired; ownership lives in tokmd-settings, tokmd-core, and tokmd."
+
+[[forbid.fixture_blob]]
+name = "committed_crypto_fixture_blobs"
+extensions = [
+  "cer",
+  "crt",
+  "der",
+  "jwk",
+  "jwks",
+  "key",
+  "p12",
+  "p8",
+  "pem",
+  "pfx",
+  "pk8",
+]
+markers = [
+  "BEGIN CERTIFICATE",
+  "BEGIN EC PRIVATE KEY",
+  "BEGIN OPENSSH PRIVATE KEY",
+  "BEGIN PRIVATE KEY",
+  "BEGIN RSA PRIVATE KEY",
+]
+allow = [
+  ".claude/**",
+  ".jules/**",
+  "ci/proof.toml",
+  "vendor/**",
+  "xtask/src/tasks/fixture_blobs_check.rs",
+]
+reason = "Crypto material should be generated at runtime or explicitly documented in an allowlisted workspace area."

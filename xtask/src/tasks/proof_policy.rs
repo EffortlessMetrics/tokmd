@@ -12,6 +12,7 @@ struct ProofPolicyReport {
     schema: String,
     scope_count: usize,
     allowlist_count: usize,
+    fixture_blob_rule_count: usize,
     dependency_boundary_count: usize,
     violations: Vec<PolicyViolation>,
 }
@@ -27,6 +28,7 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
         schema: policy.schema.clone(),
         scope_count: policy.scope.len(),
         allowlist_count: policy.allow.workspace_area.len(),
+        fixture_blob_rule_count: policy.forbid.fixture_blob.len(),
         dependency_boundary_count: policy.dependency_boundary.len(),
         violations,
     };
@@ -50,11 +52,12 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
 fn print_human_report(report: &ProofPolicyReport) {
     if report.ok {
         println!(
-            "Proof policy OK: {} (schema {}, {} scope(s), {} allowlist(s), {} dependency boundary rule(s))",
+            "Proof policy OK: {} (schema {}, {} scope(s), {} allowlist(s), {} fixture blob rule(s), {} dependency boundary rule(s))",
             report.policy,
             report.schema,
             report.scope_count,
             report.allowlist_count,
+            report.fixture_blob_rule_count,
             report.dependency_boundary_count
         );
         return;

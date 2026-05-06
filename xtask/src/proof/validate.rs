@@ -1,5 +1,6 @@
 use super::policy_ast::{
-    EXPECTED_SCHEMA, ProofPolicy, RETIRED_TOKMD_CONFIG, ScopeKind, WorkspaceAreaAllow,
+    EXPECTED_SCHEMA, FixtureBlobRule, ProofPolicy, RETIRED_TOKMD_CONFIG, ScopeKind,
+    WorkspaceAreaAllow,
 };
 use globset::Glob;
 use serde::Serialize;
@@ -32,6 +33,7 @@ pub fn validate_policy(policy: &ProofPolicy) -> Vec<PolicyViolation> {
 
     validate_scopes(policy, &mut violations);
     validate_workspace_allowlists(&policy.allow.workspace_area, &mut violations);
+    validate_fixture_blob_rules(&policy.forbid.fixture_blob, &mut violations);
     validate_dependency_boundaries(policy, &mut violations);
 
     violations
@@ -151,6 +153,66 @@ fn validate_workspace_allowlists(
                 ));
             }
         }
+    }
+}
+
+fn validate_fixture_blob_rules(rules: &[FixtureBlobRule], violations: &mut Vec<PolicyViolation>) {
+    let mut names = BTreeSet::new();
+
+    for (index, rule) in rules.iter().enumerate() {
+        let base = format!("forbid.fixture_blob[{index}]");
+
+        if rule.name.trim().is_empty() {
+            violations.push(PolicyViolation::new(
+                format!("{base}.name"),
+                "fixture blob rule name must not be empty",
+            ));
+        } else if !names.insert(rule.name.as_str()) {
+            violations.push(PolicyViolation::new(
+                format!("{base}.name"),
+                format!("duplicate fixture blob rule name `{}`", rule.name),
+            ));
+        }
+
+        if rule.reason.trim().is_empty() {
+            violations.push(PolicyViolation::new(
+                format!("{base}.reason"),
+                "fixture blob rules must include a reason",
+            ));
+        }
+
+        if rule.extensions.is_empty() && rule.markers.is_empty() {
+            violations.push(PolicyViolation::new(
+                base.clone(),
+                "fixture blob rules must forbid at least one extension or marker",
+            ));
+        }
+
+        for (extension_index, extension) in rule.extensions.iter().enumerate() {
+            let trimmed = extension.trim();
+            if trimmed.is_empty() {
+                violations.push(PolicyViolation::new(
+                    format!("{base}.extensions[{extension_index}]"),
+                    "forbidden fixture blob extensions must not be empty",
+                ));
+            } else if trimmed.starts_with('.') {
+                violations.push(PolicyViolation::new(
+                    format!("{base}.extensions[{extension_index}]"),
+                    "forbidden fixture blob extensions should omit the leading dot",
+                ));
+            }
+        }
+
+        for (marker_index, marker) in rule.markers.iter().enumerate() {
+            if marker.trim().is_empty() {
+                violations.push(PolicyViolation::new(
+                    format!("{base}.markers[{marker_index}]"),
+                    "forbidden fixture blob markers must not be empty",
+                ));
+            }
+        }
+
+        validate_glob_list(&format!("{base}.allow"), &rule.allow, false, violations);
     }
 }
 
@@ -381,6 +443,58 @@ reason = " "
                     .message
                     .contains("allowlist entries must include a reason")
         }));
+    }
+
+    #[test]
+    fn rejects_fixture_blob_rule_without_reason() {
+        let policy = parse_policy_str(&policy_with(
+            r#"
+[[forbid.fixture_blob]]
+name = "crypto"
+extensions = ["pem"]
+reason = " "
+"#,
+        ))
+        .expect("policy should parse");
+
+        let violations = validate_policy(&policy);
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "forbid.fixture_blob[0].reason"
+                && violation
+                    .message
+                    .contains("fixture blob rules must include a reason")
+        }));
+    }
+
+    #[test]
+    fn rejects_fixture_blob_rule_without_forbidden_patterns() {
+        let messages = messages_for(&policy_with(
+            r#"
+[[forbid.fixture_blob]]
+name = "crypto"
+reason = "Crypto material is forbidden."
+"#,
+        ));
+
+        assert!(messages.iter().any(|msg| {
+            msg.contains("fixture blob rules must forbid at least one extension or marker")
+        }));
+    }
+
+    #[test]
+    fn rejects_fixture_blob_allow_invalid_globs() {
+        let messages = messages_for(&policy_with(
+            r#"
+[[forbid.fixture_blob]]
+name = "crypto"
+extensions = ["pem"]
+allow = ["["]
+reason = "Crypto material is forbidden."
+"#,
+        ));
+
+        assert!(messages.iter().any(|msg| msg.contains("invalid glob")));
     }
 
     #[test]

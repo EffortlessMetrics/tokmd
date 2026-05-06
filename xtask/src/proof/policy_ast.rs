@@ -21,6 +21,9 @@ pub struct ProofPolicy {
     pub allow: Allow,
 
     #[serde(default)]
+    pub forbid: Forbid,
+
+    #[serde(default)]
     pub dependency_boundary: Vec<DependencyBoundary>,
 }
 
@@ -91,6 +94,30 @@ pub struct WorkspaceAreaAllow {
 
     #[serde(default)]
     pub discourage: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Forbid {
+    #[serde(default)]
+    pub fixture_blob: Vec<FixtureBlobRule>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FixtureBlobRule {
+    pub name: String,
+
+    #[serde(default)]
+    pub extensions: Vec<String>,
+
+    #[serde(default)]
+    pub markers: Vec<String>,
+
+    #[serde(default)]
+    pub allow: Vec<String>,
+
+    pub reason: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
