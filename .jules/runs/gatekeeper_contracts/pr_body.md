@@ -1,61 +1,40 @@
 ## 💡 Summary
-Added baseline schema tests to prevent version drift. The `BASELINE_VERSION` constant was defined in `crates/tokmd-analysis-types/src/lib.rs`, `docs/SCHEMA.md`, and `docs/baseline.schema.json`, but no automated gate ensured they stayed perfectly synchronized.
+This is a **learning PR**. The intended work to add baseline schema sync tests was superseded by #1604, which already merged those checks on main.
 
 ## 🎯 Why
-Schema or contract definitions can easily drift when versions are manually bumped in some places but forgotten in others. As a Gatekeeper, implementing automated enforcement across these truth sources prevents inconsistencies and ensures deterministic outputs remain sound across code and docs.
+When an agent attempts a fix that is no longer necessary due to a parallel merge, forcing a fake change violates core directives. The appropriate response is to abort the code change, document the collision, and exit gracefully with a learning PR.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis-types/src/lib.rs` defines `pub const BASELINE_VERSION: u32 = 1;`
-- `docs/SCHEMA.md` documents `BASELINE_VERSION`
-- `docs/baseline.schema.json` requires `baseline_version: 1`
-- `cargo test -p xtask` passed with the newly added tests guarding these relationships.
+- PR comment explicitly states: "Superseded by #1604, which merged the aligned BASELINE_VERSION docs and baseline.schema.json drift checks on current main."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add verification steps to `xtask/tests/docs_w43.rs` and `xtask/tests/docs_schema_w72.rs` to validate `BASELINE_VERSION` sync between source, documentation, and the JSON schema.
-- This perfectly matches the Gatekeeper role by adding missing schema invariants without excessive abstractions.
-- Trade-offs: Minor execution overhead in tests, high confidence in version alignment.
+- Abandon the redundant test implementation.
+- Generate a learning PR and record a friction item documenting the supersession.
+- This adheres strictly to the rule: "If an intended patch is found to be superseded by another merged PR during execution, gracefully abort the redundant fix and create a 'learning PR'."
+- Trade-offs: Zero code impact; maximizes system learning.
 
 ### Option B
-- Add a dedicated integration test binary specifically for `baseline.schema.json`.
-- When to choose it instead: If the JSON schema validation is extremely expensive or requires massive fixtures.
-- Trade-offs: Increases integration test scaffolding overhead when it's much simpler to bolt on to the existing robust `xtask` docs testing suite.
+- Force a trivial code refactor (like rewriting an existing test).
+- This violates the "output honesty" rule and "no tool cargo-culting" constraints. It provides no real value and creates unnecessary churn.
 
 ## ✅ Decision
-Chose Option A to centralize doc and schema assertions inside the existing xtask tests designed for this exact purpose.
+Choosing Option A to gracefully back out of the redundant work and record the friction item.
 
 ## 🧱 Changes made (SRP)
-- `xtask/tests/docs_w43.rs`: Added `schema_md_baseline_version_matches_source`.
-- `xtask/tests/docs_schema_w72.rs`: Added `schema_md_baseline_version_matches_source` and `baseline_schema_json_version_matches_source`.
+- `.jules/friction/open/redundant-baseline-sync-pr.md`
 
 ## 🧪 Verification receipts
 ```text
-running 28 tests
-test changelog_follows_keepachangelog ... ok
-test changelog_mentions_latest_version ... ok
-test changelog_has_unreleased_section ... ok
-test reference_cli_commands_section_exists ... ok
-test baseline_schema_json_version_matches_source ... ok
-...
-test schema_md_baseline_version_matches_source ... ok
-...
-test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
-
-running 15 tests
-test baseline_schema_json_is_valid ... ok
-test docs_all_md_files_are_nonempty ... ok
-...
-test schema_md_baseline_version_matches_source ... ok
-...
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+n/a (Learning PR)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test enhancement
-- Blast radius: Restricted strictly to test scaffolding; no runtime logic affected.
-- Risk class + why: Low risk. Failing test on drift provides immediate feedback before merge.
-- Rollback: Revert the added test functions.
-- Gates run: `cargo test -p xtask` (verified sync logic passes on valid inputs).
+- Change shape: Learning PR
+- Blast radius: `.jules` artifacts only
+- Risk class + why: Zero risk. No codebase logic or schemas were modified.
+- Rollback: rm `.jules/friction/open/redundant-baseline-sync-pr.md`
+- Gates run: None required for learning PR artifacts.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -63,6 +42,7 @@ test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/gatekeeper_contracts/receipts.jsonl`
 - `.jules/runs/gatekeeper_contracts/result.json`
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
+- `.jules/friction/open/redundant-baseline-sync-pr.md`
 
 ## 🔜 Follow-ups
-None identified.
+None.

@@ -275,20 +275,6 @@ fn schema_md_handoff_version_matches_source() {
     );
 }
 
-#[test]
-fn schema_md_baseline_version_matches_source() {
-    let source_version =
-        read_schema_constant("crates/tokmd-analysis-types/src/lib.rs", "BASELINE_VERSION")
-            .expect("BASELINE_VERSION not found in source");
-    let schema_md = std::fs::read_to_string(workspace_root().join("docs/SCHEMA.md")).unwrap();
-    let doc_version = extract_schema_md_version(&schema_md, "`BASELINE_VERSION`")
-        .expect("BASELINE_VERSION not found in SCHEMA.md");
-    assert_eq!(
-        source_version, doc_version,
-        "BASELINE_VERSION mismatch: source={source_version}, SCHEMA.md={doc_version}"
-    );
-}
-
 // ── Reference-CLI doc markers ───────────────────────────────────────────
 
 #[test]
