@@ -1,48 +1,65 @@
 ## 💡 Summary
-Regenerated the `.jules/index/generated/RUNS_ROLLUP.md` generated index to summarize per-run packets from recently completed and active live runs in `.jules/runs/`.
+Removed duplicated instructions regarding the `notes/` directory from 16 different persona README files. These identical rules were consolidated into the shared `.jules/README.md` to reduce duplication, while preserving any prompt-critical instructions that are specific to a persona.
 
 ## 🎯 Why
-The Archivist persona is responsible for consolidating run packets, friction, learnings, and shared scaffolding. Specifically, target #2 states: "summarize per-run packets into generated indexes/rollups". Because `build_index.py` had not been run since recent live tasks were recorded or progressed, the `RUNS_ROLLUP.md` markdown was out of sync with the actual truth on disk. Running the script consolidates this state for reviewer visibility.
+Target #4 for the Archivist persona is to "move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files." The 16 persona README files had exact duplicated rules instructing the agent to use `notes/` for reusable learnings. Centralizing this rule removes boilerplate and consolidates shared policy where it belongs.
 
 ## 🔎 Evidence
-- file path: `.jules/index/generated/RUNS_ROLLUP.md`
-- finding: Missing runs and outdated status/gates_run for active tasks.
-- command: `python3 .jules/bin/build_index.py` updated the index, specifically adding the `37581ca1` run and updating the status and gates of the `archivist_jules` run itself.
+- file paths: `.jules/personas/*/README.md` and `.jules/README.md`
+- command: `grep -rn "Use this persona's \`notes/\` directory" .jules/personas/` returned 16 matches before the change, and 0 matches after the change.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Run `build_index.py` to regenerate the rollups to capture the current state of `.jules/runs/` and `.jules/friction/`.
-- why it fits this repo and shard: The `workspace-wide` shard expects meta/structural alignment. This precisely fulfills target #2 of the Archivist persona.
-- trade-offs: Structure: High (aligns indexes with source data). Velocity: Fast (reusing existing script). Governance: Ensures future reviewers have accurate run history.
+- what it is: Consolidate the duplicated `notes/` directory rule from the persona READMEs into a single shared rule in `.jules/README.md`, retaining prompt-critical lines.
+- why it fits this repo and shard: It directly addresses the Archivist target #4 and fits the `workspace-wide` shard mandate for meta/structural improvements.
+- trade-offs: Structure: High, removes 32 lines of duplicated boilerplate. Velocity: High, future personas don't need this boilerplate. Governance: High, policy updates happen in one place.
 
 ### Option B
-- what it is: Do nothing and leave the newly created run packets un-indexed.
-- when to choose it instead: If index regeneration were fully automated on every commit and didn't need manual triggering.
-- trade-offs: Fragmented state, degrades future reviewer visibility.
+- what it is: Add a new document like `.jules/policy/notes.md` explaining how to use `notes/` but keep the duplicated text in the READMEs.
+- when to choose it instead: If the shared docs were getting too large or if the duplicated text was fundamentally different per persona.
+- trade-offs: Increases documentation fragmentation and requires maintaining two sources of truth.
 
 ## ✅ Decision
-Option A was chosen. It directly satisfies the Archivist target #2 to "summarize per-run packets into generated indexes/rollups" and accurately reflects the state of active runs in the repo.
+Option A was chosen because it directly fulfills the Archivist persona's mission to move neutral shared conventions into shared guidance while reducing duplication across 16 files.
 
 ## 🧱 Changes made (SRP)
-- `.jules/index/generated/RUNS_ROLLUP.md`: Regenerated the markdown rollup to match `.jules/runs/`.
-- `.jules/runs/archivist_jules/decision.md`: Documented the reasoning.
-- `.jules/runs/archivist_jules/receipts.jsonl`: Logged execution receipts.
-- `.jules/runs/archivist_jules/result.json`: Marked the run as completed.
+- Modified `.jules/README.md` to include the shared rule about the `notes/` directory.
+- Modified `.jules/personas/archivist/README.md` to remove the duplicated lines but keep its prompt-critical line.
+- Modified `.jules/personas/auditor/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/bolt/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/bridge/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/cartographer/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/compat/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/fuzzer/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/gatekeeper/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/invariant/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/librarian/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/mutant/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/palette/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/sentinel/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/specsmith/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/steward/README.md` to remove the duplicated lines.
+- Modified `.jules/personas/surveyor/README.md` to remove the duplicated lines.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --check
-Documentation is up to date.
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s
-    Running `target/debug/xtask docs --check`
+$ grep -rn "Use this persona's \`notes/\` directory" .jules/personas/
+<no output>
+
+$ cat .jules/README.md | grep -A 5 "Agents may write"
+### Agents may write
+- unique per-run packet files
+- friction items under `.jules/friction/open/`
+- persona-local notes under `.jules/personas/<persona>/notes/`
+  *(Use this directory only for **reusable learnings** that later runs can benefit from. Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.)*
 ```
 
 ## 🧭 Telemetry
-- Change shape: Patch (generated code)
-- Blast radius: Jules documentation index
+- Change shape: Documentation refactoring
+- Blast radius: Jules documentation only (no code or runtime changes)
 - Risk class: Low
-- Rollback: `git restore .jules/index/generated/RUNS_ROLLUP.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo test -p xtask`
+- Rollback: `git restore .jules/README.md .jules/personas/*/README.md`
+- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/archivist_jules/envelope.json`
