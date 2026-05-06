@@ -27,7 +27,7 @@ jobs:
       - name: Set up Rust (MSRV)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.92
+          toolchain: 1.93
       - uses: Swatinem/rust-cache@v2
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
@@ -149,6 +149,9 @@ jobs:
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
       - uses: Swatinem/rust-cache@v2
+
+      - name: Run lint policy gate
+        run: cargo xtask check-lint-policy
 
       - name: Run quality gate
         run: cargo xtask gate --check
