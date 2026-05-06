@@ -11,4 +11,4 @@
 - trade-offs: Complex and unidiomatic.
 
 ## Decision
-Choosing Option A because it is straightforward, achieves exactly what is requested by eliminating unnecessary allocations in an intermediate buffer, and preserves output determinism entirely.
+Choosing Option A initially. However, the PR was superseded by #1608 which folded this fix. Therefore, following memory guidelines for superseded PRs, we abort the code patch and record this as a learning PR instead.
