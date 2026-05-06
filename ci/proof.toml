@@ -11,6 +11,34 @@ coverage = "cargo-llvm-cov"
 javascript = "npm"
 
 [[scope]]
+name = "proof_control_plane"
+kind = "rust"
+paths = [
+  "ci/proof.toml",
+  "docs/NEXT.md",
+  "xtask/src/cli.rs",
+  "xtask/src/main.rs",
+  "xtask/src/proof/**",
+  "xtask/src/tasks/mod.rs",
+  "xtask/src/tasks/affected.rs",
+  "xtask/src/tasks/boundaries_check.rs",
+  "xtask/src/tasks/fixture_blobs_check.rs",
+  "xtask/src/tasks/proof_policy.rs",
+  "xtask/tests/affected_w91.rs",
+  "xtask/tests/fixture_blobs_w83.rs",
+  "xtask/tests/proof_policy_w90.rs",
+]
+packages = ["xtask"]
+proof = [
+  "cargo xtask proof-policy --check",
+  "cargo test -p xtask proof_policy --verbose",
+  "cargo test -p xtask affected --verbose",
+  "cargo test -p xtask fixture_blob --verbose",
+]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "tokmd_core_ffi"
 kind = "rust"
 paths = ["crates/tokmd-core/src/ffi.rs", "crates/tokmd-core/tests/**"]

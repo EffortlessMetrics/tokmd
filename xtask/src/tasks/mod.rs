@@ -1,3 +1,4 @@
+pub mod affected;
 pub mod boundaries_check;
 pub mod build_guard;
 pub mod bump;

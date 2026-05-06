@@ -22,6 +22,8 @@ pub enum Commands {
     Docs(DocsArgs),
     /// Validate the Rust-native proof policy
     ProofPolicy(ProofPolicyArgs),
+    /// Discover proof scopes affected by a git diff
+    Affected(AffectedArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -63,6 +65,25 @@ pub struct ProofPolicyArgs {
     pub json: bool,
 
     /// Policy file to validate
+    #[arg(long, default_value = "ci/proof.toml")]
+    pub policy: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct AffectedArgs {
+    /// Base git revision for changed-file discovery
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for changed-file discovery
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Emit a machine-readable affected-scope report
+    #[arg(long)]
+    pub json: bool,
+
+    /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
 }
