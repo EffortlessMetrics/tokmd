@@ -8,8 +8,13 @@ fn workspace_root() -> PathBuf {
 }
 
 fn run_xtask(args: &[&str]) -> (String, String, bool) {
+    run_xtask_with_env(args, &[])
+}
+
+fn run_xtask_with_env(args: &[&str], envs: &[(&str, &str)]) -> (String, String, bool) {
     let root = workspace_root();
-    let output = Command::new("cargo")
+    let mut command = Command::new("cargo");
+    command
         .arg("run")
         .arg("-q")
         .arg("-p")
@@ -17,8 +22,12 @@ fn run_xtask(args: &[&str]) -> (String, String, bool) {
         .arg("--")
         .args(args)
         .current_dir(&root)
-        .output()
-        .expect("failed to run cargo xtask");
+        .env_remove("CI");
+    for (key, value) in envs {
+        command.env(key, value);
+    }
+
+    let output = command.output().expect("failed to run cargo xtask");
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
     (stdout, stderr, output.status.success())
@@ -35,6 +44,10 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-mode"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("--allow-ci-evidence-execution"),
+        "stdout: {stdout}"
+    );
 }
 
 #[test]
@@ -195,6 +208,17 @@ fn proof_plan_writes_executor_summary_artifact() {
     assert_eq!(summary["mode"], "prototype");
     assert_eq!(summary["status"], "prototype");
     assert_eq!(summary["execution_status"], "not_executed");
+    assert_eq!(summary["execution_guard"]["required"], true);
+    assert_eq!(summary["execution_guard"]["enabled"], false);
+    assert_eq!(summary["execution_guard"]["ci"], false);
+    assert_eq!(
+        summary["execution_guard"]["allow_ci_evidence_execution"],
+        false
+    );
+    assert_eq!(
+        summary["execution_guard"]["reason"],
+        "not_ci_and_no_--allow-ci-evidence-execution"
+    );
     assert_eq!(summary["family"], "coverage");
     assert_eq!(summary["required"], false);
     assert_eq!(summary["counts"]["selected"], 0);
@@ -235,10 +259,90 @@ fn proof_plan_writes_dry_run_executor_summary_artifact() {
     assert_eq!(summary["mode"], "dry_run");
     assert_eq!(summary["status"], "dry_run");
     assert_eq!(summary["execution_status"], "dry_run");
+    assert_eq!(summary["execution_guard"]["enabled"], false);
+    assert_eq!(
+        summary["execution_guard"]["allow_ci_evidence_execution"],
+        false
+    );
     assert_eq!(summary["family"], "coverage");
     assert_eq!(summary["counts"]["family_planned"], 1);
     assert_eq!(summary["counts"]["selected"], 0);
     assert_eq!(summary["counts"]["required_excluded"], 1);
     assert_eq!(summary["counts"]["executed"], 0);
     assert!(summary["entries"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn ci_executor_summary_requires_explicit_evidence_execution_opt_in() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let blocked_path = temp.path().join("blocked-executor-summary.json");
+    let blocked_arg = blocked_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask_with_env(
+        &[
+            "proof",
+            "--profile",
+            "affected",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--plan",
+            "--executor-summary",
+            &blocked_arg,
+        ],
+        &[("CI", "true")],
+    );
+
+    assert!(
+        success,
+        "CI proof executor summary failed. stderr: {stderr}"
+    );
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof --plan should still emit JSON");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let blocked = fs::read_to_string(blocked_path).expect("executor summary should be written");
+    let blocked: serde_json::Value =
+        serde_json::from_str(&blocked).expect("executor summary should be valid JSON");
+    assert_eq!(blocked["execution_guard"]["ci"], true);
+    assert_eq!(blocked["execution_guard"]["enabled"], false);
+    assert_eq!(
+        blocked["execution_guard"]["reason"],
+        "ci_requires_--allow-ci-evidence-execution"
+    );
+    assert_eq!(blocked["counts"]["executed"], 0);
+
+    let enabled_path = temp.path().join("enabled-executor-summary.json");
+    let enabled_arg = enabled_path.to_string_lossy().to_string();
+    let (_stdout, stderr, success) = run_xtask_with_env(
+        &[
+            "proof",
+            "--profile",
+            "affected",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--plan",
+            "--executor-summary",
+            &enabled_arg,
+            "--allow-ci-evidence-execution",
+        ],
+        &[("CI", "true")],
+    );
+
+    assert!(
+        success,
+        "CI proof executor summary with opt-in failed. stderr: {stderr}"
+    );
+    let enabled = fs::read_to_string(enabled_path).expect("executor summary should be written");
+    let enabled: serde_json::Value =
+        serde_json::from_str(&enabled).expect("executor summary should be valid JSON");
+    assert_eq!(enabled["execution_guard"]["ci"], true);
+    assert_eq!(enabled["execution_guard"]["enabled"], true);
+    assert_eq!(
+        enabled["execution_guard"]["reason"],
+        "ci_explicit_opt_in_enabled"
+    );
+    assert_eq!(enabled["counts"]["executed"], 0);
 }

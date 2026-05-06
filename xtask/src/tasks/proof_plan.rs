@@ -10,6 +10,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
+const CI_ENV_VAR: &str = "CI";
+
 #[derive(Debug, Serialize)]
 struct ProofPlanReport {
     schema: String,
@@ -76,6 +78,7 @@ struct ProofExecutorSummary {
     mode: String,
     status: String,
     execution_status: String,
+    execution_guard: ProofExecutorExecutionGuard,
     family: String,
     required: bool,
     profile: String,
@@ -112,6 +115,15 @@ struct ProofExecutorEntry {
     skip_reason: String,
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct ProofExecutorExecutionGuard {
+    required: bool,
+    enabled: bool,
+    ci: bool,
+    allow_ci_evidence_execution: bool,
+    reason: String,
+}
+
 pub fn run(args: ProofArgs) -> Result<()> {
     if !args.plan {
         bail!("proof execution is not implemented yet; pass --plan to print the proof plan");
@@ -126,7 +138,12 @@ pub fn run(args: ProofArgs) -> Result<()> {
         write_evidence_json(path, &report)?;
     }
     if let Some(path) = &args.executor_summary {
-        write_executor_summary(path, &report, args.executor_mode)?;
+        write_executor_summary(
+            path,
+            &report,
+            args.executor_mode,
+            proof_executor_execution_guard(args.allow_ci_evidence_execution),
+        )?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
@@ -337,11 +354,12 @@ fn write_executor_summary(
     path: &Path,
     report: &ProofPlanReport,
     mode: ProofExecutorMode,
+    execution_guard: ProofExecutorExecutionGuard,
 ) -> Result<()> {
     ensure_parent_dir(path)?;
     fs::write(
         path,
-        serde_json::to_string_pretty(&proof_executor_summary(report, mode))?,
+        serde_json::to_string_pretty(&proof_executor_summary(report, mode, execution_guard))?,
     )?;
     Ok(())
 }
@@ -435,6 +453,7 @@ fn is_evidence_kind(kind: &str) -> bool {
 fn proof_executor_summary(
     report: &ProofPlanReport,
     mode: ProofExecutorMode,
+    execution_guard: ProofExecutorExecutionGuard,
 ) -> ProofExecutorSummary {
     let family = "coverage";
     let family_commands = report
@@ -471,6 +490,7 @@ fn proof_executor_summary(
         mode: executor_mode_name(mode).to_string(),
         status: executor_status(mode).to_string(),
         execution_status: executor_execution_status(mode).to_string(),
+        execution_guard,
         family: family.to_string(),
         required: false,
         profile: report.profile.clone(),
@@ -491,6 +511,39 @@ fn proof_executor_summary(
         },
         entries,
         unknown_files: report.unknown_files.clone(),
+    }
+}
+
+fn proof_executor_execution_guard(
+    allow_ci_evidence_execution: bool,
+) -> ProofExecutorExecutionGuard {
+    proof_executor_execution_guard_for(ci_env_enabled(), allow_ci_evidence_execution)
+}
+
+fn ci_env_enabled() -> bool {
+    std::env::var(CI_ENV_VAR)
+        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
+fn proof_executor_execution_guard_for(
+    ci: bool,
+    allow_ci_evidence_execution: bool,
+) -> ProofExecutorExecutionGuard {
+    let enabled = ci && allow_ci_evidence_execution;
+    let reason = match (ci, allow_ci_evidence_execution) {
+        (true, true) => "ci_explicit_opt_in_enabled",
+        (true, false) => "ci_requires_--allow-ci-evidence-execution",
+        (false, true) => "not_ci_execution_context",
+        (false, false) => "not_ci_and_no_--allow-ci-evidence-execution",
+    };
+
+    ProofExecutorExecutionGuard {
+        required: true,
+        enabled,
+        ci,
+        allow_ci_evidence_execution,
+        reason: reason.to_string(),
     }
 }
 
@@ -710,8 +763,8 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 mod tests {
     use super::{
         ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
-        is_mutation_candidate, proof_evidence_plan, proof_executor_summary,
-        render_markdown_summary, static_profile_commands,
+        is_mutation_candidate, proof_evidence_plan, proof_executor_execution_guard_for,
+        proof_executor_summary, render_markdown_summary, static_profile_commands,
     };
     use crate::cli::{ProofExecutorMode, ProofProfile};
     use crate::proof::policy::parse_policy_str;
@@ -958,12 +1011,24 @@ coverage = "cargo-llvm-cov"
             unknown_files: Vec::new(),
         };
 
-        let summary = proof_executor_summary(&report, ProofExecutorMode::Prototype);
+        let summary = proof_executor_summary(
+            &report,
+            ProofExecutorMode::Prototype,
+            proof_executor_execution_guard_for(false, false),
+        );
 
         assert_eq!(summary.schema, "tokmd.proof_executor_summary.v1");
         assert_eq!(summary.mode, "prototype");
         assert_eq!(summary.status, "prototype");
         assert_eq!(summary.execution_status, "not_executed");
+        assert!(summary.execution_guard.required);
+        assert!(!summary.execution_guard.enabled);
+        assert!(!summary.execution_guard.ci);
+        assert!(!summary.execution_guard.allow_ci_evidence_execution);
+        assert_eq!(
+            summary.execution_guard.reason,
+            "not_ci_and_no_--allow-ci-evidence-execution"
+        );
         assert_eq!(summary.family, "coverage");
         assert!(!summary.required);
         assert_eq!(summary.counts.commands_total, 4);
@@ -1022,11 +1087,23 @@ coverage = "cargo-llvm-cov"
             unknown_files: Vec::new(),
         };
 
-        let summary = proof_executor_summary(&report, ProofExecutorMode::DryRun);
+        let summary = proof_executor_summary(
+            &report,
+            ProofExecutorMode::DryRun,
+            proof_executor_execution_guard_for(true, false),
+        );
 
         assert_eq!(summary.mode, "dry_run");
         assert_eq!(summary.status, "dry_run");
         assert_eq!(summary.execution_status, "dry_run");
+        assert!(summary.execution_guard.required);
+        assert!(!summary.execution_guard.enabled);
+        assert!(summary.execution_guard.ci);
+        assert!(!summary.execution_guard.allow_ci_evidence_execution);
+        assert_eq!(
+            summary.execution_guard.reason,
+            "ci_requires_--allow-ci-evidence-execution"
+        );
         assert_eq!(summary.counts.family_planned, 2);
         assert_eq!(summary.counts.selected, 1);
         assert_eq!(summary.counts.skipped, 0);
@@ -1037,6 +1114,32 @@ coverage = "cargo-llvm-cov"
         assert_eq!(summary.entries[0].status, "dry_run");
         assert_eq!(summary.entries[0].skip_reason, "dry_run_only");
         assert_eq!(summary.entries[0].scope, "tokmd_core_ffi");
+    }
+
+    #[test]
+    fn executor_execution_guard_requires_ci_and_explicit_flag() {
+        let local_default = proof_executor_execution_guard_for(false, false);
+        assert!(local_default.required);
+        assert!(!local_default.enabled);
+        assert_eq!(
+            local_default.reason,
+            "not_ci_and_no_--allow-ci-evidence-execution"
+        );
+
+        let ci_without_flag = proof_executor_execution_guard_for(true, false);
+        assert!(!ci_without_flag.enabled);
+        assert_eq!(
+            ci_without_flag.reason,
+            "ci_requires_--allow-ci-evidence-execution"
+        );
+
+        let local_with_flag = proof_executor_execution_guard_for(false, true);
+        assert!(!local_with_flag.enabled);
+        assert_eq!(local_with_flag.reason, "not_ci_execution_context");
+
+        let ci_with_flag = proof_executor_execution_guard_for(true, true);
+        assert!(ci_with_flag.enabled);
+        assert_eq!(ci_with_flag.reason, "ci_explicit_opt_in_enabled");
     }
 
     #[test]

@@ -129,6 +129,10 @@ pub struct ProofArgs {
     #[arg(long, value_enum, default_value_t = ProofExecutorMode::Prototype)]
     pub executor_mode: ProofExecutorMode,
 
+    /// Explicitly opt a CI invocation into future planner-selected evidence execution
+    #[arg(long)]
+    pub allow_ci_evidence_execution: bool,
+
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,

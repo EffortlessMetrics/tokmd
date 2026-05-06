@@ -38,7 +38,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof --plan --evidence-json <path>` now writes a machine-readable planned-evidence artifact for scoped coverage and mutation commands. The artifact records `planned` / `not_executed` status and zero executed counts so consumers do not confuse planned advisory evidence with passing evidence.
 - `cargo xtask proof --plan --executor-summary <path>` now writes an informational coverage-only executor summary prototype. It selects non-required coverage commands, records them as skipped with `tool_execution_not_enabled`, and does not invoke `cargo llvm-cov`.
 - `cargo xtask proof --plan --executor-summary <path> --executor-mode dry-run` now exercises the executor selection boundary for at most one non-required coverage command without invoking `cargo llvm-cov`.
-- Next proof-policy operational slice: add an explicit opt-in guard before any CI job is allowed to execute planner-selected evidence commands.
+- Executor summaries now include an `execution_guard` block. CI evidence execution remains disabled unless a future workflow explicitly passes `--allow-ci-evidence-execution`, and current executor modes still report zero executed commands.
+- Next proof-policy operational slice: surface executor guard status in the affected-plan summary before any CI job starts executing planner-selected evidence commands.
 
 ## References
 
