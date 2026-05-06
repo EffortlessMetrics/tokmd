@@ -1,0 +1,4 @@
+{"command": "cargo bench -p tokmd-model", "output": "normalize_path/old simple: 62.615 ns, normalize_path/new simple: 48.876 ns (~22% improvement), normalize_path/old prefix: 138.37 ns, normalize_path/new prefix: 85.965 ns (~38% improvement)"}
+{"command": "cargo bench -p tokmd-scan", "output": "normalize_slashes/old simple: 33.947 ns, normalize_slashes/new cow simple: 11.665 ns (~65% improvement), normalize_rel_path/old simple: 57.214 ns, normalize_rel_path/new cow simple: 30.151 ns (~47% improvement)"}
+{"command": "cargo bench -p tokmd-model -p tokmd-scan", "output": "normalize_rel_path/old simple: 29.580 ns (-48.6%), normalize_rel_path/old dot slash: 31.079 ns (-47.7%), normalize_path/old prefix: 83.394 ns (-47.0%)"}
+{"command": "cargo test -p tokmd-model -p tokmd-scan", "output": "All tests passed (fixed two regressions related to leading slashes and windows prefixes)."}

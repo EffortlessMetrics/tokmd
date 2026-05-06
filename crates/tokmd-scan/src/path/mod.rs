@@ -32,10 +32,14 @@ pub(crate) use validated_root::ValidatedRoot;
 /// ```
 #[must_use]
 pub fn normalize_slashes(path: &str) -> String {
+    normalize_slashes_cow(path).into_owned()
+}
+
+pub(crate) fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
     if path.contains('\\') {
-        path.replace('\\', "/")
+        std::borrow::Cow::Owned(path.replace('\\', "/"))
     } else {
-        path.to_string()
+        std::borrow::Cow::Borrowed(path)
     }
 }
 
@@ -66,8 +70,8 @@ pub fn normalize_slashes(path: &str) -> String {
 /// ```
 #[must_use]
 pub fn normalize_rel_path(path: &str) -> String {
-    let normalized = normalize_slashes(path);
-    let mut s = normalized.as_str();
+    let normalized = normalize_slashes_cow(path);
+    let mut s = normalized.as_ref();
     while let Some(rest) = s.strip_prefix("./") {
         s = rest;
     }

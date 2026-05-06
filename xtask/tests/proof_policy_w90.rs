@@ -45,7 +45,7 @@ fn proof_policy_check_accepts_repo_policy() {
 }
 
 #[test]
-fn proof_policy_includes_analysis_and_format_module_scopes() {
+fn proof_policy_includes_current_product_scopes() {
     let value = repo_policy();
     let scopes = value["scope"]
         .as_array()
@@ -63,6 +63,8 @@ fn proof_policy_includes_analysis_and_format_module_scopes() {
         "format_analysis_rendering",
         "format_core_outputs",
         "format_redaction_scan_args",
+        "jules_workspace",
+        "model_scan_path_normalization",
     ] {
         assert!(
             names.contains(expected),
@@ -107,7 +109,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 29);
+    assert_eq!(value["scope_count"], 31);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);

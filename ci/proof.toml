@@ -271,6 +271,24 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "model_scan_path_normalization"
+kind = "rust"
+paths = [
+  "crates/tokmd-model/src/lib.rs",
+  "crates/tokmd-model/src/module_key/**",
+  "crates/tokmd-model/tests/**",
+  "crates/tokmd-scan/src/path/**",
+  "crates/tokmd-scan/tests/**",
+]
+packages = ["tokmd-model", "tokmd-scan"]
+proof = [
+  "cargo test -p tokmd-model normalize --verbose",
+  "cargo test -p tokmd-scan normalize --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "format_analysis_rendering"
 kind = "rust"
 paths = [
@@ -429,6 +447,15 @@ packages = ["tokmd-wasm"]
 proof = ["cargo test -p tokmd-wasm --verbose"]
 mutation = true
 coverage = true
+
+[[scope]]
+name = "jules_workspace"
+kind = "non_rust"
+paths = [".jules/**"]
+proof = ["cargo xtask proof-policy --check"]
+reason = "Jules provenance, specs, investigations, friction notes, runbooks, ledgers, envelopes, and generated indexes are intentional repo knowledge artifacts."
+mutation = false
+coverage = false
 
 [[scope]]
 name = "browser_runner"

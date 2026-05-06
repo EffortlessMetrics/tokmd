@@ -47,6 +47,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof-artifacts-check` now verifies executor summary/manifest consistency without executing planned commands, including schema, guard, count, and command-entry drift checks.
 - The PR-only affected-plan CI artifact job now runs `cargo xtask proof-artifacts-check` after artifact generation, records its status, and uploads the verifier output while remaining informational.
 - The affected-plan CI job now fails on proof artifact verifier failure, while executor command execution remains disabled and existing proof commands remain separately authoritative.
+- The proof scope registry now classifies model/scan path-normalization changes and `.jules` provenance updates so generated knowledge artifacts and core path hot-path work do not appear as unknown files in affected plans.
 - Next proof-policy operational slice: decide whether affected/proof-plan generation failures should stay reported-only or become blocking after more soak time.
 
 ## References
