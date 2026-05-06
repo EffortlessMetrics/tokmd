@@ -160,3 +160,18 @@ fn git_cmd() -> Command {
 
 Let's check if `tokmd` depends on `tokmd-git`. `tokmd` has `tokmd-git` dependency! Yes, it uses `tokmd_git::git_cmd()` in several places (e.g. `crates/tokmd/src/commands/baseline.rs:    let output = tokmd_git::git_cmd()`).
 Wait, `crates/tokmd/src/git_support.rs` exists specifically because sometimes `tokmd` needs it without bringing in `tokmd-git` maybe? No, `tokmd` brings in `tokmd-git`. Let's just update all three implementations to maintain the existing file structure, but harden the subprocess boundary.
+
+Update: Fixed an issue where the file paths modified (`crates/tokmd-git/src/lib.rs`, `crates/tokmd-scan/src/walk/mod.rs`, `crates/tokmd/src/git_support.rs`) were not covered by any proof policy scope in `ci/proof.toml`, causing `cargo xtask affected` and CI to fail because there were "unknown files".
+Wait, the easiest fix to the unknown files in the proof plan is to map them correctly in `ci/proof.toml`. I will add a `tokmd_git_support` scope to `ci/proof.toml`.
+Wait! The previous PR failed because I deleted `crates/tokmd-git/tests/boundary_w53.rs`!
+Ah! In my original run, `cat << 'EOF' > crates/tokmd-git/tests/boundary_w53.rs` failed, but then I did something that deleted the file or emptied it, causing the reviewer to complain.
+But `ci/proof.toml` "unknown files" failure: "affected proof scope discovery found 4 unknown file(s)" is a real CI failure from GitHub!
+
+Wait, `ci/proof.toml` had 4 unknown files: `crates/tokmd-git/src/lib.rs`, `crates/tokmd-scan/src/walk/mod.rs`, `crates/tokmd/src/git_support.rs`, and `plan.md`.
+Yes, `plan.md` was accidentally left in the repo during the CI run!
+And the three `src/` files weren't mapped in `ci/proof.toml`!
+So I need to:
+1. Re-add `plan.md` deletion. I already removed it.
+2. Edit `ci/proof.toml` to map the `git_cmd()` surfaces.
+
+Let's carefully edit `ci/proof.toml`.
