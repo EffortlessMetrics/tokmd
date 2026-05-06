@@ -66,6 +66,7 @@ fn proof_policy_includes_current_product_scopes() {
         "jules_workspace",
         "model_scan_path_normalization",
         "no_panic_policy",
+        "workspace_dependency_graph",
     ] {
         assert!(
             names.contains(expected),
@@ -100,6 +101,29 @@ fn proof_policy_includes_current_product_scopes() {
 
     assert!(no_panic_proof.contains("cargo xtask check-no-panic-family"));
     assert!(no_panic_proof.contains("cargo test -p xtask no_panic --verbose"));
+
+    let dependency_graph = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("workspace_dependency_graph"))
+        .expect("workspace_dependency_graph scope should exist");
+    let dependency_paths = dependency_graph["paths"]
+        .as_array()
+        .expect("workspace_dependency_graph should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let dependency_proof = dependency_graph["proof"]
+        .as_array()
+        .expect("workspace_dependency_graph should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(dependency_paths.contains("Cargo.lock"));
+    assert!(dependency_paths.contains("Cargo.toml"));
+    assert!(dependency_proof.contains("cargo deny --all-features check"));
+    assert!(dependency_proof.contains("cargo xtask boundaries-check"));
+    assert!(dependency_proof.contains("cargo xtask publish-surface --json"));
 }
 
 #[test]
@@ -124,7 +148,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 32);
+    assert_eq!(value["scope_count"], 33);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);

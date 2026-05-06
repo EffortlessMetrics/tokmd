@@ -272,6 +272,14 @@ paths = ["web/runner/**"]
 proof = ["npm --prefix web/runner test"]
 reason = "Browser runner tests."
 
+[[scope]]
+name = "dependency_graph"
+kind = "rust"
+paths = ["Cargo.lock", "Cargo.toml", "crates/**/Cargo.toml"]
+proof = ["cargo deny --all-features check"]
+mutation = false
+coverage = false
+
 [[dependency_boundary]]
 name = "retired_tokmd_config_must_not_return"
 packages = ["*"]
@@ -350,6 +358,23 @@ reason = "tokmd-config is retired."
 
         assert!(report.ok);
         assert_eq!(report.unknown_files, vec!["crates/new/src/lib.rs"]);
+    }
+
+    #[test]
+    fn workspace_lockfile_maps_to_dependency_graph_scope() {
+        let policy = policy_with_defaults(true);
+        let report = affected_report(&policy, "base", "head", vec!["Cargo.lock".to_string()])
+            .expect("report");
+
+        assert!(report.ok);
+        assert!(report.unknown_files.is_empty());
+        assert_eq!(report.scopes.len(), 1);
+        assert_eq!(report.scopes[0].name, "dependency_graph");
+        assert_eq!(report.scopes[0].matched_files, vec!["Cargo.lock"]);
+        assert_eq!(
+            report.scopes[0].proof,
+            vec!["cargo deny --all-features check"]
+        );
     }
 
     #[test]

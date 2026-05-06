@@ -49,6 +49,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The affected-plan CI job now fails on proof artifact verifier failure, while executor command execution remains disabled and existing proof commands remain separately authoritative.
 - The proof scope registry now classifies model/scan path-normalization changes and `.jules` provenance updates so generated knowledge artifacts and core path hot-path work do not appear as unknown files in affected plans.
 - No-panic policy now has a governed allowlist (`policy/no-panic-allowlist.toml`, schema 0.3) and a semantic checker (`cargo xtask check-no-panic-family`). Identity is `path + family + selector` so reformatting source files does not invalidate receipts. Default mode is advisory: schema/shape, expired entries, and stale entries block; unallowlisted findings are reported only. `cargo xtask no-panic-propose` writes proposed allowlist entries to `target/no-panic-proposed-allowlist.toml`. The strict (blocking) flip is staged behind member-crate `[lints] workspace = true` adoption and a panic-family debt burn-down.
+- Workspace dependency graph changes now have an explicit proof scope for root/workspace manifests and `Cargo.lock`, routing affected plans to deny, dependency-boundary, and publish-surface checks instead of leaving lockfile-only changes unknown.
 - Next proof-policy operational slice: decide whether affected/proof-plan generation failures should stay reported-only or become blocking after more soak time.
 
 ## References

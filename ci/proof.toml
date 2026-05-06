@@ -16,6 +16,24 @@ ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
 [[scope]]
+name = "workspace_dependency_graph"
+kind = "rust"
+paths = [
+  "Cargo.lock",
+  "Cargo.toml",
+  "crates/**/Cargo.toml",
+  "xtask/Cargo.toml",
+]
+packages = ["xtask"]
+proof = [
+  "cargo deny --all-features check",
+  "cargo xtask boundaries-check",
+  "cargo xtask publish-surface --json",
+]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "proof_control_plane"
 kind = "rust"
 paths = [
