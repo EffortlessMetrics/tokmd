@@ -3517,11 +3517,15 @@ dependencies = [
  "clap",
  "globset",
  "petgraph",
+ "proc-macro2",
+ "quote",
  "semver",
  "serde",
  "serde_json",
+ "syn",
  "tempfile",
  "toml 1.1.2+spec-1.1.0",
+ "walkdir",
 ]
 
 [[package]]

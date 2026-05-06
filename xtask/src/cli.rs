@@ -38,6 +38,10 @@ pub enum Commands {
     Gate(GateArgs),
     /// Verify workspace Clippy lint policy and debt ledgers
     CheckLintPolicy(LintPolicyArgs),
+    /// Verify the workspace panic-family allowlist (semantic no-panic checker)
+    CheckNoPanicFamily(NoPanicArgs),
+    /// Propose new no-panic allowlist entries from current findings
+    NoPanicPropose(NoPanicProposeArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -62,6 +66,37 @@ pub struct VersionConsistencyArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct LintPolicyArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct NoPanicArgs {
+    /// Emit a machine-readable JSON report alongside human output
+    #[arg(long)]
+    pub json: bool,
+
+    /// Treat unallowlisted findings as errors (blocking mode).
+    ///
+    /// Without `--strict`, the checker validates the allowlist schema, expiry,
+    /// and stale entries, and reports finding counts, but unallowlisted
+    /// findings are advisory. The strict mode is staged behind workspace lint
+    /// inheritance and a panic-family debt burn-down.
+    #[arg(long)]
+    pub strict: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct NoPanicProposeArgs {
+    /// Output path for proposed allowlist entries
+    #[arg(long, default_value = "target/no-panic-proposed-allowlist.toml")]
+    pub output: std::path::PathBuf,
+}
+
+impl Default for NoPanicProposeArgs {
+    fn default() -> Self {
+        Self {
+            output: std::path::PathBuf::from("target/no-panic-proposed-allowlist.toml"),
+        }
+    }
+}
 
 #[derive(Args, Debug, Clone)]
 pub struct ProofPolicyArgs {

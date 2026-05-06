@@ -86,6 +86,32 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "no_panic_policy"
+kind = "rust"
+paths = [
+  "docs/NO_PANIC_POLICY.md",
+  "policy/no-panic-allowlist.toml",
+  "xtask/Cargo.toml",
+  "xtask/src/cli.rs",
+  "xtask/src/main.rs",
+  "xtask/src/tasks/mod.rs",
+  "xtask/src/tasks/no_panic.rs",
+  "xtask/tests/no_panic_w94.rs",
+]
+packages = ["xtask"]
+proof = [
+  # Advisory mode: blocks on schema/shape, expired, and stale entries; reports
+  # unallowlisted findings without failing while panic-family debt is burned
+  # down. Flip to `--strict` after `[lints] workspace = true` is enabled and
+  # the receipt ledger covers all remaining findings.
+  "cargo xtask check-no-panic-family",
+  "cargo test -p xtask no_panic --verbose",
+  "cargo clippy -p xtask --all-targets -- -D warnings",
+]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "analysis_orchestration"
 kind = "rust"
 paths = [

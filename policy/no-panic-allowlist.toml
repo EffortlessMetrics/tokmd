@@ -1,0 +1,20 @@
+schema_version = "0.3"
+
+# Authoritative ledger of receipted panic-family debt for the tokmd workspace.
+#
+# Rules:
+#   * identity = path + family + selector (kind + container + callee + receiver_fingerprint).
+#   * `last_seen.line` / `last_seen.column` are advisory; never used for matching.
+#   * every entry must include `id`, `path`, `family`, `classification`, `owner`,
+#     `explanation`, `expires`, and a non-empty `[allow.selector]` table.
+#   * `expires` is an ISO-8601 date. Expired entries fail the gate.
+#   * unused entries (whose selector no longer matches a current finding) fail
+#     the gate so the ledger does not silently rot.
+#
+# Add new entries by running `cargo xtask no-panic-propose` and copying the
+# proposed entries from `target/no-panic-proposed-allowlist.toml` after filling
+# in `owner`, `classification`, `explanation`, and `expires`.
+
+# The tokmd workspace is panic-free across production and tests; this ledger is
+# intentionally empty. Removing this comment when the first allowlist entry
+# lands is fine.
