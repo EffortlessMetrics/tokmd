@@ -1726,32 +1726,49 @@ fn try_load_cached(
     head_commit: &str,
     relevant_files: &[String],
 ) -> Result<Option<MutationGate>> {
-    let cache_dir = repo_root.join(".tokmd/cache/mutants");
+    const MUTANT_CACHE_DIR: &str = ".tokmd/cache/mutants";
+
+    let cache_dir = repo_root.join(MUTANT_CACHE_DIR);
     if !cache_dir.exists() {
         return Ok(None);
     }
 
-    let cache_file = cache_dir.join(format!("{}.json", head_commit));
+    let cache_file = cache_dir.join(cache_file_name_for_head(head_commit));
     if !cache_file.exists() {
         return Ok(None);
     }
 
-    let content = std::fs::read_to_string(&cache_file)?;
-    let gate: MutationGate = serde_json::from_str(&content)?;
+    let gate = match std::fs::read_to_string(&cache_file)
+        .ok()
+        .and_then(|content| serde_json::from_str::<MutationGate>(&content).ok())
+    {
+        Some(gate) => gate,
+        None => return Ok(None),
+    };
 
-    // Verify scope hasn't changed significantly
+    if cached_commit_mismatch(&gate, head_commit) {
+        return Ok(None);
+    }
+
     let tested = &gate.meta.scope.tested;
-    let missing_files: Vec<_> = relevant_files
-        .iter()
-        .filter(|f| !tested.contains(f))
-        .collect();
-
-    if !missing_files.is_empty() {
-        // Cache is partial
+    if !relevant_files.iter().all(|file| tested.contains(file)) {
         return Ok(None);
     }
 
     Ok(Some(gate))
+}
+
+#[cfg(feature = "git")]
+fn cache_file_name_for_head(head_commit: &str) -> String {
+    format!("{head_commit}.json")
+}
+
+#[cfg(feature = "git")]
+fn cached_commit_mismatch(gate: &MutationGate, head_commit: &str) -> bool {
+    gate.meta
+        .evidence_commit
+        .as_deref()
+        .is_some_and(|cached| cached != head_commit)
 }
 
 /// Run mutations locally.
@@ -2752,6 +2769,96 @@ mod tests {
         assert_eq!(gate.coverage_pct, 1.0);
         assert_eq!(gate.meta.scope.lines_relevant, Some(1));
         assert_eq!(gate.meta.scope.lines_tested, Some(1));
+    }
+
+    #[cfg(feature = "git")]
+    fn cached_mutation_gate(tested: Vec<String>, evidence_commit: Option<&str>) -> MutationGate {
+        MutationGate {
+            meta: GateMeta {
+                status: GateStatus::Pass,
+                source: EvidenceSource::Cached,
+                commit_match: CommitMatch::Exact,
+                scope: ScopeCoverage {
+                    relevant: tested.clone(),
+                    tested,
+                    ratio: 1.0,
+                    lines_relevant: None,
+                    lines_tested: None,
+                },
+                evidence_commit: evidence_commit.map(str::to_string),
+                evidence_generated_at_ms: None,
+            },
+            survivors: Vec::new(),
+            killed: 1,
+            timeout: 0,
+            unviable: 0,
+        }
+    }
+
+    #[cfg(feature = "git")]
+    fn write_mutant_cache(repo_root: &Path, head_commit: &str, body: &str) {
+        let cache_dir = repo_root.join(".tokmd/cache/mutants");
+        std::fs::create_dir_all(&cache_dir).unwrap();
+        std::fs::write(cache_dir.join(cache_file_name_for_head(head_commit)), body).unwrap();
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_mutant_cache_hits_for_matching_commit_and_full_scope() {
+        let dir = tempfile::tempdir().unwrap();
+        let head = "abc123";
+        let gate = cached_mutation_gate(vec!["src/lib.rs".into()], Some(head));
+        write_mutant_cache(dir.path(), head, &serde_json::to_string(&gate).unwrap());
+
+        let loaded = try_load_cached(dir.path(), head, &["src/lib.rs".into()])
+            .unwrap()
+            .expect("matching cache should load");
+
+        assert_eq!(loaded.meta.source, EvidenceSource::Cached);
+        assert_eq!(loaded.killed, 1);
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_mutant_cache_misses_for_partial_scope() {
+        let dir = tempfile::tempdir().unwrap();
+        let head = "abc123";
+        let gate = cached_mutation_gate(vec!["src/lib.rs".into()], Some(head));
+        write_mutant_cache(dir.path(), head, &serde_json::to_string(&gate).unwrap());
+
+        let loaded = try_load_cached(
+            dir.path(),
+            head,
+            &["src/lib.rs".into(), "src/new.rs".into()],
+        )
+        .unwrap();
+
+        assert!(loaded.is_none());
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_mutant_cache_misses_for_mismatched_evidence_commit() {
+        let dir = tempfile::tempdir().unwrap();
+        let head = "abc123";
+        let gate = cached_mutation_gate(vec!["src/lib.rs".into()], Some("def456"));
+        write_mutant_cache(dir.path(), head, &serde_json::to_string(&gate).unwrap());
+
+        let loaded = try_load_cached(dir.path(), head, &["src/lib.rs".into()]).unwrap();
+
+        assert!(loaded.is_none());
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_mutant_cache_misses_for_invalid_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let head = "abc123";
+        write_mutant_cache(dir.path(), head, "{");
+
+        let loaded = try_load_cached(dir.path(), head, &["src/lib.rs".into()]).unwrap();
+
+        assert!(loaded.is_none());
     }
 
     // ---- now_iso8601 ----

@@ -1323,6 +1323,19 @@ All gates include common metadata fields (flattened into the gate object):
 | `timeout` | `integer` | Number of mutations that caused timeouts. |
 | `unviable` | `integer` | Number of unviable mutations. |
 
+##### Mutation Cache Key & Invalidation
+
+For locally cached mutation evidence (`source = "cached"`), tokmd uses this key and invalidation behavior:
+
+- **Cache key**: `.tokmd/cache/mutants/<HEAD_SHA>.json`, where `<HEAD_SHA>` is the Git HEAD commit SHA used for the cockpit run.
+- **Lookup order**: CI artifact evidence is attempted first; local cache is used only when no acceptable CI artifact is found.
+- **Commit semantics**: a different HEAD commit implies a different cache key. If a cached gate includes `evidence_commit` and it does not match the requested HEAD, the cache entry is ignored.
+- **Scope invalidation**: cached evidence is accepted only when every currently relevant Rust source file appears in `scope.tested`; partial-scope evidence is treated as stale and ignored.
+- **Malformed cache entries**: unreadable or invalid JSON cache files are treated as cache misses.
+- **Manual invalidation**: delete `.tokmd/cache/mutants/*.json` or the specific `<HEAD_SHA>.json` file to force regeneration.
+
+Cache reuse is intentionally commit-pinned and scope-complete.
+
 ##### Mutation Survivor
 
 | Field | Type | Description |
