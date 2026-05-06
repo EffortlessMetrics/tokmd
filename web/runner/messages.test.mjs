@@ -8,10 +8,12 @@ import {
     SUPPORTED_ANALYZE_PRESETS,
     SUPPORTED_MODES,
     createCancelMessage,
+    createProgressMessage,
     createReadyMessage,
     createRunMessage,
     isCancelMessage,
     isInMemoryInput,
+    isProgressMessage,
     isRunMessage,
     normalizeAnalyzePreset,
 } from "./messages.js";
@@ -304,4 +306,62 @@ test("analyze run messages allow only explicit preset options with inputs", () =
         }),
         false
     );
+});
+
+test("progress message has required schema fields", () => {
+    const message = createProgressMessage("run-1", {
+        phase: "running",
+        message: "Processing...",
+        current: 1,
+        total: 3,
+    });
+
+    assert.equal(message.type, MESSAGE_TYPES.PROGRESS);
+    assert.equal(message.requestId, "run-1");
+    assert.equal(message.event, "tokmd.progress");
+    assert.equal(message.schema_version, 1);
+    assert.equal(message.kind, "update");
+    assert.equal(message.phase, "running");
+    assert.equal(message.message, "Processing...");
+    assert.equal(message.current, 1);
+    assert.equal(message.total, 3);
+});
+
+test("progress message validates correctly", () => {
+    const validMessage = createProgressMessage("run-1", {
+        phase: "running",
+        message: "Processing...",
+    });
+
+    const invalidMessage = {
+        type: MESSAGE_TYPES.PROGRESS,
+        requestId: "run-1",
+        phase: "running",
+        event: "wrong.event",
+    };
+
+    assert.equal(isProgressMessage(validMessage), true);
+    assert.equal(isProgressMessage(invalidMessage), false);
+});
+
+test("progress message excludes null current/total fields", () => {
+    const withFields = createProgressMessage("run-1", {
+        phase: "running",
+        current: 0,
+        total: 0,
+    });
+    const withoutFields = createProgressMessage("run-1", {
+        phase: "running",
+    });
+
+    assert.equal("current" in withFields, true);
+    assert.equal("total" in withFields, true);
+    assert.equal("current" in withoutFields, false);
+    assert.equal("total" in withoutFields, false);
+});
+
+test("ready message advertises progress capability", () => {
+    const message = createReadyMessage();
+
+    assert.equal(message.capabilities.progress, true);
 });

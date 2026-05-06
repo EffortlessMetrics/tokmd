@@ -12,9 +12,13 @@ const HAS_REAL_WASM_BUNDLE =
     existsSync(new URL("./vendor/tokmd-wasm/tokmd_wasm.js", import.meta.url)) &&
     existsSync(new URL("./vendor/tokmd-wasm/tokmd_wasm_bg.wasm", import.meta.url));
 
-function onceMessage(worker) {
+function onceMessage(worker, options = {}) {
     return new Promise((resolve, reject) => {
+        const { skipProgress = true } = options;
         const onMessage = (message) => {
+            if (skipProgress && message?.type === MESSAGE_TYPES.PROGRESS) {
+                return;
+            }
             cleanup();
             resolve(message);
         };

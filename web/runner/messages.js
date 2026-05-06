@@ -6,6 +6,7 @@ export const MESSAGE_TYPES = Object.freeze({
     RESULT: "result",
     ERROR: "error",
     CANCEL: "cancel",
+    PROGRESS: "progress",
 });
 
 export const SUPPORTED_MODES = Object.freeze([
@@ -39,7 +40,7 @@ export function createReadyMessage(options = {}) {
             analyzePresets: [...SUPPORTED_ANALYZE_PRESETS],
             wasm: false,
             zipball: false,
-            progress: false,
+            progress: true,
             cancel: false,
             downloads: false,
             ...capabilities,
@@ -61,6 +62,22 @@ export function createCancelMessage(requestId) {
     return {
         type: MESSAGE_TYPES.CANCEL,
         requestId,
+    };
+}
+
+export function createProgressMessage(requestId, options = {}) {
+    const { phase = "running", message = "", current = null, total = null } = options;
+
+    return {
+        type: MESSAGE_TYPES.PROGRESS,
+        requestId,
+        event: "tokmd.progress",
+        schema_version: 1,
+        kind: "update",
+        phase,
+        message,
+        ...(current !== null ? { current } : {}),
+        ...(total !== null ? { total } : {}),
     };
 }
 
@@ -193,5 +210,17 @@ export function isCancelMessage(value) {
         value &&
             value.type === MESSAGE_TYPES.CANCEL &&
             typeof value.requestId === "string"
+    );
+}
+
+export function isProgressMessage(value) {
+    return Boolean(
+        value &&
+            value.type === MESSAGE_TYPES.PROGRESS &&
+            typeof value.requestId === "string" &&
+            typeof value.phase === "string" &&
+            value.event === "tokmd.progress" &&
+            value.schema_version === 1 &&
+            value.kind === "update"
     );
 }

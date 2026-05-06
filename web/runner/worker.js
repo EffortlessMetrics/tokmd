@@ -257,10 +257,14 @@ const runnerReady = loadTokmdRunner()
 
 subscribe((message) => {
     void runnerReady.then(async () => {
-        emitMessage(await handleRunnerMessage(message, {
+        const resultMessage = await handleRunnerMessage(message, {
             runner,
             runnerCapabilities: runner?.capabilities ?? {},
             bootError,
-        }));
+            emitProgress: (progressMessage) => {
+                emitMessage(progressMessage);
+            },
+        });
+        emitMessage(resultMessage);
     });
 });

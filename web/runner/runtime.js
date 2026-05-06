@@ -3,6 +3,7 @@ import {
     SUPPORTED_ANALYZE_PRESETS,
     SUPPORTED_MODES,
     createErrorMessage,
+    createProgressMessage,
     createResultMessage,
     normalizeAnalyzePreset,
     isCancelMessage,
@@ -68,11 +69,18 @@ async function invokeRunner(runner, mode, args) {
     }
 }
 
+function emitProgress(callback, message) {
+    if (typeof callback === "function") {
+        callback(message);
+    }
+}
+
 export async function handleRunnerMessage(message, options = {}) {
     const {
         runner = null,
         bootError = null,
         runnerCapabilities = null,
+        emitProgress: emitProgressCallback = null,
     } = options;
 
     if (isCancelMessage(message)) {
@@ -138,7 +146,32 @@ export async function handleRunnerMessage(message, options = {}) {
     }
 
     try {
+        emitProgress(
+            emitProgressCallback,
+            createProgressMessage(message.requestId, {
+                phase: "validating",
+                message: `Validating ${message.mode} mode...`,
+            })
+        );
+
         const data = await invokeRunner(runner, message.mode, message.args);
+
+        emitProgress(
+            emitProgressCallback,
+            createProgressMessage(message.requestId, {
+                phase: "serializing",
+                message: `Serializing results...`,
+            })
+        );
+
+        emitProgress(
+            emitProgressCallback,
+            createProgressMessage(message.requestId, {
+                phase: "complete",
+                message: `${message.mode} analysis complete`,
+            })
+        );
+
         return createResultMessage(message.requestId, data);
     } catch (error) {
         const extracted = extractRunnerError(error);
