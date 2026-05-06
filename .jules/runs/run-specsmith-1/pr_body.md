@@ -1,48 +1,40 @@
 ## 💡 Summary
-Replaced vague stderr assertions in CLI error tests with explicit text matches. This locks in the actual error strings being emitted rather than just verifying that stderr wasn't empty.
+This is a learning PR. The intended work to tighten stderr assertions was superseded by #1654. I have documented this workflow collision as a friction item.
 
 ## 🎯 Why
-The Specsmith persona focuses on scenario coverage and regression prevention. Using `.stderr(predicate::str::is_empty().not())` is an anti-pattern because it allows error messages to degrade or change entirely without failing the test suite. By matching specific hints (e.g., `"Path not found"`, `"Unrecognized subcommand"`), we lock in deterministic error-handling behavior.
+The maintainer commented that the intended patch was superseded by #1654. Following the repository's rules, I gracefully aborted the redundant fix and created a learning PR to document the collision and the lessons learned (e.g., avoiding out-of-scope deletions like `plan.md`).
 
 ## 🔎 Evidence
-- `crates/tokmd/tests/cli_error_paths_w51.rs`
-- `crates/tokmd/tests/cli_errors_w66.rs`
-- `crates/tokmd/tests/error_handling_w70.rs`
-- Observed behavior: Tests were accepting any non-empty stderr string, which hides potential regressions in error hinting.
+- Maintainer comment on the PR indicating supersession by #1654.
+- `.jules/friction/open/superseded_pr_specsmith.md`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Polish and tighten assertion specificity in error/help CLI tests by changing vague `.stderr(predicate::str::is_empty().not())` to explicit checks for known hints like `"invalid value"`, `"Path not found"`, etc.
-- Fits the repo and shard because the assignment explicitly calls for "scenario-driven sharp-edge polish" and memory highlights vague stderr predicates as an anti-pattern.
-- Trade-offs: Structure is better locked-in; Velocity is high; Governance matches the Specsmith persona perfectly.
+- Abandon the redundant code patch, restore the codebase, and create a learning PR documenting the workflow collision.
+- This fits the repo rules explicitly stating to gracefully abort superseded work and record friction.
+- Trade-offs: Structure/Velocity/Governance are perfectly aligned with repo policy.
 
 ### Option B
-- Investigate edge cases in `handoff` context strategies, e.g., finding edge-cases that are not covered around budget tokens limit and strategy combinations.
-- Choose instead if there is a clear missing edge-case in budget parsing or boundary limits that is not asserted.
-- Trade-offs: Requires deep digging to find a legitimate uncovered path, which might not exist or might require cross-shard changes.
+- Force the code patch anyway.
+- Trade-offs: Rejected, violates maintainer instructions.
 
 ## ✅ Decision
-I chose **Option A**. The memory specifically notes: `When writing or updating CLI integration tests in the tokmd workspace, avoid using vague assertions like .stderr(predicate::str::is_empty().not()). Instead, use explicit .stderr(predicates::str::contains("...")) assertions to strictly validate specific error hints and subcommand suggestions.` Finding instances of this in W51, W66, and W70 tests and replacing them with specific assertions was an actionable and valuable improvement.
+I chose **Option A**. The maintainer clearly indicated the work was superseded. I aborted the code changes, acknowledged the comment, and recorded the friction.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/tests/cli_error_paths_w51.rs`
-- `crates/tokmd/tests/cli_errors_w66.rs`
-- `crates/tokmd/tests/error_handling_w70.rs`
+- `.jules/friction/open/superseded_pr_specsmith.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd --test cli_error_paths_w51
-cargo test -p tokmd --test cli_errors_w66
-cargo test -p tokmd --test error_handling_w70
-# All tests passed.
+# No code changes to verify.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Proof-improvement patch
-- Blast radius: Tests only.
-- Risk class: Low risk; no logic changes, only test assertion tightening.
-- Rollback: Revert the PR.
-- Gates run: `cargo test` on affected crates.
+- Change shape: Learning PR
+- Blast radius: Internal `.jules` artifacts only.
+- Risk class: Zero risk.
+- Rollback: N/A
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-specsmith-1/envelope.json`
@@ -50,6 +42,7 @@ cargo test -p tokmd --test error_handling_w70
 - `.jules/runs/run-specsmith-1/receipts.jsonl`
 - `.jules/runs/run-specsmith-1/result.json`
 - `.jules/runs/run-specsmith-1/pr_body.md`
+- `.jules/friction/open/superseded_pr_specsmith.md`
 
 ## 🔜 Follow-ups
 None.

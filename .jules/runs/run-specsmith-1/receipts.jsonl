@@ -6,3 +6,4 @@
 {"cmd": "cargo test -p tokmd --test cli_error_paths_w51", "outcome": "success"}
 {"cmd": "cargo test -p tokmd --test cli_errors_w66", "outcome": "success"}
 {"cmd": "cargo test -p tokmd --test error_handling_w70", "outcome": "success"}
+{"cmd": "git checkout -- crates/tokmd/tests/cli_error_paths_w51.rs crates/tokmd/tests/cli_errors_w66.rs crates/tokmd/tests/error_handling_w70.rs", "outcome": "success"}

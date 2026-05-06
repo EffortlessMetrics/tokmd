@@ -1,10 +1,8 @@
 {
   "status": "success",
-  "outcome": "proof-improvement patch",
-  "reason": "Replaced vague `.stderr(predicate::str::is_empty().not())` assertions across w51, w66, and w70 CLI error-handling tests with explicit string matches to properly lock-in error hints and behavior.",
+  "outcome": "learning PR",
+  "reason": "The intended patch was superseded by PR #1654 as indicated by maintainer comments. The fix was aborted and a friction item was generated to document the workflow collision.",
   "paths_touched": [
-    "crates/tokmd/tests/cli_error_paths_w51.rs",
-    "crates/tokmd/tests/cli_errors_w66.rs",
-    "crates/tokmd/tests/error_handling_w70.rs"
+    ".jules/friction/open/superseded_pr_specsmith.md"
   ]
 }
