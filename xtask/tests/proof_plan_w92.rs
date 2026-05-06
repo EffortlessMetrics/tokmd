@@ -52,6 +52,18 @@ fn proof_help_mentions_profile_and_plan() {
 }
 
 #[test]
+fn proof_artifacts_check_help_mentions_executor_paths() {
+    let (stdout, stderr, success) = run_xtask(&["proof-artifacts-check", "--help"]);
+
+    assert!(
+        success,
+        "proof-artifacts-check --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
+}
+
+#[test]
 fn affected_proof_plan_reports_no_changes_for_same_ref() {
     let (stdout, stderr, success) = run_xtask(&[
         "proof",
@@ -75,6 +87,46 @@ fn affected_proof_plan_reports_no_changes_for_same_ref() {
     assert_eq!(value["head"], "HEAD");
     assert!(value["commands"].as_array().unwrap().is_empty());
     assert!(value["unknown_files"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn proof_artifacts_check_accepts_generated_executor_artifacts() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("executor-summary.json");
+    let manifest_path = temp.path().join("executor-manifest.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+    let manifest_arg = manifest_path.to_string_lossy().to_string();
+
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+    assert!(
+        success,
+        "proof artifact generation failed. stderr: {stderr}"
+    );
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-artifacts-check",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+
+    assert!(success, "proof-artifacts-check failed. stderr: {stderr}");
+    assert!(stdout.contains("Proof artifacts OK"), "stdout: {stdout}");
+    assert!(stdout.contains("0 command(s)"), "stdout: {stdout}");
 }
 
 #[test]

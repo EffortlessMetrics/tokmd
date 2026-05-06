@@ -26,6 +26,8 @@ pub enum Commands {
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
     Proof(ProofArgs),
+    /// Verify generated proof artifacts agree without executing planned commands
+    ProofArtifactsCheck(ProofArtifactsCheckArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -140,6 +142,25 @@ pub struct ProofArgs {
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofArtifactsCheckArgs {
+    /// Executor summary artifact to verify
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-summary.json"
+    )]
+    pub executor_summary: std::path::PathBuf,
+
+    /// Executor command manifest artifact to verify
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-manifest.json"
+    )]
+    pub executor_manifest: std::path::PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

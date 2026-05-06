@@ -8,6 +8,7 @@ pub mod fixture_blobs_check;
 pub mod gate;
 pub mod lint_fix;
 pub mod lint_policy;
+pub mod proof_artifacts_check;
 pub mod proof_plan;
 pub mod proof_policy;
 pub mod publish;
