@@ -2,13 +2,13 @@
 
 ## Option A
 Modify `.jules/bin/build_index.py` to also process `.jules/friction/open/` and generate `.jules/index/generated/FRICTION_ROLLUP.md`.
-- Why it fits: Matches memory explicitly ("build_index.py completely overwrites both ... RUNS_ROLLUP.md and ... FRICTION_ROLLUP.md") and Archivist's mission to consolidate friction items and generate rollups.
-- Trade-offs: Increases the size of `build_index.py`, but it consolidates both indexes into one tool.
+- Why it fits: Matches memory explicitly.
+- Trade-offs: Valid fix, but discovered to be superseded by PR #1606.
 
 ## Option B
-Create a new tool to process friction items.
-- Why it fits: Segregates logic for runs and friction items.
-- Trade-offs: More tooling to manage. Memory explicitly says `build_index.py` does this, so option B might go against existing scaffolding.
+Gracefully abort the redundant fix and create a learning PR.
+- Why it fits: Follows the prompt-to-PR pipeline requirements for superseded work. Captures the friction item.
+- Trade-offs: Abandons the code patch in favor of acknowledging shared reality.
 
 ## ✅ Decision
-Option A. It aligns perfectly with the memory constraint that explicitly says `build_index.py` is supposed to completely overwrite the `.jules/index/generated/FRICTION_ROLLUP.md` index using files in `.jules/friction/open/`.
+Option B. The intended patch was superseded by PR #1606. Proceeding with a learning PR and friction item to document the workflow edge case.

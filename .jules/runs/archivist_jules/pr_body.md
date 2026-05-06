@@ -1,34 +1,34 @@
 ## 💡 Summary
-Modified `.jules/bin/build_index.py` to also process friction items and generate a `FRICTION_ROLLUP.md` index. This automates summarizing per-run friction packets into a generated index, aligning with the Archivist's mission to consolidate shared scaffolding.
+Learning PR: The intended patch to `.jules/bin/build_index.py` to generate `FRICTION_ROLLUP.md` was superseded by PR #1606. I have backed out the redundant patch and captured the workflow edge case as a friction item.
 
 ## 🎯 Why
-Currently, friction items are created in `.jules/friction/open/` but there was no automated mechanism to consolidate their metadata into a readable index. `.jules/bin/build_index.py` was generating a rollup for runs but not friction items. Generating this index clarifies open friction and makes it easier for other agents to prioritize resolving documented blockers.
+During the review cycle, it was noted that PR #1606 already merged active-friction indexing into `.jules/bin/build_index.py` on main. Proceeding with the local patch would create unnecessary conflicts and duplicate work.
 
 ## 🔎 Evidence
 - file path: `.jules/bin/build_index.py`
-- finding: The script generated `RUNS_ROLLUP.md` but ignored `FRICTION_ROLLUP.md` despite instructions indicating it should.
-- receipt: Executed `python3 .jules/bin/build_index.py` and successfully generated a table of 6 current friction items from `.jules/friction/open/`.
+- observed behavior: The intended fix was superseded by another merged PR.
+- receipt: PR Comment: "Superseded by #1606, which merged generated active-friction indexing through .jules/bin/build_index.py on current main."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Modify `.jules/bin/build_index.py` to add friction parsing logic.
-- why it fits this repo and shard: It consolidates run and friction indexing within the single existing tool explicitly designed for this workspace-wide index generation.
-- trade-offs: Structure / Velocity / Governance. Minimal structural change, fast velocity by reusing python scaffolding, perfectly aligned with governance of index generation.
+- what it is: Gracefully abort the redundant fix and create a learning PR.
+- why it fits this repo and shard: Follows the explicit rule to not force fake fixes or redundant work when a patch is superseded.
+- trade-offs: Structure / Velocity / Governance. Prioritizes velocity and governance over landing duplicate lines of code.
 
 ### Option B
-- what it is: Create a separate `build_friction_index.py` tool.
-- when to choose it instead: If the friction indexing logic was too complex or completely unrelated to run metadata structures.
-- trade-offs: Increases tooling sprawl and diverges from the instruction to have `build_index.py` handle both rollups.
+- what it is: Force the patch anyway.
+- when to choose it instead: Never.
+- trade-offs: Creates merge conflicts and wastes reviewer time.
 
 ## ✅ Decision
-Option A. It aligns perfectly with the requirement that `build_index.py` manages generating both `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` indexes.
+Option A. Captured the learning and friction item.
 
 ## 🧱 Changes made (SRP)
-- `.jules/bin/build_index.py`
-- `.jules/index/generated/FRICTION_ROLLUP.md`
+- `.jules/friction/open/FRIC-20260502-001.md`
 
 ## 🧪 Verification receipts
 ```text
+{"command": "python3 patch_build_index.py", "output": "success"}
 {"command": "python3 .jules/bin/build_index.py", "output": "success"}
 {"command": "cat .jules/index/generated/FRICTION_ROLLUP.md", "output": "success"}
 {"command": "cargo xtask docs --check", "output": "success"}
@@ -38,10 +38,10 @@ Option A. It aligns perfectly with the requirement that `build_index.py` manages
 ```
 
 ## 🧭 Telemetry
-- Change shape: Add feature to tool.
-- Blast radius: Isolated to `.jules/bin/build_index.py` and `.jules/index/generated/` (internal AI agent scaffolding only).
-- Risk class + why: Low risk. Does not touch production code or application delivery pipeline.
-- Rollback: Revert script changes.
+- Change shape: Learning PR and Friction Item
+- Blast radius: Isolated to internal `.jules/` artifacts.
+- Risk class + why: None. No product code changes.
+- Rollback: N/A
 - Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy`, `cargo check`
 
 ## 🗂️ .jules artifacts
@@ -50,6 +50,7 @@ Option A. It aligns perfectly with the requirement that `build_index.py` manages
 - `.jules/runs/archivist_jules/receipts.jsonl`
 - `.jules/runs/archivist_jules/result.json`
 - `.jules/runs/archivist_jules/pr_body.md`
+- `.jules/friction/open/FRIC-20260502-001.md`
 
 ## 🔜 Follow-ups
-None at this time.
+None.

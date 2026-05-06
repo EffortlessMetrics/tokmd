@@ -1,5 +1,5 @@
 {
-  "status": "success",
+  "status": "learning",
   "gates_run": [
     "cargo xtask docs --check",
     "cargo fmt -- --check",
