@@ -1,21 +1,17 @@
 # Decision
 
 ## Inspected
-- `cargo xtask publish --plan` output and `Cargo.toml`/`Cargo.lock` alignment.
-- `cargo xtask version-consistency` output.
-- `cargo xtask docs --check` output.
-- Publish surface validations via `cargo xtask publish-surface --verify-publish`.
-- Test suites (`cargo test -p xtask`).
+- Feedback from PR comment: PR was declined because the packet was too log-heavy and obsolete for main, instructing instead to record the recurring `cargo xtask gate` timeout as a fresh friction item.
 
 ## Options Considered
 
-### Option A: Force a minor documentation or metadata tweak
-- **What it is:** Find a very minor inconsistency (like whitespace or an unneeded newline in markdown docs) and fix it.
-- **Trade-offs:** Wastes reviewer time on low-value changes. Conflicts with the Stabilizer constraint to optimize for useful, aligned, evidence-backed work per prompt. Does not address real risks.
+### Option A: Attempt code changes
+- **What it is:** Try to debug the `cargo xtask gate` timeout in `xtask/src/tasks/gate.rs`.
+- **Trade-offs:** Exceeds the scope of the immediate direction to record a fresh friction item for the timeout issue.
 
-### Option B: Abort with a Learning PR
-- **What it is:** Produce a clean execution packet reporting that the release and governance surfaces (docs, publish plan, version consistency) are currently well-aligned and no immediate intervention is required.
-- **Trade-offs:** Does not modify code, but preserves the history of the validation and satisfies the rule to fall back to a learning PR rather than forcing a fake fix.
+### Option B: Fresh Learning PR with Friction Item
+- **What it is:** Discard the previous heavy logs and write a minimal Learning PR that purely focuses on logging the `cargo xtask gate` timeout as a new friction item.
+- **Trade-offs:** Fits the instruction precisely.
 
 ## Decision
-**Option B is selected.** The release metadata, publish plan, and version consistency are currently perfectly aligned for v1.10.0. Forcing a fix when the `governance-release` gate expectations and `cargo xtask` checks all pass cleanly would be a "hallucinated fix". A learning PR documents the successful validation.
+**Option B is selected.** The prior PR packet was declined for being log-heavy and obsolete. The instruction was specifically to record the `cargo xtask gate` timeout as a fresh current friction item.

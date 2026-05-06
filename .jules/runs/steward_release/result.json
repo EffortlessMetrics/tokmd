@@ -1,24 +1,14 @@
 {
   "outcome_type": "learning_pr",
-  "title": "jules: record steward learning on release validation 🚢",
-  "summary": "Release metadata, version consistency, and publish surface checks show the repo is perfectly aligned. Created a learning PR instead of forcing an unnecessary change.",
+  "title": "jules: record steward learning on gate timeout 🚢",
+  "summary": "Recorded a fresh friction item for the consistent cargo xtask gate timeouts per review feedback.",
   "target_paths": [],
-  "proof_summary": "cargo xtask version-consistency, cargo xtask docs --check, and cargo xtask publish-surface all pass cleanly. xtask test suite passes.",
-  "gates_run": [
-    "cargo xtask version-consistency",
-    "cargo xtask docs --check",
-    "cargo xtask publish --plan",
-    "cargo xtask publish-surface --verify-publish",
-    "cargo test -p xtask",
-    "cargo check",
-    "cargo clippy"
-  ],
+  "proof_summary": "cargo xtask gate times out consistently on initial CI/agent runs.",
+  "gates_run": [],
   "friction_items_created": [
-    ".jules/friction/open/steward-gate-timeout.md"
+    ".jules/friction/open/cargo-xtask-gate-timeout.md"
   ],
-  "persona_notes_created": [
-    ".jules/personas/steward/notes/release-clean-state.md"
-  ],
+  "persona_notes_created": [],
   "rollback": "None",
   "follow_ups": []
 }

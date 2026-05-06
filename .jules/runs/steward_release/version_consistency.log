@@ -1,9 +1,0 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.17s
-     Running `target/debug/xtask version-consistency`
-Checking version consistency against workspace version 1.10.0
-
-  ✓ Cargo crate versions match 1.10.0.
-  ✓ Cargo workspace dependency versions match 1.10.0.
-  ✓ Node package manifest versions match 1.10.0.
-  ✓ No case-insensitive tracked-path collisions detected.
-Version consistency checks passed.
