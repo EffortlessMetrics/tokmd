@@ -1,8 +1,8 @@
 ## 💡 Summary
-This is a learning PR. I attempted to find a coherent performance optimization within the `core-pipeline` shard (specifically targeting `normalize_path` in `tokmd-model`), but found that the existing string manipulation logic is already well-optimized for its current structure. Significant wins require broader refactoring, and localized micro-optimizations yielded negligible gains.
+This is a learning PR. I attempted to find a coherent performance optimization within the `core-pipeline` shard (specifically targeting `normalize_path` in `tokmd-model`), but found that the existing string manipulation logic is already well-optimized for its current structure. Significant wins require broader refactoring, and localized micro-optimizations yielded negligible gains. Acknowledged decline due to speculative nature.
 
 ## 🎯 Why
-The assignment was to find a meaningful performance improvement. According to the constraints, if an honest code patch cannot be justified with measurable benchmarks, a learning PR must be submitted instead of forcing a fake fix or hallucinating metrics.
+The assignment was to find a meaningful performance improvement. According to the constraints, if an honest code patch cannot be justified with measurable benchmarks, a learning PR must be submitted instead of forcing a fake fix or hallucinating metrics. The speculative nature of micro-optimizing `normalize_path` has been noted and closed.
 
 ## 🔎 Evidence
 File path: `crates/tokmd-model/src/lib.rs` (specifically `normalize_path`)
@@ -20,7 +20,7 @@ Observed behavior: Benchmarking attempts to reduce `to_string_lossy()` allocatio
 - Trade-offs: Structure / Velocity / Governance: No code patch is delivered, but technical integrity and deterministic behavior are preserved.
 
 ## ✅ Decision
-Chose Option B. A safe, meaningful, and measurable performance improvement could not be honest and coherently proven. Documenting this limitation as a friction item is the correct outcome.
+Chose Option B. A safe, meaningful, and measurable performance improvement could not be honest and coherently proven. Documenting this limitation as a friction item is the correct outcome. The PR decline confirms that speculative micro-optimizations without durable repo policy changes are undesirable.
 
 ## 🧱 Changes made (SRP)
 - None (Learning PR)
@@ -47,4 +47,4 @@ cargo bench -p tokmd-model
 - `.jules/friction/open/bolt_core_pipeline_perf_walls.md`
 
 ## 🔜 Follow-ups
-Created a friction item (`bolt_core_pipeline_perf_walls`) to note that `tokmd-model` hot paths may require larger structural changes (like an interner) rather than local string tweaks.
+Created a friction item (`bolt_core_pipeline_perf_walls`) to note that `tokmd-model` hot paths may require larger structural changes (like an interner) rather than local string tweaks. Acknowledged decline on current main.
