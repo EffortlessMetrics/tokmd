@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "files_changed": [
+    "xtask/src/tasks/proof_artifacts_check.rs"
+  ],
+  "gates_run": [
+    "cargo test -p xtask",
+    "cargo fmt --manifest-path xtask/Cargo.toml -- --check",
+    "cargo clippy -p xtask -- -D warnings",
+    "cargo xtask proof-artifacts-check"
+  ]
+}

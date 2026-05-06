@@ -1,0 +1,7 @@
+{"command": "cargo xtask docs --check", "status": "success", "output": "Documentation is up to date."}
+{"command": "cargo xtask version-consistency", "status": "success", "output": "Version consistency checks passed."}
+{"command": "cargo xtask fixture-blobs-check", "status": "success", "output": "No committed crypto fixture blobs found (1 policy rule(s))"}
+{"command": "cargo xtask proof-artifacts-check", "status": "failure", "output": "Error: failed to read executor summary artifact `target/proof/executor-summary.json`"}
+{"command": "cargo xtask proof --plan --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json", "status": "success", "output": "Generated proof artifacts with execution_guard.enabled=true in CI"}
+{"command": "cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json", "status": "success", "output": "Proof artifacts OK: 0 command(s), execution_status not_executed, guard not_ci_and_no_--allow-ci-evidence-execution"}
+{"command": "cargo test -p xtask", "status": "success", "output": "test result: ok. 210 passed; 0 failed"}
