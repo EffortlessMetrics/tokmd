@@ -1,4 +1,4 @@
-use crate::cli::{ProofArgs, ProofProfile};
+use crate::cli::{ProofArgs, ProofExecutorMode, ProofProfile};
 use crate::proof::policy_ast::ProofPolicy;
 use crate::tasks::affected::{
     AffectedReport, AffectedScope, affected_report, changed_files, load_checked_policy,
@@ -73,6 +73,7 @@ struct ProofEvidenceEntry {
 #[derive(Debug, Serialize)]
 struct ProofExecutorSummary {
     schema: String,
+    mode: String,
     status: String,
     execution_status: String,
     family: String,
@@ -93,8 +94,10 @@ struct ProofExecutorCounts {
     family_planned: usize,
     selected: usize,
     skipped: usize,
+    dry_run: usize,
     executed: usize,
     required_excluded: usize,
+    selection_excluded: usize,
     non_family_excluded: usize,
 }
 
@@ -123,7 +126,7 @@ pub fn run(args: ProofArgs) -> Result<()> {
         write_evidence_json(path, &report)?;
     }
     if let Some(path) = &args.executor_summary {
-        write_executor_summary(path, &report)?;
+        write_executor_summary(path, &report, args.executor_mode)?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
@@ -330,11 +333,15 @@ fn write_evidence_json(path: &Path, report: &ProofPlanReport) -> Result<()> {
     Ok(())
 }
 
-fn write_executor_summary(path: &Path, report: &ProofPlanReport) -> Result<()> {
+fn write_executor_summary(
+    path: &Path,
+    report: &ProofPlanReport,
+    mode: ProofExecutorMode,
+) -> Result<()> {
     ensure_parent_dir(path)?;
     fs::write(
         path,
-        serde_json::to_string_pretty(&proof_executor_summary(report))?,
+        serde_json::to_string_pretty(&proof_executor_summary(report, mode))?,
     )?;
     Ok(())
 }
@@ -425,28 +432,45 @@ fn is_evidence_kind(kind: &str) -> bool {
     matches!(kind, "coverage" | "mutation")
 }
 
-fn proof_executor_summary(report: &ProofPlanReport) -> ProofExecutorSummary {
+fn proof_executor_summary(
+    report: &ProofPlanReport,
+    mode: ProofExecutorMode,
+) -> ProofExecutorSummary {
     let family = "coverage";
     let family_commands = report
         .commands
         .iter()
         .filter(|command| command.kind == family)
         .collect::<Vec<_>>();
-    let entries = family_commands
+    let selectable_commands = family_commands
         .iter()
+        .copied()
         .filter(|command| !command.required)
-        .map(|command| executor_entry(command))
+        .collect::<Vec<_>>();
+    let selected_commands = selected_executor_commands(&selectable_commands, mode);
+    let entries = selected_commands
+        .iter()
+        .map(|command| executor_entry(command, mode))
         .collect::<Vec<_>>();
     let required_excluded = family_commands
         .iter()
         .filter(|command| command.required)
         .count();
     let selected = entries.len();
+    let skipped = match mode {
+        ProofExecutorMode::Prototype => selected,
+        ProofExecutorMode::DryRun => 0,
+    };
+    let dry_run = match mode {
+        ProofExecutorMode::Prototype => 0,
+        ProofExecutorMode::DryRun => selected,
+    };
 
     ProofExecutorSummary {
         schema: "tokmd.proof_executor_summary.v1".to_string(),
-        status: "prototype".to_string(),
-        execution_status: "not_executed".to_string(),
+        mode: executor_mode_name(mode).to_string(),
+        status: executor_status(mode).to_string(),
+        execution_status: executor_execution_status(mode).to_string(),
         family: family.to_string(),
         required: false,
         profile: report.profile.clone(),
@@ -458,9 +482,11 @@ fn proof_executor_summary(report: &ProofPlanReport) -> ProofExecutorSummary {
             commands_total: report.commands.len(),
             family_planned: family_commands.len(),
             selected,
-            skipped: selected,
+            skipped,
+            dry_run,
             executed: 0,
             required_excluded,
+            selection_excluded: selectable_commands.len() - selected,
             non_family_excluded: report.commands.len() - family_commands.len(),
         },
         entries,
@@ -468,15 +494,60 @@ fn proof_executor_summary(report: &ProofPlanReport) -> ProofExecutorSummary {
     }
 }
 
-fn executor_entry(command: &ProofPlanCommand) -> ProofExecutorEntry {
+fn selected_executor_commands<'a>(
+    commands: &'a [&'a ProofPlanCommand],
+    mode: ProofExecutorMode,
+) -> Vec<&'a ProofPlanCommand> {
+    match mode {
+        ProofExecutorMode::Prototype => commands.to_vec(),
+        ProofExecutorMode::DryRun => commands.first().copied().into_iter().collect(),
+    }
+}
+
+fn executor_entry(command: &ProofPlanCommand, mode: ProofExecutorMode) -> ProofExecutorEntry {
     ProofExecutorEntry {
         scope: command.scope.clone(),
         kind: command.kind.clone(),
         required: command.required,
         command: command.command.clone(),
         artifact_path: evidence_artifact_path(command),
-        status: "skipped".to_string(),
-        skip_reason: "tool_execution_not_enabled".to_string(),
+        status: executor_entry_status(mode).to_string(),
+        skip_reason: executor_skip_reason(mode).to_string(),
+    }
+}
+
+fn executor_mode_name(mode: ProofExecutorMode) -> &'static str {
+    match mode {
+        ProofExecutorMode::Prototype => "prototype",
+        ProofExecutorMode::DryRun => "dry_run",
+    }
+}
+
+fn executor_status(mode: ProofExecutorMode) -> &'static str {
+    match mode {
+        ProofExecutorMode::Prototype => "prototype",
+        ProofExecutorMode::DryRun => "dry_run",
+    }
+}
+
+fn executor_execution_status(mode: ProofExecutorMode) -> &'static str {
+    match mode {
+        ProofExecutorMode::Prototype => "not_executed",
+        ProofExecutorMode::DryRun => "dry_run",
+    }
+}
+
+fn executor_entry_status(mode: ProofExecutorMode) -> &'static str {
+    match mode {
+        ProofExecutorMode::Prototype => "skipped",
+        ProofExecutorMode::DryRun => "dry_run",
+    }
+}
+
+fn executor_skip_reason(mode: ProofExecutorMode) -> &'static str {
+    match mode {
+        ProofExecutorMode::Prototype => "tool_execution_not_enabled",
+        ProofExecutorMode::DryRun => "dry_run_only",
     }
 }
 
@@ -642,7 +713,7 @@ mod tests {
         is_mutation_candidate, proof_evidence_plan, proof_executor_summary,
         render_markdown_summary, static_profile_commands,
     };
-    use crate::cli::ProofProfile;
+    use crate::cli::{ProofExecutorMode, ProofProfile};
     use crate::proof::policy::parse_policy_str;
     use crate::tasks::affected::{AffectedReport, AffectedScope};
 
@@ -887,9 +958,10 @@ coverage = "cargo-llvm-cov"
             unknown_files: Vec::new(),
         };
 
-        let summary = proof_executor_summary(&report);
+        let summary = proof_executor_summary(&report, ProofExecutorMode::Prototype);
 
         assert_eq!(summary.schema, "tokmd.proof_executor_summary.v1");
+        assert_eq!(summary.mode, "prototype");
         assert_eq!(summary.status, "prototype");
         assert_eq!(summary.execution_status, "not_executed");
         assert_eq!(summary.family, "coverage");
@@ -898,8 +970,10 @@ coverage = "cargo-llvm-cov"
         assert_eq!(summary.counts.family_planned, 2);
         assert_eq!(summary.counts.selected, 1);
         assert_eq!(summary.counts.skipped, 1);
+        assert_eq!(summary.counts.dry_run, 0);
         assert_eq!(summary.counts.executed, 0);
         assert_eq!(summary.counts.required_excluded, 1);
+        assert_eq!(summary.counts.selection_excluded, 0);
         assert_eq!(summary.counts.non_family_excluded, 2);
         assert_eq!(summary.entries.len(), 1);
         assert_eq!(summary.entries[0].kind, "coverage");
@@ -910,6 +984,59 @@ coverage = "cargo-llvm-cov"
             summary.entries[0].artifact_path.as_deref(),
             Some("target/proof/coverage/tokmd_core_ffi.lcov")
         );
+    }
+
+    #[test]
+    fn dry_run_executor_summary_selects_one_advisory_coverage_command() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec![
+                "crates/tokmd-core/src/ffi.rs".to_string(),
+                "crates/tokmd/src/main.rs".to_string(),
+            ],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_cli".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd --all-features --lcov --output-path target/proof/coverage/tokmd_cli.lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "mutation".to_string(),
+                    required: false,
+                    command: "cargo mutants --file crates/tokmd-core/src/ffi.rs --timeout 300"
+                        .to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let summary = proof_executor_summary(&report, ProofExecutorMode::DryRun);
+
+        assert_eq!(summary.mode, "dry_run");
+        assert_eq!(summary.status, "dry_run");
+        assert_eq!(summary.execution_status, "dry_run");
+        assert_eq!(summary.counts.family_planned, 2);
+        assert_eq!(summary.counts.selected, 1);
+        assert_eq!(summary.counts.skipped, 0);
+        assert_eq!(summary.counts.dry_run, 1);
+        assert_eq!(summary.counts.executed, 0);
+        assert_eq!(summary.counts.selection_excluded, 1);
+        assert_eq!(summary.entries.len(), 1);
+        assert_eq!(summary.entries[0].status, "dry_run");
+        assert_eq!(summary.entries[0].skip_reason, "dry_run_only");
+        assert_eq!(summary.entries[0].scope, "tokmd_core_ffi");
     }
 
     #[test]
