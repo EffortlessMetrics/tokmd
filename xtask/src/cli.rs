@@ -174,6 +174,10 @@ pub struct ProofArgs {
     #[arg(long)]
     pub allow_ci_evidence_execution: bool,
 
+    /// Explicitly opt a local invocation into planner-selected evidence execution
+    #[arg(long)]
+    pub allow_local_evidence_execution: bool,
+
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
@@ -210,6 +214,7 @@ pub enum ProofProfile {
 pub enum ProofExecutorMode {
     Prototype,
     DryRun,
+    Execute,
 }
 
 #[derive(Args, Debug, Clone, Default)]

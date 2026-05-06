@@ -30,6 +30,7 @@ const ENTRY_FIELDS: &[&str] = &[
     "artifact_path",
     "status",
     "skip_reason",
+    "exit_code",
 ];
 
 pub fn run(args: ProofArtifactsCheckArgs) -> Result<()> {
@@ -304,7 +305,7 @@ mod tests {
             ProofArtifactsReport {
                 selected: 1,
                 execution_status: "dry_run".to_string(),
-                guard_reason: "not_ci_and_no_--allow-ci-evidence-execution".to_string(),
+                guard_reason: "local_requires_--allow-local-evidence-execution".to_string(),
             }
         );
     }
@@ -353,7 +354,8 @@ mod tests {
             "ci": false,
             "ci_execution": "explicit_opt_in",
             "allow_ci_evidence_execution": false,
-            "reason": "not_ci_and_no_--allow-ci-evidence-execution"
+            "reason": "local_requires_--allow-local-evidence-execution",
+            "allow_local_evidence_execution": false
         });
         let entry = json!({
             "scope": "tokmd_core_ffi",
@@ -362,7 +364,8 @@ mod tests {
             "command": "cargo llvm-cov -p tokmd-core --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov",
             "artifact_path": "target/proof/coverage/tokmd_core_ffi.lcov",
             "status": "dry_run",
-            "skip_reason": "dry_run_only"
+            "skip_reason": "dry_run_only",
+            "exit_code": null
         });
         let summary = json!({
             "schema": SUMMARY_SCHEMA,
@@ -420,7 +423,8 @@ mod tests {
                 "command": "cargo llvm-cov -p tokmd-core --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov",
                 "artifact_path": "target/proof/coverage/tokmd_core_ffi.lcov",
                 "status": "dry_run",
-                "skip_reason": "dry_run_only"
+                "skip_reason": "dry_run_only",
+                "exit_code": null
             }],
             "unknown_files": []
         });

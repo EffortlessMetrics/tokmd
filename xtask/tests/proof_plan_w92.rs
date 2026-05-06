@@ -49,6 +49,10 @@ fn proof_help_mentions_profile_and_plan() {
         stdout.contains("--allow-ci-evidence-execution"),
         "stdout: {stdout}"
     );
+    assert!(
+        stdout.contains("--allow-local-evidence-execution"),
+        "stdout: {stdout}"
+    );
 }
 
 #[test]
@@ -171,6 +175,108 @@ fn proof_without_plan_refuses_to_execute() {
         stderr.contains("--plan") || stderr.contains("not implemented"),
         "stderr: {stderr}"
     );
+}
+
+#[test]
+fn proof_plan_refuses_execute_executor_mode() {
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--executor-mode",
+        "execute",
+    ]);
+
+    assert!(!success, "proof --plan --executor-mode execute should fail");
+    assert!(stderr.contains("--plan"), "stderr: {stderr}");
+    assert!(stderr.contains("execute"), "stderr: {stderr}");
+}
+
+#[test]
+fn local_execute_requires_explicit_local_opt_in() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("executor-summary.json");
+    let manifest_path = temp.path().join("executor-manifest.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+    let manifest_arg = manifest_path.to_string_lossy().to_string();
+
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--executor-mode",
+        "execute",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+
+    assert!(!success, "local execute should require explicit opt-in");
+    assert!(
+        stderr.contains("--allow-local-evidence-execution"),
+        "stderr: {stderr}"
+    );
+}
+
+#[test]
+fn local_execute_can_write_zero_command_executor_artifacts() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("executor-summary.json");
+    let manifest_path = temp.path().join("executor-manifest.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+    let manifest_arg = manifest_path.to_string_lossy().to_string();
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--executor-mode",
+        "execute",
+        "--allow-local-evidence-execution",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+
+    assert!(success, "local execute failed. stderr: {stderr}");
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof execute should still emit JSON plan");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let summary = fs::read_to_string(summary_path).expect("summary should be written");
+    let summary: serde_json::Value =
+        serde_json::from_str(&summary).expect("summary should be valid JSON");
+    assert_eq!(summary["mode"], "execute");
+    assert_eq!(summary["execution_status"], "executed");
+    assert_eq!(summary["execution_guard"]["enabled"], true);
+    assert_eq!(
+        summary["execution_guard"]["reason"],
+        "local_explicit_opt_in_enabled"
+    );
+    assert_eq!(summary["counts"]["executed"], 0);
+    assert_eq!(summary["counts"]["failed"], 0);
+
+    let manifest = fs::read_to_string(manifest_path).expect("manifest should be written");
+    let manifest: serde_json::Value =
+        serde_json::from_str(&manifest).expect("manifest should be valid JSON");
+    assert_eq!(manifest["mode"], "execute");
+    assert_eq!(manifest["selection"]["selected"], 0);
+    assert_eq!(manifest["selection"]["executed"], 0);
 }
 
 #[test]
@@ -350,7 +456,7 @@ fn proof_plan_writes_executor_summary_artifact() {
     );
     assert_eq!(
         summary["execution_guard"]["reason"],
-        "not_ci_and_no_--allow-ci-evidence-execution"
+        "local_requires_--allow-local-evidence-execution"
     );
     assert_eq!(summary["family"], "coverage");
     assert_eq!(summary["required"], false);
