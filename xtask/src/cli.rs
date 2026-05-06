@@ -113,6 +113,10 @@ pub struct ProofArgs {
     #[arg(long)]
     pub plan: bool,
 
+    /// Write a Markdown summary for the generated proof plan
+    #[arg(long, value_name = "PATH")]
+    pub summary_md: Option<std::path::PathBuf>,
+
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,

@@ -6,7 +6,9 @@ use crate::tasks::affected::{
 use anyhow::{Result, bail};
 use serde::Serialize;
 use std::cmp::Ordering;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::Path;
 
 #[derive(Debug, Serialize)]
 struct ProofPlanReport {
@@ -35,6 +37,9 @@ pub fn run(args: ProofArgs) -> Result<()> {
 
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
+    if let Some(path) = &args.summary_md {
+        write_markdown_summary(path, &report)?;
+    }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
     if report.ok {
@@ -225,6 +230,93 @@ fn dedupe_commands(commands: Vec<ProofPlanCommand>) -> Vec<ProofPlanCommand> {
     commands
 }
 
+fn write_markdown_summary(path: &Path, report: &ProofPlanReport) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, render_markdown_summary(report))?;
+    Ok(())
+}
+
+fn render_markdown_summary(report: &ProofPlanReport) -> String {
+    let mut out = String::new();
+
+    out.push_str("## Proof Plan Summary\n\n");
+    out.push_str("| Field | Value |\n");
+    out.push_str("| --- | --- |\n");
+    out.push_str(&format!("| Profile | `{}` |\n", escape_md(&report.profile)));
+    out.push_str(&format!("| Base | `{}` |\n", escape_md(&report.base)));
+    out.push_str(&format!("| Head | `{}` |\n", escape_md(&report.head)));
+    out.push_str(&format!("| OK | `{}` |\n", report.ok));
+    out.push_str(&format!(
+        "| Changed files | {} |\n",
+        report.changed_files.len()
+    ));
+    out.push_str(&format!(
+        "| Unknown files | {} |\n",
+        report.unknown_files.len()
+    ));
+    out.push_str(&format!("| Commands | {} |\n", report.commands.len()));
+    out.push('\n');
+    out.push_str(
+        "Required commands are the current proof selection. Advisory commands are planned evidence candidates and are not CI gates yet.\n\n",
+    );
+
+    if report.commands.is_empty() {
+        out.push_str("No proof commands planned.\n");
+    } else {
+        out.push_str("### Command Counts\n\n");
+        out.push_str("| Kind | Required | Count |\n");
+        out.push_str("| --- | --- | ---: |\n");
+        for ((kind, required), count) in command_counts(report) {
+            out.push_str(&format!(
+                "| `{}` | `{}` | {} |\n",
+                escape_md(&kind),
+                required,
+                count
+            ));
+        }
+
+        out.push_str("\n### Commands\n\n");
+        out.push_str("| Scope | Kind | Required | Command |\n");
+        out.push_str("| --- | --- | --- | --- |\n");
+        for command in &report.commands {
+            out.push_str(&format!(
+                "| `{}` | `{}` | `{}` | `{}` |\n",
+                escape_md(&command.scope),
+                escape_md(&command.kind),
+                command.required,
+                escape_md(&command.command)
+            ));
+        }
+    }
+
+    if !report.unknown_files.is_empty() {
+        out.push_str("\n### Unknown Files\n\n");
+        for file in &report.unknown_files {
+            out.push_str(&format!("- `{}`\n", escape_md(file)));
+        }
+    }
+
+    out
+}
+
+fn command_counts(report: &ProofPlanReport) -> BTreeMap<(String, bool), usize> {
+    let mut counts = BTreeMap::new();
+    for command in &report.commands {
+        *counts
+            .entry((command.kind.clone(), command.required))
+            .or_insert(0) += 1;
+    }
+    counts
+}
+
+fn escape_md(value: &str) -> String {
+    value.replace('|', "\\|").replace('\n', " ")
+}
+
 fn compare_commands(left: &ProofPlanCommand, right: &ProofPlanCommand) -> Ordering {
     left.scope
         .cmp(&right.scope)
@@ -306,7 +398,8 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::{
-        affected_commands, dedupe_commands, is_mutation_candidate, static_profile_commands,
+        ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
+        is_mutation_candidate, render_markdown_summary, static_profile_commands,
     };
     use crate::cli::ProofProfile;
     use crate::proof::policy::parse_policy_str;
@@ -414,6 +507,48 @@ coverage = "cargo-llvm-cov"
                 .iter()
                 .any(|cmd| cmd.command.contains("crates/tokmd-core/tests/ffi.rs"))
         );
+    }
+
+    #[test]
+    fn markdown_summary_marks_advisory_evidence_commands() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "proof".to_string(),
+                    required: true,
+                    command: "cargo test -p tokmd-core ffi".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd-core --all-features --lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "mutation".to_string(),
+                    required: false,
+                    command: "cargo mutants --file crates/tokmd-core/src/ffi.rs --timeout 300"
+                        .to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let summary = render_markdown_summary(&report);
+
+        assert!(summary.contains("Required commands are the current proof selection"));
+        assert!(summary.contains("| `proof` | `true` | 1 |"));
+        assert!(summary.contains("| `coverage` | `false` | 1 |"));
+        assert!(summary.contains("| `mutation` | `false` | 1 |"));
+        assert!(summary.contains("cargo mutants --file crates/tokmd-core/src/ffi.rs"));
     }
 
     #[test]
