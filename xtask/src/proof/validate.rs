@@ -31,12 +31,38 @@ pub fn validate_policy(policy: &ProofPolicy) -> Vec<PolicyViolation> {
         ));
     }
 
+    validate_executor(policy, &mut violations);
     validate_scopes(policy, &mut violations);
     validate_workspace_allowlists(&policy.allow.workspace_area, &mut violations);
     validate_fixture_blob_rules(&policy.forbid.fixture_blob, &mut violations);
     validate_dependency_boundaries(policy, &mut violations);
 
     violations
+}
+
+fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>) {
+    if let Some(family) = policy.executor.family.as_deref() {
+        if family.trim().is_empty() {
+            violations.push(PolicyViolation::new(
+                "executor.family",
+                "executor family must not be empty",
+            ));
+        } else if family != "coverage" {
+            violations.push(PolicyViolation::new(
+                "executor.family",
+                format!("unsupported executor family `{family}`; expected `coverage`"),
+            ));
+        }
+    }
+
+    if let Some(max_dry_run_commands) = policy.executor.max_dry_run_commands
+        && max_dry_run_commands == 0
+    {
+        violations.push(PolicyViolation::new(
+            "executor.max_dry_run_commands",
+            "executor dry-run command limit must be greater than zero",
+        ));
+    }
 }
 
 fn validate_scopes(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>) {
@@ -421,6 +447,70 @@ proof = ["cargo test -p tokmd-core"]
         ));
 
         assert!(messages.iter().any(|msg| msg.contains("invalid glob")));
+    }
+
+    #[test]
+    fn rejects_unsupported_executor_family() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "mutation"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.family"
+                && violation
+                    .message
+                    .contains("unsupported executor family `mutation`")
+        }));
+    }
+
+    #[test]
+    fn rejects_empty_executor_family() {
+        let messages = messages_for(&policy_with(
+            r#"
+[executor]
+family = " "
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+"#,
+        ));
+
+        assert!(
+            messages
+                .iter()
+                .any(|msg| msg.contains("executor family must not be empty"))
+        );
+    }
+
+    #[test]
+    fn rejects_zero_executor_dry_run_limit() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 0
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.max_dry_run_commands"
+                && violation
+                    .message
+                    .contains("executor dry-run command limit must be greater than zero")
+        }));
     }
 
     #[test]

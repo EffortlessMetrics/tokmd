@@ -10,6 +10,11 @@ rust = "stable"
 coverage = "cargo-llvm-cov"
 javascript = "npm"
 
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
 [[scope]]
 name = "proof_control_plane"
 kind = "rust"

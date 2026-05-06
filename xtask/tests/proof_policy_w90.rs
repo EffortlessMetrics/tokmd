@@ -82,6 +82,18 @@ fn proof_policy_includes_analysis_and_format_module_scopes() {
 }
 
 #[test]
+fn proof_policy_declares_coverage_executor_promotion_rule() {
+    let value = repo_policy();
+    let executor = value["executor"]
+        .as_table()
+        .expect("repo policy should expose executor policy");
+
+    assert_eq!(executor["family"].as_str(), Some("coverage"));
+    assert_eq!(executor["ci_execution"].as_str(), Some("explicit_opt_in"));
+    assert_eq!(executor["max_dry_run_commands"].as_integer(), Some(1));
+}
+
+#[test]
 fn proof_policy_json_reports_current_schema() {
     let (stdout, stderr, success) = run_xtask(&["proof-policy", "--json"]);
 

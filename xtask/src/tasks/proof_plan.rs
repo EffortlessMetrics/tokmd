@@ -1,5 +1,5 @@
 use crate::cli::{ProofArgs, ProofExecutorMode, ProofProfile};
-use crate::proof::policy_ast::ProofPolicy;
+use crate::proof::policy_ast::{CiExecution, ProofPolicy};
 use crate::tasks::affected::{
     AffectedReport, AffectedScope, affected_report, changed_files, load_checked_policy,
 };
@@ -115,11 +115,19 @@ struct ProofExecutorEntry {
     skip_reason: String,
 }
 
+#[derive(Debug, Clone)]
+struct ProofExecutorConfig {
+    family: String,
+    ci_execution: CiExecution,
+    max_dry_run_commands: usize,
+}
+
 #[derive(Debug, Clone, Serialize)]
 struct ProofExecutorExecutionGuard {
     required: bool,
     enabled: bool,
     ci: bool,
+    ci_execution: String,
     allow_ci_evidence_execution: bool,
     reason: String,
 }
@@ -131,11 +139,13 @@ pub fn run(args: ProofArgs) -> Result<()> {
 
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
+    let executor_config = proof_executor_config(&policy);
     let executor_summary = args.executor_summary.as_ref().map(|_| {
         proof_executor_summary(
             &report,
             args.executor_mode,
-            proof_executor_execution_guard(args.allow_ci_evidence_execution),
+            proof_executor_execution_guard(args.allow_ci_evidence_execution, &executor_config),
+            &executor_config,
         )
     });
     if let Some(path) = &args.summary_md {
@@ -452,8 +462,9 @@ fn proof_executor_summary(
     report: &ProofPlanReport,
     mode: ProofExecutorMode,
     execution_guard: ProofExecutorExecutionGuard,
+    config: &ProofExecutorConfig,
 ) -> ProofExecutorSummary {
-    let family = "coverage";
+    let family = config.family.as_str();
     let family_commands = report
         .commands
         .iter()
@@ -464,7 +475,8 @@ fn proof_executor_summary(
         .copied()
         .filter(|command| !command.required)
         .collect::<Vec<_>>();
-    let selected_commands = selected_executor_commands(&selectable_commands, mode);
+    let selected_commands =
+        selected_executor_commands(&selectable_commands, mode, config.max_dry_run_commands);
     let entries = selected_commands
         .iter()
         .map(|command| executor_entry(command, mode))
@@ -512,10 +524,31 @@ fn proof_executor_summary(
     }
 }
 
+fn proof_executor_config(policy: &ProofPolicy) -> ProofExecutorConfig {
+    ProofExecutorConfig {
+        family: policy
+            .executor
+            .family
+            .clone()
+            .unwrap_or_else(|| "coverage".to_string()),
+        ci_execution: policy
+            .executor
+            .ci_execution
+            .clone()
+            .unwrap_or(CiExecution::ExplicitOptIn),
+        max_dry_run_commands: policy.executor.max_dry_run_commands.unwrap_or(1),
+    }
+}
+
 fn proof_executor_execution_guard(
     allow_ci_evidence_execution: bool,
+    config: &ProofExecutorConfig,
 ) -> ProofExecutorExecutionGuard {
-    proof_executor_execution_guard_for(ci_env_enabled(), allow_ci_evidence_execution)
+    proof_executor_execution_guard_for(
+        ci_env_enabled(),
+        allow_ci_evidence_execution,
+        &config.ci_execution,
+    )
 }
 
 fn ci_env_enabled() -> bool {
@@ -527,19 +560,26 @@ fn ci_env_enabled() -> bool {
 fn proof_executor_execution_guard_for(
     ci: bool,
     allow_ci_evidence_execution: bool,
+    ci_execution: &CiExecution,
 ) -> ProofExecutorExecutionGuard {
-    let enabled = ci && allow_ci_evidence_execution;
-    let reason = match (ci, allow_ci_evidence_execution) {
-        (true, true) => "ci_explicit_opt_in_enabled",
-        (true, false) => "ci_requires_--allow-ci-evidence-execution",
-        (false, true) => "not_ci_execution_context",
-        (false, false) => "not_ci_and_no_--allow-ci-evidence-execution",
+    let (enabled, reason, ci_execution_name) = match ci_execution {
+        CiExecution::ExplicitOptIn => {
+            let enabled = ci && allow_ci_evidence_execution;
+            let reason = match (ci, allow_ci_evidence_execution) {
+                (true, true) => "ci_explicit_opt_in_enabled",
+                (true, false) => "ci_requires_--allow-ci-evidence-execution",
+                (false, true) => "not_ci_execution_context",
+                (false, false) => "not_ci_and_no_--allow-ci-evidence-execution",
+            };
+            (enabled, reason, "explicit_opt_in")
+        }
     };
 
     ProofExecutorExecutionGuard {
         required: true,
         enabled,
         ci,
+        ci_execution: ci_execution_name.to_string(),
         allow_ci_evidence_execution,
         reason: reason.to_string(),
     }
@@ -548,10 +588,15 @@ fn proof_executor_execution_guard_for(
 fn selected_executor_commands<'a>(
     commands: &'a [&'a ProofPlanCommand],
     mode: ProofExecutorMode,
+    max_dry_run_commands: usize,
 ) -> Vec<&'a ProofPlanCommand> {
     match mode {
         ProofExecutorMode::Prototype => commands.to_vec(),
-        ProofExecutorMode::DryRun => commands.first().copied().into_iter().collect(),
+        ProofExecutorMode::DryRun => commands
+            .iter()
+            .take(max_dry_run_commands)
+            .copied()
+            .collect(),
     }
 }
 
@@ -684,6 +729,10 @@ fn render_markdown_summary(
         ));
         out.push_str(&format!("| CI | `{}` |\n", summary.execution_guard.ci));
         out.push_str(&format!(
+            "| CI execution policy | `{}` |\n",
+            escape_md(&summary.execution_guard.ci_execution)
+        ));
+        out.push_str(&format!(
             "| CI opt-in flag | `{}` |\n",
             summary.execution_guard.allow_ci_evidence_execution
         ));
@@ -802,13 +851,32 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::{
-        ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
+        ProofExecutorConfig, ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
         is_mutation_candidate, proof_evidence_plan, proof_executor_execution_guard_for,
         proof_executor_summary, render_markdown_summary, static_profile_commands,
     };
     use crate::cli::{ProofExecutorMode, ProofProfile};
     use crate::proof::policy::parse_policy_str;
     use crate::tasks::affected::{AffectedReport, AffectedScope};
+
+    fn coverage_executor_config(max_dry_run_commands: usize) -> ProofExecutorConfig {
+        ProofExecutorConfig {
+            family: "coverage".to_string(),
+            ci_execution: crate::proof::policy_ast::CiExecution::ExplicitOptIn,
+            max_dry_run_commands,
+        }
+    }
+
+    fn explicit_opt_in_guard_for(
+        ci: bool,
+        allow_ci_evidence_execution: bool,
+    ) -> super::ProofExecutorExecutionGuard {
+        proof_executor_execution_guard_for(
+            ci,
+            allow_ci_evidence_execution,
+            &crate::proof::policy_ast::CiExecution::ExplicitOptIn,
+        )
+    }
 
     #[test]
     fn static_profiles_have_deterministic_commands() {
@@ -976,7 +1044,8 @@ coverage = "cargo-llvm-cov"
         let executor_summary = proof_executor_summary(
             &report,
             ProofExecutorMode::DryRun,
-            proof_executor_execution_guard_for(true, false),
+            explicit_opt_in_guard_for(true, false),
+            &coverage_executor_config(1),
         );
 
         let summary = render_markdown_summary(&report, Some(&executor_summary));
@@ -985,6 +1054,7 @@ coverage = "cargo-llvm-cov"
         assert!(summary.contains("| Mode | `dry_run` |"));
         assert!(summary.contains("| Guard enabled | `false` |"));
         assert!(summary.contains("| CI | `true` |"));
+        assert!(summary.contains("| CI execution policy | `explicit_opt_in` |"));
         assert!(summary.contains("ci_requires_--allow-ci-evidence-execution"));
         assert!(summary.contains("| Selected commands | 1 |"));
         assert!(summary.contains("| Executed commands | 0 |"));
@@ -1088,7 +1158,8 @@ coverage = "cargo-llvm-cov"
         let summary = proof_executor_summary(
             &report,
             ProofExecutorMode::Prototype,
-            proof_executor_execution_guard_for(false, false),
+            explicit_opt_in_guard_for(false, false),
+            &coverage_executor_config(1),
         );
 
         assert_eq!(summary.schema, "tokmd.proof_executor_summary.v1");
@@ -1098,6 +1169,7 @@ coverage = "cargo-llvm-cov"
         assert!(summary.execution_guard.required);
         assert!(!summary.execution_guard.enabled);
         assert!(!summary.execution_guard.ci);
+        assert_eq!(summary.execution_guard.ci_execution, "explicit_opt_in");
         assert!(!summary.execution_guard.allow_ci_evidence_execution);
         assert_eq!(
             summary.execution_guard.reason,
@@ -1164,7 +1236,8 @@ coverage = "cargo-llvm-cov"
         let summary = proof_executor_summary(
             &report,
             ProofExecutorMode::DryRun,
-            proof_executor_execution_guard_for(true, false),
+            explicit_opt_in_guard_for(true, false),
+            &coverage_executor_config(1),
         );
 
         assert_eq!(summary.mode, "dry_run");
@@ -1173,6 +1246,7 @@ coverage = "cargo-llvm-cov"
         assert!(summary.execution_guard.required);
         assert!(!summary.execution_guard.enabled);
         assert!(summary.execution_guard.ci);
+        assert_eq!(summary.execution_guard.ci_execution, "explicit_opt_in");
         assert!(!summary.execution_guard.allow_ci_evidence_execution);
         assert_eq!(
             summary.execution_guard.reason,
@@ -1191,27 +1265,67 @@ coverage = "cargo-llvm-cov"
     }
 
     #[test]
+    fn dry_run_executor_summary_respects_policy_selection_limit() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_cli".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd --all-features --lcov --output-path target/proof/coverage/tokmd_cli.lcov".to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let summary = proof_executor_summary(
+            &report,
+            ProofExecutorMode::DryRun,
+            explicit_opt_in_guard_for(true, false),
+            &coverage_executor_config(2),
+        );
+
+        assert_eq!(summary.counts.family_planned, 2);
+        assert_eq!(summary.counts.selected, 2);
+        assert_eq!(summary.counts.selection_excluded, 0);
+        assert_eq!(summary.entries.len(), 2);
+    }
+
+    #[test]
     fn executor_execution_guard_requires_ci_and_explicit_flag() {
-        let local_default = proof_executor_execution_guard_for(false, false);
+        let local_default = explicit_opt_in_guard_for(false, false);
         assert!(local_default.required);
         assert!(!local_default.enabled);
+        assert_eq!(local_default.ci_execution, "explicit_opt_in");
         assert_eq!(
             local_default.reason,
             "not_ci_and_no_--allow-ci-evidence-execution"
         );
 
-        let ci_without_flag = proof_executor_execution_guard_for(true, false);
+        let ci_without_flag = explicit_opt_in_guard_for(true, false);
         assert!(!ci_without_flag.enabled);
         assert_eq!(
             ci_without_flag.reason,
             "ci_requires_--allow-ci-evidence-execution"
         );
 
-        let local_with_flag = proof_executor_execution_guard_for(false, true);
+        let local_with_flag = explicit_opt_in_guard_for(false, true);
         assert!(!local_with_flag.enabled);
         assert_eq!(local_with_flag.reason, "not_ci_execution_context");
 
-        let ci_with_flag = proof_executor_execution_guard_for(true, true);
+        let ci_with_flag = explicit_opt_in_guard_for(true, true);
         assert!(ci_with_flag.enabled);
         assert_eq!(ci_with_flag.reason, "ci_explicit_opt_in_enabled");
     }

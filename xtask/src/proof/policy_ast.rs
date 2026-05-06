@@ -15,6 +15,9 @@ pub struct ProofPolicy {
     pub tools: Tools,
 
     #[serde(default)]
+    pub executor: Executor,
+
+    #[serde(default)]
     pub scope: Vec<Scope>,
 
     #[serde(default)]
@@ -41,6 +44,20 @@ pub struct Tools {
     pub rust: Option<String>,
     pub coverage: Option<String>,
     pub javascript: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Executor {
+    pub family: Option<String>,
+    pub ci_execution: Option<CiExecution>,
+    pub max_dry_run_commands: Option<usize>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum CiExecution {
+    ExplicitOptIn,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
