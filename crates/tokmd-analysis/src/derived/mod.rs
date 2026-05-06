@@ -316,28 +316,28 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall = empty_file_row();
     }
 
-    let mut by_lang: BTreeMap<String, FileStatRow> = BTreeMap::new();
-    let mut by_module: BTreeMap<String, FileStatRow> = BTreeMap::new();
+    let mut by_lang: BTreeMap<&str, &FileStatRow> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, &FileStatRow> = BTreeMap::new();
 
     for row in rows {
-        if let Some(existing) = by_lang.get_mut(&row.lang) {
+        if let Some(existing) = by_lang.get_mut(row.lang.as_str()) {
             if row.lines > existing.lines
                 || (row.lines == existing.lines && row.path < existing.path)
             {
-                *existing = row.clone();
+                *existing = row;
             }
         } else {
-            by_lang.insert(row.lang.clone(), row.clone());
+            by_lang.insert(row.lang.as_str(), row);
         }
 
-        if let Some(existing) = by_module.get_mut(&row.module) {
+        if let Some(existing) = by_module.get_mut(row.module.as_str()) {
             if row.lines > existing.lines
                 || (row.lines == existing.lines && row.path < existing.path)
             {
-                *existing = row.clone();
+                *existing = row;
             }
         } else {
-            by_module.insert(row.module.clone(), row.clone());
+            by_module.insert(row.module.as_str(), row);
         }
     }
 
@@ -345,30 +345,36 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall,
         by_lang: by_lang
             .into_iter()
-            .map(|(key, file)| MaxFileRow { key, file })
+            .map(|(key, file)| MaxFileRow {
+                key: key.to_string(),
+                file: file.clone(),
+            })
             .collect(),
         by_module: by_module
             .into_iter()
-            .map(|(key, file)| MaxFileRow { key, file })
+            .map(|(key, file)| MaxFileRow {
+                key: key.to_string(),
+                file: file.clone(),
+            })
             .collect(),
     }
 }
 
 fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
-    let mut by_module: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, BTreeMap<&str, usize>> = BTreeMap::new();
 
     for row in rows {
-        let entry = if let Some(existing) = by_module.get_mut(&row.module) {
+        let entry = if let Some(existing) = by_module.get_mut(row.module.as_str()) {
             existing
         } else {
-            by_module.insert(row.module.clone(), BTreeMap::new());
-            by_module.get_mut(&row.module).unwrap()
+            by_module.insert(row.module.as_str(), BTreeMap::new());
+            by_module.get_mut(row.module.as_str()).unwrap()
         };
 
-        if let Some(val) = entry.get_mut(&row.lang) {
+        if let Some(val) = entry.get_mut(row.lang.as_str()) {
             *val += row.lines;
         } else {
-            entry.insert(row.lang.clone(), row.lines);
+            entry.insert(row.lang.as_str(), row.lines);
         }
     }
 
@@ -377,13 +383,13 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
         let mut total = 0usize;
         let mut dominant_lang: Option<&str> = None;
         let mut dominant_lines = 0usize;
-        for (lang, lines) in &langs {
+        for (&lang, lines) in &langs {
             total += *lines;
             if *lines > dominant_lines
-                || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
+                || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang < d))
             {
                 dominant_lines = *lines;
-                dominant_lang = Some(lang.as_str());
+                dominant_lang = Some(lang);
             }
         }
         let pct = if total == 0 {
@@ -392,7 +398,7 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
             safe_ratio(dominant_lines, total)
         };
         out.push(LangPurityRow {
-            module,
+            module: module.to_string(),
             lang_count: langs.len(),
             dominant_lang: dominant_lang.unwrap_or_default().to_string(),
             dominant_lines,
@@ -415,15 +421,15 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
 
     let mut total_depth = 0usize;
     let mut max_depth = 0usize;
-    let mut by_module: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
 
     for row in rows {
         total_depth += row.depth;
         max_depth = max_depth.max(row.depth);
-        if let Some(existing) = by_module.get_mut(&row.module) {
+        if let Some(existing) = by_module.get_mut(row.module.as_str()) {
             existing.push(row.depth);
         } else {
-            by_module.insert(row.module.clone(), vec![row.depth]);
+            by_module.insert(row.module.as_str(), vec![row.depth]);
         }
     }
 
@@ -439,7 +445,7 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
             round_f64(sum as f64 / depths.len() as f64, 2)
         };
         module_rows.push(NestingRow {
-            key: module,
+            key: module.to_string(),
             max,
             avg,
         });
@@ -487,13 +493,13 @@ fn build_test_density_report(rows: &[&FileRow]) -> TestDensityReport {
 fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
     let mut infra_lines = 0usize;
     let mut logic_lines = 0usize;
-    let mut infra_langs: BTreeSet<String> = BTreeSet::new();
+    let mut infra_langs: BTreeSet<&str> = BTreeSet::new();
 
     for row in rows {
         if is_infra_lang(&row.lang) {
             infra_lines += row.lines;
-            if !infra_langs.contains(&row.lang) {
-                infra_langs.insert(row.lang.clone());
+            if !infra_langs.contains(row.lang.as_str()) {
+                infra_langs.insert(row.lang.as_str());
             }
         } else {
             logic_lines += row.lines;
@@ -511,19 +517,19 @@ fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
         infra_lines,
         logic_lines,
         ratio,
-        infra_langs: infra_langs.into_iter().collect(),
+        infra_langs: infra_langs.into_iter().map(String::from).collect(),
     }
 }
 
 fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
-    let mut by_lang: BTreeMap<String, usize> = BTreeMap::new();
+    let mut by_lang: BTreeMap<&str, usize> = BTreeMap::new();
     let mut total = 0usize;
 
     for row in rows {
-        if let Some(val) = by_lang.get_mut(&row.lang) {
+        if let Some(val) = by_lang.get_mut(row.lang.as_str()) {
             *val += row.code;
         } else {
-            by_lang.insert(row.lang.clone(), row.code);
+            by_lang.insert(row.lang.as_str(), row.code);
         }
         total += row.code;
     }
@@ -532,12 +538,12 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     let mut dominant_lang: Option<&str> = None;
     let mut dominant_lines = 0usize;
 
-    for (lang, lines) in &by_lang {
+    for (&lang, lines) in &by_lang {
         if *lines > dominant_lines
-            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
+            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang < d))
         {
             dominant_lines = *lines;
-            dominant_lang = Some(lang.as_str());
+            dominant_lang = Some(lang);
         }
         if total > 0 && *lines > 0 {
             let p = *lines as f64 / total as f64;
@@ -649,20 +655,17 @@ pub fn build_tree(export: &ExportData) -> String {
 }
 
 fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
-    let mut by_lines = rows.to_vec();
+    let mut by_lines: Vec<&FileStatRow> = rows.iter().collect();
     by_lines.sort_by(|a, b| b.lines.cmp(&a.lines).then_with(|| a.path.cmp(&b.path)));
 
-    let mut by_tokens = rows.to_vec();
+    let mut by_tokens: Vec<&FileStatRow> = rows.iter().collect();
     by_tokens.sort_by(|a, b| b.tokens.cmp(&a.tokens).then_with(|| a.path.cmp(&b.path)));
 
-    let mut by_bytes = rows.to_vec();
+    let mut by_bytes: Vec<&FileStatRow> = rows.iter().collect();
     by_bytes.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.path.cmp(&b.path)));
 
-    let mut least_doc: Vec<FileStatRow> = rows
-        .iter()
-        .filter(|r| r.lines >= MIN_DOC_LINES)
-        .cloned()
-        .collect();
+    let mut least_doc: Vec<&FileStatRow> =
+        rows.iter().filter(|r| r.lines >= MIN_DOC_LINES).collect();
     least_doc.sort_by(|a, b| {
         let a_doc = a.doc_pct.unwrap_or(0.0);
         let b_doc = b.doc_pct.unwrap_or(0.0);
@@ -673,11 +676,7 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
             .then_with(|| a.path.cmp(&b.path))
     });
 
-    let mut dense: Vec<FileStatRow> = rows
-        .iter()
-        .filter(|r| r.lines >= MIN_DENSE_LINES)
-        .cloned()
-        .collect();
+    let mut dense: Vec<&FileStatRow> = rows.iter().filter(|r| r.lines >= MIN_DENSE_LINES).collect();
     dense.sort_by(|a, b| {
         let a_rate = a.bytes_per_line.unwrap_or(0.0);
         let b_rate = b.bytes_per_line.unwrap_or(0.0);
@@ -688,11 +687,11 @@ fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
     });
 
     TopOffenders {
-        largest_lines: by_lines.into_iter().take(TOP_N).collect(),
-        largest_tokens: by_tokens.into_iter().take(TOP_N).collect(),
-        largest_bytes: by_bytes.into_iter().take(TOP_N).collect(),
-        least_documented: least_doc.into_iter().take(TOP_N).collect(),
-        most_dense: dense.into_iter().take(TOP_N).collect(),
+        largest_lines: by_lines.into_iter().take(TOP_N).cloned().collect(),
+        largest_tokens: by_tokens.into_iter().take(TOP_N).cloned().collect(),
+        largest_bytes: by_bytes.into_iter().take(TOP_N).cloned().collect(),
+        least_documented: least_doc.into_iter().take(TOP_N).cloned().collect(),
+        most_dense: dense.into_iter().take(TOP_N).cloned().collect(),
     }
 }
 
@@ -736,10 +735,7 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
     if a_bytes.len() == b_bytes.len() {
         // Identical paths. Compare numbers.
         // We must emulate string sort of "bytes:lines".
-        // Format them to ensure correct string sort order.
-        let a_str = format!("{}:{}", a.bytes, a.lines);
-        let b_str = format!("{}:{}", b.bytes, b.lines);
-        return a_str.cmp(&b_str);
+        return compare_usize_pair_ascii(a.bytes, a.lines, b.bytes, b.lines);
     }
 
     // One is shorter.
@@ -757,6 +753,49 @@ fn compare_integrity_rows(a: &FileRow, b: &FileRow) -> std::cmp::Ordering {
         // Compare a[min_len] vs ':'
         a_bytes[min_len].cmp(&b':')
     }
+}
+
+fn compare_usize_pair_ascii(
+    a_bytes: usize,
+    a_lines: usize,
+    b_bytes: usize,
+    b_lines: usize,
+) -> std::cmp::Ordering {
+    let mut a_buf = [0_u8; 64];
+    let mut b_buf = [0_u8; 64];
+    let a_len = write_usize_pair_ascii(&mut a_buf, a_bytes, a_lines);
+    let b_len = write_usize_pair_ascii(&mut b_buf, b_bytes, b_lines);
+    a_buf[..a_len].cmp(&b_buf[..b_len])
+}
+
+fn write_usize_pair_ascii(buf: &mut [u8; 64], bytes: usize, lines: usize) -> usize {
+    let mut len = write_usize_ascii(&mut buf[..], bytes);
+    buf[len] = b':';
+    len += 1;
+    len + write_usize_ascii(&mut buf[len..], lines)
+}
+
+fn write_usize_ascii(buf: &mut [u8], value: usize) -> usize {
+    if value == 0 {
+        buf[0] = b'0';
+        return 1;
+    }
+
+    let mut digits = 0;
+    let mut n = value;
+    while n > 0 {
+        digits += 1;
+        n /= 10;
+    }
+
+    debug_assert!(digits <= buf.len());
+
+    let mut n = value;
+    for idx in (0..digits).rev() {
+        buf[idx] = b'0' + (n % 10) as u8;
+        n /= 10;
+    }
+    digits
 }
 
 #[cfg(test)]
@@ -791,6 +830,10 @@ mod unit_tests {
             ("foo", 10, 10, "foo.bar", 10, 10),
             ("foo.bar", 10, 10, "foo", 10, 10),
             ("foo", 10, 10, "foo_bar", 10, 10),
+            ("a", usize::MAX, 0, "a", 9, usize::MAX),
+            ("a", 0, usize::MAX, "a", 0, 9),
+            ("a", 999, 0, "a", 1000, 0),
+            ("a", 10, 2, "a", 10, 10),
         ];
 
         for (p1, b1, l1, p2, b2, l2) in cases {
