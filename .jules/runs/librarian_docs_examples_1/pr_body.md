@@ -1,49 +1,40 @@
 ## 💡 Summary
-Added a missing test to `xtask/tests/docs_w43.rs` to ensure `CONTEXT_BUNDLE_SCHEMA_VERSION` in `crates/tokmd-types/src/lib.rs` matches `docs/SCHEMA.md`. This closes a test coverage gap where all other schema versions were verified for docs drift except this one.
+This run intended to fix a missing schema drift test for `CONTEXT_BUNDLE_SCHEMA_VERSION` in `xtask/tests/docs_w43.rs`, but the patch was superseded by #1604 on main. Created a learning PR to document the redundant execution friction.
 
 ## 🎯 Why
-`xtask/tests/docs_w43.rs` checks for schema documentation sync. It tests `SCHEMA_VERSION`, `ANALYSIS_SCHEMA_VERSION`, `COCKPIT_SCHEMA_VERSION`, `CONTEXT_SCHEMA_VERSION`, and `HANDOFF_SCHEMA_VERSION`, but it completely missed `CONTEXT_BUNDLE_SCHEMA_VERSION` which is also documented in `docs/SCHEMA.md`. This omission could lead to silent documentation drift if the context bundle schema version is updated.
+The run identified a gap in `xtask/tests/docs_w43.rs` where `CONTEXT_BUNDLE_SCHEMA_VERSION` was not being verified against `docs/SCHEMA.md`. However, this exact fix was already merged in #1604. To avoid redundant work and conflicts, the run was aborted and converted into a learning PR.
 
 ## 🔎 Evidence
 - Path: `xtask/tests/docs_w43.rs`
-- Finding: Missing test `schema_md_context_bundle_version_matches_source`
-- Receipt: `cargo test -p xtask` passes after adding the test.
+- Finding: Missing test `schema_md_context_bundle_version_matches_source` was superseded by PR #1604.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Add a test `schema_md_context_bundle_version_matches_source` to `xtask/tests/docs_w43.rs`.
-- Why it fits: It closes a gap in documentation drift prevention, aligning with the Librarian persona.
-- Trade-offs:
-  - Structure: Improves test suite structural completeness.
-  - Velocity: Negligible test execution cost.
-  - Governance: Strengthens the anti-drift gating.
+### Option A
+- Attempt to patch `xtask/tests/docs_w43.rs` anyway.
+- Trade-offs: Results in a redundant PR and potential conflicts.
 
-### Option B
-- Document the gap as a learning PR.
-- When to choose it: If we cannot easily write the test.
-- Trade-offs: Leaves a clear gap in documentation verification.
+### Option B (recommended)
+- Abort the fix and generate a learning PR documenting the friction.
+- Why it fits: Aligns with instructions to gracefully abort redundant fixes and capture the workflow edge case.
+- Trade-offs: No code changed, but systemic friction is recorded.
 
 ## ✅ Decision
-Option A was chosen. Adding this executable test directly serves the Librarian persona`s mission to improve executable coverage to prevent silent doc drift.
+Option B was chosen. The intended fix was aborted, and a friction item was recorded.
 
 ## 🧱 Changes made (SRP)
-- `xtask/tests/docs_w43.rs`: Added `schema_md_context_bundle_version_matches_source` test.
+- None (Code patch aborted)
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test -p xtask
-...
-test schema_md_context_bundle_version_matches_source ... ok
-...
-test result: ok.
+Intended fix aborted due to supersedence by #1604.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test addition
-- Blast radius: Testing (No production code changes)
-- Risk class: Low - Test only
-- Rollback: Revert the commit touching `xtask/tests/docs_w43.rs`.
-- Gates run: cargo test -p xtask, cargo check, cargo fmt, cargo clippy, cargo xtask docs --check
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class: Low
+- Rollback: None
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples_1/envelope.json`
@@ -51,6 +42,7 @@ test result: ok.
 - `.jules/runs/librarian_docs_examples_1/receipts.jsonl`
 - `.jules/runs/librarian_docs_examples_1/result.json`
 - `.jules/runs/librarian_docs_examples_1/pr_body.md`
+- `.jules/friction/open/FRIC-20250430-001.md`
 
 ## 🔜 Follow-ups
-None.
+See friction item FRIC-20250430-001.

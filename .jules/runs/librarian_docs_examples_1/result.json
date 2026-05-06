@@ -1,20 +1,16 @@
 {
-  "outcome_type": "patch",
-  "title": "librarian: add missing docs drift test for CONTEXT_BUNDLE_SCHEMA_VERSION \ud83d\udcda",
-  "summary": "Added a missing test to `xtask/tests/docs_w43.rs` to ensure `CONTEXT_BUNDLE_SCHEMA_VERSION` in `crates/tokmd-types/src/lib.rs` matches `docs/SCHEMA.md`. This closes a test coverage gap where all other schema versions were verified for docs drift except this one.",
+  "outcome_type": "learning_pr",
+  "title": "jules: record librarian learning on schema test supersedence \ud83d\udcda",
+  "summary": "This run intended to fix a missing schema drift test for `CONTEXT_BUNDLE_SCHEMA_VERSION` in `xtask/tests/docs_w43.rs`, but the patch was superseded by #1604 on main. Created a learning PR to document the redundant execution friction.",
   "target_paths": [
     "xtask/tests/docs_w43.rs"
   ],
-  "proof_summary": "Added the executable test and verified it passes, ensuring future drift of `CONTEXT_BUNDLE_SCHEMA_VERSION` will be caught.",
-  "gates_run": [
-    "cargo test -p xtask",
-    "cargo check",
-    "cargo fmt",
-    "cargo clippy",
-    "cargo xtask docs --check"
+  "proof_summary": "Intended fix was aborted due to supersedence (#1604).",
+  "gates_run": [],
+  "friction_items_created": [
+    ".jules/friction/open/FRIC-20250430-001.md"
   ],
-  "friction_items_created": [],
   "persona_notes_created": [],
-  "rollback": "Revert the commit touching `xtask/tests/docs_w43.rs`.",
+  "rollback": "None",
   "follow_ups": []
 }

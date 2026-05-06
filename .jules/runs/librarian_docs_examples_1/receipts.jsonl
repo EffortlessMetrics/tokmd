@@ -1,6 +1,2 @@
 {"cmd":"grep -rn \"CONTEXT_BUNDLE_SCHEMA_VERSION\" crates/","status":"success"}
-{"cmd":"cargo test -p xtask","status":"success","summary":"All 148 tests passed after injecting missing schema test."}
-{"cmd":"cargo check","status":"success"}
-{"cmd":"cargo fmt -- --check","status":"success"}
-{"cmd":"cargo clippy -- -D warnings","status":"success"}
-{"cmd":"cargo xtask docs --check","status":"success"}
+{"cmd":"Superseded by #1604 on main","status":"aborted","summary":"Intended fix already merged"}
