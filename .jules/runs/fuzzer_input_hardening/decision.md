@@ -1,9 +1,9 @@
 # Decision
 
-## Option A: Add Corpus Seeds for Existing Targets (Recommended)
-Add corpus directories for `fuzz_scan_args` and `fuzz_toml_config`. This is a low-risk proof-improvement that supports the fuzz targets. However, `cargo-fuzz` is not available, so we will not be able to run these targets.
+## Option A: Gracefully abort the original patch (Recommended)
+Abort the original fix and create a new friction item documenting the workflow edge case of a superseded PR. This prevents duplicate work and correctly logs the collision.
 
-## Option B: Document friction regarding `cargo-fuzz`
-Since `cargo-fuzz` is unavailable and fails to run (as expected based on memory/knowledge), we document this as a friction item.
+## Option B: Ignore the comment and force the original patch
+Attempt to push the original patch anyway. This is highly likely to result in merge conflicts and maintainer frustration, and is not recommended.
 
-**Decision:** We will combine these approaches by initializing corpus directories to make future fuzzing easier, and documenting the missing `cargo-fuzz` tool as a friction item, leading to a learning PR.
+**Decision:** Option A was chosen. I gracefully aborted the redundant fix as it was superseded by #1606 and created a new friction item to document the workflow edge case.

@@ -1,38 +1,33 @@
 ## 💡 Summary
-Created a learning PR because `cargo-fuzz` is unavailable in the environment, blocking the execution of fuzz targets. Documented the friction and successfully executed the fallback deterministic test suites to prove baseline health.
+Created a learning PR because the intended fuzz-toolchain friction log was superseded by #1606. This PR documents the workflow edge case of encountering a superseded fix during execution.
 
 ## 🎯 Why
-The Fuzzer persona is tasked with improving fuzzability or input hardening around parser/input surfaces. However, running `cargo fuzz run` fails due to the tool not being installed. Documenting this friction ensures future runs can immediately begin seeding and executing targets. As instructed by the persona profile, deterministic fallback tests were executed to prove baseline invariants in the absence of fuzz tooling.
+During the execution of this prompt, it was discovered via PR comments that the useful fuzz-toolchain blocker had already been consolidated into the current `.jules` friction rollup by PR #1606. To avoid redundant or conflicting patches, the original work was aborted and a new friction item was created to document this workflow edge case.
 
 ## 🔎 Evidence
-- Attempted to run `cargo fuzz run || true`.
-- Observed failure: `error: no such command: fuzz`.
-- Verified deterministic fallbacks pass successfully.
+- PR Comment from maintainer: "Superseded by #1606, which consolidated the useful fuzz-toolchain blocker into the current .jules friction rollup without carrying raw run packets."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Document the environment friction.
-- Run deterministic fallback tests to fulfill persona fallback instruction.
-- This fits the repo and shard by making incremental progress on fuzzability without forcing a fake fix.
-- Trade-offs: Structure is improved, but no new fuzz coverage is proven today.
+- Gracefully abort the original patch.
+- Create a new friction item documenting the workflow edge case of a superseded PR.
+- This fits the repo and shard by preventing duplicate work and recording the collision.
+- Trade-offs: No new code changes are landed, but workflow hygiene is maintained.
 
 ### Option B
-- Attempt to install nightly Rust and `cargo-fuzz` dynamically.
-- When to choose it: If the environment permits long-running toolchain installations.
-- Trade-offs: High risk of timeouts, network failures, and disk space exhaustion.
+- Ignore the comment and force the original patch.
+- When to choose it: Only if the prior PR was reverted or incorrect.
+- Trade-offs: High risk of merge conflicts and maintainer frustration.
 
 ## ✅ Decision
-Option A was chosen. I documented the missing `cargo-fuzz` tooling as a friction item, and executed the required deterministic tests as fallback proof.
+Option A was chosen. I aborted the redundant fix and created a new friction item (`superseded_by_pr_workflow.md`) to document the edge case.
 
 ## 🧱 Changes made (SRP)
-- `.jules/friction/open/cargo_fuzz_missing.md` (created)
+- `.jules/friction/open/superseded_by_pr_workflow.md` (created)
 - `.jules/runs/fuzzer_input_hardening/` (created artifacts)
 
 ## 🧪 Verification receipts
 ```text
-$ cargo fuzz run || true
-error: no such command: `fuzz`
-
 $ cargo xtask docs --check
 Documentation is up to date.
 
@@ -53,15 +48,6 @@ $ cargo fmt -- --check
 
 $ cargo clippy -- -D warnings
 [no output - passed]
-
-$ cargo test -p tokmd --test determinism_regression
-test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s
-
-$ cargo test -p tokmd --test determinism_hardening_w51
-test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
-
-$ cargo test -p tokmd --test determinism_hardening
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
 ```
 
 ## 🧭 Telemetry
@@ -69,7 +55,7 @@ test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - Blast radius: None (test/fuzz only)
 - Risk class: Low
 - Rollback: Revert PR
-- Gates run: manual gate tests: `cargo xtask docs --check`, `cargo xtask publish --plan`, `cargo xtask version-consistency`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, deterministic regression suites
+- Gates run: manual gate tests: `cargo xtask docs --check`, `cargo xtask publish --plan`, `cargo xtask version-consistency`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/fuzzer_input_hardening/envelope.json`
@@ -77,7 +63,7 @@ test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/fuzzer_input_hardening/result.json`
 - `.jules/runs/fuzzer_input_hardening/pr_body.md`
 - `.jules/runs/fuzzer_input_hardening/receipts.jsonl`
-- `.jules/friction/open/cargo_fuzz_missing.md`
+- `.jules/friction/open/superseded_by_pr_workflow.md`
 
 ## 🔜 Follow-ups
-- Address friction item `cargo_fuzz_missing` by installing `cargo-fuzz` in the environment.
+- None.

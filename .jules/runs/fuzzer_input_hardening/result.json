@@ -1,5 +1,1 @@
-{
-  "status": "success",
-  "learning": true,
-  "summary": "Fuzz tooling (cargo-fuzz) is unavailable in the environment. Created a corpus directory structure to enable future fuzzing once tooling is installed."
-}
+{"status": "success", "learning": true, "summary": "Gracefully aborted the redundant fix as it was superseded by #1606. Created a new friction item documenting the workflow edge case of a superseded PR."}
