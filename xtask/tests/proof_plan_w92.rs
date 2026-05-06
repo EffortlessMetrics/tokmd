@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -30,6 +31,7 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(success, "proof --help failed. stderr: {stderr}");
     assert!(stdout.contains("--profile"), "stdout: {stdout}");
     assert!(stdout.contains("--plan"), "stdout: {stdout}");
+    assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
 }
 
 #[test]
@@ -96,4 +98,32 @@ fn fast_proof_plan_includes_policy_and_guardrails() {
             .iter()
             .any(|cmd| cmd["command"] == "cargo xtask boundaries-check")
     );
+}
+
+#[test]
+fn proof_plan_writes_markdown_summary_artifact() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("proof-plan.md");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--summary-md",
+        &summary_arg,
+    ]);
+
+    assert!(success, "proof --summary-md failed. stderr: {stderr}");
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof --plan should still emit JSON");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let summary = fs::read_to_string(summary_path).expect("summary should be written");
+    assert!(summary.contains("## Proof Plan Summary"));
+    assert!(summary.contains("No proof commands planned."));
 }
