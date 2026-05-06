@@ -45,7 +45,7 @@ fn negative_top_value_fails() {
         .args(["--top", "-1"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn module_negative_depth_fails() {
         .args(["module", "--module-depth", "-1"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }
 
 #[test]
@@ -72,7 +72,9 @@ fn diff_no_arguments_fails() {
         .arg("diff")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains(
+            "Provide either two positional refs",
+        ));
 }
 
 #[test]
@@ -81,7 +83,7 @@ fn gate_no_arguments_fails() {
         .arg("gate")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("No policy or ratchet rules"));
 }
 
 #[test]
@@ -113,7 +115,7 @@ fn lang_nonexistent_path_fails() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -124,7 +126,7 @@ fn module_nonexistent_path_fails() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -135,7 +137,7 @@ fn export_nonexistent_path_fails() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -146,7 +148,7 @@ fn analyze_nonexistent_path_fails() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -162,7 +164,7 @@ fn diff_nonexistent_before_after_fails() {
         .arg(b.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid reference"));
 }
 
 // ===========================================================================
