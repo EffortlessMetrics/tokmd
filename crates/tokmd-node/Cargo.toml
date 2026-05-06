@@ -15,6 +15,9 @@ categories = ["development-tools::ffi"]
 [lib]
 crate-type = ["cdylib"]
 
+[lints]
+workspace = true
+
 [dependencies]
 napi = { version = "3", features = ["async", "serde-json"] }
 napi-derive = "3"

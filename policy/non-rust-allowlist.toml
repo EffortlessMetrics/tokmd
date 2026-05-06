@@ -1,0 +1,23 @@
+schema_version = "1.0"
+
+# Non-Rust programming/config surfaces that are intentionally part of tokmd.
+# Entries use glob or path plus kind, owner, reason, surface, classification,
+# covered_by, and optional expires.
+
+[[allow]]
+glob = ".github/workflows/*.yml"
+kind = "ci_declarative"
+owner = "release/ci"
+reason = "GitHub Actions workflow definitions are platform-required YAML."
+surface = "ci"
+classification = "config"
+covered_by = ["cargo xtask gate --check"]
+
+[[allow]]
+glob = "docs/**/*.json"
+kind = "schema_or_capability_document"
+owner = "docs/schema"
+reason = "JSON schema and capability examples document tokmd machine-readable contracts."
+surface = "docs"
+classification = "config"
+covered_by = ["cargo xtask docs --check"]

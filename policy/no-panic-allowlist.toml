@@ -1,0 +1,4 @@
+schema_version = "0.3"
+
+# Panic-family exceptions belong here as semantic selectors, not line-based
+# suppressions. Identity is path + family + selector; last_seen is advisory only.

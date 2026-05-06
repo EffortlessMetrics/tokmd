@@ -11,6 +11,9 @@ keywords = ["git", "history", "commits", "streaming", "code-analysis"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-git"
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 tokmd-types.workspace = true

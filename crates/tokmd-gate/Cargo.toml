@@ -11,6 +11,9 @@ readme = "README.md"
 keywords = ["policy", "ci", "gate", "analysis"]
 categories = ["development-tools"]
 
+[lints]
+workspace = true
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true

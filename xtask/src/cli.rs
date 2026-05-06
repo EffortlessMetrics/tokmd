@@ -36,6 +36,9 @@ pub enum Commands {
     Gate(GateArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
+    /// Verify workspace lint policy, debt ledgers, and Clippy configuration
+    #[command(alias = "lint-policy")]
+    CheckLintPolicy(LintPolicyArgs),
     /// Run Cargo through an opt-in local sccache wrapper
     Sccache(SccacheArgs),
     /// Reclaim target/debug space by trimming Windows PDBs and incremental state
@@ -262,6 +265,9 @@ pub struct LintFixArgs {
     #[arg(long)]
     pub no_clippy: bool,
 }
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct LintPolicyArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct TrimTargetArgs {

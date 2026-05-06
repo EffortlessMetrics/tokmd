@@ -1,0 +1,5 @@
+# tokmd repo-local Clippy policy.
+#
+# This file is intentionally reserved for repo-specific disallowed methods,
+# disallowed types, and disallowed macros. Test carveouts such as
+# `allow-unwrap-in-tests = true` are forbidden by `cargo xtask check-lint-policy`.

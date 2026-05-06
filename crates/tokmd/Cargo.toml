@@ -52,6 +52,9 @@ name = "tok"
 path = "src/bin/tok.rs"
 required-features = ["alias-tok"]
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 clap = { version = "4.6.0", features = ["derive"] }

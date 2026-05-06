@@ -32,6 +32,9 @@ fun = []
 topics = []
 archetype = []
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 blake3.workspace = true

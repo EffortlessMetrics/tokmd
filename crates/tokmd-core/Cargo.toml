@@ -30,6 +30,9 @@ cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
 # Feature propagation for fun formats (OBJ/MIDI)
 fun = ["tokmd-format/fun"]
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 base64 = "0.22.1"

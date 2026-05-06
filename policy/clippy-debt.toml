@@ -1,0 +1,4 @@
+schema = 1
+
+# Temporary repo-local exceptions belong here. Each entry must have lint, path,
+# owner, reason, and expires fields; expired debt fails `cargo xtask check-lint-policy`.

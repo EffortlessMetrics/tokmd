@@ -11,6 +11,9 @@ keywords = ["settings", "configuration", "code-analysis", "serde"]
 categories = ["development-tools", "config"]
 documentation = "https://docs.rs/tokmd-settings"
 
+[lints]
+workspace = true
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true

@@ -17,6 +17,9 @@ name = "tokmd"
 crate-type = ["cdylib"]
 test = false
 
+[lints]
+workspace = true
+
 [dependencies]
 pyo3 = { version = "0.28.3", features = ["abi3-py39"] }
 serde_json.workspace = true

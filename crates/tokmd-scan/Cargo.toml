@@ -11,6 +11,9 @@ keywords = ["code-analysis", "tokei", "loc", "scanning", "lines-of-code"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-scan"
 
+[lints]
+workspace = true
+
 [dependencies]
 anyhow.workspace = true
 ignore = "0.4.25"

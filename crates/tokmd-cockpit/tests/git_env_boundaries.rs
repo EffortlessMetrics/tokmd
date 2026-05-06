@@ -21,6 +21,10 @@ struct GitEnvGuard {
     git_work_tree: Option<OsString>,
 }
 
+#[expect(
+    unsafe_code,
+    reason = "Rust 2024 marks process environment mutation unsafe; these tests restore inherited git env state serially."
+)]
 impl Drop for GitEnvGuard {
     fn drop(&mut self) {
         match &self.git_dir {
@@ -34,6 +38,10 @@ impl Drop for GitEnvGuard {
     }
 }
 
+#[expect(
+    unsafe_code,
+    reason = "Rust 2024 marks process environment mutation unsafe; this test intentionally poisons git env inheritance."
+)]
 fn poison_git_env(dir: &TempDir) -> GitEnvGuard {
     let guard = GitEnvGuard {
         git_dir: std::env::var_os("GIT_DIR"),

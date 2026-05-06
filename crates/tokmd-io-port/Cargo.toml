@@ -11,6 +11,9 @@ keywords = ["io", "wasm", "abstraction", "filesystem", "microcrate"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-io-port"
 
+[lints]
+workspace = true
+
 [dependencies]
 
 [dev-dependencies]

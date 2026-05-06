@@ -11,6 +11,9 @@ keywords = ["code-analysis", "aggregation", "receipts", "modeling", "tokei"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-model"
 
+[lints]
+workspace = true
+
 [dependencies]
 serde.workspace = true
 tokei = { version = "14.0.0", default-features = false }

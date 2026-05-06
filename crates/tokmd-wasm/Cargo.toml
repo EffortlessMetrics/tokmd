@@ -18,6 +18,9 @@ crate-type = ["cdylib", "rlib"]
 default = ["analysis"]
 analysis = ["tokmd-core/analysis"]
 
+[lints]
+workspace = true
+
 [dependencies]
 js-sys = "0.3.91"
 serde_json.workspace = true

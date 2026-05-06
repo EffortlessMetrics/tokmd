@@ -30,6 +30,9 @@ cargo-fuzz = true
 # Core fuzzing framework - always required.
 # Optional dependencies are pulled only by targets that need them.
 
+[lints]
+workspace = true
+
 [dependencies]
 libfuzzer-sys = "0.4.10"
 anyhow = { workspace = true, optional = true }

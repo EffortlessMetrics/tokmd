@@ -11,6 +11,9 @@ keywords = ["sensor", "envelope", "findings", "verdict", "contract"]
 categories = ["development-tools", "data-structures"]
 documentation = "https://docs.rs/tokmd-envelope"
 
+[lints]
+workspace = true
+
 [dependencies]
 blake3 = "1.8.4"
 serde.workspace = true
