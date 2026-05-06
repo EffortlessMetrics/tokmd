@@ -68,6 +68,18 @@ fn proof_artifacts_check_help_mentions_executor_paths() {
 }
 
 #[test]
+fn proof_execution_artifacts_check_help_mentions_executor_paths() {
+    let (stdout, stderr, success) = run_xtask(&["proof-execution-artifacts-check", "--help"]);
+
+    assert!(
+        success,
+        "proof-execution-artifacts-check --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
+}
+
+#[test]
 fn affected_plan_ci_blocks_on_planner_generation_failures() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -277,6 +289,38 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     assert_eq!(manifest["mode"], "execute");
     assert_eq!(manifest["selection"]["selected"], 0);
     assert_eq!(manifest["selection"]["executed"], 0);
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-artifacts-check",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-artifacts-check failed. stderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("Proof execution artifacts OK"),
+        "stdout: {stdout}"
+    );
+
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof-artifacts-check",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+    ]);
+    assert!(
+        !success,
+        "no-execution verifier should reject executed artifacts"
+    );
+    assert!(
+        stderr.contains("proof-execution-artifacts-check"),
+        "stderr: {stderr}"
+    );
 }
 
 #[test]

@@ -37,7 +37,7 @@ pub fn run(args: ProofArtifactsCheckArgs) -> Result<()> {
     let summary = read_json(&args.executor_summary, "executor summary")?;
     let manifest = read_json(&args.executor_manifest, "executor manifest")?;
 
-    let report = validate_executor_artifacts(&summary, &manifest)?;
+    let report = validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)?;
     println!(
         "Proof artifacts OK: {} command(s), execution_status {}, guard {}",
         report.selected, report.execution_status, report.guard_reason
@@ -45,9 +45,28 @@ pub fn run(args: ProofArtifactsCheckArgs) -> Result<()> {
     Ok(())
 }
 
+pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
+    let summary = read_json(&args.executor_summary, "executor summary")?;
+    let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+
+    let report = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)?;
+    println!(
+        "Proof execution artifacts OK: {} executed command(s), guard {}",
+        report.executed, report.guard_reason
+    );
+    Ok(())
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum VerificationMode {
+    NoExecution,
+    Execution,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 struct ProofArtifactsReport {
     selected: usize,
+    executed: usize,
     execution_status: String,
     guard_reason: String,
 }
@@ -59,7 +78,11 @@ fn read_json(path: &Path, label: &str) -> Result<Value> {
         .with_context(|| format!("failed to parse {label} artifact `{}`", path.display()))
 }
 
-fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<ProofArtifactsReport> {
+fn validate_executor_artifacts(
+    summary: &Value,
+    manifest: &Value,
+    mode: VerificationMode,
+) -> Result<ProofArtifactsReport> {
     expect_schema(summary, SUMMARY_SCHEMA, "executor summary")?;
     expect_schema(manifest, MANIFEST_SCHEMA, "executor manifest")?;
 
@@ -72,11 +95,11 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
         "execution_status",
         "executor summary",
     )?;
-    if execution_status == "executed" {
-        bail!(
-            "executor artifacts report executed commands; use a future execution verifier instead"
-        );
-    }
+    let guard_enabled = expect_bool(
+        field(summary, "execution_guard.enabled", "executor summary")?,
+        "execution_guard.enabled",
+        "executor summary",
+    )?;
 
     let summary_selected = expect_usize(
         field(summary, "counts.selected", "executor summary")?,
@@ -107,11 +130,6 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
     if summary_executed != manifest_executed {
         bail!(
             "executor artifact mismatch at executed count: summary {summary_executed} != manifest {manifest_executed}"
-        );
-    }
-    if summary_executed != 0 {
-        bail!(
-            "executor artifacts report {summary_executed} executed command(s); no-execution verifier requires zero"
         );
     }
 
@@ -155,6 +173,16 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
         validate_command_entry(index, entry, command)?;
     }
 
+    validate_execution_state(
+        summary,
+        entries,
+        mode,
+        &execution_status,
+        guard_enabled,
+        summary_selected,
+        summary_executed,
+    )?;
+
     let guard_reason = expect_string(
         field(summary, "execution_guard.reason", "executor summary")?,
         "execution_guard.reason",
@@ -163,9 +191,133 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
 
     Ok(ProofArtifactsReport {
         selected: summary_selected,
+        executed: summary_executed,
         execution_status,
         guard_reason,
     })
+}
+
+fn validate_execution_state(
+    summary: &Value,
+    entries: &[Value],
+    mode: VerificationMode,
+    execution_status: &str,
+    guard_enabled: bool,
+    selected: usize,
+    executed: usize,
+) -> Result<()> {
+    match mode {
+        VerificationMode::NoExecution => {
+            if execution_status == "executed" {
+                bail!(
+                    "executor artifacts report executed commands; use proof-execution-artifacts-check for executed artifacts"
+                );
+            }
+            if executed != 0 {
+                bail!(
+                    "executor artifacts report {executed} executed command(s); no-execution verifier requires zero"
+                );
+            }
+        }
+        VerificationMode::Execution => {
+            expect_string_value(
+                field(summary, "mode", "executor summary")?,
+                "execute",
+                "mode",
+                "executor summary",
+            )?;
+            if execution_status != "executed" {
+                bail!(
+                    "executor artifacts have execution_status `{execution_status}`; execution verifier requires `executed`"
+                );
+            }
+            if !guard_enabled {
+                bail!(
+                    "executor artifacts have execution_guard.enabled=false; execution verifier requires explicit opt-in"
+                );
+            }
+
+            let failed = expect_usize(
+                field(summary, "counts.failed", "executor summary")?,
+                "counts.failed",
+                "executor summary",
+            )?;
+            if failed != 0 {
+                bail!(
+                    "executor artifacts report {failed} failed command(s); execution verifier requires zero"
+                );
+            }
+
+            let skipped = expect_usize(
+                field(summary, "counts.skipped", "executor summary")?,
+                "counts.skipped",
+                "executor summary",
+            )?;
+            let dry_run = expect_usize(
+                field(summary, "counts.dry_run", "executor summary")?,
+                "counts.dry_run",
+                "executor summary",
+            )?;
+            let passed = expect_usize(
+                field(summary, "counts.passed", "executor summary")?,
+                "counts.passed",
+                "executor summary",
+            )?;
+            if skipped != 0 || dry_run != 0 {
+                bail!(
+                    "executor artifacts report skipped={skipped} dry_run={dry_run}; execution verifier requires executed commands only"
+                );
+            }
+            if executed != selected {
+                bail!(
+                    "executor artifacts report {executed} executed command(s) for {selected} selected command(s)"
+                );
+            }
+            if passed != selected {
+                bail!(
+                    "executor artifacts report {passed} passed command(s) for {selected} selected command(s)"
+                );
+            }
+            expect_string_value(
+                field(summary, "status", "executor summary")?,
+                "passed",
+                "status",
+                "executor summary",
+            )?;
+
+            for (index, entry) in entries.iter().enumerate() {
+                validate_executed_entry(index, entry)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_executed_entry(index: usize, entry: &Value) -> Result<()> {
+    let expected_index = index + 1;
+    expect_string_value(
+        field(entry, "status", "executor summary entry")?,
+        "passed",
+        "status",
+        "executor summary entry",
+    )
+    .with_context(|| format!("executor summary entry {expected_index} failed status check"))?;
+    expect_string_value(
+        field(entry, "skip_reason", "executor summary entry")?,
+        "",
+        "skip_reason",
+        "executor summary entry",
+    )
+    .with_context(|| format!("executor summary entry {expected_index} failed skip check"))?;
+
+    let exit_code = field(entry, "exit_code", "executor summary entry")?;
+    if exit_code.as_i64() != Some(0) {
+        bail!(
+            "executor summary entry {expected_index} exit_code must be 0 for passed execution, got {}",
+            render_json(exit_code)
+        );
+    }
+    Ok(())
 }
 
 fn validate_command_entry(index: usize, entry: &Value, command: &Value) -> Result<()> {
@@ -287,12 +439,15 @@ mod tests {
     fn accepts_matching_no_execution_artifacts() {
         let (summary, manifest) = matching_artifacts();
 
-        let report = validate_executor_artifacts(&summary, &manifest).unwrap();
+        let report =
+            validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
+                .unwrap();
 
         assert_eq!(
             report,
             ProofArtifactsReport {
                 selected: 1,
+                executed: 0,
                 execution_status: "dry_run".to_string(),
                 guard_reason: "local_requires_--allow-local-evidence-execution".to_string(),
             }
@@ -304,7 +459,7 @@ mod tests {
         let (summary, mut manifest) = matching_artifacts();
         manifest["selection"]["selected"] = json!(2);
 
-        let error = validate_executor_artifacts(&summary, &manifest)
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
             .unwrap_err()
             .to_string();
 
@@ -316,7 +471,7 @@ mod tests {
         let (summary, mut manifest) = matching_artifacts();
         manifest["commands"][0]["command"] = json!("cargo llvm-cov -p tokmd-gate");
 
-        let error = validate_executor_artifacts(&summary, &manifest)
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
             .unwrap_err()
             .to_string();
 
@@ -335,12 +490,15 @@ mod tests {
         summary["execution_guard"]["reason"] = json!("ci_explicit_opt_in_enabled");
         manifest["execution_guard"]["reason"] = json!("ci_explicit_opt_in_enabled");
 
-        let report = validate_executor_artifacts(&summary, &manifest).unwrap();
+        let report =
+            validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
+                .unwrap();
 
         assert_eq!(
             report,
             ProofArtifactsReport {
                 selected: 1,
+                executed: 0,
                 execution_status: "dry_run".to_string(),
                 guard_reason: "ci_explicit_opt_in_enabled".to_string(),
             }
@@ -357,11 +515,102 @@ mod tests {
         summary["counts"]["executed"] = json!(1);
         manifest["selection"]["executed"] = json!(1);
 
-        let error = validate_executor_artifacts(&summary, &manifest)
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
             .unwrap_err()
             .to_string();
 
         assert!(error.contains("executed commands"));
+    }
+
+    #[test]
+    fn accepts_matching_executed_artifacts() {
+        let (summary, manifest) = executed_artifacts();
+
+        let report =
+            validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution).unwrap();
+
+        assert_eq!(
+            report,
+            ProofArtifactsReport {
+                selected: 1,
+                executed: 1,
+                execution_status: "executed".to_string(),
+                guard_reason: "local_explicit_opt_in_enabled".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_execution_artifacts_without_enabled_guard() {
+        let (mut summary, mut manifest) = executed_artifacts();
+        summary["execution_guard"]["enabled"] = json!(false);
+        manifest["execution_guard"]["enabled"] = json!(false);
+
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("execution_guard.enabled=false"));
+    }
+
+    #[test]
+    fn rejects_execution_artifacts_with_failed_commands() {
+        let (mut summary, mut manifest) = executed_artifacts();
+        summary["status"] = json!("failed");
+        manifest["status"] = json!("failed");
+        summary["counts"]["passed"] = json!(0);
+        summary["counts"]["failed"] = json!(1);
+        summary["entries"][0]["status"] = json!("failed");
+        manifest["commands"][0]["status"] = json!("failed");
+        summary["entries"][0]["skip_reason"] = json!("command_failed");
+        manifest["commands"][0]["skip_reason"] = json!("command_failed");
+        summary["entries"][0]["exit_code"] = json!(1);
+        manifest["commands"][0]["exit_code"] = json!(1);
+
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("failed command"));
+    }
+
+    #[test]
+    fn rejects_dry_run_artifacts_with_execution_verifier() {
+        let (summary, manifest) = matching_artifacts();
+
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("`mode` must be `execute`"));
+    }
+
+    fn executed_artifacts() -> (Value, Value) {
+        let (mut summary, mut manifest) = matching_artifacts();
+        summary["mode"] = json!("execute");
+        manifest["mode"] = json!("execute");
+        summary["status"] = json!("passed");
+        manifest["status"] = json!("passed");
+        summary["execution_status"] = json!("executed");
+        manifest["execution_status"] = json!("executed");
+        summary["execution_guard"]["enabled"] = json!(true);
+        manifest["execution_guard"]["enabled"] = json!(true);
+        summary["execution_guard"]["allow_local_evidence_execution"] = json!(true);
+        manifest["execution_guard"]["allow_local_evidence_execution"] = json!(true);
+        summary["execution_guard"]["reason"] = json!("local_explicit_opt_in_enabled");
+        manifest["execution_guard"]["reason"] = json!("local_explicit_opt_in_enabled");
+        summary["counts"]["dry_run"] = json!(0);
+        summary["counts"]["executed"] = json!(1);
+        summary["counts"]["passed"] = json!(1);
+        summary["counts"]["failed"] = json!(0);
+        manifest["selection"]["executed"] = json!(1);
+        summary["entries"][0]["status"] = json!("passed");
+        manifest["commands"][0]["status"] = json!("passed");
+        summary["entries"][0]["skip_reason"] = json!("");
+        manifest["commands"][0]["skip_reason"] = json!("");
+        summary["entries"][0]["exit_code"] = json!(0);
+        manifest["commands"][0]["exit_code"] = json!(0);
+        (summary, manifest)
     }
 
     fn matching_artifacts() -> (Value, Value) {

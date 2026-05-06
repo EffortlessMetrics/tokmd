@@ -53,7 +53,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Fuzz harness changes now have an explicit proof scope for `fuzz/Cargo.toml`, targets, dictionaries, corpora, and harness docs, routing affected plans to the fuzz harness inventory check before deeper fuzz execution is promoted.
 - The proof executor now has a deliberately opt-in local coverage execution experiment. `--executor-mode execute` cannot be combined with `--plan`, requires explicit local or CI opt-in, runs only planner-selected non-required coverage commands, and writes executor summary/manifest artifacts while required proof jobs remain authoritative.
 - `cargo xtask proof-artifacts-check` now allows enabled execution guards for non-executed artifacts; this verifier still rejects executed artifacts by `execution_status` and executed counts until an execution verifier lands.
-- Next proof-policy operational slice: add a workflow-dispatch-only coverage executor experiment, or add an execution verifier for opted-in executor artifacts, before any required PR job can run planner-selected evidence commands.
+- `cargo xtask proof-execution-artifacts-check` now verifies opted-in executed executor artifacts separately from the no-execution verifier, requiring executed status, an enabled guard, zero failed commands, and matching summary/manifest command records.
+- Next proof-policy operational slice: add a workflow-dispatch-only coverage executor experiment before any required PR job can run planner-selected evidence commands.
 
 ## References
 

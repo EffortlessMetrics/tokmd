@@ -28,6 +28,8 @@ pub enum Commands {
     Proof(ProofArgs),
     /// Verify generated proof artifacts agree without executing planned commands
     ProofArtifactsCheck(ProofArtifactsCheckArgs),
+    /// Verify opted-in executed proof artifacts agree and passed
+    ProofExecutionArtifactsCheck(ProofArtifactsCheckArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
