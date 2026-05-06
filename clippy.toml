@@ -1,0 +1,4 @@
+# tokmd keeps Clippy behavior in Cargo.toml and policy/clippy-lints.toml.
+# This file is reserved for repo-specific disallowed methods, types, macros, or
+# paths. Do not add test carveouts such as allow-unwrap-in-tests here; tokmd's
+# policy is workspace panic-free across production code and tests.

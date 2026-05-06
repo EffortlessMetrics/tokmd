@@ -55,6 +55,30 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "lint_policy"
+kind = "rust"
+paths = [
+  "Cargo.toml",
+  "clippy.toml",
+  "docs/CLIPPY_POLICY.md",
+  "policy/clippy-debt.toml",
+  "policy/clippy-lints.toml",
+  "xtask/src/cli.rs",
+  "xtask/src/main.rs",
+  "xtask/src/tasks/lint_policy.rs",
+  "xtask/src/tasks/mod.rs",
+  "xtask/tests/lint_policy_w93.rs",
+]
+packages = ["xtask"]
+proof = [
+  "cargo xtask check-lint-policy",
+  "cargo test -p xtask lint_policy --verbose",
+  "cargo clippy -p xtask --all-targets -- -D warnings",
+]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "tokmd_cli"
 kind = "rust"
 paths = [

@@ -34,6 +34,8 @@ pub enum Commands {
     FixtureBlobsCheck(FixtureBlobsCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
     Gate(GateArgs),
+    /// Verify workspace Clippy lint policy and debt ledgers
+    CheckLintPolicy(LintPolicyArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -55,6 +57,9 @@ pub struct DocsArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct VersionConsistencyArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct LintPolicyArgs {}
 
 #[derive(Args, Debug, Clone)]
 pub struct ProofPolicyArgs {
