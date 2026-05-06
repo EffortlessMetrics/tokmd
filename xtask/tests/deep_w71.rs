@@ -84,13 +84,13 @@ fn boundaries_forbidden_list_is_not_empty() {
     let src = std::fs::read_to_string(workspace_root().join("xtask/src/tasks/boundaries_check.rs"))
         .unwrap();
     assert!(
-        src.contains("const FORBIDDEN: &[&str] = &["),
-        "FORBIDDEN list should be declared as a const"
+        src.contains("ci/proof.toml"),
+        "boundaries checker should read the proof policy"
     );
-    // Must contain at least retired tokmd-config.
+    let policy = std::fs::read_to_string(workspace_root().join("ci/proof.toml")).unwrap();
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN must include retired tokmd-config"
+        policy.contains("\"tokmd-config\""),
+        "proof policy must forbid retired tokmd-config"
     );
 }
 

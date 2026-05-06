@@ -273,17 +273,10 @@ fn boundaries_analysis_crates_no_config_dep() {
 
 #[test]
 fn boundaries_forbidden_list_in_source() {
-    let src = std::fs::read_to_string(
-        workspace_root()
-            .join("xtask")
-            .join("src")
-            .join("tasks")
-            .join("boundaries_check.rs"),
-    )
-    .unwrap();
+    let policy = std::fs::read_to_string(workspace_root().join("ci/proof.toml")).unwrap();
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN list must include retired tokmd-config"
+        policy.contains("\"tokmd-config\""),
+        "proof policy must include retired tokmd-config"
     );
 }
 
