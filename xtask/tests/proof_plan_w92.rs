@@ -43,6 +43,7 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
     assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-mode"), "stdout: {stdout}");
     assert!(
         stdout.contains("--allow-ci-evidence-execution"),
@@ -272,6 +273,45 @@ fn proof_plan_writes_executor_summary_artifact() {
     assert_eq!(summary["counts"]["dry_run"], 0);
     assert_eq!(summary["counts"]["executed"], 0);
     assert!(summary["entries"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn proof_plan_writes_executor_manifest_artifact() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let manifest_path = temp.path().join("executor-manifest.json");
+    let manifest_arg = manifest_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "deep",
+        "--plan",
+        "--executor-manifest",
+        &manifest_arg,
+        "--executor-mode",
+        "dry-run",
+    ]);
+
+    assert!(
+        success,
+        "proof --executor-manifest failed. stderr: {stderr}"
+    );
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof --plan should still emit JSON");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+    assert_eq!(value["profile"], "deep");
+
+    let manifest = fs::read_to_string(manifest_path).expect("executor manifest should be written");
+    let manifest: serde_json::Value =
+        serde_json::from_str(&manifest).expect("executor manifest should be valid JSON");
+    assert_eq!(manifest["schema"], "tokmd.proof_executor_manifest.v1");
+    assert_eq!(manifest["mode"], "dry_run");
+    assert_eq!(manifest["family"], "coverage");
+    assert_eq!(manifest["selection"]["source"], "proof_plan");
+    assert_eq!(manifest["selection"]["max_dry_run_commands"], 1);
+    assert_eq!(manifest["selection"]["required_included"], false);
+    assert_eq!(manifest["selection"]["selected"], 0);
+    assert_eq!(manifest["selection"]["executed"], 0);
+    assert!(manifest["commands"].as_array().unwrap().is_empty());
 }
 
 #[test]

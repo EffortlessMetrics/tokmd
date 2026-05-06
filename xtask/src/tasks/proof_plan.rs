@@ -92,6 +92,34 @@ struct ProofExecutorSummary {
 }
 
 #[derive(Debug, Serialize)]
+struct ProofExecutorManifest {
+    schema: String,
+    mode: String,
+    status: String,
+    execution_status: String,
+    execution_guard: ProofExecutorExecutionGuard,
+    family: String,
+    required: bool,
+    profile: String,
+    base: String,
+    head: String,
+    ok: bool,
+    changed_files: Vec<String>,
+    selection: ProofExecutorManifestSelection,
+    commands: Vec<ProofExecutorManifestCommand>,
+    unknown_files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofExecutorManifestSelection {
+    source: String,
+    max_dry_run_commands: usize,
+    required_included: bool,
+    selected: usize,
+    executed: usize,
+}
+
+#[derive(Debug, Serialize)]
 struct ProofExecutorCounts {
     commands_total: usize,
     family_planned: usize,
@@ -106,6 +134,19 @@ struct ProofExecutorCounts {
 
 #[derive(Debug, Serialize)]
 struct ProofExecutorEntry {
+    scope: String,
+    kind: String,
+    required: bool,
+    command: String,
+    artifact_path: Option<String>,
+    status: String,
+    skip_reason: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofExecutorManifestCommand {
+    id: String,
+    index: usize,
     scope: String,
     kind: String,
     required: bool,
@@ -148,6 +189,14 @@ pub fn run(args: ProofArgs) -> Result<()> {
             &executor_config,
         )
     });
+    let executor_manifest = args.executor_manifest.as_ref().map(|_| {
+        proof_executor_manifest(
+            &report,
+            args.executor_mode,
+            proof_executor_execution_guard(args.allow_ci_evidence_execution, &executor_config),
+            &executor_config,
+        )
+    });
     if let Some(path) = &args.summary_md {
         write_markdown_summary(path, &report, executor_summary.as_ref())?;
     }
@@ -156,6 +205,9 @@ pub fn run(args: ProofArgs) -> Result<()> {
     }
     if let (Some(path), Some(summary)) = (&args.executor_summary, executor_summary.as_ref()) {
         write_executor_summary(path, summary)?;
+    }
+    if let (Some(path), Some(manifest)) = (&args.executor_manifest, executor_manifest.as_ref()) {
+        write_executor_manifest(path, manifest)?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
@@ -372,6 +424,12 @@ fn write_executor_summary(path: &Path, summary: &ProofExecutorSummary) -> Result
     Ok(())
 }
 
+fn write_executor_manifest(path: &Path, manifest: &ProofExecutorManifest) -> Result<()> {
+    ensure_parent_dir(path)?;
+    fs::write(path, serde_json::to_string_pretty(manifest)?)?;
+    Ok(())
+}
+
 fn ensure_parent_dir(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
@@ -524,6 +582,45 @@ fn proof_executor_summary(
     }
 }
 
+fn proof_executor_manifest(
+    report: &ProofPlanReport,
+    mode: ProofExecutorMode,
+    execution_guard: ProofExecutorExecutionGuard,
+    config: &ProofExecutorConfig,
+) -> ProofExecutorManifest {
+    let summary = proof_executor_summary(report, mode, execution_guard, config);
+    let commands = summary
+        .entries
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| executor_manifest_command(index, entry))
+        .collect::<Vec<_>>();
+
+    ProofExecutorManifest {
+        schema: "tokmd.proof_executor_manifest.v1".to_string(),
+        mode: summary.mode,
+        status: summary.status,
+        execution_status: summary.execution_status,
+        execution_guard: summary.execution_guard,
+        family: summary.family,
+        required: summary.required,
+        profile: summary.profile,
+        base: summary.base,
+        head: summary.head,
+        ok: summary.ok,
+        changed_files: summary.changed_files,
+        selection: ProofExecutorManifestSelection {
+            source: "proof_plan".to_string(),
+            max_dry_run_commands: config.max_dry_run_commands,
+            required_included: false,
+            selected: summary.counts.selected,
+            executed: summary.counts.executed,
+        },
+        commands,
+        unknown_files: summary.unknown_files,
+    }
+}
+
 fn proof_executor_config(policy: &ProofPolicy) -> ProofExecutorConfig {
     ProofExecutorConfig {
         family: policy
@@ -610,6 +707,32 @@ fn executor_entry(command: &ProofPlanCommand, mode: ProofExecutorMode) -> ProofE
         status: executor_entry_status(mode).to_string(),
         skip_reason: executor_skip_reason(mode).to_string(),
     }
+}
+
+fn executor_manifest_command(
+    index: usize,
+    entry: &ProofExecutorEntry,
+) -> ProofExecutorManifestCommand {
+    ProofExecutorManifestCommand {
+        id: executor_command_id(index, entry),
+        index: index + 1,
+        scope: entry.scope.clone(),
+        kind: entry.kind.clone(),
+        required: entry.required,
+        command: entry.command.clone(),
+        artifact_path: entry.artifact_path.clone(),
+        status: entry.status.clone(),
+        skip_reason: entry.skip_reason.clone(),
+    }
+}
+
+fn executor_command_id(index: usize, entry: &ProofExecutorEntry) -> String {
+    format!(
+        "{:04}-{}-{}",
+        index + 1,
+        artifact_name(&entry.scope),
+        artifact_name(&entry.kind)
+    )
 }
 
 fn executor_mode_name(mode: ProofExecutorMode) -> &'static str {
@@ -853,7 +976,8 @@ mod tests {
     use super::{
         ProofExecutorConfig, ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
         is_mutation_candidate, proof_evidence_plan, proof_executor_execution_guard_for,
-        proof_executor_summary, render_markdown_summary, static_profile_commands,
+        proof_executor_manifest, proof_executor_summary, render_markdown_summary,
+        static_profile_commands,
     };
     use crate::cli::{ProofExecutorMode, ProofProfile};
     use crate::proof::policy::parse_policy_str;
@@ -1301,6 +1425,57 @@ coverage = "cargo-llvm-cov"
         assert_eq!(summary.counts.selected, 2);
         assert_eq!(summary.counts.selection_excluded, 0);
         assert_eq!(summary.entries.len(), 2);
+    }
+
+    #[test]
+    fn executor_manifest_records_selected_commands_with_stable_ids() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_cli".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd --all-features --lcov --output-path target/proof/coverage/tokmd_cli.lcov".to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let manifest = proof_executor_manifest(
+            &report,
+            ProofExecutorMode::DryRun,
+            explicit_opt_in_guard_for(true, false),
+            &coverage_executor_config(2),
+        );
+
+        assert_eq!(manifest.schema, "tokmd.proof_executor_manifest.v1");
+        assert_eq!(manifest.family, "coverage");
+        assert_eq!(manifest.selection.source, "proof_plan");
+        assert_eq!(manifest.selection.max_dry_run_commands, 2);
+        assert!(!manifest.selection.required_included);
+        assert_eq!(manifest.selection.selected, 2);
+        assert_eq!(manifest.selection.executed, 0);
+        assert_eq!(manifest.commands.len(), 2);
+        assert_eq!(manifest.commands[0].id, "0001-tokmd_core_ffi-coverage");
+        assert_eq!(manifest.commands[0].index, 1);
+        assert_eq!(manifest.commands[0].status, "dry_run");
+        assert_eq!(manifest.commands[0].skip_reason, "dry_run_only");
+        assert_eq!(
+            manifest.commands[0].artifact_path.as_deref(),
+            Some("target/proof/coverage/tokmd_core_ffi.lcov")
+        );
     }
 
     #[test]

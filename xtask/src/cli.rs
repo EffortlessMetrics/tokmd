@@ -125,6 +125,10 @@ pub struct ProofArgs {
     #[arg(long, value_name = "PATH")]
     pub executor_summary: Option<std::path::PathBuf>,
 
+    /// Write the planner-selected executor command manifest
+    #[arg(long, value_name = "PATH")]
+    pub executor_manifest: Option<std::path::PathBuf>,
+
     /// Executor summary mode for selected evidence commands
     #[arg(long, value_enum, default_value_t = ProofExecutorMode::Prototype)]
     pub executor_mode: ProofExecutorMode,
