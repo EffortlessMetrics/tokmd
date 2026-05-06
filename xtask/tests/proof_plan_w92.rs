@@ -64,6 +64,39 @@ fn proof_artifacts_check_help_mentions_executor_paths() {
 }
 
 #[test]
+fn affected_plan_ci_blocks_on_planner_generation_failures() {
+    let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
+        .expect("ci workflow should be readable");
+
+    assert!(
+        ci.contains("Affected/proof-plan artifact generation is blocking"),
+        "affected-plan summary should describe blocking planner artifacts"
+    );
+    assert!(
+        ci.contains("executor command execution remains disabled"),
+        "affected-plan summary should keep executor command execution disabled"
+    );
+    assert!(
+        ci.contains(
+            "if [ \"${affected_status}\" -ne 0 ]; then\n            exit \"${affected_status}\"\n          fi"
+        ),
+        "affected-plan job must fail when affected-scope generation fails"
+    );
+    assert!(
+        ci.contains(
+            "if [ \"${proof_plan_status}\" -ne 0 ]; then\n            exit \"${proof_plan_status}\"\n          fi"
+        ),
+        "affected-plan job must fail when proof-plan generation fails"
+    );
+    assert!(
+        ci.contains(
+            "if [ \"${proof_artifacts_status}\" -ne 0 ]; then\n            exit \"${proof_artifacts_status}\"\n          fi"
+        ),
+        "affected-plan job must still fail when proof artifact verification fails"
+    );
+}
+
+#[test]
 fn affected_proof_plan_reports_no_changes_for_same_ref() {
     let (stdout, stderr, success) = run_xtask(&[
         "proof",
