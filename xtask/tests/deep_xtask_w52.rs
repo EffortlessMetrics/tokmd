@@ -129,17 +129,10 @@ fn boundaries_analysis_crates_are_workspace_members() {
 #[test]
 fn boundaries_forbidden_list_includes_config() {
     // The boundaries checker must keep retired tokmd-config out of analysis crates.
-    let src = std::fs::read_to_string(
-        workspace_root()
-            .join("xtask")
-            .join("src")
-            .join("tasks")
-            .join("boundaries_check.rs"),
-    )
-    .unwrap();
+    let policy = std::fs::read_to_string(workspace_root().join("ci/proof.toml")).unwrap();
     assert!(
-        src.contains("\"tokmd-config\""),
-        "FORBIDDEN list should include retired tokmd-config"
+        policy.contains("\"tokmd-config\""),
+        "proof policy should include retired tokmd-config"
     );
 }
 

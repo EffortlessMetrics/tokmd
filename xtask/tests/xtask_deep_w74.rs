@@ -71,12 +71,13 @@ fn read_source(relative: &str) -> String {
 
 #[test]
 fn boundaries_check_forbidden_list_covers_higher_tiers() {
-    // The FORBIDDEN list must prevent analysis crates (tier 3) from depending
+    // The proof policy must prevent analysis crates (tier 3) from depending
     // on retired compatibility crates.
     let src = read_source("xtask/src/tasks/boundaries_check.rs");
+    let policy = read_source("ci/proof.toml");
     assert!(
-        src.contains("tokmd-config"),
-        "FORBIDDEN must block retired tokmd-config"
+        src.contains("load_checked_policy") && policy.contains("tokmd-config"),
+        "proof policy must block retired tokmd-config"
     );
 }
 

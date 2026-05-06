@@ -11,7 +11,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 ## Initial Work Packets
 
 1. Add `ci/proof.toml` and `cargo xtask proof-policy --check`.
-2. Move fixture/blob and dependency-boundary allowlists into the proof policy while keeping current behavior as fallback.
+2. Move dependency-boundary and fixture/blob allowlists into the proof policy while preserving current behavior.
 3. Add `cargo xtask affected --base origin/main --head HEAD --json` for changed-file to proof-scope discovery.
 4. Add `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` to print a stable proof plan without running it.
 5. Wire policy validation into CI as a small standalone job before replacing larger workflow logic.
@@ -22,6 +22,11 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `.jules` is an allowed knowledge workspace for durable specs, investigations, friction notes, persona learnings, runbooks, ledgers, envelopes, and generated indexes.
 - Coverage remains advisory telemetry until maintainers intentionally promote it to a gate.
 - Cockpit remains the current PR-review evidence surface until a separate review command has a distinct artifact contract.
+
+## Checkpoints
+
+- Dependency-boundary checks now read `ci/proof.toml` while preserving the existing sorted `tokmd-analysis*` manifest scan and `dependencies` / `dev-dependencies` / `build-dependencies` coverage.
+- Next proof-policy operational slice: move `fixture-blobs-check` extensions, markers, and allowlists into `ci/proof.toml`.
 
 ## References
 
