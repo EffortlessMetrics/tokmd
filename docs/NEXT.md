@@ -43,7 +43,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `ci/proof.toml` now declares the first executor promotion rule: coverage is the only supported executor family, CI execution requires explicit opt-in, and dry-run selection is policy-limited before any CI job can execute planner-selected evidence commands.
 - `cargo xtask proof-policy --check` and `--json` now report the active executor policy rule alongside scope, allowlist, fixture blob, and dependency-boundary counts.
 - `cargo xtask proof --plan --executor-manifest <path>` now writes a planner-selected executor command manifest with the executor policy, guard status, selection rule, stable command ids, and zero executed counts.
-- Next proof-policy operational slice: teach the affected-plan CI artifact job to upload the executor command manifest while keeping all executor commands non-executing.
+- The PR-only affected-plan CI artifact job now writes and uploads `executor-manifest.json` alongside `affected.json`, `proof-plan.json`, `proof-evidence.json`, `executor-summary.json`, and `proof-plan.md`, without opting into executor command execution.
+- Next proof-policy operational slice: add manifest/summary consistency checks or begin a no-execution executor artifact verifier before promoting any executor family.
 
 ## References
 
