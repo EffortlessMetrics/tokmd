@@ -79,6 +79,280 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "analysis_orchestration"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/Cargo.toml",
+  "crates/tokmd-analysis/src/analysis.rs",
+  "crates/tokmd-analysis/src/grid/**",
+  "crates/tokmd-analysis/src/lib.rs",
+  "crates/tokmd-analysis/tests/capability_reporting_w53.rs",
+  "crates/tokmd-analysis/tests/enricher_pipeline.rs",
+  "crates/tokmd-analysis/tests/feature_*.rs",
+  "crates/tokmd-analysis/tests/orchestration*.rs",
+  "crates/tokmd-analysis/tests/orchestrator.rs",
+  "crates/tokmd/src/commands/analyze.rs",
+  "crates/tokmd/tests/analyze_integration.rs",
+]
+packages = ["tokmd-analysis", "tokmd"]
+proof = [
+  "cargo test -p tokmd-analysis --all-features orchestration --verbose",
+  "cargo test -p tokmd-analysis --all-features feature --verbose",
+  "cargo test -p tokmd --test analyze_integration --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_receipt_types"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis-types/**",
+  "docs/SCHEMA.md",
+]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_api_surface"
+kind = "rust"
+paths = ["crates/tokmd-analysis/src/api_surface/**"]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features api_surface --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_complexity"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/complexity/**",
+  "crates/tokmd-analysis/src/content/complexity.rs",
+]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features complexity --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_content_assets"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/assets/**",
+  "crates/tokmd-analysis/src/content/**",
+  "crates/tokmd-analysis/tests/synthetic_private_key_security_pipeline.rs",
+]
+packages = ["tokmd-analysis"]
+proof = [
+  "cargo test -p tokmd-analysis --all-features assets --verbose",
+  "cargo test -p tokmd-analysis --all-features content --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_derived"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/cocomo81_core.rs",
+  "crates/tokmd-analysis/src/derived/**",
+  "crates/tokmd-analysis/tests/derived.rs",
+  "crates/tokmd-analysis/tests/mutant_killers.rs",
+]
+packages = ["tokmd-analysis"]
+proof = [
+  "cargo test -p tokmd-analysis --all-features derived --verbose",
+  "cargo test -p tokmd-analysis --all-features mutant --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_effort"
+kind = "rust"
+paths = ["crates/tokmd-analysis/src/effort/**"]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features effort --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_git"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/git/**",
+  "crates/tokmd-analysis/tests/git.rs",
+]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features git --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_halstead"
+kind = "rust"
+paths = ["crates/tokmd-analysis/src/halstead/**"]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features halstead --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_imports"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/imports/**",
+  "fuzz/fuzz_targets/fuzz_import_parser.rs",
+]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features imports --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_maintainability"
+kind = "rust"
+paths = ["crates/tokmd-analysis/src/maintainability/**"]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features maintainability --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_near_dup"
+kind = "rust"
+paths = ["crates/tokmd-analysis/src/near_dup/**"]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --all-features near_dup --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_security_identity"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/archetype/**",
+  "crates/tokmd-analysis/src/entropy/**",
+  "crates/tokmd-analysis/src/fingerprint/**",
+  "crates/tokmd-analysis/src/license/**",
+]
+packages = ["tokmd-analysis"]
+proof = [
+  "cargo test -p tokmd-analysis --all-features archetype --verbose",
+  "cargo test -p tokmd-analysis --all-features entropy --verbose",
+  "cargo test -p tokmd-analysis --all-features fingerprint --verbose",
+  "cargo test -p tokmd-analysis --all-features license --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_topics_fun"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/src/fun/**",
+  "crates/tokmd-analysis/src/topics/**",
+]
+packages = ["tokmd-analysis"]
+proof = [
+  "cargo test -p tokmd-analysis --all-features fun --verbose",
+  "cargo test -p tokmd-analysis --all-features topics --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "format_analysis_rendering"
+kind = "rust"
+paths = [
+  "crates/tokmd-format/src/analysis/**",
+  "crates/tokmd-format/tests/analysis_format.rs",
+  "crates/tokmd-format/tests/analysis_format/**",
+  "crates/tokmd-format/tests/analysis_html.rs",
+  "crates/tokmd-format/tests/analysis_html/**",
+]
+packages = ["tokmd-format"]
+proof = [
+  "cargo test -p tokmd-format --test analysis_format --verbose",
+  "cargo test -p tokmd-format --test analysis_html --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "format_core_outputs"
+kind = "rust"
+paths = [
+  "crates/tokmd-format/src/lib.rs",
+  "crates/tokmd-format/tests/format_*.rs",
+  "crates/tokmd-format/tests/snapshot*.rs",
+  "crates/tokmd-format/tests/snapshots/**",
+]
+packages = ["tokmd-format"]
+proof = [
+  "cargo test -p tokmd-format --test snapshots --verbose",
+  "cargo test -p tokmd-format --test snapshot_golden_w54 --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "format_badge_export_tree"
+kind = "rust"
+paths = [
+  "crates/tokmd-format/src/badge/**",
+  "crates/tokmd-format/src/export_tree/**",
+  "crates/tokmd/tests/badge_*.rs",
+  "crates/tokmd/tests/cli_badge_e2e.rs",
+  "fuzz/fuzz_targets/fuzz_badge_svg.rs",
+  "fuzz/fuzz_targets/fuzz_export_tree.rs",
+]
+packages = ["tokmd-format", "tokmd"]
+proof = [
+  "cargo test -p tokmd-format badge --verbose",
+  "cargo test -p tokmd --test badge_integration --verbose",
+  "cargo test -p tokmd --test cli_badge_e2e --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "format_redaction_scan_args"
+kind = "rust"
+paths = [
+  "crates/tokmd-format/src/redact/**",
+  "crates/tokmd-format/src/scan_args/**",
+  "crates/tokmd-format/tests/scan_args_reexport.rs",
+  "crates/tokmd-format/tests/test_redaction_leak.rs",
+  "crates/tokmd-format/tests/test_cyclonedx_redaction.rs",
+  "fuzz/fuzz_targets/fuzz_redact.rs",
+  "fuzz/fuzz_targets/fuzz_scan_args.rs",
+]
+packages = ["tokmd-format"]
+proof = [
+  "cargo test -p tokmd-format redact --verbose",
+  "cargo test -p tokmd-format scan_args --verbose",
+  "cargo test -p tokmd-format redaction --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "format_fun_outputs"
+kind = "rust"
+paths = [
+  "crates/tokmd-format/src/fun/**",
+  "crates/tokmd-format/tests/fun_*.rs",
+  "crates/tokmd-format/tests/snapshots/fun_*.snap",
+]
+packages = ["tokmd-format"]
+proof = ["cargo test -p tokmd-format --features fun fun --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "tokmd_cli"
 kind = "rust"
 paths = [

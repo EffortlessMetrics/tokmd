@@ -32,7 +32,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - CI now validates `cargo xtask proof-policy --check` as part of the required aggregate and uploads PR-only affected proof artifacts while keeping existing jobs authoritative.
 - The proof scope registry now covers first-class product/control-plane surfaces for CLI, gate, cockpit, WASM, browser runner, the composite GitHub Action, schema contracts, and the proof control plane.
 - Clippy policy now has a governed ledger and `cargo xtask check-lint-policy` check while keeping the repository MSRV at 1.92 and leaving crate-wide lint inheritance as a later cleanup stack.
-- Next proof-policy operational slice: expand analysis and formatting module scopes before using affected plans to drive required checks.
+- Analysis and formatting module scopes now route `tokmd-analysis`, `tokmd-analysis-types`, and `tokmd-format` changes to targeted package, snapshot, renderer, and module proof commands.
+- Next proof-policy operational slice: use affected scope metadata to draft scoped coverage and mutation command plans before moving more GitHub YAML logic.
 
 ## References
 
