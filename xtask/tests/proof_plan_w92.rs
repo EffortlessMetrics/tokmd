@@ -32,6 +32,7 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(stdout.contains("--profile"), "stdout: {stdout}");
     assert!(stdout.contains("--plan"), "stdout: {stdout}");
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
+    assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
 }
 
 #[test]
@@ -126,4 +127,38 @@ fn proof_plan_writes_markdown_summary_artifact() {
     let summary = fs::read_to_string(summary_path).expect("summary should be written");
     assert!(summary.contains("## Proof Plan Summary"));
     assert!(summary.contains("No proof commands planned."));
+}
+
+#[test]
+fn proof_plan_writes_evidence_json_artifact() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let evidence_path = temp.path().join("proof-evidence.json");
+    let evidence_arg = evidence_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--evidence-json",
+        &evidence_arg,
+    ]);
+
+    assert!(success, "proof --evidence-json failed. stderr: {stderr}");
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof --plan should still emit JSON");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let evidence = fs::read_to_string(evidence_path).expect("evidence should be written");
+    let evidence: serde_json::Value =
+        serde_json::from_str(&evidence).expect("evidence should be valid JSON");
+    assert_eq!(evidence["schema"], "tokmd.proof_evidence_plan.v1");
+    assert_eq!(evidence["status"], "planned");
+    assert_eq!(evidence["execution_status"], "not_executed");
+    assert_eq!(evidence["counts"]["coverage"]["executed"], 0);
+    assert_eq!(evidence["counts"]["mutation"]["executed"], 0);
+    assert!(evidence["entries"].as_array().unwrap().is_empty());
 }

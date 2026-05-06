@@ -35,7 +35,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Analysis and formatting module scopes now route `tokmd-analysis`, `tokmd-analysis-types`, and `tokmd-format` changes to targeted package, snapshot, renderer, and module proof commands.
 - Affected proof plans now include advisory scoped coverage and mutation commands derived from matched scope metadata while leaving existing proof commands required and CI behavior unchanged.
 - `cargo xtask proof --plan --summary-md <path>` now writes a Markdown proof-plan artifact, and the informational PR affected-plan job appends that Rust-generated summary while keeping existing CI jobs authoritative.
-- Next proof-policy operational slice: use the generated plan artifacts to prototype scoped coverage/mutation execution summaries without replacing existing GitHub YAML logic.
+- `cargo xtask proof --plan --evidence-json <path>` now writes a machine-readable planned-evidence artifact for scoped coverage and mutation commands. The artifact records `planned` / `not_executed` status and zero executed counts so consumers do not confuse planned advisory evidence with passing evidence.
+- Next proof-policy operational slice: prototype a non-required executor summary for one scoped evidence family without replacing existing GitHub YAML logic.
 
 ## References
 
