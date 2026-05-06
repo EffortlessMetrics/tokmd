@@ -158,7 +158,7 @@ jobs:
             echo "| proof plan | ${proof_plan_status} |"
             echo "| proof artifacts | ${proof_artifacts_status} |"
             echo ""
-            echo "This job is informational while proof planning is being adopted; existing CI jobs remain authoritative."
+            echo "Affected/proof-plan artifact generation is blocking; executor command execution remains disabled, and existing CI jobs remain authoritative for executing required checks."
             if [ -f target/proof/proof-artifacts-check.txt ]; then
               echo ""
               cat target/proof/proof-artifacts-check.txt
@@ -168,6 +168,14 @@ jobs:
               cat target/proof/proof-plan.md
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${affected_status}" -ne 0 ]; then
+            exit "${affected_status}"
+          fi
+
+          if [ "${proof_plan_status}" -ne 0 ]; then
+            exit "${proof_plan_status}"
+          fi
 
           if [ "${proof_artifacts_status}" -ne 0 ]; then
             exit "${proof_artifacts_status}"
