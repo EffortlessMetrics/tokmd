@@ -342,3 +342,6 @@ path = "fuzz_targets/fuzz_badge_svg.rs"
 test = false
 doc = false
 required-features = ["badge"]
+
+[lints]
+workspace = true

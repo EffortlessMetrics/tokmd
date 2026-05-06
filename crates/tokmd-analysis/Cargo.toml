@@ -54,3 +54,6 @@ tempfile.workspace = true
 proptest.workspace = true
 serde.workspace = true
 insta = { workspace = true }
+
+[lints]
+workspace = true

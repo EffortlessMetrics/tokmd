@@ -45,7 +45,7 @@ default-members = [
 [workspace.package]
 version = "1.10.0"
 edition = "2024"
-rust-version = "1.92"
+rust-version = "1.93"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/EffortlessMetrics/tokmd"
 repository = "https://github.com/EffortlessMetrics/tokmd"
@@ -53,6 +53,13 @@ authors = ["Steven Zimmerman, CPA <git@effortlesssteven.com>"]
 
 [workspace.metadata.crane]
 name = "tokmd-workspace"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+unexpected_cfgs = "warn"
+const_item_mutation = "deny"
 
 [workspace.dependencies]
 # Internal crates - centralized for "bump once" version management

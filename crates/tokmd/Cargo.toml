@@ -89,3 +89,6 @@ regex = "1.12.3"
 proptest.workspace = true
 jsonschema = { version = "0.46.4", default-features = false, features = ["resolve-file"] }
 toml = "1.1.2"
+
+[lints]
+workspace = true

@@ -1,0 +1,794 @@
+schema = 1
+msrv = "1.93"
+
+[policy]
+panic_free_tests = true
+allow_test_carveouts = false
+suppression_style = "expect-with-reason"
+blanket_categories = false
+
+# Active lint ledger: this mirrors the root workspace lint block.
+
+[[lint]]
+name = "rust::unsafe_code"
+level = "forbid"
+status = "active"
+class = "unsafe"
+reason = "Part of the shared Effortless Metrics Rust lint baseline."
+
+[[lint]]
+name = "rust::unsafe_op_in_unsafe_fn"
+level = "deny"
+status = "active"
+class = "unsafe"
+reason = "Part of the shared Effortless Metrics Rust lint baseline."
+
+[[lint]]
+name = "rust::unused_must_use"
+level = "deny"
+status = "active"
+class = "silent-failure"
+reason = "Part of the shared Effortless Metrics Rust lint baseline."
+
+[[lint]]
+name = "rust::unexpected_cfgs"
+level = "warn"
+status = "active"
+class = "cfg"
+reason = "Part of the shared Effortless Metrics Rust lint baseline."
+
+[[lint]]
+name = "rust::const_item_mutation"
+level = "deny"
+status = "active"
+class = "correctness"
+reason = "Part of the shared Effortless Metrics Rust lint baseline."
+
+# Staged strict Clippy profile. These entries become active as debt is paid down.
+
+[[lint]]
+name = "clippy::dbg_macro"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::todo"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unimplemented"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::panic"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unreachable"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unwrap_used"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::expect_used"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::get_unwrap"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unwrap_in_result"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::panic_in_result_fn"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::string_slice"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::indexing_slicing"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::out_of_bounds_indexing"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unchecked_time_subtraction"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::char_indices_as_byte_indices"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::sliced_string_as_bytes"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::index_refutable_slice"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::let_underscore_future"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::let_underscore_must_use"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::let_underscore_lock"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unused_result_ok"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::map_err_ignore"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::assertions_on_result_states"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::lines_filter_map_ok"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::await_holding_lock"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::await_holding_refcell_ref"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::await_holding_invalid_type"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::future_not_send"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::large_futures"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::arc_with_non_send_sync"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::rc_mutex"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::mut_mutex_lock"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::readonly_write_lock"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::mem_forget"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::forget_non_drop"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::drop_non_drop"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::undocumented_unsafe_blocks"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::multiple_unsafe_ops_per_block"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::repr_packed_without_abi"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::float_cmp"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::float_cmp_const"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::float_equality_without_abs"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::lossy_float_literal"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_sign_loss"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_possible_wrap"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_possible_truncation"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_precision_loss"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::invalid_upcast_comparisons"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_abs_to_unsigned"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_enum_truncation"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cast_nan_to_int"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_midpoint"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_is_multiple_of"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_div_ceil"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::arithmetic_side_effects"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::suspicious_open_options"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::nonsensical_open_options"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::ineffective_open_options"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::path_buf_push_overwrite"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::join_absolute_paths"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::read_line_without_trim"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::exit"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::iter_not_returning_iterator"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::expl_impl_clone_on_copy"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::infallible_try_from"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::fallible_impl_from"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::error_impl_error"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::result_unit_err"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::result_large_err"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::format_in_format_args"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::to_string_in_format_args"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unused_format_specs"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::unnecessary_debug_formatting"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::uninlined_format_args"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_let_else"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_ok_or"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_strip"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_split_once"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::manual_is_variant_and"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::filter_map_next"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::flat_map_option"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::match_result_ok"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::cloned_instead_of_copied"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::iter_cloned_collect"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::iter_overeager_cloned"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::needless_collect"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::redundant_closure"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::redundant_closure_for_method_calls"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::missing_panics_doc"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::missing_errors_doc"
+level = "warn"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::allow_attributes"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::allow_attributes_without_reason"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::blanket_clippy_restriction_lints"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::ignore_without_reason"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+[[lint]]
+name = "clippy::should_panic_without_expect"
+level = "deny"
+status = "staged"
+class = "strict-clippy"
+reason = "Part of the standard panic-free, suppression-governed Clippy baseline; staged until current debt is resolved."
+
+# Planned Rust/Clippy flips tracked before the MSRV bump.
+
+[[lint]]
+name = "clippy::same_length_and_capacity"
+level = "deny"
+status = "planned"
+activate_when_msrv = "1.94"
+class = "unsafe-memory"
+reason = "Catch raw-parts reconstruction mistakes."
+
+[[lint]]
+name = "clippy::manual_ilog2"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.94"
+class = "numeric"
+reason = "Prefer the standard integer log helper."
+
+[[lint]]
+name = "clippy::decimal_bitwise_operands"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.94"
+class = "numeric"
+reason = "Make bit masks visually inspectable."
+
+[[lint]]
+name = "clippy::needless_type_cast"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.94"
+class = "numeric"
+reason = "Avoid stale numeric type drift."
+
+[[lint]]
+name = "clippy::disallowed_fields"
+level = "deny"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "architecture"
+reason = "Allow architecture policy to ban direct field access across protected seams."
+
+[[lint]]
+name = "clippy::manual_checked_ops"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "numeric"
+reason = "Prefer checked arithmetic over manual divide-by-zero guards."
+
+[[lint]]
+name = "clippy::manual_take"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "ownership"
+reason = "Use standard ownership helper instead of local reimplementation."
+
+[[lint]]
+name = "clippy::manual_pop_if"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "collections"
+reason = "Use collection APIs that encode predicate-and-pop intent directly."
+
+[[lint]]
+name = "clippy::duration_suboptimal_units"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "time"
+reason = "Make durations legible without mental unit conversion."
+
+[[lint]]
+name = "clippy::unnecessary_trailing_comma"
+level = "warn"
+status = "planned"
+activate_when_msrv = "1.95"
+class = "reviewability"
+reason = "Keep generated and hand-written format macro calls clean."

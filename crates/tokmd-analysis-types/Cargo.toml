@@ -24,3 +24,6 @@ js-sys = "0.3.91"
 chrono = "0.4.44"
 proptest.workspace = true
 tokmd-scan = { path = "../tokmd-scan", version = ">=1.9, <2" }
+
+[lints]
+workspace = true

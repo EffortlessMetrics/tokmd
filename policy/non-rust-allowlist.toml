@@ -1,0 +1,55 @@
+schema_version = "1.0"
+
+[[allow]]
+glob = ".github/workflows/*.yml"
+kind = "ci_declarative"
+owner = "release/ci"
+reason = "GitHub Actions workflow definitions are platform-required YAML."
+surface = "ci"
+classification = "config"
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "docs/**/*.json"
+kind = "schema_or_capability_doc"
+owner = "docs/schema"
+reason = "Checked-in JSON schemas and capability examples are product documentation surfaces."
+surface = "docs"
+classification = "config"
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "docs/assets/*.svg"
+kind = "documentation_asset"
+owner = "docs/assets"
+reason = "Documentation badges and images are rendered assets, not implementation code."
+surface = "docs"
+classification = "asset"
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "crates/tokmd/tests/data/**"
+kind = "fixture_input"
+owner = "cli-tests"
+reason = "Integration fixture workspaces intentionally contain analyzed source files."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo test -p tokmd"]
+
+[[allow]]
+glob = "fuzz/corpus/**"
+kind = "fixture_input"
+owner = "fuzzing"
+reason = "Seed corpus files are fuzzing inputs rather than implementation surfaces."
+surface = "fixtures"
+classification = "test"
+covered_by = ["cargo +nightly fuzz list"]
+
+[[allow]]
+glob = "vendor/home-0.5.12/**"
+kind = "vendored_dependency"
+owner = "build-platform"
+reason = "Temporary vendored patch for the upstream home crate fallback behavior."
+surface = "vendor"
+classification = "third_party"
+covered_by = ["cargo check"]

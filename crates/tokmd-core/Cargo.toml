@@ -56,3 +56,6 @@ js-sys = "0.3.91"
 [dev-dependencies]
 proptest.workspace = true
 tempfile.workspace = true
+
+[lints]
+workspace = true

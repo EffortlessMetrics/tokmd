@@ -23,3 +23,6 @@ tokmd-types.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 tokmd-model = { path = "../tokmd-model", version = ">=1.9, <2" }
+
+[lints]
+workspace = true

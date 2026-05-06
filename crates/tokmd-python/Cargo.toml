@@ -31,3 +31,6 @@ extension-module = ["pyo3/extension-module"]
 [dev-dependencies]
 tempfile.workspace = true
 proptest.workspace = true
+
+[lints]
+workspace = true

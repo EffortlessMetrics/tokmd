@@ -1,0 +1,5 @@
+# Repo-local Clippy configuration.
+#
+# Do not add test carveouts here. The workspace policy is panic-free across
+# production and tests; temporary exceptions belong in policy/clippy-debt.toml
+# or as narrow #[expect(..., reason = "...")] attributes.
