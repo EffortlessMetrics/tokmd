@@ -70,6 +70,45 @@ struct ProofEvidenceEntry {
     artifact_path: Option<String>,
 }
 
+#[derive(Debug, Serialize)]
+struct ProofExecutorSummary {
+    schema: String,
+    status: String,
+    execution_status: String,
+    family: String,
+    required: bool,
+    profile: String,
+    base: String,
+    head: String,
+    ok: bool,
+    changed_files: Vec<String>,
+    counts: ProofExecutorCounts,
+    entries: Vec<ProofExecutorEntry>,
+    unknown_files: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofExecutorCounts {
+    commands_total: usize,
+    family_planned: usize,
+    selected: usize,
+    skipped: usize,
+    executed: usize,
+    required_excluded: usize,
+    non_family_excluded: usize,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofExecutorEntry {
+    scope: String,
+    kind: String,
+    required: bool,
+    command: String,
+    artifact_path: Option<String>,
+    status: String,
+    skip_reason: String,
+}
+
 pub fn run(args: ProofArgs) -> Result<()> {
     if !args.plan {
         bail!("proof execution is not implemented yet; pass --plan to print the proof plan");
@@ -82,6 +121,9 @@ pub fn run(args: ProofArgs) -> Result<()> {
     }
     if let Some(path) = &args.evidence_json {
         write_evidence_json(path, &report)?;
+    }
+    if let Some(path) = &args.executor_summary {
+        write_executor_summary(path, &report)?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
 
@@ -288,6 +330,15 @@ fn write_evidence_json(path: &Path, report: &ProofPlanReport) -> Result<()> {
     Ok(())
 }
 
+fn write_executor_summary(path: &Path, report: &ProofPlanReport) -> Result<()> {
+    ensure_parent_dir(path)?;
+    fs::write(
+        path,
+        serde_json::to_string_pretty(&proof_executor_summary(report))?,
+    )?;
+    Ok(())
+}
+
 fn ensure_parent_dir(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
@@ -372,6 +423,61 @@ fn evidence_artifact_path(command: &ProofPlanCommand) -> Option<String> {
 
 fn is_evidence_kind(kind: &str) -> bool {
     matches!(kind, "coverage" | "mutation")
+}
+
+fn proof_executor_summary(report: &ProofPlanReport) -> ProofExecutorSummary {
+    let family = "coverage";
+    let family_commands = report
+        .commands
+        .iter()
+        .filter(|command| command.kind == family)
+        .collect::<Vec<_>>();
+    let entries = family_commands
+        .iter()
+        .filter(|command| !command.required)
+        .map(|command| executor_entry(command))
+        .collect::<Vec<_>>();
+    let required_excluded = family_commands
+        .iter()
+        .filter(|command| command.required)
+        .count();
+    let selected = entries.len();
+
+    ProofExecutorSummary {
+        schema: "tokmd.proof_executor_summary.v1".to_string(),
+        status: "prototype".to_string(),
+        execution_status: "not_executed".to_string(),
+        family: family.to_string(),
+        required: false,
+        profile: report.profile.clone(),
+        base: report.base.clone(),
+        head: report.head.clone(),
+        ok: report.ok,
+        changed_files: report.changed_files.clone(),
+        counts: ProofExecutorCounts {
+            commands_total: report.commands.len(),
+            family_planned: family_commands.len(),
+            selected,
+            skipped: selected,
+            executed: 0,
+            required_excluded,
+            non_family_excluded: report.commands.len() - family_commands.len(),
+        },
+        entries,
+        unknown_files: report.unknown_files.clone(),
+    }
+}
+
+fn executor_entry(command: &ProofPlanCommand) -> ProofExecutorEntry {
+    ProofExecutorEntry {
+        scope: command.scope.clone(),
+        kind: command.kind.clone(),
+        required: command.required,
+        command: command.command.clone(),
+        artifact_path: evidence_artifact_path(command),
+        status: "skipped".to_string(),
+        skip_reason: "tool_execution_not_enabled".to_string(),
+    }
 }
 
 fn render_markdown_summary(report: &ProofPlanReport) -> String {
@@ -533,8 +639,8 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 mod tests {
     use super::{
         ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
-        is_mutation_candidate, proof_evidence_plan, render_markdown_summary,
-        static_profile_commands,
+        is_mutation_candidate, proof_evidence_plan, proof_executor_summary,
+        render_markdown_summary, static_profile_commands,
     };
     use crate::cli::ProofProfile;
     use crate::proof::policy::parse_policy_str;
@@ -740,6 +846,70 @@ coverage = "cargo-llvm-cov"
         );
         assert_eq!(evidence.entries[1].kind, "mutation");
         assert_eq!(evidence.entries[1].artifact_path, None);
+    }
+
+    #[test]
+    fn executor_summary_selects_only_advisory_coverage_without_execution() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "proof".to_string(),
+                    required: true,
+                    command: "cargo test -p tokmd-core ffi".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "cargo llvm-cov -p tokmd-core --all-features --lcov --output-path target/proof/coverage/tokmd_core_ffi.lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "coverage".to_string(),
+                    kind: "coverage".to_string(),
+                    required: true,
+                    command: "cargo llvm-cov --workspace --lcov".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "mutation".to_string(),
+                    required: false,
+                    command: "cargo mutants --file crates/tokmd-core/src/ffi.rs --timeout 300"
+                        .to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let summary = proof_executor_summary(&report);
+
+        assert_eq!(summary.schema, "tokmd.proof_executor_summary.v1");
+        assert_eq!(summary.status, "prototype");
+        assert_eq!(summary.execution_status, "not_executed");
+        assert_eq!(summary.family, "coverage");
+        assert!(!summary.required);
+        assert_eq!(summary.counts.commands_total, 4);
+        assert_eq!(summary.counts.family_planned, 2);
+        assert_eq!(summary.counts.selected, 1);
+        assert_eq!(summary.counts.skipped, 1);
+        assert_eq!(summary.counts.executed, 0);
+        assert_eq!(summary.counts.required_excluded, 1);
+        assert_eq!(summary.counts.non_family_excluded, 2);
+        assert_eq!(summary.entries.len(), 1);
+        assert_eq!(summary.entries[0].kind, "coverage");
+        assert!(!summary.entries[0].required);
+        assert_eq!(summary.entries[0].status, "skipped");
+        assert_eq!(summary.entries[0].skip_reason, "tool_execution_not_enabled");
+        assert_eq!(
+            summary.entries[0].artifact_path.as_deref(),
+            Some("target/proof/coverage/tokmd_core_ffi.lcov")
+        );
     }
 
     #[test]

@@ -33,6 +33,7 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(stdout.contains("--plan"), "stdout: {stdout}");
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
     assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
 }
 
 #[test]
@@ -161,4 +162,40 @@ fn proof_plan_writes_evidence_json_artifact() {
     assert_eq!(evidence["counts"]["coverage"]["executed"], 0);
     assert_eq!(evidence["counts"]["mutation"]["executed"], 0);
     assert!(evidence["entries"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn proof_plan_writes_executor_summary_artifact() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let executor_path = temp.path().join("executor-summary.json");
+    let executor_arg = executor_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--executor-summary",
+        &executor_arg,
+    ]);
+
+    assert!(success, "proof --executor-summary failed. stderr: {stderr}");
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof --plan should still emit JSON");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let summary = fs::read_to_string(executor_path).expect("executor summary should be written");
+    let summary: serde_json::Value =
+        serde_json::from_str(&summary).expect("executor summary should be valid JSON");
+    assert_eq!(summary["schema"], "tokmd.proof_executor_summary.v1");
+    assert_eq!(summary["status"], "prototype");
+    assert_eq!(summary["execution_status"], "not_executed");
+    assert_eq!(summary["family"], "coverage");
+    assert_eq!(summary["required"], false);
+    assert_eq!(summary["counts"]["selected"], 0);
+    assert_eq!(summary["counts"]["executed"], 0);
+    assert!(summary["entries"].as_array().unwrap().is_empty());
 }

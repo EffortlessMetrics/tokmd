@@ -121,6 +121,10 @@ pub struct ProofArgs {
     #[arg(long, value_name = "PATH")]
     pub evidence_json: Option<std::path::PathBuf>,
 
+    /// Write a prototype executor summary for selected non-required evidence commands
+    #[arg(long, value_name = "PATH")]
+    pub executor_summary: Option<std::path::PathBuf>,
+
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
