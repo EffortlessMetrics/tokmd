@@ -52,7 +52,7 @@ tokmd produces deterministic code inventory receipts and PR-focused context for:
 
 Output MUST be stable and schemaed when `--format json/jsonl/csv`:
 - **Core receipts** (lang, module, export, diff, context, run): Schema v2
-- **Analysis receipts**: Schema v5
+- **Analysis receipts**: Schema v9
 - **Cockpit receipts**: Schema v3
 
 ### Library API (tokmd-core)

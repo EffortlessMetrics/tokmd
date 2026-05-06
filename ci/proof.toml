@@ -578,6 +578,7 @@ paths = [
   "docs/baseline.schema.json",
   "docs/handoff.schema.json",
   "docs/handoff-schema.md",
+  "docs/requirements.md",
   "docs/schema.json",
 ]
 packages = ["tokmd-types", "tokmd"]

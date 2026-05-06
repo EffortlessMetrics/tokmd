@@ -1,0 +1,2 @@
+{"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","command":"sed -i 's/- \\*\\*Analysis receipts\\*\\*: Schema v5/- \\*\\*Analysis receipts\\*\\*: Schema v9/' docs/requirements.md","status":"success","notes":"Updated factual drift in docs/requirements.md"}
+{"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","command":"cargo xtask docs --check","status":"success","notes":"Ran docs verification gate"}
