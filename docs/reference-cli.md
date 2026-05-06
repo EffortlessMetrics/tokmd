@@ -43,7 +43,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -115,7 +115,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -138,7 +138,7 @@ Options:
       --module-depth <MODULE_DEPTH>
           How many path segments to include for module roots [default: 2].
 
-          # Examples crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
+          Example: crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
 
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
@@ -184,7 +184,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -278,7 +278,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -352,7 +352,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -523,7 +523,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -586,7 +586,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -660,7 +660,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -739,7 +739,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -822,7 +822,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -969,7 +969,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1096,7 +1096,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1149,7 +1149,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1220,7 +1220,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1369,7 +1369,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1457,7 +1457,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 
@@ -1669,7 +1669,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
 
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
 
           [aliases: --ignore]
 

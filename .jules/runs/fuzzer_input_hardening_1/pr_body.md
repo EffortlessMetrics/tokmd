@@ -1,51 +1,40 @@
 ## 💡 Summary
-Replaced non-standard `/// Examples:` doc headers with standard `/// # Examples` in `crates/tokmd/src/cli/parser.rs` and ran `cargo xtask docs --update`. This fixes documentation drift and ensures `cargo xtask docs --check` passes cleanly during the `gate` validations.
+This is a learning PR documenting a friction item. Attempting to standardize `clap` docstrings to `/// # Examples` in `parser.rs` fixes markdown drift but unfortunately renders the literal `#` in user-facing CLI help outputs. The run falls back to documenting this friction as no safe fix is actionable.
 
 ## 🎯 Why
-Using `/// Examples:` or `/// Example:` prevents `rustdoc` and the `clap` markdown documentation generator from recognizing the section appropriately, which introduces drift between the code comments and the generated markdown (e.g. `docs/reference-cli.md`). Standardizing to `/// # Examples` hardens this parsing surface and stabilizes the generator's behavior, aligning with the shard's input hardening mission. It prevents CI and `xtask docs --check` commands from failing.
+The 'Fuzzer' persona was assigned to harden input surfaces, specifically `parser.rs`. The code was observed to use non-standard `/// Examples:` headers which causes `rustdoc` drift when `cargo xtask docs --check` is run. The initial fix correctly updated the headers to `/// # Examples`, but a PR review found this injects a literal `#` into the generated CLI help. A friction item must be recorded to document this conflict between rustdoc format validation and clap parsing. Additionally, `cargo-fuzz` was missing in the environment, blocking the alternative target.
 
 ## 🔎 Evidence
-- `crates/tokmd/src/cli/parser.rs` contained `/// Examples:` at line 56 and `/// Example:` at line 297.
-- `cargo xtask docs --check` initially returned `Error: Documentation drift detected in /app/docs/reference-cli.md. Run cargo xtask docs --update to fix.`
-- Updating the doc blocks to `/// # Examples` combined with running `cargo xtask docs --update` resolved the drift cleanly.
+- `crates/tokmd/src/cli/parser.rs` contains `/// Examples:` at line 56 and `/// Example:` at line 297.
+- Modifying these to `/// # Examples` and regenerating the snapshots explicitly shows the `# Examples` appearing in `tokmd --help`.
+- See the newly created friction item: `.jules/friction/open/fuzzer_clap_doc_headers.md`.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Fix documentation drift caused by `/// Examples:` instead of `/// # Examples` in `tokmd/src/cli/parser.rs`.
-- It perfectly fits this repo and the `interfaces` shard because it hardens the parser struct's CLI documentation formatting against rustdoc/generator drift.
-- Trade-offs: Structure (low risk), Velocity (high as it prevents CI breaks), Governance (compliant with expected formatting standards).
+### Option A (rejected)
+- Change `/// Examples:` to `/// # Examples` in `tokmd/src/cli/parser.rs`.
+- Trade-offs: Fixes `xtask` docs markdown drift but severely degrades user experience by showing a literal hash mark (`#`) in CLI help outputs, making it unmergeable.
 
-### Option B
+### Option B (rejected)
 - Attempt to use `cargo fuzz`.
-- Choose this only when fuzzing toolchains (e.g. `nightly` and ASAN-compatible linkers) are natively working in the environment without generating false positives.
-- Trade-offs: Currently fails to compile due to missing sanitizer coverage tools, leading to no real patch and only friction reports.
+- Trade-offs: `cargo-fuzz` lacks ASAN capabilities in the native environment and exits with compilation errors, preventing it from yielding valid fuzz targets without substantial toolchain adjustments.
 
 ## ✅ Decision
-Option A was chosen to provide an honest, determinism-improving code and documentation patch that directly aligns with our hardening mission for parser structs. Option B was discarded because `cargo fuzz` fails natively with linker errors in this environment.
+Neither code option was safely viable. We chose to submit a Learning PR, capturing the `.jules` artifacts and recording a friction item documenting the `clap` struct docstring conflict so future runs understand this edge case.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/src/cli/parser.rs`
-- `docs/reference-cli.md`
-- `crates/tokmd/tests/snapshots/cli_snapshot_golden__help.snap`
+- `.jules/friction/open/fuzzer_clap_doc_headers.md`
 
 ## 🧪 Verification receipts
 ```text
-{"command": "mkdir -p .jules/runs/fuzzer_input_hardening_1 && create envelope", "exit_code": 0}
-{"command": "cargo xtask docs --update", "exit_code": 0}
-{"command": "cargo xtask gate (times out)", "exit_code": 0}
-{"command": "cargo xtask publish --plan", "exit_code": 0}
-{"command": "cargo xtask version-consistency", "exit_code": 0}
-{"command": "cargo fmt -- --check", "exit_code": 0}
-{"command": "cargo clippy -- -D warnings", "exit_code": 0}
-{"command": "cargo check", "exit_code": 0}
+{"command": "cat .jules/friction/open/fuzzer_clap_doc_headers.md", "exit_code": 0}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation formatting fix and snapshot update.
-- Blast radius: Only affects `tokmd`'s CLI parsing documentation and the snapshot tests, no runtime impact.
-- Risk class: Low risk. Changes are confined to doc headers and snapshot generated outputs.
+- Change shape: Friction documentation.
+- Blast radius: Zero code changes. Only writes local `.jules` friction and run packets.
+- Risk class: No risk.
 - Rollback: Revert the PR safely at any time.
-- Gates run: `cargo xtask docs --check`, `cargo test -p tokmd --test cli_snapshot_golden`, `cargo fmt`, `cargo clippy`, `cargo check`.
+- Gates run: `cargo xtask docs --check`, `cargo test -p tokmd --test cli_snapshot_golden`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/fuzzer_input_hardening_1/envelope.json`
@@ -53,6 +42,7 @@ Option A was chosen to provide an honest, determinism-improving code and documen
 - `.jules/runs/fuzzer_input_hardening_1/receipts.jsonl`
 - `.jules/runs/fuzzer_input_hardening_1/result.json`
 - `.jules/runs/fuzzer_input_hardening_1/pr_body.md`
+- `.jules/friction/open/fuzzer_clap_doc_headers.md`
 
 ## 🔜 Follow-ups
-None
+Address the `clap` struct docstring conflict or instruct future formatting rules to avoid generating a literal `#` in `clap` output.

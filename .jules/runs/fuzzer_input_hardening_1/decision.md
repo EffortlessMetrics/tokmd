@@ -1,12 +1,11 @@
 # Decision
 
-## Option A (recommended)
+## Option A (rejected)
 Fix documentation drift caused by `/// Examples:` instead of `/// # Examples` in `tokmd/src/cli/parser.rs`.
-This is a standard rustdoc convention, and when not followed, `cargo xtask docs --check` fails because the CLI documentation drift occurs as it parses the headers correctly to standard markdown formatting for the `reference-cli.md`.
-The fixing is deterministic, standard, and clearly falls under 'input hardening around parser/input surfaces' and prevents CI failures.
+While this is a standard rustdoc convention that prevents `cargo xtask docs --check` drift, the CLI documentation renders the literal '#' into generated CLI help output, making it user-hostile. Therefore this cannot be shipped.
 
-## Option B
-Attempt to use `cargo fuzz`. We verified that `cargo-fuzz` fails due to ASAN / LLVM toolchain issues in this execution environment. So doing this would result in a Learning PR only and no code shipped. We should prioritize shipping an honest patch that improves things in our shard.
+## Option B (rejected)
+Attempt to use `cargo fuzz`. `cargo-fuzz` fails due to ASAN / LLVM toolchain issues natively in this execution environment without a heavy fix payload.
 
 ## Decision
-Option A. It's an honest patch that hardens parser surfaces (specifically the doc parser compatibility) and ensures the project builds and verifies cleanly, directly addressing the provided memory: `In tokmd doc comments (especially for clap CLI arg structs like parser.rs), always use the standard Rustdoc header /// # Examples instead of /// Examples: or /// Example:. Using the colon format prevents Rustdoc from recognizing the section and causes cargo xtask docs --check to fail due to documentation drift.`
+Create a learning PR documenting the friction. Both the `cargo-fuzz` missing environment capability and the clap doc headers rendering `#` in the CLI output represent friction that prevents an honest code patch. Therefore, we will fallback to a learning PR, satisfying the run directives.

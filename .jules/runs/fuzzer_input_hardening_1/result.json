@@ -1,13 +1,8 @@
 {
   "status": "success",
-  "reason": "Successfully patched parser.rs doc headers to fix markdown drift and adhere to Rustdoc standard '/// # Examples'. Also updated the generated reference-cli.md by running cargo xtask docs --update.",
+  "reason": "Created a learning PR documenting that clap struct doc examples clash with rustdoc # headers, rendering a literal # to the CLI output.",
   "gates_run": [
-    "cargo test -p tokmd --test cli_snapshot_golden",
-    "cargo xtask docs --check",
-    "cargo xtask publish --plan",
-    "cargo xtask version-consistency",
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings",
-    "cargo check"
+    "cargo test -p tokmd",
+    "cargo xtask docs --check"
   ]
 }

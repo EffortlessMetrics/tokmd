@@ -1,5 +1,6 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
+assertion_line: 219
 expression: normalize(&stdout)
 ---
 tokmd — code awareness for AI contexts
@@ -34,7 +35,7 @@ Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
           
-          # Examples --exclude target --exclude "**/*.min.js"
+          Examples: --exclude target --exclude "**/*.min.js"
           
           [aliases: --ignore]
 

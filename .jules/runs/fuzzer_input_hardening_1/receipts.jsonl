@@ -1,8 +1,5 @@
-{"command": "mkdir -p .jules/runs/fuzzer_input_hardening_1 && create envelope", "exit_code": 0}
-{"command": "cargo xtask docs --update", "exit_code": 0}
-{"command": "cargo xtask gate (times out)", "exit_code": 0}
-{"command": "cargo xtask publish --plan", "exit_code": 0}
-{"command": "cargo xtask version-consistency", "exit_code": 0}
+{"command": "git commit -m \"jules: record fuzzer learning on clap parser struct formatting conflict 🌪️\"", "exit_code": 0}
+{"command": "cargo test -p tokmd", "exit_code": 0}
 {"command": "cargo fmt -- --check", "exit_code": 0}
 {"command": "cargo clippy -- -D warnings", "exit_code": 0}
 {"command": "cargo check", "exit_code": 0}
