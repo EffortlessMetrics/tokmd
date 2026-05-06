@@ -15,6 +15,6 @@ schema_version = "0.3"
 # proposed entries from `target/no-panic-proposed-allowlist.toml` after filling
 # in `owner`, `classification`, `explanation`, and `expires`.
 
-# The tokmd workspace is panic-free across production and tests; this ledger is
-# intentionally empty. Removing this comment when the first allowlist entry
-# lands is fine.
+# The ledger starts empty while `cargo xtask check-no-panic-family` runs in
+# advisory mode. Current unallowlisted findings are reported by the checker but
+# do not block until the strict rollout has a receipted baseline.

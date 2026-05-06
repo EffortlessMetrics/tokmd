@@ -14,8 +14,9 @@ in production or tests*. The policy is enforced by two complementary rails:
 2. **The semantic checker** (rail B), `cargo xtask check-no-panic-family`, is
    the authoritative exception mechanism. It parses every workspace `.rs` file
    with `syn`, finds panic-family expressions, and matches each finding against
-   `policy/no-panic-allowlist.toml`. Findings without an allowlist entry, stale
-   entries, and expired entries all fail the gate.
+   `policy/no-panic-allowlist.toml`. Stale and expired entries fail the gate in
+   both modes; findings without an allowlist entry become blocking when the
+   checker is run with `--strict`.
 
 ## Families
 

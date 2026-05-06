@@ -69,7 +69,7 @@ pub struct LintPolicyArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct NoPanicArgs {
-    /// Emit a machine-readable JSON report alongside human output
+    /// Emit a machine-readable JSON report instead of human output
     #[arg(long)]
     pub json: bool,
 

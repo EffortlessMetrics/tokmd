@@ -184,6 +184,7 @@ pub fn run_propose(args: NoPanicProposeArgs) -> Result<()> {
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct AllowlistFile {
     schema_version: String,
     #[serde(default)]
@@ -191,6 +192,7 @@ struct AllowlistFile {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct AllowEntry {
     id: String,
     path: String,
@@ -206,6 +208,7 @@ struct AllowEntry {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SelectorTable {
     kind: String,
     container: String,
@@ -214,6 +217,7 @@ struct SelectorTable {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct LastSeenTable {
     #[allow(dead_code)]
     line: usize,
@@ -1235,6 +1239,19 @@ receiver_fingerprint = "x"
                 .iter()
                 .any(|s| s.contains("classification must be one of")),
             "{report:?}"
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_allowlist_fields() {
+        let allowlist_toml = r#"
+schema_version = "0.3"
+unknown = "ignored would hide typos"
+"#;
+        let err = toml::from_str::<AllowlistFile>(allowlist_toml).expect_err("unknown key");
+        assert!(
+            err.to_string().contains("unknown field"),
+            "unexpected error: {err}"
         );
     }
 

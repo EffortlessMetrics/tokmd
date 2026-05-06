@@ -65,6 +65,7 @@ fn proof_policy_includes_current_product_scopes() {
         "format_redaction_scan_args",
         "jules_workspace",
         "model_scan_path_normalization",
+        "no_panic_policy",
     ] {
         assert!(
             names.contains(expected),
@@ -85,6 +86,20 @@ fn proof_policy_includes_current_product_scopes() {
 
     assert!(proof.contains("cargo test -p tokmd-format --test analysis_format --verbose"));
     assert!(proof.contains("cargo test -p tokmd-format --test analysis_html --verbose"));
+
+    let no_panic = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("no_panic_policy"))
+        .expect("no_panic_policy scope should exist");
+    let no_panic_proof = no_panic["proof"]
+        .as_array()
+        .expect("no_panic_policy should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(no_panic_proof.contains("cargo xtask check-no-panic-family"));
+    assert!(no_panic_proof.contains("cargo test -p xtask no_panic --verbose"));
 }
 
 #[test]
@@ -109,7 +124,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 31);
+    assert_eq!(value["scope_count"], 32);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);
