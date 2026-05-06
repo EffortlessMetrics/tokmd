@@ -38,6 +38,10 @@ fn proof_policy_check_accepts_repo_policy() {
     assert!(success, "proof-policy --check failed. stderr: {stderr}");
     assert!(stdout.contains("Proof policy OK"), "stdout: {stdout}");
     assert!(stdout.contains("ci/proof.toml"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("executor coverage/explicit_opt_in/max-dry-run-1"),
+        "stdout: {stdout}"
+    );
 }
 
 #[test]
@@ -107,6 +111,9 @@ fn proof_policy_json_reports_current_schema() {
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);
+    assert_eq!(value["executor"]["family"], "coverage");
+    assert_eq!(value["executor"]["ci_execution"], "explicit_opt_in");
+    assert_eq!(value["executor"]["max_dry_run_commands"], 1);
 }
 
 #[test]
