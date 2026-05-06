@@ -368,23 +368,103 @@ authenticated fetch.
 - [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
 - [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
 
-## Phase 5c: Browser Runtime Polish (v1.11.0)
+## Phase 5c: Browser Runtime Hardening (v1.11.0)
 
-**Goal**: Deliver browser runtime polish for cache semantics, long-running analysis visibility, fetch resilience, and authenticated-fetch boundaries.
+**Goal**: Deliver explicit cache policies, retry/rate-limit resilience, progress visibility, and strict authenticated-fetch boundaries. Make browser runtime behaviors deterministic, protocol-stable, and release-proof.
 
-### Work Items
+### Workstreams
 
-- [ ] Define cache key and invalidation semantics
-- [ ] Emit explicit progress events (CLI grammar documented in
-      `docs/progress-events.md`; browser worker progress remains in scope)
-- [ ] Improve retry and rate-limit UX
-- [ ] Partition authenticated fetch/cache behavior safely
+1. **Cache behavior contract** — Explicit modes (reuse, reload, no-store), defensible deep clones, token partitioning
+2. **Progress event protocol** — Phase-level progress during repo load and analysis; message type, schema, and capability advertisement
+3. **Retry and rate-limit UX** — Bounded retry with respectful retry-after, categorized error messages, progress events for retry state
+4. **Authenticated fetch boundaries** — Token isolation in logs/cache/results, password-style UI, clear token semantics
+5. **Main-thread UX wiring** — Cache controls, progress rendering, retry/rate-limit notices, auth boundary copy
+6. **Release closure** — Contract docs, validation receipts, final README updates
+
+### PR Sequence
+
+#### PR 1: Contract Docs ✅ In Progress
+- **Files**: `docs/capabilities/browser-runtime.md`, `web/runner/README.md`, `docs/implementation-plan.md`
+- **Deliverables**:
+  - Cache policy table (modes, keys, lifecycle)
+  - Progress event grammar and phase definitions
+  - Retry/rate-limit behavior and GitHub API interaction rules
+  - Authenticated-fetch boundary rules and UI safeguards
+  - Non-goals: persistent cache, zipball path, new browser modes, token persistence
+
+#### PR 2: Explicit Cache Policy
+- **Files**: `web/runner/ingest.js`, `web/runner/ingest.test.mjs`, `web/runner/README.md`
+- **Deliverables**:
+  - `cachePolicy.mode` enum (reuse, reload, no-store)
+  - `cache.keyVersion`, `cache.policy`, `cache.scope`, `cache.hit`, `cache.authScope`
+  - Defensive deep clone on cache hits
+  - Clear cache by repo or all entries
+  - Tests: reuse behavior, reload eviction, no-store non-caching, failed-load eviction, clone safety, token isolation
+
+#### PR 3: Retry/Rate-Limit Engine
+- **Files**: `web/runner/ingest.js`, `web/runner/ingest.test.mjs`, optional `web/runner/retry.js`
+- **Deliverables**:
+  - `retryPolicy` with configurable maxAttempts, baseDelayMs, maxDelayMs, retryAfterCapMs, respectRetryAfter
+  - Abort-safe exponential backoff with jitter
+  - 401/404 non-retry, rate-limit respect, 5xx/network retry rules
+  - Progress events for retry wait and attempt count
+  - Deterministic tests with injected scheduler/sleep
+
+#### PR 4: Worker Progress Protocol
+- **Files**: `web/runner/messages.js`, `web/runner/runtime.js`, `web/runner/worker.js`, corresponding tests
+- **Deliverables**:
+  - `MESSAGE_TYPES.PROGRESS`
+  - `createProgressMessage()` factory and validator
+  - Phase definitions (validating, running, serializing, complete, cache, files, retry_wait)
+  - Worker `capabilities.progress = true` advertisement
+  - Phase-level progress: validating, cache/files, running, serializing, complete
+  - Tests: message validation, capability reporting, phase ordering
+
+#### PR 5: Main-Thread UX Wiring
+- **Files**: `web/runner/index.html`, `web/runner/main.js`, `web/runner/styles.css`, optional `web/runner/ui-state.js`
+- **Deliverables**:
+  - Cache controls: mode selector (reuse/reload/no-store), clear cache button
+  - Cache status line: hit/miss/reload/no-store indicator
+  - Run progress panel with phase labels
+  - Retry/rate-limit notice area with countdown
+  - Auth boundary notice: "Token stays in memory for this page session"
+  - Token field: password-style, non-persistent, with clear button
+  - Token-safe logging (no token in error messages, downloadables, logs)
+
+#### PR 6: Release Closure
+- **Files**: `CHANGELOG.md`, `ROADMAP.md`, `docs/implementation-plan.md`, `web/runner/README.md`
+- **Deliverables**:
+  - Mark Phase 5c complete
+  - Document final supported behavior
+  - Include validation receipts (test results, contract conformance)
+  - Close v1.11.0 work items
+
+### Design Constraint: Progress
+
+The sharp edge is **true per-file progress during long Rust execution**.
+
+- v1.11.0 ships **phase-level progress** (before/after Rust calls)
+- True **per-file/per-stage internal progress** needs WASM callback seam (future)
+- If `tokmd-wasm` already exposes callback or yield path, integrate; otherwise document the limitation
 
 ### Tests
 
-- Unit tests: cache key and invalidation behavior
-- Worker tests: progress event emission during long scans
-- Runner tests: retry/rate-limit and authenticated-cache partition behavior
+- **Cache**: key stability, mode behavior, eviction, clone safety, token isolation, limit sensitivity
+- **Retry**: policy respect, backoff bounds, determinism with injected scheduler, auth/ref non-retry, abort-safe
+- **Progress**: message validation, phase ordering, capability reporting, cancellation handling
+- **Auth**: token not in logs, not in downloads, not in cache metadata, partition correctness
+- **Integration**: e2e cache+retry+progress workflows, error message safety
+
+### Validation
+
+```bash
+npm --prefix web/runner run check
+npm --prefix web/runner test
+npm --prefix web/runner run build:wasm
+cargo test -p tokmd-wasm --features analysis
+cargo xtask docs-check
+cargo xtask proof-policy --check
+```
 
 ---
 
