@@ -103,7 +103,7 @@
 - Closed #1370/#1371/#1372/#1373/#1374/#1375/#1376/#1377/#1378/#1380/#1381/#1382/#1383/#1384/#1385/#1386 as superseded by #1613. The generated variants competed on ADR/spec directory layout, numbering, and stale microcrate framing; #1613 kept the useful deterministic/schema/spec content in the current canonical layout.
 - Closed #1484/#1485/#1486/#1487 as stale generated GitHub Action PR-mode branches. Current main treats cockpit as the PR-review evidence surface after #1598/#1613; any future Action PR/review mode should start fresh from a stabilized review-packet contract.
 - Closed #1488/#1489/#1490/#1491 as stale competing `tokmd review` implementations. #1598 merged explicit cockpit comment output and #1613 records cockpit as the current review evidence surface; a separate command should start fresh only if it has a distinct orchestrator contract.
-- Next cluster after the cache semantics disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
+- Remaining open PR after this drain: #1541, held for explicit maintainer approval of the external Factory Droid service and API-key/secret policy.
 
 ## Operating decisions
 
