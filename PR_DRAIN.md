@@ -81,7 +81,9 @@
 - Closed #1518/#1494/#1508 as superseded by #1604.
 - Merged #1605: synthesized current-truth docs keeper from #1587/#1562. Moved shipped Python/Node FFI bindings from the future v2.0 horizon into the completed v1.4.0 milestone, renumbered the remaining future-horizon subsections, and refreshed schema/sensor-report example tool versions to `1.10.0`. Gates: `cargo xtask docs --check`; `cargo xtask version-consistency`; `typos ROADMAP.md docs/SCHEMA.md docs/sensor-report-v1.md`; `git diff --check`; GitHub CI.
 - Closed #1587/#1562 as superseded by #1605.
-- Next cluster after #1605: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
+- Merged #1606: synthesized `.jules` friction rollup keeper. Added generated active-friction indexing to `.jules/bin/build_index.py`, generated `FRICTION_ROLLUP.md`, consolidated repeated fuzz-toolchain blockers into one open item, and moved resolved/stale friction records to `done/` without carrying draft run packets. Gates: `python .jules/bin/build_index.py`; `python -m py_compile .jules/bin/build_index.py`; `cargo xtask docs --check`; `typos .jules/bin/build_index.py .jules/friction .jules/index/generated`; `git diff --check`; GitHub CI.
+- Closed #1547/#1539/#1524/#1511/#1499/#1454 as superseded by #1606.
+- Next cluster after #1606: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
 

@@ -1,5 +1,9 @@
 # Friction Item: cargo-mutants schema drift
 
+**Status:** done
+
+**Resolution:** `.cargo/mutants.toml` now uses `additional_cargo_args = ["--all-features"]`, so this drift is no longer active.
+
 **Component:** Tooling Governance
 
 **Description:**

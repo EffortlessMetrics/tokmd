@@ -1,5 +1,8 @@
 # Friction: cargo fuzz fails to build fuzz targets due to ASAN linker errors
 
+Status: done
+Superseded by: `.jules/friction/open/fuzz_toolchain_blocker.md`
+
 **Symptom**: Running `cargo fuzz run <target> --features <features> -- -runs=N` on any fuzzer target (like `fuzz_scan_args` or `fuzz_toml_config`) fails during the linking stage with undefined reference errors pointing to ASAN:
 `rust-lld: error: undefined symbol: __sancov_gen_.279`
 

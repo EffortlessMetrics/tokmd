@@ -12,8 +12,13 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `auditor_bindings_manifests` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `bolt_analysis_stack_builder` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `cartographer_roadmap_design` | Unknown | Unknown | Unknown | in-progress | 0 | live |
-| `compat_interfaces_matrix` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `compat_interfaces_matrix_01` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Unknown | quality | completed | 0 | live |
+| `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
+| `librarian_api_doctests` | Librarian | Prover | interfaces | in-progress | 0 | live |
 | `librarian_docs_examples` | Unknown | Unknown | Unknown | in-progress | 0 | live |
+| `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
+| `run_perf_cockpit_entry` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
+| `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 4 | live |
+| `steward_1` | Steward | Stabilizer | tooling-governance | success | 0 | live |
