@@ -1,0 +1,132 @@
+name: Proof Executor Experiment
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Base branch or ref for affected proof planning
+        required: false
+        default: main
+      upload_codecov:
+        description: Upload generated scoped LCOV files to Codecov
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proof-executor-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: ""
+
+jobs:
+  scoped-coverage-executor:
+    name: Scoped Coverage Executor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Use larger writable target dir
+        run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-directories: ${{ runner.temp }}/target
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Fetch base ref
+        run: git fetch origin "${{ inputs.base_ref }}":"refs/remotes/origin/${{ inputs.base_ref }}" || true
+
+      - name: Execute planner-selected scoped coverage
+        env:
+          CI: true
+        run: |
+          set +e
+          mkdir -p target/proof
+          cargo llvm-cov clean --workspace
+
+          cargo xtask affected --base "origin/${{ inputs.base_ref }}" --head HEAD --json > target/proof/affected.json
+          affected_status=$?
+
+          cargo xtask proof --profile affected --base "origin/${{ inputs.base_ref }}" --head HEAD --executor-mode execute --allow-ci-evidence-execution --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
+          executor_status=$?
+
+          if [ -f target/proof/executor-summary.json ] && [ -f target/proof/executor-manifest.json ]; then
+            cargo xtask proof-execution-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-execution-artifacts-check.txt 2>&1
+            verifier_status=$?
+          else
+            verifier_status=1
+            echo "executor artifacts were not generated" > target/proof/proof-execution-artifacts-check.txt
+          fi
+
+          {
+            echo "affected_status=${affected_status}"
+            echo "executor_status=${executor_status}"
+            echo "verifier_status=${verifier_status}"
+          } > target/proof/status.env
+
+          {
+            echo "## Scoped Coverage Executor"
+            echo ""
+            echo "| Command | Exit |"
+            echo "| --- | ---: |"
+            echo "| affected | ${affected_status} |"
+            echo "| proof executor | ${executor_status} |"
+            echo "| execution artifact verifier | ${verifier_status} |"
+            echo ""
+            echo "This is a workflow-dispatch experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
+            echo ""
+            cat target/proof/proof-execution-artifacts-check.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${affected_status}" -ne 0 ]; then
+            exit "${affected_status}"
+          fi
+          if [ "${executor_status}" -ne 0 ]; then
+            exit "${executor_status}"
+          fi
+          if [ "${verifier_status}" -ne 0 ]; then
+            exit "${verifier_status}"
+          fi
+
+          exit 0
+
+      - name: Upload proof executor artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: proof-executor-artifacts
+          path: target/proof/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload scoped coverage to Codecov
+        if: ${{ always() && inputs.upload_codecov }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/proof/coverage/*.lcov
+          flags: rust-scoped-executor
+          name: rust-scoped-executor
+          fail_ci_if_error: false
+          verbose: true

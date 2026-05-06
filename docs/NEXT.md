@@ -54,7 +54,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The proof executor now has a deliberately opt-in local coverage execution experiment. `--executor-mode execute` cannot be combined with `--plan`, requires explicit local or CI opt-in, runs only planner-selected non-required coverage commands, and writes executor summary/manifest artifacts while required proof jobs remain authoritative.
 - `cargo xtask proof-artifacts-check` now allows enabled execution guards for non-executed artifacts; this verifier still rejects executed artifacts by `execution_status` and executed counts until an execution verifier lands.
 - `cargo xtask proof-execution-artifacts-check` now verifies opted-in executed executor artifacts separately from the no-execution verifier, requiring executed status, an enabled guard, zero failed commands, and matching summary/manifest command records.
-- Next proof-policy operational slice: add a workflow-dispatch-only coverage executor experiment before any required PR job can run planner-selected evidence commands.
+- `.github/workflows/proof-executor.yml` now provides a workflow-dispatch-only scoped coverage executor experiment. It runs planner-selected non-required coverage commands with explicit CI opt-in, verifies executed artifacts, uploads proof artifacts, and leaves required PR proof jobs unchanged.
+- Next proof-policy operational slice: evaluate the manual proof-executor run output before promoting any planner-selected evidence execution into PR workflows.
 
 ## References
 

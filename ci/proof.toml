@@ -55,6 +55,7 @@ name = "proof_control_plane"
 kind = "rust"
 paths = [
   ".github/workflows/ci.yml",
+  ".github/workflows/proof-executor.yml",
   "ci/proof.toml",
   "docs/NEXT.md",
   "xtask/src/cli.rs",
