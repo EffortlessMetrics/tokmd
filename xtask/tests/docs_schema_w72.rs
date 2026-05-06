@@ -226,6 +226,18 @@ fn schema_md_context_bundle_version_matches_source() {
     );
 }
 
+#[test]
+fn schema_md_baseline_version_matches_source() {
+    let src = read_const_u32("crates/tokmd-analysis-types/src/lib.rs", "BASELINE_VERSION")
+        .expect("BASELINE_VERSION not found in source");
+    let doc = schema_md_version(&schema_md(), "`BASELINE_VERSION`")
+        .expect("BASELINE_VERSION not found in SCHEMA.md");
+    assert_eq!(
+        src, doc,
+        "BASELINE_VERSION: source={src} != SCHEMA.md={doc}"
+    );
+}
+
 // ===========================================================================
 // 3. schema.json structure alignment
 // ===========================================================================
@@ -257,6 +269,27 @@ fn schema_json_has_required_receipt_definitions() {
             "docs/schema.json missing definition for {name}"
         );
     }
+}
+
+fn baseline_schema_json() -> serde_json::Value {
+    let raw = std::fs::read_to_string(workspace_root().join("docs/baseline.schema.json"))
+        .expect("docs/baseline.schema.json must exist");
+    serde_json::from_str(&raw).expect("docs/baseline.schema.json must be valid JSON")
+}
+
+#[test]
+fn baseline_schema_json_version_matches_source() {
+    let json = baseline_schema_json();
+    let src = read_const_u32("crates/tokmd-analysis-types/src/lib.rs", "BASELINE_VERSION")
+        .expect("BASELINE_VERSION not found in source");
+    let json_ver = json["properties"]["baseline_version"]["const"]
+        .as_u64()
+        .expect("baseline_version const must be a number");
+
+    assert_eq!(
+        json_ver as u32, src,
+        "baseline.schema.json baseline_version ({json_ver}) != BASELINE_VERSION ({src})"
+    );
 }
 
 #[test]

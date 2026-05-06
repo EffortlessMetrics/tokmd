@@ -77,7 +77,9 @@
 - Closed #1387/#1388/#1389/#1390/#1467/#1468/#1469 as superseded by #1602.
 - Merged #1603: synthesized docs-only keeper for the missing global `--profile <PROFILE>` reference. Added the shipped `--profile` flag and visible `--view` alias to the handwritten global arguments table without carrying draft run-packet churn. Gates: `cargo xtask docs --check`; `typos docs/reference-cli.md`; `git diff --check`; GitHub CI.
 - Closed #1576 as superseded by #1603.
-- Next cluster after #1603: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
+- Merged #1604: synthesized keeper for schema docs drift checks. Corrected the ecosystem envelope constant names in `docs/SCHEMA.md`, added the missing W43 `CONTEXT_BUNDLE_SCHEMA_VERSION` check, and covered `BASELINE_VERSION` across `docs/SCHEMA.md` and `docs/baseline.schema.json`. Gates: `cargo test -p xtask schema_md_ --verbose`; `cargo test -p xtask baseline_schema_json_version_matches_source --verbose`; `cargo fmt-check`; `cargo xtask docs --check`; `typos docs/SCHEMA.md xtask/tests/docs_w43.rs xtask/tests/docs_schema_w72.rs`; `git diff --check`; GitHub CI.
+- Closed #1518/#1494/#1508 as superseded by #1604.
+- Next cluster after #1604: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
 
