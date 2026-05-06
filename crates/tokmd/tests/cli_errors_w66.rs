@@ -71,7 +71,7 @@ fn non_numeric_top_flag_fails() {
         .args(["lang", "--top", "abc"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn negative_top_flag_fails() {
         .args(["lang", "--top", "-5"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn module_non_numeric_depth_fails() {
         .args(["module", "--module-depth", "xyz"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn completions_invalid_shell_fails() {
         .args(["completions", "invalid_shell"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 // ===========================================================================
@@ -121,7 +121,7 @@ fn lang_with_nonexistent_path_produces_error() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn module_with_nonexistent_path_produces_error() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn export_with_nonexistent_path_produces_error() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn analyze_with_nonexistent_path_produces_error() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn run_with_nonexistent_path_produces_error() {
         .arg(p.as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -178,7 +178,7 @@ fn diff_with_nonexistent_files_produces_error() {
         .arg(p.join("b.json").as_os_str())
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid reference"));
 }
 
 // ===========================================================================
@@ -259,7 +259,7 @@ fn unknown_subcommand_produces_helpful_error() {
         .arg("not-a-real-command")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Unrecognized subcommand"));
 }
 
 #[test]
@@ -268,7 +268,7 @@ fn empty_string_subcommand_fails_or_defaults() {
         .arg("")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("a value is required"));
 }
 
 // ===========================================================================
@@ -281,7 +281,9 @@ fn diff_without_required_args_fails() {
         .arg("diff")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains(
+            "Provide either two positional refs",
+        ));
 }
 
 #[test]
@@ -290,7 +292,7 @@ fn gate_without_required_args_fails() {
         .arg("gate")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("No policy or ratchet rules"));
 }
 
 #[test]
@@ -299,7 +301,7 @@ fn cockpit_with_nonexistent_base_ref_fails() {
         .args(["cockpit", "--base", "nonexistent_ref_w66_abc"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("not inside a git repository"));
 }
 
 #[test]
@@ -308,5 +310,5 @@ fn unknown_global_flag_fails() {
         .arg("--does-not-exist")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }

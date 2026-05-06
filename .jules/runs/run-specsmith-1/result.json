@@ -1,18 +1,10 @@
 {
-  "prompt_id": "specsmith_analysis_stack",
-  "outcome": "PR-ready patch",
-  "primary_shard": "analysis-stack",
-  "friction_items_created": [],
-  "personas_notes_added": [],
-  "gates_run": [
-    "cargo test -p tokmd-analysis halstead:: --all-features",
-    "cargo fmt-check",
-    "git diff --check"
-  ],
-  "telemetry": {
-    "change_shape": "Behavioral test added + bug fix for halstead tokenizer loop over multi-byte chars.",
-    "blast_radius": "Only touches crates/tokmd-analysis/src/halstead/mod.rs. Fixes localized string slicing index panics.",
-    "risk_class": "Low",
-    "rollback_instructions": "Revert the commit touching crates/tokmd-analysis/src/halstead/mod.rs."
-  }
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "reason": "Replaced vague `.stderr(predicate::str::is_empty().not())` assertions across w51, w66, and w70 CLI error-handling tests with explicit string matches to properly lock-in error hints and behavior.",
+  "paths_touched": [
+    "crates/tokmd/tests/cli_error_paths_w51.rs",
+    "crates/tokmd/tests/cli_errors_w66.rs",
+    "crates/tokmd/tests/error_handling_w70.rs"
+  ]
 }

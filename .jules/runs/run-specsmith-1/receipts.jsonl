@@ -1,3 +1,8 @@
-{"command": "cargo test -p tokmd-analysis halstead:: --all-features", "outcome": "passed"}
-{"command": "cargo fmt-check", "outcome": "passed"}
-{"command": "git diff --check", "outcome": "passed"}
+{"cmd": "mkdir -p .jules/runs/run-specsmith-1", "outcome": "success", "timestamp": "2026-05-06T18:54:48Z"}
+{"cmd": "write envelope.json", "outcome": "success"}
+{"cmd": "write decision.md", "outcome": "success"}
+{"cmd": "write result.json", "outcome": "success"}
+{"cmd": "write pr_body.md", "outcome": "success"}
+{"cmd": "cargo test -p tokmd --test cli_error_paths_w51", "outcome": "success"}
+{"cmd": "cargo test -p tokmd --test cli_errors_w66", "outcome": "success"}
+{"cmd": "cargo test -p tokmd --test error_handling_w70", "outcome": "success"}
