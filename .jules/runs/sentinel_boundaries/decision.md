@@ -175,3 +175,6 @@ So I need to:
 2. Edit `ci/proof.toml` to map the `git_cmd()` surfaces.
 
 Let's carefully edit `ci/proof.toml`.
+
+Update 2: The `tokmd_git_support` scope added to `ci/proof.toml` caused `xtask/tests/proof_policy_w90.rs` to fail because it hardcodes `assert_eq!(value["scope_count"], 34);`.
+I will update `xtask/tests/proof_policy_w90.rs` to assert `35` instead.
