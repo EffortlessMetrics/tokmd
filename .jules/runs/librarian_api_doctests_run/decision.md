@@ -1,9 +1,9 @@
-# Option A: Fix CLI help examples in `tokmd/src/cli/parser.rs` and improve `tokmd/src/config.rs` doctests.
+# Option A: Create a Learning PR
 
-The CLI help text has missing examples for many commands, and some examples are poorly formatted. We can fix these to generate better executable examples via the CLI and the markdown generator. At the same time, we can ensure doctests in `tokmd/src/config.rs` and `tokmd-core/src/ffi.rs` match the behavior and remain robust.
+Aborting the patch since the work was superseded by #1592, and record the workflow edge case in a friction item.
 
-# Option B: Add comprehensive doctests to `tokmd-core/src/lib.rs` covering all missing variants.
+# Option B: Rebase and push only heading style fixes
 
-Expand the existing doctests in `tokmd-core/src/lib.rs` and `tokmd/src/config.rs` with additional cases. Make sure all public API endpoints have explicit, executable coverage.
+Try to keep the PR alive with only `# Examples` header fixes.
 
-Decision: Option A is strongly preferred. The prompt emphasizes finding missing executable coverage or clearly misleading omissions. By improving `tokmd/src/cli/parser.rs` clap doc comments, we directly improve the `reference-cli.md` output and user experience. We will add more executable doctests to `tokmd/src/config.rs` for under-tested resolving logic and fix `tokmd-core/src/ffi.rs` edge cases if any.
+Decision: Option A is preferred because the comment specifically stated the remaining heading-style edits are not enough to keep the draft branch open. We must cleanly abort and create a learning PR.

@@ -52,7 +52,7 @@ use crate::{
 /// - Missing keys use defaults
 /// - Invalid values return errors (no silent fallback)
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::ffi::run_json;

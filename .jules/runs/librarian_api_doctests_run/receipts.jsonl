@@ -1,15 +1,3 @@
-{"cmd": "mkdir -p .jules/runs/librarian_api_doctests_run"}
-{"cmd": "cat > .jules/runs/librarian_api_doctests_run/envelope.json"}
-{"cmd": "cat > .jules/runs/librarian_api_doctests_run/decision.md"}
-{"cmd": "sed -i 's/    \\/\\/\\/ Example:/    \\/\\/\\/ # Examples/' crates/tokmd/src/cli/parser.rs"}
-{"cmd": "sed -i 's/    \\/\\/\\/ Examples:/    \\/\\/\\/ # Examples/' crates/tokmd/src/cli/parser.rs"}
-{"cmd": "cargo xtask docs --check"}
-{"cmd": "python3 patch_config_examples.py (added missing get_profile_name and resolve_profile doctests)"}
-{"cmd": "python3 patch_lib.py (fixed /// # Example to /// # Examples in ffi.rs and lib.rs)"}
-{"cmd": "cargo test -p tokmd -p tokmd-core -p tokmd-settings --doc"}
-{"cmd": "cargo xtask docs --update (to fix doc drift after updating clap comments)"}
-{"cmd": "git add docs/reference-cli.md crates/tokmd/src/cli/parser.rs"}
-{"cmd": "cargo xtask docs --check"}
-{"cmd": "cargo test -p tokmd -p tokmd-core -p tokmd-settings --doc"}
-{"cmd": "cargo test -p tokmd cli_snapshot_golden (fix tests failing on snapshot drift)"}
-{"cmd": "cargo insta accept"}
+{"cmd": "cargo xtask docs --check (doc drift validation)", "outcome": "failed initially, fixed with --update"}
+{"cmd": "cargo test --doc", "outcome": "passed after adding executable doctests to config.rs"}
+{"cmd": "Aborting patch because user commented that PR was superseded by #1592."}

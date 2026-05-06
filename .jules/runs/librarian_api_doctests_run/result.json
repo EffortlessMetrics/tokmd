@@ -1,4 +1,5 @@
 {
   "success": true,
-  "summary": "Fixed CLI help doc examples to properly render in Rustdoc with `# Examples`, and added missing executable doctests to `tokmd/src/config.rs`."
+  "summary": "Gracefully aborted patch because it was superseded by #1592. Created a Learning PR documenting the workflow edge case.",
+  "learning_pr": true
 }

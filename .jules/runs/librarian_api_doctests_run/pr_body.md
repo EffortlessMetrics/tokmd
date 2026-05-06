@@ -1,52 +1,42 @@
 ## 💡 Summary
-Improved `tokmd`'s CLI and configuration public API documentation. Fixed `/// Example:` and `/// Examples:` directives in clap arg structs to correctly render in Rustdoc as `# Examples`. Also expanded `tokmd/src/config.rs` with new executable doctests for configuration resolvers to prevent silent documentation drift.
+This is a learning PR. The intended patch to improve `tokmd`'s CLI and configuration public API documentation with executable doctests was gracefully aborted because it was superseded by #1592 on the `main` branch.
 
 ## 🎯 Why
-Missing or malformed doctests fail the gate expectation for executable docs (`docs-executable` gate profile). The prompt highlighted missing executable coverage for common usage on core/config/CLI public APIs. By standardizing the `# Examples` headers, we get better Rustdoc coverage, and adding missing doctests directly hardens our public API behavior.
+The user comment noted: "Superseded by #1592, which merged the aligned executable-docs/config-doctest keeper on current main. The remaining heading-style edits are not enough to keep this draft branch open." Rather than fighting upstream reality or keeping a low-value PR open, we follow the fallback behavior to abort the patch and record a friction item.
 
 ## 🔎 Evidence
-- Found `Example:` instead of `# Examples` in `crates/tokmd/src/cli/parser.rs`, causing rustdoc to not treat them as explicit headers, although clap displayed them correctly.
-- Found `get_profile_name` and `resolve_profile` in `crates/tokmd/src/config.rs` completely lacking doctests.
-- `cargo test --doc` execution proved these gaps could be filled.
+- PR comment explicitly states the branch is superseded by #1592.
+- The remaining scope (fixing `/// Examples:`) does not justify a standalone PR.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Fix rustdoc headers and add the missing doctest cases directly to `crates/tokmd/src/config.rs`.
-- Why it fits: Directly satisfies the `Librarian` mission of improving factual docs quality and executable examples within the `interfaces` shard.
-- Trade-offs: Minor doc diff, but provides solid compile-time guarantees against drift.
+- Create a Learning PR documenting the superseded work edge case.
+- Why it fits: Matches Jules policy for handling superseded patches gracefully.
+- Trade-offs: Abandons current patch code, but avoids merge conflicts and low-value reviews.
 
 ### Option B
-- Add comprehensive doctests to `crates/tokmd-core/src/lib.rs` covering all missing variants.
-- When to choose: If the core API itself was under-documented.
-- Trade-offs: `lib.rs` is already well-covered; `config.rs` had obvious gaps that could silently drift.
+- Rebase and keep only the `/// # Examples` header style fixes.
+- When to choose: If the style fixes were critical or requested by the reviewer.
+- Trade-offs: The reviewer explicitly said the remaining edits are not enough to keep the branch open.
 
 ## ✅ Decision
-Option A. It's the most direct and aligned fix for missing executable examples for CLI interfaces and config API resolvers.
+Option A. Abort code changes and submit as a Learning PR.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/src/cli/parser.rs`: Updated `/// Examples:` to `/// # Examples` on `GlobalArgs`, `CliLangArgs`, `CliModuleArgs`, `CliExportArgs` for correct rustdoc parsing.
-- `crates/tokmd-core/src/ffi.rs`: Standardized `# Example` to `# Examples`.
-- `crates/tokmd-core/src/lib.rs`: Standardized `# Example` to `# Examples`.
-- `crates/tokmd/src/config.rs`: Added executable doctests for `get_profile_name` and `resolve_profile`.
-- `crates/tokmd/tests/snapshots/cli_snapshot_golden__help.snap`: Updated snapshot tests to reflect the updated documentation string.
+- Aborted previous documentation and doctest changes.
+- Added friction item: `.jules/friction/open/superseded_pr.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd -p tokmd-core -p tokmd-settings --doc
-test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
-all doctests ran in 0.99s; merged doctests compilation took 0.95s
-test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
-
-cargo xtask docs --check
-Documentation is up to date.
+Aborted code patch based on PR review comment indicating work was superseded.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation and Doctest updates
-- Blast radius: Docs only
-- Risk class: Low
-- Rollback: Revert doc changes
-- Gates run: `cargo xtask docs --check`, `cargo test --doc`, `cargo test cli_snapshot_golden`
+- Change shape: Learning PR
+- Blast radius: Internal agent telemetry
+- Risk class: Zero
+- Rollback: Revert telemetry changes
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests_run/envelope.json`
@@ -54,6 +44,7 @@ Documentation is up to date.
 - `.jules/runs/librarian_api_doctests_run/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests_run/result.json`
 - `.jules/runs/librarian_api_doctests_run/pr_body.md`
+- `.jules/friction/open/superseded_pr.md`
 
 ## 🔜 Follow-ups
 None.

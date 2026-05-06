@@ -19,7 +19,7 @@
 //! * Low-level scanning logic (use tokmd-scan)
 //! * Aggregation details (use tokmd-model)
 //!
-//! ## Examples
+//! ## Example
 //!
 //! ```rust
 //! use tokmd_core::{lang_workflow, settings::{ScanSettings, LangSettings}};
@@ -122,7 +122,7 @@ pub fn lang_workflow(scan: &ScanSettings, lang: &LangSettings) -> Result<LangRec
 
 /// Runs the language summary workflow for ordered in-memory inputs.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{
@@ -162,7 +162,7 @@ pub fn lang_workflow_from_inputs(
 ///
 /// A `ModuleReceipt` containing the module breakdown.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{module_workflow, settings::{ScanSettings, ModuleSettings}};
@@ -197,7 +197,7 @@ pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<M
 
 /// Runs the module summary workflow for ordered in-memory inputs.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{
@@ -248,7 +248,7 @@ pub fn module_workflow_from_inputs(
 ///
 /// An `ExportReceipt` containing file-level data.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{export_workflow, settings::{ScanSettings, ExportSettings}};
@@ -283,7 +283,7 @@ pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<E
 
 /// Runs the file export workflow for ordered in-memory inputs.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{
@@ -342,7 +342,7 @@ pub fn export_workflow_from_inputs(
 ///
 /// A `DiffReceipt` showing changes between the two states.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{diff_workflow, settings::DiffSettings};
@@ -379,7 +379,7 @@ pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
 ///
 /// Runs export + analysis workflows and returns an `AnalysisReceipt`.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{analyze_workflow, settings::{ScanSettings, AnalyzeSettings}};
@@ -415,7 +415,7 @@ pub fn analyze_workflow(
 /// materialize a temporary scan root until the remaining analysis seams are
 /// moved off the filesystem.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
 /// use tokmd_core::{analyze_workflow_from_inputs, settings::{AnalyzeSettings, ScanOptions}, InMemoryFile};
@@ -583,7 +583,7 @@ fn build_analysis_request(
 ///
 /// A `CockpitReceipt` containing PR metrics, evidence gates, and review plan.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust,no_run
 /// use tokmd_core::{cockpit_workflow, settings::CockpitSettings};
