@@ -99,6 +99,8 @@
 - Closed #1144 as declined stale steward learning. The 1.9-era tooling-governance note and lockfile churn do not add durable value after the current `cargo xtask` workflow docs and release-train ADR.
 - Closed #1214 as superseded by current `.jules` migration/rollup state. The legacy-ledger migration and gate wording are already represented on main; the draft should not reintroduce old run-packet churn.
 - Closed #1218 as declined for current main. ANSI-colored CLI errors need a fresh product/color-policy pass with `NO_COLOR`/`CLICOLOR` handling and tests, not a conflicting draft that adds a dependency and previously failed the required quality gate.
+- Merged #1613: synthesized keeper for the specification/ADR family. Added the canonical `docs/adr` index, accepted ADRs for deterministic receipts/renderers and independent schema-family versioning, and a current product specification aligned with crate/module consolidation, `tokmd-config` retirement, cockpit as the current review surface, and capability honesty. Gates: `cargo xtask docs --check`; `typos README.md docs/architecture.md docs/specification.md docs/adr`; `git diff --check`; GitHub CI.
+- Closed #1370/#1371/#1372/#1373/#1374/#1375/#1376/#1377/#1378/#1380/#1381/#1382/#1383/#1384/#1385/#1386 as superseded by #1613. The generated variants competed on ADR/spec directory layout, numbering, and stale microcrate framing; #1613 kept the useful deterministic/schema/spec content in the current canonical layout.
 - Next cluster after the cache semantics disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
