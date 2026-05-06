@@ -52,18 +52,18 @@ pub fn run() -> Result<()> {
     // Catch common typoed subcommands that fall through to the default `lang` paths.
     // If no subcommand is present, the user provided exactly one path, that path does not exist,
     // and the path is a single simple word, they likely meant a subcommand.
-    if cli.command.is_none() {
-        if let Some(paths) = &cli.lang.paths {
-            if paths.len() == 1 {
-                let p = &paths[0];
-                if !p.exists() {
-                    let s = p.to_string_lossy();
-                    if !s.contains('/') && !s.contains('\\') && !s.contains('.') && !s.is_empty() {
-                        use clap::CommandFactory;
-                        let mut cmd = Cli::command();
-                        let msg = format!("unrecognized subcommand '{}'", s);
-                        cmd.error(clap::error::ErrorKind::InvalidSubcommand, msg).exit();
-                    }
+    if let (None, Some(paths)) = (&cli.command, &cli.lang.paths) {
+        #[allow(clippy::collapsible_if)]
+        if paths.len() == 1 {
+            let p = &paths[0];
+            if !p.exists() {
+                let s = p.to_string_lossy();
+                if !s.contains('/') && !s.contains('\\') && !s.contains('.') && !s.is_empty() {
+                    use clap::CommandFactory;
+                    let mut cmd = Cli::command();
+                    let msg = format!("unrecognized subcommand '{}'", s);
+                    cmd.error(clap::error::ErrorKind::InvalidSubcommand, msg)
+                        .exit();
                 }
             }
         }
