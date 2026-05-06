@@ -77,6 +77,17 @@ fn validate_executor_artifacts(summary: &Value, manifest: &Value) -> Result<Proo
         );
     }
 
+    let guard_enabled = expect_bool(
+        field(summary, "execution_guard.enabled", "executor summary")?,
+        "execution_guard.enabled",
+        "executor summary",
+    )?;
+    if guard_enabled {
+        bail!(
+            "executor artifacts have execution_guard.enabled=true; no-execution verifier requires a blocked guard"
+        );
+    }
+
     let summary_selected = expect_usize(
         field(summary, "counts.selected", "executor summary")?,
         "counts.selected",
@@ -320,6 +331,19 @@ mod tests {
             .to_string();
 
         assert!(error.contains("executor command mismatch"));
+    }
+
+    #[test]
+    fn rejects_enabled_execution_guard() {
+        let (mut summary, mut manifest) = matching_artifacts();
+        summary["execution_guard"]["enabled"] = json!(true);
+        manifest["execution_guard"]["enabled"] = json!(true);
+
+        let error = validate_executor_artifacts(&summary, &manifest)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("execution_guard.enabled=true"));
     }
 
     fn matching_artifacts() -> (Value, Value) {
