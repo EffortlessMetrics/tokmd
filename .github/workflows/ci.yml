@@ -103,6 +103,69 @@ jobs:
       - name: Guard analysis microcrate boundaries
         run: cargo xtask boundaries-check
 
+  proof-policy:
+    name: Proof Policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Validate proof policy
+        run: cargo xtask proof-policy --check
+
+  affected-plan:
+    name: Affected Proof Plan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Fetch base ref
+        run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+      - name: Generate affected proof artifacts
+        run: |
+          set +e
+          mkdir -p target/proof
+
+          cargo xtask affected --base "origin/${{ github.base_ref }}" --head HEAD --json > target/proof/affected.json
+          affected_status=$?
+
+          cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan > target/proof/proof-plan.json
+          proof_plan_status=$?
+
+          {
+            echo "affected_status=${affected_status}"
+            echo "proof_plan_status=${proof_plan_status}"
+          } > target/proof/status.env
+
+          {
+            echo "## Affected Proof Plan"
+            echo ""
+            echo "| Command | Exit |"
+            echo "| --- | ---: |"
+            echo "| affected | ${affected_status} |"
+            echo "| proof plan | ${proof_plan_status} |"
+            echo ""
+            echo "This job is informational while proof planning is being adopted; existing CI jobs remain authoritative."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit 0
+
+      - name: Upload affected proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: affected-proof-plan
+          path: target/proof/
+          if-no-files-found: error
+
   wasm-compile:
     name: Wasm Compile & Test
     runs-on: ubuntu-latest
@@ -346,6 +409,7 @@ jobs:
       - nix-pr
       - mutation
       - feature-boundaries
+      - proof-policy
     steps:
       - name: Check overall status
         env:

@@ -14,7 +14,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 2. Move dependency-boundary and fixture/blob allowlists into the proof policy while preserving current behavior.
 3. Add `cargo xtask affected --base origin/main --head HEAD --json` for changed-file to proof-scope discovery.
 4. Add `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` to print a stable proof plan without running it.
-5. Wire policy validation into CI as a small standalone job before replacing larger workflow logic.
+5. Wire policy validation and affected-plan artifacts into CI before replacing larger workflow logic.
 
 ## Directional Rules
 
@@ -29,7 +29,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Fixture-blob checks now read `ci/proof.toml` while preserving the existing crypto extension and marker detection plus the `.claude`, `.jules`, `vendor`, proof-policy source, and checker-source allowlist behavior.
 - `cargo xtask affected --base origin/main --head HEAD --json` now maps changed files to proof scopes from `ci/proof.toml`, reports unknown files, and keeps non-Rust unknown handling policy-driven.
 - `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` now prints a stable proof plan without running commands; `fast`, `release`, and `deep` profiles are plan-only placeholders for the next CI integration slices.
-- Next proof-policy operational slice: wire policy validation and affected-plan artifacts into CI while keeping existing jobs authoritative.
+- CI now validates `cargo xtask proof-policy --check` as part of the required aggregate and uploads PR-only affected proof artifacts while keeping existing jobs authoritative.
+- Next proof-policy operational slice: expand the proof scope registry for the main product surfaces before using affected plans to drive required checks.
 
 ## References
 
