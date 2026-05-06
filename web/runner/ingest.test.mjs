@@ -592,3 +592,345 @@ test("fetchGitHubRepoInputs emits progress and partial-load markers", async () =
         ["too_large_files", "byte_budget"]
     );
 });
+
+test("fetchGitHubRepoInputs respects cachePolicy.mode='reuse' (default)", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        cachePolicy: { mode: "reuse" },
+    });
+    const secondReuse = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        cachePolicy: { mode: "reuse" },
+    });
+
+    assert.equal(fetchCount, 2);
+    assert.equal(first.ingest.cache.hit, false);
+    assert.equal(secondReuse.ingest.cache.hit, true);
+    assert.equal(first.ingest.cache.policy.mode, "reuse");
+    assert.equal(secondReuse.ingest.cache.policy.mode, "reuse");
+});
+
+test("fetchGitHubRepoInputs respects cachePolicy.mode='reload'", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+    const reloaded = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        cachePolicy: { mode: "reload" },
+    });
+
+    assert.equal(fetchCount, 4);
+    assert.equal(first.ingest.cache.hit, false);
+    assert.equal(reloaded.ingest.cache.hit, false);
+    assert.equal(reloaded.ingest.cache.policy.mode, "reload");
+});
+
+test("fetchGitHubRepoInputs respects cachePolicy.mode='no-store'", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        cachePolicy: { mode: "no-store" },
+    });
+    const noStore = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        cachePolicy: { mode: "no-store" },
+    });
+
+    assert.equal(fetchCount, 4);
+    assert.equal(first.ingest.cache.hit, false);
+    assert.equal(noStore.ingest.cache.hit, false);
+    assert.equal(first.ingest.cache.policy.mode, "no-store");
+    assert.equal(noStore.ingest.cache.policy.mode, "no-store");
+});
+
+test("fetchGitHubRepoInputs deep-clones inputs on cache hit", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+    const second = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+
+    assert.notEqual(first.inputs, second.inputs);
+    assert.equal(first.inputs[0].path, second.inputs[0].path);
+    assert.equal(first.inputs[0].text, second.inputs[0].text);
+
+    first.inputs[0].text = "MUTATED";
+    assert.notEqual(second.inputs[0].text, "MUTATED");
+});
+
+test("fetchGitHubRepoInputs includes cache metadata fields", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+        token: "secret-token",
+    });
+
+    assert.equal(result.ingest.cache.keyVersion, 1);
+    assert.equal(result.ingest.cache.scope, "memory");
+    assert.equal(result.ingest.cache.hit, false);
+    assert.equal(result.ingest.cache.authScope, "token-scoped");
+    assert.deepEqual(result.ingest.cache.policy, { mode: "reuse", scope: "memory" });
+});
+
+test("fetchGitHubRepoInputs marks authScope as anonymous for public access", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+
+    assert.equal(result.ingest.cache.authScope, "anonymous");
+});
+
+test("clearGitHubRepoCache clears all entries by default", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    let fetchCount = 0;
+    const countingFetch = async (url, options) => {
+        fetchCount += 1;
+        return fetchImpl(url, options);
+    };
+
+    const first = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl: countingFetch,
+    });
+    const cached = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl: countingFetch,
+    });
+
+    assert.equal(first.ingest.cache.hit, false);
+    assert.equal(cached.ingest.cache.hit, true);
+    assert.equal(fetchCount, 2);
+
+    clearGitHubRepoCache();
+
+    const afterClear = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl: countingFetch,
+    });
+
+    assert.equal(afterClear.ingest.cache.hit, false);
+    assert.equal(fetchCount, 4);
+});
+
+test("clearGitHubRepoCache clears specific repo by owner/repo string", async () => {
+    clearGitHubRepoCache();
+
+    const fetchImpl = async (url) => {
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    const tokmd = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+
+    clearGitHubRepoCache({ repo: "EffortlessMetrics/tokmd" });
+
+    const tokmdAgain = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+
+    assert.equal(tokmd.ingest.cache.hit, false);
+    assert.equal(tokmdAgain.ingest.cache.hit, false);
+});
+
+test("fetchGitHubRepoInputs handles failed loads with proper eviction", async () => {
+    clearGitHubRepoCache();
+
+    let fetchCount = 0;
+    let shouldFail = true;
+    const fetchImpl = async (url) => {
+        fetchCount += 1;
+        if (shouldFail && url.includes("/git/trees/")) {
+            return new Response(JSON.stringify({ message: "Server error" }), {
+                status: 502,
+                headers: { "content-type": "application/json" },
+            });
+        }
+
+        if (url.includes("/git/trees/")) {
+            return jsonResponse({
+                tree: [{ path: "README.md", size: 32, type: "blob" }],
+            });
+        }
+
+        if (url.includes("/contents/README.md")) {
+            return textResponse("# tokmd\n");
+        }
+
+        throw new Error(`unexpected fetch url: ${url}`);
+    };
+
+    await assert.rejects(
+        () =>
+            fetchGitHubRepoInputs({
+                repo: "EffortlessMetrics/tokmd",
+                ref: "main",
+                fetchImpl,
+            }),
+        /GitHub request failed/
+    );
+
+    shouldFail = false;
+
+    const result = await fetchGitHubRepoInputs({
+        repo: "EffortlessMetrics/tokmd",
+        ref: "main",
+        fetchImpl,
+    });
+
+    assert.equal(result.ingest.cache.hit, false);
+    assert.equal(fetchCount, 3);
+});

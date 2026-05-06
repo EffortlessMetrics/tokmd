@@ -83,6 +83,9 @@ const SECONDARY_PREFIXES = [
 
 const repoCache = new Map();
 const GITHUB_SEGMENT_PATTERN = /^[A-Za-z0-9_.-]+$/;
+const CACHE_KEY_VERSION = 1;
+const CACHE_POLICY_MODES = Object.freeze(["reuse", "reload", "no-store"]);
+const DEFAULT_CACHE_POLICY = Object.freeze({ mode: "reuse", scope: "memory" });
 
 function normalizePath(value) {
     return value.replaceAll("\\", "/");
@@ -191,6 +194,51 @@ function normalizeLimits(options = {}) {
             DEFAULT_LIMITS.maxFileBytes
         ),
     };
+}
+
+function normalizeCachePolicy(value) {
+    if (!value || typeof value !== "object") {
+        return DEFAULT_CACHE_POLICY;
+    }
+
+    const mode = typeof value.mode === "string" ? value.mode.toLowerCase() : "reuse";
+    if (!CACHE_POLICY_MODES.includes(mode)) {
+        return DEFAULT_CACHE_POLICY;
+    }
+
+    return Object.freeze({
+        mode,
+        scope: value.scope === "memory" ? "memory" : "memory",
+    });
+}
+
+function deepCloneInputs(inputs) {
+    if (!Array.isArray(inputs)) {
+        return inputs;
+    }
+
+    return inputs.map((input) => {
+        if (typeof input !== "object" || input === null) {
+            return input;
+        }
+
+        const cloned = {};
+        for (const key in input) {
+            if (Object.prototype.hasOwnProperty.call(input, key)) {
+                const value = input[key];
+                if (typeof value === "string" || typeof value === "number") {
+                    cloned[key] = value;
+                } else if (typeof value === "object" && value !== null && typeof value.slice === "function") {
+                    cloned[key] = new Uint8Array(value);
+                } else if (typeof value === "object" && value !== null) {
+                    cloned[key] = JSON.parse(JSON.stringify(value));
+                } else {
+                    cloned[key] = value;
+                }
+            }
+        }
+        return cloned;
+    });
 }
 
 function normalizeToken(value) {
@@ -374,14 +422,34 @@ function emitProgress(callback, update) {
     }
 }
 
-function withCacheHit(result) {
+function withCacheHit(result, policy = DEFAULT_CACHE_POLICY) {
+    return {
+        ...result,
+        inputs: deepCloneInputs(result.inputs),
+        ingest: {
+            ...result.ingest,
+            cache: {
+                keyVersion: CACHE_KEY_VERSION,
+                scope: "memory",
+                hit: true,
+                policy: { mode: policy.mode, scope: policy.scope },
+                authScope: result.ingest.authMode === "token" ? "token-scoped" : "anonymous",
+            },
+        },
+    };
+}
+
+function buildCacheEntry(result, policy = DEFAULT_CACHE_POLICY) {
     return {
         ...result,
         ingest: {
             ...result.ingest,
             cache: {
-                ...result.ingest.cache,
-                hit: true,
+                keyVersion: CACHE_KEY_VERSION,
+                scope: "memory",
+                hit: false,
+                policy: { mode: policy.mode, scope: policy.scope },
+                authScope: result.ingest.authMode === "token" ? "token-scoped" : "anonymous",
             },
         },
     };
@@ -626,8 +694,26 @@ export function selectGitHubTreeEntries(entries, options = {}) {
     };
 }
 
-export function clearGitHubRepoCache() {
-    repoCache.clear();
+export function clearGitHubRepoCache(options = {}) {
+    if (options.repo) {
+        const { owner, repo } = typeof options.repo === "string"
+            ? parseGitHubRepo(options.repo)
+            : options.repo;
+        const keysToDelete = [];
+        for (const key of repoCache.keys()) {
+            try {
+                const parsed = JSON.parse(key);
+                if (parsed.owner === owner && parsed.repo === repo) {
+                    keysToDelete.push(key);
+                }
+            } catch {
+                // Ignore malformed keys
+            }
+        }
+        keysToDelete.forEach((key) => repoCache.delete(key));
+    } else {
+        repoCache.clear();
+    }
 }
 
 export async function fetchGitHubRepoInputs(options = {}) {
@@ -638,6 +724,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
     const token = normalizeToken(options.token);
     const signal = options.signal;
     const onProgress = options.onProgress;
+    const cachePolicy = normalizeCachePolicy(options.cachePolicy);
     const authMode = token ? "token" : "anonymous";
 
     throwIfAborted(signal);
@@ -645,8 +732,8 @@ export async function fetchGitHubRepoInputs(options = {}) {
     throwIfAborted(signal);
     const cacheKey = buildCacheKey({ owner, repo, ref, limits, authMode, authPartition });
 
-    if (repoCache.has(cacheKey)) {
-        const cached = withCacheHit(await withAbortSignal(repoCache.get(cacheKey), signal));
+    if (cachePolicy.mode !== "no-store" && repoCache.has(cacheKey) && cachePolicy.mode === "reuse") {
+        const cached = withCacheHit(await withAbortSignal(repoCache.get(cacheKey), signal), cachePolicy);
         emitProgress(onProgress, {
             phase: "cache",
             current: 1,
@@ -661,6 +748,10 @@ export async function fetchGitHubRepoInputs(options = {}) {
             message: `Loaded ${cached.ingest.loadedFiles} file(s) from ${owner}/${repo}@${ref} (cache)`,
         });
         return cached;
+    }
+
+    if (cachePolicy.mode === "reload" && repoCache.has(cacheKey)) {
+        repoCache.delete(cacheKey);
     }
 
     const loadPromise = (async () => {
@@ -765,7 +856,7 @@ export async function fetchGitHubRepoInputs(options = {}) {
             message: `Loaded ${inputs.length} file(s) from ${owner}/${repo}@${ref}`,
         });
 
-        return {
+        const result = {
             inputs,
             source: {
                 repo: `${owner}/${repo}`,
@@ -774,14 +865,21 @@ export async function fetchGitHubRepoInputs(options = {}) {
             },
             ingest,
         };
+
+        return buildCacheEntry(result, cachePolicy);
     })();
 
-    repoCache.set(cacheKey, loadPromise);
+    if (cachePolicy.mode !== "no-store") {
+        repoCache.set(cacheKey, loadPromise);
+    }
 
     try {
-        return await loadPromise;
+        const result = await loadPromise;
+        return cachePolicy.mode === "no-store" ? result : result;
     } catch (error) {
-        repoCache.delete(cacheKey);
+        if (cachePolicy.mode !== "no-store") {
+            repoCache.delete(cacheKey);
+        }
         throw error;
     }
 }
