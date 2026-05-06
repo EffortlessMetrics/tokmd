@@ -3,5 +3,7 @@
   "persona": "Archivist",
   "style": "Builder",
   "primary_shard": "workspace-wide",
-  "gate_profile": "governance-release"
+  "allowed_paths": ["**"],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": ["PR-ready patch", "learning PR"]
 }

@@ -8,7 +8,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `09c9d819-02cd-4f63-b662-921c812f93dd` | Gatekeeper | Builder | quality | completed | 4 | live |
 | `20260428130048-fuzzer` | fuzzer | prover | interfaces | in-progress | 1 | live |
 | `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Explorer | docs | completed | 3 | live |
-| `archivist_jules` | Archivist | Builder | workspace-wide | success | 4 | live |
+| `archivist_jules` | Archivist | Builder | workspace-wide | learning | 0 | live |
 | `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Unknown | quality | completed | 0 | live |
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
 | `librarian_api_doctests` | Librarian | Prover | interfaces | in-progress | 0 | live |
