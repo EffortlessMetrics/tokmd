@@ -320,28 +320,28 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall = empty_file_row();
     }
 
-    let mut by_lang: BTreeMap<&str, &FileStatRow> = BTreeMap::new();
-    let mut by_module: BTreeMap<&str, &FileStatRow> = BTreeMap::new();
+    let mut by_lang: BTreeMap<String, FileStatRow> = BTreeMap::new();
+    let mut by_module: BTreeMap<String, FileStatRow> = BTreeMap::new();
 
     for row in rows {
-        if let Some(existing) = by_lang.get_mut(row.lang.as_str()) {
+        if let Some(existing) = by_lang.get_mut(&row.lang) {
             if row.lines > existing.lines
                 || (row.lines == existing.lines && row.path < existing.path)
             {
-                *existing = row;
+                *existing = row.clone();
             }
         } else {
-            by_lang.insert(row.lang.as_str(), row);
+            by_lang.insert(row.lang.clone(), row.clone());
         }
 
-        if let Some(existing) = by_module.get_mut(row.module.as_str()) {
+        if let Some(existing) = by_module.get_mut(&row.module) {
             if row.lines > existing.lines
                 || (row.lines == existing.lines && row.path < existing.path)
             {
-                *existing = row;
+                *existing = row.clone();
             }
         } else {
-            by_module.insert(row.module.as_str(), row);
+            by_module.insert(row.module.clone(), row.clone());
         }
     }
 
@@ -349,36 +349,30 @@ fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
         overall,
         by_lang: by_lang
             .into_iter()
-            .map(|(key, file)| MaxFileRow {
-                key: key.to_string(),
-                file: file.clone(),
-            })
+            .map(|(key, file)| MaxFileRow { key, file })
             .collect(),
         by_module: by_module
             .into_iter()
-            .map(|(key, file)| MaxFileRow {
-                key: key.to_string(),
-                file: file.clone(),
-            })
+            .map(|(key, file)| MaxFileRow { key, file })
             .collect(),
     }
 }
 
 fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
-    let mut by_module: BTreeMap<&str, BTreeMap<&str, usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
 
     for row in rows {
-        let entry = if let Some(existing) = by_module.get_mut(row.module.as_str()) {
+        let entry = if let Some(existing) = by_module.get_mut(&row.module) {
             existing
         } else {
-            by_module.insert(row.module.as_str(), BTreeMap::new());
-            by_module.get_mut(row.module.as_str()).unwrap()
+            by_module.insert(row.module.clone(), BTreeMap::new());
+            by_module.get_mut(&row.module).unwrap()
         };
 
-        if let Some(val) = entry.get_mut(row.lang.as_str()) {
+        if let Some(val) = entry.get_mut(&row.lang) {
             *val += row.lines;
         } else {
-            entry.insert(row.lang.as_str(), row.lines);
+            entry.insert(row.lang.clone(), row.lines);
         }
     }
 
@@ -387,13 +381,13 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
         let mut total = 0usize;
         let mut dominant_lang: Option<&str> = None;
         let mut dominant_lines = 0usize;
-        for (&lang, lines) in &langs {
+        for (lang, lines) in &langs {
             total += *lines;
             if *lines > dominant_lines
-                || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang < d))
+                || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
             {
                 dominant_lines = *lines;
-                dominant_lang = Some(lang);
+                dominant_lang = Some(lang.as_str());
             }
         }
         let pct = if total == 0 {
@@ -402,7 +396,7 @@ fn build_lang_purity_report(rows: &[&FileRow]) -> LangPurityReport {
             safe_ratio(dominant_lines, total)
         };
         out.push(LangPurityRow {
-            module: module.to_string(),
+            module,
             lang_count: langs.len(),
             dominant_lang: dominant_lang.unwrap_or_default().to_string(),
             dominant_lines,
@@ -425,15 +419,15 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
 
     let mut total_depth = 0usize;
     let mut max_depth = 0usize;
-    let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<String, Vec<usize>> = BTreeMap::new();
 
     for row in rows {
         total_depth += row.depth;
         max_depth = max_depth.max(row.depth);
-        if let Some(existing) = by_module.get_mut(row.module.as_str()) {
+        if let Some(existing) = by_module.get_mut(&row.module) {
             existing.push(row.depth);
         } else {
-            by_module.insert(row.module.as_str(), vec![row.depth]);
+            by_module.insert(row.module.clone(), vec![row.depth]);
         }
     }
 
@@ -449,7 +443,7 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
             round_f64(sum as f64 / depths.len() as f64, 2)
         };
         module_rows.push(NestingRow {
-            key: module.to_string(),
+            key: module,
             max,
             avg,
         });
@@ -497,13 +491,13 @@ fn build_test_density_report(rows: &[&FileRow]) -> TestDensityReport {
 fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
     let mut infra_lines = 0usize;
     let mut logic_lines = 0usize;
-    let mut infra_langs: BTreeSet<&str> = BTreeSet::new();
+    let mut infra_langs: BTreeSet<String> = BTreeSet::new();
 
     for row in rows {
         if is_infra_lang(&row.lang) {
             infra_lines += row.lines;
-            if !infra_langs.contains(row.lang.as_str()) {
-                infra_langs.insert(row.lang.as_str());
+            if !infra_langs.contains(&row.lang) {
+                infra_langs.insert(row.lang.clone());
             }
         } else {
             logic_lines += row.lines;
@@ -521,19 +515,19 @@ fn build_boilerplate_report(rows: &[&FileRow]) -> BoilerplateReport {
         infra_lines,
         logic_lines,
         ratio,
-        infra_langs: infra_langs.into_iter().map(String::from).collect(),
+        infra_langs: infra_langs.into_iter().collect(),
     }
 }
 
 fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
-    let mut by_lang: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut by_lang: BTreeMap<String, usize> = BTreeMap::new();
     let mut total = 0usize;
 
     for row in rows {
-        if let Some(val) = by_lang.get_mut(row.lang.as_str()) {
+        if let Some(val) = by_lang.get_mut(&row.lang) {
             *val += row.code;
         } else {
-            by_lang.insert(row.lang.as_str(), row.code);
+            by_lang.insert(row.lang.clone(), row.code);
         }
         total += row.code;
     }
@@ -542,12 +536,12 @@ fn build_polyglot_report(rows: &[&FileRow]) -> PolyglotReport {
     let mut dominant_lang: Option<&str> = None;
     let mut dominant_lines = 0usize;
 
-    for (&lang, lines) in &by_lang {
+    for (lang, lines) in &by_lang {
         if *lines > dominant_lines
-            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang < d))
+            || (*lines == dominant_lines && dominant_lang.is_some_and(|d| lang.as_str() < d))
         {
             dominant_lines = *lines;
-            dominant_lang = Some(lang);
+            dominant_lang = Some(lang.as_str());
         }
         if total > 0 && *lines > 0 {
             let p = *lines as f64 / total as f64;

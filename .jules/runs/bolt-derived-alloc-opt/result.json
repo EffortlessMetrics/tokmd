@@ -1,7 +1,7 @@
 {
-  "status": "success",
+  "status": "aborted",
   "files_changed": [
-    "crates/tokmd-analysis/src/derived/mod.rs"
+    ".jules/friction/open/FRIC-20250430-001.md"
   ],
-  "reason": "Successfully applied zero-allocation aggregation using BTreeMap<&str, ...>."
+  "reason": "Intended fix was superseded by PR #1608. Converted to learning PR."
 }

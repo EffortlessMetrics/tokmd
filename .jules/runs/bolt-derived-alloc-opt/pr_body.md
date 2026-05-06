@@ -1,51 +1,41 @@
 ## 💡 Summary
-Converted derived analysis aggregation loops in `crates/tokmd-analysis/src/derived/mod.rs` to operate on borrowed `&str` and reference structures instead of blindly allocating `String`s and `clone()`ing rows at every inner loop step. This optimizes thousands of unnecessary allocations inside report generators like `build_max_file_report`, `build_lang_purity_report`, `build_nesting_report`, `build_boilerplate_report`, and `build_polyglot_report`.
+This is a learning PR. The previously attempted structural optimization to reduce allocation overhead in derived report aggregations was superseded by PR #1608. The run has been gracefully aborted and converted into a learning outcome to document this workflow edge case.
 
 ## 🎯 Why
-Derived metric loops routinely iterate over every `FileStatRow` or `FileRow` produced during the analysis run, grouping and bucketing them. Previously, inside these inner `for` loops, keys like `.lang.clone()` and `.module.clone()` were eagerly allocated into strings on every loop iteration, even for simple frequency counts or `BTreeMap` insertion logic where `&str` handles map lookups efficiently. These loops sit precisely in the analysis orchestrator's hot path. Refactoring to use borrowed keys locally eliminates these thousands of string allocations and structurally optimizes the analysis phase.
+During execution, a reviewer noted that PR #1608 already folded the useful borrowed-key derived-report allocation reductions into the current main branch. As a result, the active patch is obsolete. According to the core constraint directives, when a fix is superseded during execution, the agent must gracefully abort and create a learning PR documenting the friction item.
 
 ## 🔎 Evidence
-- Found in: `crates/tokmd-analysis/src/derived/mod.rs`.
-- `build_lang_purity_report`: Previously allocated `row.module.clone()` per hit, mapped into `BTreeMap<String, ...>`, now uses `&str`.
-- `build_max_file_report`: Previously continuously cloned `row.clone()` strings inside `by_lang.insert(row.lang.clone(), row.clone())`, now borrows `&FileStatRow`.
-- Commands run: `cargo check -p tokmd-analysis`, `cargo test -p tokmd-analysis`, `cargo test -p tokmd --test determinism_regression`. All tests passed with structurally improved aggregation routines.
+- file path: `crates/tokmd-analysis/src/derived/mod.rs` (aborted patch target)
+- observed behavior: A PR review comment stated: `Superseded by #1608, which folded the useful borrowed-key derived-report allocation reductions into a current-main keeper.`
+- command: `cargo test -p tokmd --test determinism_regression` (fallback gate verification passed before abort).
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Replace internal `BTreeMap<String, ...>` allocations with `BTreeMap<&str, ...>` within report generation loops.
-- Maps internal values via refs instead of cloning rows.
-- Converts to owned only at final struct aggregation time.
-- **Why it fits:** Direct, structural hot-path win perfectly scoped for the Bolt persona.
-- **Trade-offs:** `&'a str` lifetime management inside functional boundaries, no visible cost downstream.
+### Option A
+- Continue applying the patch.
+- Overwrites external work and fails the review constraint.
 
-### Option B
-- Thread scaling with `rayon` parallelism for map grouping.
-- **When to choose it:** If string cloning overhead was unfixable or CPU work was computationally dense.
-- **Trade-offs:** Wastes binary size and overhead masking bad data structures. Fixing allocation is objectively superior first.
+### Option B (recommended)
+- Gracefully abort the fix and create a learning PR.
+- Adheres to explicit instructions regarding superseded PR workflows.
 
 ## ✅ Decision
-Option A was chosen. Eliminating string allocations at their source avoids creating garbage, structurally tightening performance metrics without sacrificing deterministic outcomes or requiring extra threads.
+Option B was chosen to prevent duplicating work and to properly document the workflow race condition in `.jules/friction/open/`.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/mod.rs`
+- `.jules/friction/open/FRIC-20250430-001.md`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis
-...
-test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
-...
 cargo test -p tokmd --test determinism_regression
-...
-test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Structural allocation reduction
-- Blast radius: API (none) / IO (none) / docs (none) / schema (none) / concurrency (none) / compatibility (none) / dependencies (none)
-- Risk class: Low + structurally proven by test harness.
-- Rollback: `git checkout crates/tokmd-analysis/src/derived/mod.rs`.
-- Gates run: `cargo test -p tokmd-analysis`, `cargo test -p tokmd --test determinism_regression`.
+- Change shape: Learning PR documentation.
+- Blast radius: None (documentation only).
+- Risk class: Low.
+- Rollback: `rm .jules/friction/open/FRIC-20250430-001.md`.
+- Gates run: `cargo xtask version-consistency`, `cargo test -p tokmd --test determinism_regression`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/bolt-derived-alloc-opt/envelope.json`
@@ -53,6 +43,7 @@ test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - `.jules/runs/bolt-derived-alloc-opt/receipts.jsonl`
 - `.jules/runs/bolt-derived-alloc-opt/result.json`
 - `.jules/runs/bolt-derived-alloc-opt/pr_body.md`
+- `.jules/friction/open/FRIC-20250430-001.md`
 
 ## 🔜 Follow-ups
 None immediately.

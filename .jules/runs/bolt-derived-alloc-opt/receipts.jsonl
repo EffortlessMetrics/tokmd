@@ -1,4 +1,1 @@
-{"command": "cargo fmt -- --check", "status": "success"}
-{"command": "cargo check -p tokmd-analysis", "status": "success"}
-{"command": "cargo test -p tokmd-analysis", "status": "success"}
 {"command": "cargo test -p tokmd --test determinism_regression", "status": "success"}
