@@ -127,7 +127,7 @@ fn lang_top_flag_with_non_numeric_value_fails() {
         .args(["lang", "--top", "not_a_number"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 #[test]
@@ -136,7 +136,7 @@ fn module_depth_flag_with_non_numeric_value_fails() {
         .args(["module", "--depth", "abc"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }
 
 #[test]
@@ -145,7 +145,7 @@ fn lang_top_flag_with_negative_value_fails() {
         .args(["lang", "--top", "-3"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("unexpected argument"));
 }
 
 // ===========================================================================
@@ -158,7 +158,7 @@ fn unknown_subcommand_fails_with_stderr() {
         .arg("nonexistent_subcommand_w70")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("Unrecognized subcommand"));
 }
 
 // ===========================================================================
@@ -248,7 +248,9 @@ fn diff_missing_required_args_fails() {
         .arg("diff")
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains(
+            "Provide either two positional refs",
+        ));
 }
 
 // ===========================================================================
@@ -274,7 +276,7 @@ fn badge_with_invalid_metric_fails() {
         .args(["badge", "--metric", "nonexistent_metric_w70"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 // ===========================================================================
@@ -300,7 +302,7 @@ fn multiple_invalid_flags_still_produces_error() {
         .args(["lang", "--format", "yaml", "--top", "abc"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 #[test]
@@ -309,7 +311,7 @@ fn export_with_conflicting_invalid_format_fails() {
         .args(["export", "--format", "binary"])
         .assert()
         .failure()
-        .stderr(predicate::str::is_empty().not());
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 // ===========================================================================

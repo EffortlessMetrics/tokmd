@@ -67,6 +67,7 @@ fn proof_policy_includes_current_product_scopes() {
         "jules_workspace",
         "model_scan_path_normalization",
         "no_panic_policy",
+        "tokmd_cli",
         "workspace_dependency_graph",
     ] {
         assert!(
@@ -148,6 +149,20 @@ fn proof_policy_includes_current_product_scopes() {
     assert!(fuzz_paths.contains("fuzz/dict/**"));
     assert!(fuzz_paths.contains("fuzz/fuzz_targets/**"));
     assert!(fuzz_proof.contains("cargo +nightly fuzz list"));
+
+    let tokmd_cli = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("tokmd_cli"))
+        .expect("tokmd_cli scope should exist");
+    let tokmd_cli_paths = tokmd_cli["paths"]
+        .as_array()
+        .expect("tokmd_cli should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(tokmd_cli_paths.contains("crates/tokmd/tests/cli_*.rs"));
+    assert!(tokmd_cli_paths.contains("crates/tokmd/tests/error_handling_w70.rs"));
 }
 
 #[test]

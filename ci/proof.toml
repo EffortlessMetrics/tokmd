@@ -449,6 +449,7 @@ paths = [
   "crates/tokmd/src/error_hints.rs",
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/config_resolution.rs",
+  "crates/tokmd/tests/error_handling_w70.rs",
   "docs/reference-cli.md",
 ]
 packages = ["tokmd"]
