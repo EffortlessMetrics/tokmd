@@ -63,6 +63,7 @@ fn proof_policy_includes_current_product_scopes() {
         "format_analysis_rendering",
         "format_core_outputs",
         "format_redaction_scan_args",
+        "fuzz_harnesses",
         "jules_workspace",
         "model_scan_path_normalization",
         "no_panic_policy",
@@ -124,6 +125,29 @@ fn proof_policy_includes_current_product_scopes() {
     assert!(dependency_proof.contains("cargo deny --all-features check"));
     assert!(dependency_proof.contains("cargo xtask boundaries-check"));
     assert!(dependency_proof.contains("cargo xtask publish-surface --json"));
+
+    let fuzz_harnesses = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("fuzz_harnesses"))
+        .expect("fuzz_harnesses scope should exist");
+    let fuzz_paths = fuzz_harnesses["paths"]
+        .as_array()
+        .expect("fuzz_harnesses should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let fuzz_proof = fuzz_harnesses["proof"]
+        .as_array()
+        .expect("fuzz_harnesses should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(fuzz_paths.contains("fuzz/Cargo.toml"));
+    assert!(fuzz_paths.contains("fuzz/corpus/**"));
+    assert!(fuzz_paths.contains("fuzz/dict/**"));
+    assert!(fuzz_paths.contains("fuzz/fuzz_targets/**"));
+    assert!(fuzz_proof.contains("cargo +nightly fuzz list"));
 }
 
 #[test]
@@ -148,7 +172,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 33);
+    assert_eq!(value["scope_count"], 34);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);

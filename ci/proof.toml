@@ -34,6 +34,23 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "fuzz_harnesses"
+kind = "rust"
+paths = [
+  "fuzz/Cargo.toml",
+  "fuzz/README.md",
+  "fuzz/corpus/**",
+  "fuzz/dict/**",
+  "fuzz/fuzz_targets/**",
+]
+packages = ["tokmd-fuzz"]
+proof = [
+  "cargo +nightly fuzz list",
+]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "proof_control_plane"
 kind = "rust"
 paths = [

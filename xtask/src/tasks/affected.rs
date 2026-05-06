@@ -280,6 +280,15 @@ proof = ["cargo deny --all-features check"]
 mutation = false
 coverage = false
 
+[[scope]]
+name = "fuzz_harnesses"
+kind = "rust"
+paths = ["fuzz/Cargo.toml", "fuzz/corpus/**", "fuzz/dict/**", "fuzz/fuzz_targets/**"]
+packages = ["tokmd-fuzz"]
+proof = ["cargo +nightly fuzz list"]
+mutation = false
+coverage = false
+
 [[dependency_boundary]]
 name = "retired_tokmd_config_must_not_return"
 packages = ["*"]
@@ -375,6 +384,29 @@ reason = "tokmd-config is retired."
             report.scopes[0].proof,
             vec!["cargo deny --all-features check"]
         );
+    }
+
+    #[test]
+    fn fuzz_corpus_maps_to_fuzz_harness_scope() {
+        let policy = policy_with_defaults(true);
+        let report = affected_report(
+            &policy,
+            "base",
+            "head",
+            vec!["fuzz/corpus/fuzz_run_json/seed_version.txt".to_string()],
+        )
+        .expect("report");
+
+        assert!(report.ok);
+        assert!(report.unknown_files.is_empty());
+        assert_eq!(report.scopes.len(), 1);
+        assert_eq!(report.scopes[0].name, "fuzz_harnesses");
+        assert_eq!(
+            report.scopes[0].matched_files,
+            vec!["fuzz/corpus/fuzz_run_json/seed_version.txt"]
+        );
+        assert_eq!(report.scopes[0].packages, vec!["tokmd-fuzz"]);
+        assert_eq!(report.scopes[0].proof, vec!["cargo +nightly fuzz list"]);
     }
 
     #[test]
