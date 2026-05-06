@@ -90,6 +90,14 @@
 - Closed #1441/#1440/#1439/#1438/#1437/#1435/#1433 as superseded by #1609.
 - Closed #1452 as superseded by #1592. Its useful config/core doctest coverage was already salvaged into the executable-docs keeper, while the remaining `# Example` heading edits are style-only.
 - Closed #1505 as declined for the current CLI docs surface. Changing clap field doc headers to rustdoc `# Examples` renders the literal `#` into generated CLI help/reference docs and worsens user-facing output.
+- Closed #1527 as declined. It records a no-action determinism-test learning packet rather than durable friction or a patch needed on current main.
+- Closed #1514 as superseded by #1608. Its derived-analysis allocation warning was stale after the measured keeper reduced the retained-row clone/allocation path with tests and green CI.
+- Closed #1509 as declined for current main. The release-validation packet is log-heavy and stale after the v1.10/v1.11 truth-sync work; any recurring `cargo xtask gate` timeout should be re-recorded as a fresh, current friction item.
+- Closed #1500 as declined. The normalize-path note is speculative micro-optimization guidance without a measured current issue or durable repo policy change.
+- Closed #1498/#1156 as declined stale auditor learning. Their manifest/dependency claims need fresh validation and the older branch also carries unrelated lockfile churn.
+- Closed #1456 as superseded by #1606. The useful fuzz-toolchain blocker is now represented by the consolidated `.jules` friction rollup.
+- Closed #1144 as declined stale steward learning. The 1.9-era tooling-governance note and lockfile churn do not add durable value after the current `cargo xtask` workflow docs and release-train ADR.
+- Closed #1214 as superseded by current `.jules` migration/rollup state. The legacy-ledger migration and gate wording are already represented on main; the draft should not reintroduce old run-packet churn.
 - Next cluster after the cache semantics disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
