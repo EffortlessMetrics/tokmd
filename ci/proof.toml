@@ -55,6 +55,77 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_cli"
+kind = "rust"
+paths = [
+  "crates/tokmd/src/bin/**",
+  "crates/tokmd/src/cli/**",
+  "crates/tokmd/src/commands/**",
+  "crates/tokmd/src/config.rs",
+  "crates/tokmd/src/error_hints.rs",
+  "crates/tokmd/tests/cli_*.rs",
+  "crates/tokmd/tests/config_resolution.rs",
+  "docs/reference-cli.md",
+]
+packages = ["tokmd"]
+proof = [
+  "cargo test -p tokmd --test cli_snapshot_golden --verbose",
+  "cargo test -p tokmd --test cli_e2e --verbose",
+  "cargo test -p tokmd --test config_resolution --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_gate"
+kind = "rust"
+paths = [
+  "crates/tokmd-gate/**",
+  "crates/tokmd/src/commands/gate.rs",
+  "crates/tokmd/tests/gate_integration.rs",
+]
+packages = ["tokmd-gate", "tokmd"]
+proof = [
+  "cargo test -p tokmd-gate --verbose",
+  "cargo test -p tokmd --test gate_integration --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_cockpit"
+kind = "rust"
+paths = [
+  ".github/workflows/cockpit.yml",
+  "crates/tokmd-cockpit/**",
+  "crates/tokmd-types/src/cockpit.rs",
+  "crates/tokmd-types/tests/cockpit_tests.rs",
+  "crates/tokmd/src/commands/cockpit.rs",
+  "crates/tokmd/tests/cockpit_*.rs",
+  "docs/tokmd-in-cockpit.md",
+]
+packages = ["tokmd-cockpit", "tokmd-types", "tokmd"]
+proof = [
+  "cargo test -p tokmd-cockpit --verbose",
+  "cargo test -p tokmd-types cockpit --verbose",
+  "cargo test -p tokmd --test cockpit_integration --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_wasm"
+kind = "rust"
+paths = [
+  "crates/tokmd-wasm/**",
+  "docs/capabilities/wasm.json",
+]
+packages = ["tokmd-wasm"]
+proof = ["cargo test -p tokmd-wasm --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "browser_runner"
 kind = "non_rust"
 paths = ["web/runner/**", "docs/capabilities/wasm.json"]
@@ -65,6 +136,47 @@ proof = [
 reason = "Browser worker and GitHub ingest logic are JavaScript/WASM-facing surfaces."
 mutation = false
 coverage = false
+
+[[scope]]
+name = "github_action"
+kind = "non_rust"
+paths = [
+  ".github/workflows/test-action.yml",
+  "action.yml",
+  "docs/github-action.md",
+]
+proof = [
+  "cargo xtask docs --check",
+  "cargo test -p tokmd --test docs --verbose",
+]
+reason = "The composite GitHub Action is a YAML and documentation contract for repository consumers."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "schema_contracts"
+kind = "rust"
+paths = [
+  "crates/tokmd/schemas/**",
+  "crates/tokmd/tests/schema*.rs",
+  "crates/tokmd-types/src/lib.rs",
+  "crates/tokmd-types/tests/schema*.rs",
+  "docs/SCHEMA.md",
+  "docs/adr/0007-schema-family-versioning.md",
+  "docs/baseline.schema.json",
+  "docs/handoff.schema.json",
+  "docs/handoff-schema.md",
+  "docs/schema.json",
+]
+packages = ["tokmd-types", "tokmd"]
+proof = [
+  "cargo test -p tokmd-types schema --verbose",
+  "cargo test -p tokmd --test schema_sync --verbose",
+  "cargo test -p tokmd --test schema_doc_sync --verbose",
+  "cargo xtask docs --check",
+]
+mutation = false
+coverage = true
 
 [[allow.workspace_area]]
 name = "jules_knowledge_workspace"

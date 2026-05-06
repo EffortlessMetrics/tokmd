@@ -30,7 +30,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask affected --base origin/main --head HEAD --json` now maps changed files to proof scopes from `ci/proof.toml`, reports unknown files, and keeps non-Rust unknown handling policy-driven.
 - `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` now prints a stable proof plan without running commands; `fast`, `release`, and `deep` profiles are plan-only placeholders for the next CI integration slices.
 - CI now validates `cargo xtask proof-policy --check` as part of the required aggregate and uploads PR-only affected proof artifacts while keeping existing jobs authoritative.
-- Next proof-policy operational slice: expand the proof scope registry for the main product surfaces before using affected plans to drive required checks.
+- The proof scope registry now covers first-class product/control-plane surfaces for CLI, gate, cockpit, WASM, browser runner, the composite GitHub Action, schema contracts, and the proof control plane.
+- Next proof-policy operational slice: expand analysis and formatting module scopes before using affected plans to drive required checks.
 
 ## References
 
