@@ -25,6 +25,7 @@ pub(crate) struct AffectedScope {
     pub(crate) name: String,
     pub(crate) kind: ScopeKind,
     pub(crate) reason: String,
+    pub(crate) matched_files: Vec<String>,
     pub(crate) packages: Vec<String>,
     pub(crate) proof: Vec<String>,
     pub(crate) mutation: bool,
@@ -182,6 +183,7 @@ fn affected_scope(scope: &Scope, matches: BTreeSet<String>) -> AffectedScope {
         name: scope.name.clone(),
         kind: scope.kind.clone(),
         reason: match_reason(&matches),
+        matched_files: matches.into_iter().collect(),
         packages: sorted(scope.packages.clone()),
         proof: sorted(scope.proof.clone()),
         mutation: scope.mutation,
@@ -297,7 +299,15 @@ reason = "tokmd-config is retired."
         assert!(report.ok);
         assert_eq!(report.changed_files.len(), 2);
         assert_eq!(report.scopes[0].name, "browser");
+        assert_eq!(
+            report.scopes[0].matched_files,
+            vec!["web/runner/ingest.test.mjs"]
+        );
         assert_eq!(report.scopes[1].name, "core");
+        assert_eq!(
+            report.scopes[1].matched_files,
+            vec!["crates/tokmd-core/src/ffi.rs"]
+        );
         assert!(report.unknown_files.is_empty());
     }
 
