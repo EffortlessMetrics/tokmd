@@ -88,6 +88,8 @@
 - Closed #1567/#1531/#1495/#1455 as superseded by #1608. Closed #1200 as declined for this cluster because it switched model aggregation to hash maps, carried unrelated lockfile drift and corrupted docs, and had failing quality checks.
 - Merged #1609: synthesized keeper for cache key and invalidation semantics. Documented cockpit mutation evidence cache key, lookup order, commit/scope invalidation, malformed-cache handling, and browser GitHub ingest cache lifecycle with token-derived auth partitioning; hardened cockpit mutation cache loading so malformed, wrong-commit, or partial-scope cache entries are misses. Gates: `cargo test -p tokmd-cockpit mutant_cache --verbose`; `cargo test -p tokmd-cockpit --verbose`; `cargo clippy -p tokmd-cockpit --all-targets -- -D warnings`; `cargo check -p tokmd-cockpit --no-default-features --all-targets`; `cargo fmt-check`; `cargo xtask docs --check`; `node --test web/runner/ingest.test.mjs`; `typos crates/tokmd-cockpit/src/lib.rs docs/SCHEMA.md web/runner/README.md PR_DRAIN.md`; `git diff --check`; GitHub CI.
 - Closed #1441/#1440/#1439/#1438/#1437/#1435/#1433 as superseded by #1609.
+- Closed #1452 as superseded by #1592. Its useful config/core doctest coverage was already salvaged into the executable-docs keeper, while the remaining `# Example` heading edits are style-only.
+- Closed #1505 as declined for the current CLI docs surface. Changing clap field doc headers to rustdoc `# Examples` renders the literal `#` into generated CLI help/reference docs and worsens user-facing output.
 - Next cluster after the cache semantics disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
