@@ -98,6 +98,7 @@
 - Closed #1456 as superseded by #1606. The useful fuzz-toolchain blocker is now represented by the consolidated `.jules` friction rollup.
 - Closed #1144 as declined stale steward learning. The 1.9-era tooling-governance note and lockfile churn do not add durable value after the current `cargo xtask` workflow docs and release-train ADR.
 - Closed #1214 as superseded by current `.jules` migration/rollup state. The legacy-ledger migration and gate wording are already represented on main; the draft should not reintroduce old run-packet churn.
+- Closed #1218 as declined for current main. ANSI-colored CLI errors need a fresh product/color-policy pass with `NO_COLOR`/`CLICOLOR` handling and tests, not a conflicting draft that adds a dependency and previously failed the required quality gate.
 - Next cluster after the cache semantics disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
