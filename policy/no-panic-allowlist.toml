@@ -1,0 +1,5 @@
+schema_version = "0.3"
+
+# No panic-family exceptions are currently approved. If a temporary exception is
+# unavoidable, add a semantic entry with path + family + selector identity,
+# owner, classification, explanation, optional expires, and advisory last_seen.

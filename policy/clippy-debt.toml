@@ -1,0 +1,6 @@
+schema = 1
+
+# Temporary exceptions to the Clippy policy belong here, with owner, reason,
+# path, lint, and expiry. This ledger is intentionally empty for the initial
+# policy rollout; add entries only when a narrow, reviewed migration debt item
+# is needed.

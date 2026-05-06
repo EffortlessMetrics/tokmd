@@ -1,0 +1,3 @@
+# tokmd uses workspace-level lint policy from Cargo.toml.
+# Keep this file for repo-specific Clippy policy knobs only.
+# Do not add test carveouts such as allow-unwrap-in-tests or allow-panic-in-tests.

@@ -1,0 +1,5 @@
+schema_version = "1.0"
+
+# Non-Rust programming surfaces should be allowlisted here when they are part of
+# the repo contract. Entries require path or glob, kind, owner, reason, surface,
+# classification, covered_by, and optional expires.
