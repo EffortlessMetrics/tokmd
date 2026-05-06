@@ -161,6 +161,7 @@ The machine-readable capability contract lives in [`docs/capabilities/wasm.json`
 
 - [GitHub Action reference](docs/github-action.md) for Action inputs, outputs, modes, and release assets
 - [CLI Reference](docs/reference-cli.md) for flags, formats, and config
+- [Specification](docs/specification.md) for current product contracts
 - [Schema](docs/SCHEMA.md) for receipt contracts
 - [tokmd responsibilities](tokmd-role.md) for the wider sensor/receipt stack
 
@@ -168,6 +169,7 @@ The machine-readable capability contract lives in [`docs/capabilities/wasm.json`
 
 - [Philosophy](docs/explanation.md) for the design stance
 - [Architecture](docs/architecture.md) for the crate graph and boundaries
+- [ADRs](docs/adr/README.md) for accepted architecture and contract decisions
 - [Design](docs/design.md) for system concepts and invariants
 - [Roadmap](ROADMAP.md) for the active horizon
 

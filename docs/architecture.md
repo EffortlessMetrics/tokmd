@@ -11,7 +11,7 @@ This document describes the internal architecture of tokmd for contributors and 
 
 ## Crate Hierarchy
 
-tokmd follows a tiered microcrate architecture with strict dependency rules.
+tokmd follows a tiered crate-and-module architecture with strict dependency rules.
 
 ```
 Tier 0 (Contracts)     tokmd-types, tokmd-analysis-types, tokmd-settings,
@@ -85,7 +85,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 | Crate | Purpose |
 |-------|---------|
-| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module (see ADR-001) |
+| `tokmd-core` | Library facade with FFI layer; exposes analysis formatting via `analysis_facade` module |
 
 ### Tier 5: Products
 
@@ -100,7 +100,7 @@ CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
 1. **Contracts MUST NOT depend on clap** — Keep `tokmd-types` and `tokmd-analysis-types` pure
 2. **Lower tiers MUST NOT depend on higher tiers** — No upward dependencies
-3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See ADR-001.
+3. **Tier boundary compliance via facade** — Tier 5 products access Tier 3 orchestration only through Tier 4 facades (e.g., `tokmd-core::analysis_facade`). See ADR-0002 for the crate/module boundary policy.
 4. **Feature flags control optional adapters** — `git`, `walk`, `content` features
 5. **IO adapters depend on domain/contracts, never reverse**
 
