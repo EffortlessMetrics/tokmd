@@ -83,7 +83,8 @@
 - Closed #1587/#1562 as superseded by #1605.
 - Merged #1606: synthesized `.jules` friction rollup keeper. Added generated active-friction indexing to `.jules/bin/build_index.py`, generated `FRICTION_ROLLUP.md`, consolidated repeated fuzz-toolchain blockers into one open item, and moved resolved/stale friction records to `done/` without carrying draft run packets. Gates: `python .jules/bin/build_index.py`; `python -m py_compile .jules/bin/build_index.py`; `cargo xtask docs --check`; `typos .jules/bin/build_index.py .jules/friction .jules/index/generated`; `git diff --check`; GitHub CI.
 - Closed #1547/#1539/#1524/#1511/#1499/#1454 as superseded by #1606.
-- Next cluster after #1606: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
+- Closed #1470/#1471/#1472/#1473/#1474/#1475 as stale release-train docs. The RC-era `NOW.md` rewrites, environment-specific release status note, pre-stable `v1.10.0` checklist, and pre-tag release-fence note no longer reflect current shipped reality after #1588/#1605 and the accepted release-train ADR.
+- Next cluster after the release-train docs disposition: choose the next proof/docs/control-plane cluster from the remaining open queue after refreshing `origin/main`.
 
 ## Operating decisions
 
