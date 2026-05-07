@@ -14,4 +14,4 @@ Manually exhaust all possible `lines`, `code`, `infra` and `test` combinations w
 - High manual toil, does not fully lock the invariant against combinations proptest might surface later.
 
 ## Decision
-Chosen Option A. Generating arbitrary file rows and evaluating `derive_report` is the highest-signal proof that the derived model does not break fundamental unit range mathematical constraints.
+Chosen Option A. Generating arbitrary file rows and evaluating `derive_report` is the highest-signal proof that the derived model does not break fundamental unit range mathematical constraints. However, because the patch was superseded, this decision is being recorded purely as a learning artifact.
