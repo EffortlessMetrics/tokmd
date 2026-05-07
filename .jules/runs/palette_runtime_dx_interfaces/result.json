@@ -1,0 +1,4 @@
+{
+  "outcome": "patch",
+  "patch_description": "Added `--depth` as a visible alias for `--module-depth` across `module`, `export`, `analyze`, and `diff` subcommands to improve CLI ergonomics."
+}

@@ -299,7 +299,7 @@ pub struct CliModuleArgs {
     /// Example:
     ///   crates/foo/src/lib.rs  (depth=2) => crates/foo
     ///   crates/foo/src/lib.rs  (depth=1) => crates
-    #[arg(long)]
+    #[arg(long, visible_alias = "depth")]
     pub module_depth: Option<usize>,
 
     /// Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].
@@ -326,7 +326,7 @@ pub struct CliExportArgs {
     pub module_roots: Option<Vec<String>>,
 
     /// Module depth (see `tokmd module`) [default: 2].
-    #[arg(long)]
+    #[arg(long, visible_alias = "depth")]
     pub module_depth: Option<usize>,
 
     /// Whether to include embedded languages (tokei "children" / blobs) [default: separate].
@@ -625,7 +625,7 @@ pub struct CliContextArgs {
     pub module_roots: Option<Vec<String>>,
 
     /// Module depth (see `tokmd module`).
-    #[arg(long)]
+    #[arg(long, visible_alias = "depth")]
     pub module_depth: Option<usize>,
 
     /// Enable git-based ranking (required for churn/hotspot).
@@ -892,7 +892,7 @@ pub struct HandoffArgs {
     pub module_roots: Option<Vec<String>>,
 
     /// Module depth (see `tokmd module`).
-    #[arg(long)]
+    #[arg(long, visible_alias = "depth")]
     pub module_depth: Option<usize>,
 
     /// Overwrite existing output directory.

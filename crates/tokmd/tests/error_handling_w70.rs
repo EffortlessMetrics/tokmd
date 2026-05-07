@@ -136,7 +136,7 @@ fn module_depth_flag_with_non_numeric_value_fails() {
         .args(["module", "--depth", "abc"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains("unexpected argument"));
+        .stderr(predicate::str::contains("invalid value"));
 }
 
 #[test]
