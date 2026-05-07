@@ -514,6 +514,10 @@ pub struct ProofExecutionObservationsSummaryArgs {
     #[arg(long, default_value_t = 0)]
     pub min_artifacts: usize,
 
+    /// Minimum number of recent passing manual collector runs required.
+    #[arg(long, default_value_t = 0)]
+    pub min_passing_collector_runs: usize,
+
     /// Output path for the collection summary. Prints JSON to stdout when omitted.
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
@@ -521,6 +525,14 @@ pub struct ProofExecutionObservationsSummaryArgs {
     /// Output path for a human-readable Markdown collection summary.
     #[arg(long, value_name = "PATH")]
     pub summary_md: Option<std::path::PathBuf>,
+
+    /// GitHub Actions run-list JSON for successful manual collector runs.
+    #[arg(long, value_name = "PATH")]
+    pub collector_runs_json: Option<std::path::PathBuf>,
+
+    /// Output path for a promotion-readiness receipt.
+    #[arg(long, value_name = "PATH")]
+    pub promotion_readiness: Option<std::path::PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

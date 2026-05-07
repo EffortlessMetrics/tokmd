@@ -23,6 +23,10 @@ on:
         description: Minimum produced evidence artifacts required; blank uses ci/proof.toml [executor.promotion]
         required: false
         default: ""
+      min_passing_collector_runs:
+        description: Minimum recent passing manual collector runs required; blank uses ci/proof.toml [executor.promotion]
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -41,6 +45,7 @@ env:
   MIN_EXECUTED_INPUT: ${{ github.event.inputs.min_executed || '' }}
   MIN_SCOPES_INPUT: ${{ github.event.inputs.min_scopes || '' }}
   MIN_ARTIFACTS_INPUT: ${{ github.event.inputs.min_artifacts || '' }}
+  MIN_PASSING_COLLECTOR_RUNS_INPUT: ${{ github.event.inputs.min_passing_collector_runs || '' }}
 
 jobs:
   collect-observations:
@@ -75,6 +80,7 @@ jobs:
               ("MIN_EXECUTED", "MIN_EXECUTED_INPUT", "min_executed", 0),
               ("MIN_SCOPES", "MIN_SCOPES_INPUT", "min_scopes", 0),
               ("MIN_ARTIFACTS", "MIN_ARTIFACTS_INPUT", "min_artifacts", 0),
+              ("MIN_PASSING_COLLECTOR_RUNS", "MIN_PASSING_COLLECTOR_RUNS_INPUT", "min_passing_collector_runs", 0),
           ]
 
           with open("target/proof-observations/thresholds.env", "w", encoding="utf-8") as output:
@@ -123,6 +129,15 @@ jobs:
             fi
           done < target/proof-observations/run-ids.txt
 
+      - name: Record passing collector runs
+        run: |
+          set -euo pipefail
+          collector_limit="${MIN_PASSING_COLLECTOR_RUNS}"
+          if [ "${collector_limit}" -lt 1 ]; then
+            collector_limit=1
+          fi
+          gh run list --workflow proof-observation-collection.yml --status success --limit "${collector_limit}" --json databaseId,event,headBranch,headSha,createdAt,url > target/proof-observations/collector-runs.json
+
       - name: Summarize downloaded observations
         run: |
           set -euo pipefail
@@ -134,6 +149,9 @@ jobs:
             --min-executed "${MIN_EXECUTED}" \
             --min-scopes "${MIN_SCOPES}" \
             --min-artifacts "${MIN_ARTIFACTS}" \
+            --min-passing-collector-runs "${MIN_PASSING_COLLECTOR_RUNS}" \
+            --collector-runs-json target/proof-observations/collector-runs.json \
+            --promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json \
             > target/proof-observations/proof-execution-observations-summary.txt
 
       - name: Write collection summary
@@ -149,6 +167,7 @@ jobs:
             echo "| Minimum executed commands | ${MIN_EXECUTED} | ${MIN_EXECUTED_SOURCE} |"
             echo "| Minimum scopes | ${MIN_SCOPES} | ${MIN_SCOPES_SOURCE} |"
             echo "| Minimum artifacts | ${MIN_ARTIFACTS} | ${MIN_ARTIFACTS_SOURCE} |"
+            echo "| Minimum passing collector runs | ${MIN_PASSING_COLLECTOR_RUNS} | ${MIN_PASSING_COLLECTOR_RUNS_SOURCE} |"
             echo ""
             if [ -f target/proof-observations/proof-executor-observation-collection.md ]; then
               cat target/proof-observations/proof-executor-observation-collection.md

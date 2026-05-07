@@ -110,6 +110,12 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
     assert!(stdout.contains("--min-executed"), "stdout: {stdout}");
     assert!(stdout.contains("--min-scopes"), "stdout: {stdout}");
     assert!(stdout.contains("--min-artifacts"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("--min-passing-collector-runs"),
+        "stdout: {stdout}"
+    );
+    assert!(stdout.contains("--collector-runs-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--promotion-readiness"), "stdout: {stdout}");
     assert!(stdout.contains("--output"), "stdout: {stdout}");
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
 }
@@ -221,6 +227,11 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
         "collector should download the stable proof executor artifact"
     );
     assert!(
+        collector
+            .contains("gh run list --workflow proof-observation-collection.yml --status success"),
+        "collector should enumerate recent passing manual collector runs"
+    );
+    assert!(
         collector.contains("cargo xtask proof-execution-observations-summary"),
         "collector should keep observation summarization Rust-owned"
     );
@@ -243,6 +254,18 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
         "collector should expose observation readiness thresholds"
     );
     assert!(
+        collector.contains("--min-passing-collector-runs \"${MIN_PASSING_COLLECTOR_RUNS}\""),
+        "collector should expose the passing collector-run promotion floor"
+    );
+    assert!(
+        collector.contains("--collector-runs-json target/proof-observations/collector-runs.json"),
+        "collector should feed GitHub run history into Rust-owned promotion readiness"
+    );
+    assert!(
+        collector.contains("--promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json"),
+        "collector should emit a first-class promotion-readiness receipt"
+    );
+    assert!(
         collector.contains("MIN_EXECUTED_INPUT: ${{ github.event.inputs.min_executed || '' }}"),
         "collector should let blank executed thresholds fall back to the proof policy"
     );
@@ -261,6 +284,10 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
     assert!(
         collector.contains("MIN_EXECUTED_SOURCE"),
         "collector summary should show the executed threshold source"
+    );
+    assert!(
+        collector.contains("MIN_PASSING_COLLECTOR_RUNS_SOURCE"),
+        "collector summary should show the collector-run threshold source"
     );
     assert!(
         collector.contains("proof-executor-observation-collection.md"),
@@ -590,6 +617,44 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
         summary_md.contains("| Executed commands | 0 |"),
         "{summary_md}"
     );
+
+    let collector_runs_path = temp.path().join("collector-runs.json");
+    fs::write(
+        &collector_runs_path,
+        r#"[{"databaseId":25502593070,"event":"workflow_dispatch","headBranch":"main","headSha":"abc123","createdAt":"2026-05-07T14:46:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593070"}]"#,
+    )
+    .expect("collector runs JSON should be writable");
+    let collector_runs_arg = collector_runs_path.to_string_lossy().to_string();
+    let readiness_path = temp.path().join("proof-executor-promotion-readiness.json");
+    let readiness_arg = readiness_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--output",
+        &collection_arg,
+        "--collector-runs-json",
+        &collector_runs_arg,
+        "--min-passing-collector-runs",
+        "1",
+        "--promotion-readiness",
+        &readiness_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-observations-summary --promotion-readiness failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("promotion-readiness"), "stdout: {stdout}");
+    let readiness =
+        fs::read_to_string(readiness_path).expect("promotion readiness should be written");
+    let readiness: serde_json::Value =
+        serde_json::from_str(&readiness).expect("readiness should be valid JSON");
+    assert_eq!(
+        readiness["schema"],
+        "tokmd.proof_executor_promotion_readiness.v1"
+    );
+    assert_eq!(readiness["actuals"]["passing_collector_runs"], 1);
+    assert_eq!(readiness["thresholds"]["min_passing_collector_runs"], 1);
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-execution-observations-summary",

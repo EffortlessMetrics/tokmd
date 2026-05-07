@@ -13,6 +13,7 @@ const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
+const PROMOTION_READINESS_SCHEMA: &str = "tokmd.proof_executor_promotion_readiness.v1";
 
 const SHARED_FIELDS: &[&str] = &[
     "mode",
@@ -90,6 +91,13 @@ pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> 
     let observations = collect_observation_paths(&args)?;
     let collection = proof_execution_observation_collection(&observations)?;
     validate_observation_collection_thresholds(&collection, &args)?;
+    let readiness = if let Some(path) = &args.promotion_readiness {
+        let readiness = proof_executor_promotion_readiness(&collection, &args)?;
+        write_text(path, &serde_json::to_string_pretty(&readiness)?)?;
+        Some((path, readiness))
+    } else {
+        None
+    };
     if let Some(summary_md) = &args.summary_md {
         write_text(
             summary_md,
@@ -100,22 +108,19 @@ pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> 
 
     if let Some(output) = &args.output {
         write_text(output, &json)?;
+        let mut written = vec![format!("`{}`", output.display())];
         if let Some(summary_md) = &args.summary_md {
-            println!(
-                "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}` and `{}`",
-                collection.counts.observations,
-                collection.scopes.len(),
-                output.display(),
-                summary_md.display()
-            );
-        } else {
-            println!(
-                "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}`",
-                collection.counts.observations,
-                collection.scopes.len(),
-                output.display()
-            );
+            written.push(format!("`{}`", summary_md.display()));
         }
+        if let Some((readiness_path, _)) = &readiness {
+            written.push(format!("`{}`", readiness_path.display()));
+        }
+        println!(
+            "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote {}",
+            collection.counts.observations,
+            collection.scopes.len(),
+            written.join(", ")
+        );
     } else {
         println!("{json}");
     }
@@ -244,6 +249,64 @@ struct ProofExecutionObservationSourceSummary {
     executed: usize,
     passed: usize,
     artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutorPromotionReadiness {
+    schema: String,
+    ok: bool,
+    thresholds: ProofExecutorPromotionReadinessThresholds,
+    actuals: ProofExecutorPromotionReadinessActuals,
+    collector_runs: Vec<ProofExecutorPromotionCollectorRun>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutorPromotionReadinessThresholds {
+    min_observations: usize,
+    min_executed: usize,
+    min_scopes: usize,
+    min_artifacts: usize,
+    min_passing_collector_runs: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutorPromotionReadinessActuals {
+    observations: usize,
+    executed: usize,
+    scopes: usize,
+    artifacts: usize,
+    passing_collector_runs: usize,
+}
+
+#[derive(Debug, Deserialize)]
+struct GithubCollectorRun {
+    #[serde(rename = "databaseId")]
+    database_id: u64,
+
+    #[serde(default)]
+    event: Option<String>,
+
+    #[serde(rename = "headBranch", default)]
+    head_branch: Option<String>,
+
+    #[serde(rename = "headSha", default)]
+    head_sha: Option<String>,
+
+    #[serde(rename = "createdAt", default)]
+    created_at: Option<String>,
+
+    #[serde(default)]
+    url: Option<String>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutorPromotionCollectorRun {
+    database_id: u64,
+    event: Option<String>,
+    head_branch: Option<String>,
+    head_sha: Option<String>,
+    created_at: Option<String>,
+    url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -455,7 +518,27 @@ fn validate_observation_collection_thresholds(
         "artifact(s)",
         collection.counts.artifacts,
         args.min_artifacts,
+    )?;
+    validate_minimum(
+        "--min-passing-collector-runs",
+        "passing collector run(s)",
+        collector_run_count_for_threshold(args)?,
+        args.min_passing_collector_runs,
     )
+}
+
+fn collector_run_count_for_threshold(
+    args: &ProofExecutionObservationsSummaryArgs,
+) -> Result<usize> {
+    if args.min_passing_collector_runs == 0 {
+        return Ok(0);
+    }
+
+    let Some(path) = &args.collector_runs_json else {
+        bail!("--min-passing-collector-runs requires --collector-runs-json");
+    };
+
+    Ok(read_collector_runs(path)?.len())
 }
 
 fn validate_minimum(flag: &str, display_label: &str, actual: usize, required: usize) -> Result<()> {
@@ -511,6 +594,17 @@ fn render_observation_collection_markdown(
         args.min_artifacts,
         collection.counts.artifacts,
     );
+    if let Some(collector_runs_json) = &args.collector_runs_json {
+        let passing_collector_runs = read_collector_runs(collector_runs_json)
+            .map(|runs| runs.len())
+            .unwrap_or(0);
+        push_threshold_row(
+            &mut out,
+            "Passing collector runs",
+            args.min_passing_collector_runs,
+            passing_collector_runs,
+        );
+    }
 
     if !collection.families.is_empty() {
         out.push_str("\n## Families\n\n");
@@ -625,6 +719,62 @@ fn read_sourced_observation(path: &Path) -> Result<SourcedProofExecutionObservat
     Ok(SourcedProofExecutionObservation {
         path: path.to_path_buf(),
         observation,
+    })
+}
+
+fn read_collector_runs(path: &Path) -> Result<Vec<ProofExecutorPromotionCollectorRun>> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("failed to read collector runs `{}`", path.display()))?;
+    let runs: Vec<GithubCollectorRun> = serde_json::from_str(&raw)
+        .with_context(|| format!("failed to parse collector runs `{}`", path.display()))?;
+
+    Ok(runs
+        .into_iter()
+        .map(|run| ProofExecutorPromotionCollectorRun {
+            database_id: run.database_id,
+            event: run.event,
+            head_branch: run.head_branch,
+            head_sha: run.head_sha,
+            created_at: run.created_at,
+            url: run.url,
+        })
+        .collect())
+}
+
+fn proof_executor_promotion_readiness(
+    collection: &ProofExecutionObservationCollection,
+    args: &ProofExecutionObservationsSummaryArgs,
+) -> Result<ProofExecutorPromotionReadiness> {
+    let Some(collector_runs_json) = &args.collector_runs_json else {
+        bail!("--promotion-readiness requires --collector-runs-json");
+    };
+    let collector_runs = read_collector_runs(collector_runs_json)?;
+
+    validate_minimum(
+        "--min-passing-collector-runs",
+        "passing collector run(s)",
+        collector_runs.len(),
+        args.min_passing_collector_runs,
+    )?;
+
+    Ok(ProofExecutorPromotionReadiness {
+        schema: PROMOTION_READINESS_SCHEMA.to_string(),
+        ok: true,
+        thresholds: ProofExecutorPromotionReadinessThresholds {
+            min_observations: args.min_observations,
+            min_executed: args.min_executed,
+            min_scopes: args.min_scopes,
+            min_artifacts: args.min_artifacts,
+            min_passing_collector_runs: args.min_passing_collector_runs,
+        },
+        actuals: ProofExecutorPromotionReadinessActuals {
+            observations: collection.counts.observations,
+            executed: collection.counts.executed,
+            scopes: collection.scopes.len(),
+            artifacts: collection.counts.artifacts,
+            passing_collector_runs: collector_runs.len(),
+        },
+        collector_runs,
     })
 }
 
@@ -1585,6 +1735,55 @@ mod tests {
     }
 
     #[test]
+    fn builds_promotion_readiness_receipt_from_collector_runs() {
+        let (summary, manifest) = executed_artifacts();
+        let observation = proof_execution_observation(&summary, &manifest).unwrap();
+        let collection = summarize_observations(&[sourced(
+            "target/proof/run-a/proof-executor-observation.json",
+            observation,
+        )]);
+        let collector_runs = write_test_collector_runs(
+            r#"[{"databaseId":25502593070,"event":"workflow_dispatch","headBranch":"main","headSha":"abc123","createdAt":"2026-05-07T14:46:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593070"}]"#,
+        );
+        let mut args = summary_args_with_thresholds(1, 1, 1, 1);
+        args.min_passing_collector_runs = 1;
+        args.collector_runs_json = Some(collector_runs);
+
+        let readiness = proof_executor_promotion_readiness(&collection, &args).unwrap();
+
+        assert_eq!(readiness.schema, PROMOTION_READINESS_SCHEMA);
+        assert!(readiness.ok);
+        assert_eq!(readiness.thresholds.min_passing_collector_runs, 1);
+        assert_eq!(readiness.actuals.passing_collector_runs, 1);
+        assert_eq!(readiness.actuals.observations, 1);
+        assert_eq!(readiness.collector_runs[0].database_id, 25502593070);
+        assert_eq!(
+            readiness.collector_runs[0].head_branch.as_deref(),
+            Some("main")
+        );
+    }
+
+    #[test]
+    fn rejects_promotion_readiness_below_collector_floor() {
+        let (summary, manifest) = executed_artifacts();
+        let observation = proof_execution_observation(&summary, &manifest).unwrap();
+        let collection = summarize_observations(&[sourced(
+            "target/proof/run-a/proof-executor-observation.json",
+            observation,
+        )]);
+        let collector_runs = write_test_collector_runs("[]");
+        let mut args = summary_args_with_thresholds(1, 1, 1, 1);
+        args.min_passing_collector_runs = 1;
+        args.collector_runs_json = Some(collector_runs);
+
+        let error = proof_executor_promotion_readiness(&collection, &args)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("--min-passing-collector-runs 1"));
+    }
+
+    #[test]
     fn rejects_observation_collection_below_thresholds() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
@@ -1821,9 +2020,22 @@ mod tests {
             min_executed,
             min_scopes,
             min_artifacts,
+            min_passing_collector_runs: 0,
             output: None,
             summary_md: None,
+            collector_runs_json: None,
+            promotion_readiness: None,
         }
+    }
+
+    fn write_test_collector_runs(content: &str) -> PathBuf {
+        let index = TEST_ARTIFACT_COUNTER.fetch_add(1, Ordering::Relaxed);
+        let path = std::env::temp_dir().join(format!(
+            "tokmd-collector-runs-{}-{index}.json",
+            std::process::id()
+        ));
+        fs::write(&path, content).expect("test collector-runs JSON should be writable");
+        path
     }
 
     fn matching_artifacts() -> (Value, Value) {
