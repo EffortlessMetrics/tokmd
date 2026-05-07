@@ -46,6 +46,10 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-mode"), "stdout: {stdout}");
     assert!(
+        stdout.contains("--executor-max-commands"),
+        "stdout: {stdout}"
+    );
+    assert!(
         stdout.contains("--allow-ci-evidence-execution"),
         "stdout: {stdout}"
     );
@@ -182,6 +186,10 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor should append a Rust-generated Markdown collection summary"
     );
     assert!(
+        executor.contains("--executor-max-commands \"${PROOF_EXECUTOR_MAX_COMMANDS}\""),
+        "executor workflow should keep the command selection limit Rust-owned and manually tunable"
+    );
+    assert!(
         !ci.contains("scoped-coverage-executor"),
         "required CI aggregate must not depend on the executor experiment"
     );
@@ -282,6 +290,31 @@ fn proof_plan_refuses_execute_executor_mode() {
     assert!(!success, "proof --plan --executor-mode execute should fail");
     assert!(stderr.contains("--plan"), "stderr: {stderr}");
     assert!(stderr.contains("execute"), "stderr: {stderr}");
+}
+
+#[test]
+fn proof_plan_rejects_zero_executor_max_commands() {
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--executor-max-commands",
+        "0",
+    ]);
+
+    assert!(
+        !success,
+        "proof --plan should reject zero executor command limit"
+    );
+    assert!(
+        stderr.contains("--executor-max-commands"),
+        "stderr: {stderr}"
+    );
 }
 
 #[test]

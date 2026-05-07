@@ -192,7 +192,7 @@ pub fn run(args: ProofArgs) -> Result<()> {
 
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
-    let executor_config = proof_executor_config(&policy);
+    let executor_config = proof_executor_config(&policy, args.executor_max_commands)?;
 
     if args.executor_mode == ProofExecutorMode::Execute {
         run_executor_mode(&args, &report, &executor_config)?;
@@ -772,8 +772,17 @@ fn proof_executor_manifest_from_summary(
     }
 }
 
-fn proof_executor_config(policy: &ProofPolicy) -> ProofExecutorConfig {
-    ProofExecutorConfig {
+fn proof_executor_config(
+    policy: &ProofPolicy,
+    max_commands_override: Option<usize>,
+) -> Result<ProofExecutorConfig> {
+    let max_dry_run_commands = match max_commands_override {
+        Some(0) => bail!("--executor-max-commands must be greater than zero"),
+        Some(max) => max,
+        None => policy.executor.max_dry_run_commands.unwrap_or(1),
+    };
+
+    Ok(ProofExecutorConfig {
         family: policy
             .executor
             .family
@@ -784,8 +793,8 @@ fn proof_executor_config(policy: &ProofPolicy) -> ProofExecutorConfig {
             .ci_execution
             .clone()
             .unwrap_or(CiExecution::ExplicitOptIn),
-        max_dry_run_commands: policy.executor.max_dry_run_commands.unwrap_or(1),
-    }
+        max_dry_run_commands,
+    })
 }
 
 fn proof_executor_execution_guard(
@@ -1210,9 +1219,10 @@ fn profile_name(profile: ProofProfile) -> &'static str {
 mod tests {
     use super::{
         ProofExecutorConfig, ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
-        is_mutation_candidate, proof_evidence_plan, proof_executor_execute_summary,
-        proof_executor_execution_guard_for, proof_executor_manifest, proof_executor_summary,
-        render_markdown_summary, split_command, static_profile_commands,
+        is_mutation_candidate, proof_evidence_plan, proof_executor_config,
+        proof_executor_execute_summary, proof_executor_execution_guard_for,
+        proof_executor_manifest, proof_executor_summary, render_markdown_summary, split_command,
+        static_profile_commands,
     };
     use crate::cli::{ProofExecutorMode, ProofProfile};
     use crate::proof::policy::parse_policy_str;
@@ -1284,6 +1294,58 @@ mod tests {
         assert!(deep.iter().any(|cmd| cmd.kind == "coverage"));
         assert!(deep.iter().any(|cmd| cmd.kind == "mutation"));
         assert!(deep.iter().any(|cmd| cmd.kind == "fuzz"));
+    }
+
+    #[test]
+    fn executor_config_uses_policy_limit_by_default() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[executor]
+family = "coverage"
+max_dry_run_commands = 2
+"#,
+        )
+        .expect("policy should parse");
+
+        let config = proof_executor_config(&policy, None).expect("config should load");
+
+        assert_eq!(config.max_dry_run_commands, 2);
+    }
+
+    #[test]
+    fn executor_config_allows_positive_selection_override() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[executor]
+family = "coverage"
+max_dry_run_commands = 1
+"#,
+        )
+        .expect("policy should parse");
+
+        let config = proof_executor_config(&policy, Some(3)).expect("config should load");
+
+        assert_eq!(config.max_dry_run_commands, 3);
+    }
+
+    #[test]
+    fn executor_config_rejects_zero_selection_override() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+"#,
+        )
+        .expect("policy should parse");
+
+        let error = proof_executor_config(&policy, Some(0))
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("--executor-max-commands"));
     }
 
     #[test]

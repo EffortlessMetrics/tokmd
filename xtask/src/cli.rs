@@ -176,6 +176,10 @@ pub struct ProofArgs {
     #[arg(long, value_enum, default_value_t = ProofExecutorMode::Prototype)]
     pub executor_mode: ProofExecutorMode,
 
+    /// Override the policy-selected maximum number of advisory executor commands.
+    #[arg(long)]
+    pub executor_max_commands: Option<usize>,
+
     /// Explicitly opt a CI invocation into future planner-selected evidence execution
     #[arg(long)]
     pub allow_ci_evidence_execution: bool,
