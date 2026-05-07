@@ -4,9 +4,10 @@ use crate::cli::{
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
@@ -78,7 +79,8 @@ pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
 }
 
 pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> Result<()> {
-    let collection = proof_execution_observation_collection(&args.observations)?;
+    let observations = collect_observation_paths(&args)?;
+    let collection = proof_execution_observation_collection(&observations)?;
     let json = serde_json::to_string_pretty(&collection)?;
 
     if let Some(output) = &args.output {
@@ -367,6 +369,48 @@ fn proof_execution_observation_collection(
         .collect::<Result<Vec<_>>>()?;
 
     Ok(summarize_observations(&observations))
+}
+
+fn collect_observation_paths(args: &ProofExecutionObservationsSummaryArgs) -> Result<Vec<PathBuf>> {
+    let mut paths = BTreeSet::new();
+
+    if args.observations.is_empty() && args.observation_dirs.is_empty() {
+        paths.insert(PathBuf::from(
+            "target/proof/proof-executor-observation.json",
+        ));
+    }
+
+    paths.extend(args.observations.iter().cloned());
+    for dir in &args.observation_dirs {
+        collect_observation_paths_from_dir(dir, &mut paths)?;
+    }
+
+    if paths.is_empty() {
+        bail!("no proof executor observation artifacts found");
+    }
+
+    Ok(paths.into_iter().collect())
+}
+
+fn collect_observation_paths_from_dir(dir: &Path, paths: &mut BTreeSet<PathBuf>) -> Result<()> {
+    if !dir.is_dir() {
+        bail!(
+            "observation directory `{}` is not a directory",
+            dir.display()
+        );
+    }
+
+    for entry in WalkDir::new(dir) {
+        let entry = entry
+            .with_context(|| format!("failed to scan observation directory `{}`", dir.display()))?;
+        if entry.file_type().is_file()
+            && entry.file_name().to_string_lossy() == "proof-executor-observation.json"
+        {
+            paths.insert(entry.path().to_path_buf());
+        }
+    }
+
+    Ok(())
 }
 
 fn read_sourced_observation(path: &Path) -> Result<SourcedProofExecutionObservation> {
