@@ -1,6 +1,8 @@
 name: Proof Executor Experiment
 
 on:
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
     inputs:
       base_ref:
@@ -17,7 +19,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: proof-executor-${{ github.workflow }}-${{ github.ref }}
+  group: proof-executor-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -27,10 +29,12 @@ env:
 
 jobs:
   scoped-coverage-executor:
-    name: Scoped Coverage Executor
+    name: Scoped Coverage Executor (Non-Required)
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      PROOF_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.inputs.base_ref || 'main' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -55,7 +59,7 @@ jobs:
           tool: cargo-llvm-cov
 
       - name: Fetch base ref
-        run: git fetch origin "${{ inputs.base_ref }}":"refs/remotes/origin/${{ inputs.base_ref }}" || true
+        run: git fetch origin "${PROOF_BASE_REF}":"refs/remotes/origin/${PROOF_BASE_REF}" || true
 
       - name: Execute planner-selected scoped coverage
         env:
@@ -65,10 +69,10 @@ jobs:
           mkdir -p target/proof
           cargo llvm-cov clean --workspace
 
-          cargo xtask affected --base "origin/${{ inputs.base_ref }}" --head HEAD --json > target/proof/affected.json
+          cargo xtask affected --base "origin/${PROOF_BASE_REF}" --head HEAD --json > target/proof/affected.json
           affected_status=$?
 
-          cargo xtask proof --profile affected --base "origin/${{ inputs.base_ref }}" --head HEAD --executor-mode execute --allow-ci-evidence-execution --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
+          cargo xtask proof --profile affected --base "origin/${PROOF_BASE_REF}" --head HEAD --executor-mode execute --allow-ci-evidence-execution --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
           executor_status=$?
 
           if [ -f target/proof/executor-summary.json ] && [ -f target/proof/executor-manifest.json ]; then
@@ -94,7 +98,7 @@ jobs:
             echo "| proof executor | ${executor_status} |"
             echo "| execution artifact verifier | ${verifier_status} |"
             echo ""
-            echo "This is a workflow-dispatch experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
+            echo "This is an explicitly non-required PR/manual experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
             echo ""
             cat target/proof/proof-execution-artifacts-check.txt
           } >> "$GITHUB_STEP_SUMMARY"
@@ -121,7 +125,7 @@ jobs:
           retention-days: 14
 
       - name: Upload scoped coverage to Codecov
-        if: ${{ always() && inputs.upload_codecov }}
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_codecov == 'true' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
