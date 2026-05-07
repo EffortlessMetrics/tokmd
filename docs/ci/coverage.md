@@ -68,6 +68,13 @@ experiment, and default Codecov upload remains disabled until the promotion rule
 is intentionally changed and the workflow behavior is updated in the same
 review.
 
+The manual observation collector writes
+`proof-executor-promotion-readiness.json` with schema
+`tokmd.proof_executor_promotion_readiness.v1`. That receipt combines the
+downloaded executor observation thresholds with recent successful
+`proof-observation-collection.yml` run history, so promotion evidence has a
+stable artifact instead of relying only on job-summary prose.
+
 ## Policy Routing
 
 Coverage workflow, Codecov config, and this document are routed through the `proof_control_plane` scope in `ci/proof.toml`. That keeps coverage-lane edits visible to affected proof plans without requiring a separate lane-whitelist policy file before a checker exists.
