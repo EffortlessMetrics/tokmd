@@ -100,6 +100,9 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         if let Some(artifacts_dir) = &args.artifacts_dir {
             tokmd_cockpit::render::write_artifacts(artifacts_dir, &receipt)?;
         }
+        if let Some(review_packet_dir) = &args.review_packet_dir {
+            tokmd_cockpit::render::write_review_packet(review_packet_dir, &receipt)?;
+        }
 
         if let Some(output_path) = &args.output {
             let mut file = std::fs::File::create(output_path).with_context(|| {

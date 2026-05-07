@@ -749,6 +749,50 @@ fn scenario_write_artifacts_creates_files() {
 }
 
 // ===========================================================================
+// Scenario: Write review packet to disk
+// ===========================================================================
+
+#[test]
+fn scenario_write_review_packet_creates_contract_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.evidence.mutation.meta.status = GateStatus::Pass;
+    receipt.evidence.mutation.meta.commit_match = CommitMatch::Exact;
+    let out = dir.path().join("review");
+
+    tokmd_cockpit::render::write_review_packet(&out, &receipt).unwrap();
+
+    assert!(out.join("manifest.json").exists());
+    assert!(out.join("cockpit.json").exists());
+    assert!(out.join("evidence.json").exists());
+    assert!(out.join("comment.md").exists());
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("manifest.json")).unwrap()).unwrap();
+    assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
+    assert_eq!(manifest["generated_by"]["mode"], "cockpit");
+    assert_eq!(manifest["verdict"]["blocking"].as_bool(), Some(false));
+    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 3);
+    assert_eq!(manifest["artifacts"][0]["path"], "cockpit.json");
+    assert_eq!(manifest["artifacts"][0]["hash"]["algo"], "blake3");
+    assert_eq!(
+        manifest["artifacts"][0]["hash"]["hash"]
+            .as_str()
+            .unwrap()
+            .len(),
+        64
+    );
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    assert_eq!(evidence["schema"], "tokmd.review_packet_evidence.v1");
+    assert_eq!(evidence["gates"][0]["id"], "mutation");
+    assert_eq!(evidence["gates"][0]["availability"], "available");
+    assert_eq!(evidence["gates"][1]["id"], "diff_coverage");
+    assert_eq!(evidence["gates"][1]["availability"], "unavailable");
+}
+
+// ===========================================================================
 // Scenario: Load baseline trend with missing file
 // ===========================================================================
 

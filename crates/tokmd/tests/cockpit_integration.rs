@@ -476,6 +476,73 @@ fn test_cockpit_artifacts_dir() {
 }
 
 #[test]
+fn test_cockpit_review_packet_dir() {
+    // Given: A git repository with a main branch and a test branch with code changes
+    // When: User runs `tokmd cockpit --base main --review-packet-dir .tokmd/review`
+    // Then: The review packet directory should contain the initial packet artifacts
+    if !common::git_available() {
+        return;
+    }
+
+    let dir = tempdir().unwrap();
+
+    if !common::init_git_repo(dir.path()) {
+        return;
+    }
+
+    std::fs::write(dir.path().join("code.rs"), "fn code() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial") {
+        return;
+    }
+
+    let _ = std::process::Command::new("git")
+        .args(["checkout", "-b", "test"])
+        .current_dir(dir.path())
+        .status();
+
+    std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "New") {
+        return;
+    }
+
+    let packet_dir = dir.path().join(".tokmd").join("review");
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--review-packet-dir")
+        .arg(&packet_dir)
+        .assert()
+        .success();
+
+    for artifact in [
+        "manifest.json",
+        "cockpit.json",
+        "evidence.json",
+        "comment.md",
+    ] {
+        assert!(
+            packet_dir.join(artifact).exists(),
+            "{artifact} should exist"
+        );
+    }
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
+            .expect("valid manifest JSON");
+    assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
+    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 3);
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
+            .expect("valid evidence JSON");
+    assert_eq!(evidence["schema"], "tokmd.review_packet_evidence.v1");
+    assert!(evidence["gates"].is_array());
+}
+
+#[test]
 fn test_cockpit_not_in_git_repo() {
     // Given: A directory that is not a git repo
     let dir = tempdir().unwrap();

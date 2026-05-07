@@ -1,15 +1,16 @@
 //! Rendering functions for cockpit receipts.
 //!
-//! Provides JSON, Markdown, sections, and comment output formats.
+//! Provides JSON, Markdown, sections, comment, and review packet output formats.
 
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use serde_json::{Value, json};
 use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
 
 use crate::{
-    CockpitReceipt, GateStatus, RiskLevel, format_signed_f64, now_iso8601, sparkline,
-    trend_direction_label,
+    CockpitReceipt, CommitMatch, GateMeta, GateStatus, RiskLevel, format_signed_f64, now_iso8601,
+    sparkline, trend_direction_label,
 };
 
 /// Render receipt as JSON.
@@ -607,6 +608,180 @@ pub fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     std::fs::write(dir.join("comment.md"), comment_md)?;
 
     Ok(())
+}
+
+/// Write review packet artifacts to directory.
+///
+/// This is the doc-first packet contract from `docs/review-packet.md`. It is
+/// intentionally separate from [`write_artifacts`] so existing cockpit
+/// integrations keep their shipped `cockpit.json` / `report.json` /
+/// `comment.md` artifact shape until they opt into packet emission.
+pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
+    std::fs::create_dir_all(dir)?;
+
+    let cockpit_json = render_json(receipt)?;
+    let evidence_json = serde_json::to_string_pretty(&review_packet_evidence(receipt))?;
+    let comment_md = render_comment_md(receipt);
+
+    std::fs::write(dir.join("cockpit.json"), &cockpit_json)?;
+    std::fs::write(dir.join("evidence.json"), &evidence_json)?;
+    std::fs::write(dir.join("comment.md"), &comment_md)?;
+
+    let manifest = review_packet_manifest(receipt, &cockpit_json, &evidence_json, &comment_md);
+    std::fs::write(
+        dir.join("manifest.json"),
+        serde_json::to_string_pretty(&manifest)?,
+    )?;
+
+    Ok(())
+}
+
+fn review_packet_manifest(
+    receipt: &CockpitReceipt,
+    cockpit_json: &str,
+    evidence_json: &str,
+    comment_md: &str,
+) -> Value {
+    json!({
+        "schema": "tokmd.review_packet_manifest.v1",
+        "generated_by": {
+            "name": "tokmd",
+            "version": env!("CARGO_PKG_VERSION"),
+            "mode": "cockpit",
+            "arguments": ["cockpit", "--review-packet-dir"],
+        },
+        "generated_at_ms": receipt.generated_at_ms,
+        "base_ref": receipt.base_ref,
+        "head_ref": receipt.head_ref,
+        "verdict": {
+            "status": receipt.evidence.overall_status,
+            "blocking": false,
+            "reason": "cockpit review packets are advisory by default",
+        },
+        "artifacts": [
+            review_packet_artifact(
+                "cockpit",
+                "cockpit.json",
+                "tokmd.cockpit_receipt.v3",
+                "application/json",
+                cockpit_json,
+            ),
+            review_packet_artifact(
+                "evidence",
+                "evidence.json",
+                "tokmd.review_packet_evidence.v1",
+                "application/json",
+                evidence_json,
+            ),
+            review_packet_artifact(
+                "comment",
+                "comment.md",
+                "markdown",
+                "text/markdown",
+                comment_md,
+            ),
+        ],
+    })
+}
+
+fn review_packet_artifact(
+    id: &str,
+    path: &str,
+    schema: &str,
+    media_type: &str,
+    content: &str,
+) -> Value {
+    json!({
+        "id": id,
+        "path": path,
+        "schema": schema,
+        "media_type": media_type,
+        "hash": {
+            "algo": "blake3",
+            "hash": blake3::hash(content.as_bytes()).to_hex().to_string(),
+        },
+    })
+}
+
+fn review_packet_evidence(receipt: &CockpitReceipt) -> Value {
+    json!({
+        "schema": "tokmd.review_packet_evidence.v1",
+        "overall_status": receipt.evidence.overall_status,
+        "base_ref": receipt.base_ref,
+        "head_ref": receipt.head_ref,
+        "gates": [
+            evidence_gate("mutation", Some(&receipt.evidence.mutation.meta)),
+            evidence_gate(
+                "diff_coverage",
+                receipt.evidence.diff_coverage.as_ref().map(|gate| &gate.meta),
+            ),
+            evidence_gate(
+                "contracts",
+                receipt.evidence.contracts.as_ref().map(|gate| &gate.meta),
+            ),
+            evidence_gate(
+                "supply_chain",
+                receipt.evidence.supply_chain.as_ref().map(|gate| &gate.meta),
+            ),
+            evidence_gate(
+                "determinism",
+                receipt.evidence.determinism.as_ref().map(|gate| &gate.meta),
+            ),
+            evidence_gate(
+                "complexity",
+                receipt.evidence.complexity.as_ref().map(|gate| &gate.meta),
+            ),
+        ],
+    })
+}
+
+fn evidence_gate(id: &str, meta: Option<&GateMeta>) -> Value {
+    match meta {
+        Some(meta) => json!({
+            "id": id,
+            "status": meta.status,
+            "availability": evidence_availability(meta),
+            "source": meta.source,
+            "commit_match": meta.commit_match,
+            "scope": {
+                "relevant": &meta.scope.relevant,
+                "tested": &meta.scope.tested,
+                "ratio": meta.scope.ratio,
+                "lines_relevant": meta.scope.lines_relevant,
+                "lines_tested": meta.scope.lines_tested,
+            },
+            "evidence_commit": &meta.evidence_commit,
+            "evidence_generated_at_ms": meta.evidence_generated_at_ms,
+        }),
+        None => json!({
+            "id": id,
+            "status": "unavailable",
+            "availability": "unavailable",
+            "source": null,
+            "commit_match": null,
+            "scope": {
+                "relevant": [],
+                "tested": [],
+                "ratio": 0.0,
+                "lines_relevant": null,
+                "lines_tested": null,
+            },
+            "evidence_commit": null,
+            "evidence_generated_at_ms": null,
+        }),
+    }
+}
+
+fn evidence_availability(meta: &GateMeta) -> &'static str {
+    if matches!(meta.status, GateStatus::Skipped) {
+        return "skipped";
+    }
+
+    match meta.commit_match {
+        CommitMatch::Exact => "available",
+        CommitMatch::Partial | CommitMatch::Unknown => "degraded",
+        CommitMatch::Stale => "stale",
+    }
 }
 
 /// Write sensor artifacts.
