@@ -1,0 +1,15 @@
+{
+  "status": "completed",
+  "outcome": "learning_pr",
+  "title": "jules: record archivist learning on index generation 🗃️",
+  "summary": "Attempted to update the generated index rollups, but the PR was superseded by #1747. Aborted the patch and recorded the workflow collision as a friction item.",
+  "target_paths": [
+    ".jules/friction/open/archivist_jules_superseded.md"
+  ],
+  "proof_summary": "Recorded a learning PR outlining how concurrent index updates can lead to stale draft PRs being superseded by maintainers.",
+  "gates_run": [],
+  "friction_items_created": ["archivist_jules_superseded"],
+  "persona_notes_created": [],
+  "rollback": "git checkout -- .jules/",
+  "follow_ups": ["Investigate deferring index generation to merge-queue"]
+}

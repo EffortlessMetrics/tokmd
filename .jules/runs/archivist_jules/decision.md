@@ -1,23 +1,30 @@
 # Decision
 
 ## Context
-The goal is to improve Jules by consolidating run packets, friction, learnings, and shared scaffolding. After reviewing the current `.jules` directory state, I found a number of recent runs under `.jules/runs/` that have not been aggregated.
+The `workspace-wide` shard involves structural or meta work across the entire repository. The `Archivist` persona is tasked with improving Jules itself by consolidating run packets, friction, learnings, and shared scaffolding. Specifically, target #4 states: "move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files."
 
-## Options Considered
+Currently, 16 different persona README files under `.jules/personas/*/README.md` contain an identical `## Notes` section (or duplicated lines) that instructs the agent:
+`Use this persona's notes/ directory only for **reusable learnings** that later runs can benefit from.`
+`Do not write per-run summaries here; per-run packets belong under .jules/runs/<run-id>/.`
 
-### Option A: Summarize per-run packets into generated indexes/rollups (Recommended)
-- **What it is:** Run the existing `.jules/bin/build_index.py` script to regenerate `.jules/index/generated/RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` based on the latest run packets and open friction items.
-- **Why it fits:** This directly aligns with the Archivist mission to consolidate run packets and friction themes into generated indexes/rollups. It ensures the latest activities of agents are properly indexed, fulfilling a core target of this persona.
-- **Trade-offs:**
-  - Structure: High. Provides a clean, automated overview of repository agent activity.
-  - Velocity: High. Uses existing tooling.
-  - Governance: High. Increases visibility into recent changes and unresolved friction.
+These instructions are neutral and shared, not persona-specific. However, the `archivist` persona also contains a prompt-critical instruction in its `## Notes` section:
+`Do not remove prompt-critical instructions from persona README files just because they also appear in shared docs; personas are sent individually.`
 
-### Option B: Clean up prompt/runtime documentation
-- **What it is:** Review `FRICTION_ITEM.md` or other shared runbooks for unclear language and improve them.
-- **Why it fits:** It's another core target for the Archivist to improve future runs.
-- **Trade-offs:**
-  - While beneficial, the current most pressing gap appears to be the outdated index vs the fresh runs under `.jules/runs/`. Generating the index provides more immediate value by summarizing recent work.
+## Options
+
+### Option A: Consolidate shared `notes/` instructions into `.jules/README.md` (Recommended)
+Remove the identical duplicated lines about `notes/` and `runs/` directory usage from all 16 persona README files. For personas like `archivist` that have additional prompt-critical instructions in the `## Notes` section, retain those specific instructions. Ensure `.jules/README.md` and `.jules/runbooks/RUN_PACKET.md` already clearly specify these rules (which they do, mostly, but we can make it explicit in `.jules/README.md` under "Storage rules").
+
+- **Structure**: Reduces duplication and centralizes neutral shared policy in the shared `.jules/README.md`. Follows target #4 directly.
+- **Velocity**: Future personas won't need to copy-paste this boilerplate.
+- **Governance**: Policy updates regarding run packets or notes happen in one place.
+
+### Option B: Leave as-is and add a new policy file
+Create a new file like `.jules/policy/notes.md` detailing how to use notes, but leave the duplicated lines in the persona READMEs.
+
+- **Structure**: Increases documentation fragmentation without removing the duplication.
+- **Velocity**: Requires maintaining two sources of truth for the same policy.
+- **Governance**: Agents might get confused between the shared policy and the persona README.
 
 ## Decision
-**Option A.** Generating the indexes consolidates the current state cleanly and exactly fits the "summarize per-run packets into generated indexes/rollups" target ranking. I will execute the script and commit the updated generated indexes as a real proof-improvement patch.
+**Option A**. It directly fulfills target #4 of the Archivist persona's mission ("move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files"). It reduces noise in 16 files while preserving the prompt-critical instruction for the `archivist` persona.
