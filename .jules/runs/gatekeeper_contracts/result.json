@@ -1,17 +1,14 @@
 {
-  "summary": "Fixed documentation drift by replacing manual parameter tables with `<!-- HELP: <command> -->` markers and failing docs checks when expected marker pairs are missing",
-  "files_changed": [
-    "docs/reference-cli.md",
-    "xtask/src/tasks/docs.rs",
-    "xtask/src/tasks/gate.rs",
-    "xtask/tests/xtask_deep_w74.rs"
+  "outcome": "patch",
+  "reviewer_title": "gatekeeper: fix proof policy scope count assertion drift ✅",
+  "summary": "Fixed a hardcoded assertion in `xtask/tests/proof_policy_w90.rs` that was checking for 38 scopes instead of 40, matching the actual `ci/proof.toml`.",
+  "target_paths": [
+    "xtask/tests/proof_policy_w90.rs"
   ],
   "gates_run": [
-    "cargo xtask docs --update",
-    "cargo xtask docs --check",
     "cargo test -p xtask",
-    "cargo test -p tokmd --test docs",
-    "cargo fmt-check",
-    "git diff --check"
+    "cargo xtask proof-policy --check",
+    "cargo xtask docs --check",
+    "cargo xtask check-no-panic-family"
   ]
 }

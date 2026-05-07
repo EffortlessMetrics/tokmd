@@ -1,58 +1,48 @@
 ## 💡 Summary
-Removed manual markdown parameter tables from `docs/reference-cli.md` and replaced them with `<!-- HELP: <command> -->` markers. This delegates documentation generation to `cargo xtask docs`, locks in deterministic CLI usage tracking, and closes the silent-skip case where a missing marker pair could make docs checks pass without checking a command.
-
-The restack also updates the xtask gate regression test to match the current queue policy: Jules provenance under `.jules/**` can be intentional PR state, so gate should not blanket-block `.jules/runs/**` while still guarding actual runtime/cache/transcript directories.
+Fixed an outdated test assertion in `proof_policy_w90.rs` that was expecting 38 scopes instead of the actual 40 found in `ci/proof.toml`.
 
 ## 🎯 Why
-Manual parameter tables in documentation frequently become outdated when CLI arguments change. `tokmd` provides `cargo xtask docs --update` which relies on `<!-- HELP: <command> -->` markers. Several commands were still using hand-maintained markdown tables, meaning updates to CLI args could easily be missed by the xtask check. The final patch also makes missing marker pairs an explicit docs-check failure.
+The `proof_policy_json_reports_current_schema` test in `xtask` was failing due to a factual drift between the actual proof policy schema scope count (40) and the hardcoded assertion in the test (38).
 
 ## 🔎 Evidence
-- File: `docs/reference-cli.md`
-- Observation: Many subcommands like `module`, `export`, `run`, `handoff` did not have `<!-- HELP: <command> -->` markers and used manual `| Argument | Description |` tables.
-- Verification: Running `cargo xtask docs --check` before the change ignored drift in these subcommands because they had no markers.
+- `cargo test -p xtask` output:
+```text
+thread 'proof_policy_json_reports_current_schema' panicked at xtask/tests/proof_policy_w90.rs:191:5:
+assertion `left == right` failed
+  left: Number(40)
+ right: 38
+```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Replace manual parameter tables with `<!-- HELP: <command> -->` markers for all commands, letting `cargo xtask docs --update` populate them correctly from the clap help output. Also fail `cargo xtask docs --check` when an expected marker pair is absent.
-- Trade-offs:
-  - **Structure**: Eliminates duplication of parameter details.
-  - **Velocity**: Developers no longer have to manually edit markdown tables when updating CLI parameters.
-  - **Governance**: Fits perfectly within the `tooling-governance` shard.
+- Update the assertion in `xtask/tests/proof_policy_w90.rs` to match the actual number of scopes (40).
+- Why it fits: Matches the explicit instruction to lock in deterministic behavior and protect contract-bearing tests.
+- Trade-offs: Structure (Aligns test with config) / Velocity (Fast fix) / Governance (Restores green deterministic schema validations).
 
 ### Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand.
-- When to choose it: Only if custom columns are needed that clap does not output.
-- Trade-offs: Extreme risk of drift and maintenance burden.
+- Ignore the failure or delete the assertion.
+- When to choose it instead: Never, as it weakens test assertions and deterministic guarantees.
+- Trade-offs: Degrades coverage.
 
 ## ✅ Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables. The final patch keeps all synchronization in `cargo xtask docs --update` / `cargo xtask docs --check` and verifies that every expected command marker exists.
+Option A. I aligned the expected scope count in the test assertion with the actual counts in the policy file.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Removed manual parameter tables for the CLI command surface and replaced them with `<!-- HELP: <command> -->` markers.
-- `xtask/src/tasks/docs.rs`: Treats missing marker pairs as documentation drift instead of silently skipping those commands.
-- `xtask/src/tasks/gate.rs`, `xtask/tests/xtask_deep_w74.rs`: Document and test that `.jules/runs/**` is not treated as forbidden runtime state because it may be intentional PR provenance.
+- `xtask/tests/proof_policy_w90.rs`: Updated `assert_eq!(value["scope_count"], 38);` to `assert_eq!(value["scope_count"], 40);`.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --update
-Updated docs/reference-cli.md
-
-$ cargo xtask docs --check
-Documentation is up to date.
-
-$ cargo test -p tokmd --test docs
-test result: ok
-
-$ cargo test -p xtask
-test result: ok
+{"cmd": "cargo test -p xtask --test proof_policy_w90", "status": "success", "summary": "Verified the test now passes."}
+{"cmd": "cargo xtask docs --check", "status": "success", "summary": "Documentation up to date."}
+{"cmd": "cargo xtask check-no-panic-family", "status": "success", "summary": "Checked no-panic family passes."}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Replacement of manual documentation content with auto-generated sync blocks plus docs-check and provenance-policy guardrails.
-- Blast radius: Docs and xtask validation only.
-- Risk class: Low - Does not change application runtime behavior.
+- Change shape: Test fix
+- Blast radius: None (Test-only change)
+- Risk class: Low (Fixes broken tests)
 - Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --update`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo test -p tokmd --test docs`, `cargo fmt-check`, `git diff --check`
+- Gates run: `cargo test -p xtask`, `cargo xtask docs --check`, `cargo xtask check-no-panic-family`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -62,4 +52,4 @@ test result: ok
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
 
 ## 🔜 Follow-ups
-None. All CLI references are now correctly managed via xtask.
+None.
