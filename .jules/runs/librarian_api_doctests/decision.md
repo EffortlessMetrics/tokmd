@@ -8,10 +8,9 @@ I explored the `tokmd-core` and `tokmd` crates, specifically looking for gaps in
 - **Why it fits this repo and shard:** The shard focuses on interfaces and configuration. Ensuring public config resolution APIs have executable examples ensures the docs don't silently drift from reality. The `docs-executable` gate profile aligns with proving the correctness of these examples.
 - **Trade-offs:** Minimal complexity, high confidence. Fixes concrete drift (incorrect `tokmd::resolve_config` calls) while adding a missing example for a core interface (`load_config`).
 
-## Option B: Refactor config resolution logic
-- **What it is:** Instead of just adding docs, we could refactor the duplication across `resolve_lang_with_config`, `resolve_module_with_config`, etc. into a single unified generic resolver.
-- **When to choose it instead:** If the primary problem was maintainability or bugginess of the resolution logic itself.
-- **Trade-offs:** High velocity risk, goes beyond the 'Librarian' persona's focus on factual docs quality and executable examples.
+## Option B: Abort and document (Superseded)
+- **What it is:** The PR was superseded by another PR (#1721), which kept the valid public `tokmd::resolve_config` doctest surface and removed the stale generated patch artifacts / file-policy drift instead of rewriting working public API examples.
+- **When to choose it instead:** When a maintainer indicates the work is obsolete.
 
 ## Decision
-**Option A**. It directly addresses the Librarian mission of improving factual docs quality and executable examples. It fixes the incorrect module paths in existing doctests and adds a missing example for a key public function, adhering to the `docs-executable` gate expectations.
+**Option B**. The maintainer commented that the intended patch was superseded by #1721. Creating a learning PR to document this.

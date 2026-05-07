@@ -37,24 +37,6 @@ impl ConfigContext {
 }
 
 /// Load all configuration sources.
-///
-/// This checks for a `tokmd.toml` configuration file as well as a legacy
-/// `.tokmd` JSON configuration file in the project directories.
-///
-/// # Examples
-///
-/// ```
-/// use tokmd::ConfigContext;
-/// use tokmd::config::load_config;
-///
-/// // Load from the environment/filesystem
-/// let ctx: ConfigContext = load_config();
-///
-/// // The config might have parsed a toml file if one exists
-/// if let Some(toml) = &ctx.toml {
-///     println!("Found TOML config!");
-/// }
-/// ```
 pub fn load_config() -> ConfigContext {
     let toml_result = discover_toml_config();
     let json = load_json_config();
@@ -308,7 +290,7 @@ impl ResolvedConfig<'_> {
 /// # Examples
 ///
 /// ```
-/// use tokmd::config::{resolve_config, ConfigContext};
+/// use tokmd::{resolve_config, ConfigContext};
 ///
 /// let ctx = ConfigContext::default();
 /// let resolved = resolve_config(&ctx, Some("default"));
@@ -403,7 +385,7 @@ pub fn resolve_lang(
 /// toml.view.insert("default".to_string(), view);
 ///
 /// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
-/// let resolved = tokmd::config::resolve_config(&ctx, Some("default"));
+/// let resolved = tokmd::resolve_config(&ctx, Some("default"));
 ///
 /// // CLI args have no top, so it falls back to the resolved config (10)
 /// let cli_args_empty = CliLangArgs {
@@ -541,7 +523,7 @@ pub fn resolve_module(
 /// toml.module = mod_cfg;
 ///
 /// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
-/// let resolved = tokmd::config::resolve_config(&ctx, None);
+/// let resolved = tokmd::resolve_config(&ctx, None);
 ///
 /// // CLI args have no module_depth, falls back to config (4)
 /// let cli_args_empty = CliModuleArgs {
@@ -708,7 +690,7 @@ pub fn resolve_export(
 /// toml.export = exp_cfg;
 ///
 /// let ctx = ConfigContext { toml: Some(toml), toml_path: None, json: None };
-/// let resolved = tokmd::config::resolve_config(&ctx, None);
+/// let resolved = tokmd::resolve_config(&ctx, None);
 ///
 /// // Empty CLI arg uses the format from config
 /// let cli_args_empty = CliExportArgs {

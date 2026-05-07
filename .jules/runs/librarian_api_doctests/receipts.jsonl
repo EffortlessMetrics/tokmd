@@ -1,5 +1,0 @@
-{"cmd": "cargo test --doc -p tokmd", "status": "success", "summary": "Doctests run successfully with fixed `tokmd::config::resolve_config` paths and new `load_config` doctest."}
-{"cmd": "cargo xtask docs --check || true", "status": "success", "summary": "Verified documentation is up to date."}
-{"cmd": "cargo fmt -- --check", "status": "success", "summary": "Verified formatting."}
-{"cmd": "cargo clippy -- -D warnings", "status": "success", "summary": "Verified clippy lints."}
-{"cmd": "cargo xtask affected --base origin/main --head HEAD --json", "status": "success", "summary": "Verified no unknown files in affected proof scope"}
