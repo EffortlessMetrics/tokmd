@@ -1,0 +1,12 @@
+{
+  "outcome_type": "learning PR",
+  "title": "jules: record fuzzer learning on CLI parser 🌪️",
+  "summary": "Learning PR to record workflow collision. The intended patch for CLI parser fuzzing was abandoned because the branch contained stale browser wasm commits and the work was superseded by #1760.",
+  "target_paths": [],
+  "proof_summary": "N/A",
+  "gates_run": [],
+  "friction_items": [".jules/friction/open/fuzzer_input_hardening_superseded.md"],
+  "persona_notes": [],
+  "rollback": "N/A",
+  "follow_ups": []
+}

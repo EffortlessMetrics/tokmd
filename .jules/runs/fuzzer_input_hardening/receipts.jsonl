@@ -1,0 +1,1 @@
+{"cmd": "git reset --hard origin/main", "status": 0, "summary": "Reset branch to main to clear stale history", "phase": "recovery"}
