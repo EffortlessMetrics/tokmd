@@ -39,10 +39,7 @@ jobs:
 
   build:
     name: Build & Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v6
@@ -50,18 +47,38 @@ jobs:
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Use larger writable target dir on Linux
-      if: runner.os == 'Linux'
+    - name: Use larger writable target dir
       run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
     - uses: Swatinem/rust-cache@v2
-      if: runner.os == 'Linux'
       with:
-        save-if: ${{ github.ref == 'refs/heads/main' }}
         cache-directories: ${{ runner.temp }}/target
+        save-if: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: Run tests
+      run: cargo test --all-features --verbose
+      env:
+        CI: true
+
+  # Windows full-test moves off the default PR gate. It runs on push to
+  # main and on PRs explicitly labelled `windows` or `full-ci`. Rust path
+  # changes that are likely to behave differently on Windows go through
+  # the `git_io` risk pack (PR 12).
+  build-windows:
+    name: Build & Test (Windows)
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'windows') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
 
     - uses: Swatinem/rust-cache@v2
-      if: runner.os != 'Linux'
       with:
         save-if: ${{ github.ref == 'refs/heads/main' }}
 
@@ -208,6 +225,10 @@ jobs:
 
   wasm-compile:
     name: Wasm Compile & Test
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'wasm') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -282,6 +303,10 @@ jobs:
 
   proptest-smoke:
     name: Proptest Smoke
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'property-tests') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -336,6 +361,11 @@ jobs:
 
   nix-pr:
     name: Nix PR Package Gate
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'nix') ||
+      contains(github.event.pull_request.labels.*.name, 'release-check') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -364,7 +394,14 @@ jobs:
   mutation:
     name: Mutation Testing (Required)
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Runtime mutation testing moves to label/main/nightly so ordinary
+    # PRs don't pay 45 LEM by default. PR 11 adds an advisory `ripr`
+    # job that gives mutation-testing-lite signal at static-analysis
+    # prices for the default PR.
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'mutation') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     steps:
       - uses: actions/checkout@v6
         with:
@@ -447,6 +484,7 @@ jobs:
     needs:
       - msrv
       - build
+      - build-windows
       - build-macos
       - gate
       - deny
