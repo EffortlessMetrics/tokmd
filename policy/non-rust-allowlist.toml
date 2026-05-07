@@ -1,0 +1,800 @@
+schema_version = "1.0"
+policy = "non-rust-allowlist"
+owner = "release/files"
+status = "advisory"
+updated = "2026-05-07"
+
+# Non-Rust file surfaces. Each [[allow]] entry pins:
+#   glob   - what the entry covers
+#   kind   - structural category for the report
+#   owner  - team/role responsible
+#   surface - where this file shows up to consumers
+#   classification - production / config / documentation / vendor / test_fixture
+#   reason - why a non-Rust file lives in a Rust-first repo
+#   covered_by - the proof obligation that exercises it
+#
+# Files that match nothing are reported by `cargo xtask check-file-policy`.
+# The advisory phase reports drift; --strict turns drift into an error.
+
+# -----------------------------------------------------------------------
+# Top-level repo metadata
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "Cargo.toml"
+kind = "rust_workspace_root"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Workspace manifest is the entry point for cargo workflows."
+covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "Cargo.lock"
+kind = "rust_workspace_lockfile"
+owner = "release/dependencies"
+surface = "build"
+classification = "config"
+reason = "Lockfile pin is required for reproducible builds and cargo deny."
+covered_by = ["cargo deny --all-features check"]
+
+[[allow]]
+glob = "*.md"
+kind = "documentation"
+owner = "docs"
+surface = "docs"
+classification = "documentation"
+reason = "Top-level project docs (README, CONTRIBUTING, CHANGELOG, etc.)."
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "LICENSE-*"
+kind = "license"
+owner = "release/legal"
+surface = "release"
+classification = "documentation"
+reason = "Required license texts for dual-licensed Apache-2.0 / MIT distribution."
+covered_by = ["cargo deny --all-features check"]
+
+[[allow]]
+glob = "CITATION.cff"
+kind = "metadata"
+owner = "release/metadata"
+surface = "release"
+classification = "documentation"
+reason = "Citation metadata for academic/release tooling."
+covered_by = ["cargo xtask version-consistency"]
+
+[[allow]]
+glob = "deny.toml"
+kind = "policy"
+owner = "release/dependencies"
+surface = "build"
+classification = "config"
+reason = "cargo-deny advisory and license policy."
+covered_by = ["cargo deny --all-features check"]
+
+[[allow]]
+glob = "clippy.toml"
+kind = "policy"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Clippy disallowed-* policy; must not weaken workspace baseline."
+covered_by = ["cargo xtask check-lint-policy"]
+
+[[allow]]
+glob = "_typos.toml"
+kind = "policy"
+owner = "docs"
+surface = "build"
+classification = "config"
+reason = "crate-ci/typos configuration."
+covered_by = ["typos workflow"]
+
+[[allow]]
+glob = "proptest.toml"
+kind = "policy"
+owner = "testing/oracle"
+surface = "build"
+classification = "config"
+reason = "proptest runtime configuration for property tests."
+covered_by = ["proptest smoke job"]
+
+[[allow]]
+glob = "codecov.yml"
+kind = "policy"
+owner = "testing/oracle"
+surface = "build"
+classification = "config"
+reason = "Codecov upload configuration."
+covered_by = ["coverage workflow"]
+
+[[allow]]
+glob = "rustfmt.toml"
+kind = "policy"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Workspace rustfmt configuration if present."
+covered_by = ["cargo xtask gate --check"]
+
+[[allow]]
+glob = ".editorconfig"
+kind = "editor"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Cross-editor whitespace policy."
+covered_by = []
+
+[[allow]]
+glob = ".gitattributes"
+kind = "git"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Git attribute policy for line endings, generated, etc."
+covered_by = []
+
+[[allow]]
+glob = ".gitignore"
+kind = "git"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Repo-wide ignore patterns."
+covered_by = []
+
+[[allow]]
+glob = ".dockerignore"
+kind = "release"
+owner = "release/publish"
+surface = "release"
+classification = "config"
+reason = "Docker build context exclusions."
+covered_by = ["release docker job"]
+
+[[allow]]
+glob = "Dockerfile"
+kind = "release"
+owner = "release/publish"
+surface = "release"
+classification = "production"
+reason = "Container build for releases."
+covered_by = ["release docker job"]
+
+[[allow]]
+glob = "Justfile"
+kind = "tooling"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Local task runner shortcuts."
+covered_by = []
+
+[[allow]]
+glob = "action.yml"
+kind = "github_action"
+owner = "release/action"
+surface = "downstream"
+classification = "production"
+reason = "Composite GitHub Action contract for downstream consumers."
+covered_by = [".github/workflows/test-action.yml", "cargo xtask docs --check"]
+
+[[allow]]
+glob = "flake.nix"
+kind = "packaging_nix"
+owner = "release/nix"
+surface = "release"
+classification = "production"
+reason = "Nix flake for packaging and reproducible builds."
+covered_by = ["nix flake check --no-build", "nix build .#tokmd"]
+
+[[allow]]
+glob = "flake.lock"
+kind = "packaging_nix"
+owner = "release/nix"
+surface = "release"
+classification = "config"
+reason = "Pinned Nix flake inputs."
+covered_by = ["nix flake check --no-build"]
+
+# -----------------------------------------------------------------------
+# .github/ tree
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = ".github/workflows/*.yml"
+kind = "ci_declarative"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "GitHub Actions workflow definitions are platform-required YAML."
+covered_by = ["cargo xtask ci-lane-whitelist"]
+
+[[allow]]
+glob = ".github/CODEOWNERS"
+kind = "github"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "Code ownership policy."
+covered_by = []
+
+[[allow]]
+glob = ".github/dependabot.yml"
+kind = "github"
+owner = "release/dependencies"
+surface = "ci"
+classification = "config"
+reason = "Dependabot configuration."
+covered_by = []
+
+[[allow]]
+glob = ".github/labels.yml"
+kind = "github"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "Repository label declarations."
+covered_by = [".github/workflows/sync-labels.yml"]
+
+[[allow]]
+glob = ".github/settings.yml"
+kind = "github"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "Repo settings declared as policy-as-code."
+covered_by = []
+
+[[allow]]
+glob = ".github/FUNDING.yml"
+kind = "github"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "GitHub funding metadata."
+covered_by = []
+
+[[allow]]
+glob = ".github/ISSUE_TEMPLATE/**"
+kind = "github"
+owner = "core/policy"
+surface = "ci"
+classification = "documentation"
+reason = "Issue triage templates."
+covered_by = []
+
+[[allow]]
+glob = ".github/pull_request_template.md"
+kind = "github"
+owner = "core/policy"
+surface = "ci"
+classification = "documentation"
+reason = "PR template; co-evolves with cockpit metrics."
+covered_by = ["PR Cockpit job"]
+
+[[allow]]
+glob = ".github/agents/**"
+kind = "agents"
+owner = "core/policy"
+surface = "ci"
+classification = "documentation"
+reason = "Agent runbook docs for CI assistants."
+covered_by = []
+
+# -----------------------------------------------------------------------
+# Documentation surfaces
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "docs/**"
+kind = "documentation"
+owner = "docs"
+surface = "docs"
+classification = "documentation"
+reason = "Documentation is a first-class tokmd product surface."
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "docs/capabilities/*.json"
+kind = "capability_contract"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "Machine-readable capability contracts are product artifacts."
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "docs/baseline.schema.json"
+kind = "schema"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "Baseline JSON schema contract."
+covered_by = ["cargo test -p tokmd-types schema"]
+
+[[allow]]
+glob = "docs/handoff.schema.json"
+kind = "schema"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "Handoff JSON schema contract."
+covered_by = ["cargo test -p tokmd-types schema"]
+
+[[allow]]
+glob = "docs/schema.json"
+kind = "schema"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "Top-level tokmd JSON schema."
+covered_by = ["cargo test -p tokmd-types schema"]
+
+# -----------------------------------------------------------------------
+# Browser runner / web surfaces
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "web/runner/**"
+kind = "browser_runner"
+owner = "wasm"
+surface = "wasm-browser"
+classification = "production"
+reason = "Browser runner validates tokmd-wasm capability contract."
+covered_by = ["npm --prefix web/runner test", "npm --prefix web/runner run check"]
+
+# -----------------------------------------------------------------------
+# Packaging surfaces
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "Formula/**"
+kind = "packaging_homebrew"
+owner = "release/publish"
+surface = "release"
+classification = "production"
+reason = "Homebrew formula for downstream installs."
+covered_by = ["release publish job"]
+
+[[allow]]
+glob = "aur/**"
+kind = "packaging_aur"
+owner = "release/publish"
+surface = "release"
+classification = "production"
+reason = "Arch User Repository PKGBUILD."
+covered_by = ["release publish job"]
+
+[[allow]]
+glob = "bucket/**"
+kind = "packaging_scoop"
+owner = "release/publish"
+surface = "release"
+classification = "production"
+reason = "Scoop bucket manifest for Windows installs."
+covered_by = ["release publish job"]
+
+[[allow]]
+glob = "winget/**"
+kind = "packaging_winget"
+owner = "release/publish"
+surface = "release"
+classification = "production"
+reason = "winget manifest for Windows installs."
+covered_by = ["release publish job"]
+
+# -----------------------------------------------------------------------
+# Policy + ci/ + agents/ + contracts/
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "policy/*.toml"
+kind = "policy"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Policy ledgers for Clippy, no-panic, lane whitelist, etc."
+covered_by = [
+  "cargo xtask check-lint-policy",
+  "cargo xtask check-no-panic-family",
+  "cargo xtask ci-lane-whitelist",
+]
+
+[[allow]]
+glob = "ci/proof.toml"
+kind = "policy"
+owner = "proof"
+surface = "build"
+classification = "config"
+reason = "Proof policy authoring and scope coverage."
+covered_by = ["cargo xtask proof-policy --check"]
+
+[[allow]]
+glob = "agents/**"
+kind = "agents"
+owner = "core/policy"
+surface = "agents"
+classification = "documentation"
+reason = "Agent runbook and persona shared docs."
+covered_by = []
+
+[[allow]]
+glob = ".jules/**"
+kind = "agents"
+owner = "core/policy"
+surface = "agents"
+classification = "documentation"
+reason = "Jules workspace artifacts and indexes."
+covered_by = ["cargo xtask proof-policy --check"]
+
+[[allow]]
+glob = ".claude/**"
+kind = "agents"
+owner = "core/policy"
+surface = "agents"
+classification = "config"
+reason = "Claude harness settings and hooks."
+covered_by = []
+
+[[allow]]
+glob = ".vscode/**"
+kind = "editor"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Repo-wide VSCode workspace settings."
+covered_by = []
+
+[[allow]]
+glob = ".cargo/**"
+kind = "build"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Cargo configuration overrides."
+covered_by = []
+
+[[allow]]
+glob = ".githooks/**"
+kind = "git"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Optional git hooks (pre-commit / pre-push)."
+covered_by = []
+
+[[allow]]
+glob = "contracts/**"
+kind = "contract"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "Machine-readable contracts for downstream consumers."
+covered_by = ["cargo xtask docs --check"]
+
+# -----------------------------------------------------------------------
+# Fixtures and snapshots
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "crates/**/tests/**/*.snap"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "insta snapshot fixtures."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.json"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "JSON fixtures used by integration tests."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.md"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Markdown fixtures used by integration tests."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.toml"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "TOML fixtures used by integration tests."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.txt"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Plain-text fixtures used by integration tests."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.svg"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "SVG output fixtures (badges, exports)."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/tests/**/*.html"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "HTML output fixtures."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/tokmd/schemas/**"
+kind = "schema"
+owner = "product/contracts"
+surface = "contract"
+classification = "production"
+reason = "JSON schemas embedded into the tokmd crate."
+covered_by = ["cargo test -p tokmd schema"]
+
+[[allow]]
+glob = "fuzz/corpus/**"
+kind = "test_fixture"
+owner = "testing/fuzz"
+surface = "test"
+classification = "test_fixture"
+reason = "cargo-fuzz seed corpora."
+covered_by = ["nightly fuzz job"]
+
+[[allow]]
+glob = "fuzz/dict/**"
+kind = "test_fixture"
+owner = "testing/fuzz"
+surface = "test"
+classification = "test_fixture"
+reason = "cargo-fuzz dictionaries."
+covered_by = ["nightly fuzz job"]
+
+# -----------------------------------------------------------------------
+# Vendored / patched
+# -----------------------------------------------------------------------
+
+[[allow]]
+glob = "crates/**/Cargo.toml"
+kind = "rust_workspace_member"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Per-crate cargo manifests for workspace members."
+covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "xtask/Cargo.toml"
+kind = "rust_workspace_member"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Cargo manifest for the xtask helper crate."
+covered_by = ["cargo check -p xtask --locked"]
+
+[[allow]]
+glob = "fuzz/Cargo.toml"
+kind = "rust_workspace_member"
+owner = "testing/fuzz"
+surface = "build"
+classification = "config"
+reason = "Cargo manifest for the fuzz harness package."
+covered_by = ["cargo +nightly fuzz list"]
+
+[[allow]]
+glob = "**/.gitignore"
+kind = "git"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Per-directory git ignore patterns."
+covered_by = []
+
+[[allow]]
+glob = "**/proptest-regressions/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "proptest seed file for failing-case regression coverage."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "**/*.proptest-regressions"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "proptest seed file for failing-case regression coverage."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/snapshots/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "insta in-source snapshot directories."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/**/*.snap"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "insta snapshot files (in-tree)."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "crates/tokmd-format/src/analysis/templates/**"
+kind = "asset"
+owner = "core/format"
+surface = "build"
+classification = "production"
+reason = "Embedded report templates for the analysis HTML output."
+covered_by = ["cargo test -p tokmd-format --test analysis_html"]
+
+[[allow]]
+glob = "crates/tokmd-format/proptest-regressions/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "proptest regressions colocated with the format crate."
+covered_by = ["cargo test -p tokmd-format"]
+
+[[allow]]
+glob = "crates/tokmd-node/**"
+kind = "node_package"
+owner = "release/publish"
+surface = "downstream"
+classification = "production"
+reason = "Node.js binding package: package.json, TypeScript declarations, JS shim, and tests."
+covered_by = ["release publish job"]
+
+[[allow]]
+glob = "crates/tokmd-python/**"
+kind = "python_package"
+owner = "release/publish"
+surface = "downstream"
+classification = "production"
+reason = "Python binding package: pyproject, source, type marker, integration tests."
+covered_by = ["release publish job"]
+
+[[allow]]
+glob = "crates/tokmd-wasm/LICENSE-*"
+kind = "license"
+owner = "release/legal"
+surface = "release"
+classification = "documentation"
+reason = "Required license texts for the published WASM crate."
+covered_by = ["cargo deny --all-features check"]
+
+[[allow]]
+glob = "crates/tokmd-core/test_doctest.patch"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Patch fixture used by tokmd-core tests."
+covered_by = ["cargo test -p tokmd-core"]
+
+[[allow]]
+glob = "crates/tokmd/tests/data/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Integration test data fixtures (JS, JSON, etc.)."
+covered_by = ["cargo test -p tokmd"]
+
+[[allow]]
+glob = "*.patch"
+kind = "tooling"
+owner = "release/dependencies"
+surface = "build"
+classification = "config"
+reason = "Top-level patches kept for manual recovery and reproducibility."
+covered_by = []
+
+[[allow]]
+glob = "*.ps1"
+kind = "tooling"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Local convenience PowerShell scripts."
+covered_by = []
+
+[[allow]]
+glob = "*.bat"
+kind = "tooling"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Local convenience batch scripts."
+covered_by = []
+
+[[allow]]
+glob = "*.txt"
+kind = "tooling"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Top-level text files (PR bodies, transient notes)."
+covered_by = []
+
+[[allow]]
+glob = "*.log"
+kind = "tooling"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Top-level log fixtures (gate.log, etc.)."
+covered_by = []
+
+[[allow]]
+glob = "tokmd-role.md"
+kind = "documentation"
+owner = "docs"
+surface = "docs"
+classification = "documentation"
+reason = "Top-level role doc."
+covered_by = []
+
+[[allow]]
+glob = "AGENTS.md"
+kind = "documentation"
+owner = "docs"
+surface = "agents"
+classification = "documentation"
+reason = "Top-level agent guidance."
+covered_by = []
+
+[[allow]]
+glob = "CLAUDE.md"
+kind = "documentation"
+owner = "docs"
+surface = "agents"
+classification = "documentation"
+reason = "Top-level Claude adapter doc."
+covered_by = []
+
+[[allow]]
+glob = "GEMINI.md"
+kind = "documentation"
+owner = "docs"
+surface = "agents"
+classification = "documentation"
+reason = "Top-level Gemini adapter doc."
+covered_by = []
+
+[[allow]]
+glob = "vendor/**"
+kind = "vendored_patch"
+owner = "release/dependencies"
+surface = "vendor"
+classification = "production"
+reason = "Pinned patched dependency required until upstream fallback exists."
+covered_by = ["cargo check --workspace --locked"]

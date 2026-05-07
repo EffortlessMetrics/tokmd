@@ -6,6 +6,7 @@ pub mod ci_actuals;
 pub mod cockpit;
 pub mod coverage_receipt;
 pub mod docs;
+pub mod file_policy;
 pub mod fixture_blobs_check;
 pub mod gate;
 pub mod lint_fix;

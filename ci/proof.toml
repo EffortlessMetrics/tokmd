@@ -73,6 +73,7 @@ paths = [
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/ci_actuals.rs",
   "xtask/src/tasks/coverage_receipt.rs",
+  "xtask/src/tasks/file_policy.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
   "xtask/src/tasks/proof_artifacts_check.rs",
   "xtask/src/tasks/proof_policy.rs",
@@ -615,6 +616,20 @@ proof = [
   "cargo xtask proof-policy --check",
 ]
 reason = "ripr static-mutation analyzer config + suppressions ledger; advisory until PR 16 soft-gate."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "file_policy"
+kind = "non_rust"
+paths = [
+  "docs/FILE_POLICY.md",
+  "policy/non-rust-allowlist.toml",
+]
+proof = [
+  "cargo xtask check-file-policy",
+]
+reason = "Non-Rust file allowlist governance: every non-Rust file in the repo must match an explicit allow entry."
 mutation = false
 coverage = false
 

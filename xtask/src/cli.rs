@@ -48,6 +48,8 @@ pub enum Commands {
     CoverageReceipt(CoverageReceiptArgs),
     /// Emit a durable receipt for CI job actuals
     CiActuals(CiActualsArgs),
+    /// Verify the non-Rust file allowlist (file policy checker)
+    CheckFilePolicy(FilePolicyArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
@@ -168,6 +170,31 @@ impl Default for CiActualsArgs {
             repo: "tokmd".to_string(),
             workflow: "CI".to_string(),
             sha: None,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct FilePolicyArgs {
+    /// Path to the non-Rust allowlist TOML
+    #[arg(long, default_value = "policy/non-rust-allowlist.toml")]
+    pub allowlist: std::path::PathBuf,
+
+    /// Optional report output directory
+    #[arg(long, value_name = "DIR")]
+    pub report_dir: Option<std::path::PathBuf>,
+
+    /// Treat findings as errors (default is advisory)
+    #[arg(long)]
+    pub strict: bool,
+}
+
+impl Default for FilePolicyArgs {
+    fn default() -> Self {
+        Self {
+            allowlist: std::path::PathBuf::from("policy/non-rust-allowlist.toml"),
+            report_dir: None,
+            strict: false,
         }
     }
 }
