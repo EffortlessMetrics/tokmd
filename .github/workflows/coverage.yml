@@ -3,9 +3,27 @@ name: Coverage
 on:
   push:
     branches: ["main"]
+    paths:
+      - "crates/**"
+      - "xtask/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/coverage.yml"
+      - "codecov.yml"
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches: ["main"]
+    paths:
+      - "crates/**"
+      - "xtask/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/coverage.yml"
+      - "codecov.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: coverage-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -13,16 +31,20 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 0
-  # Coverage instrumentation owns its own debug/instrumentation flags.
-  RUSTFLAGS: ""
+  CARGO_INCREMENTAL: "0"
+  RUSTFLAGS: -C debuginfo=0
 
 jobs:
-  rust-coverage:
-    name: Rust coverage
+  coverage:
+    name: Codecov Coverage
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 45
+
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'coverage') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
 
     steps:
       - uses: actions/checkout@v6
@@ -30,42 +52,74 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: "1.92"
           components: llvm-tools-preview
 
-      - name: Use larger writable target dir
+      - name: Use larger target dir
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
       - uses: Swatinem/rust-cache@v2
         with:
           cache-directories: ${{ runner.temp }}/target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
 
-      - name: Generate Rust coverage report
-        run: |
-          cargo llvm-cov clean --workspace
-          cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+      - name: Generate coverage
         env:
           CI: true
+        run: |
+          set -euo pipefail
+          cargo llvm-cov clean --workspace
 
-      - name: Upload coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: rust-lcov
-          path: lcov.info
-          if-no-files-found: error
-          retention-days: 14
+          cargo llvm-cov test \
+            --workspace \
+            --all-features \
+            --locked \
+            --no-report
+
+          cargo llvm-cov report --json --output-path coverage.json
+          cargo llvm-cov report --lcov --output-path lcov.info
+          cargo llvm-cov report --text | tee coverage.txt
+
+      - name: Validate coverage output
+        run: |
+          set -euo pipefail
+          test -s coverage.json
+          test -s lcov.info
+          test -s coverage.txt
+
+      - name: Detect Codecov token
+        id: codecov-token
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          if [ -n "${CODECOV_TOKEN:-}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload coverage to Codecov
+        if: ${{ steps.codecov-token.outputs.present == 'true' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
           flags: rust
-          name: rust-coverage
-          fail_ci_if_error: false
-          verbose: true
+          name: tokmd-rust
+          fail_ci_if_error: ${{ github.event_name == 'push' }}
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: |
+            coverage.json
+            coverage.txt
+            lcov.info
+          retention-days: 14
