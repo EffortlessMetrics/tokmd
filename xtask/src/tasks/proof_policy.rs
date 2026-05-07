@@ -1,6 +1,6 @@
 use crate::cli::ProofPolicyArgs;
 use crate::proof::policy::load_policy;
-use crate::proof::policy_ast::{CiExecution, ProofPolicy};
+use crate::proof::policy_ast::{CiExecution, ExecutorPromotionWindow, ProofPolicy};
 use crate::proof::validate::{PolicyViolation, validate_policy};
 use anyhow::{Result, bail};
 use serde::Serialize;
@@ -29,6 +29,7 @@ struct ExecutorPolicyReport {
 
 #[derive(Debug, Serialize)]
 struct ExecutorPromotionReport {
+    window: Option<String>,
     run_limit: Option<usize>,
     min_observations: Option<usize>,
     min_executed: Option<usize>,
@@ -95,6 +96,11 @@ impl ExecutorPolicyReport {
 impl ExecutorPromotionReport {
     fn from_policy(promotion: &crate::proof::policy_ast::ExecutorPromotion) -> Self {
         Self {
+            window: promotion
+                .window
+                .as_ref()
+                .map(promotion_window_name)
+                .map(str::to_string),
             run_limit: promotion.run_limit,
             min_observations: promotion.min_observations,
             min_executed: promotion.min_executed,
@@ -145,7 +151,8 @@ fn executor_summary(executor: &ExecutorPolicyReport) -> String {
 
     match executor.promotion.as_ref() {
         Some(promotion) => format!(
-            "{base}/promotion-run-limit-{}/min-observations-{}/min-executed-{}/min-scopes-{}/min-artifacts-{}/required-gate-{}/codecov-upload-{}",
+            "{base}/promotion-window-{}/run-limit-{}/min-observations-{}/min-executed-{}/min-scopes-{}/min-artifacts-{}/required-gate-{}/codecov-upload-{}",
+            display_optional_string(promotion.window.as_deref()),
             display_optional_usize(promotion.run_limit),
             display_optional_usize(promotion.min_observations),
             display_optional_usize(promotion.min_executed),
@@ -156,6 +163,10 @@ fn executor_summary(executor: &ExecutorPolicyReport) -> String {
         ),
         None => base,
     }
+}
+
+fn display_optional_string(value: Option<&str>) -> &str {
+    value.unwrap_or("unset")
 }
 
 fn display_optional_usize(value: Option<usize>) -> String {
@@ -175,5 +186,11 @@ fn display_optional_bool(value: Option<bool>) -> &'static str {
 fn ci_execution_name(ci_execution: &CiExecution) -> &'static str {
     match ci_execution {
         CiExecution::ExplicitOptIn => "explicit_opt_in",
+    }
+}
+
+fn promotion_window_name(window: &ExecutorPromotionWindow) -> &'static str {
+    match window {
+        ExecutorPromotionWindow::LastSuccessfulRuns => "last_successful_runs",
     }
 }

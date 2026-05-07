@@ -60,6 +60,7 @@ pub struct Executor {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutorPromotion {
+    pub window: Option<ExecutorPromotionWindow>,
     pub run_limit: Option<usize>,
     pub min_observations: Option<usize>,
     pub min_executed: Option<usize>,
@@ -67,6 +68,12 @@ pub struct ExecutorPromotion {
     pub min_artifacts: Option<usize>,
     pub required_gate: Option<bool>,
     pub default_codecov_upload: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecutorPromotionWindow {
+    LastSuccessfulRuns,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]

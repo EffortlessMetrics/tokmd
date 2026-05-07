@@ -65,6 +65,13 @@ fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>
     }
 
     if let Some(promotion) = policy.executor.promotion.as_ref() {
+        if promotion.window.is_none() {
+            violations.push(PolicyViolation::new(
+                "executor.promotion.window",
+                "executor promotion must declare an observation window such as last_successful_runs",
+            ));
+        }
+
         validate_positive_usize(
             "executor.promotion.run_limit",
             promotion.run_limit,
@@ -595,6 +602,7 @@ ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
 [executor.promotion]
+window = "last_successful_runs"
 run_limit = 0
 min_observations = 0
 min_executed = 0
@@ -624,6 +632,38 @@ default_codecov_upload = false
     }
 
     #[test]
+    fn rejects_executor_promotion_without_window() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
+[executor.promotion]
+run_limit = 1
+min_observations = 1
+min_executed = 1
+min_scopes = 1
+min_artifacts = 1
+required_gate = false
+default_codecov_upload = false
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.promotion.window"
+                && violation
+                    .message
+                    .contains("must declare an observation window")
+        }));
+    }
+
+    #[test]
     fn rejects_executor_promotion_before_gate_and_upload_are_implemented() {
         let violations = {
             let policy = parse_policy_str(&policy_with(
@@ -634,6 +674,7 @@ ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
 [executor.promotion]
+window = "last_successful_runs"
 run_limit = 1
 min_observations = 1
 min_executed = 1
@@ -668,6 +709,7 @@ ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
 [executor.promotion]
+window = "last_successful_runs"
 run_limit = 2
 min_observations = 3
 min_executed = 1

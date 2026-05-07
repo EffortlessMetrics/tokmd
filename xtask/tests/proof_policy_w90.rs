@@ -43,9 +43,10 @@ fn proof_policy_check_accepts_repo_policy() {
         "stdout: {stdout}"
     );
     assert!(
-        stdout.contains("promotion-run-limit-100"),
+        stdout.contains("promotion-window-last_successful_runs"),
         "stdout: {stdout}"
     );
+    assert!(stdout.contains("run-limit-100"), "stdout: {stdout}");
     assert!(stdout.contains("min-scopes-4"), "stdout: {stdout}");
     assert!(stdout.contains("required-gate-off"), "stdout: {stdout}");
 }
@@ -186,6 +187,7 @@ fn proof_policy_declares_coverage_executor_promotion_rule() {
     let promotion = executor["promotion"]
         .as_table()
         .expect("repo policy should expose executor promotion criteria");
+    assert_eq!(promotion["window"].as_str(), Some("last_successful_runs"));
     assert_eq!(promotion["run_limit"].as_integer(), Some(100));
     assert_eq!(promotion["min_observations"].as_integer(), Some(1));
     assert_eq!(promotion["min_executed"].as_integer(), Some(4));
@@ -215,6 +217,10 @@ fn proof_policy_json_reports_current_schema() {
     assert_eq!(value["executor"]["family"], "coverage");
     assert_eq!(value["executor"]["ci_execution"], "explicit_opt_in");
     assert_eq!(value["executor"]["max_dry_run_commands"], 1);
+    assert_eq!(
+        value["executor"]["promotion"]["window"],
+        "last_successful_runs"
+    );
     assert_eq!(value["executor"]["promotion"]["run_limit"], 100);
     assert_eq!(value["executor"]["promotion"]["min_observations"], 1);
     assert_eq!(value["executor"]["promotion"]["min_executed"], 4);

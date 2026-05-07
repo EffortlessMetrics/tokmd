@@ -16,6 +16,7 @@ ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
 [executor.promotion]
+window = "last_successful_runs"
 run_limit = 100
 min_observations = 1
 min_executed = 4

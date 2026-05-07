@@ -47,6 +47,7 @@ The dashboard and README badge are visibility surfaces, not release gates. Cover
 `ci/proof.toml` records the current non-required proof-executor promotion
 floor under `[executor.promotion]`:
 
+- `window = "last_successful_runs"`;
 - `run_limit = 100`;
 - `min_observations = 1`;
 - `min_executed = 4`;
@@ -56,12 +57,13 @@ floor under `[executor.promotion]`:
 - `default_codecov_upload = false`.
 
 This is a checked policy declaration and the default source for the manual
-proof-observation collector thresholds. Blank workflow-dispatch threshold
-inputs resolve from `cargo xtask proof-policy --json`; explicit dispatch inputs
-remain overrides for narrower observation probes. The executor remains an
-explicit opt-in coverage experiment, and default Codecov upload remains disabled
-until the promotion rule is intentionally changed and the workflow behavior is
-updated in the same review.
+proof-observation collector thresholds. The current window is the latest 100
+successful `proof-executor.yml` runs. Blank workflow-dispatch threshold inputs
+resolve from `cargo xtask proof-policy --json`; explicit dispatch inputs remain
+overrides for narrower observation probes. The executor remains an explicit
+opt-in coverage experiment, and default Codecov upload remains disabled until
+the promotion rule is intentionally changed and the workflow behavior is updated
+in the same review.
 
 ## Policy Routing
 
