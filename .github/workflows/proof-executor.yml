@@ -81,15 +81,26 @@ jobs:
             if [ "${verifier_status}" -eq 0 ]; then
               cargo xtask proof-execution-observation --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --output target/proof/proof-executor-observation.json > target/proof/proof-execution-observation.txt 2>&1
               observation_status=$?
+              if [ "${observation_status}" -eq 0 ]; then
+                cargo xtask proof-execution-observations-summary --observations-dir target/proof --output target/proof/proof-executor-observation-collection.json > target/proof/proof-execution-observations-summary.txt 2>&1
+                collection_status=$?
+              else
+                collection_status=1
+                echo "executor observation did not pass generation" > target/proof/proof-execution-observations-summary.txt
+              fi
             else
               observation_status=1
+              collection_status=1
               echo "executor artifacts did not pass verification" > target/proof/proof-execution-observation.txt
+              echo "executor artifacts did not pass verification" > target/proof/proof-execution-observations-summary.txt
             fi
           else
             verifier_status=1
             observation_status=1
+            collection_status=1
             echo "executor artifacts were not generated" > target/proof/proof-execution-artifacts-check.txt
             echo "executor artifacts were not generated" > target/proof/proof-execution-observation.txt
+            echo "executor artifacts were not generated" > target/proof/proof-execution-observations-summary.txt
           fi
 
           {
@@ -97,6 +108,7 @@ jobs:
             echo "executor_status=${executor_status}"
             echo "verifier_status=${verifier_status}"
             echo "observation_status=${observation_status}"
+            echo "collection_status=${collection_status}"
           } > target/proof/status.env
 
           {
@@ -108,12 +120,15 @@ jobs:
             echo "| proof executor | ${executor_status} |"
             echo "| execution artifact verifier | ${verifier_status} |"
             echo "| execution observation | ${observation_status} |"
+            echo "| observation collection | ${collection_status} |"
             echo ""
             echo "This is an explicitly non-required PR/manual experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
             echo ""
             cat target/proof/proof-execution-artifacts-check.txt
             echo ""
             cat target/proof/proof-execution-observation.txt
+            echo ""
+            cat target/proof/proof-execution-observations-summary.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${affected_status}" -ne 0 ]; then
@@ -127,6 +142,9 @@ jobs:
           fi
           if [ "${observation_status}" -ne 0 ]; then
             exit "${observation_status}"
+          fi
+          if [ "${collection_status}" -ne 0 ]; then
+            exit "${collection_status}"
           fi
 
           exit 0

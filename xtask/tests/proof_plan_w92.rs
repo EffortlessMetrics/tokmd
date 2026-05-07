@@ -165,6 +165,14 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "Codecov upload should remain manual-only"
     );
     assert!(
+        executor.contains("proof-execution-observations-summary --observations-dir target/proof"),
+        "executor should upload a Rust-generated observation collection summary"
+    );
+    assert!(
+        executor.contains("proof-executor-observation-collection.json"),
+        "executor collection summary artifact should have a stable name"
+    );
+    assert!(
         !ci.contains("scoped-coverage-executor"),
         "required CI aggregate must not depend on the executor experiment"
     );
