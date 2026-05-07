@@ -113,6 +113,38 @@ fn affected_plan_ci_blocks_on_planner_generation_failures() {
 }
 
 #[test]
+fn scoped_coverage_executor_is_pr_visible_but_not_required() {
+    let root = workspace_root();
+    let executor = fs::read_to_string(root.join(".github/workflows/proof-executor.yml"))
+        .expect("proof executor workflow should be readable");
+    let ci =
+        fs::read_to_string(root.join(".github/workflows/ci.yml")).expect("ci workflow readable");
+
+    assert!(
+        executor.contains("pull_request:"),
+        "proof executor should be visible on PRs"
+    );
+    assert!(
+        executor.contains("Scoped Coverage Executor (Non-Required)"),
+        "executor status name should make non-required status explicit"
+    );
+    assert!(
+        executor.contains("explicitly non-required PR/manual experiment"),
+        "executor summary should not imply required proof authority"
+    );
+    assert!(
+        executor.contains(
+            "github.event_name == 'workflow_dispatch' && github.event.inputs.upload_codecov == 'true'"
+        ),
+        "Codecov upload should remain manual-only"
+    );
+    assert!(
+        !ci.contains("scoped-coverage-executor"),
+        "required CI aggregate must not depend on the executor experiment"
+    );
+}
+
+#[test]
 fn affected_proof_plan_reports_no_changes_for_same_ref() {
     let (stdout, stderr, success) = run_xtask(&[
         "proof",

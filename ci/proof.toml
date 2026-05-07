@@ -351,6 +351,23 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "git_subprocess_boundary"
+kind = "rust"
+paths = [
+  "crates/tokmd-git/src/lib.rs",
+  "crates/tokmd-scan/src/walk/mod.rs",
+  "crates/tokmd/src/git_support.rs",
+]
+packages = ["tokmd-git", "tokmd-scan", "tokmd"]
+proof = [
+  "cargo test -p tokmd-git git_cmd_removes_repo_shaping_env_overrides --verbose",
+  "cargo test -p tokmd-scan git_cmd_removes_repo_shaping_env_overrides --verbose",
+  "cargo test -p tokmd git_cmd_removes_repo_shaping_env_overrides --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "format_analysis_rendering"
 kind = "rust"
 paths = [

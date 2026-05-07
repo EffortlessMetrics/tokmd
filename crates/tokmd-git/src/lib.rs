@@ -22,14 +22,26 @@ use std::process::{Command, Stdio};
 use anyhow::{Context, Result};
 pub use tokmd_types::CommitIntentKind;
 
+const GIT_REPO_SHAPING_ENV: &[&str] = &[
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_CEILING_DIRECTORIES",
+];
+
 /// Create a `Command` for git with process-environment isolation.
 ///
-/// Strips `GIT_DIR` and `GIT_WORK_TREE` so that inherited environment
-/// variables cannot override the explicit `-C` path used by all
-/// functions in this crate.
+/// Strips repo, worktree, index, object-store, and discovery overrides so
+/// inherited environment variables cannot bypass the explicit `-C` path used
+/// by functions in this crate.
 pub fn git_cmd() -> Command {
     let mut cmd = Command::new("git");
-    cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
+    for name in GIT_REPO_SHAPING_ENV {
+        cmd.env_remove(name);
+    }
     cmd
 }
 
@@ -435,11 +447,25 @@ fn contains_word(haystack: &str, word: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeSet;
 
     fn test_git(dir: &Path) -> Command {
         let mut cmd = git_cmd();
         cmd.arg("-C").arg(dir);
         cmd
+    }
+
+    #[test]
+    fn git_cmd_removes_repo_shaping_env_overrides() {
+        let removed: BTreeSet<_> = git_cmd()
+            .get_envs()
+            .filter(|(_, value)| value.is_none())
+            .map(|(name, _)| name.to_string_lossy().into_owned())
+            .collect();
+
+        for name in GIT_REPO_SHAPING_ENV {
+            assert!(removed.contains(*name), "missing env_remove for {name}");
+        }
     }
 
     #[test]
