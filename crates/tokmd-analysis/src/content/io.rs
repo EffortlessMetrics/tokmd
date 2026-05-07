@@ -116,7 +116,28 @@ pub fn count_tags(text: &str, tags: &[&str]) -> Vec<(String, usize)> {
     tags.iter()
         .map(|tag| {
             let needle = tag.to_uppercase();
-            let count = upper.matches(&needle).count();
+            let mut count = 0;
+            let mut start = 0;
+            while let Some(idx) = upper[start..].find(&needle) {
+                let actual_idx = start + idx;
+                let valid_prev = if actual_idx == 0 {
+                    true
+                } else {
+                    let prev_char = upper[..actual_idx].chars().last().unwrap();
+                    !prev_char.is_alphabetic() && prev_char != '_' && prev_char != '-'
+                };
+                let next_idx = actual_idx + needle.len();
+                let valid_next = if next_idx >= upper.len() {
+                    true
+                } else {
+                    let next_char = upper[next_idx..].chars().next().unwrap();
+                    !next_char.is_alphabetic() && next_char != '_' && next_char != '-'
+                };
+                if valid_prev && valid_next {
+                    count += 1;
+                }
+                start = actual_idx + needle.len();
+            }
             (tag.to_string(), count)
         })
         .collect()

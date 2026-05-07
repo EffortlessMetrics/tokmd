@@ -192,7 +192,7 @@ fn main() {
 
 #[test]
 fn adjacent_tags_counted() {
-    let text = "TODOTODOTODO";
+    let text = "TODO TODO TODO";
     let result = count_tags(text, &["TODO"]);
     assert_eq!(result[0].1, 3);
 }
