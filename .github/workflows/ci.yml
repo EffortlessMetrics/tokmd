@@ -309,6 +309,70 @@ jobs:
           path: target/proof/
           if-no-files-found: error
 
+  fast-proof-run:
+    name: Fast Proof Run (Advisory)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run fast proof runner
+        run: |
+          set +e
+          mkdir -p target/proof-run
+
+          cargo xtask proof --profile fast --run-required --allow-ci-required-execution --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-plan.json
+          proof_run_status=$?
+
+          cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-run-artifacts-check.txt 2>&1
+          proof_run_artifacts_status=$?
+
+          {
+            echo "proof_run_status=${proof_run_status}"
+            echo "proof_run_artifacts_status=${proof_run_artifacts_status}"
+          } > target/proof-run/status.env
+
+          {
+            echo "## Fast Proof Run"
+            echo ""
+            echo "| Command | Exit |"
+            echo "| --- | ---: |"
+            echo "| proof run | ${proof_run_status} |"
+            echo "| proof run artifacts | ${proof_run_artifacts_status} |"
+            echo ""
+            echo "Fast proof-run artifact generation is advisory and is not part of the required CI aggregate yet."
+            if [ -f target/proof-run/proof-run-artifacts-check.txt ]; then
+              echo ""
+              cat target/proof-run/proof-run-artifacts-check.txt
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${proof_run_status}" -ne 0 ]; then
+            exit "${proof_run_status}"
+          fi
+
+          if [ "${proof_run_artifacts_status}" -ne 0 ]; then
+            exit "${proof_run_artifacts_status}"
+          fi
+
+          exit 0
+
+      - name: Upload fast proof-run artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fast-proof-run
+          path: target/proof-run/
+          if-no-files-found: error
+
   wasm-compile:
     name: Wasm Compile & Test
     needs: detect

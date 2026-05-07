@@ -176,6 +176,44 @@ fn affected_plan_ci_blocks_on_planner_generation_failures() {
 }
 
 #[test]
+fn fast_proof_run_ci_job_is_advisory_and_verified() {
+    let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
+        .expect("ci workflow should be readable");
+    let required_section = ci
+        .split("  ci-required:")
+        .nth(1)
+        .expect("CI workflow should define required aggregate");
+
+    assert!(ci.contains("fast-proof-run:"), "fast proof job missing");
+    assert!(
+        ci.contains("Fast Proof Run (Advisory)"),
+        "fast proof job should advertise advisory status"
+    );
+    assert!(
+        ci.contains(
+            "cargo xtask proof --profile fast --run-required --allow-ci-required-execution"
+        ),
+        "fast proof job should use the required proof runner"
+    );
+    assert!(
+        ci.contains("cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json"),
+        "fast proof job should verify the required-run summary"
+    );
+    assert!(
+        ci.contains("Fast proof-run artifact generation is advisory"),
+        "fast proof job summary should state advisory status"
+    );
+    assert!(
+        ci.contains("name: fast-proof-run"),
+        "fast proof job should upload a stable artifact"
+    );
+    assert!(
+        !required_section.contains("- fast-proof-run"),
+        "required CI aggregate must not depend on the advisory fast proof runner"
+    );
+}
+
+#[test]
 fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     let root = workspace_root();
     let executor = fs::read_to_string(root.join(".github/workflows/proof-executor.yml"))
