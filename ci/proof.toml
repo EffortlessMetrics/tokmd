@@ -15,6 +15,15 @@ family = "coverage"
 ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
+[executor.promotion]
+run_limit = 100
+min_observations = 1
+min_executed = 4
+min_scopes = 4
+min_artifacts = 4
+required_gate = false
+default_codecov_upload = false
+
 [[scope]]
 name = "workspace_dependency_graph"
 kind = "rust"
@@ -54,23 +63,46 @@ coverage = false
 name = "proof_control_plane"
 kind = "rust"
 paths = [
+  ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
+  ".github/workflows/no-panic-policy.yml",
+  ".github/workflows/pr-plan.yml",
   ".github/workflows/proof-observation-collection.yml",
   ".github/workflows/proof-executor.yml",
+  ".github/workflows/coverage.yml",
+  ".github/workflows/droid-review.yml",
+  ".github/workflows/droid.yml",
+  ".github/workflows/droid-security-scan.yml",
+  ".factory/rules/droid-review.md",
+  ".factory/skills/review-guidelines/SKILL.md",
+  "AGENTS.md",
   "ci/proof.toml",
+  "codecov.yml",
   "docs/external-services.md",
   "docs/NEXT.md",
+  "docs/ci/ci-actuals.md",
+  "docs/ci/coverage.md",
+  "docs/agent-context/review-invariants.md",
+  "docs/agent-context/droid-smoke-tests.md",
+  "agents/shared/**",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
   "xtask/src/proof/**",
   "xtask/src/tasks/mod.rs",
   "xtask/src/tasks/affected.rs",
   "xtask/src/tasks/boundaries_check.rs",
+  "xtask/src/tasks/ci_actuals.rs",
+  "xtask/src/tasks/ci_lane_whitelist.rs",
+  "xtask/src/tasks/ci_plan.rs",
+  "xtask/src/tasks/coverage_receipt.rs",
+  "xtask/src/tasks/file_policy.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
   "xtask/src/tasks/proof_artifacts_check.rs",
   "xtask/src/tasks/proof_policy.rs",
   "xtask/src/tasks/proof_plan.rs",
   "xtask/tests/affected_w91.rs",
+  "xtask/tests/ci_actuals_w96.rs",
+  "xtask/tests/coverage_receipt_w95.rs",
   "xtask/tests/fixture_blobs_w83.rs",
   "xtask/tests/proof_policy_w90.rs",
   "xtask/tests/proof_plan_w92.rs",
@@ -80,6 +112,7 @@ proof = [
   "cargo xtask proof-policy --check",
   "cargo test -p xtask proof_policy --verbose",
   "cargo test -p xtask affected --verbose",
+  "cargo test -p xtask ci_actuals --verbose",
   "cargo test -p xtask fixture_blob --verbose",
   "cargo test -p xtask proof_artifacts --verbose",
   "cargo test -p xtask proof_plan --verbose",
@@ -107,9 +140,11 @@ paths = [
   "clippy.toml",
   "docs/CLIPPY_POLICY.md",
   "policy/clippy-debt.toml",
+  "policy/clippy-exceptions.toml",
   "policy/clippy-lints.toml",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
+  "xtask/src/tasks/clippy_exceptions.rs",
   "xtask/src/tasks/lint_policy.rs",
   "xtask/src/tasks/mod.rs",
   "xtask/tests/lint_policy_w93.rs",
@@ -117,7 +152,9 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask check-lint-policy",
+  "cargo xtask check-clippy-exceptions",
   "cargo test -p xtask lint_policy --verbose",
+  "cargo test -p xtask clippy_exceptions --verbose",
   "cargo clippy -p xtask --all-targets -- -D warnings",
 ]
 mutation = false
@@ -541,6 +578,31 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "project_readme"
+kind = "non_rust"
+paths = ["README.md"]
+proof = ["cargo xtask docs --check"]
+reason = "The project README is a user-facing documentation surface; README-only edits should route to documentation checks instead of appearing as unknown files."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "project_truth_docs"
+kind = "non_rust"
+paths = [
+  "ROADMAP.md",
+  "docs/architecture.md",
+  "docs/design.md",
+  "docs/implementation-plan.md",
+  "docs/requirements.md",
+  "docs/specification.md",
+]
+proof = ["cargo xtask docs --check"]
+reason = "Top-level architecture, design, roadmap, and requirements docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "browser_runner"
 kind = "non_rust"
 paths = ["web/runner/**", "docs/capabilities/wasm.json"]
@@ -565,6 +627,80 @@ proof = [
   "cargo test -p tokmd --test docs --verbose",
 ]
 reason = "The composite GitHub Action is a YAML and documentation contract for repository consumers."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ci_economics_docs"
+kind = "non_rust"
+paths = [
+  ".github/pull_request_template.md",
+  "docs/POLICY_ALLOWLISTS.md",
+  "docs/RIPR_EVIDENCE_POLICY.md",
+  "docs/ci/**",
+]
+proof = [
+  "cargo xtask docs --check",
+]
+reason = "CI verification economics documentation governs how the proof model is delivered; treated like other governance docs (CLIPPY_POLICY, NO_PANIC_POLICY) but grouped under docs/ci/ for the rollout."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ripr_policy"
+kind = "non_rust"
+paths = [
+  ".github/workflows/ripr.yml",
+  "policy/ripr-suppressions.toml",
+  "ripr.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "ripr static-mutation analyzer config + suppressions ledger; advisory until PR 16 soft-gate."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "file_policy"
+kind = "non_rust"
+paths = [
+  "docs/FILE_POLICY.md",
+  "policy/non-rust-allowlist.toml",
+  "*.patch",
+  "**/*.patch",
+]
+proof = [
+  "cargo xtask check-file-policy",
+]
+reason = "Non-Rust file allowlist governance: every non-Rust file in the repo must match an explicit allow entry."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ci_economics_policy"
+kind = "non_rust"
+paths = [
+  "policy/ci-lane-whitelist.toml",
+  "policy/ci-whitelist-exceptions.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "CI lane whitelist and its docs govern verification economics receipts; checked via proof-policy and the lane whitelist linter (PR 03 onward)."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ci_pr_plan"
+kind = "non_rust"
+paths = [
+  "policy/ci-risk-packs.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "PR Plan policy data: risk-pack routing and the LEM-aware advisory plan."
 mutation = false
 coverage = false
 
@@ -640,3 +776,19 @@ allow = [
   "xtask/src/tasks/fixture_blobs_check.rs",
 ]
 reason = "Crypto material should be generated at runtime or explicitly documented in an allowlisted workspace area."
+
+[[scope]]
+name = "architecture_docs"
+kind = "non_rust"
+paths = [
+  "docs/architecture.md",
+  "docs/design.md",
+  "docs/implementation-plan.md",
+  "docs/PRODUCT.md",
+  "docs/specification.md",
+  "ROADMAP.md",
+]
+proof = ["cargo xtask docs --check"]
+reason = "Architecture, design, roadmap, and specification documents."
+mutation = false
+coverage = false

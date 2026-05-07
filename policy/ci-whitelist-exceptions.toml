@@ -1,0 +1,58 @@
+schema_version = "1.0"
+policy = "ci-whitelist-exceptions"
+owner = "release/ci"
+status = "active"
+
+# Carve-outs that allow current CI to pass the lane whitelist check while
+# the rollout (PRs 10–12) demotes expensive default-PR lanes to risk-pack
+# routing. Each exception MUST have an owner, a reason, a creation date,
+# and an expiry. Expired exceptions are surfaced by the lane whitelist
+# linter (PR 03).
+
+[[exception]]
+id           = "ci_exception_mutation_default"
+kind         = "expensive_default_pr_lane"
+lane         = "mutation_required"
+allowed      = true
+owner        = "testing/oracle"
+issue        = "TODO"
+reason       = "Runtime mutation is currently required on PRs. Replace ordinary PR default with ripr advisory plus label/main/nightly mutation after baseline review."
+created      = "2026-05-07"
+review_after = "2026-06-07"
+expires      = "2026-08-07"
+
+[[exception]]
+id           = "ci_exception_wasm_default"
+kind         = "expensive_default_pr_lane"
+lane         = "wasm_compile_test"
+allowed      = true
+owner        = "wasm"
+issue        = "TODO"
+reason       = "WASM/browser runner is important but should route only on WASM/web/capability changes after PR Plan lands."
+created      = "2026-05-07"
+review_after = "2026-06-07"
+expires      = "2026-08-07"
+
+[[exception]]
+id           = "ci_exception_nix_default"
+kind         = "expensive_default_pr_lane"
+lane         = "nix_pr_package_gate"
+allowed      = true
+owner        = "release/nix"
+issue        = "TODO"
+reason       = "Nix package proof is currently required; move to release/main/label once publish-surface and package risk packs are wired."
+created      = "2026-05-07"
+review_after = "2026-06-07"
+expires      = "2026-08-07"
+
+[[exception]]
+id           = "ci_exception_windows_full_test_default"
+kind         = "expensive_default_pr_lane"
+lane         = "build_test_linux_windows"
+allowed      = true
+owner        = "platform/windows"
+issue        = "TODO"
+reason       = "Windows currently runs full all-features test matrix. Retain temporarily until Windows risk pack separates path/platform checks from every Rust PR."
+created      = "2026-05-07"
+review_after = "2026-06-07"
+expires      = "2026-08-07"

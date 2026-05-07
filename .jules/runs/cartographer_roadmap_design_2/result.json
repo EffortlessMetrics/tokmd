@@ -1,0 +1,21 @@
+{
+  "outcome": "patch",
+  "title": "cartographer: sync fun feature flag in architecture docs to match cargo.toml 🗺️",
+  "summary": "Fixed factual drift in `docs/architecture.md` where the `fun` feature flag mapping incorrectly listed `tokmd-format/fun` instead of `tokmd-core/fun`. Updated CI proof policy to recognize architecture docs.",
+  "target_paths": [
+    "docs/architecture.md",
+    "ci/proof.toml",
+    "xtask/tests/proof_policy_w90.rs"
+  ],
+  "proof_summary": "Compared `crates/tokmd/Cargo.toml` with `docs/architecture.md` and corrected the mismatch. Registered docs to avoid 'unknown file' failure in the proof executor.",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo test -p xtask",
+    "cargo xtask affected --base origin/main --head HEAD --json"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout -- docs/architecture.md ci/proof.toml xtask/tests/proof_policy_w90.rs",
+  "follow_ups": []
+}

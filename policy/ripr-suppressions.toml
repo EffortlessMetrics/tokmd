@@ -1,0 +1,26 @@
+schema_version = "1.0"
+policy = "ripr-suppressions"
+owner = "testing/oracle"
+status = "advisory"
+updated = "2026-05-07"
+
+# ripr suppressions ledger.
+#
+# Each [[suppression]] entry pins:
+#   id        - "ripr-NNNN" with zero-padded counter, unique.
+#   path      - file or glob the suppression covers.
+#   kind      - which finding class is suppressed
+#               (exposed | weakly_exposed | reachable_unrevealed |
+#                no_static_path | infection_unknown |
+#                propagation_unknown | static_unknown).
+#   selector  - semantic selector
+#               (function name / fingerprint).
+#   owner     - team/role.
+#   reason    - why the test gap is intentional and explained.
+#   expires   - ISO-8601 date; expired entries fail the gate.
+#
+# Don't suppress because a finding is annoying. Suppress because the
+# test gap is intentional and explained.
+
+# The ledger starts empty during the advisory phase. PR 16 adds the
+# soft-gate that uses these entries.

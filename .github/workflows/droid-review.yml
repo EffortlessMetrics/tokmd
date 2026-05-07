@@ -1,0 +1,76 @@
+name: Droid Auto Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+concurrency:
+  group: droid-review-${{ github.repository }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  droid-review:
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !contains(github.event.pull_request.title, '[skip-review]')
+
+    runs-on: ubuntu-latest
+
+    env:
+      MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+
+      - name: Configure MiniMax BYOK for Factory Droid
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.factory"
+          cat > "$HOME/.factory/settings.local.json" <<'JSON'
+          {
+            "customModels": [
+              {
+                "displayName": "MiniMax-M2.7",
+                "model": "MiniMax-M2.7",
+                "baseUrl": "https://api.minimax.io/anthropic",
+                "apiKey": "${MINIMAX_API_KEY}",
+                "provider": "anthropic",
+                "maxOutputTokens": 64000,
+                "noImageSupport": true,
+                "extraArgs": {
+                  "temperature": 1
+                }
+              }
+            ]
+          }
+          JSON
+
+      - name: Run Droid Auto Review with MiniMax M2.7 BYOK
+        uses: EffortlessMetrics/droid-action-safe@01e76b659e4b1e5f23feedc8cfabf8dc14c7485f # based on Factory-AI/droid-action v5; raw debug artifact upload disabled
+        with:
+          factory_api_key: ${{ secrets.FACTORY_API_KEY }}
+          upload_debug_artifacts: false
+
+          automatic_review: true
+          automatic_security_review: true
+
+          review_depth: shallow
+          review_model: "custom:MiniMax-M2.7-0"
+          security_model: "custom:MiniMax-M2.7-0"
+
+          security_severity_threshold: high
+          security_block_on_critical: true
+          security_block_on_high: false
+
+          include_suggestions: true
+          show_full_output: false

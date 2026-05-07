@@ -73,6 +73,19 @@
 
 ---
 
+## CI economics
+
+<!-- See docs/ci/cost-and-verification-policy.md and docs/ci/lem-budgeting.md -->
+
+- **Default PR LEM impact:** <!-- estimated band (e.g. 0–35 normal) -->
+- **Workflows touched:** <!-- list of .github/workflows/*.yml files -->
+- **Branch protection impact:** <!-- none / adds required job / removes required job -->
+- **Failure mode caught:** <!-- one sentence on what proof this PR buys -->
+- **Cheaper signal considered:** <!-- what was rejected and why -->
+- **Rollback path:** <!-- how to revert without losing the receipt model -->
+
+---
+
 <details>
 <summary>Receipts</summary>
 

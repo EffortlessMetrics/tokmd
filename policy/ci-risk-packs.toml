@@ -1,0 +1,103 @@
+schema_version = "1.0"
+policy = "ci-risk-packs"
+owner = "release/ci"
+status = "advisory"
+updated = "2026-05-07"
+
+# Risk packs map paths in a PR's diff to the lanes that should run for
+# that risk surface. The PR Plan job (cargo xtask ci plan) reads this
+# file along with policy/ci-lane-whitelist.toml and emits an advisory
+# ci-plan.json.
+#
+# Conventions:
+#   description     - one-line human summary of what the pack covers.
+#   paths           - globs (relative to repo root) that select changed
+#                     files into this pack.
+#   lanes           - lane IDs that should run on ordinary PRs hitting
+#                     this pack.
+#   deep_lanes      - lane IDs that should run when the pack is hit and
+#                     the PR has the matching label, or on main/nightly.
+
+[risk_pack.core_receipts]
+description = "Receipt generation, deterministic export, summaries, formats."
+paths = [
+  "crates/tokmd/**",
+  "crates/tokmd-core/**",
+  "crates/tokmd-envelope/**",
+  "crates/tokmd-format/**",
+]
+lanes = ["rust_fast_gate", "proof_policy", "ripr"]
+deep_lanes = ["build_test_linux_windows", "proptest_smoke"]
+
+[risk_pack.analysis]
+description = "Risk, effort, complexity, duplication, git, API-surface reports."
+paths = [
+  "crates/tokmd-analysis/**",
+  "crates/tokmd-analysis-types/**",
+  "crates/tokmd-model/**",
+]
+lanes = ["rust_fast_gate", "affected_proof_plan", "ripr"]
+deep_lanes = ["proptest_smoke"]
+
+[risk_pack.gate_sensor]
+description = "Gate verdicts, sensor envelopes, cockpit review artifacts."
+paths = [
+  "crates/tokmd-gate/**",
+  "crates/tokmd-sensor/**",
+  "crates/tokmd-cockpit/**",
+]
+lanes = ["rust_fast_gate", "proof_policy", "ripr"]
+deep_lanes = ["publish_surface"]
+
+[risk_pack.git_io]
+description = "Git, IO port, file scanning, path handling."
+paths = [
+  "crates/tokmd-git/**",
+  "crates/tokmd-io-port/**",
+  "crates/tokmd-scan/**",
+]
+lanes = ["rust_fast_gate", "ripr"]
+deep_lanes = ["build_test_linux_windows"]
+
+[risk_pack.wasm]
+description = "WASM/browser runner and web capability surface."
+paths = [
+  "crates/tokmd-wasm/**",
+  "web/runner/**",
+  "docs/capabilities/wasm.json",
+]
+lanes = ["wasm_compile_test"]
+deep_lanes = ["nix_pr_package_gate"]
+
+[risk_pack.release]
+description = "Release metadata, Nix, publish surface, version consistency."
+paths = [
+  "Cargo.toml",
+  "Cargo.lock",
+  "flake.nix",
+  "flake.lock",
+  "deny.toml",
+  "docs/install.md",
+]
+lanes = ["msrv_check", "publish_surface", "version_consistency"]
+deep_lanes = ["nix_pr_package_gate", "cargo_deny"]
+
+[risk_pack.policy]
+description = "Policy ledgers, xtask proof/gate behavior, CI workflow shape."
+paths = [
+  "policy/**",
+  "xtask/**",
+  ".github/workflows/**",
+]
+lanes = ["proof_policy", "quality_gate", "ci_lane_whitelist"]
+deep_lanes = ["build_test_linux_windows"]
+
+[risk_pack.docs]
+description = "Documentation-only changes."
+paths = [
+  "docs/**",
+  "*.md",
+  ".github/pull_request_template.md",
+]
+lanes = ["docs_check", "typos"]
+deep_lanes = []

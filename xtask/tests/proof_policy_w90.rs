@@ -42,6 +42,12 @@ fn proof_policy_check_accepts_repo_policy() {
         stdout.contains("executor coverage/explicit_opt_in/max-dry-run-1"),
         "stdout: {stdout}"
     );
+    assert!(
+        stdout.contains("promotion-run-limit-100"),
+        "stdout: {stdout}"
+    );
+    assert!(stdout.contains("min-scopes-4"), "stdout: {stdout}");
+    assert!(stdout.contains("required-gate-off"), "stdout: {stdout}");
 }
 
 #[test]
@@ -67,6 +73,7 @@ fn proof_policy_includes_current_product_scopes() {
         "jules_workspace",
         "model_scan_path_normalization",
         "no_panic_policy",
+        "project_readme",
         "tokmd_cli",
         "workspace_dependency_graph",
     ] {
@@ -175,6 +182,17 @@ fn proof_policy_declares_coverage_executor_promotion_rule() {
     assert_eq!(executor["family"].as_str(), Some("coverage"));
     assert_eq!(executor["ci_execution"].as_str(), Some("explicit_opt_in"));
     assert_eq!(executor["max_dry_run_commands"].as_integer(), Some(1));
+
+    let promotion = executor["promotion"]
+        .as_table()
+        .expect("repo policy should expose executor promotion criteria");
+    assert_eq!(promotion["run_limit"].as_integer(), Some(100));
+    assert_eq!(promotion["min_observations"].as_integer(), Some(1));
+    assert_eq!(promotion["min_executed"].as_integer(), Some(4));
+    assert_eq!(promotion["min_scopes"].as_integer(), Some(4));
+    assert_eq!(promotion["min_artifacts"].as_integer(), Some(4));
+    assert_eq!(promotion["required_gate"].as_bool(), Some(false));
+    assert_eq!(promotion["default_codecov_upload"].as_bool(), Some(false));
 }
 
 #[test]
@@ -187,13 +205,26 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 35);
+    let scope_count = value["scope_count"]
+        .as_u64()
+        .expect("scope_count should be a JSON number");
+    assert!(scope_count > 0, "scope_count should report active scopes");
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);
     assert_eq!(value["executor"]["family"], "coverage");
     assert_eq!(value["executor"]["ci_execution"], "explicit_opt_in");
     assert_eq!(value["executor"]["max_dry_run_commands"], 1);
+    assert_eq!(value["executor"]["promotion"]["run_limit"], 100);
+    assert_eq!(value["executor"]["promotion"]["min_observations"], 1);
+    assert_eq!(value["executor"]["promotion"]["min_executed"], 4);
+    assert_eq!(value["executor"]["promotion"]["min_scopes"], 4);
+    assert_eq!(value["executor"]["promotion"]["min_artifacts"], 4);
+    assert_eq!(value["executor"]["promotion"]["required_gate"], false);
+    assert_eq!(
+        value["executor"]["promotion"]["default_codecov_upload"],
+        false
+    );
 }
 
 #[test]

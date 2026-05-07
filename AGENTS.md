@@ -1,9 +1,17 @@
-# CLAUDE.md
+# Agent Guidance
 
 Canonical shared repo guidance is mirrored in `agents/shared/repo.md`.
-This file remains a Codex-facing entrypoint because some tooling ingests `AGENTS.md` directly.
+This file provides guidance to AI agents (Claude, Factory Droid, etc.) when working with code in this repository.
 
-This file provides guidance to Claude Code when working with code in this repository.
+## Droid Auto Review
+
+**tokmd** uses Factory Droid for automated code review. Droid runs on all pull requests using the safe action configuration with MiniMax BYOK, and can be invoked manually with `@droid review` or `@droid security` comments.
+
+- See `agents/shared/droid-migration.md` for the rollout design
+- See `.factory/rules/droid-review.md` for review standards and finding format
+- See `.github/workflows/droid-review.yml` for auto-review configuration
+- See `.github/workflows/droid.yml` for manual `@droid` command handling
+- See `.github/workflows/droid-security-scan.yml` for scheduled security scanning
 
 ## Project Overview
 

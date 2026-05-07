@@ -28,13 +28,49 @@ repository-local and CI evidence.
 | --- | --- | --- | --- |
 | Codecov | Advisory Rust coverage telemetry from `cargo-llvm-cov` LCOV artifacts. | `CODECOV_TOKEN` when token-based upload is needed. | Advisory; upload steps use non-blocking failure behavior. |
 | CodeRabbit | Advisory PR review comments and status. | Managed outside repository workflows. | Advisory unless branch protection explicitly says otherwise. |
+| Factory Droid via `EffortlessMetrics/droid-action-safe` | Advisory same-repo PR review, trusted maintainer `@droid` review commands, and scheduled/manual security scans. | `FACTORY_API_KEY` for Factory, `MINIMAX_API_KEY` for the MiniMax BYOK model bridge. | Advisory external review service; raw debug artifact upload is disabled and branch protection must not require Droid unless maintainers explicitly promote it. |
 | GitGuardian | Secret scanning status from the configured GitHub integration. | Managed outside repository workflows. | Security signal; branch-protection status must remain an explicit maintainer decision. |
 
 ## Held Services
 
 | Service | Reason |
 | --- | --- |
-| Factory Droid | Held until maintainers approve the service, API key handling, fork PR behavior, permission model, and failure policy. |
+| None currently. | New services still require an approved policy or ADR before workflow introduction. |
+
+## Factory Droid Guardrails
+
+`tokmd` uses the pinned safe action wrapper
+`EffortlessMetrics/droid-action-safe@01e76b659e4b1e5f23feedc8cfabf8dc14c7485f`.
+Repository workflows must not call `Factory-AI/droid-action` directly for
+secrets-backed BYOK runs.
+
+The Droid workflows have these trust boundaries:
+
+- `Droid Auto Review` runs only for same-repository pull requests and skips
+  titles containing `[skip-review]`.
+- `Droid Tag` accepts `@droid` only from `OWNER`, `MEMBER`, or
+  `COLLABORATOR` authors.
+- `Droid Security Scan` runs on manual dispatch and the scheduled weekly scan.
+- `upload_debug_artifacts` must remain `false` for standard runs.
+- `show_full_output` should remain `false` unless a maintainer explicitly
+  opens a debugging window.
+
+Required secrets:
+
+- `FACTORY_API_KEY`: authorizes the Factory Droid action.
+- `MINIMAX_API_KEY`: configures the `custom:MiniMax-M2.7-0` BYOK model in
+  `$HOME/.factory/settings.local.json` during the workflow.
+
+Secret handling rules:
+
+- keep `MINIMAX_API_KEY` scoped only to repositories in the Droid rollout batch;
+- rotate `MINIMAX_API_KEY` after suspected exposure or rollout-scope changes;
+- confirm `FACTORY_API_KEY` remains valid during smoke tests;
+- do not print either secret, upload `$HOME/.factory/**`, or preserve raw
+  Droid debug prompt artifacts.
+
+Operational proof lives in `docs/agent-context/droid-smoke-tests.md`, and the
+shared rollout invariants live in `agents/shared/droid-migration.md`.
 
 ## Secrets
 

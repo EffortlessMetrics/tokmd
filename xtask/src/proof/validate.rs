@@ -63,6 +63,77 @@ fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>
             "executor dry-run command limit must be greater than zero",
         ));
     }
+
+    if let Some(promotion) = policy.executor.promotion.as_ref() {
+        validate_positive_usize(
+            "executor.promotion.run_limit",
+            promotion.run_limit,
+            "executor promotion run limit",
+            violations,
+        );
+        validate_positive_usize(
+            "executor.promotion.min_observations",
+            promotion.min_observations,
+            "executor promotion observation floor",
+            violations,
+        );
+        validate_positive_usize(
+            "executor.promotion.min_executed",
+            promotion.min_executed,
+            "executor promotion executed-command floor",
+            violations,
+        );
+        validate_positive_usize(
+            "executor.promotion.min_scopes",
+            promotion.min_scopes,
+            "executor promotion distinct-scope floor",
+            violations,
+        );
+        validate_positive_usize(
+            "executor.promotion.min_artifacts",
+            promotion.min_artifacts,
+            "executor promotion artifact floor",
+            violations,
+        );
+
+        if let (Some(run_limit), Some(min_observations)) =
+            (promotion.run_limit, promotion.min_observations)
+            && run_limit < min_observations
+        {
+            violations.push(PolicyViolation::new(
+                "executor.promotion.run_limit",
+                "executor promotion run limit must be at least the observation floor",
+            ));
+        }
+
+        if promotion.required_gate.unwrap_or(false) {
+            violations.push(PolicyViolation::new(
+                "executor.promotion.required_gate",
+                "executor promotion to a required gate is not implemented; keep required_gate false",
+            ));
+        }
+
+        if promotion.default_codecov_upload.unwrap_or(false) {
+            violations.push(PolicyViolation::new(
+                "executor.promotion.default_codecov_upload",
+                "default Codecov upload from the proof executor is not implemented; keep default_codecov_upload false",
+            ));
+        }
+    }
+}
+
+fn validate_positive_usize(
+    path: &str,
+    value: Option<usize>,
+    label: &str,
+    violations: &mut Vec<PolicyViolation>,
+) {
+    if matches!(value, Some(0)) {
+        violations.push(PolicyViolation::new(
+            path,
+            format!("{label} must be greater than zero"),
+        ));
+    }
 }
 
 fn validate_scopes(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>) {
@@ -510,6 +581,109 @@ max_dry_run_commands = 0
                 && violation
                     .message
                     .contains("executor dry-run command limit must be greater than zero")
+        }));
+    }
+
+    #[test]
+    fn rejects_zero_executor_promotion_thresholds() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
+[executor.promotion]
+run_limit = 0
+min_observations = 0
+min_executed = 0
+min_scopes = 0
+min_artifacts = 0
+required_gate = false
+default_codecov_upload = false
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        for path in [
+            "executor.promotion.run_limit",
+            "executor.promotion.min_observations",
+            "executor.promotion.min_executed",
+            "executor.promotion.min_scopes",
+            "executor.promotion.min_artifacts",
+        ] {
+            assert!(
+                violations.iter().any(|violation| violation.path == path
+                    && violation.message.contains("must be greater than zero")),
+                "missing violation for {path}: {violations:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_executor_promotion_before_gate_and_upload_are_implemented() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
+[executor.promotion]
+run_limit = 1
+min_observations = 1
+min_executed = 1
+min_scopes = 1
+min_artifacts = 1
+required_gate = true
+default_codecov_upload = true
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.promotion.required_gate"
+                && violation.message.contains("not implemented")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.promotion.default_codecov_upload"
+                && violation.message.contains("not implemented")
+        }));
+    }
+
+    #[test]
+    fn rejects_executor_promotion_run_limit_below_observation_floor() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
+[executor.promotion]
+run_limit = 2
+min_observations = 3
+min_executed = 1
+min_scopes = 1
+min_artifacts = 1
+required_gate = false
+default_codecov_upload = false
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.promotion.run_limit"
+                && violation.message.contains("at least the observation floor")
         }));
     }
 

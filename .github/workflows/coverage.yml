@@ -27,7 +27,7 @@ permissions:
 
 concurrency:
   group: coverage-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -92,6 +92,14 @@ jobs:
           test -s lcov.info
           test -s coverage.txt
 
+      - name: Generate coverage receipt
+        run: |
+          cargo xtask coverage-receipt \
+            --coverage-json coverage.json \
+            --coverage-text coverage.txt \
+            --lcov lcov.info \
+            --output target/coverage/coverage-receipt.json
+
       - name: Detect Codecov token
         id: codecov-token
         env:
@@ -122,4 +130,5 @@ jobs:
             coverage.json
             coverage.txt
             lcov.info
+            target/coverage/coverage-receipt.json
           retention-days: 14

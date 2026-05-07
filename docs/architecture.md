@@ -185,7 +185,7 @@ tokmd guarantees byte-stable output for identical inputs:
 git = ["tokmd-analysis/git", "dep:tokmd-git", "dep:tokmd-cockpit", "tokmd-cockpit/git", "tokmd-core/git"]
 walk = ["tokmd-analysis/walk"]
 content = ["tokmd-analysis/content"]
-fun = ["tokmd-analysis/fun", "tokmd-format/fun"]
+fun = ["tokmd-analysis/fun", "tokmd-core/fun"]
 topics = ["tokmd-analysis/topics"]
 archetype = ["tokmd-analysis/archetype"]
 ui = ["dep:dialoguer", "dep:console", "dep:toml", "dep:indicatif"]

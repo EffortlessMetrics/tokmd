@@ -11,7 +11,10 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Only cancel on synchronize (new commits). Label add/remove must not
+  # cancel an in-flight run: it triggers a fresh run with the new label
+  # set without throwing away work.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,6 +22,90 @@ env:
   RUSTFLAGS: -C debuginfo=0
 
 jobs:
+  # Detect which risk packs the PR diff hits. Downstream gated jobs OR
+  # this output into their `if:` so the deep lanes also run when matching
+  # paths change, even without an explicit label. Mirrors the routing
+  # in policy/ci-risk-packs.toml.
+  detect:
+    name: Detect risk packs
+    runs-on: ubuntu-latest
+    outputs:
+      wasm: ${{ steps.detect.outputs.wasm }}
+      nix: ${{ steps.detect.outputs.nix }}
+      release: ${{ steps.detect.outputs.release }}
+      windows_path: ${{ steps.detect.outputs.windows_path }}
+      core_receipts: ${{ steps.detect.outputs.core_receipts }}
+      analysis: ${{ steps.detect.outputs.analysis }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base ref
+        if: github.event_name == 'pull_request'
+        run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+      - id: detect
+        name: Compute risk-pack output flags
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="origin/${{ github.base_ref }}"
+            git diff --name-only "${base_ref}...HEAD" > /tmp/changed.txt || true
+          else
+            : > /tmp/changed.txt
+          fi
+          set +e
+          have() { grep -E "^$1\$" /tmp/changed.txt >/dev/null; }
+          have_glob() { grep -E "$1" /tmp/changed.txt >/dev/null; }
+
+          if have_glob '^crates/tokmd-wasm/' \
+            || have_glob '^web/runner/' \
+            || have 'docs/capabilities/wasm.json'; then
+            echo "wasm=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wasm=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have 'flake.nix' || have 'flake.lock' || have 'Dockerfile'; then
+            echo "nix=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nix=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have 'Cargo.toml' || have 'Cargo.lock' || have 'deny.toml' \
+            || have_glob '^crates/.*/Cargo\.toml$'; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd-scan/' \
+            || have_glob '^crates/tokmd-io-port/' \
+            || have_glob '^crates/tokmd-git/' \
+            || have_glob '^crates/tokmd/src/git_support\.rs$'; then
+            echo "windows_path=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "windows_path=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd/' \
+            || have_glob '^crates/tokmd-core/' \
+            || have_glob '^crates/tokmd-format/' \
+            || have_glob '^crates/tokmd-envelope/'; then
+            echo "core_receipts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "core_receipts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd-analysis/' \
+            || have_glob '^crates/tokmd-analysis-types/' \
+            || have_glob '^crates/tokmd-model/'; then
+            echo "analysis=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "analysis=false" >> "$GITHUB_OUTPUT"
+          fi
+
   msrv:
     name: MSRV Check
     runs-on: ubuntu-latest
@@ -27,17 +114,16 @@ jobs:
       - name: Set up Rust (MSRV)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.92
+          toolchain: 1.93
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
 
   build:
-    name: Build & Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    name: Build & Test (Linux)
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v6
@@ -45,17 +131,42 @@ jobs:
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Use larger writable target dir on Linux
-      if: runner.os == 'Linux'
+    - name: Use larger writable target dir
       run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
     - uses: Swatinem/rust-cache@v2
-      if: runner.os == 'Linux'
       with:
         cache-directories: ${{ runner.temp }}/target
+        save-if: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: Run tests
+      run: cargo test --all-features --verbose
+      env:
+        CI: true
+
+  # Windows full-test moves off the default PR gate. It runs on push to
+  # main and on PRs explicitly labelled `windows` or `full-ci`. Rust path
+  # changes that are likely to behave differently on Windows go through
+  # the `git_io` risk pack (PR 12).
+  build-windows:
+    name: Build & Test (Windows)
+    needs: detect
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'windows') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.windows_path == 'true'
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
 
     - uses: Swatinem/rust-cache@v2
-      if: runner.os != 'Linux'
+      with:
+        save-if: ${{ github.ref == 'refs/heads/main' }}
 
     - name: Run tests
       run: cargo test --all-features --verbose
@@ -74,6 +185,8 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
 
     - uses: Swatinem/rust-cache@v2
+      with:
+        save-if: ${{ github.ref == 'refs/heads/main' }}
 
     - name: Run tests
       run: cargo test --all-features --verbose
@@ -88,6 +201,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           cache-directories: ${{ runner.temp }}/target
 
       - name: tokmd-analysis with all features
@@ -110,6 +224,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Validate proof policy
         run: cargo xtask proof-policy --check
 
@@ -125,6 +241,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Fetch base ref
         run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
@@ -193,6 +311,12 @@ jobs:
 
   wasm-compile:
     name: Wasm Compile & Test
+    needs: detect
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'wasm') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.wasm == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -204,6 +328,8 @@ jobs:
         with:
           tool: wasm-pack
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Check tokmd-scan for wasm32
         run: cargo check -p tokmd-scan --target wasm32-unknown-unknown
       - name: Check tokmd-core analysis for wasm32
@@ -237,6 +363,8 @@ jobs:
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Run quality gate
         run: cargo xtask gate --check
@@ -263,11 +391,20 @@ jobs:
 
   proptest-smoke:
     name: Proptest Smoke
+    needs: detect
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'property-tests') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.core_receipts == 'true' ||
+      needs.detect.outputs.analysis == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Run property tests (reduced iterations)
         run: |
           PROPTEST_CASES=50 cargo test -p tokmd-model --test properties --all-features --verbose
@@ -283,6 +420,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Verify publish surface and dry-run checks
         run: cargo xtask publish-surface --json --verify-publish
         env:
@@ -304,6 +443,8 @@ jobs:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Check documentation drift
         run: cargo xtask docs --check
         env:
@@ -311,6 +452,14 @@ jobs:
 
   nix-pr:
     name: Nix PR Package Gate
+    needs: detect
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'nix') ||
+      contains(github.event.pull_request.labels.*.name, 'release-check') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.nix == 'true' ||
+      needs.detect.outputs.release == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -337,9 +486,18 @@ jobs:
         run: nix build -L .#tokmd
 
   mutation:
-    name: Mutation Testing (Required)
+    name: Mutation Testing
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Runtime mutation testing moves to label/push-to-main so ordinary
+    # PRs don't pay 45 LEM by default. PR 11 adds an advisory `ripr`
+    # job that gives mutation-testing-lite signal at static-analysis
+    # prices for the default PR. The "(Required)" suffix is dropped to
+    # avoid implying this lane is a mandatory PR check; required-status
+    # guarantees live on the `CI (Required)` aggregator job.
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'mutation') ||
+      contains(github.event.pull_request.labels.*.name, 'full-ci')
     steps:
       - uses: actions/checkout@v6
         with:
@@ -420,8 +578,10 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
+      - detect
       - msrv
       - build
+      - build-windows
       - build-macos
       - gate
       - deny

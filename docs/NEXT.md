@@ -2,7 +2,11 @@
 
 The generated PR drain is complete. `PR_DRAIN.md` is now a historical ledger for the duplicate/stale queue and should only change for PR-drain-specific corrections. Active product and control-plane work moves here.
 
-Factory Droid PR #1541 was declined for now. External review services require an approved service, API-key, secret-rotation, fork-PR, and failure-behavior policy before workflow introduction.
+Factory Droid PR #1541 was declined in its original external-service form. A
+later safe Droid migration is now active through the pinned
+`EffortlessMetrics/droid-action-safe` wrapper with MiniMax BYOK, same-repo /
+trusted-actor guards, disabled raw debug artifacts, and the service policy in
+`docs/external-services.md`.
 
 ## Active Program: Rust-Native Proof Control Plane
 
@@ -77,7 +81,23 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Manual proof-executor run `25489053208` on disposable branch `codex/proof-executor-coverage-sample` passed on 2026-05-07. It changed `crates/tokmd-core/tests/ffi_parity_w53.rs` and `crates/tokmd-format/src/redact/mod.rs`, selected two non-required coverage commands, executed/passed both, and produced two LCOV artifacts for `tokmd_core_ffi` and `format_redaction_scan_args`.
 - Manual proof-observation collector run `25489377912` on `main` passed on 2026-05-07 with stricter thresholds: `--min-observations 1`, `--min-executed 2`, `--min-scopes 2`, and `--min-artifacts 2`. The collection recorded 19 observations total, with 2 selected/executed/passed coverage commands, 2 covered scopes, and 2 artifacts.
 - `cargo xtask proof-execution-artifacts-check` now resolves downloaded executor artifacts without manually reconstructing `target/proof`: it still honors workflow-relative paths as written, and also resolves `target/proof/...` artifact paths against the downloaded artifact root. The downloaded artifacts from run `25489053208` now re-verify locally with 2 executed commands and guard `ci_explicit_opt_in_enabled`.
-- Next proof-policy operational slice: collect additional coverage-enabled executor observations across more product scopes before considering any required-gate or default Codecov-upload promotion.
+- Advisory Codecov coverage now has README visibility, documented lane boundaries in `docs/ci/coverage.md`, proof-control-plane routing for `.github/workflows/coverage.yml`, `codecov.yml`, and the coverage docs, plus a narrow `project_readme` scope so README-only edits route to docs checks instead of unknown-file failures. Coverage remains telemetry, not a ratchet or required gate.
+- `cargo xtask coverage-receipt` now emits `tokmd.coverage_receipt.v1` for `coverage.json`, `coverage.txt`, and `lcov.info`, and the coverage workflow uploads `target/coverage/coverage-receipt.json` with the coverage artifacts. The receipt records coverage artifact presence and byte counts without making coverage a required gate.
+- Codecov project and patch statuses remain informational during the baseline phase, and coverage receipt generation is owned by `cargo xtask coverage-receipt` rather than a duplicate workflow heredoc.
+- `cargo xtask ci-actuals` now emits `tokmd.ci_actuals.v1` from a GitHub Actions `needs` payload plus optional timing sidecar data. Missing timing is recorded as missing rather than zero so later budget and learned-estimate work can consume the receipt without inventing measurements.
+- Top-level project truth docs (`ROADMAP.md`, architecture, design, implementation plan, requirements, and specification) now have a proof-policy scope that routes changes to `cargo xtask docs --check` instead of leaving architecture-doc-only fixes as unknown files.
+- The external-service policy now reflects the active safe Droid integration:
+  Factory Droid is approved only through the pinned safe action wrapper,
+  requires `FACTORY_API_KEY` and `MINIMAX_API_KEY`, skips fork PR auto-review,
+  restricts manual `@droid` commands to trusted actors, and keeps raw debug
+  artifact upload disabled.
+- Manual proof-executor run `25499361375` on disposable branch `codex/proof-executor-more-scope-sample` passed on 2026-05-07. It changed `crates/tokmd-analysis/src/complexity/mod.rs` and `crates/tokmd-gate/src/pointer.rs`, matched `analysis_complexity` and `tokmd_gate`, selected and executed two non-required coverage commands, produced `analysis_complexity.lcov` and `tokmd_gate.lcov`, and re-verified locally with `cargo xtask proof-execution-artifacts-check`.
+- Manual proof-observation collector run `25499876871` on `main` intentionally failed the stricter four-scope floor under a last-30 successful-run window: the collector found enough executed commands and artifacts, but only 3 distinct scopes. That is useful negative evidence that promotion thresholds need a recency/window rule, not just aggregate historical totals.
+- Manual proof-observation collector run `25499968322` on `main` passed on 2026-05-07 with `--run-limit 100`, `--min-observations 1`, `--min-executed 4`, `--min-scopes 4`, and `--min-artifacts 4`. The collection recorded 54 observations, 8 selected/executed/passed coverage commands, 8 artifacts, and 5 distinct scopes: `analysis_complexity`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_core_ffi`, and `tokmd_gate`.
+- `ci/proof.toml` now records checked scoped coverage executor promotion criteria under `[executor.promotion]`: `run_limit = 100`, `min_observations = 1`, `min_executed = 4`, `min_scopes = 4`, `min_artifacts = 4`, `required_gate = false`, and `default_codecov_upload = false`. `cargo xtask proof-policy --check` validates the thresholds and rejects required-gate or default Codecov-upload promotion until those behaviors are implemented intentionally.
+- `.github/workflows/proof-observation-collection.yml` now resolves blank manual collector thresholds from checked `[executor.promotion]` policy via `cargo xtask proof-policy --json`, writes the resolved `thresholds.env` into the uploaded artifact, and shows whether each threshold came from `ci/proof.toml` or a workflow-dispatch override. The executor remains non-required, and Codecov upload remains manual-only.
+- Manual proof-observation collector run `25502593070` on `main` passed on 2026-05-07 using blank workflow-dispatch inputs after #1727 merged. The workflow resolved `run_limit = 100`, `min_observations = 1`, `min_executed = 4`, `min_scopes = 4`, and `min_artifacts = 4` from `ci/proof.toml`; the collection recorded 58 observations, 8 selected/executed/passed coverage commands, 8 artifacts, and 5 distinct scopes: `analysis_complexity`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_core_ffi`, and `tokmd_gate`.
+- Next proof-policy operational slice: decide whether `[executor.promotion]` should record an explicit recency/window rule before any required-gate or default Codecov-upload promotion, since the last-30 collector run intentionally failed the four-scope floor while the policy-default last-100 run passed.
 
 ## References
 
