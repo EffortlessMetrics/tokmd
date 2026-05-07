@@ -21,6 +21,7 @@ const authStateOutput = document.querySelector("[data-auth-state]");
 const modeInput = document.querySelector("[data-mode]");
 const argsInput = document.querySelector("[data-args]");
 const loadRepoButton = document.querySelector("[data-load-repo]");
+const retryLoadButton = document.querySelector("[data-retry-load]");
 const cancelLoadButton = document.querySelector("[data-cancel-load]");
 const runButton = document.querySelector("[data-run]");
 const cancelButton = document.querySelector("[data-cancel]");
@@ -162,6 +163,7 @@ function updateDownloadButtonState() {
 function updateRepoLoadControls() {
     const loading = Boolean(state.repoLoadAbortController);
     loadRepoButton.disabled = loading;
+    retryLoadButton.disabled = loading || !isRetryableLoadError(state.latestLoadError);
     cancelLoadButton.disabled = !loading;
     repoInput.disabled = loading;
     refInput.disabled = loading;
@@ -285,9 +287,38 @@ function sanitizeErrorForLog(error) {
         status: error.status ?? null,
         resetAt: error.resetAt ?? null,
         retryAfterSeconds: error.retryAfterSeconds ?? null,
+        retryAt: error.retryAt ?? null,
         responseMessage: error.responseMessage ?? null,
         ingest: error.ingest ?? null,
     };
+}
+
+function isRetryableLoadError(error) {
+    return (
+        error instanceof Error &&
+        (error.code === "github_primary_rate_limit" ||
+            error.code === "github_secondary_rate_limit")
+    );
+}
+
+function describeRetryWindow(error) {
+    if (!(error instanceof Error)) {
+        return "";
+    }
+
+    if (error.retryAfterSeconds !== undefined && error.retryAfterSeconds !== null) {
+        return `Retry after ${error.retryAfterSeconds}s.`;
+    }
+
+    if (error.retryAt) {
+        return `Retry after ${error.retryAt}.`;
+    }
+
+    if (error.resetAt) {
+        return `Retry after GitHub resets the quota at ${error.resetAt}.`;
+    }
+
+    return "Retry when GitHub accepts more browser repo requests.";
 }
 
 function describeLoadError(error) {
@@ -306,6 +337,15 @@ function describeLoadError(error) {
     return detail.length > 0
         ? `${error.message} (${detail.join(", ")})`
         : error.message;
+}
+
+function loadErrorNoticeLines(error) {
+    const lines = [describeLoadError(error)];
+    if (isRetryableLoadError(error)) {
+        lines.push(describeRetryWindow(error));
+    }
+
+    return lines;
 }
 
 function describeWorkerProgress(message) {
@@ -359,7 +399,11 @@ function renderIngestSummary() {
 
     if (state.latestLoadError) {
         ingestSummaryOutput.append(
-            createNotice("error", "Latest repo load error", [describeLoadError(state.latestLoadError)])
+            createNotice(
+                "error",
+                "Latest repo load error",
+                loadErrorNoticeLines(state.latestLoadError)
+            )
         );
     }
 
@@ -601,6 +645,15 @@ cancelLoadButton.addEventListener("click", () => {
 
     state.repoLoadAbortController.abort();
     setStatus(loadStatusOutput, "canceling repo load...", "warning");
+});
+
+retryLoadButton.addEventListener("click", () => {
+    if (!isRetryableLoadError(state.latestLoadError)) {
+        setStatus(loadStatusOutput, "no retryable repo load error", "warning");
+        return;
+    }
+
+    loadRepoButton.click();
 });
 
 tokenInput.addEventListener("input", () => {

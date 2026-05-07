@@ -17,6 +17,7 @@ Use this project when you want `tokmd` inside a browser worker, backed by
 - `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate`
 - worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - session-only GitHub token UX with explicit clear behavior
+- explicit GitHub rate-limit retry guidance and a manual repo-load retry action
 - `cancel` reserved in the protocol but not wired yet
 - live result panes with downloadable JSON artifacts
 
