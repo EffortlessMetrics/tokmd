@@ -328,11 +328,73 @@ jobs:
             echo "::error::baseline-report output should be empty in cockpit mode"
             exit 1
           fi
+          if [ -n "${{ steps.cockpit.outputs['review-packet'] }}" ]; then
+            echo "::error::review-packet output should be empty in cockpit mode without review-packet=true"
+            exit 1
+          fi
           grep -q '"mode": "cockpit"' tokmd-cockpit-report.json
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
+
+      - name: Set up Rust for local review packet binary
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install local tokmd for review packet mode
+        shell: bash
+        run: |
+          cargo install --path crates/tokmd --features git --locked --force --root "$HOME/.local"
+          "$HOME/.local/bin/tokmd" cockpit --help | grep -q -- '--review-packet-dir'
+
+      - name: Run cockpit mode with review packet
+        id: cockpit_packet
+        uses: ./
+        with:
+          mode: cockpit
+          base: HEAD
+          head: HEAD
+          review-packet: 'true'
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify cockpit review packet mode
+        shell: bash
+        run: |
+          if [ ! -f tokmd-cockpit-report.json ]; then
+            echo "::error::tokmd-cockpit-report.json not generated with cockpit review packet"
+            exit 1
+          fi
+          if [ "${{ steps.cockpit_packet.outputs['cockpit-report'] }}" != "tokmd-cockpit-report.json" ]; then
+            echo "::error::cockpit-report output did not point to tokmd-cockpit-report.json with review packet"
+            exit 1
+          fi
+          if [ "${{ steps.cockpit_packet.outputs['review-packet'] }}" != ".tokmd/review" ]; then
+            echo "::error::review-packet output did not point to .tokmd/review"
+            exit 1
+          fi
+          if [ "${{ steps.cockpit_packet.outputs.summary }}" != ".tokmd/review/comment.md" ]; then
+            echo "::error::summary output did not point to review packet comment.md"
+            exit 1
+          fi
+          for path in \
+            .tokmd/review/manifest.json \
+            .tokmd/review/cockpit.json \
+            .tokmd/review/evidence.json \
+            .tokmd/review/review-map.json \
+            .tokmd/review/review-map.md \
+            .tokmd/review/comment.md; do
+            if [ ! -f "$path" ]; then
+              echo "::error::$path not generated in cockpit review packet mode"
+              exit 1
+            fi
+          done
+          grep -q '"schema": "tokmd.review_packet_manifest.v1"' .tokmd/review/manifest.json
+          grep -q '"schema": "tokmd.review_map.v1"' .tokmd/review/review-map.json
+
+      - name: Clean generated files
+        shell: bash
+        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
 
       - name: Run cockpit mode with inferred pull request base
         id: cockpit_inferred_base

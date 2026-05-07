@@ -126,17 +126,17 @@ behavior.
 
 ## GitHub Action Behavior
 
-The Action should upload the packet as an artifact before any optional comment
-step. Comment posting must remain fork-safe and must not be required for packet
-generation.
+The Action uploads the packet as an artifact when `artifact: 'true'` and
+`review-packet: 'true'` are both set. Comment posting remains fork-safe and is
+not required for packet generation.
 
-Future Action inputs should build on the cockpit surface first:
+Action inputs build on the cockpit surface first:
 
 ```yaml
 mode: cockpit
 review-packet: true
-post-comment: true
-upload-artifacts: true
+comment: true
+artifact: true
 ```
 
 Do not add `mode: review` until there is a distinct review orchestrator contract

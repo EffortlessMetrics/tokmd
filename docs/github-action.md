@@ -77,6 +77,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `head` | no | `HEAD` | Head git ref for `cockpit` and `sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
 | `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
+| `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory and use its `comment.md` as the Markdown summary/comment body. |
 
 ## Outputs
 
@@ -86,6 +87,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `summary` | Path to `tokmd-summary.md`, `comment.md`, or another mode-specific Markdown summary when one is produced. |
 | `gate-verdict` | Path to `tokmd-gate-verdict.json` when `mode: gate` is used. |
 | `cockpit-report` | Path to `tokmd-cockpit-report.json` when `mode: cockpit` is used. |
+| `review-packet` | Path to `.tokmd/review` when `mode: cockpit` and `review-packet: 'true'` are used. |
 | `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
 | `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
 
@@ -122,6 +124,11 @@ Runs `tokmd cockpit --format json` and writes `tokmd-cockpit-report.json`.
 
 If `base` is omitted, the Action infers a repository-aware base ref. Set `base` only when you want to override that inference.
 
+When `review-packet: 'true'`, cockpit mode also runs with
+`--review-packet-dir .tokmd/review`. The `review-packet` output points to that
+directory, and the `summary` output points to `.tokmd/review/comment.md` so the
+existing `comment` input can post the packet summary on pull requests.
+
 ### `sensor`
 
 Runs `tokmd sensor --format json` and writes:
@@ -148,6 +155,7 @@ Artifact candidates include:
 - `tokmd-receipt.*`
 - `tokmd-gate-verdict.json`
 - `tokmd-cockpit-report.json`
+- `.tokmd/review`
 - `tokmd-sensor-report.json`
 - `tokmd-baseline.json`
 - `comment.md`
@@ -165,7 +173,7 @@ permissions:
 
 Commenting only runs on `pull_request` events. Set `comment: 'false'` for scheduled jobs, push jobs, private smoke tests, or workflows where comments are not desired.
 
-The default flow comments with `tokmd-summary.md`. `sensor` comments with `comment.md`. JSON-only modes such as `gate`, `cockpit`, and `baseline` normally leave the `summary` output empty.
+The default flow comments with `tokmd-summary.md`. `sensor` comments with `comment.md`. JSON-only modes such as `gate`, `cockpit`, and `baseline` normally leave the `summary` output empty. `cockpit` with `review-packet: 'true'` comments with `.tokmd/review/comment.md`.
 
 ## Checkout Guidance
 
