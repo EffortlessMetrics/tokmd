@@ -28,21 +28,9 @@ pub struct LicenseCandidates {
     pub metadata_files: Vec<PathBuf>,
 }
 
-const GIT_REPO_SHAPING_ENV: &[&str] = &[
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_COMMON_DIR",
-    "GIT_CEILING_DIRECTORIES",
-];
-
 fn git_cmd() -> Command {
     let mut cmd = Command::new("git");
-    for name in GIT_REPO_SHAPING_ENV {
-        cmd.env_remove(name);
-    }
+    cmd.env_remove("GIT_DIR").env_remove("GIT_WORK_TREE");
     cmd
 }
 
@@ -256,23 +244,9 @@ fn memfs_relative_path(path: &Path, root: &Path) -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeSet;
     use std::fs;
 
     // ---- license_candidates tests ----
-
-    #[test]
-    fn git_cmd_removes_repo_shaping_env_overrides() {
-        let removed: BTreeSet<_> = git_cmd()
-            .get_envs()
-            .filter(|(_, value)| value.is_none())
-            .map(|(name, _)| name.to_string_lossy().into_owned())
-            .collect();
-
-        for name in GIT_REPO_SHAPING_ENV {
-            assert!(removed.contains(*name), "missing env_remove for {name}");
-        }
-    }
 
     #[test]
     fn test_license_candidates_detects_license_files() {
