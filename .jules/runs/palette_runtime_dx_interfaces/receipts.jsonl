@@ -13,3 +13,4 @@
 {"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test -p tokmd --verbose", "status": "success"}
 {"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo fmt -- --check", "status": "success"}
 {"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo clippy -- -D warnings", "status": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo xtask docs --update", "status": "success"}

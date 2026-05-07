@@ -145,6 +145,8 @@ Options:
 
           Example: crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
 
+          [aliases: --depth]
+
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
 
@@ -212,6 +214,8 @@ Options:
 
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`) [default: 2]
+
+          [aliases: --depth]
 
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) [default: separate]
@@ -873,6 +877,8 @@ Options:
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
 
+          [aliases: --depth]
+
       --git
           Enable git-based ranking (required for churn/hotspot)
 
@@ -1024,6 +1030,8 @@ Options:
 
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
+
+          [aliases: --depth]
 
       --force
           Overwrite existing output directory
