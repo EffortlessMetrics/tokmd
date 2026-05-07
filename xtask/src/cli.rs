@@ -32,6 +32,8 @@ pub enum Commands {
     ProofExecutionArtifactsCheck(ProofArtifactsCheckArgs),
     /// Write a compact observation report for opted-in executed proof artifacts
     ProofExecutionObservation(ProofExecutionObservationArgs),
+    /// Summarize one or more proof executor observation artifacts
+    ProofExecutionObservationsSummary(ProofExecutionObservationsSummaryArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -231,6 +233,21 @@ pub struct ProofExecutionObservationArgs {
         default_value = "target/proof/proof-executor-observation.json"
     )]
     pub output: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofExecutionObservationsSummaryArgs {
+    /// Proof executor observation artifact to include. Repeat for multiple runs.
+    #[arg(
+        long = "observation",
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-observation.json"
+    )]
+    pub observations: Vec<std::path::PathBuf>,
+
+    /// Output path for the collection summary. Prints JSON to stdout when omitted.
+    #[arg(long, value_name = "PATH")]
+    pub output: Option<std::path::PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

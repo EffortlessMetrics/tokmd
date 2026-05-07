@@ -1,13 +1,17 @@
-use crate::cli::{ProofArtifactsCheckArgs, ProofExecutionObservationArgs};
+use crate::cli::{
+    ProofArtifactsCheckArgs, ProofExecutionObservationArgs, ProofExecutionObservationsSummaryArgs,
+};
 use anyhow::{Context, Result, bail};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::BTreeMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
+const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
 
 const SHARED_FIELDS: &[&str] = &[
     "mode",
@@ -73,6 +77,24 @@ pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
     Ok(())
 }
 
+pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> Result<()> {
+    let collection = proof_execution_observation_collection(&args.observations)?;
+    let json = serde_json::to_string_pretty(&collection)?;
+
+    if let Some(output) = &args.output {
+        write_text(output, &json)?;
+        println!(
+            "Proof execution observation collection OK: {} observation(s), wrote `{}`",
+            collection.counts.observations,
+            output.display()
+        );
+    } else {
+        println!("{json}");
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum VerificationMode {
     NoExecution,
@@ -87,7 +109,7 @@ struct ProofArtifactsReport {
     guard_reason: String,
 }
 
-#[derive(Debug, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 struct ProofExecutionObservation {
     schema: String,
     status: String,
@@ -105,14 +127,14 @@ struct ProofExecutionObservation {
     unknown_files: Vec<String>,
 }
 
-#[derive(Debug, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 struct ProofExecutionObservationGuard {
     enabled: bool,
     ci: bool,
     reason: String,
 }
 
-#[derive(Debug, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 struct ProofExecutionObservationCounts {
     selected: usize,
     executed: usize,
@@ -121,7 +143,7 @@ struct ProofExecutionObservationCounts {
     artifacts: usize,
 }
 
-#[derive(Debug, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 struct ProofExecutionObservationScope {
     name: String,
     kind: String,
@@ -129,6 +151,84 @@ struct ProofExecutionObservationScope {
     artifact_path: Option<String>,
     status: String,
     exit_code: Option<i64>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationCollection {
+    schema: String,
+    ok: bool,
+    counts: ProofExecutionObservationCollectionCounts,
+    families: Vec<ProofExecutionObservationFamilySummary>,
+    scopes: Vec<ProofExecutionObservationScopeSummary>,
+    sources: Vec<ProofExecutionObservationSourceSummary>,
+}
+
+#[derive(Debug, Default, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationCollectionCounts {
+    observations: usize,
+    selected: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+    artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationFamilySummary {
+    family: String,
+    observations: usize,
+    selected: usize,
+    executed: usize,
+    passed: usize,
+    artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationScopeSummary {
+    name: String,
+    kind: String,
+    family: String,
+    observations: usize,
+    executed: usize,
+    artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationSourceSummary {
+    path: String,
+    status: String,
+    execution_status: String,
+    profile: String,
+    base: String,
+    head: String,
+    family: String,
+    guard_reason: String,
+    selected: usize,
+    executed: usize,
+    passed: usize,
+    artifacts: usize,
+}
+
+#[derive(Debug)]
+struct SourcedProofExecutionObservation {
+    path: PathBuf,
+    observation: ProofExecutionObservation,
+}
+
+#[derive(Default)]
+struct FamilyAccumulator {
+    observations: usize,
+    selected: usize,
+    executed: usize,
+    passed: usize,
+    artifacts: usize,
+}
+
+#[derive(Default)]
+struct ScopeAccumulator {
+    observations: usize,
+    executed: usize,
+    artifacts: usize,
 }
 
 fn read_json(path: &Path, label: &str) -> Result<Value> {
@@ -139,14 +239,17 @@ fn read_json(path: &Path, label: &str) -> Result<Value> {
 }
 
 fn write_observation(path: &Path, observation: &ProofExecutionObservation) -> Result<()> {
+    write_text(path, &serde_json::to_string_pretty(observation)?)
+}
+
+fn write_text(path: &Path, text: &str) -> Result<()> {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
     {
         fs::create_dir_all(parent)
             .with_context(|| format!("failed to create `{}`", parent.display()))?;
     }
-    fs::write(path, serde_json::to_string_pretty(observation)?)
-        .with_context(|| format!("failed to write `{}`", path.display()))
+    fs::write(path, text).with_context(|| format!("failed to write `{}`", path.display()))
 }
 
 fn proof_execution_observation(
@@ -249,6 +352,225 @@ fn proof_execution_observation(
             "executor summary",
         )?,
     })
+}
+
+fn proof_execution_observation_collection(
+    paths: &[PathBuf],
+) -> Result<ProofExecutionObservationCollection> {
+    if paths.is_empty() {
+        bail!("at least one --observation path is required");
+    }
+
+    let observations = paths
+        .iter()
+        .map(|path| read_sourced_observation(path))
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(summarize_observations(&observations))
+}
+
+fn read_sourced_observation(path: &Path) -> Result<SourcedProofExecutionObservation> {
+    let value = read_json(path, "proof executor observation")?;
+    let observation = read_observation_value(&value)
+        .with_context(|| format!("invalid proof executor observation `{}`", path.display()))?;
+    Ok(SourcedProofExecutionObservation {
+        path: path.to_path_buf(),
+        observation,
+    })
+}
+
+fn read_observation_value(value: &Value) -> Result<ProofExecutionObservation> {
+    let observation: ProofExecutionObservation = serde_json::from_value(value.clone())
+        .context("proof executor observation shape is invalid")?;
+    validate_observation(&observation)?;
+    Ok(observation)
+}
+
+fn validate_observation(observation: &ProofExecutionObservation) -> Result<()> {
+    if observation.schema != OBSERVATION_SCHEMA {
+        bail!(
+            "proof executor observation schema must be `{OBSERVATION_SCHEMA}`, got `{}`",
+            observation.schema
+        );
+    }
+    if observation.status != "passed" {
+        bail!(
+            "proof executor observation status must be `passed`, got `{}`",
+            observation.status
+        );
+    }
+    if observation.execution_status != "executed" {
+        bail!(
+            "proof executor observation execution_status must be `executed`, got `{}`",
+            observation.execution_status
+        );
+    }
+    if !observation.ok {
+        bail!("proof executor observation must have ok=true");
+    }
+    if observation.required {
+        bail!("proof executor observation collection only accepts non-required executor evidence");
+    }
+    if !observation.execution_guard.enabled {
+        bail!("proof executor observation guard must be enabled");
+    }
+    if observation.counts.failed != 0 {
+        bail!(
+            "proof executor observation reports {} failed command(s)",
+            observation.counts.failed
+        );
+    }
+    if observation.counts.selected != observation.counts.executed {
+        bail!(
+            "proof executor observation selected/executed drift: {} selected != {} executed",
+            observation.counts.selected,
+            observation.counts.executed
+        );
+    }
+    if observation.counts.executed != observation.counts.passed {
+        bail!(
+            "proof executor observation executed/passed drift: {} executed != {} passed",
+            observation.counts.executed,
+            observation.counts.passed
+        );
+    }
+    if observation.scopes.len() != observation.counts.selected {
+        bail!(
+            "proof executor observation has {} scope row(s) for {} selected command(s)",
+            observation.scopes.len(),
+            observation.counts.selected
+        );
+    }
+    let artifact_count = observation
+        .scopes
+        .iter()
+        .filter(|scope| scope.artifact_path.is_some())
+        .count();
+    if artifact_count != observation.counts.artifacts {
+        bail!(
+            "proof executor observation artifact count drift: {} scope artifact(s) != {} counted artifact(s)",
+            artifact_count,
+            observation.counts.artifacts
+        );
+    }
+    if !observation.unknown_files.is_empty() {
+        bail!(
+            "proof executor observation reports {} unknown file(s)",
+            observation.unknown_files.len()
+        );
+    }
+    for scope in &observation.scopes {
+        if scope.status != "passed" {
+            bail!(
+                "proof executor observation scope `{}` status must be `passed`, got `{}`",
+                scope.name,
+                scope.status
+            );
+        }
+        if scope.exit_code != Some(0) {
+            bail!(
+                "proof executor observation scope `{}` exit_code must be 0, got {:?}",
+                scope.name,
+                scope.exit_code
+            );
+        }
+    }
+
+    Ok(())
+}
+
+fn summarize_observations(
+    observations: &[SourcedProofExecutionObservation],
+) -> ProofExecutionObservationCollection {
+    let mut counts = ProofExecutionObservationCollectionCounts {
+        observations: observations.len(),
+        ..ProofExecutionObservationCollectionCounts::default()
+    };
+    let mut families = BTreeMap::<String, FamilyAccumulator>::new();
+    let mut scopes = BTreeMap::<(String, String, String), ScopeAccumulator>::new();
+    let mut sources = Vec::new();
+
+    for sourced in observations {
+        let observation = &sourced.observation;
+        counts.selected += observation.counts.selected;
+        counts.executed += observation.counts.executed;
+        counts.passed += observation.counts.passed;
+        counts.failed += observation.counts.failed;
+        counts.artifacts += observation.counts.artifacts;
+
+        let family = families.entry(observation.family.clone()).or_default();
+        family.observations += 1;
+        family.selected += observation.counts.selected;
+        family.executed += observation.counts.executed;
+        family.passed += observation.counts.passed;
+        family.artifacts += observation.counts.artifacts;
+
+        for scope in &observation.scopes {
+            let key = (
+                scope.name.clone(),
+                scope.kind.clone(),
+                observation.family.clone(),
+            );
+            let entry = scopes.entry(key).or_default();
+            entry.observations += 1;
+            entry.executed += 1;
+            if scope.artifact_path.is_some() {
+                entry.artifacts += 1;
+            }
+        }
+
+        sources.push(ProofExecutionObservationSourceSummary {
+            path: normalize_path(&sourced.path),
+            status: observation.status.clone(),
+            execution_status: observation.execution_status.clone(),
+            profile: observation.profile.clone(),
+            base: observation.base.clone(),
+            head: observation.head.clone(),
+            family: observation.family.clone(),
+            guard_reason: observation.execution_guard.reason.clone(),
+            selected: observation.counts.selected,
+            executed: observation.counts.executed,
+            passed: observation.counts.passed,
+            artifacts: observation.counts.artifacts,
+        });
+    }
+
+    sources.sort_by(|left, right| left.path.cmp(&right.path));
+
+    ProofExecutionObservationCollection {
+        schema: OBSERVATION_COLLECTION_SCHEMA.to_string(),
+        ok: true,
+        counts,
+        families: families
+            .into_iter()
+            .map(|(family, entry)| ProofExecutionObservationFamilySummary {
+                family,
+                observations: entry.observations,
+                selected: entry.selected,
+                executed: entry.executed,
+                passed: entry.passed,
+                artifacts: entry.artifacts,
+            })
+            .collect(),
+        scopes: scopes
+            .into_iter()
+            .map(
+                |((name, kind, family), entry)| ProofExecutionObservationScopeSummary {
+                    name,
+                    kind,
+                    family,
+                    observations: entry.observations,
+                    executed: entry.executed,
+                    artifacts: entry.artifacts,
+                },
+            )
+            .collect(),
+        sources,
+    }
+}
+
+fn normalize_path(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
 }
 
 fn observation_scope(entry: &Value) -> Result<ProofExecutionObservationScope> {
@@ -726,6 +1048,9 @@ fn render_json(value: &Value) -> String {
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static TEST_ARTIFACT_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
     #[test]
     fn accepts_matching_no_execution_artifacts() {
@@ -872,6 +1197,80 @@ mod tests {
     }
 
     #[test]
+    fn summarizes_successful_observations_by_family_and_scope() {
+        let (summary, manifest) = executed_artifacts();
+        let first = proof_execution_observation(&summary, &manifest).unwrap();
+        let mut second = first.clone();
+        second.scopes[0].name = "analysis_derived".to_string();
+        second.changed_files = vec!["crates/tokmd-analysis/src/derived/mod.rs".to_string()];
+
+        let collection = summarize_observations(&[
+            sourced("target/proof/run-b/proof-executor-observation.json", second),
+            sourced("target/proof/run-a/proof-executor-observation.json", first),
+        ]);
+
+        assert_eq!(collection.schema, OBSERVATION_COLLECTION_SCHEMA);
+        assert!(collection.ok);
+        assert_eq!(
+            collection.counts,
+            ProofExecutionObservationCollectionCounts {
+                observations: 2,
+                selected: 2,
+                executed: 2,
+                passed: 2,
+                failed: 0,
+                artifacts: 2,
+            }
+        );
+        assert_eq!(collection.families.len(), 1);
+        assert_eq!(collection.families[0].family, "coverage");
+        assert_eq!(collection.families[0].observations, 2);
+        assert_eq!(
+            collection
+                .scopes
+                .iter()
+                .map(|scope| scope.name.as_str())
+                .collect::<Vec<_>>(),
+            ["analysis_derived", "tokmd_core_ffi"]
+        );
+        assert_eq!(
+            collection
+                .sources
+                .iter()
+                .map(|source| source.path.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "target/proof/run-a/proof-executor-observation.json",
+                "target/proof/run-b/proof-executor-observation.json",
+            ]
+        );
+    }
+
+    #[test]
+    fn rejects_failed_observation_for_collection() {
+        let (summary, manifest) = executed_artifacts();
+        let mut observation = proof_execution_observation(&summary, &manifest).unwrap();
+        observation.status = "failed".to_string();
+
+        let value = serde_json::to_value(observation).unwrap();
+        let error = read_observation_value(&value).unwrap_err().to_string();
+
+        assert!(error.contains("status must be `passed`"));
+    }
+
+    #[test]
+    fn rejects_observation_count_drift_for_collection() {
+        let (summary, manifest) = executed_artifacts();
+        let mut observation = proof_execution_observation(&summary, &manifest).unwrap();
+        observation.counts.executed = 0;
+
+        let value = serde_json::to_value(observation).unwrap();
+        let error = read_observation_value(&value).unwrap_err().to_string();
+
+        assert!(error.contains("selected/executed drift"));
+    }
+
+    #[test]
     fn rejects_execution_artifacts_without_enabled_guard() {
         let (mut summary, mut manifest) = executed_artifacts();
         summary["execution_guard"]["enabled"] = json!(false);
@@ -1004,9 +1403,20 @@ mod tests {
     }
 
     fn write_test_artifact(name: &str, content: &str) -> String {
-        let path = std::env::temp_dir().join(format!("{name}-{}.lcov", std::process::id()));
+        let index = TEST_ARTIFACT_COUNTER.fetch_add(1, Ordering::Relaxed);
+        let path = std::env::temp_dir().join(format!("{name}-{}-{index}.lcov", std::process::id()));
         fs::write(&path, content).expect("test artifact should be writable");
         path.to_string_lossy().to_string()
+    }
+
+    fn sourced(
+        path: &str,
+        observation: ProofExecutionObservation,
+    ) -> SourcedProofExecutionObservation {
+        SourcedProofExecutionObservation {
+            path: PathBuf::from(path),
+            observation,
+        }
     }
 
     fn matching_artifacts() -> (Value, Value) {

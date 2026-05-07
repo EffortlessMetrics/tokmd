@@ -93,6 +93,18 @@ fn proof_execution_observation_help_mentions_executor_paths_and_output() {
 }
 
 #[test]
+fn proof_execution_observations_summary_help_mentions_observation_paths() {
+    let (stdout, stderr, success) = run_xtask(&["proof-execution-observations-summary", "--help"]);
+
+    assert!(
+        success,
+        "proof-execution-observations-summary --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--observation"), "stdout: {stdout}");
+    assert!(stdout.contains("--output"), "stdout: {stdout}");
+}
+
+#[test]
 fn affected_plan_ci_blocks_on_planner_generation_failures() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -378,6 +390,26 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     assert_eq!(observation["counts"]["selected"], 0);
     assert_eq!(observation["counts"]["executed"], 0);
     assert!(observation["scopes"].as_array().unwrap().is_empty());
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observation",
+        &observation_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-observations-summary failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("collection should be valid JSON");
+    assert_eq!(
+        collection["schema"],
+        "tokmd.proof_executor_observation_collection.v1"
+    );
+    assert_eq!(collection["counts"]["observations"], 1);
+    assert_eq!(collection["counts"]["executed"], 0);
+    assert!(collection["scopes"].as_array().unwrap().is_empty());
+    assert_eq!(collection["sources"].as_array().unwrap().len(), 1);
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-artifacts-check",

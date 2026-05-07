@@ -67,6 +67,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof-execution-artifacts-check` now verifies that executed entries with declared artifact paths point at existing, non-empty files, so a passing executor command cannot claim missing LCOV evidence.
 - Executed coverage artifacts now must be LCOV-shaped text with `SF:` and `end_of_record` records before `proof-execution-artifacts-check` accepts them.
 - `cargo xtask proof-execution-observation` now turns verified executed summary/manifest pairs into `proof-executor-observation.json`, a compact cross-PR observation artifact for collecting non-required executor runs without promoting them to required gates or default Codecov uploads.
+- `cargo xtask proof-execution-observations-summary --observation <path>...` now summarizes downloaded executor observation artifacts by family, scope, and source run, giving maintainers a Rust-owned collection view before any required-gate or default Codecov-upload promotion.
 - Next proof-policy operational slice: collect successful non-required PR executor runs across multiple affected scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References

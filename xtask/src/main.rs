@@ -26,6 +26,9 @@ fn main() -> Result<()> {
         Some(cli::Commands::ProofExecutionObservation(args)) => {
             tasks::proof_artifacts_check::run_observation(args)
         }
+        Some(cli::Commands::ProofExecutionObservationsSummary(args)) => {
+            tasks::proof_artifacts_check::run_observations_summary(args)
+        }
         Some(cli::Commands::VersionConsistency(args)) => tasks::version_consistency::run(args),
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
