@@ -34,6 +34,8 @@ pub enum Commands {
     ProofRunArtifactsCheck(ProofRunArtifactsCheckArgs),
     /// Write a compact observation report for an opted-in required proof run
     ProofRunObservation(ProofRunObservationArgs),
+    /// Summarize one or more required proof-run observation artifacts
+    ProofRunObservationsSummary(ProofRunObservationsSummaryArgs),
     /// Write a compact observation report for opted-in executed proof artifacts
     ProofExecutionObservation(ProofExecutionObservationArgs),
     /// Summarize one or more proof executor observation artifacts
@@ -513,6 +515,29 @@ pub struct ProofRunObservationArgs {
         default_value = "target/proof-run/proof-run-observation.json"
     )]
     pub output: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofRunObservationsSummaryArgs {
+    /// Proof-run observation artifact to include. Repeat for multiple runs.
+    #[arg(long = "observation", value_name = "PATH")]
+    pub observations: Vec<std::path::PathBuf>,
+
+    /// Directory tree to scan for proof-run-observation.json artifacts.
+    #[arg(long = "observations-dir", value_name = "DIR")]
+    pub observation_dirs: Vec<std::path::PathBuf>,
+
+    /// JSON list of successful source workflow runs used as the observation window.
+    #[arg(long, value_name = "PATH")]
+    pub source_runs_json: Option<std::path::PathBuf>,
+
+    /// Output path for the collection summary. Prints JSON to stdout when omitted.
+    #[arg(long, value_name = "PATH")]
+    pub output: Option<std::path::PathBuf>,
+
+    /// Output path for a human-readable Markdown collection summary.
+    #[arg(long, value_name = "PATH")]
+    pub summary_md: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]

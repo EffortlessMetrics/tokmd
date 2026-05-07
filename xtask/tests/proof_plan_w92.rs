@@ -117,6 +117,21 @@ fn proof_run_observation_help_mentions_summary_path_and_output() {
 }
 
 #[test]
+fn proof_run_observations_summary_help_mentions_observation_paths() {
+    let (stdout, stderr, success) = run_xtask(&["proof-run-observations-summary", "--help"]);
+
+    assert!(
+        success,
+        "proof-run-observations-summary --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--observation"), "stdout: {stdout}");
+    assert!(stdout.contains("--observations-dir"), "stdout: {stdout}");
+    assert!(stdout.contains("--source-runs-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--output"), "stdout: {stdout}");
+    assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
+}
+
+#[test]
 fn proof_execution_observation_help_mentions_executor_paths_and_output() {
     let (stdout, stderr, success) = run_xtask(&["proof-execution-observation", "--help"]);
 
@@ -693,7 +708,13 @@ fn local_required_execution_can_write_zero_command_summary() {
         "stdout: {stdout}"
     );
 
-    let observation_path = temp.path().join("proof-run-observation.json");
+    let observation_path = temp
+        .path()
+        .join("runs")
+        .join("25502593070")
+        .join("proof-run-observation.json");
+    fs::create_dir_all(observation_path.parent().unwrap())
+        .expect("proof-run observation parent should be writable");
     let observation_arg = observation_path.to_string_lossy().to_string();
     let (stdout, stderr, success) = run_xtask(&[
         "proof-run-observation",
@@ -715,6 +736,108 @@ fn local_required_execution_can_write_zero_command_summary() {
     assert_eq!(observation["execution_status"], "executed");
     assert_eq!(observation["counts"]["executed"], 0);
     assert!(observation["scopes"].as_array().unwrap().is_empty());
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-observations-summary",
+        "--observation",
+        &observation_arg,
+    ]);
+    assert!(
+        success,
+        "proof-run-observations-summary failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof-run collection should be valid JSON");
+    assert_eq!(
+        collection["schema"],
+        "tokmd.proof_run_observation_collection.v1"
+    );
+    assert_eq!(collection["counts"]["observations"], 1);
+    assert_eq!(collection["counts"]["executed"], 0);
+    assert!(collection["scopes"].as_array().unwrap().is_empty());
+    assert_eq!(collection["profiles"][0]["profile"], "affected");
+    assert_eq!(collection["guards"][0]["observations"], 1);
+    assert!(
+        collection.get("window").is_none(),
+        "source-run window should be omitted unless requested: {collection}"
+    );
+
+    let source_runs_path = temp.path().join("proof-runs.json");
+    fs::write(
+        &source_runs_path,
+        r#"[{"databaseId":25502593070,"event":"pull_request","headBranch":"main","headSha":"abc123","createdAt":"2026-05-07T14:46:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593070"},{"databaseId":25502593071,"event":"pull_request","headBranch":"feature","headSha":"def456","createdAt":"2026-05-07T14:47:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593071"}]"#,
+    )
+    .expect("source proof runs JSON should be writable");
+    let source_runs_arg = source_runs_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--source-runs-json",
+        &source_runs_arg,
+    ]);
+    assert!(
+        success,
+        "proof-run-observations-summary --source-runs-json failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("source-run collection should be valid JSON");
+    let expected_source = source_runs_path.to_string_lossy().replace('\\', "/");
+    assert_eq!(collection["window"]["source"], expected_source);
+    assert_eq!(collection["window"]["expected_runs"], 2);
+    assert_eq!(collection["window"]["observed_runs"], 1);
+    assert_eq!(collection["window"]["missing_runs"], 1);
+    assert_eq!(collection["window"]["unmatched_observations"], 0);
+    assert_eq!(
+        collection["window"]["missing"][0]["database_id"],
+        serde_json::json!(25502593071_u64)
+    );
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-observations-summary",
+        "--observations-dir",
+        &temp.path().to_string_lossy(),
+    ]);
+    assert!(
+        success,
+        "proof-run-observations-summary --observations-dir failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("directory proof-run collection should be valid JSON");
+    assert_eq!(
+        collection["schema"],
+        "tokmd.proof_run_observation_collection.v1"
+    );
+    assert_eq!(collection["counts"]["observations"], 1);
+
+    let collection_path = temp.path().join("proof-run-observation-collection.json");
+    let collection_arg = collection_path.to_string_lossy().to_string();
+    let summary_md_path = temp.path().join("proof-run-observation-collection.md");
+    let summary_md_arg = summary_md_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--output",
+        &collection_arg,
+        "--summary-md",
+        &summary_md_arg,
+    ]);
+    assert!(
+        success,
+        "proof-run-observations-summary --summary-md failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("wrote"), "stdout: {stdout}");
+    let summary_md =
+        fs::read_to_string(summary_md_path).expect("proof-run summary markdown should be written");
+    assert!(
+        summary_md.contains("# Proof Run Observation Collection"),
+        "{summary_md}"
+    );
+    assert!(
+        summary_md.contains("| Executed commands | 0 |"),
+        "{summary_md}"
+    );
 }
 
 #[test]

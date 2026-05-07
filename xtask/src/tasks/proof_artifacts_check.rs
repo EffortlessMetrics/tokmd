@@ -1,6 +1,6 @@
 use crate::cli::{
     ProofArtifactsCheckArgs, ProofExecutionObservationArgs, ProofExecutionObservationsSummaryArgs,
-    ProofRunArtifactsCheckArgs, ProofRunObservationArgs,
+    ProofRunArtifactsCheckArgs, ProofRunObservationArgs, ProofRunObservationsSummaryArgs,
 };
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
 const PROOF_RUN_SUMMARY_SCHEMA: &str = "tokmd.proof_run_summary.v1";
 const PROOF_RUN_OBSERVATION_SCHEMA: &str = "tokmd.proof_run_observation.v1";
+const PROOF_RUN_OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_run_observation_collection.v1";
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
 const PROMOTION_READINESS_SCHEMA: &str = "tokmd.proof_executor_promotion_readiness.v1";
@@ -94,6 +95,45 @@ pub fn run_proof_run_observation(args: ProofRunObservationArgs) -> Result<()> {
         observation.counts.executed,
         args.output.display()
     );
+    Ok(())
+}
+
+pub fn run_proof_run_observations_summary(args: ProofRunObservationsSummaryArgs) -> Result<()> {
+    let observations = collect_proof_run_observation_paths(&args)?;
+    let source_runs = args
+        .source_runs_json
+        .as_deref()
+        .map(read_source_runs)
+        .transpose()?;
+    let collection = proof_run_observation_collection(
+        &observations,
+        args.source_runs_json.as_deref(),
+        source_runs.as_deref(),
+    )?;
+    if let Some(summary_md) = &args.summary_md {
+        write_text(
+            summary_md,
+            &render_proof_run_observation_collection_markdown(&collection),
+        )?;
+    }
+    let json = serde_json::to_string_pretty(&collection)?;
+
+    if let Some(output) = &args.output {
+        write_text(output, &json)?;
+        let mut written = vec![format!("`{}`", output.display())];
+        if let Some(summary_md) = &args.summary_md {
+            written.push(format!("`{}`", summary_md.display()));
+        }
+        println!(
+            "Proof run observation collection OK: {} observation(s), {} scope(s), wrote {}",
+            collection.counts.observations,
+            collection.scopes.len(),
+            written.join(", ")
+        );
+    } else {
+        println!("{json}");
+    }
+
     Ok(())
 }
 
@@ -223,6 +263,82 @@ struct ProofRunObservationScope {
     command: String,
     status: String,
     exit_code: Option<i64>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationCollection {
+    schema: String,
+    ok: bool,
+    counts: ProofRunObservationCollectionCounts,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    window: Option<ProofRunObservationWindow>,
+    profiles: Vec<ProofRunObservationProfileSummary>,
+    scopes: Vec<ProofRunObservationScopeSummary>,
+    guards: Vec<ProofRunObservationGuardSummary>,
+    sources: Vec<ProofRunObservationSourceSummary>,
+}
+
+#[derive(Debug, Default, Serialize, PartialEq, Eq)]
+struct ProofRunObservationCollectionCounts {
+    observations: usize,
+    commands_total: usize,
+    required_planned: usize,
+    advisory_skipped: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+    unknown_files: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationWindow {
+    source: String,
+    expected_runs: usize,
+    observed_runs: usize,
+    missing_runs: usize,
+    unmatched_observations: usize,
+    missing: Vec<ProofExecutorSourceRun>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationProfileSummary {
+    profile: String,
+    observations: usize,
+    required_planned: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationScopeSummary {
+    name: String,
+    kind: String,
+    observations: usize,
+    executed: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationGuardSummary {
+    reason: String,
+    observations: usize,
+    ci_observations: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofRunObservationSourceSummary {
+    path: String,
+    status: String,
+    execution_status: String,
+    profile: String,
+    base: String,
+    head: String,
+    guard_reason: String,
+    commands_total: usize,
+    required_planned: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -415,9 +531,36 @@ struct ProofExecutorPromotionCollectorRun {
 }
 
 #[derive(Debug)]
+struct SourcedProofRunObservation {
+    path: PathBuf,
+    observation: ProofRunObservation,
+}
+
+#[derive(Debug)]
 struct SourcedProofExecutionObservation {
     path: PathBuf,
     observation: ProofExecutionObservation,
+}
+
+#[derive(Default)]
+struct ProofRunProfileAccumulator {
+    observations: usize,
+    required_planned: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+}
+
+#[derive(Default)]
+struct ProofRunScopeAccumulator {
+    observations: usize,
+    executed: usize,
+}
+
+#[derive(Default)]
+struct ProofRunGuardAccumulator {
+    observations: usize,
+    ci_observations: usize,
 }
 
 #[derive(Default)]
@@ -577,6 +720,158 @@ fn proof_run_observation(summary: &Value) -> Result<ProofRunObservation> {
             "proof run summary",
         )?,
     })
+}
+
+fn proof_run_observation_collection(
+    paths: &[PathBuf],
+    source_runs_path: Option<&Path>,
+    source_runs: Option<&[ProofExecutorSourceRun]>,
+) -> Result<ProofRunObservationCollection> {
+    if paths.is_empty() {
+        bail!("at least one --observation path is required");
+    }
+
+    let observations = paths
+        .iter()
+        .map(|path| read_sourced_proof_run_observation(path))
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(summarize_proof_run_observations(
+        &observations,
+        source_runs_path,
+        source_runs,
+    ))
+}
+
+fn render_proof_run_observation_collection_markdown(
+    collection: &ProofRunObservationCollection,
+) -> String {
+    let mut out = String::new();
+    out.push_str("# Proof Run Observation Collection\n\n");
+    out.push_str("| Metric | Count |\n");
+    out.push_str("| --- | ---: |\n");
+    push_count_row(&mut out, "Observations", collection.counts.observations);
+    push_count_row(
+        &mut out,
+        "Planned commands",
+        collection.counts.commands_total,
+    );
+    push_count_row(
+        &mut out,
+        "Required commands",
+        collection.counts.required_planned,
+    );
+    push_count_row(
+        &mut out,
+        "Advisory skipped commands",
+        collection.counts.advisory_skipped,
+    );
+    push_count_row(&mut out, "Executed commands", collection.counts.executed);
+    push_count_row(&mut out, "Passed commands", collection.counts.passed);
+    push_count_row(&mut out, "Failed commands", collection.counts.failed);
+    push_count_row(&mut out, "Unknown files", collection.counts.unknown_files);
+    push_count_row(&mut out, "Distinct scopes", collection.scopes.len());
+
+    if let Some(window) = &collection.window {
+        out.push_str("\n## Observation Window\n\n");
+        out.push_str(&format!("Source: `{}`\n\n", md_cell(&window.source)));
+        out.push_str("| Metric | Count |\n");
+        out.push_str("| --- | ---: |\n");
+        push_count_row(
+            &mut out,
+            "Expected successful proof runs",
+            window.expected_runs,
+        );
+        push_count_row(
+            &mut out,
+            "Observed runs with artifacts",
+            window.observed_runs,
+        );
+        push_count_row(&mut out, "Missing runs", window.missing_runs);
+        push_count_row(
+            &mut out,
+            "Unmatched observation artifacts",
+            window.unmatched_observations,
+        );
+
+        if !window.missing.is_empty() {
+            out.push_str("\n| Missing run | Branch | Created | URL |\n");
+            out.push_str("| ---: | --- | --- | --- |\n");
+            for run in &window.missing {
+                out.push_str(&format!(
+                    "| {} | `{}` | `{}` | {} |\n",
+                    run.database_id,
+                    md_cell(run.head_branch.as_deref().unwrap_or("")),
+                    md_cell(run.created_at.as_deref().unwrap_or("")),
+                    md_cell(run.url.as_deref().unwrap_or(""))
+                ));
+            }
+        }
+    }
+
+    if !collection.profiles.is_empty() {
+        out.push_str("\n## Profiles\n\n");
+        out.push_str("| Profile | Observations | Required | Executed | Passed | Failed |\n");
+        out.push_str("| --- | ---: | ---: | ---: | ---: | ---: |\n");
+        for profile in &collection.profiles {
+            out.push_str(&format!(
+                "| `{}` | {} | {} | {} | {} | {} |\n",
+                md_cell(&profile.profile),
+                profile.observations,
+                profile.required_planned,
+                profile.executed,
+                profile.passed,
+                profile.failed
+            ));
+        }
+    }
+
+    if !collection.scopes.is_empty() {
+        out.push_str("\n## Scopes\n\n");
+        out.push_str("| Scope | Kind | Observations | Executed |\n");
+        out.push_str("| --- | --- | ---: | ---: |\n");
+        for scope in &collection.scopes {
+            out.push_str(&format!(
+                "| `{}` | `{}` | {} | {} |\n",
+                md_cell(&scope.name),
+                md_cell(&scope.kind),
+                scope.observations,
+                scope.executed
+            ));
+        }
+    }
+
+    if !collection.guards.is_empty() {
+        out.push_str("\n## Guards\n\n");
+        out.push_str("| Reason | Observations | CI observations |\n");
+        out.push_str("| --- | ---: | ---: |\n");
+        for guard in &collection.guards {
+            out.push_str(&format!(
+                "| `{}` | {} | {} |\n",
+                md_cell(&guard.reason),
+                guard.observations,
+                guard.ci_observations
+            ));
+        }
+    }
+
+    if !collection.sources.is_empty() {
+        out.push_str("\n## Sources\n\n");
+        out.push_str("| Source | Profile | Executed | Passed | Guard |\n");
+        out.push_str("| --- | --- | ---: | ---: | --- |\n");
+        for source in &collection.sources {
+            out.push_str(&format!(
+                "| `{}` | `{}` | {} | {} | `{}` |\n",
+                md_cell(&source.path),
+                md_cell(&source.profile),
+                source.executed,
+                source.passed,
+                md_cell(&source.guard_reason)
+            ));
+        }
+    }
+
+    out
 }
 
 #[cfg(test)]
@@ -974,6 +1269,61 @@ fn collect_observation_paths_from_dir(dir: &Path, paths: &mut BTreeSet<PathBuf>)
     Ok(())
 }
 
+fn collect_proof_run_observation_paths(
+    args: &ProofRunObservationsSummaryArgs,
+) -> Result<Vec<PathBuf>> {
+    let mut paths = BTreeSet::new();
+
+    if args.observations.is_empty() && args.observation_dirs.is_empty() {
+        paths.insert(PathBuf::from("target/proof-run/proof-run-observation.json"));
+    }
+
+    paths.extend(args.observations.iter().cloned());
+    for dir in &args.observation_dirs {
+        collect_proof_run_observation_paths_from_dir(dir, &mut paths)?;
+    }
+
+    if paths.is_empty() {
+        bail!("no proof run observation artifacts found");
+    }
+
+    Ok(paths.into_iter().collect())
+}
+
+fn collect_proof_run_observation_paths_from_dir(
+    dir: &Path,
+    paths: &mut BTreeSet<PathBuf>,
+) -> Result<()> {
+    if !dir.is_dir() {
+        bail!(
+            "observation directory `{}` is not a directory",
+            dir.display()
+        );
+    }
+
+    for entry in WalkDir::new(dir) {
+        let entry = entry
+            .with_context(|| format!("failed to scan observation directory `{}`", dir.display()))?;
+        if entry.file_type().is_file()
+            && entry.file_name().to_string_lossy() == "proof-run-observation.json"
+        {
+            paths.insert(entry.path().to_path_buf());
+        }
+    }
+
+    Ok(())
+}
+
+fn read_sourced_proof_run_observation(path: &Path) -> Result<SourcedProofRunObservation> {
+    let value = read_json(path, "proof run observation")?;
+    let observation = read_proof_run_observation_value(&value)
+        .with_context(|| format!("invalid proof run observation `{}`", path.display()))?;
+    Ok(SourcedProofRunObservation {
+        path: path.to_path_buf(),
+        observation,
+    })
+}
+
 fn read_sourced_observation(path: &Path) -> Result<SourcedProofExecutionObservation> {
     let value = read_json(path, "proof executor observation")?;
     let observation = read_observation_value(&value)
@@ -1054,6 +1404,104 @@ fn proof_executor_promotion_readiness(
         },
         collector_runs,
     })
+}
+
+fn read_proof_run_observation_value(value: &Value) -> Result<ProofRunObservation> {
+    let observation: ProofRunObservation =
+        serde_json::from_value(value.clone()).context("proof run observation shape is invalid")?;
+    validate_proof_run_observation(&observation)?;
+    Ok(observation)
+}
+
+fn validate_proof_run_observation(observation: &ProofRunObservation) -> Result<()> {
+    if observation.schema != PROOF_RUN_OBSERVATION_SCHEMA {
+        bail!(
+            "proof run observation schema must be `{PROOF_RUN_OBSERVATION_SCHEMA}`, got `{}`",
+            observation.schema
+        );
+    }
+    if observation.status != "passed" {
+        bail!(
+            "proof run observation status must be `passed`, got `{}`",
+            observation.status
+        );
+    }
+    if observation.execution_status != "executed" {
+        bail!(
+            "proof run observation execution_status must be `executed`, got `{}`",
+            observation.execution_status
+        );
+    }
+    if !observation.ok {
+        bail!("proof run observation must have ok=true");
+    }
+    if !observation.execution_guard.enabled {
+        bail!("proof run observation guard must be enabled");
+    }
+    let planned_total = observation
+        .counts
+        .required_planned
+        .checked_add(observation.counts.advisory_skipped)
+        .context("proof run observation command count overflow")?;
+    if observation.counts.commands_total != planned_total {
+        bail!(
+            "proof run observation command count drift: {} total != {} required + {} advisory",
+            observation.counts.commands_total,
+            observation.counts.required_planned,
+            observation.counts.advisory_skipped
+        );
+    }
+    if observation.counts.failed != 0 {
+        bail!(
+            "proof run observation reports {} failed command(s)",
+            observation.counts.failed
+        );
+    }
+    if observation.counts.required_planned != observation.counts.executed {
+        bail!(
+            "proof run observation required/executed drift: {} required != {} executed",
+            observation.counts.required_planned,
+            observation.counts.executed
+        );
+    }
+    if observation.counts.executed != observation.counts.passed {
+        bail!(
+            "proof run observation executed/passed drift: {} executed != {} passed",
+            observation.counts.executed,
+            observation.counts.passed
+        );
+    }
+    if observation.scopes.len() != observation.counts.required_planned {
+        bail!(
+            "proof run observation has {} scope row(s) for {} required command(s)",
+            observation.scopes.len(),
+            observation.counts.required_planned
+        );
+    }
+    if !observation.unknown_files.is_empty() {
+        bail!(
+            "proof run observation reports {} unknown file(s)",
+            observation.unknown_files.len()
+        );
+    }
+    for scope in &observation.scopes {
+        if scope.status != "passed" {
+            bail!(
+                "proof run observation scope `{}` status must be `passed`, got `{}`",
+                scope.name,
+                scope.status
+            );
+        }
+        if scope.exit_code != Some(0) {
+            bail!(
+                "proof run observation scope `{}` exit_code must be 0, got {:?}",
+                scope.name,
+                scope.exit_code
+            );
+        }
+    }
+
+    Ok(())
 }
 
 fn read_observation_value(value: &Value) -> Result<ProofExecutionObservation> {
@@ -1154,6 +1602,145 @@ fn validate_observation(observation: &ProofExecutionObservation) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn summarize_proof_run_observations(
+    observations: &[SourcedProofRunObservation],
+    source_runs_path: Option<&Path>,
+    source_runs: Option<&[ProofExecutorSourceRun]>,
+) -> ProofRunObservationCollection {
+    let mut counts = ProofRunObservationCollectionCounts {
+        observations: observations.len(),
+        ..ProofRunObservationCollectionCounts::default()
+    };
+    let mut profiles = BTreeMap::<String, ProofRunProfileAccumulator>::new();
+    let mut scopes = BTreeMap::<(String, String), ProofRunScopeAccumulator>::new();
+    let mut guards = BTreeMap::<String, ProofRunGuardAccumulator>::new();
+    let mut sources = Vec::new();
+
+    for sourced in observations {
+        let observation = &sourced.observation;
+        counts.commands_total += observation.counts.commands_total;
+        counts.required_planned += observation.counts.required_planned;
+        counts.advisory_skipped += observation.counts.advisory_skipped;
+        counts.executed += observation.counts.executed;
+        counts.passed += observation.counts.passed;
+        counts.failed += observation.counts.failed;
+        counts.unknown_files += observation.unknown_files.len();
+
+        let profile = profiles.entry(observation.profile.clone()).or_default();
+        profile.observations += 1;
+        profile.required_planned += observation.counts.required_planned;
+        profile.executed += observation.counts.executed;
+        profile.passed += observation.counts.passed;
+        profile.failed += observation.counts.failed;
+
+        let guard = guards
+            .entry(observation.execution_guard.reason.clone())
+            .or_default();
+        guard.observations += 1;
+        if observation.execution_guard.ci {
+            guard.ci_observations += 1;
+        }
+
+        for scope in &observation.scopes {
+            let key = (scope.name.clone(), scope.kind.clone());
+            let entry = scopes.entry(key).or_default();
+            entry.observations += 1;
+            entry.executed += 1;
+        }
+
+        sources.push(ProofRunObservationSourceSummary {
+            path: normalize_path(&sourced.path),
+            status: observation.status.clone(),
+            execution_status: observation.execution_status.clone(),
+            profile: observation.profile.clone(),
+            base: observation.base.clone(),
+            head: observation.head.clone(),
+            guard_reason: observation.execution_guard.reason.clone(),
+            commands_total: observation.counts.commands_total,
+            required_planned: observation.counts.required_planned,
+            executed: observation.counts.executed,
+            passed: observation.counts.passed,
+            failed: observation.counts.failed,
+        });
+    }
+
+    sources.sort_by(|left, right| left.path.cmp(&right.path));
+
+    ProofRunObservationCollection {
+        schema: PROOF_RUN_OBSERVATION_COLLECTION_SCHEMA.to_string(),
+        ok: true,
+        counts,
+        window: source_runs
+            .zip(source_runs_path)
+            .map(|(runs, path)| proof_run_observation_window(path, runs, observations)),
+        profiles: profiles
+            .into_iter()
+            .map(|(profile, entry)| ProofRunObservationProfileSummary {
+                profile,
+                observations: entry.observations,
+                required_planned: entry.required_planned,
+                executed: entry.executed,
+                passed: entry.passed,
+                failed: entry.failed,
+            })
+            .collect(),
+        scopes: scopes
+            .into_iter()
+            .map(|((name, kind), entry)| ProofRunObservationScopeSummary {
+                name,
+                kind,
+                observations: entry.observations,
+                executed: entry.executed,
+            })
+            .collect(),
+        guards: guards
+            .into_iter()
+            .map(|(reason, entry)| ProofRunObservationGuardSummary {
+                reason,
+                observations: entry.observations,
+                ci_observations: entry.ci_observations,
+            })
+            .collect(),
+        sources,
+    }
+}
+
+fn proof_run_observation_window(
+    source_runs_path: &Path,
+    source_runs: &[ProofExecutorSourceRun],
+    observations: &[SourcedProofRunObservation],
+) -> ProofRunObservationWindow {
+    let mut observed = BTreeSet::new();
+    let mut unmatched_observations = 0;
+
+    for sourced in observations {
+        if let Some(run_id) = source_runs
+            .iter()
+            .map(|run| run.database_id)
+            .find(|run_id| path_contains_component(&sourced.path, &run_id.to_string()))
+        {
+            observed.insert(run_id);
+        } else {
+            unmatched_observations += 1;
+        }
+    }
+
+    let missing = source_runs
+        .iter()
+        .filter(|run| !observed.contains(&run.database_id))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    ProofRunObservationWindow {
+        source: normalize_path(source_runs_path),
+        expected_runs: source_runs.len(),
+        observed_runs: observed.len(),
+        missing_runs: missing.len(),
+        unmatched_observations,
+        missing,
+    }
 }
 
 fn summarize_observations(
@@ -2593,6 +3180,170 @@ mod tests {
     }
 
     #[test]
+    fn summarizes_successful_proof_run_observations_by_profile_scope_and_guard() {
+        let first = proof_run_observation(&proof_run_summary()).unwrap();
+        let mut second = first.clone();
+        second.profile = "fast".to_string();
+        second.execution_guard.ci = true;
+        second.execution_guard.reason = "ci_explicit_required_opt_in_enabled".to_string();
+        second.scopes[0].name = "tokmd_gate".to_string();
+        second.changed_files = vec!["crates/tokmd-gate/src/lib.rs".to_string()];
+
+        let collection = summarize_proof_run_observations(
+            &[
+                proof_run_sourced("target/proof-run/run-b/proof-run-observation.json", second),
+                proof_run_sourced("target/proof-run/run-a/proof-run-observation.json", first),
+            ],
+            None,
+            None,
+        );
+
+        assert_eq!(collection.schema, PROOF_RUN_OBSERVATION_COLLECTION_SCHEMA);
+        assert!(collection.ok);
+        assert_eq!(
+            collection.counts,
+            ProofRunObservationCollectionCounts {
+                observations: 2,
+                commands_total: 4,
+                required_planned: 2,
+                advisory_skipped: 2,
+                executed: 2,
+                passed: 2,
+                failed: 0,
+                unknown_files: 0,
+            }
+        );
+        assert_eq!(
+            collection
+                .profiles
+                .iter()
+                .map(|profile| profile.profile.as_str())
+                .collect::<Vec<_>>(),
+            ["affected", "fast"]
+        );
+        assert_eq!(
+            collection
+                .scopes
+                .iter()
+                .map(|scope| scope.name.as_str())
+                .collect::<Vec<_>>(),
+            ["tokmd_core_ffi", "tokmd_gate"]
+        );
+        assert_eq!(
+            collection
+                .guards
+                .iter()
+                .map(|guard| (
+                    guard.reason.as_str(),
+                    guard.observations,
+                    guard.ci_observations
+                ))
+                .collect::<Vec<_>>(),
+            [
+                ("ci_explicit_required_opt_in_enabled", 1, 1),
+                ("local_explicit_required_opt_in_enabled", 1, 0),
+            ]
+        );
+        assert_eq!(
+            collection
+                .sources
+                .iter()
+                .map(|source| source.path.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "target/proof-run/run-a/proof-run-observation.json",
+                "target/proof-run/run-b/proof-run-observation.json",
+            ]
+        );
+    }
+
+    #[test]
+    fn summarizes_proof_run_observation_window_against_source_runs() {
+        let first = proof_run_observation(&proof_run_summary()).unwrap();
+        let mut second = first.clone();
+        second.scopes[0].name = "tokmd_gate".to_string();
+
+        let source_runs_path = Path::new("target/proof-run-observations/runs.json");
+        let source_runs = [source_run(111), source_run(222)];
+        let collection = summarize_proof_run_observations(
+            &[
+                proof_run_sourced(
+                    "target/proof-run-observations/runs/111/proof-run-observation.json",
+                    first,
+                ),
+                proof_run_sourced(
+                    "target/proof-run-observations/runs/unmatched/proof-run-observation.json",
+                    second,
+                ),
+            ],
+            Some(source_runs_path),
+            Some(&source_runs),
+        );
+
+        let window = collection.window.expect("source runs should add a window");
+        assert_eq!(window.source, "target/proof-run-observations/runs.json");
+        assert_eq!(window.expected_runs, 2);
+        assert_eq!(window.observed_runs, 1);
+        assert_eq!(window.missing_runs, 1);
+        assert_eq!(window.unmatched_observations, 1);
+        assert_eq!(window.missing.len(), 1);
+        assert_eq!(window.missing[0].database_id, 222);
+    }
+
+    #[test]
+    fn renders_proof_run_observation_collection_markdown_summary() {
+        let observation = proof_run_observation(&proof_run_summary()).unwrap();
+        let source_runs_path = Path::new("target/proof-run-observations/runs.json");
+        let source_runs = [source_run(111), source_run(222)];
+        let collection = summarize_proof_run_observations(
+            &[proof_run_sourced(
+                "target/proof-run-observations/runs/111/proof-run-observation.json",
+                observation,
+            )],
+            Some(source_runs_path),
+            Some(&source_runs),
+        );
+
+        let markdown = render_proof_run_observation_collection_markdown(&collection);
+
+        assert!(markdown.contains("# Proof Run Observation Collection"));
+        assert!(markdown.contains("| Observations | 1 |"));
+        assert!(markdown.contains("| Required commands | 1 |"));
+        assert!(markdown.contains("| Distinct scopes | 1 |"));
+        assert!(markdown.contains("## Observation Window"));
+        assert!(markdown.contains("| Expected successful proof runs | 2 |"));
+        assert!(markdown.contains("| Observed runs with artifacts | 1 |"));
+        assert!(markdown.contains("| `affected` | 1 | 1 | 1 | 1 | 0 |"));
+        assert!(markdown.contains("| `tokmd_core_ffi` | `proof` | 1 | 1 |"));
+    }
+
+    #[test]
+    fn rejects_failed_proof_run_observation_for_collection() {
+        let mut observation = proof_run_observation(&proof_run_summary()).unwrap();
+        observation.status = "failed".to_string();
+
+        let value = serde_json::to_value(observation).unwrap();
+        let error = read_proof_run_observation_value(&value)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("status must be `passed`"));
+    }
+
+    #[test]
+    fn rejects_proof_run_observation_count_drift_for_collection() {
+        let mut observation = proof_run_observation(&proof_run_summary()).unwrap();
+        observation.counts.executed = 0;
+
+        let value = serde_json::to_value(observation).unwrap();
+        let error = read_proof_run_observation_value(&value)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("required/executed drift"));
+    }
+
+    #[test]
     fn accepts_zero_command_required_proof_run_summary() {
         let mut summary = proof_run_summary();
         summary["counts"]["commands_total"] = json!(0);
@@ -2726,6 +3477,16 @@ mod tests {
         observation: ProofExecutionObservation,
     ) -> SourcedProofExecutionObservation {
         SourcedProofExecutionObservation {
+            path: PathBuf::from(path),
+            observation,
+        }
+    }
+
+    fn proof_run_sourced(
+        path: &str,
+        observation: ProofRunObservation,
+    ) -> SourcedProofRunObservation {
+        SourcedProofRunObservation {
             path: PathBuf::from(path),
             observation,
         }
