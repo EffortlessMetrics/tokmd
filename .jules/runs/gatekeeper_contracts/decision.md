@@ -1,26 +1,21 @@
 # Investigation
 
-Looked at test outputs and specifically saw a failure when checking deterministic properties of `proof.toml` policy schema check:
-`thread 'proof_policy_json_reports_current_schema' panicked at xtask/tests/proof_policy_w90.rs:191:5: assertion left == right failed` where `left: Number(40)` but right was 38.
+The work was initially to fix an outdated test assertion in `proof_policy_w90.rs` that was checking for 38 scopes instead of 40. The original PR was submitted, but a reviewer noted:
 
-This means that while the `ci/proof.toml` had 40 scopes, the test `proof_policy_json_reports_current_schema` was incorrectly hardcoded to expect 38, causing a regression test failure.
-There were also `cargo xtask check-no-panic-family` and other checks run to ensure determinism properties remain true.
+"Superseded by #1722, which removed the brittle exact proof-policy scope-count assertion on current main. This draft branch is also stale/dirty, still hard-codes `scope_count` to 40 while current `cargo xtask proof-policy --check` reports 42 scopes, and carries unrelated generated/provenance churn plus a stale `plan.md` deletion."
 
 # Options considered
 
 ### Option A (recommended)
-Update the test assertion in `xtask/tests/proof_policy_w90.rs` to correctly match the schema drift and pass the deterministic test for `proof.toml`.
+Acknowledge the instruction to stop work, abort the redundant fix gracefully, clear the patch, and produce a learning PR documenting the workflow collision.
 
-- fits this repo and shard: This test specifically verifies the structure and correctness of the tooling's output for proof policy.
-- trade-offs:
-    - Structure: Fixes factual test assertion mismatch without changing runtime logic.
-    - Velocity: Very fast fix.
-    - Governance: Restores green tests for deterministic schema validation.
+- fits this repo and shard: Directly handles PR comment feedback per protocol without forcing useless fixes.
+- trade-offs: None. Abides by the maintainer's directive.
 
 ### Option B
-Ignore it or delete the assertion.
+Ignore it and close PR.
 
-- trade-offs: This weakens the testing surface, increasing the risk of future untested drift.
+- trade-offs: Fails to preserve learning.
 
 # Decision
-Option A. Updated the test to expect the correct scope count (40) from the updated `ci/proof.toml`.
+Option A. The fix was superseded by a better architectural fix (#1722). Documenting this as a learning PR instead.

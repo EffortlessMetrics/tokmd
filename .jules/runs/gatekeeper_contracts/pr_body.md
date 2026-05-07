@@ -1,48 +1,41 @@
 ## 💡 Summary
-Fixed an outdated test assertion in `proof_policy_w90.rs` that was expecting 38 scopes instead of the actual 40 found in `ci/proof.toml`.
+This is a learning PR. The initial patch attempted to fix an exact scope-count assertion drift in `proof_policy_w90.rs` by bumping the hardcoded value from 38 to 40. This fix was aborted because it was superseded by #1722, which correctly removed the brittle exact assertion entirely.
 
 ## 🎯 Why
-The `proof_policy_json_reports_current_schema` test in `xtask` was failing due to a factual drift between the actual proof policy schema scope count (40) and the hardcoded assertion in the test (38).
+A maintainer commented that the fix was superseded by #1722 and the branch was stale/dirty. To comply with the "Learning PR rule" for workflow collisions, I have dropped the redundant code patch, cleaned the git state, and converted this branch to a learning PR that documents the outcome.
 
 ## 🔎 Evidence
-- `cargo test -p xtask` output:
-```text
-thread 'proof_policy_json_reports_current_schema' panicked at xtask/tests/proof_policy_w90.rs:191:5:
-assertion `left == right` failed
-  left: Number(40)
- right: 38
-```
+- Reviewer comment: "Superseded by #1722, which removed the brittle exact proof-policy scope-count assertion on current main."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update the assertion in `xtask/tests/proof_policy_w90.rs` to match the actual number of scopes (40).
-- Why it fits: Matches the explicit instruction to lock in deterministic behavior and protect contract-bearing tests.
-- Trade-offs: Structure (Aligns test with config) / Velocity (Fast fix) / Governance (Restores green deterministic schema validations).
+- Drop the code patch and convert to a learning PR.
+- Why it fits: Gracefully handles superseded work without forcing a useless fix. Preserves context for future LLMs or tools.
+- Trade-offs: Structure (Follows guidelines for learning PRs) / Velocity (Clears the review queue fast).
 
 ### Option B
-- Ignore the failure or delete the assertion.
-- When to choose it instead: Never, as it weakens test assertions and deterministic guarantees.
-- Trade-offs: Degrades coverage.
+- Ignore the comment.
+- When to choose it instead: Never.
+- Trade-offs: Blocks the review queue with rejected work.
 
 ## ✅ Decision
-Option A. I aligned the expected scope count in the test assertion with the actual counts in the policy file.
+Option A. The initial patch was dropped because #1722 provided a better structural fix. This PR now just logs the learning.
 
 ## 🧱 Changes made (SRP)
-- `xtask/tests/proof_policy_w90.rs`: Updated `assert_eq!(value["scope_count"], 38);` to `assert_eq!(value["scope_count"], 40);`.
+- `.jules/friction/open/proof_policy_assertion_brittle.md`: Created a friction item documenting the workflow collision.
+- `.jules/runs/gatekeeper_contracts/*`: Updated the run packet to reflect a learning PR outcome.
 
 ## 🧪 Verification receipts
 ```text
-{"cmd": "cargo test -p xtask --test proof_policy_w90", "status": "success", "summary": "Verified the test now passes."}
-{"cmd": "cargo xtask docs --check", "status": "success", "summary": "Documentation up to date."}
-{"cmd": "cargo xtask check-no-panic-family", "status": "success", "summary": "Checked no-panic family passes."}
+{"cmd": "git reset --hard HEAD~1", "status": "success", "summary": "Aborted the redundant patch."}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test fix
-- Blast radius: None (Test-only change)
-- Risk class: Low (Fixes broken tests)
-- Rollback: Revert the commit.
-- Gates run: `cargo test -p xtask`, `cargo xtask docs --check`, `cargo xtask check-no-panic-family`.
+- Change shape: Learning PR
+- Blast radius: None (Documentation only)
+- Risk class: Low
+- Rollback: Revert the PR.
+- Gates run: None.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -50,6 +43,7 @@ Option A. I aligned the expected scope count in the test assertion with the actu
 - `.jules/runs/gatekeeper_contracts/receipts.jsonl`
 - `.jules/runs/gatekeeper_contracts/result.json`
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
+- `.jules/friction/open/proof_policy_assertion_brittle.md`
 
 ## 🔜 Follow-ups
 None.

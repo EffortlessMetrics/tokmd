@@ -16,8 +16,6 @@
   ],
   "gate_profile": "contracts-determinism",
   "allowed_outcomes": [
-    "patch",
-    "proof_patch",
     "learning_pr"
   ]
 }

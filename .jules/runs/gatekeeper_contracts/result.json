@@ -1,14 +1,9 @@
 {
-  "outcome": "patch",
-  "reviewer_title": "gatekeeper: fix proof policy scope count assertion drift ✅",
-  "summary": "Fixed a hardcoded assertion in `xtask/tests/proof_policy_w90.rs` that was checking for 38 scopes instead of 40, matching the actual `ci/proof.toml`.",
+  "outcome": "learning_pr",
+  "reviewer_title": "jules: record gatekeeper learning on proof policy assertion ✅",
+  "summary": "This run initially attempted to fix a scope count assertion drift in proof_policy_w90.rs, but was superseded by PR #1722 which removed the brittle exact assertion entirely.",
   "target_paths": [
-    "xtask/tests/proof_policy_w90.rs"
+    ".jules/friction/open/proof_policy_assertion_brittle.md"
   ],
-  "gates_run": [
-    "cargo test -p xtask",
-    "cargo xtask proof-policy --check",
-    "cargo xtask docs --check",
-    "cargo xtask check-no-panic-family"
-  ]
+  "gates_run": []
 }
