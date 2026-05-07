@@ -264,6 +264,11 @@ pub struct CiPlanArgs {
     /// ceiling and no override label is present
     #[arg(long)]
     pub enforce: bool,
+
+    /// Optional directory of past `ci-actuals.json` files used to compute
+    /// learned p50/p90/p95 estimates. When absent, static `base_lem` is used.
+    #[arg(long, value_name = "DIR")]
+    pub actuals_dir: Option<std::path::PathBuf>,
 }
 
 impl Default for CiPlanArgs {
@@ -277,6 +282,7 @@ impl Default for CiPlanArgs {
             json_out: None,
             github_summary: None,
             enforce: false,
+            actuals_dir: None,
         }
     }
 }
