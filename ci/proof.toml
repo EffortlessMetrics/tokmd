@@ -71,7 +71,7 @@ paths = [
   "docs/ci/coverage.md",
   "docs/agent-context/review-invariants.md",
   "docs/agent-context/droid-smoke-tests.md",
-  "agents/shared/droid-migration.md",
+  "agents/shared/**",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
   "xtask/src/proof/**",
