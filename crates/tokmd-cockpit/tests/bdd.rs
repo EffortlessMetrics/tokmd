@@ -781,6 +781,24 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
     assert_eq!(manifest["generated_by"]["mode"], "cockpit");
     assert_eq!(manifest["verdict"]["blocking"].as_bool(), Some(false));
+    assert_eq!(
+        manifest["verdict"]["evidence"]["details"],
+        "evidence.json#/gates"
+    );
+    assert_eq!(manifest["verdict"]["evidence"]["total_gates"], 6);
+    assert_eq!(manifest["verdict"]["evidence"]["available"], 1);
+    assert_eq!(manifest["verdict"]["evidence"]["unavailable"], 5);
+    assert_eq!(
+        manifest["capabilities"]["evidence"]["available"][0],
+        "mutation"
+    );
+    assert!(
+        manifest["capabilities"]["evidence"]["unavailable"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|gate| gate == "diff_coverage")
+    );
     assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 5);
     assert_eq!(manifest["artifacts"][0]["path"], "cockpit.json");
     assert_eq!(manifest["artifacts"][0]["hash"]["algo"], "blake3");

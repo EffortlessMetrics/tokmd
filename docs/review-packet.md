@@ -63,12 +63,17 @@ The review packet directory is:
 
 Packet consumers must not treat unavailable evidence as passing evidence.
 
-Recommended evidence status values:
+`evidence.json` records the existing cockpit gate status (`pass`, `fail`,
+`warn`, `skipped`, or `pending`) plus a separate availability value. Optional
+gates that are not present in the cockpit receipt are represented with
+`status: "unavailable"` and `availability: "unavailable"` so consumers cannot
+mistake absent evidence for a passing gate.
 
-| Status | Meaning |
+Recommended evidence availability values:
+
+| Availability | Meaning |
 | --- | --- |
-| `passed` | Evidence ran for the requested commit/scope and met the configured policy. |
-| `failed` | Evidence ran and violated the configured policy. |
+| `available` | Evidence ran for the requested commit/scope and can be interpreted with the gate status. |
 | `missing` | Evidence was expected but no usable result was found. |
 | `skipped` | Evidence was intentionally not requested for this run. |
 | `stale` | Evidence exists but does not match the requested commit or scope. |
@@ -88,7 +93,10 @@ Missing, stale, degraded, and unavailable evidence should be visible in
 - `base_ref` and `head_ref`
 - `artifacts` with `id`, `path`, `schema`, `media_type`, and `hash`
 - `verdict` with `status`, `blocking`, and `reason`
-- `capabilities` or links to capability details when checks are unavailable
+- `verdict.evidence` with counts by evidence availability and a link to
+  `evidence.json#/gates`
+- `capabilities.evidence` with gate ids grouped by availability and a link to
+  `evidence.json#/gates`
 
 Artifact paths in the manifest are relative to the packet directory. Hashes use
 the repo-standard BLAKE3 digest and are computed from the final bytes written
@@ -154,6 +162,8 @@ that uses this packet.
 - `tokmd cockpit --review-packet-dir <dir>` can emit packet artifacts without
   changing default stdout.
 - `manifest.json` hashes every artifact it lists.
+- `manifest.json` summarizes evidence availability and links to
+  `evidence.json#/gates`.
 - `cockpit.json` remains a valid cockpit receipt with the current cockpit schema.
 - `evidence.json` records unavailable and degraded evidence explicitly.
 - `comment.md` remains concise enough for PR comments.

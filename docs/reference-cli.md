@@ -1260,7 +1260,7 @@ Options:
           Write cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) to directory
 
       --review-packet-dir <DIR>
-          Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `comment.md`) to directory
+          Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `review-map.json`, `review-map.md`, `comment.md`) to directory
 
       --baseline <PATH>
           Path to baseline receipt for trend comparison.

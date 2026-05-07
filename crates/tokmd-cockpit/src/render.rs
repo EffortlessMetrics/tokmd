@@ -655,6 +655,9 @@ fn review_packet_manifest(
     review_map_md: &str,
     comment_md: &str,
 ) -> Value {
+    let evidence_summary = review_packet_evidence_summary(receipt);
+    let evidence_capabilities = review_packet_evidence_capabilities(receipt);
+
     json!({
         "schema": "tokmd.review_packet_manifest.v1",
         "generated_by": {
@@ -670,6 +673,10 @@ fn review_packet_manifest(
             "status": receipt.evidence.overall_status,
             "blocking": false,
             "reason": "cockpit review packets are advisory by default",
+            "evidence": evidence_summary,
+        },
+        "capabilities": {
+            "evidence": evidence_capabilities,
         },
         "artifacts": [
             review_packet_artifact(
@@ -731,35 +738,113 @@ fn review_packet_artifact(
 }
 
 fn review_packet_evidence(receipt: &CockpitReceipt) -> Value {
+    let gates: Vec<_> = review_packet_evidence_gate_specs(receipt)
+        .into_iter()
+        .map(|(id, meta)| evidence_gate(id, meta))
+        .collect();
+
     json!({
         "schema": "tokmd.review_packet_evidence.v1",
         "overall_status": receipt.evidence.overall_status,
         "base_ref": receipt.base_ref,
         "head_ref": receipt.head_ref,
-        "gates": [
-            evidence_gate("mutation", Some(&receipt.evidence.mutation.meta)),
-            evidence_gate(
-                "diff_coverage",
-                receipt.evidence.diff_coverage.as_ref().map(|gate| &gate.meta),
-            ),
-            evidence_gate(
-                "contracts",
-                receipt.evidence.contracts.as_ref().map(|gate| &gate.meta),
-            ),
-            evidence_gate(
-                "supply_chain",
-                receipt.evidence.supply_chain.as_ref().map(|gate| &gate.meta),
-            ),
-            evidence_gate(
-                "determinism",
-                receipt.evidence.determinism.as_ref().map(|gate| &gate.meta),
-            ),
-            evidence_gate(
-                "complexity",
-                receipt.evidence.complexity.as_ref().map(|gate| &gate.meta),
-            ),
-        ],
+        "gates": gates,
     })
+}
+
+fn review_packet_evidence_summary(receipt: &CockpitReceipt) -> Value {
+    let mut available = 0;
+    let mut degraded = 0;
+    let mut stale = 0;
+    let mut skipped = 0;
+    let mut unavailable = 0;
+
+    for (_, meta) in review_packet_evidence_gate_specs(receipt) {
+        match evidence_availability_optional(meta) {
+            "available" => available += 1,
+            "degraded" => degraded += 1,
+            "stale" => stale += 1,
+            "skipped" => skipped += 1,
+            "unavailable" => unavailable += 1,
+            _ => {}
+        }
+    }
+
+    json!({
+        "details": "evidence.json#/gates",
+        "total_gates": available + degraded + stale + skipped + unavailable,
+        "available": available,
+        "degraded": degraded,
+        "stale": stale,
+        "skipped": skipped,
+        "unavailable": unavailable,
+        "missing": 0,
+    })
+}
+
+fn review_packet_evidence_capabilities(receipt: &CockpitReceipt) -> Value {
+    let mut available = Vec::new();
+    let mut degraded = Vec::new();
+    let mut stale = Vec::new();
+    let mut skipped = Vec::new();
+    let mut unavailable = Vec::new();
+
+    for (id, meta) in review_packet_evidence_gate_specs(receipt) {
+        match evidence_availability_optional(meta) {
+            "available" => available.push(id),
+            "degraded" => degraded.push(id),
+            "stale" => stale.push(id),
+            "skipped" => skipped.push(id),
+            "unavailable" => unavailable.push(id),
+            _ => {}
+        }
+    }
+
+    json!({
+        "details": "evidence.json#/gates",
+        "available": available,
+        "degraded": degraded,
+        "stale": stale,
+        "skipped": skipped,
+        "unavailable": unavailable,
+        "missing": Vec::<&str>::new(),
+    })
+}
+
+fn review_packet_evidence_gate_specs(
+    receipt: &CockpitReceipt,
+) -> [(&'static str, Option<&GateMeta>); 6] {
+    [
+        ("mutation", Some(&receipt.evidence.mutation.meta)),
+        (
+            "diff_coverage",
+            receipt
+                .evidence
+                .diff_coverage
+                .as_ref()
+                .map(|gate| &gate.meta),
+        ),
+        (
+            "contracts",
+            receipt.evidence.contracts.as_ref().map(|gate| &gate.meta),
+        ),
+        (
+            "supply_chain",
+            receipt
+                .evidence
+                .supply_chain
+                .as_ref()
+                .map(|gate| &gate.meta),
+        ),
+        (
+            "determinism",
+            receipt.evidence.determinism.as_ref().map(|gate| &gate.meta),
+        ),
+        (
+            "complexity",
+            receipt.evidence.complexity.as_ref().map(|gate| &gate.meta),
+        ),
+    ]
 }
 
 fn review_packet_review_map(receipt: &CockpitReceipt) -> Value {
@@ -900,6 +985,13 @@ fn evidence_availability(meta: &GateMeta) -> &'static str {
         CommitMatch::Exact => "available",
         CommitMatch::Partial | CommitMatch::Unknown => "degraded",
         CommitMatch::Stale => "stale",
+    }
+}
+
+fn evidence_availability_optional(meta: Option<&GateMeta>) -> &'static str {
+    match meta {
+        Some(meta) => evidence_availability(meta),
+        None => "unavailable",
     }
 }
 

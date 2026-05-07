@@ -535,6 +535,17 @@ fn test_cockpit_review_packet_dir() {
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
             .expect("valid manifest JSON");
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
+    assert_eq!(
+        manifest["capabilities"]["evidence"]["details"],
+        "evidence.json#/gates"
+    );
+    assert!(
+        manifest["verdict"]["evidence"]["unavailable"]
+            .as_u64()
+            .unwrap()
+            > 0,
+        "manifest verdict should summarize unavailable evidence"
+    );
     let artifacts = manifest["artifacts"].as_array().unwrap();
     assert_eq!(artifacts.len(), 5);
 

@@ -804,7 +804,7 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "DIR")]
     pub artifacts_dir: Option<std::path::PathBuf>,
 
-    /// Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `comment.md`) to directory.
+    /// Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `review-map.json`, `review-map.md`, `comment.md`) to directory.
     #[arg(long, value_name = "DIR")]
     pub review_packet_dir: Option<std::path::PathBuf>,
 
