@@ -569,6 +569,22 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "ci_economics_docs"
+kind = "non_rust"
+paths = [
+  ".github/pull_request_template.md",
+  "docs/POLICY_ALLOWLISTS.md",
+  "docs/RIPR_EVIDENCE_POLICY.md",
+  "docs/ci/**",
+]
+proof = [
+  "cargo xtask docs --check",
+]
+reason = "CI verification economics documentation governs how the proof model is delivered; treated like other governance docs (CLIPPY_POLICY, NO_PANIC_POLICY) but grouped under docs/ci/ for the rollout."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "schema_contracts"
 kind = "rust"
 paths = [
