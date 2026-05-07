@@ -3,6 +3,7 @@ import {
     SUPPORTED_ANALYZE_PRESETS,
     SUPPORTED_MODES,
     createErrorMessage,
+    createProgressMessage,
     createResultMessage,
     normalizeAnalyzePreset,
     isCancelMessage,
@@ -68,11 +69,22 @@ async function invokeRunner(runner, mode, args) {
     }
 }
 
+function progressPhaseForMode(mode) {
+    return mode === "analyze" ? "analyze" : "scan";
+}
+
+function emitProgress(onProgress, message) {
+    if (typeof onProgress === "function") {
+        onProgress(message);
+    }
+}
+
 export async function handleRunnerMessage(message, options = {}) {
     const {
         runner = null,
         bootError = null,
         runnerCapabilities = null,
+        onProgress = null,
     } = options;
 
     if (isCancelMessage(message)) {
@@ -138,10 +150,38 @@ export async function handleRunnerMessage(message, options = {}) {
     }
 
     try {
+        emitProgress(
+            onProgress,
+            createProgressMessage(message.requestId, "start", {
+                mode: message.mode,
+                message: `Starting ${message.mode} run`,
+            })
+        );
+        emitProgress(
+            onProgress,
+            createProgressMessage(message.requestId, progressPhaseForMode(message.mode), {
+                mode: message.mode,
+                message: `Running ${message.mode}`,
+            })
+        );
         const data = await invokeRunner(runner, message.mode, message.args);
+        emitProgress(
+            onProgress,
+            createProgressMessage(message.requestId, "done", {
+                mode: message.mode,
+                message: `Completed ${message.mode} run`,
+            })
+        );
         return createResultMessage(message.requestId, data);
     } catch (error) {
         const extracted = extractRunnerError(error);
+        emitProgress(
+            onProgress,
+            createProgressMessage(message.requestId, "error", {
+                mode: message.mode,
+                message: extracted.message,
+            })
+        );
         return createErrorMessage(
             message.requestId,
             extracted.code,

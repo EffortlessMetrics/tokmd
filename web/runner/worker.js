@@ -235,6 +235,7 @@ const runnerReady = loadTokmdRunner()
                 capabilities: {
                     wasm: true,
                     downloads: true,
+                    progress: true,
                     modes: loadedRunner.capabilities.modes,
                     analyzePresets: loadedRunner.capabilities.analyzePresets,
                 },
@@ -261,6 +262,7 @@ subscribe((message) => {
             runner,
             runnerCapabilities: runner?.capabilities ?? {},
             bootError,
+            onProgress: emitMessage,
         }));
     });
 });

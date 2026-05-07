@@ -376,6 +376,7 @@ test("runtime applies bracket format codes over duck-typed codes", async () => {
 });
 
 test("runtime returns results once a runner is available", async () => {
+    const progress = [];
     const message = await handleRunnerMessage(
         createRunMessage({
             requestId: "run-8",
@@ -384,16 +385,28 @@ test("runtime returns results once a runner is available", async () => {
                 inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
             },
         }),
-        { runner: createStubRunner() }
+        {
+            runner: createStubRunner(),
+            onProgress: (update) => progress.push(update),
+        }
     );
 
     assert.equal(message.type, MESSAGE_TYPES.RESULT);
     assert.equal(message.requestId, "run-8");
     assert.equal(message.data.mode, "lang");
     assert.equal(message.data.total.files, 1);
+    assert.deepEqual(
+        progress.map((update) => update.phase),
+        ["start", "scan", "done"]
+    );
+    assert.deepEqual(
+        progress.map((update) => update.type),
+        [MESSAGE_TYPES.PROGRESS, MESSAGE_TYPES.PROGRESS, MESSAGE_TYPES.PROGRESS]
+    );
 });
 
 test("analyze without preset defaults to receipt and returns a result", async () => {
+    const progress = [];
     const message = await handleRunnerMessage(
         createRunMessage({
             requestId: "run-9",
@@ -402,13 +415,20 @@ test("analyze without preset defaults to receipt and returns a result", async ()
                 inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
             },
         }),
-        { runner: createStubRunner() }
+        {
+            runner: createStubRunner(),
+            onProgress: (update) => progress.push(update),
+        }
     );
 
     assert.equal(message.type, MESSAGE_TYPES.RESULT);
     assert.equal(message.requestId, "run-9");
     assert.equal(message.data.mode, "analysis");
     assert.equal(message.data.preset, "receipt");
+    assert.deepEqual(
+        progress.map((update) => update.phase),
+        ["start", "analyze", "done"]
+    );
 });
 
 test("analyze rejects unsupported presets before runner execution", async () => {
@@ -443,4 +463,35 @@ test("runtime reports boot failures against run requests", async () => {
     assert.equal(message.type, MESSAGE_TYPES.ERROR);
     assert.equal(message.error.code, "wasm_boot_failed");
     assert.match(message.error.message, /missing tokmd_wasm\.js/);
+});
+
+test("runtime emits error progress when runner execution fails", async () => {
+    const progress = [];
+    const runner = {
+        runExport() {
+            throw new Error("[invalid_settings] Cannot use both paths and inputs");
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-progress-error",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        {
+            runner,
+            onProgress: (update) => progress.push(update),
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "invalid_settings");
+    assert.deepEqual(
+        progress.map((update) => update.phase),
+        ["start", "scan", "error"]
+    );
+    assert.match(progress.at(-1).message, /Cannot use both paths and inputs/);
 });

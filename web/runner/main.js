@@ -284,6 +284,26 @@ function describeLoadError(error) {
         : error.message;
 }
 
+function describeWorkerProgress(message) {
+    if (typeof message.message === "string" && message.message.trim()) {
+        return message.message;
+    }
+
+    return message.phase ? `worker ${message.phase}` : "worker progress";
+}
+
+function workerProgressTone(phase) {
+    if (phase === "done") {
+        return "success";
+    }
+
+    if (phase === "error") {
+        return "error";
+    }
+
+    return "working";
+}
+
 function renderLoadProgress(update = null) {
     if (!update) {
         loadProgressPanel.hidden = true;
@@ -413,6 +433,15 @@ worker.addEventListener("message", (event) => {
                     : "worker ready",
                 "success"
             );
+            break;
+        case MESSAGE_TYPES.PROGRESS:
+            if (!message.requestId || state.activeRequestId === message.requestId) {
+                setStatus(
+                    runStatusOutput,
+                    describeWorkerProgress(message),
+                    workerProgressTone(message.phase)
+                );
+            }
             break;
         case MESSAGE_TYPES.RESULT:
             if (state.activeRequestId === message.requestId) {

@@ -15,6 +15,7 @@ Use this project when you want `tokmd` inside a browser worker, backed by
 - runtime validation and protocol handling in `runtime.js`
 - public GitHub repo ingestion through browser-safe tree + contents APIs
 - `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate`
+- worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - `cancel` reserved in the protocol but not wired yet
 - live result panes with downloadable JSON artifacts
 

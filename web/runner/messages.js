@@ -1,8 +1,9 @@
-export const RUNNER_PROTOCOL_VERSION = 1;
+export const RUNNER_PROTOCOL_VERSION = 2;
 
 export const MESSAGE_TYPES = Object.freeze({
     READY: "ready",
     RUN: "run",
+    PROGRESS: "progress",
     RESULT: "result",
     ERROR: "error",
     CANCEL: "cancel",
@@ -62,6 +63,33 @@ export function createCancelMessage(requestId) {
         type: MESSAGE_TYPES.CANCEL,
         requestId,
     };
+}
+
+export function createProgressMessage(requestId, phase, options = {}) {
+    const { mode = null, message = null, current = null, total = null } = options;
+    const progress = {
+        type: MESSAGE_TYPES.PROGRESS,
+        requestId,
+        phase,
+    };
+
+    if (mode) {
+        progress.mode = mode;
+    }
+
+    if (message) {
+        progress.message = message;
+    }
+
+    if (Number.isFinite(current)) {
+        progress.current = current;
+    }
+
+    if (Number.isFinite(total)) {
+        progress.total = total;
+    }
+
+    return progress;
 }
 
 export function createResultMessage(requestId, data) {

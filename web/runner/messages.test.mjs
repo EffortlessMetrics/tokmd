@@ -8,6 +8,7 @@ import {
     SUPPORTED_ANALYZE_PRESETS,
     SUPPORTED_MODES,
     createCancelMessage,
+    createProgressMessage,
     createReadyMessage,
     createRunMessage,
     isCancelMessage,
@@ -45,6 +46,7 @@ test("ready message exposes protocol version and capabilities", () => {
     );
     assert.equal(message.capabilities.wasm, false);
     assert.equal(message.capabilities.zipball, false);
+    assert.equal(message.capabilities.progress, false);
 });
 
 test("supported modes stay aligned with the WASM capability matrix", () => {
@@ -111,6 +113,25 @@ test("run and cancel helpers produce valid protocol messages", () => {
     assert.equal(isRunMessage(run), true);
     assert.equal(isCancelMessage(cancel), true);
     assert.equal(isRunMessage(cancel), false);
+});
+
+test("progress helper produces protocol messages with stable fields", () => {
+    const message = createProgressMessage("run-1", "scan", {
+        mode: "lang",
+        message: "Scanning inputs",
+        current: 1,
+        total: 3,
+    });
+
+    assert.deepEqual(message, {
+        type: MESSAGE_TYPES.PROGRESS,
+        requestId: "run-1",
+        phase: "scan",
+        mode: "lang",
+        message: "Scanning inputs",
+        current: 1,
+        total: 3,
+    });
 });
 
 test("run messages require explicit in-memory inputs", () => {

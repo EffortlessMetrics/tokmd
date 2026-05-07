@@ -32,6 +32,19 @@ function onceMessage(worker) {
     });
 }
 
+async function nextMessageOfType(worker, type) {
+    const messages = [];
+
+    while (true) {
+        const message = await onceMessage(worker);
+        messages.push(message);
+
+        if (message.type === type) {
+            return { message, messages };
+        }
+    }
+}
+
 function createMockWasmBundle(options = {}) {
     const tempDir = mkdtempSync(join(tmpdir(), "tokmd-mock-wasm-"));
     const wasmModulePath = join(tempDir, "tokmd_wasm.js");
@@ -131,6 +144,7 @@ test("worker publishes ready on boot", async () => {
         assert.equal(message.type, MESSAGE_TYPES.READY);
         assert.equal(message.capabilities.cancel, false);
         assert.equal(message.capabilities.downloads, true);
+        assert.equal(message.capabilities.progress, true);
         assert.equal(message.capabilities.wasm, true);
         assert.equal(message.engine.version, "stub");
         assert.deepEqual(message.capabilities.modes, ["lang", "module", "export", "analyze"]);
@@ -163,11 +177,29 @@ test("worker forwards nested scan inputs through the stub runner", async () => {
             },
         });
 
-        const result = await onceMessage(worker);
+        const { message: result, messages } = await nextMessageOfType(
+            worker,
+            MESSAGE_TYPES.RESULT
+        );
         assert.equal(result.type, MESSAGE_TYPES.RESULT);
         assert.equal(result.requestId, "stub-scan-inputs");
         assert.equal(result.data.mode, "analysis");
         assert.deepEqual(result.data.source.inputs, ["src/lib.rs"]);
+        assert.deepEqual(
+            messages.map((message) => message.type),
+            [
+                MESSAGE_TYPES.PROGRESS,
+                MESSAGE_TYPES.PROGRESS,
+                MESSAGE_TYPES.PROGRESS,
+                MESSAGE_TYPES.RESULT,
+            ]
+        );
+        assert.deepEqual(
+            messages
+                .filter((message) => message.type === MESSAGE_TYPES.PROGRESS)
+                .map((message) => message.phase),
+            ["start", "analyze", "done"]
+        );
     } finally {
         await worker.terminate();
     }
@@ -195,7 +227,7 @@ test("worker advertises only supported modes from a minimal wasm module", async 
             },
         });
 
-        const result = await onceMessage(worker);
+        const { message: result } = await nextMessageOfType(worker, MESSAGE_TYPES.RESULT);
         assert.equal(result.type, MESSAGE_TYPES.RESULT);
         assert.equal(result.requestId, "mock-minimal");
         assert.equal(result.data.mode, "lang");
@@ -329,7 +361,7 @@ test("worker forwards run messages through the runtime", async () => {
             },
         });
 
-        const message = await onceMessage(worker);
+        const { message } = await nextMessageOfType(worker, MESSAGE_TYPES.RESULT);
 
         assert.equal(message.type, MESSAGE_TYPES.RESULT);
         assert.equal(message.requestId, "run-3");
@@ -345,6 +377,7 @@ test(
     async (t) => {
         if (!HAS_REAL_WASM_BUNDLE) {
             t.skip("built tokmd-wasm bundle not present");
+            return;
         }
 
         const worker = new Worker(new URL("./worker.js", import.meta.url), {
@@ -369,7 +402,10 @@ test(
                 },
             });
 
-            const result = await onceMessage(worker);
+            const { message: result } = await nextMessageOfType(
+                worker,
+                MESSAGE_TYPES.RESULT
+            );
 
             assert.equal(result.type, MESSAGE_TYPES.RESULT);
             assert.equal(result.requestId, "run-real-lang");
@@ -387,7 +423,10 @@ test(
                 },
             });
 
-            const analyze = await onceMessage(worker);
+            const { message: analyze } = await nextMessageOfType(
+                worker,
+                MESSAGE_TYPES.RESULT
+            );
 
             assert.equal(analyze.type, MESSAGE_TYPES.RESULT);
             assert.equal(analyze.requestId, "run-real-estimate");

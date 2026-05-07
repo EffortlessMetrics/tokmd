@@ -15,8 +15,8 @@
           This page boots <code>tokmd-wasm</code> inside a dedicated Worker and
           exercises the current browser-safe in-memory modes. Public GitHub repo
           fetch now uses browser-safe tree and contents APIs. Repo-load progress
-          and cancel are wired in the main thread, while worker run-cancel stays
-          explicitly unavailable.
+          and cancel are wired in the main thread, worker runs emit progress,
+          and worker run-cancel stays explicitly unavailable.
         </p>
       </section>
 
