@@ -44,7 +44,7 @@ fn proof_policy_check_accepts_repo_policy() {
     );
     assert!(stdout.contains("pr-default-on"), "stdout: {stdout}");
     assert!(stdout.contains("pr-required-off"), "stdout: {stdout}");
-    assert!(stdout.contains("pr-max-commands-1"), "stdout: {stdout}");
+    assert!(stdout.contains("pr-max-commands-2"), "stdout: {stdout}");
     assert!(stdout.contains("pr-codecov-upload-off"), "stdout: {stdout}");
     assert!(
         stdout.contains("promotion-window-last_successful_runs"),
@@ -197,7 +197,7 @@ fn proof_policy_declares_coverage_executor_promotion_rule() {
         .expect("repo policy should expose executor PR defaults");
     assert_eq!(pr["default_enabled"].as_bool(), Some(true));
     assert_eq!(pr["required"].as_bool(), Some(false));
-    assert_eq!(pr["max_commands"].as_integer(), Some(1));
+    assert_eq!(pr["max_commands"].as_integer(), Some(2));
     assert_eq!(pr["codecov_upload"].as_bool(), Some(false));
 
     let promotion = executor["promotion"]
@@ -239,7 +239,7 @@ fn proof_policy_json_reports_current_schema() {
     assert_eq!(value["executor"]["max_dry_run_commands"], 1);
     assert_eq!(value["executor"]["pr"]["default_enabled"], true);
     assert_eq!(value["executor"]["pr"]["required"], false);
-    assert_eq!(value["executor"]["pr"]["max_commands"], 1);
+    assert_eq!(value["executor"]["pr"]["max_commands"], 2);
     assert_eq!(value["executor"]["pr"]["codecov_upload"], false);
     assert_eq!(
         value["executor"]["promotion"]["window"],

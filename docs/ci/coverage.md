@@ -75,6 +75,14 @@ downloaded executor observation thresholds with recent successful
 `proof-observation-collection.yml` run history, so promotion evidence has a
 stable artifact instead of relying only on job-summary prose.
 
+## PR Executor Default
+
+`ci/proof.toml` also records the pull-request observation default under
+`[executor.pr]`. PR executor runs are enabled, non-required, limited to two
+planner-selected scoped coverage commands, and Codecov upload remains disabled
+for pull requests. This keeps ordinary PRs advisory while beginning to collect
+multi-scope evidence for later promotion decisions.
+
 ## Policy Routing
 
 Coverage workflow, Codecov config, and this document are routed through the `proof_control_plane` scope in `ci/proof.toml`. That keeps coverage-lane edits visible to affected proof plans without requiring a separate lane-whitelist policy file before a checker exists.
