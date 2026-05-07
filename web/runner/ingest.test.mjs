@@ -435,6 +435,25 @@ test("fetchGitHubRepoInputs surfaces primary and secondary rate limits", async (
             error?.code === "github_secondary_rate_limit" &&
             error?.retryAfterSeconds === 12
     );
+
+    await assert.rejects(
+        () =>
+            fetchGitHubRepoInputs({
+                repo: "EffortlessMetrics/tokmd",
+                ref: "main",
+                fetchImpl: async () =>
+                    new Response(JSON.stringify({ message: "Please retry later" }), {
+                        status: 429,
+                        headers: {
+                            "content-type": "application/json",
+                            "retry-after": "Wed, 18 May 2033 03:33:20 GMT",
+                        },
+                    }),
+            }),
+        (error) =>
+            error?.code === "github_secondary_rate_limit" &&
+            error?.retryAt === "2033-05-18T03:33:20.000Z"
+    );
 });
 
 test("fetchGitHubRepoInputs honors AbortSignal before starting network work", async () => {

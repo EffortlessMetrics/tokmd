@@ -328,14 +328,38 @@ function withAbortSignal(promise, signal) {
     });
 }
 
-function parseRetryAfterSeconds(headers) {
+function parseRetryAfter(headers) {
     const raw = headers.get("retry-after");
     if (!raw) {
-        return null;
+        return {
+            retryAfterSeconds: null,
+            retryAt: null,
+        };
     }
 
-    const value = Number(raw);
-    return Number.isFinite(value) && value >= 0 ? value : null;
+    const seconds = Number(raw);
+    if (Number.isFinite(seconds)) {
+        return seconds >= 0
+            ? {
+                  retryAfterSeconds: Math.floor(seconds),
+                  retryAt: null,
+              }
+            : {
+                  retryAfterSeconds: null,
+                  retryAt: null,
+              };
+    }
+
+    const epochMs = Date.parse(raw);
+    return Number.isFinite(epochMs)
+        ? {
+              retryAfterSeconds: null,
+              retryAt: new Date(epochMs).toISOString(),
+          }
+        : {
+              retryAfterSeconds: null,
+              retryAt: null,
+          };
 }
 
 function parseRateLimitResetAt(headers) {
@@ -437,11 +461,12 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
     const authMode = options.authMode ?? "anonymous";
     const message = await readResponseMessage(response);
     const remaining = response.headers.get("x-ratelimit-remaining");
-    const retryAfterSeconds = parseRetryAfterSeconds(response.headers);
+    const { retryAfterSeconds, retryAt } = parseRetryAfter(response.headers);
     const resetAt = parseRateLimitResetAt(response.headers);
     const secondaryLimited =
         response.status === 429 ||
         retryAfterSeconds !== null ||
+        retryAt !== null ||
         /secondary rate limit/i.test(message);
 
     if (response.status === 401) {
@@ -482,10 +507,13 @@ async function fetchWithRateLimitMessage(fetchImpl, url, options = {}) {
             "github_secondary_rate_limit",
             retryAfterSeconds !== null
                 ? `GitHub asked the browser runner to slow down. Retry after ${retryAfterSeconds}s.`
+                : retryAt !== null
+                  ? `GitHub asked the browser runner to slow down. Retry after ${retryAt}.`
                 : message || "GitHub temporarily rate-limited this browser repo load.",
             {
                 status: response.status,
                 retryAfterSeconds,
+                retryAt,
             }
         );
     }
