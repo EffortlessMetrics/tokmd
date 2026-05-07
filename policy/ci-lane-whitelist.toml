@@ -377,6 +377,315 @@ expires          = "2026-11-07"
 # Required summary
 # -----------------------------------------------------------------------
 
+# -----------------------------------------------------------------------
+# Auxiliary / non-CI workflows discovered by the lane whitelist linter
+# (PR 03). These are not part of the default-PR gate; they're enumerated
+# here so PR 03 can run advisory-clean and so reviewers see the full set.
+# -----------------------------------------------------------------------
+
+[[lane]]
+id               = "ci_lane_whitelist"
+workflow         = ".github/workflows/ci-policy.yml"
+job              = "CI Lane Whitelist"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 3
+owner            = "release/ci"
+intent           = "Verify workflows match the lane whitelist and that exceptions remain valid."
+failure_mode     = "Workflow drift: a new lane lands without an owner, intent, or exception receipt."
+proof_obligation = "Run cargo xtask ci-lane-whitelist with --report-dir."
+evidence         = ["target/tokmd/reports/ci-lane-whitelist-report.txt"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "pr_cockpit_report"
+workflow         = ".github/workflows/cockpit.yml"
+job              = "PR Cockpit Report"
+kind             = "report"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 3
+owner            = "core/policy"
+intent           = "Post the PR cockpit metrics comment on every PR."
+failure_mode     = "Reviewers lose at-a-glance change-surface metrics."
+proof_obligation = "Generate cockpit JSON via xtask cockpit and post comment."
+evidence         = ["PR comment thollander/actions-comment-pull-request"]
+allowed_triggers = ["pull_request"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "rust_coverage"
+workflow         = ".github/workflows/coverage.yml"
+job              = "Rust coverage"
+kind             = "coverage"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 30
+owner            = "testing/oracle"
+intent           = "Generate Rust coverage report for the workspace."
+failure_mode     = "Coverage drift goes unnoticed because no other lane measures it."
+proof_obligation = "Run cargo llvm-cov on the workspace."
+evidence         = ["lcov / codecov upload"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+expensive        = true
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "scoped_coverage_executor_non_required"
+workflow         = ".github/workflows/proof-executor.yml"
+job              = "Scoped Coverage Executor (Non-Required)"
+kind             = "experimental"
+tier             = "deep"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "proof"
+intent           = "Run the scoped proof executor on opted-in PR shapes."
+failure_mode     = "Executor regressions slip through if no advisory lane runs them."
+proof_obligation = "Run cargo xtask proof --profile affected with executor opt-in."
+evidence         = ["target/proof/executor-summary.json"]
+allowed_triggers = ["pull_request", "workflow_dispatch"]
+duplicate_of     = ["affected_proof_plan"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "collect_proof_executor_observations"
+workflow         = ".github/workflows/proof-observation-collection.yml"
+job              = "Collect Proof Executor Observations"
+kind             = "report"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "proof"
+intent           = "Aggregate proof executor observations across recent runs."
+failure_mode     = "Observation history fragments and trend signal is lost."
+proof_obligation = "Run cargo xtask proof-execution-observations-summary against collected artifacts."
+evidence         = ["aggregated observations JSON"]
+allowed_triggers = ["workflow_dispatch", "schedule"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "nightly_fuzz"
+workflow         = ".github/workflows/fuzz.yml"
+job              = "Fuzz Targets"
+kind             = "fuzz"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 60
+owner            = "testing/fuzz"
+intent           = "Run nightly fuzz targets on the cargo-fuzz harnesses."
+failure_mode     = "Fuzz regressions slip past unit + property tests."
+proof_obligation = "Run cargo +nightly fuzz run on configured targets."
+evidence         = ["nightly fuzz logs and crashes/"]
+allowed_triggers = ["schedule", "workflow_dispatch"]
+expensive        = true
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "mutation_testing_calibration"
+workflow         = ".github/workflows/mutants.yml"
+job              = "Mutation Testing"
+kind             = "mutation"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 90
+owner            = "testing/oracle"
+intent           = "Run cargo-mutants on a calibration cadence (label / dispatch / nightly)."
+failure_mode     = "Mutant survivors accumulate without anyone noticing."
+proof_obligation = "Run cargo-mutants over selected scopes."
+evidence         = ["mutants.out artifacts"]
+allowed_triggers = ["workflow_dispatch", "schedule"]
+expensive        = true
+duplicate_of     = ["mutation_required"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_build"
+workflow         = ".github/workflows/release.yml"
+job              = "Build Release"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 30
+owner            = "release/build"
+intent           = "Build release binaries for tag pushes."
+failure_mode     = "Release tag fails to produce binaries."
+proof_obligation = "Run release build steps."
+evidence         = ["release artifacts"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_wasm"
+workflow         = ".github/workflows/release.yml"
+job              = "Build tokmd-wasm Artifact"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 15
+owner            = "release/build"
+intent           = "Build the tokmd-wasm release artifact for tag pushes."
+failure_mode     = "WASM artifact missing from a release."
+proof_obligation = "Run wasm-pack build for tokmd-wasm."
+evidence         = ["release WASM artifact"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_create"
+workflow         = ".github/workflows/release.yml"
+job              = "Create GitHub Release"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "release/publish"
+intent           = "Create the GitHub release with attached artifacts."
+failure_mode     = "Tag exists but no release page or attached artifacts."
+proof_obligation = "Run gh release create with artifacts."
+evidence         = ["GitHub release page"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_publish_crates"
+workflow         = ".github/workflows/release.yml"
+job              = "Publish to crates.io"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "release/publish"
+intent           = "Publish workspace crates to crates.io for tagged releases."
+failure_mode     = "Release tag exists but the crate is not on crates.io."
+proof_obligation = "Run cargo publish in dependency order."
+evidence         = ["crates.io publish receipts"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_docker"
+workflow         = ".github/workflows/release.yml"
+job              = "Build and Push Docker Image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 20
+owner            = "release/publish"
+intent           = "Build and push the release Docker image."
+failure_mode     = "Docker image tag missing for a published release."
+proof_obligation = "Run docker buildx build and push."
+evidence         = ["registry tag"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "test_action_main"
+workflow         = ".github/workflows/test-action.yml"
+job              = "Test tokmd-receipt Action"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 8
+owner            = "release/action"
+intent           = "Validate the composite GitHub Action invocation."
+failure_mode     = "Composite Action breaks for downstream consumers."
+proof_obligation = "Invoke action.yml against fixture repos."
+evidence         = ["action job logs"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "test_action_formats"
+workflow         = ".github/workflows/test-action.yml"
+job              = "Test export formats"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 6
+owner            = "release/action"
+intent           = "Verify the action's export format coverage."
+failure_mode     = "An export format silently regresses for downstream consumers."
+proof_obligation = "Drive the action with --format permutations."
+evidence         = ["action job logs"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "test_action_modes"
+workflow         = ".github/workflows/test-action.yml"
+job              = "Test explicit modes"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 6
+owner            = "release/action"
+intent           = "Verify the action's explicit mode flags work."
+failure_mode     = "An explicit mode silently regresses for downstream consumers."
+proof_obligation = "Drive the action with each --mode permutation."
+evidence         = ["action job logs"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
 [[lane]]
 id               = "ci_required"
 workflow         = ".github/workflows/ci.yml"

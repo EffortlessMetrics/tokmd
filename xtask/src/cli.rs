@@ -58,6 +58,8 @@ pub enum Commands {
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
     NoPanicPropose(NoPanicProposeArgs),
+    /// Verify CI lane whitelist coverage and exception receipts
+    CiLaneWhitelist(CiLaneWhitelistArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -269,6 +271,41 @@ impl Default for CiPlanArgs {
             risk_packs: std::path::PathBuf::from("policy/ci-risk-packs.toml"),
             json_out: None,
             github_summary: None,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CiLaneWhitelistArgs {
+    /// Workflows directory (relative to workspace root)
+    #[arg(long, default_value = ".github/workflows")]
+    pub workflows: std::path::PathBuf,
+
+    /// Lane whitelist TOML
+    #[arg(long, default_value = "policy/ci-lane-whitelist.toml")]
+    pub whitelist: std::path::PathBuf,
+
+    /// Lane whitelist exceptions TOML
+    #[arg(long, default_value = "policy/ci-whitelist-exceptions.toml")]
+    pub exceptions: std::path::PathBuf,
+
+    /// Optional report output directory
+    #[arg(long, value_name = "DIR")]
+    pub report_dir: Option<std::path::PathBuf>,
+
+    /// Treat findings as errors (default is advisory)
+    #[arg(long)]
+    pub strict: bool,
+}
+
+impl Default for CiLaneWhitelistArgs {
+    fn default() -> Self {
+        Self {
+            workflows: std::path::PathBuf::from(".github/workflows"),
+            whitelist: std::path::PathBuf::from("policy/ci-lane-whitelist.toml"),
+            exceptions: std::path::PathBuf::from("policy/ci-whitelist-exceptions.toml"),
+            report_dir: None,
+            strict: false,
         }
     }
 }

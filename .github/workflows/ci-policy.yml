@@ -1,0 +1,60 @@
+name: CI Policy
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-policy-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -C debuginfo=0
+
+jobs:
+  ci-lane-whitelist:
+    name: CI Lane Whitelist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run CI lane whitelist linter (advisory)
+        run: |
+          mkdir -p target/tokmd/reports
+          cargo xtask ci-lane-whitelist \
+            --workflows .github/workflows \
+            --whitelist policy/ci-lane-whitelist.toml \
+            --exceptions policy/ci-whitelist-exceptions.toml \
+            --report-dir target/tokmd/reports
+
+      - name: Upload lane whitelist report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-lane-whitelist-report
+          path: target/tokmd/reports/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Append report to step summary
+        if: always()
+        run: |
+          if [ -f target/tokmd/reports/ci-lane-whitelist-report.txt ]; then
+            {
+              echo ""
+              cat target/tokmd/reports/ci-lane-whitelist-report.txt
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

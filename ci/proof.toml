@@ -54,6 +54,7 @@ coverage = false
 name = "proof_control_plane"
 kind = "rust"
 paths = [
+  ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
   ".github/workflows/no-panic-policy.yml",
   ".github/workflows/pr-plan.yml",
@@ -82,6 +83,7 @@ paths = [
   "xtask/src/tasks/affected.rs",
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/ci_actuals.rs",
+  "xtask/src/tasks/ci_lane_whitelist.rs",
   "xtask/src/tasks/ci_plan.rs",
   "xtask/src/tasks/coverage_receipt.rs",
   "xtask/src/tasks/file_policy.rs",
