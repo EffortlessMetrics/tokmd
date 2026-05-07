@@ -188,7 +188,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 37);
+    assert_eq!(value["scope_count"], 38);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);

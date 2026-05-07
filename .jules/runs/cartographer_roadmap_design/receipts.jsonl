@@ -1,0 +1,3 @@
+{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat crates/tokmd/Cargo.toml | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected Cargo.toml features", "artifacts": []}
+{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat docs/architecture.md | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected architecture.md features", "artifacts": []}
+{"ts_utc": "2026-05-07T11:13:54Z", "phase": "execution", "cwd": ".", "cmd": "git diff docs/architecture.md", "status": "success", "summary": "Verified drift fix", "artifacts": ["docs/architecture.md"]}

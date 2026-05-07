@@ -1,0 +1,32 @@
+{
+  "prompt_id": "cartographer_roadmap_design",
+  "persona": "Cartographer",
+  "style": "Builder",
+  "primary_shard": "tooling-governance",
+  "gate_profile": "governance-release",
+  "allowed_paths": [
+    "xtask/**",
+    ".github/workflows/**",
+    "docs/**",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/**/Cargo.toml",
+    ".cargo/**"
+  ],
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ],
+  "option_a": "Update `docs/architecture.md` to fix the stale `fun` feature flag mapping.",
+  "option_b": "Create a learning PR documenting that the current state of the design/roadmap docs is perfectly aligned with the codebase for the v1.10.0 release.",
+  "decision": "Option A, because there was a clear, small factual drift regarding the `fun` feature flag in `docs/architecture.md` versus `crates/tokmd/Cargo.toml`.",
+  "artifacts": [
+    ".jules/runs/cartographer_roadmap_design/envelope.json",
+    ".jules/runs/cartographer_roadmap_design/decision.md",
+    ".jules/runs/cartographer_roadmap_design/receipts.jsonl",
+    ".jules/runs/cartographer_roadmap_design/result.json",
+    ".jules/runs/cartographer_roadmap_design/pr_body.md"
+  ]
+}
