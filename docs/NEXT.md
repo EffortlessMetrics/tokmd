@@ -2,7 +2,11 @@
 
 The generated PR drain is complete. `PR_DRAIN.md` is now a historical ledger for the duplicate/stale queue and should only change for PR-drain-specific corrections. Active product and control-plane work moves here.
 
-Factory Droid PR #1541 was declined for now. External review services require an approved service, API-key, secret-rotation, fork-PR, and failure-behavior policy before workflow introduction.
+Factory Droid PR #1541 was declined in its original external-service form. A
+later safe Droid migration is now active through the pinned
+`EffortlessMetrics/droid-action-safe` wrapper with MiniMax BYOK, same-repo /
+trusted-actor guards, disabled raw debug artifacts, and the service policy in
+`docs/external-services.md`.
 
 ## Active Program: Rust-Native Proof Control Plane
 
@@ -82,6 +86,11 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Codecov project and patch statuses remain informational during the baseline phase, and coverage receipt generation is owned by `cargo xtask coverage-receipt` rather than a duplicate workflow heredoc.
 - `cargo xtask ci-actuals` now emits `tokmd.ci_actuals.v1` from a GitHub Actions `needs` payload plus optional timing sidecar data. Missing timing is recorded as missing rather than zero so later budget and learned-estimate work can consume the receipt without inventing measurements.
 - Top-level project truth docs (`ROADMAP.md`, architecture, design, implementation plan, requirements, and specification) now have a proof-policy scope that routes changes to `cargo xtask docs --check` instead of leaving architecture-doc-only fixes as unknown files.
+- The external-service policy now reflects the active safe Droid integration:
+  Factory Droid is approved only through the pinned safe action wrapper,
+  requires `FACTORY_API_KEY` and `MINIMAX_API_KEY`, skips fork PR auto-review,
+  restricts manual `@droid` commands to trusted actors, and keeps raw debug
+  artifact upload disabled.
 - Next proof-policy operational slice: collect additional coverage-enabled executor observations across more product scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References
