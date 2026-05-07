@@ -35,6 +35,7 @@ struct ExecutorPromotionReport {
     min_executed: Option<usize>,
     min_scopes: Option<usize>,
     min_artifacts: Option<usize>,
+    min_passing_collector_runs: Option<usize>,
     required_gate: Option<bool>,
     default_codecov_upload: Option<bool>,
 }
@@ -106,6 +107,7 @@ impl ExecutorPromotionReport {
             min_executed: promotion.min_executed,
             min_scopes: promotion.min_scopes,
             min_artifacts: promotion.min_artifacts,
+            min_passing_collector_runs: promotion.min_passing_collector_runs,
             required_gate: promotion.required_gate,
             default_codecov_upload: promotion.default_codecov_upload,
         }
@@ -151,13 +153,14 @@ fn executor_summary(executor: &ExecutorPolicyReport) -> String {
 
     match executor.promotion.as_ref() {
         Some(promotion) => format!(
-            "{base}/promotion-window-{}/run-limit-{}/min-observations-{}/min-executed-{}/min-scopes-{}/min-artifacts-{}/required-gate-{}/codecov-upload-{}",
+            "{base}/promotion-window-{}/run-limit-{}/min-observations-{}/min-executed-{}/min-scopes-{}/min-artifacts-{}/min-passing-collector-runs-{}/required-gate-{}/codecov-upload-{}",
             display_optional_string(promotion.window.as_deref()),
             display_optional_usize(promotion.run_limit),
             display_optional_usize(promotion.min_observations),
             display_optional_usize(promotion.min_executed),
             display_optional_usize(promotion.min_scopes),
             display_optional_usize(promotion.min_artifacts),
+            display_optional_usize(promotion.min_passing_collector_runs),
             display_optional_bool(promotion.required_gate),
             display_optional_bool(promotion.default_codecov_upload)
         ),

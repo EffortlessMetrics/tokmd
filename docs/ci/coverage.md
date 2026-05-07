@@ -53,17 +53,20 @@ floor under `[executor.promotion]`:
 - `min_executed = 4`;
 - `min_scopes = 4`;
 - `min_artifacts = 4`;
+- `min_passing_collector_runs = 1`;
 - `required_gate = false`;
 - `default_codecov_upload = false`.
 
 This is a checked policy declaration and the default source for the manual
 proof-observation collector thresholds. The current window is the latest 100
-successful `proof-executor.yml` runs. Blank workflow-dispatch threshold inputs
-resolve from `cargo xtask proof-policy --json`; explicit dispatch inputs remain
-overrides for narrower observation probes. The executor remains an explicit
-opt-in coverage experiment, and default Codecov upload remains disabled until
-the promotion rule is intentionally changed and the workflow behavior is updated
-in the same review.
+successful `proof-executor.yml` runs, with at least one recent passing manual
+collector run proving those thresholds before required-gate or default Codecov
+upload promotion. Blank workflow-dispatch threshold inputs resolve from
+`cargo xtask proof-policy --json`; explicit dispatch inputs remain overrides for
+narrower observation probes. The executor remains an explicit opt-in coverage
+experiment, and default Codecov upload remains disabled until the promotion rule
+is intentionally changed and the workflow behavior is updated in the same
+review.
 
 ## Policy Routing
 

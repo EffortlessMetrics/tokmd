@@ -48,6 +48,10 @@ fn proof_policy_check_accepts_repo_policy() {
     );
     assert!(stdout.contains("run-limit-100"), "stdout: {stdout}");
     assert!(stdout.contains("min-scopes-4"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("min-passing-collector-runs-1"),
+        "stdout: {stdout}"
+    );
     assert!(stdout.contains("required-gate-off"), "stdout: {stdout}");
 }
 
@@ -193,6 +197,10 @@ fn proof_policy_declares_coverage_executor_promotion_rule() {
     assert_eq!(promotion["min_executed"].as_integer(), Some(4));
     assert_eq!(promotion["min_scopes"].as_integer(), Some(4));
     assert_eq!(promotion["min_artifacts"].as_integer(), Some(4));
+    assert_eq!(
+        promotion["min_passing_collector_runs"].as_integer(),
+        Some(1)
+    );
     assert_eq!(promotion["required_gate"].as_bool(), Some(false));
     assert_eq!(promotion["default_codecov_upload"].as_bool(), Some(false));
 }
@@ -226,6 +234,10 @@ fn proof_policy_json_reports_current_schema() {
     assert_eq!(value["executor"]["promotion"]["min_executed"], 4);
     assert_eq!(value["executor"]["promotion"]["min_scopes"], 4);
     assert_eq!(value["executor"]["promotion"]["min_artifacts"], 4);
+    assert_eq!(
+        value["executor"]["promotion"]["min_passing_collector_runs"],
+        1
+    );
     assert_eq!(value["executor"]["promotion"]["required_gate"], false);
     assert_eq!(
         value["executor"]["promotion"]["default_codecov_upload"],

@@ -66,6 +66,7 @@ pub struct ExecutorPromotion {
     pub min_executed: Option<usize>,
     pub min_scopes: Option<usize>,
     pub min_artifacts: Option<usize>,
+    pub min_passing_collector_runs: Option<usize>,
     pub required_gate: Option<bool>,
     pub default_codecov_upload: Option<bool>,
 }
