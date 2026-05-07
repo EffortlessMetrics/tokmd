@@ -24,7 +24,16 @@ struct ExecutorPolicyReport {
     family: Option<String>,
     ci_execution: Option<String>,
     max_dry_run_commands: Option<usize>,
+    pr: Option<ExecutorPrReport>,
     promotion: Option<ExecutorPromotionReport>,
+}
+
+#[derive(Debug, Serialize)]
+struct ExecutorPrReport {
+    default_enabled: Option<bool>,
+    required: Option<bool>,
+    max_commands: Option<usize>,
+    codecov_upload: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
@@ -85,11 +94,27 @@ impl ExecutorPolicyReport {
                 .map(ci_execution_name)
                 .map(str::to_string),
             max_dry_run_commands: policy.executor.max_dry_run_commands,
+            pr: policy
+                .executor
+                .pr
+                .as_ref()
+                .map(ExecutorPrReport::from_policy),
             promotion: policy
                 .executor
                 .promotion
                 .as_ref()
                 .map(ExecutorPromotionReport::from_policy),
+        }
+    }
+}
+
+impl ExecutorPrReport {
+    fn from_policy(pr: &crate::proof::policy_ast::ExecutorPr) -> Self {
+        Self {
+            default_enabled: pr.default_enabled,
+            required: pr.required,
+            max_commands: pr.max_commands,
+            codecov_upload: pr.codecov_upload,
         }
     }
 }
@@ -149,6 +174,17 @@ fn executor_summary(executor: &ExecutorPolicyReport) -> String {
             format!("{family}/{ci_execution}/max-dry-run-{max_dry_run_commands}")
         }
         _ => "not-configured".to_string(),
+    };
+
+    let base = match executor.pr.as_ref() {
+        Some(pr) => format!(
+            "{base}/pr-default-{}/pr-required-{}/pr-max-commands-{}/pr-codecov-upload-{}",
+            display_optional_bool(pr.default_enabled),
+            display_optional_bool(pr.required),
+            display_optional_usize(pr.max_commands),
+            display_optional_bool(pr.codecov_upload)
+        ),
+        None => base,
     };
 
     match executor.promotion.as_ref() {

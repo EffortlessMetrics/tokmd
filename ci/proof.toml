@@ -15,6 +15,12 @@ family = "coverage"
 ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
+[executor.pr]
+default_enabled = true
+required = false
+max_commands = 1
+codecov_upload = false
+
 [executor.promotion]
 window = "last_successful_runs"
 run_limit = 100

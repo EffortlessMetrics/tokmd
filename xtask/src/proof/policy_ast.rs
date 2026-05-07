@@ -54,7 +54,19 @@ pub struct Executor {
     pub max_dry_run_commands: Option<usize>,
 
     #[serde(default)]
+    pub pr: Option<ExecutorPr>,
+
+    #[serde(default)]
     pub promotion: Option<ExecutorPromotion>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExecutorPr {
+    pub default_enabled: Option<bool>,
+    pub required: Option<bool>,
+    pub max_commands: Option<usize>,
+    pub codecov_upload: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

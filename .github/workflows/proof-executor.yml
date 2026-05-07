@@ -15,9 +15,9 @@ on:
         type: boolean
         default: false
       max_evidence_commands:
-        description: Maximum advisory evidence commands to execute
+        description: Maximum advisory evidence commands to execute; blank uses ci/proof.toml [executor.pr]
         required: false
-        default: "1"
+        default: ""
 
 permissions:
   contents: read
@@ -39,7 +39,7 @@ jobs:
       contents: read
     env:
       PROOF_BASE_REF: ${{ github.event.pull_request.base.ref || github.event.inputs.base_ref || 'main' }}
-      PROOF_EXECUTOR_MAX_COMMANDS: ${{ github.event.inputs.max_evidence_commands || '1' }}
+      PROOF_EXECUTOR_MAX_COMMANDS_INPUT: ${{ github.event.inputs.max_evidence_commands || '' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -63,6 +63,42 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-llvm-cov
+
+      - name: Resolve executor PR policy
+        run: |
+          set -euo pipefail
+          mkdir -p target/proof
+          cargo xtask proof-policy --json > target/proof/proof-policy.json
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          with open("target/proof/proof-policy.json", encoding="utf-8") as handle:
+              policy = json.load(handle)
+
+          executor = policy.get("executor") or {}
+          pr = executor.get("pr") or {}
+
+          if pr.get("default_enabled") is not True:
+              sys.exit("[executor.pr].default_enabled must stay true for PR observation runs")
+          if pr.get("required") is not False:
+              sys.exit("[executor.pr].required must stay false; this workflow is non-required")
+          if pr.get("codecov_upload") is not False:
+              sys.exit("[executor.pr].codecov_upload must stay false; Codecov upload is manual-only")
+
+          max_commands = os.environ.get("PROOF_EXECUTOR_MAX_COMMANDS_INPUT", "").strip()
+          if not max_commands:
+              max_commands = str(pr.get("max_commands") or executor.get("max_dry_run_commands") or 1)
+          if not max_commands.isdigit() or int(max_commands) <= 0:
+              sys.exit("proof executor command limit must be a positive integer")
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+              env.write(f"PROOF_EXECUTOR_MAX_COMMANDS={max_commands}\n")
+              env.write("PROOF_EXECUTOR_PR_DEFAULT_ENABLED=true\n")
+              env.write("PROOF_EXECUTOR_PR_REQUIRED=false\n")
+              env.write("PROOF_EXECUTOR_PR_CODECOV_UPLOAD=false\n")
+          PY
 
       - name: Fetch base ref
         run: git fetch origin "${PROOF_BASE_REF}":"refs/remotes/origin/${PROOF_BASE_REF}" || true
@@ -127,6 +163,13 @@ jobs:
             echo "| execution artifact verifier | ${verifier_status} |"
             echo "| execution observation | ${observation_status} |"
             echo "| observation collection | ${collection_status} |"
+            echo ""
+            echo "| Policy | Value |"
+            echo "| --- | --- |"
+            echo "| PR default enabled | ${PROOF_EXECUTOR_PR_DEFAULT_ENABLED} |"
+            echo "| PR required | ${PROOF_EXECUTOR_PR_REQUIRED} |"
+            echo "| PR Codecov upload | ${PROOF_EXECUTOR_PR_CODECOV_UPLOAD} |"
+            echo "| executor max commands | ${PROOF_EXECUTOR_MAX_COMMANDS} |"
             echo ""
             echo "This is an explicitly non-required PR/manual experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
             echo ""

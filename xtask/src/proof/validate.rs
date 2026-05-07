@@ -64,6 +64,36 @@ fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>
         ));
     }
 
+    if let Some(pr) = policy.executor.pr.as_ref() {
+        if pr.default_enabled != Some(true) {
+            violations.push(PolicyViolation::new(
+                "executor.pr.default_enabled",
+                "proof executor PR observation is policy-default-on; keep default_enabled true",
+            ));
+        }
+
+        validate_positive_usize(
+            "executor.pr.max_commands",
+            pr.max_commands,
+            "executor PR command limit",
+            violations,
+        );
+
+        if pr.required.unwrap_or(false) {
+            violations.push(PolicyViolation::new(
+                "executor.pr.required",
+                "proof executor PR runs are not required gates; keep required false",
+            ));
+        }
+
+        if pr.codecov_upload.unwrap_or(false) {
+            violations.push(PolicyViolation::new(
+                "executor.pr.codecov_upload",
+                "default Codecov upload from PR executor runs is not implemented; keep codecov_upload false",
+            ));
+        }
+    }
+
     if let Some(promotion) = policy.executor.promotion.as_ref() {
         if promotion.window.is_none() {
             violations.push(PolicyViolation::new(
@@ -594,6 +624,47 @@ max_dry_run_commands = 0
                 && violation
                     .message
                     .contains("executor dry-run command limit must be greater than zero")
+        }));
+    }
+
+    #[test]
+    fn rejects_invalid_executor_pr_defaults() {
+        let violations = {
+            let policy = parse_policy_str(&policy_with(
+                r#"
+[executor]
+family = "coverage"
+ci_execution = "explicit_opt_in"
+max_dry_run_commands = 1
+
+[executor.pr]
+default_enabled = false
+required = true
+max_commands = 0
+codecov_upload = true
+"#,
+            ))
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.pr.default_enabled"
+                && violation.message.contains("policy-default-on")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.pr.max_commands"
+                && violation
+                    .message
+                    .contains("executor PR command limit must be greater than zero")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.pr.required"
+                && violation.message.contains("not required gates")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "executor.pr.codecov_upload"
+                && violation.message.contains("not implemented")
         }));
     }
 

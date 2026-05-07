@@ -196,6 +196,18 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor workflow should keep the command selection limit Rust-owned and manually tunable"
     );
     assert!(
+        executor.contains("cargo xtask proof-policy --json > target/proof/proof-policy.json"),
+        "executor workflow should resolve PR defaults from proof policy"
+    );
+    assert!(
+        executor.contains("pr.get(\"default_enabled\") is not True"),
+        "executor workflow should require policy-backed default PR observation"
+    );
+    assert!(
+        executor.contains("PROOF_EXECUTOR_MAX_COMMANDS_INPUT"),
+        "manual executor command override should be separate from the policy default"
+    );
+    assert!(
         !ci.contains("scoped-coverage-executor"),
         "required CI aggregate must not depend on the executor experiment"
     );
