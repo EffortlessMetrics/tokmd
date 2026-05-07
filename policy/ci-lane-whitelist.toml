@@ -1,0 +1,86 @@
+schema = "tokmd.ci_lane_whitelist.v1"
+
+[lane.mutation]
+description = "Mutation testing with cargo-mutants for Rust crates."
+intent = "mutation_adequacy"
+failure_mode = "Code changed but mutation testing was not run; missed weakened assertions."
+proof_obligation = "cargo mutants --timeout 30 [--exclude ...] outputs verdict.json with survive count."
+owner = "release/ci"
+runner = "ubuntu_latest"
+base_lem = 60
+default_pr = false
+blocking = false
+workflow = ".github/workflows/mutants.yml"
+labels = ["mutation", "full-ci"]
+outputs = ["mutants.json", "mutants.log"]
+not_responsible_for = [
+  "coverage",
+  "proof-policy execution",
+  "WASM behavior",
+  "release packaging",
+]
+
+[lane.ci]
+description = "CI orchestration: MSRV, format, clippy, features, WASM, publish-surface, docs."
+intent = "quality_gate"
+failure_mode = "Code changed but standard quality checks (fmt, clippy, WASM) were not run."
+proof_obligation = "All required GitHub Actions checks must pass."
+owner = "release/ci"
+runner = "ubuntu_latest,macos-latest,windows-latest"
+base_lem = 120
+default_pr = true
+blocking = true
+workflow = ".github/workflows/ci.yml"
+labels = []
+outputs = [
+  "build-artifacts",
+  "wasm-artifacts",
+  "publish-surface.json",
+  "docs",
+]
+not_responsible_for = [
+  "mutation adequacy",
+  "proof-policy execution",
+  "coverage reporting",
+]
+
+[lane.proof_executor]
+description = "Proof-policy executor: runs policy proofs on relevant code boundaries."
+intent = "proof_execution"
+failure_mode = "Code changed but proof rules were not executed."
+proof_obligation = "cargo xtask proof-policy --check passes; proof.json generated."
+owner = "release/ci"
+runner = "ubuntu_latest"
+base_lem = 90
+default_pr = false
+blocking = false
+workflow = ".github/workflows/proof-executor.yml"
+labels = ["proof", "full-ci"]
+outputs = ["proof.json"]
+not_responsible_for = [
+  "mutation adequacy",
+  "coverage",
+  "WASM browser behavior",
+  "release packaging",
+]
+
+[lane.coverage]
+description = "Codecov/cargo-llvm-cov execution-surface reporting for tokmd Rust crates."
+intent = "execution_surface"
+failure_mode = "Code changed but tests no longer execute the intended Rust surface."
+proof_obligation = "Generate coverage.json, coverage.txt, lcov.info, upload artifact, and upload lcov.info to Codecov when CODECOV_TOKEN is present."
+owner = "release/ci"
+runner = "ubuntu_latest"
+base_lem = 45
+default_pr = false
+blocking = false
+workflow = ".github/workflows/coverage.yml"
+labels = ["coverage", "full-ci"]
+outputs = ["coverage.json", "coverage.txt", "lcov.info", "coverage-report"]
+not_responsible_for = [
+  "mutation adequacy",
+  "proof-policy execution",
+  "Nix packaging",
+  "WASM browser behavior",
+  "security audit",
+]
