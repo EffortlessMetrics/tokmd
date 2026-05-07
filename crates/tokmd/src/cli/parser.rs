@@ -1078,6 +1078,33 @@ mod tests {
         assert!(a.children.is_none());
     }
 
+    #[test]
+    fn depth_visible_alias_sets_module_depth_for_module_like_commands() {
+        let cli = Cli::try_parse_from(["tokmd", "module", "--depth", "3"]).unwrap();
+        match cli.command.unwrap() {
+            Commands::Module(args) => assert_eq!(args.module_depth, Some(3)),
+            other => panic!("unexpected command: {other:?}"),
+        }
+
+        let cli = Cli::try_parse_from(["tokmd", "export", "--depth", "3"]).unwrap();
+        match cli.command.unwrap() {
+            Commands::Export(args) => assert_eq!(args.module_depth, Some(3)),
+            other => panic!("unexpected command: {other:?}"),
+        }
+
+        let cli = Cli::try_parse_from(["tokmd", "context", "--depth", "3"]).unwrap();
+        match cli.command.unwrap() {
+            Commands::Context(args) => assert_eq!(args.module_depth, Some(3)),
+            other => panic!("unexpected command: {other:?}"),
+        }
+
+        let cli = Cli::try_parse_from(["tokmd", "handoff", "--depth", "3"]).unwrap();
+        match cli.command.unwrap() {
+            Commands::Handoff(args) => assert_eq!(args.module_depth, Some(3)),
+            other => panic!("unexpected command: {other:?}"),
+        }
+    }
+
     // ── Enum serde roundtrips ─────────────────────────────────────────
     #[test]
     fn analysis_preset_serde_roundtrip() {
