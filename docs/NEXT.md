@@ -91,7 +91,10 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
   requires `FACTORY_API_KEY` and `MINIMAX_API_KEY`, skips fork PR auto-review,
   restricts manual `@droid` commands to trusted actors, and keeps raw debug
   artifact upload disabled.
-- Next proof-policy operational slice: collect additional coverage-enabled executor observations across more product scopes before considering any required-gate or default Codecov-upload promotion.
+- Manual proof-executor run `25499361375` on disposable branch `codex/proof-executor-more-scope-sample` passed on 2026-05-07. It changed `crates/tokmd-analysis/src/complexity/mod.rs` and `crates/tokmd-gate/src/pointer.rs`, matched `analysis_complexity` and `tokmd_gate`, selected and executed two non-required coverage commands, produced `analysis_complexity.lcov` and `tokmd_gate.lcov`, and re-verified locally with `cargo xtask proof-execution-artifacts-check`.
+- Manual proof-observation collector run `25499876871` on `main` intentionally failed the stricter four-scope floor under a last-30 successful-run window: the collector found enough executed commands and artifacts, but only 3 distinct scopes. That is useful negative evidence that promotion thresholds need a recency/window rule, not just aggregate historical totals.
+- Manual proof-observation collector run `25499968322` on `main` passed on 2026-05-07 with `--run-limit 100`, `--min-observations 1`, `--min-executed 4`, `--min-scopes 4`, and `--min-artifacts 4`. The collection recorded 54 observations, 8 selected/executed/passed coverage commands, 8 artifacts, and 5 distinct scopes: `analysis_complexity`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_core_ffi`, and `tokmd_gate`.
+- Next proof-policy operational slice: define promotion criteria for scoped coverage executor evidence, including the recency window and minimum distinct-scope floor, before considering required-gate or default Codecov-upload promotion.
 
 ## References
 
