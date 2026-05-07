@@ -1,12 +1,18 @@
 {
-  "outcome_type": "patch",
-  "title": "archivist: consolidate shared notes/ instructions into .jules/README.md 🗃️",
-  "summary": "Removed duplicated instructions about using the notes/ directory from 16 persona README files and consolidated them into the shared .jules/README.md file.",
-  "target_paths": [".jules/README.md", ".jules/personas/*/README.md"],
-  "proof_summary": "grep confirms the 16 duplicated lines were removed.",
-  "gates_run": ["cargo xtask docs --check", "cargo fmt -- --check"],
+  "status": "completed",
+  "outcome": "proof_patch",
+  "title": "archivist: update generated index rollups 🗃️",
+  "summary": "Ran `.jules/bin/build_index.py` to regenerate the `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` files to capture recent per-run packets.",
+  "target_paths": [
+    ".jules/index/generated/RUNS_ROLLUP.md",
+    ".jules/index/generated/FRICTION_ROLLUP.md"
+  ],
+  "proof_summary": "Executed build_index.py to automatically summarize all run packets, ensuring recent activity such as the archivist_jules run itself and other recent jobs are properly indexed.",
+  "gates_run": [
+    "python3 .jules/bin/build_index.py"
+  ],
   "friction_items_created": [],
   "persona_notes_created": [],
-  "rollback": "git restore .jules/README.md .jules/personas/*/README.md",
+  "rollback": "git checkout -- .jules/index/generated/",
   "follow_ups": []
 }
