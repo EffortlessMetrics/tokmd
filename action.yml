@@ -36,6 +36,9 @@ inputs:
   comment:
     description: 'Whether to post the generated Markdown summary as a pull request comment'
     default: 'true'
+  review-packet:
+    description: 'Whether mode: cockpit should emit a review packet directory and use its comment.md as the PR comment body'
+    default: 'false'
 
 outputs:
   receipt:
@@ -50,6 +53,9 @@ outputs:
   cockpit-report:
     description: 'Path to the generated cockpit report JSON file'
     value: ${{ steps.generate.outputs['cockpit-report'] }}
+  review-packet:
+    description: 'Path to the generated cockpit review packet directory when mode: cockpit and review-packet: true are used'
+    value: ${{ steps.generate.outputs['review-packet'] }}
   sensor-report:
     description: 'Path to the generated sensor report JSON file'
     value: ${{ steps.generate.outputs['sensor-report'] }}
@@ -166,6 +172,7 @@ runs:
         TOKMD_ACTION_MODE: ${{ inputs.mode }}
         TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
         TOKMD_ACTION_PATHS: ${{ inputs.paths }}
+        TOKMD_ACTION_REVIEW_PACKET: ${{ inputs.review-packet }}
         TOKMD_ACTION_TOP: ${{ inputs.top }}
       run: |
         set -euo pipefail
@@ -199,9 +206,24 @@ runs:
         receipt_file=""
         gate_verdict_file=""
         cockpit_report_file=""
+        review_packet_dir=""
         sensor_report_file=""
         baseline_report_file=""
         command_status=0
+        review_packet="${TOKMD_ACTION_REVIEW_PACKET}"
+
+        case "$review_packet" in
+          true|false) ;;
+          *)
+            echo "::error::review-packet must be 'true' or 'false'"
+            exit 1
+            ;;
+        esac
+
+        if [ "$review_packet" = "true" ] && [ "$mode" != "cockpit" ]; then
+          echo "::error::review-packet is only supported with mode=cockpit"
+          exit 1
+        fi
 
         ensure_git_ref() {
           local ref="$1"
@@ -294,10 +316,19 @@ runs:
           cockpit)
             cockpit_report_file="tokmd-cockpit-report.json"
             compare_base="$(resolve_base_ref cockpit)"
+            cockpit_args=(
+              --base "$compare_base"
+              --head "$TOKMD_ACTION_HEAD"
+            )
+
+            if [ "$review_packet" = "true" ]; then
+              review_packet_dir=".tokmd/review"
+              summary_file="$review_packet_dir/comment.md"
+              cockpit_args+=(--review-packet-dir "$review_packet_dir")
+            fi
 
             tokmd cockpit \
-              --base "$compare_base" \
-              --head "$TOKMD_ACTION_HEAD" \
+              "${cockpit_args[@]}" \
               --format json > "$cockpit_report_file"
             ;;
           sensor)
@@ -335,6 +366,7 @@ runs:
           echo "summary=$summary_file"
           echo "gate-verdict=$gate_verdict_file"
           echo "cockpit-report=$cockpit_report_file"
+          echo "review-packet=$review_packet_dir"
           echo "sensor-report=$sensor_report_file"
           echo "baseline-report=$baseline_report_file"
           echo "command-status=$command_status"
@@ -350,6 +382,7 @@ runs:
           ${{ steps.generate.outputs.receipt }}
           ${{ steps.generate.outputs['gate-verdict'] }}
           ${{ steps.generate.outputs['cockpit-report'] }}
+          ${{ steps.generate.outputs['review-packet'] }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
           extras/
@@ -369,6 +402,7 @@ runs:
         RECEIPT_FILE: ${{ steps.generate.outputs.receipt }}
         GATE_VERDICT_FILE: ${{ steps.generate.outputs['gate-verdict'] }}
         COCKPIT_REPORT_FILE: ${{ steps.generate.outputs['cockpit-report'] }}
+        REVIEW_PACKET_DIR: ${{ steps.generate.outputs['review-packet'] }}
         SENSOR_REPORT_FILE: ${{ steps.generate.outputs['sensor-report'] }}
         BASELINE_REPORT_FILE: ${{ steps.generate.outputs['baseline-report'] }}
         COMMAND_STATUS: ${{ steps.generate.outputs['command-status'] }}
@@ -396,6 +430,7 @@ runs:
           echo "| Receipt | \`$(value_or_missing "$RECEIPT_FILE")\` |"
           echo "| Gate verdict | \`$(value_or_missing "$GATE_VERDICT_FILE")\` |"
           echo "| Cockpit report | \`$(value_or_missing "$COCKPIT_REPORT_FILE")\` |"
+          echo "| Review packet | \`$(value_or_missing "$REVIEW_PACKET_DIR")\` |"
           echo "| Sensor report | \`$(value_or_missing "$SENSOR_REPORT_FILE")\` |"
           echo "| Baseline report | \`$(value_or_missing "$BASELINE_REPORT_FILE")\` |"
           echo
