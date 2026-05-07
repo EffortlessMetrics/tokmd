@@ -1,0 +1,3 @@
+{"file": "xtask/tests/proof_policy_w90.rs", "line": 191, "issue": "scope_count mismatch", "test": "proof_policy_json_reports_current_schema"}
+{"file": "xtask/tests/proof_policy_w90.rs", "line": 191, "issue": "fixed scope_count mismatch", "test": "proof_policy_json_reports_current_schema"}
+{"file": ".jules/friction/open/xtask_proof_policy_out_of_sync.md", "action": "created", "reason": "out of bounds test failure"}
