@@ -15,6 +15,15 @@ family = "coverage"
 ci_execution = "explicit_opt_in"
 max_dry_run_commands = 1
 
+[executor.promotion]
+run_limit = 100
+min_observations = 1
+min_executed = 4
+min_scopes = 4
+min_artifacts = 4
+required_gate = false
+default_codecov_upload = false
+
 [[scope]]
 name = "workspace_dependency_graph"
 kind = "rust"

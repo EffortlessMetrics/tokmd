@@ -24,6 +24,18 @@ struct ExecutorPolicyReport {
     family: Option<String>,
     ci_execution: Option<String>,
     max_dry_run_commands: Option<usize>,
+    promotion: Option<ExecutorPromotionReport>,
+}
+
+#[derive(Debug, Serialize)]
+struct ExecutorPromotionReport {
+    run_limit: Option<usize>,
+    min_observations: Option<usize>,
+    min_executed: Option<usize>,
+    min_scopes: Option<usize>,
+    min_artifacts: Option<usize>,
+    required_gate: Option<bool>,
+    default_codecov_upload: Option<bool>,
 }
 
 pub fn run(args: ProofPolicyArgs) -> Result<()> {
@@ -71,6 +83,25 @@ impl ExecutorPolicyReport {
                 .map(ci_execution_name)
                 .map(str::to_string),
             max_dry_run_commands: policy.executor.max_dry_run_commands,
+            promotion: policy
+                .executor
+                .promotion
+                .as_ref()
+                .map(ExecutorPromotionReport::from_policy),
+        }
+    }
+}
+
+impl ExecutorPromotionReport {
+    fn from_policy(promotion: &crate::proof::policy_ast::ExecutorPromotion) -> Self {
+        Self {
+            run_limit: promotion.run_limit,
+            min_observations: promotion.min_observations,
+            min_executed: promotion.min_executed,
+            min_scopes: promotion.min_scopes,
+            min_artifacts: promotion.min_artifacts,
+            required_gate: promotion.required_gate,
+            default_codecov_upload: promotion.default_codecov_upload,
         }
     }
 }
@@ -101,7 +132,7 @@ fn display_path(path: &Path) -> String {
 }
 
 fn executor_summary(executor: &ExecutorPolicyReport) -> String {
-    match (
+    let base = match (
         executor.family.as_deref(),
         executor.ci_execution.as_deref(),
         executor.max_dry_run_commands,
@@ -110,6 +141,34 @@ fn executor_summary(executor: &ExecutorPolicyReport) -> String {
             format!("{family}/{ci_execution}/max-dry-run-{max_dry_run_commands}")
         }
         _ => "not-configured".to_string(),
+    };
+
+    match executor.promotion.as_ref() {
+        Some(promotion) => format!(
+            "{base}/promotion-run-limit-{}/min-observations-{}/min-executed-{}/min-scopes-{}/min-artifacts-{}/required-gate-{}/codecov-upload-{}",
+            display_optional_usize(promotion.run_limit),
+            display_optional_usize(promotion.min_observations),
+            display_optional_usize(promotion.min_executed),
+            display_optional_usize(promotion.min_scopes),
+            display_optional_usize(promotion.min_artifacts),
+            display_optional_bool(promotion.required_gate),
+            display_optional_bool(promotion.default_codecov_upload)
+        ),
+        None => base,
+    }
+}
+
+fn display_optional_usize(value: Option<usize>) -> String {
+    value
+        .map(|number| number.to_string())
+        .unwrap_or_else(|| "unset".to_string())
+}
+
+fn display_optional_bool(value: Option<bool>) -> &'static str {
+    match value {
+        Some(true) => "on",
+        Some(false) => "off",
+        None => "unset",
     }
 }
 

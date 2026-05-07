@@ -52,6 +52,21 @@ pub struct Executor {
     pub family: Option<String>,
     pub ci_execution: Option<CiExecution>,
     pub max_dry_run_commands: Option<usize>,
+
+    #[serde(default)]
+    pub promotion: Option<ExecutorPromotion>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExecutorPromotion {
+    pub run_limit: Option<usize>,
+    pub min_observations: Option<usize>,
+    pub min_executed: Option<usize>,
+    pub min_scopes: Option<usize>,
+    pub min_artifacts: Option<usize>,
+    pub required_gate: Option<bool>,
+    pub default_codecov_upload: Option<bool>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]

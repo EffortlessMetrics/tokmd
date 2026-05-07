@@ -42,6 +42,24 @@ When `CODECOV_TOKEN` is configured, the workflow uploads `lcov.info` to Codecov 
 
 The dashboard and README badge are visibility surfaces, not release gates. Coverage should not become blocking until maintainers intentionally promote it after enough stable baseline runs.
 
+## Proof Executor Promotion Floor
+
+`ci/proof.toml` records the current non-required proof-executor promotion
+floor under `[executor.promotion]`:
+
+- `run_limit = 100`;
+- `min_observations = 1`;
+- `min_executed = 4`;
+- `min_scopes = 4`;
+- `min_artifacts = 4`;
+- `required_gate = false`;
+- `default_codecov_upload = false`.
+
+This is a checked policy declaration, not an automatic behavior switch. The
+executor remains an explicit opt-in coverage experiment, and default Codecov
+upload remains disabled until the promotion rule is intentionally changed and
+the workflow behavior is updated in the same review.
+
 ## Policy Routing
 
 Coverage workflow, Codecov config, and this document are routed through the `proof_control_plane` scope in `ci/proof.toml`. That keeps coverage-lane edits visible to affected proof plans without requiring a separate lane-whitelist policy file before a checker exists.
