@@ -1,11 +1,13 @@
-use crate::cli::ProofArtifactsCheckArgs;
+use crate::cli::{ProofArtifactsCheckArgs, ProofExecutionObservationArgs};
 use anyhow::{Context, Result, bail};
+use serde::Serialize;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
 
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
+const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 
 const SHARED_FIELDS: &[&str] = &[
     "mode",
@@ -57,6 +59,20 @@ pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
     Ok(())
 }
 
+pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
+    let summary = read_json(&args.executor_summary, "executor summary")?;
+    let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+
+    let observation = proof_execution_observation(&summary, &manifest)?;
+    write_observation(&args.output, &observation)?;
+    println!(
+        "Proof execution observation OK: {} executed command(s), wrote `{}`",
+        observation.counts.executed,
+        args.output.display()
+    );
+    Ok(())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum VerificationMode {
     NoExecution,
@@ -71,11 +87,203 @@ struct ProofArtifactsReport {
     guard_reason: String,
 }
 
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservation {
+    schema: String,
+    status: String,
+    execution_status: String,
+    profile: String,
+    base: String,
+    head: String,
+    family: String,
+    required: bool,
+    ok: bool,
+    execution_guard: ProofExecutionObservationGuard,
+    counts: ProofExecutionObservationCounts,
+    scopes: Vec<ProofExecutionObservationScope>,
+    changed_files: Vec<String>,
+    unknown_files: Vec<String>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationGuard {
+    enabled: bool,
+    ci: bool,
+    reason: String,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationCounts {
+    selected: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+    artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationScope {
+    name: String,
+    kind: String,
+    command: String,
+    artifact_path: Option<String>,
+    status: String,
+    exit_code: Option<i64>,
+}
+
 fn read_json(path: &Path, label: &str) -> Result<Value> {
     let raw = fs::read_to_string(path)
         .with_context(|| format!("failed to read {label} artifact `{}`", path.display()))?;
     serde_json::from_str(&raw)
         .with_context(|| format!("failed to parse {label} artifact `{}`", path.display()))
+}
+
+fn write_observation(path: &Path, observation: &ProofExecutionObservation) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create `{}`", parent.display()))?;
+    }
+    fs::write(path, serde_json::to_string_pretty(observation)?)
+        .with_context(|| format!("failed to write `{}`", path.display()))
+}
+
+fn proof_execution_observation(
+    summary: &Value,
+    manifest: &Value,
+) -> Result<ProofExecutionObservation> {
+    let report = validate_executor_artifacts(summary, manifest, VerificationMode::Execution)?;
+    let entries = expect_array(
+        field(summary, "entries", "executor summary")?,
+        "entries",
+        "executor summary",
+    )?;
+    let mut scopes = entries
+        .iter()
+        .map(observation_scope)
+        .collect::<Result<Vec<_>>>()?;
+    scopes.sort_by(|left, right| {
+        (&left.name, &left.kind, &left.command).cmp(&(&right.name, &right.kind, &right.command))
+    });
+    let artifacts = scopes
+        .iter()
+        .filter(|scope| scope.artifact_path.is_some())
+        .count();
+
+    Ok(ProofExecutionObservation {
+        schema: OBSERVATION_SCHEMA.to_string(),
+        status: expect_string(
+            field(summary, "status", "executor summary")?,
+            "status",
+            "executor summary",
+        )?,
+        execution_status: report.execution_status,
+        profile: expect_string(
+            field(summary, "profile", "executor summary")?,
+            "profile",
+            "executor summary",
+        )?,
+        base: expect_string(
+            field(summary, "base", "executor summary")?,
+            "base",
+            "executor summary",
+        )?,
+        head: expect_string(
+            field(summary, "head", "executor summary")?,
+            "head",
+            "executor summary",
+        )?,
+        family: expect_string(
+            field(summary, "family", "executor summary")?,
+            "family",
+            "executor summary",
+        )?,
+        required: expect_bool(
+            field(summary, "required", "executor summary")?,
+            "required",
+            "executor summary",
+        )?,
+        ok: expect_bool(
+            field(summary, "ok", "executor summary")?,
+            "ok",
+            "executor summary",
+        )?,
+        execution_guard: ProofExecutionObservationGuard {
+            enabled: expect_bool(
+                field(summary, "execution_guard.enabled", "executor summary")?,
+                "execution_guard.enabled",
+                "executor summary",
+            )?,
+            ci: expect_bool(
+                field(summary, "execution_guard.ci", "executor summary")?,
+                "execution_guard.ci",
+                "executor summary",
+            )?,
+            reason: report.guard_reason,
+        },
+        counts: ProofExecutionObservationCounts {
+            selected: report.selected,
+            executed: report.executed,
+            passed: expect_usize(
+                field(summary, "counts.passed", "executor summary")?,
+                "counts.passed",
+                "executor summary",
+            )?,
+            failed: expect_usize(
+                field(summary, "counts.failed", "executor summary")?,
+                "counts.failed",
+                "executor summary",
+            )?,
+            artifacts,
+        },
+        scopes,
+        changed_files: expect_string_array(
+            field(summary, "changed_files", "executor summary")?,
+            "changed_files",
+            "executor summary",
+        )?,
+        unknown_files: expect_string_array(
+            field(summary, "unknown_files", "executor summary")?,
+            "unknown_files",
+            "executor summary",
+        )?,
+    })
+}
+
+fn observation_scope(entry: &Value) -> Result<ProofExecutionObservationScope> {
+    Ok(ProofExecutionObservationScope {
+        name: expect_string(
+            field(entry, "scope", "executor summary entry")?,
+            "scope",
+            "executor summary entry",
+        )?,
+        kind: expect_string(
+            field(entry, "kind", "executor summary entry")?,
+            "kind",
+            "executor summary entry",
+        )?,
+        command: expect_string(
+            field(entry, "command", "executor summary entry")?,
+            "command",
+            "executor summary entry",
+        )?,
+        artifact_path: expect_optional_string(
+            field(entry, "artifact_path", "executor summary entry")?,
+            "artifact_path",
+            "executor summary entry",
+        )?,
+        status: expect_string(
+            field(entry, "status", "executor summary entry")?,
+            "status",
+            "executor summary entry",
+        )?,
+        exit_code: expect_optional_i64(
+            field(entry, "exit_code", "executor summary entry")?,
+            "exit_code",
+            "executor summary entry",
+        )?,
+    })
 }
 
 fn validate_executor_artifacts(
@@ -465,12 +673,42 @@ fn expect_string(value: &Value, path: &str, label: &str) -> Result<String> {
         .with_context(|| format!("{label} `{path}` must be a string"))
 }
 
+fn expect_optional_string(value: &Value, path: &str, label: &str) -> Result<Option<String>> {
+    if value.is_null() {
+        Ok(None)
+    } else {
+        expect_string(value, path, label).map(Some)
+    }
+}
+
 fn expect_string_value(value: &Value, expected: &str, path: &str, label: &str) -> Result<()> {
     let actual = expect_string(value, path, label)?;
     if actual != expected {
         bail!("{label} `{path}` must be `{expected}`, got `{actual}`");
     }
     Ok(())
+}
+
+fn expect_string_array(value: &Value, path: &str, label: &str) -> Result<Vec<String>> {
+    let values = expect_array(value, path, label)?;
+    values
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            expect_string(value, &format!("{path}[{index}]"), label)
+                .with_context(|| format!("{label} `{path}` entry {index} must be a string"))
+        })
+        .collect()
+}
+
+fn expect_optional_i64(value: &Value, path: &str, label: &str) -> Result<Option<i64>> {
+    if value.is_null() {
+        return Ok(None);
+    }
+    value
+        .as_i64()
+        .map(Some)
+        .with_context(|| format!("{label} `{path}` must be an integer or null"))
 }
 
 fn expect_usize(value: &Value, path: &str, label: &str) -> Result<usize> {
@@ -595,6 +833,45 @@ mod tests {
     }
 
     #[test]
+    fn builds_compact_observation_for_executed_artifacts() {
+        let (summary, manifest) = executed_artifacts();
+
+        let observation = proof_execution_observation(&summary, &manifest).unwrap();
+
+        assert_eq!(observation.schema, OBSERVATION_SCHEMA);
+        assert_eq!(observation.status, "passed");
+        assert_eq!(observation.execution_status, "executed");
+        assert_eq!(observation.family, "coverage");
+        assert_eq!(
+            observation.execution_guard.reason,
+            "local_explicit_opt_in_enabled"
+        );
+        assert_eq!(
+            observation.counts,
+            ProofExecutionObservationCounts {
+                selected: 1,
+                executed: 1,
+                passed: 1,
+                failed: 0,
+                artifacts: 1,
+            }
+        );
+        assert_eq!(observation.changed_files, ["crates/tokmd-core/src/ffi.rs"]);
+        assert!(observation.unknown_files.is_empty());
+        assert_eq!(observation.scopes.len(), 1);
+        assert_eq!(observation.scopes[0].name, "tokmd_core_ffi");
+        assert_eq!(observation.scopes[0].kind, "coverage");
+        assert_eq!(observation.scopes[0].status, "passed");
+        assert_eq!(observation.scopes[0].exit_code, Some(0));
+        assert!(
+            observation.scopes[0]
+                .artifact_path
+                .as_ref()
+                .is_some_and(|path| path.contains("tokmd-proof-artifact"))
+        );
+    }
+
+    #[test]
     fn rejects_execution_artifacts_without_enabled_guard() {
         let (mut summary, mut manifest) = executed_artifacts();
         summary["execution_guard"]["enabled"] = json!(false);
@@ -671,6 +948,17 @@ mod tests {
         let (summary, manifest) = matching_artifacts();
 
         let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("`mode` must be `execute`"));
+    }
+
+    #[test]
+    fn rejects_dry_run_artifacts_for_observation() {
+        let (summary, manifest) = matching_artifacts();
+
+        let error = proof_execution_observation(&summary, &manifest)
             .unwrap_err()
             .to_string();
 

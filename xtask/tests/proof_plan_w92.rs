@@ -80,6 +80,19 @@ fn proof_execution_artifacts_check_help_mentions_executor_paths() {
 }
 
 #[test]
+fn proof_execution_observation_help_mentions_executor_paths_and_output() {
+    let (stdout, stderr, success) = run_xtask(&["proof-execution-observation", "--help"]);
+
+    assert!(
+        success,
+        "proof-execution-observation --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
+    assert!(stdout.contains("--output"), "stdout: {stdout}");
+}
+
+#[test]
 fn affected_plan_ci_blocks_on_planner_generation_failures() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -337,6 +350,34 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
         stdout.contains("Proof execution artifacts OK"),
         "stdout: {stdout}"
     );
+
+    let observation_path = temp.path().join("proof-executor-observation.json");
+    let observation_arg = observation_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observation",
+        "--executor-summary",
+        &summary_arg,
+        "--executor-manifest",
+        &manifest_arg,
+        "--output",
+        &observation_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-observation failed. stderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("Proof execution observation OK"),
+        "stdout: {stdout}"
+    );
+    let observation = fs::read_to_string(observation_path).expect("observation should be written");
+    let observation: serde_json::Value =
+        serde_json::from_str(&observation).expect("observation should be valid JSON");
+    assert_eq!(observation["schema"], "tokmd.proof_executor_observation.v1");
+    assert_eq!(observation["execution_status"], "executed");
+    assert_eq!(observation["counts"]["selected"], 0);
+    assert_eq!(observation["counts"]["executed"], 0);
+    assert!(observation["scopes"].as_array().unwrap().is_empty());
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-artifacts-check",

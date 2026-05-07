@@ -78,15 +78,25 @@ jobs:
           if [ -f target/proof/executor-summary.json ] && [ -f target/proof/executor-manifest.json ]; then
             cargo xtask proof-execution-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-execution-artifacts-check.txt 2>&1
             verifier_status=$?
+            if [ "${verifier_status}" -eq 0 ]; then
+              cargo xtask proof-execution-observation --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --output target/proof/proof-executor-observation.json > target/proof/proof-execution-observation.txt 2>&1
+              observation_status=$?
+            else
+              observation_status=1
+              echo "executor artifacts did not pass verification" > target/proof/proof-execution-observation.txt
+            fi
           else
             verifier_status=1
+            observation_status=1
             echo "executor artifacts were not generated" > target/proof/proof-execution-artifacts-check.txt
+            echo "executor artifacts were not generated" > target/proof/proof-execution-observation.txt
           fi
 
           {
             echo "affected_status=${affected_status}"
             echo "executor_status=${executor_status}"
             echo "verifier_status=${verifier_status}"
+            echo "observation_status=${observation_status}"
           } > target/proof/status.env
 
           {
@@ -97,10 +107,13 @@ jobs:
             echo "| affected | ${affected_status} |"
             echo "| proof executor | ${executor_status} |"
             echo "| execution artifact verifier | ${verifier_status} |"
+            echo "| execution observation | ${observation_status} |"
             echo ""
             echo "This is an explicitly non-required PR/manual experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
             echo ""
             cat target/proof/proof-execution-artifacts-check.txt
+            echo ""
+            cat target/proof/proof-execution-observation.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${affected_status}" -ne 0 ]; then
@@ -111,6 +124,9 @@ jobs:
           fi
           if [ "${verifier_status}" -ne 0 ]; then
             exit "${verifier_status}"
+          fi
+          if [ "${observation_status}" -ne 0 ]; then
+            exit "${observation_status}"
           fi
 
           exit 0
