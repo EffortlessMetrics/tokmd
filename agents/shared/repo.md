@@ -40,7 +40,7 @@ Tier summary:
 
 | Tier | Purpose | Example crates |
 |------|---------|----------------|
-| 0 | Contracts and settings | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-substrate` |
+| 0 | Contracts and settings | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-cockpit`, `tokmd-io-port` |
 | 1 | Core scan and aggregation | `tokmd-scan`, `tokmd-model`, `tokmd-sensor` |
 | 2 | Adapters and rendering | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` |
 | 3 | Analysis orchestration | `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-analysis-*`, `tokmd-fun`, `tokmd-gate` |
