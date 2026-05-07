@@ -225,12 +225,42 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
         "collector should keep observation summarization Rust-owned"
     );
     assert!(
+        collector.contains(
+            "cargo xtask proof-policy --json > target/proof-observations/proof-policy.json"
+        ),
+        "collector should resolve default thresholds from the checked proof policy"
+    );
+    assert!(
+        collector.contains("promotion = json.load(handle)[\"executor\"][\"promotion\"]"),
+        "collector should read executor promotion thresholds from proof-policy JSON"
+    );
+    assert!(
+        collector.contains("RUN_LIMIT_INPUT: ${{ github.event.inputs.run_limit || '' }}"),
+        "collector should preserve workflow-dispatch threshold overrides"
+    );
+    assert!(
         collector.contains("--min-observations \"${MIN_OBSERVATIONS}\""),
         "collector should expose observation readiness thresholds"
     );
     assert!(
-        collector.contains("MIN_EXECUTED: ${{ github.event.inputs.min_executed || '0' }}"),
-        "collector discovery runs should not fail before executed evidence exists"
+        collector.contains("MIN_EXECUTED_INPUT: ${{ github.event.inputs.min_executed || '' }}"),
+        "collector should let blank executed thresholds fall back to the proof policy"
+    );
+    assert!(
+        !collector.contains("MIN_EXECUTED: ${{ github.event.inputs.min_executed || '0' }}"),
+        "collector should not keep stale hard-coded readiness defaults"
+    );
+    assert!(
+        collector.contains("thresholds.env"),
+        "collector should artifact the resolved threshold values"
+    );
+    assert!(
+        collector.contains("| Input | Value | Source |"),
+        "collector summary should show whether thresholds came from policy or manual inputs"
+    );
+    assert!(
+        collector.contains("MIN_EXECUTED_SOURCE"),
+        "collector summary should show the executed threshold source"
     );
     assert!(
         collector.contains("proof-executor-observation-collection.md"),

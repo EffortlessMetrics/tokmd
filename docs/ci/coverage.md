@@ -55,10 +55,13 @@ floor under `[executor.promotion]`:
 - `required_gate = false`;
 - `default_codecov_upload = false`.
 
-This is a checked policy declaration, not an automatic behavior switch. The
-executor remains an explicit opt-in coverage experiment, and default Codecov
-upload remains disabled until the promotion rule is intentionally changed and
-the workflow behavior is updated in the same review.
+This is a checked policy declaration and the default source for the manual
+proof-observation collector thresholds. Blank workflow-dispatch threshold
+inputs resolve from `cargo xtask proof-policy --json`; explicit dispatch inputs
+remain overrides for narrower observation probes. The executor remains an
+explicit opt-in coverage experiment, and default Codecov upload remains disabled
+until the promotion rule is intentionally changed and the workflow behavior is
+updated in the same review.
 
 ## Policy Routing
 
