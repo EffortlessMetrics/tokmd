@@ -536,6 +536,7 @@ fn scan_file(rel_path: &Path, abs_path: &Path) -> Result<Vec<Finding>> {
     let mut visitor = PanicVisitor {
         rel_path: rel_path.to_path_buf(),
         container_stack: Vec::new(),
+        closure_counter: Vec::new(),
         findings: Vec::new(),
     };
     visitor.visit_file(&syntax);
@@ -545,6 +546,10 @@ fn scan_file(rel_path: &Path, abs_path: &Path) -> Result<Vec<Finding>> {
 struct PanicVisitor {
     rel_path: PathBuf,
     container_stack: Vec<String>,
+    /// Per-fn counter that hands out stable indices to closures and async
+    /// blocks so two distinct closures inside the same function produce
+    /// different identities.
+    closure_counter: Vec<u32>,
     findings: Vec<Finding>,
 }
 
@@ -571,22 +576,61 @@ impl PanicVisitor {
     }
 }
 
+impl PanicVisitor {
+    fn enter_fn(&mut self, name: &str) {
+        self.container_stack.push(name.to_string());
+        self.closure_counter.push(0);
+    }
+
+    fn leave_fn(&mut self) {
+        self.container_stack.pop();
+        self.closure_counter.pop();
+    }
+
+    /// Allocate the next per-fn closure/async-block index. Two distinct
+    /// closures inside the same function get distinct indices, so their
+    /// findings do not collide on identity.
+    fn next_closure_index(&mut self) -> u32 {
+        if let Some(top) = self.closure_counter.last_mut() {
+            let idx = *top;
+            *top = top.saturating_add(1);
+            idx
+        } else {
+            0
+        }
+    }
+}
+
 impl<'ast> Visit<'ast> for PanicVisitor {
     fn visit_item_fn(&mut self, item: &'ast syn::ItemFn) {
-        self.container_stack.push(item.sig.ident.to_string());
+        self.enter_fn(&item.sig.ident.to_string());
         syn::visit::visit_item_fn(self, item);
-        self.container_stack.pop();
+        self.leave_fn();
     }
 
     fn visit_impl_item_fn(&mut self, item: &'ast syn::ImplItemFn) {
-        self.container_stack.push(item.sig.ident.to_string());
+        self.enter_fn(&item.sig.ident.to_string());
         syn::visit::visit_impl_item_fn(self, item);
-        self.container_stack.pop();
+        self.leave_fn();
     }
 
     fn visit_trait_item_fn(&mut self, item: &'ast syn::TraitItemFn) {
-        self.container_stack.push(item.sig.ident.to_string());
+        self.enter_fn(&item.sig.ident.to_string());
         syn::visit::visit_trait_item_fn(self, item);
+        self.leave_fn();
+    }
+
+    fn visit_expr_closure(&mut self, expr: &'ast syn::ExprClosure) {
+        let idx = self.next_closure_index();
+        self.container_stack.push(format!("<closure-{}>", idx));
+        syn::visit::visit_expr_closure(self, expr);
+        self.container_stack.pop();
+    }
+
+    fn visit_expr_async(&mut self, expr: &'ast syn::ExprAsync) {
+        let idx = self.next_closure_index();
+        self.container_stack.push(format!("<async-{}>", idx));
+        syn::visit::visit_expr_async(self, expr);
         self.container_stack.pop();
     }
 
@@ -737,13 +781,33 @@ fn truncate_fingerprint(raw: &str) -> String {
     if collapsed.chars().count() <= MAX {
         collapsed
     } else {
+        // Long expressions (chained builders, large match arms, formatted
+        // strings) often share a common prefix, so a naive head-truncation
+        // would collapse two distinct expressions onto the same identity.
+        // Append a deterministic FNV-1a hash of the full collapsed form so
+        // that distinct tails yield distinct fingerprints.
         let head: String = collapsed.chars().take(MAX).collect();
-        format!("{head}…")
+        let digest = fnv1a_hex(collapsed.as_bytes());
+        format!("{head}…#{digest}")
     }
 }
 
 fn collapse_whitespace(s: &str) -> String {
     s.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+/// Stable 64-bit FNV-1a hash, hex-encoded. Deterministic and dependency-free
+/// (no need for `ahash` / `siphasher`); used purely for identity disambiguation
+/// of long fingerprints.
+fn fnv1a_hex(bytes: &[u8]) -> String {
+    const OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+    const PRIME: u64 = 0x0000_0100_0000_01b3;
+    let mut h: u64 = OFFSET;
+    for b in bytes {
+        h ^= u64::from(*b);
+        h = h.wrapping_mul(PRIME);
+    }
+    format!("{h:016x}")
 }
 
 // ---------------------------------------------------------------------------
@@ -970,6 +1034,7 @@ mod tests {
         let mut visitor = PanicVisitor {
             rel_path: PathBuf::from("test.rs"),
             container_stack: Vec::new(),
+            closure_counter: Vec::new(),
             findings: Vec::new(),
         };
         visitor.visit_file(&syntax);
@@ -1095,6 +1160,53 @@ mod tests {
 
         let with_curdir = normalize_path(Path::new("./crates/foo/src/lib.rs"));
         assert_eq!(with_curdir, PathBuf::from("crates/foo/src/lib.rs"));
+    }
+
+    #[test]
+    fn closures_disambiguate_within_a_function() {
+        let findings = parse(
+            r#"
+            fn run() {
+                let _ = (|| { panic!("first"); })();
+                let _ = (|| { panic!("second"); })();
+            }
+            "#,
+        );
+        let containers: Vec<&str> = findings
+            .iter()
+            .map(|f| f.selector.container.as_str())
+            .collect();
+        assert!(
+            containers.contains(&"run::<closure-0>"),
+            "{containers:?}"
+        );
+        assert!(
+            containers.contains(&"run::<closure-1>"),
+            "{containers:?}"
+        );
+    }
+
+    #[test]
+    fn long_fingerprints_get_stable_hash_suffix() {
+        let long: String = "a".repeat(500);
+        let fp = truncate_fingerprint(&long);
+        assert!(fp.contains('…'), "{fp}");
+        assert!(fp.contains('#'), "{fp}");
+        // Same input → same hash (determinism).
+        assert_eq!(fp, truncate_fingerprint(&long));
+        // A distinct tail produces a distinct hash even when the head matches.
+        let other: String = format!("{}b", "a".repeat(499));
+        let fp_other = truncate_fingerprint(&other);
+        assert_ne!(fp, fp_other, "head-collision must not yield same fingerprint");
+    }
+
+    #[test]
+    fn fnv1a_hex_is_deterministic() {
+        let a = fnv1a_hex(b"hello");
+        let b = fnv1a_hex(b"hello");
+        assert_eq!(a, b);
+        assert_ne!(a, fnv1a_hex(b"hellp"));
+        assert_eq!(a.len(), 16);
     }
 
     #[test]
