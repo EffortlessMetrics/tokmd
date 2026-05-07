@@ -102,6 +102,12 @@ fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>
             "executor promotion artifact floor",
             violations,
         );
+        validate_positive_usize(
+            "executor.promotion.min_passing_collector_runs",
+            promotion.min_passing_collector_runs,
+            "executor promotion passing collector-run floor",
+            violations,
+        );
 
         if let (Some(run_limit), Some(min_observations)) =
             (promotion.run_limit, promotion.min_observations)
@@ -608,6 +614,7 @@ min_observations = 0
 min_executed = 0
 min_scopes = 0
 min_artifacts = 0
+min_passing_collector_runs = 0
 required_gate = false
 default_codecov_upload = false
 "#,
@@ -622,6 +629,7 @@ default_codecov_upload = false
             "executor.promotion.min_executed",
             "executor.promotion.min_scopes",
             "executor.promotion.min_artifacts",
+            "executor.promotion.min_passing_collector_runs",
         ] {
             assert!(
                 violations.iter().any(|violation| violation.path == path
@@ -647,6 +655,7 @@ min_observations = 1
 min_executed = 1
 min_scopes = 1
 min_artifacts = 1
+min_passing_collector_runs = 1
 required_gate = false
 default_codecov_upload = false
 "#,
@@ -680,6 +689,7 @@ min_observations = 1
 min_executed = 1
 min_scopes = 1
 min_artifacts = 1
+min_passing_collector_runs = 1
 required_gate = true
 default_codecov_upload = true
 "#,
@@ -715,6 +725,7 @@ min_observations = 3
 min_executed = 1
 min_scopes = 1
 min_artifacts = 1
+min_passing_collector_runs = 1
 required_gate = false
 default_codecov_upload = false
 "#,
