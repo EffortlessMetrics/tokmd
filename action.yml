@@ -322,6 +322,10 @@ runs:
             )
 
             if [ "$review_packet" = "true" ]; then
+              if ! tokmd cockpit --help | grep -q -- '--review-packet-dir'; then
+                echo "::error::review-packet=true requires a tokmd binary that supports cockpit --review-packet-dir. Set version to a compatible release or install a matching tokmd before running the Action."
+                exit 1
+              fi
               review_packet_dir=".tokmd/review"
               summary_file="$review_packet_dir/comment.md"
               cockpit_args+=(--review-packet-dir "$review_packet_dir")

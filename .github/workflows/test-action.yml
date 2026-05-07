@@ -338,6 +338,15 @@ jobs:
         shell: bash
         run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
 
+      - name: Set up Rust for local review packet binary
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install local tokmd for review packet mode
+        shell: bash
+        run: |
+          cargo install --path crates/tokmd --features git --locked --force --root "$HOME/.local"
+          "$HOME/.local/bin/tokmd" cockpit --help | grep -q -- '--review-packet-dir'
+
       - name: Run cockpit mode with review packet
         id: cockpit_packet
         uses: ./
