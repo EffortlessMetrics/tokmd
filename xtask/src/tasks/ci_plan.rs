@@ -253,6 +253,54 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
         plan.band,
     );
 
+    // Soft budget guard. Always reports advisory diagnostics. Only fails
+    // when --enforce is set, and then only on the over-hard-limit case
+    // unless an override label is present.
+    let labels_set: BTreeSet<&str> = plan.labels.iter().map(|s| s.as_str()).collect();
+    let override_present =
+        labels_set.contains("full-ci") || labels_set.contains("ci-budget-override");
+    let ack_present = labels_set.contains("ci-budget-ack");
+
+    match plan.band.as_str() {
+        "elevated" if !ack_present => {
+            println!(
+                "::warning::PR plan estimated {} LEM (elevated band; expected ≤ {}). \
+                Apply `ci-budget-ack` to acknowledge.",
+                plan.estimated_lem, plan.budget.default_limit_lem
+            );
+        }
+        "high-cost" if !override_present => {
+            println!(
+                "::warning::PR plan estimated {} LEM (high-cost band; expected ≤ {}). \
+                Apply `ci-budget-override` or `full-ci` to bypass.",
+                plan.estimated_lem, plan.budget.elevated_limit_lem
+            );
+        }
+        "override-required" => {
+            if override_present {
+                println!(
+                    "::warning::PR plan estimated {} LEM (>{} hard ceiling) — \
+                    proceeding because override label is present.",
+                    plan.estimated_lem, plan.budget.hard_limit_lem
+                );
+            } else {
+                println!(
+                    "::error::PR plan estimated {} LEM (>{} hard ceiling) — \
+                    apply `ci-budget-override` or `full-ci` to bypass, or split the PR.",
+                    plan.estimated_lem, plan.budget.hard_limit_lem
+                );
+                if args.enforce {
+                    bail!(
+                        "ci-plan: estimated {} LEM exceeds hard ceiling {}",
+                        plan.estimated_lem,
+                        plan.budget.hard_limit_lem
+                    );
+                }
+            }
+        }
+        _ => {}
+    }
+
     Ok(())
 }
 

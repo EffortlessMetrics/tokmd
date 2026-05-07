@@ -48,7 +48,8 @@ jobs:
             --lanes policy/ci-lane-whitelist.toml \
             --risk-packs policy/ci-risk-packs.toml \
             --json-out target/ci/ci-plan.json \
-            --github-summary "$GITHUB_STEP_SUMMARY"
+            --github-summary "$GITHUB_STEP_SUMMARY" \
+            --enforce
 
       - name: Upload PR plan
         if: always()

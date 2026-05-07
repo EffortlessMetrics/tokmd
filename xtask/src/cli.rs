@@ -259,6 +259,11 @@ pub struct CiPlanArgs {
     /// Optional path to GITHUB_STEP_SUMMARY (the workflow appends to it)
     #[arg(long, value_name = "PATH")]
     pub github_summary: Option<std::path::PathBuf>,
+
+    /// Fail with a non-zero exit when the estimated LEM exceeds the hard
+    /// ceiling and no override label is present
+    #[arg(long)]
+    pub enforce: bool,
 }
 
 impl Default for CiPlanArgs {
@@ -271,6 +276,7 @@ impl Default for CiPlanArgs {
             risk_packs: std::path::PathBuf::from("policy/ci-risk-packs.toml"),
             json_out: None,
             github_summary: None,
+            enforce: false,
         }
     }
 }
