@@ -1,7 +1,5 @@
 {
-  "status": "success",
+  "status": "aborted",
   "outcome": "learning PR",
-  "friction_items": [
-    ".jules/friction/open/xtask_proof_policy_out_of_sync.md"
-  ]
+  "friction_items": []
 }
