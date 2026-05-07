@@ -26,6 +26,7 @@ class FakeElement {
         this.disabled = false;
         this.hidden = false;
         this.max = 1;
+        this.options = [];
         this.textContent = "";
         this.value = value;
         this.listeners = new Map();
@@ -61,6 +62,15 @@ class FakeElement {
             listeners.map((listener) => listener({ target: this }))
         );
         return this.lastClickPromise;
+    }
+
+    dispatchEvent(event) {
+        const type = typeof event === "string" ? event : event.type;
+        const listeners = this.listeners.get(type) ?? [];
+        this.lastEventPromise = Promise.all(
+            listeners.map((listener) => listener({ target: this, type }))
+        );
+        return this.lastEventPromise;
     }
 }
 
@@ -131,6 +141,14 @@ function createDocumentHarness() {
     elements.get("[data-cancel-load]").disabled = true;
     elements.get("[data-cancel]").disabled = true;
     elements.get("[data-download]").disabled = true;
+
+    const modeInput = elements.get("[data-mode]");
+    modeInput.tagName = "SELECT";
+    modeInput.options = ["lang", "module", "export", "analyze"].map((value) => {
+        const option = new FakeElement("option", value);
+        option.value = value;
+        return option;
+    });
 
     return {
         document: {
@@ -360,4 +378,74 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     assert.equal(storage.getItem("tokmd.githubToken"), null);
     assert.equal(authState.textContent, "anonymous");
     assert.equal(clearTokenButton.disabled, true);
+});
+
+test("main page constrains mode controls to worker capabilities", async (t) => {
+    const harness = installBrowserHarness(t, {
+        storage: createMemoryStorage(),
+        fetchImpl: async () => {
+            throw new Error("fetch should not be called");
+        },
+    });
+
+    await import(`./main.js?modeCapabilities=${Date.now()}`);
+    const worker = FakeWorker.instances[0];
+    const modeInput = harness.element("[data-mode]");
+    const runButton = harness.element("[data-run]");
+    const argsInput = harness.element("[data-args]");
+
+    modeInput.value = "module";
+
+    worker.emit({
+        type: "ready",
+        protocolVersion: 2,
+        capabilities: {
+            modes: ["lang", "analyze"],
+            analyzePresets: ["receipt"],
+            wasm: true,
+            downloads: true,
+            progress: true,
+            cancel: false,
+            zipball: false,
+        },
+        engine: {
+            version: "test",
+            schemaVersion: 2,
+            analysisSchemaVersion: 9,
+        },
+    });
+
+    assert.equal(modeInput.value, "lang");
+    assert.equal(runButton.disabled, false);
+    assert.equal(modeInput.options.find((option) => option.value === "lang").disabled, false);
+    assert.equal(modeInput.options.find((option) => option.value === "module").disabled, true);
+    assert.equal(modeInput.options.find((option) => option.value === "export").disabled, true);
+    assert.equal(modeInput.options.find((option) => option.value === "analyze").disabled, false);
+
+    modeInput.value = "analyze";
+    await modeInput.dispatchEvent({ type: "change" });
+
+    assert.match(argsInput.value, /"preset": "receipt"/);
+
+    worker.emit({
+        type: "ready",
+        protocolVersion: 2,
+        capabilities: {
+            modes: ["analyze"],
+            analyzePresets: [],
+            wasm: true,
+            downloads: true,
+            progress: true,
+            cancel: false,
+            zipball: false,
+        },
+        engine: {
+            version: "test",
+            schemaVersion: 2,
+            analysisSchemaVersion: 9,
+        },
+    });
+
+    assert.equal(runButton.disabled, true);
+    assert.equal(modeInput.options.find((option) => option.value === "analyze").disabled, true);
 });

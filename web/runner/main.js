@@ -40,6 +40,8 @@ const runProgressText = document.querySelector("[data-run-progress-text]");
 const resultOutput = document.querySelector("[data-result]");
 const logOutput = document.querySelector("[data-log]");
 
+const BROWSER_MODE_ORDER = ["lang", "module", "export", "analyze"];
+
 const state = {
     nextRequestId: 1,
     activeRequestId: null,
@@ -92,13 +94,21 @@ function sampleArgsForMode(mode) {
         case "analyze":
             return {
                 inputs: sampleInputs(),
-                preset: "estimate",
+                preset: defaultAnalyzePreset(),
             };
         default:
             return {
                 inputs: sampleInputs(),
             };
     }
+}
+
+function defaultAnalyzePreset() {
+    const presets = Array.isArray(state.capabilities.analyzePresets)
+        ? state.capabilities.analyzePresets
+        : [];
+
+    return presets.includes("estimate") ? "estimate" : presets[0] ?? "receipt";
 }
 
 function formatBytes(value) {
@@ -161,6 +171,38 @@ function updateDownloadButtonState() {
         state.downloadUrl &&
         state.latestResult
     );
+}
+
+function selectableModes() {
+    const advertised = Array.isArray(state.capabilities.modes)
+        ? state.capabilities.modes
+        : [];
+    const presets = Array.isArray(state.capabilities.analyzePresets)
+        ? state.capabilities.analyzePresets
+        : [];
+
+    return BROWSER_MODE_ORDER.filter(
+        (mode) => advertised.includes(mode) && (mode !== "analyze" || presets.length > 0)
+    );
+}
+
+function updateRunControls() {
+    const selectable = new Set(selectableModes());
+    const options = Array.from(modeInput.options ?? []);
+
+    for (const option of options) {
+        option.disabled = !selectable.has(option.value);
+    }
+
+    if (!selectable.has(modeInput.value)) {
+        const nextMode = BROWSER_MODE_ORDER.find((mode) => selectable.has(mode));
+        if (nextMode) {
+            modeInput.value = nextMode;
+            setSampleArgs(nextMode);
+        }
+    }
+
+    runButton.disabled = selectable.size === 0;
 }
 
 function updateRepoLoadControls() {
@@ -505,6 +547,7 @@ function setCapabilities(message) {
     };
     renderWorkerCapabilities(message);
     renderRepoCapabilities();
+    updateRunControls();
     updateDownloadButtonState();
     cancelButton.disabled = true;
 }
@@ -716,6 +759,11 @@ modeInput.addEventListener("change", () => {
 });
 
 runButton.addEventListener("click", () => {
+    if (!selectableModes().includes(modeInput.value)) {
+        setStatus(runStatusOutput, `${modeInput.value} is not available in this wasm bundle`, "error");
+        return;
+    }
+
     let args;
 
     try {
@@ -777,3 +825,4 @@ renderRepoCapabilities();
 renderIngestSummary();
 updateRepoLoadControls();
 setSampleArgs(modeInput.value);
+updateRunControls();

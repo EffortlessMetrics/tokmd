@@ -17,6 +17,8 @@ Use this project when you want `tokmd` inside a browser worker, backed by
 - `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate`
 - worker mode/preset reporting from the `tokmd-wasm` capability payload, guarded
   by actual exported entrypoints
+- mode controls that disable unavailable worker modes and choose a supported
+  default analyze preset from the loaded bundle
 - worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - visible run-progress and repo-load-progress panels in the browser shell
 - session-only GitHub token UX with explicit clear behavior
