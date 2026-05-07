@@ -70,6 +70,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - `cargo xtask proof-execution-observations-summary --observation <path>...` now summarizes downloaded executor observation artifacts by family, scope, and source run, giving maintainers a Rust-owned collection view before any required-gate or default Codecov-upload promotion. It also accepts `--observations-dir <dir>` to recursively collect `proof-executor-observation.json` artifacts from downloaded GitHub run directories.
 - The proof executor workflow now uploads `proof-executor-observation-collection.json` alongside the per-run observation by running the Rust-owned observation summary command over `target/proof`.
 - Observation collection can now enforce readiness thresholds with `--min-observations`, `--min-executed`, `--min-scopes`, and `--min-artifacts`, so downloaded non-required executor runs can prove a multi-run/multi-scope evidence floor before any promotion decision.
+- Observation collection can now also write `--summary-md`, and the proof executor workflow appends that Rust-generated Markdown collection report to the GitHub job summary while still uploading the JSON artifact.
 - Next proof-policy operational slice: collect successful non-required PR executor runs across multiple affected scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References

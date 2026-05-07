@@ -82,16 +82,32 @@ pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> 
     let observations = collect_observation_paths(&args)?;
     let collection = proof_execution_observation_collection(&observations)?;
     validate_observation_collection_thresholds(&collection, &args)?;
+    if let Some(summary_md) = &args.summary_md {
+        write_text(
+            summary_md,
+            &render_observation_collection_markdown(&collection, &args),
+        )?;
+    }
     let json = serde_json::to_string_pretty(&collection)?;
 
     if let Some(output) = &args.output {
         write_text(output, &json)?;
-        println!(
-            "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}`",
-            collection.counts.observations,
-            collection.scopes.len(),
-            output.display()
-        );
+        if let Some(summary_md) = &args.summary_md {
+            println!(
+                "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}` and `{}`",
+                collection.counts.observations,
+                collection.scopes.len(),
+                output.display(),
+                summary_md.display()
+            );
+        } else {
+            println!(
+                "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}`",
+                collection.counts.observations,
+                collection.scopes.len(),
+                output.display()
+            );
+        }
     } else {
         println!("{json}");
     }
@@ -411,6 +427,114 @@ fn validate_minimum(flag: &str, display_label: &str, actual: usize, required: us
     }
 
     Ok(())
+}
+
+fn render_observation_collection_markdown(
+    collection: &ProofExecutionObservationCollection,
+    args: &ProofExecutionObservationsSummaryArgs,
+) -> String {
+    let mut out = String::new();
+    out.push_str("# Proof Executor Observation Collection\n\n");
+    out.push_str("| Metric | Count |\n");
+    out.push_str("| --- | ---: |\n");
+    push_count_row(&mut out, "Observations", collection.counts.observations);
+    push_count_row(&mut out, "Selected commands", collection.counts.selected);
+    push_count_row(&mut out, "Executed commands", collection.counts.executed);
+    push_count_row(&mut out, "Passed commands", collection.counts.passed);
+    push_count_row(&mut out, "Failed commands", collection.counts.failed);
+    push_count_row(&mut out, "Artifacts", collection.counts.artifacts);
+    push_count_row(&mut out, "Distinct scopes", collection.scopes.len());
+
+    out.push_str("\n## Thresholds\n\n");
+    out.push_str("| Threshold | Required | Actual | Status |\n");
+    out.push_str("| --- | ---: | ---: | --- |\n");
+    push_threshold_row(
+        &mut out,
+        "Observations",
+        args.min_observations,
+        collection.counts.observations,
+    );
+    push_threshold_row(
+        &mut out,
+        "Executed commands",
+        args.min_executed,
+        collection.counts.executed,
+    );
+    push_threshold_row(
+        &mut out,
+        "Distinct scopes",
+        args.min_scopes,
+        collection.scopes.len(),
+    );
+    push_threshold_row(
+        &mut out,
+        "Artifacts",
+        args.min_artifacts,
+        collection.counts.artifacts,
+    );
+
+    if !collection.families.is_empty() {
+        out.push_str("\n## Families\n\n");
+        out.push_str("| Family | Observations | Executed | Artifacts |\n");
+        out.push_str("| --- | ---: | ---: | ---: |\n");
+        for family in &collection.families {
+            out.push_str(&format!(
+                "| `{}` | {} | {} | {} |\n",
+                md_cell(&family.family),
+                family.observations,
+                family.executed,
+                family.artifacts
+            ));
+        }
+    }
+
+    if !collection.scopes.is_empty() {
+        out.push_str("\n## Scopes\n\n");
+        out.push_str("| Scope | Kind | Family | Observations | Executed | Artifacts |\n");
+        out.push_str("| --- | --- | --- | ---: | ---: | ---: |\n");
+        for scope in &collection.scopes {
+            out.push_str(&format!(
+                "| `{}` | `{}` | `{}` | {} | {} | {} |\n",
+                md_cell(&scope.name),
+                md_cell(&scope.kind),
+                md_cell(&scope.family),
+                scope.observations,
+                scope.executed,
+                scope.artifacts
+            ));
+        }
+    }
+
+    if !collection.sources.is_empty() {
+        out.push_str("\n## Sources\n\n");
+        out.push_str("| Source | Family | Executed | Artifacts | Guard |\n");
+        out.push_str("| --- | --- | ---: | ---: | --- |\n");
+        for source in &collection.sources {
+            out.push_str(&format!(
+                "| `{}` | `{}` | {} | {} | `{}` |\n",
+                md_cell(&source.path),
+                md_cell(&source.family),
+                source.executed,
+                source.artifacts,
+                md_cell(&source.guard_reason)
+            ));
+        }
+    }
+
+    out
+}
+
+fn push_count_row(out: &mut String, label: &str, count: usize) {
+    out.push_str(&format!("| {label} | {count} |\n"));
+}
+
+fn push_threshold_row(out: &mut String, label: &str, required: usize, actual: usize) {
+    let status = if actual >= required { "ok" } else { "below" };
+    out.push_str(&format!("| {label} | {required} | {actual} | {status} |\n"));
+}
+
+fn md_cell(value: &str) -> String {
+    value.replace('|', "\\|")
 }
 
 fn collect_observation_paths(args: &ProofExecutionObservationsSummaryArgs) -> Result<Vec<PathBuf>> {
@@ -1349,6 +1473,26 @@ mod tests {
     }
 
     #[test]
+    fn renders_observation_collection_markdown_summary() {
+        let (summary, manifest) = executed_artifacts();
+        let observation = proof_execution_observation(&summary, &manifest).unwrap();
+        let collection = summarize_observations(&[sourced(
+            "target/proof/run-a/proof-executor-observation.json",
+            observation,
+        )]);
+        let args = summary_args_with_thresholds(1, 1, 1, 1);
+
+        let markdown = render_observation_collection_markdown(&collection, &args);
+
+        assert!(markdown.contains("# Proof Executor Observation Collection"));
+        assert!(markdown.contains("| Observations | 1 |"));
+        assert!(markdown.contains("| Executed commands | 1 |"));
+        assert!(markdown.contains("| Distinct scopes | 1 |"));
+        assert!(markdown.contains("| `tokmd_core_ffi` | `coverage` | `coverage` | 1 | 1 | 1 |"));
+        assert!(markdown.contains("| Observations | 1 | 1 | ok |"));
+    }
+
+    #[test]
     fn rejects_observation_collection_below_thresholds() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
@@ -1552,6 +1696,7 @@ mod tests {
             min_scopes,
             min_artifacts,
             output: None,
+            summary_md: None,
         }
     }
 

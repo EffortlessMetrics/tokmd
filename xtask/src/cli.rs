@@ -264,6 +264,10 @@ pub struct ProofExecutionObservationsSummaryArgs {
     /// Output path for the collection summary. Prints JSON to stdout when omitted.
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
+
+    /// Output path for a human-readable Markdown collection summary.
+    #[arg(long, value_name = "PATH")]
+    pub summary_md: Option<std::path::PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

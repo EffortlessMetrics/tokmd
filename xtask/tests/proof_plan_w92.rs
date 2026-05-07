@@ -107,6 +107,7 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
     assert!(stdout.contains("--min-scopes"), "stdout: {stdout}");
     assert!(stdout.contains("--min-artifacts"), "stdout: {stdout}");
     assert!(stdout.contains("--output"), "stdout: {stdout}");
+    assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
 }
 
 #[test]
@@ -175,6 +176,10 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     assert!(
         executor.contains("proof-executor-observation-collection.json"),
         "executor collection summary artifact should have a stable name"
+    );
+    assert!(
+        executor.contains("--summary-md target/proof/proof-executor-observation-collection.md"),
+        "executor should append a Rust-generated Markdown collection summary"
     );
     assert!(
         !ci.contains("scoped-coverage-executor"),
@@ -441,6 +446,36 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     );
     assert_eq!(collection["counts"]["observations"], 1);
     assert_eq!(collection["counts"]["executed"], 0);
+
+    let collection_path = temp
+        .path()
+        .join("proof-executor-observation-collection.json");
+    let collection_arg = collection_path.to_string_lossy().to_string();
+    let summary_path = temp.path().join("proof-executor-observation-collection.md");
+    let summary_md_arg = summary_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--output",
+        &collection_arg,
+        "--summary-md",
+        &summary_md_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-observations-summary --summary-md failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("wrote"), "stdout: {stdout}");
+    let summary_md = fs::read_to_string(summary_path).expect("summary markdown should be written");
+    assert!(
+        summary_md.contains("# Proof Executor Observation Collection"),
+        "{summary_md}"
+    );
+    assert!(
+        summary_md.contains("| Executed commands | 0 |"),
+        "{summary_md}"
+    );
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-execution-observations-summary",
