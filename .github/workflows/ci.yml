@@ -22,6 +22,90 @@ env:
   RUSTFLAGS: -C debuginfo=0
 
 jobs:
+  # Detect which risk packs the PR diff hits. Downstream gated jobs OR
+  # this output into their `if:` so the deep lanes also run when matching
+  # paths change, even without an explicit label. Mirrors the routing
+  # in policy/ci-risk-packs.toml.
+  detect:
+    name: Detect risk packs
+    runs-on: ubuntu-latest
+    outputs:
+      wasm: ${{ steps.detect.outputs.wasm }}
+      nix: ${{ steps.detect.outputs.nix }}
+      release: ${{ steps.detect.outputs.release }}
+      windows_path: ${{ steps.detect.outputs.windows_path }}
+      core_receipts: ${{ steps.detect.outputs.core_receipts }}
+      analysis: ${{ steps.detect.outputs.analysis }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base ref
+        if: github.event_name == 'pull_request'
+        run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+      - id: detect
+        name: Compute risk-pack output flags
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="origin/${{ github.base_ref }}"
+            git diff --name-only "${base_ref}...HEAD" > /tmp/changed.txt || true
+          else
+            : > /tmp/changed.txt
+          fi
+          set +e
+          have() { grep -E "^$1\$" /tmp/changed.txt >/dev/null; }
+          have_glob() { grep -E "$1" /tmp/changed.txt >/dev/null; }
+
+          if have_glob '^crates/tokmd-wasm/' \
+            || have_glob '^web/runner/' \
+            || have 'docs/capabilities/wasm.json'; then
+            echo "wasm=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "wasm=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have 'flake.nix' || have 'flake.lock' || have 'Dockerfile'; then
+            echo "nix=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "nix=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have 'Cargo.toml' || have 'Cargo.lock' || have 'deny.toml' \
+            || have_glob '^crates/.*/Cargo\.toml$'; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd-scan/' \
+            || have_glob '^crates/tokmd-io-port/' \
+            || have_glob '^crates/tokmd-git/' \
+            || have_glob '^crates/tokmd/src/git_support\.rs$'; then
+            echo "windows_path=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "windows_path=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd/' \
+            || have_glob '^crates/tokmd-core/' \
+            || have_glob '^crates/tokmd-format/' \
+            || have_glob '^crates/tokmd-envelope/'; then
+            echo "core_receipts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "core_receipts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if have_glob '^crates/tokmd-analysis/' \
+            || have_glob '^crates/tokmd-analysis-types/' \
+            || have_glob '^crates/tokmd-model/'; then
+            echo "analysis=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "analysis=false" >> "$GITHUB_OUTPUT"
+          fi
+
   msrv:
     name: MSRV Check
     runs-on: ubuntu-latest
@@ -66,10 +150,12 @@ jobs:
   # the `git_io` risk pack (PR 12).
   build-windows:
     name: Build & Test (Windows)
+    needs: detect
     if: >-
       github.event_name == 'push' ||
       contains(github.event.pull_request.labels.*.name, 'windows') ||
-      contains(github.event.pull_request.labels.*.name, 'full-ci')
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.windows_path == 'true'
     runs-on: windows-latest
 
     steps:
@@ -225,10 +311,12 @@ jobs:
 
   wasm-compile:
     name: Wasm Compile & Test
+    needs: detect
     if: >-
       github.event_name == 'push' ||
       contains(github.event.pull_request.labels.*.name, 'wasm') ||
-      contains(github.event.pull_request.labels.*.name, 'full-ci')
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.wasm == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -303,10 +391,13 @@ jobs:
 
   proptest-smoke:
     name: Proptest Smoke
+    needs: detect
     if: >-
       github.event_name == 'push' ||
       contains(github.event.pull_request.labels.*.name, 'property-tests') ||
-      contains(github.event.pull_request.labels.*.name, 'full-ci')
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.core_receipts == 'true' ||
+      needs.detect.outputs.analysis == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -361,11 +452,14 @@ jobs:
 
   nix-pr:
     name: Nix PR Package Gate
+    needs: detect
     if: >-
       github.event_name == 'push' ||
       contains(github.event.pull_request.labels.*.name, 'nix') ||
       contains(github.event.pull_request.labels.*.name, 'release-check') ||
-      contains(github.event.pull_request.labels.*.name, 'full-ci')
+      contains(github.event.pull_request.labels.*.name, 'full-ci') ||
+      needs.detect.outputs.nix == 'true' ||
+      needs.detect.outputs.release == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -484,6 +578,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs:
+      - detect
       - msrv
       - build
       - build-windows
