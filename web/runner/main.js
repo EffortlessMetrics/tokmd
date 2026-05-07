@@ -34,6 +34,9 @@ const ingestSummaryOutput = document.querySelector("[data-ingest-summary]");
 const loadProgressPanel = document.querySelector("[data-load-progress-panel]");
 const loadProgressElement = document.querySelector("[data-load-progress]");
 const loadProgressText = document.querySelector("[data-load-progress-text]");
+const runProgressPanel = document.querySelector("[data-run-progress-panel]");
+const runProgressElement = document.querySelector("[data-run-progress]");
+const runProgressText = document.querySelector("[data-run-progress-text]");
 const resultOutput = document.querySelector("[data-result]");
 const logOutput = document.querySelector("[data-log]");
 
@@ -368,22 +371,46 @@ function workerProgressTone(phase) {
     return "working";
 }
 
-function renderLoadProgress(update = null) {
+function renderProgress(target, update = null) {
+    const { panel, element, text } = target;
+
     if (!update) {
-        loadProgressPanel.hidden = true;
-        loadProgressElement.removeAttribute("value");
-        loadProgressElement.max = 1;
-        loadProgressText.textContent = "";
+        panel.hidden = true;
+        element.removeAttribute("value");
+        element.max = 1;
+        text.textContent = "";
         return;
     }
 
     const total = Number.isFinite(update.total) && update.total > 0 ? update.total : 1;
     const current = Number.isFinite(update.current) ? Math.max(0, update.current) : 0;
 
-    loadProgressPanel.hidden = false;
-    loadProgressElement.max = total;
-    loadProgressElement.value = Math.min(current, total);
-    loadProgressText.textContent = update.message ?? `${current}/${total}`;
+    panel.hidden = false;
+    element.max = total;
+    element.value = Math.min(current, total);
+    text.textContent = update.message ?? `${current}/${total}`;
+}
+
+function renderLoadProgress(update = null) {
+    renderProgress(
+        {
+            panel: loadProgressPanel,
+            element: loadProgressElement,
+            text: loadProgressText,
+        },
+        update
+    );
+}
+
+function renderRunProgress(update = null) {
+    renderProgress(
+        {
+            panel: runProgressPanel,
+            element: runProgressElement,
+            text: runProgressText,
+        },
+        update
+    );
 }
 
 function renderIngestSummary() {
@@ -504,6 +531,7 @@ worker.addEventListener("message", (event) => {
             break;
         case MESSAGE_TYPES.PROGRESS:
             if (!message.requestId || state.activeRequestId === message.requestId) {
+                renderRunProgress(message);
                 setStatus(
                     runStatusOutput,
                     describeWorkerProgress(message),
@@ -516,6 +544,12 @@ worker.addEventListener("message", (event) => {
                 state.activeRequestId = null;
             }
             cancelButton.disabled = true;
+            renderRunProgress({
+                phase: "done",
+                current: 1,
+                total: 1,
+                message: `completed ${message.requestId}`,
+            });
             renderLatestResult(message.data);
             setStatus(runStatusOutput, `completed ${message.requestId}`, "success");
             break;
@@ -524,6 +558,12 @@ worker.addEventListener("message", (event) => {
                 state.activeRequestId = null;
             }
             cancelButton.disabled = true;
+            renderRunProgress({
+                phase: "error",
+                current: 0,
+                total: 1,
+                message: `${message.error.code}: ${message.error.message}`,
+            });
             setStatus(
                 runStatusOutput,
                 `${message.error.code}: ${message.error.message}`,
@@ -688,6 +728,12 @@ runButton.addEventListener("click", () => {
     const requestId = `run-${state.nextRequestId++}`;
     state.activeRequestId = requestId;
     cancelButton.disabled = !state.capabilities.cancel;
+    renderRunProgress({
+        phase: "start",
+        current: 0,
+        total: 1,
+        message: `sent ${requestId}`,
+    });
     setStatus(runStatusOutput, `sent ${requestId}`, "working");
 
     const message = createRunMessage({

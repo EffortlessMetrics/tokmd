@@ -114,6 +114,9 @@ function createDocumentHarness() {
         ["[data-load-progress-panel]", ""],
         ["[data-load-progress]", ""],
         ["[data-load-progress-text]", ""],
+        ["[data-run-progress-panel]", ""],
+        ["[data-run-progress]", ""],
+        ["[data-run-progress-text]", ""],
         ["[data-result]", "waiting for first result..."],
         ["[data-log]", ""],
         ["[data-clear-token]", ""],
@@ -123,6 +126,7 @@ function createDocumentHarness() {
     );
 
     elements.get("[data-load-progress-panel]").hidden = true;
+    elements.get("[data-run-progress-panel]").hidden = true;
     elements.get("[data-retry-load]").disabled = true;
     elements.get("[data-cancel-load]").disabled = true;
     elements.get("[data-cancel]").disabled = true;
@@ -281,6 +285,8 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     const loadStatusOutput = harness.element("[data-load-status]");
     const loadProgressPanel = harness.element("[data-load-progress-panel]");
     const loadProgressText = harness.element("[data-load-progress-text]");
+    const runProgressPanel = harness.element("[data-run-progress-panel]");
+    const runProgressText = harness.element("[data-run-progress-text]");
     const logOutput = harness.element("[data-log]");
 
     assert.equal(tokenInput.value, "ghp_saved");
@@ -291,6 +297,23 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     await runButton.click();
     const runMessage = worker.messages.at(-1);
     assert.equal(runMessage.type, "run");
+    assert.equal(runProgressPanel.hidden, false);
+    assert.match(runProgressText.textContent, /sent run-1/);
+    worker.emit({
+        type: "progress",
+        requestId: "stale-run",
+        phase: "analyze",
+        message: "stale worker progress",
+    });
+    assert.doesNotMatch(runProgressText.textContent, /stale/);
+    worker.emit({
+        type: "progress",
+        requestId: runMessage.requestId,
+        phase: "start",
+        mode: "lang",
+        message: "Starting lang run",
+    });
+    assert.match(runProgressText.textContent, /Starting lang run/);
     worker.emit({
         type: "result",
         requestId: runMessage.requestId,
@@ -301,6 +324,7 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     });
     const resultBeforeRepoError = resultOutput.textContent;
     assert.match(resultBeforeRepoError, /"mode": "lang"/);
+    assert.match(runProgressText.textContent, /completed run-1/);
 
     await loadRepoButton.click();
 

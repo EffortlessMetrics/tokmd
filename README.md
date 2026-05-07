@@ -134,7 +134,9 @@ Representative summary output:
 
 Native filesystem flows, Git-history enrichers, `gate`, `cockpit`, `sensor`, `baseline`, `context`, and `handoff` remain native-first.
 
-Browser cache semantics, progress events, retry/rate-limit UX, and authenticated fetch are planned follow-up work.
+The browser runner documents its in-memory GitHub ingest cache, shows repo-load
+and worker-run progress, surfaces retry/rate-limit guidance, and supports
+session-only GitHub token auth without storing raw tokens in cache keys.
 
 The machine-readable capability contract lives in [`docs/capabilities/wasm.json`](docs/capabilities/wasm.json).
 
