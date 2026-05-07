@@ -650,6 +650,8 @@ kind = "non_rust"
 paths = [
   "docs/FILE_POLICY.md",
   "policy/non-rust-allowlist.toml",
+  "*.patch",
+  "**/*.patch",
 ]
 proof = [
   "cargo xtask check-file-policy",

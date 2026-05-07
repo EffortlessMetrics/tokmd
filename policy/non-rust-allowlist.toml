@@ -111,6 +111,15 @@ reason = "Codecov upload configuration."
 covered_by = ["coverage workflow"]
 
 [[allow]]
+glob = "ripr.toml"
+kind = "policy"
+owner = "testing/oracle"
+surface = "build"
+classification = "config"
+reason = "ripr static oracle-gap analyzer configuration."
+covered_by = ["ripr workflow"]
+
+[[allow]]
 glob = "rustfmt.toml"
 kind = "policy"
 owner = "core/policy"
@@ -692,15 +701,6 @@ reason = "Required license texts for the published WASM crate."
 covered_by = ["cargo deny --all-features check"]
 
 [[allow]]
-glob = "crates/tokmd-core/test_doctest.patch"
-kind = "test_fixture"
-owner = "testing/oracle"
-surface = "test"
-classification = "test_fixture"
-reason = "Patch fixture used by tokmd-core tests."
-covered_by = ["cargo test -p tokmd-core"]
-
-[[allow]]
 glob = "crates/tokmd/tests/data/**"
 kind = "test_fixture"
 owner = "testing/oracle"
@@ -708,15 +708,6 @@ surface = "test"
 classification = "test_fixture"
 reason = "Integration test data fixtures (JS, JSON, etc.)."
 covered_by = ["cargo test -p tokmd"]
-
-[[allow]]
-glob = "*.patch"
-kind = "tooling"
-owner = "release/dependencies"
-surface = "build"
-classification = "config"
-reason = "Top-level patches kept for manual recovery and reproducibility."
-covered_by = []
 
 [[allow]]
 glob = "*.ps1"
