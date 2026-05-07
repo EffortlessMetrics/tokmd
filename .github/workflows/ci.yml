@@ -38,7 +38,7 @@ jobs:
         run: cargo check --workspace --all-features
 
   build:
-    name: Build & Test
+    name: Build & Test (Linux)
     runs-on: ubuntu-latest
 
     steps:
@@ -392,12 +392,14 @@ jobs:
         run: nix build -L .#tokmd
 
   mutation:
-    name: Mutation Testing (Required)
+    name: Mutation Testing
     runs-on: ubuntu-latest
-    # Runtime mutation testing moves to label/main/nightly so ordinary
+    # Runtime mutation testing moves to label/push-to-main so ordinary
     # PRs don't pay 45 LEM by default. PR 11 adds an advisory `ripr`
     # job that gives mutation-testing-lite signal at static-analysis
-    # prices for the default PR.
+    # prices for the default PR. The "(Required)" suffix is dropped to
+    # avoid implying this lane is a mandatory PR check; required-status
+    # guarantees live on the `CI (Required)` aggregator job.
     if: >-
       github.event_name == 'push' ||
       contains(github.event.pull_request.labels.*.name, 'mutation') ||

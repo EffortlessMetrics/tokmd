@@ -6,19 +6,19 @@ Expensive lanes are gated on labels and on push-to-main:
 
 | Job | Now triggers on PR when... |
 |-----|----------------------------|
-| `Build & Test` (Linux) | always |
+| `Build & Test (Linux)` | always |
 | `Build & Test (Windows)` | label `windows` / `full-ci` (still on every push) |
-| `Build & Test (macOS)` | push-only (was already) |
+| `Build & Test (macOS)` | push-only (unchanged) |
 | `Wasm Compile & Test` | label `wasm` / `full-ci` |
 | `Nix PR Package Gate` | label `nix` / `release-check` / `full-ci` |
-| `Mutation Testing (Required)` | label `mutation` / `full-ci` (replaced by ripr advisory in PR 11) |
+| `Mutation Testing` | label `mutation` / `full-ci` (replaced by ripr advisory in PR 11) |
 | `Proptest Smoke` | label `property-tests` / `full-ci` |
 | `MSRV Check` | always |
 | `Quality Gate` | always |
 | `Cargo Deny` | always |
 | `Typos` | always |
 | `Proof Policy` | always |
-| `Affected Proof Plan` | always |
+| `Affected Proof Plan` | pull_request only |
 | `Feature Boundaries` | always |
 | `Publish Surface` | always (small dry-run) |
 | `Version consistency` | always |
