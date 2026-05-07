@@ -18,6 +18,10 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | `--treat-doc-strings-as-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
 | `-v, --verbose` | Enable verbose logging. |
 | `--no-progress` | Disable progress spinners (useful for CI/non-TTY). |
+| `--format <FORMAT>` | Output format (`md`, `tsv`, `json`). Default is `md`. |
+| `--top <TOP>` | Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows. |
+| `--files` | Include file counts and average lines per file. |
+| `--children <CHILDREN>` | How to handle embedded languages (`collapse`, `separate`). Default is `collapse`. |
 | `--profile <PROFILE>` | Configuration profile to use (e.g., `llm_safe`, `ci`). Alias: `--view`. |
 
 > **Note**: Paths to scan are specified as positional arguments on each subcommand (e.g., `tokmd lang ./src`), not as global flags.
