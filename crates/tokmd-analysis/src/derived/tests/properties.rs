@@ -257,4 +257,24 @@ proptest! {
             report.nesting.max, report.nesting.avg
         );
     }
+
+    #[test]
+    fn test_density_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.test_density.ratio >= 0.0 && report.test_density.ratio <= 1.0,
+            "test_density ratio must be in [0, 1], got {}",
+            report.test_density.ratio
+        );
+    }
+
+    #[test]
+    fn boilerplate_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.boilerplate.ratio >= 0.0 && report.boilerplate.ratio <= 1.0,
+            "boilerplate ratio must be in [0, 1], got {}",
+            report.boilerplate.ratio
+        );
+    }
 }

@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "patch_type": "proof-improvement",
+  "message": "Added property tests asserting unit-range bounds for test_density and boilerplate metrics."
+}
