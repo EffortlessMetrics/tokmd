@@ -323,6 +323,11 @@ fn validate_executed_entry(index: usize, entry: &Value) -> Result<()> {
 
 fn validate_executed_artifact_path(index: usize, entry: &Value) -> Result<()> {
     let expected_index = index + 1;
+    let kind = expect_string(
+        field(entry, "kind", "executor summary entry")?,
+        "kind",
+        "executor summary entry",
+    )?;
     let artifact_path = field(entry, "artifact_path", "executor summary entry")?;
     if artifact_path.is_null() {
         return Ok(());
@@ -341,6 +346,29 @@ fn validate_executed_artifact_path(index: usize, entry: &Value) -> Result<()> {
     }
     if metadata.len() == 0 {
         bail!("executor summary entry {expected_index} artifact `{artifact_path}` is empty");
+    }
+
+    if kind == "coverage" {
+        validate_lcov_artifact(expected_index, &artifact_path)?;
+    }
+
+    Ok(())
+}
+
+fn validate_lcov_artifact(index: usize, artifact_path: &str) -> Result<()> {
+    let raw = fs::read_to_string(artifact_path).with_context(|| {
+        format!(
+            "executor summary entry {index} LCOV artifact `{artifact_path}` is not readable text"
+        )
+    })?;
+
+    if !raw.lines().any(|line| line.starts_with("SF:")) {
+        bail!("executor summary entry {index} LCOV artifact `{artifact_path}` has no `SF:` record");
+    }
+    if !raw.lines().any(|line| line == "end_of_record") {
+        bail!(
+            "executor summary entry {index} LCOV artifact `{artifact_path}` has no `end_of_record`"
+        );
     }
 
     Ok(())
@@ -622,6 +650,23 @@ mod tests {
     }
 
     #[test]
+    fn rejects_execution_artifacts_with_malformed_lcov_output() {
+        let (mut summary, mut manifest) = executed_artifacts();
+        let malformed = write_test_artifact(
+            "tokmd-malformed-proof-artifact",
+            "this is not an LCOV payload\n",
+        );
+        summary["entries"][0]["artifact_path"] = json!(malformed);
+        manifest["commands"][0]["artifact_path"] = json!(malformed);
+
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("SF:"));
+    }
+
+    #[test]
     fn rejects_dry_run_artifacts_with_execution_verifier() {
         let (summary, manifest) = matching_artifacts();
 
@@ -664,13 +709,15 @@ mod tests {
     }
 
     fn write_test_lcov_artifact() -> String {
-        let path =
-            std::env::temp_dir().join(format!("tokmd-proof-artifact-{}.lcov", std::process::id()));
-        fs::write(
-            &path,
+        write_test_artifact(
+            "tokmd-proof-artifact",
             "TN:\nSF:crates/tokmd-core/src/ffi.rs\nend_of_record\n",
         )
-        .expect("test LCOV artifact should be writable");
+    }
+
+    fn write_test_artifact(name: &str, content: &str) -> String {
+        let path = std::env::temp_dir().join(format!("{name}-{}.lcov", std::process::id()));
+        fs::write(&path, content).expect("test artifact should be writable");
         path.to_string_lossy().to_string()
     }
 
