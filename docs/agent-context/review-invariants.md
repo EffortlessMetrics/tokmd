@@ -55,7 +55,7 @@ Each receipt family has its own schema version constant:
 
 ```
 Tier 0: Contracts and settings
-  tokmd-types, tokmd-analysis-types, tokmd-settings, tokmd-envelope, tokmd-cockpit, tokmd-io-port
+  tokmd-types, tokmd-analysis-types, tokmd-settings, tokmd-envelope, tokmd-io-port
 
 Tier 1: Core scan and aggregation
   tokmd-scan, tokmd-model, tokmd-sensor
