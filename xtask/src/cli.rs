@@ -530,6 +530,10 @@ pub struct ProofExecutionObservationsSummaryArgs {
     #[arg(long, value_name = "PATH")]
     pub collector_runs_json: Option<std::path::PathBuf>,
 
+    /// GitHub Actions run-list JSON for the successful proof-executor window.
+    #[arg(long, value_name = "PATH")]
+    pub source_runs_json: Option<std::path::PathBuf>,
+
     /// Output path for a promotion-readiness receipt.
     #[arg(long, value_name = "PATH")]
     pub promotion_readiness: Option<std::path::PathBuf>,

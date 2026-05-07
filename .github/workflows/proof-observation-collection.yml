@@ -145,6 +145,7 @@ jobs:
             --observations-dir target/proof-observations/runs \
             --output target/proof-observations/proof-executor-observation-collection.json \
             --summary-md target/proof-observations/proof-executor-observation-collection.md \
+            --source-runs-json target/proof-observations/runs.json \
             --min-observations "${MIN_OBSERVATIONS}" \
             --min-executed "${MIN_EXECUTED}" \
             --min-scopes "${MIN_SCOPES}" \

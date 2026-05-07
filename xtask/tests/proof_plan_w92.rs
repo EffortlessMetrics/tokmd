@@ -115,6 +115,7 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
         "stdout: {stdout}"
     );
     assert!(stdout.contains("--collector-runs-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--source-runs-json"), "stdout: {stdout}");
     assert!(stdout.contains("--promotion-readiness"), "stdout: {stdout}");
     assert!(stdout.contains("--output"), "stdout: {stdout}");
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
@@ -272,6 +273,10 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
     assert!(
         collector.contains("--collector-runs-json target/proof-observations/collector-runs.json"),
         "collector should feed GitHub run history into Rust-owned promotion readiness"
+    );
+    assert!(
+        collector.contains("--source-runs-json target/proof-observations/runs.json"),
+        "collector should feed the proof-executor source-run window into Rust-owned observation accounting"
     );
     assert!(
         collector.contains("--promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json"),
@@ -534,7 +539,13 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
         "stdout: {stdout}"
     );
 
-    let observation_path = temp.path().join("proof-executor-observation.json");
+    let observation_path = temp
+        .path()
+        .join("runs")
+        .join("25502593070")
+        .join("proof-executor-observation.json");
+    fs::create_dir_all(observation_path.parent().unwrap())
+        .expect("observation parent should be writable");
     let observation_arg = observation_path.to_string_lossy().to_string();
     let (stdout, stderr, success) = run_xtask(&[
         "proof-execution-observation",
@@ -581,6 +592,41 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     assert_eq!(collection["counts"]["executed"], 0);
     assert!(collection["scopes"].as_array().unwrap().is_empty());
     assert_eq!(collection["sources"].as_array().unwrap().len(), 1);
+    assert!(
+        collection.get("window").is_none(),
+        "source-run window should be omitted unless requested: {collection}"
+    );
+
+    let source_runs_path = temp.path().join("runs.json");
+    fs::write(
+        &source_runs_path,
+        r#"[{"databaseId":25502593070,"event":"pull_request","headBranch":"main","headSha":"abc123","createdAt":"2026-05-07T14:46:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593070"},{"databaseId":25502593071,"event":"pull_request","headBranch":"feature","headSha":"def456","createdAt":"2026-05-07T14:47:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593071"}]"#,
+    )
+    .expect("source runs JSON should be writable");
+    let source_runs_arg = source_runs_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--source-runs-json",
+        &source_runs_arg,
+    ]);
+    assert!(
+        success,
+        "proof-execution-observations-summary --source-runs-json failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("source-run collection should be valid JSON");
+    let expected_source = source_runs_path.to_string_lossy().replace('\\', "/");
+    assert_eq!(collection["window"]["source"], expected_source);
+    assert_eq!(collection["window"]["expected_runs"], 2);
+    assert_eq!(collection["window"]["observed_runs"], 1);
+    assert_eq!(collection["window"]["missing_runs"], 1);
+    assert_eq!(collection["window"]["unmatched_observations"], 0);
+    assert_eq!(
+        collection["window"]["missing"][0]["database_id"],
+        serde_json::json!(25502593071_u64)
+    );
 
     let (stdout, stderr, success) = run_xtask(&[
         "proof-execution-observations-summary",

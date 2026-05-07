@@ -89,7 +89,16 @@ pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
 
 pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> Result<()> {
     let observations = collect_observation_paths(&args)?;
-    let collection = proof_execution_observation_collection(&observations)?;
+    let source_runs = args
+        .source_runs_json
+        .as_deref()
+        .map(read_source_runs)
+        .transpose()?;
+    let collection = proof_execution_observation_collection(
+        &observations,
+        args.source_runs_json.as_deref(),
+        source_runs.as_deref(),
+    )?;
     validate_observation_collection_thresholds(&collection, &args)?;
     let readiness = if let Some(path) = &args.promotion_readiness {
         let readiness = proof_executor_promotion_readiness(&collection, &args)?;
@@ -200,6 +209,8 @@ struct ProofExecutionObservationCollection {
     schema: String,
     ok: bool,
     counts: ProofExecutionObservationCollectionCounts,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    window: Option<ProofExecutionObservationWindow>,
     families: Vec<ProofExecutionObservationFamilySummary>,
     scopes: Vec<ProofExecutionObservationScopeSummary>,
     sources: Vec<ProofExecutionObservationSourceSummary>,
@@ -213,6 +224,16 @@ struct ProofExecutionObservationCollectionCounts {
     passed: usize,
     failed: usize,
     artifacts: usize,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofExecutionObservationWindow {
+    source: String,
+    expected_runs: usize,
+    observed_runs: usize,
+    missing_runs: usize,
+    unmatched_observations: usize,
+    missing: Vec<ProofExecutorSourceRun>,
 }
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -279,7 +300,7 @@ struct ProofExecutorPromotionReadinessActuals {
 }
 
 #[derive(Debug, Deserialize)]
-struct GithubCollectorRun {
+struct GithubRun {
     #[serde(rename = "databaseId")]
     database_id: u64,
 
@@ -296,6 +317,16 @@ struct GithubCollectorRun {
     created_at: Option<String>,
 
     #[serde(default)]
+    url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+struct ProofExecutorSourceRun {
+    database_id: u64,
+    event: Option<String>,
+    head_branch: Option<String>,
+    head_sha: Option<String>,
+    created_at: Option<String>,
     url: Option<String>,
 }
 
@@ -478,6 +509,8 @@ fn proof_execution_observation_with_artifact_root(
 
 fn proof_execution_observation_collection(
     paths: &[PathBuf],
+    source_runs_path: Option<&Path>,
+    source_runs: Option<&[ProofExecutorSourceRun]>,
 ) -> Result<ProofExecutionObservationCollection> {
     if paths.is_empty() {
         bail!("at least one --observation path is required");
@@ -488,7 +521,11 @@ fn proof_execution_observation_collection(
         .map(|path| read_sourced_observation(path))
         .collect::<Result<Vec<_>>>()?;
 
-    Ok(summarize_observations(&observations))
+    Ok(summarize_observations(
+        &observations,
+        source_runs_path,
+        source_runs,
+    ))
 }
 
 fn validate_observation_collection_thresholds(
@@ -566,6 +603,43 @@ fn render_observation_collection_markdown(
     push_count_row(&mut out, "Failed commands", collection.counts.failed);
     push_count_row(&mut out, "Artifacts", collection.counts.artifacts);
     push_count_row(&mut out, "Distinct scopes", collection.scopes.len());
+
+    if let Some(window) = &collection.window {
+        out.push_str("\n## Observation Window\n\n");
+        out.push_str(&format!("Source: `{}`\n\n", md_cell(&window.source)));
+        out.push_str("| Metric | Count |\n");
+        out.push_str("| --- | ---: |\n");
+        push_count_row(
+            &mut out,
+            "Expected successful executor runs",
+            window.expected_runs,
+        );
+        push_count_row(
+            &mut out,
+            "Observed runs with artifacts",
+            window.observed_runs,
+        );
+        push_count_row(&mut out, "Missing runs", window.missing_runs);
+        push_count_row(
+            &mut out,
+            "Unmatched observation artifacts",
+            window.unmatched_observations,
+        );
+
+        if !window.missing.is_empty() {
+            out.push_str("\n| Missing run | Branch | Created | URL |\n");
+            out.push_str("| ---: | --- | --- | --- |\n");
+            for run in &window.missing {
+                out.push_str(&format!(
+                    "| {} | `{}` | `{}` | {} |\n",
+                    run.database_id,
+                    md_cell(run.head_branch.as_deref().unwrap_or("")),
+                    md_cell(run.created_at.as_deref().unwrap_or("")),
+                    md_cell(run.url.as_deref().unwrap_or(""))
+                ));
+            }
+        }
+    }
 
     out.push_str("\n## Thresholds\n\n");
     out.push_str("| Threshold | Required | Actual | Status |\n");
@@ -723,12 +797,7 @@ fn read_sourced_observation(path: &Path) -> Result<SourcedProofExecutionObservat
 }
 
 fn read_collector_runs(path: &Path) -> Result<Vec<ProofExecutorPromotionCollectorRun>> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("failed to read collector runs `{}`", path.display()))?;
-    let runs: Vec<GithubCollectorRun> = serde_json::from_str(&raw)
-        .with_context(|| format!("failed to parse collector runs `{}`", path.display()))?;
-
-    Ok(runs
+    Ok(read_github_runs(path, "collector runs")?
         .into_iter()
         .map(|run| ProofExecutorPromotionCollectorRun {
             database_id: run.database_id,
@@ -739,6 +808,27 @@ fn read_collector_runs(path: &Path) -> Result<Vec<ProofExecutorPromotionCollecto
             url: run.url,
         })
         .collect())
+}
+
+fn read_source_runs(path: &Path) -> Result<Vec<ProofExecutorSourceRun>> {
+    Ok(read_github_runs(path, "source runs")?
+        .into_iter()
+        .map(|run| ProofExecutorSourceRun {
+            database_id: run.database_id,
+            event: run.event,
+            head_branch: run.head_branch,
+            head_sha: run.head_sha,
+            created_at: run.created_at,
+            url: run.url,
+        })
+        .collect())
+}
+
+fn read_github_runs(path: &Path, label: &str) -> Result<Vec<GithubRun>> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("failed to read {label} `{}`", path.display()))?;
+    serde_json::from_str(&raw)
+        .with_context(|| format!("failed to parse {label} `{}`", path.display()))
 }
 
 fn proof_executor_promotion_readiness(
@@ -880,6 +970,8 @@ fn validate_observation(observation: &ProofExecutionObservation) -> Result<()> {
 
 fn summarize_observations(
     observations: &[SourcedProofExecutionObservation],
+    source_runs_path: Option<&Path>,
+    source_runs: Option<&[ProofExecutorSourceRun]>,
 ) -> ProofExecutionObservationCollection {
     let mut counts = ProofExecutionObservationCollectionCounts {
         observations: observations.len(),
@@ -940,6 +1032,9 @@ fn summarize_observations(
         schema: OBSERVATION_COLLECTION_SCHEMA.to_string(),
         ok: true,
         counts,
+        window: source_runs
+            .zip(source_runs_path)
+            .map(|(runs, path)| observation_window(path, runs, observations)),
         families: families
             .into_iter()
             .map(|(family, entry)| ProofExecutionObservationFamilySummary {
@@ -966,6 +1061,47 @@ fn summarize_observations(
             .collect(),
         sources,
     }
+}
+
+fn observation_window(
+    source_runs_path: &Path,
+    source_runs: &[ProofExecutorSourceRun],
+    observations: &[SourcedProofExecutionObservation],
+) -> ProofExecutionObservationWindow {
+    let mut observed = BTreeSet::new();
+    let mut unmatched_observations = 0;
+
+    for sourced in observations {
+        if let Some(run_id) = source_runs
+            .iter()
+            .map(|run| run.database_id)
+            .find(|run_id| path_contains_component(&sourced.path, &run_id.to_string()))
+        {
+            observed.insert(run_id);
+        } else {
+            unmatched_observations += 1;
+        }
+    }
+
+    let missing = source_runs
+        .iter()
+        .filter(|run| !observed.contains(&run.database_id))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    ProofExecutionObservationWindow {
+        source: normalize_path(source_runs_path),
+        expected_runs: source_runs.len(),
+        observed_runs: observed.len(),
+        missing_runs: missing.len(),
+        unmatched_observations,
+        missing,
+    }
+}
+
+fn path_contains_component(path: &Path, component: &str) -> bool {
+    path.components()
+        .any(|path_component| path_component.as_os_str().to_string_lossy() == component)
 }
 
 fn normalize_path(path: &Path) -> String {
@@ -1656,10 +1792,14 @@ mod tests {
         second.scopes[0].name = "analysis_derived".to_string();
         second.changed_files = vec!["crates/tokmd-analysis/src/derived/mod.rs".to_string()];
 
-        let collection = summarize_observations(&[
-            sourced("target/proof/run-b/proof-executor-observation.json", second),
-            sourced("target/proof/run-a/proof-executor-observation.json", first),
-        ]);
+        let collection = summarize_observations(
+            &[
+                sourced("target/proof/run-b/proof-executor-observation.json", second),
+                sourced("target/proof/run-a/proof-executor-observation.json", first),
+            ],
+            None,
+            None,
+        );
 
         assert_eq!(collection.schema, OBSERVATION_COLLECTION_SCHEMA);
         assert!(collection.ok);
@@ -1705,23 +1845,67 @@ mod tests {
         let mut second = first.clone();
         second.scopes[0].name = "analysis_derived".to_string();
 
-        let collection = summarize_observations(&[
-            sourced("target/proof/run-a/proof-executor-observation.json", first),
-            sourced("target/proof/run-b/proof-executor-observation.json", second),
-        ]);
+        let collection = summarize_observations(
+            &[
+                sourced("target/proof/run-a/proof-executor-observation.json", first),
+                sourced("target/proof/run-b/proof-executor-observation.json", second),
+            ],
+            None,
+            None,
+        );
         let args = summary_args_with_thresholds(2, 2, 2, 2);
 
         validate_observation_collection_thresholds(&collection, &args).unwrap();
     }
 
     #[test]
+    fn summarizes_observation_window_against_source_runs() {
+        let (summary, manifest) = executed_artifacts();
+        let first = proof_execution_observation(&summary, &manifest).unwrap();
+        let mut second = first.clone();
+        second.scopes[0].name = "analysis_derived".to_string();
+
+        let source_runs_path = Path::new("target/proof-observations/runs.json");
+        let source_runs = [source_run(111), source_run(222)];
+        let collection = summarize_observations(
+            &[
+                sourced(
+                    "target/proof-observations/runs/111/proof-executor-observation.json",
+                    first,
+                ),
+                sourced(
+                    "target/proof-observations/runs/unmatched/proof-executor-observation.json",
+                    second,
+                ),
+            ],
+            Some(source_runs_path),
+            Some(&source_runs),
+        );
+
+        let window = collection.window.expect("source runs should add a window");
+        assert_eq!(window.source, "target/proof-observations/runs.json");
+        assert_eq!(window.expected_runs, 2);
+        assert_eq!(window.observed_runs, 1);
+        assert_eq!(window.missing_runs, 1);
+        assert_eq!(window.unmatched_observations, 1);
+        assert_eq!(window.missing.len(), 1);
+        assert_eq!(window.missing[0].database_id, 222);
+    }
+
+    #[test]
     fn renders_observation_collection_markdown_summary() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
-        let collection = summarize_observations(&[sourced(
-            "target/proof/run-a/proof-executor-observation.json",
-            observation,
-        )]);
+        let source_runs_path = Path::new("target/proof-observations/runs.json");
+        let source_runs = [source_run(111), source_run(222)];
+        let collection = summarize_observations(
+            &[sourced(
+                "target/proof-observations/runs/111/proof-executor-observation.json",
+                observation,
+            )],
+            Some(source_runs_path),
+            Some(&source_runs),
+        );
         let args = summary_args_with_thresholds(1, 1, 1, 1);
 
         let markdown = render_observation_collection_markdown(&collection, &args);
@@ -1730,6 +1914,10 @@ mod tests {
         assert!(markdown.contains("| Observations | 1 |"));
         assert!(markdown.contains("| Executed commands | 1 |"));
         assert!(markdown.contains("| Distinct scopes | 1 |"));
+        assert!(markdown.contains("## Observation Window"));
+        assert!(markdown.contains("| Expected successful executor runs | 2 |"));
+        assert!(markdown.contains("| Observed runs with artifacts | 1 |"));
+        assert!(markdown.contains("| Missing runs | 1 |"));
         assert!(markdown.contains("| `tokmd_core_ffi` | `coverage` | `coverage` | 1 | 1 | 1 |"));
         assert!(markdown.contains("| Observations | 1 | 1 | ok |"));
     }
@@ -1738,10 +1926,14 @@ mod tests {
     fn builds_promotion_readiness_receipt_from_collector_runs() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
-        let collection = summarize_observations(&[sourced(
-            "target/proof/run-a/proof-executor-observation.json",
-            observation,
-        )]);
+        let collection = summarize_observations(
+            &[sourced(
+                "target/proof/run-a/proof-executor-observation.json",
+                observation,
+            )],
+            None,
+            None,
+        );
         let collector_runs = write_test_collector_runs(
             r#"[{"databaseId":25502593070,"event":"workflow_dispatch","headBranch":"main","headSha":"abc123","createdAt":"2026-05-07T14:46:00Z","url":"https://github.com/EffortlessMetrics/tokmd/actions/runs/25502593070"}]"#,
         );
@@ -1767,10 +1959,14 @@ mod tests {
     fn rejects_promotion_readiness_below_collector_floor() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
-        let collection = summarize_observations(&[sourced(
-            "target/proof/run-a/proof-executor-observation.json",
-            observation,
-        )]);
+        let collection = summarize_observations(
+            &[sourced(
+                "target/proof/run-a/proof-executor-observation.json",
+                observation,
+            )],
+            None,
+            None,
+        );
         let collector_runs = write_test_collector_runs("[]");
         let mut args = summary_args_with_thresholds(1, 1, 1, 1);
         args.min_passing_collector_runs = 1;
@@ -1787,10 +1983,14 @@ mod tests {
     fn rejects_observation_collection_below_thresholds() {
         let (summary, manifest) = executed_artifacts();
         let observation = proof_execution_observation(&summary, &manifest).unwrap();
-        let collection = summarize_observations(&[sourced(
-            "target/proof/run-a/proof-executor-observation.json",
-            observation,
-        )]);
+        let collection = summarize_observations(
+            &[sourced(
+                "target/proof/run-a/proof-executor-observation.json",
+                observation,
+            )],
+            None,
+            None,
+        );
         let args = summary_args_with_thresholds(2, 1, 1, 1);
 
         let error = validate_observation_collection_thresholds(&collection, &args)
@@ -2007,6 +2207,19 @@ mod tests {
         }
     }
 
+    fn source_run(database_id: u64) -> ProofExecutorSourceRun {
+        ProofExecutorSourceRun {
+            database_id,
+            event: Some("pull_request".to_string()),
+            head_branch: Some("main".to_string()),
+            head_sha: Some(format!("sha-{database_id}")),
+            created_at: Some("2026-05-07T14:46:00Z".to_string()),
+            url: Some(format!(
+                "https://github.com/EffortlessMetrics/tokmd/actions/runs/{database_id}"
+            )),
+        }
+    }
+
     fn summary_args_with_thresholds(
         min_observations: usize,
         min_executed: usize,
@@ -2024,6 +2237,7 @@ mod tests {
             output: None,
             summary_md: None,
             collector_runs_json: None,
+            source_runs_json: None,
             promotion_readiness: None,
         }
     }

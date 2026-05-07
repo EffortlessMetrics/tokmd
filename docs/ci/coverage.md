@@ -74,6 +74,10 @@ The manual observation collector writes
 downloaded executor observation thresholds with recent successful
 `proof-observation-collection.yml` run history, so promotion evidence has a
 stable artifact instead of relying only on job-summary prose.
+The collector also passes the saved `proof-executor.yml` run list from
+`target/proof-observations/runs.json` into the observation summary command, so
+the collection receipt reports the expected executor window, observed runs with
+artifacts, missing runs, and unmatched observation artifacts.
 
 ## PR Executor Default
 
