@@ -137,6 +137,29 @@ mod todo_density_w66 {
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 100).unwrap();
         assert_eq!(r.total, 1);
     }
+
+    #[test]
+    fn todo_report_ignores_identifier_like_tag_substrings() {
+        let tmp = TempDir::new().unwrap();
+        let content = "\
+let todo_app = 1;
+let TODO1 = 2;
+let methodTODO = 3;
+let todos = [];
+// TODO: real work
+// FIXME(real issue)
+";
+        let f = write_file(tmp.path(), "a.rs", content.as_bytes());
+        let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
+
+        assert_eq!(r.total, 2);
+        assert!(r.tags.iter().any(|tag| tag.tag == "TODO" && tag.count == 1));
+        assert!(
+            r.tags
+                .iter()
+                .any(|tag| tag.tag == "FIXME" && tag.count == 1)
+        );
+    }
 }
 
 // ── Content limits ──────────────────────────────────────────────

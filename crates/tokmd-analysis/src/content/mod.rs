@@ -52,7 +52,7 @@ pub(crate) fn build_todo_report(
             continue;
         }
         let text = String::from_utf8_lossy(&bytes);
-        for (tag, count) in crate::content::io::count_tags(&text, &tags) {
+        for (tag, count) in crate::content::io::count_delimited_tags(&text, &tags) {
             *counts.entry(tag).or_insert(0) += count;
         }
     }
