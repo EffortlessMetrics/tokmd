@@ -1,0 +1,35 @@
+schema_version = "1.0"
+policy = "clippy-exceptions"
+owner = "core/policy"
+status = "advisory"
+updated = "2026-05-07"
+
+# AST-backed Clippy exception ledger.
+#
+# Every `#[expect(clippy::<lint>, reason = "policy:clippy-NNNN ...")]`
+# suppression in source must be paired with an entry here. The advisory
+# checker (cargo xtask check-clippy-exceptions) validates the schema,
+# expiry, and uniqueness of each entry; in --strict mode it also fails
+# when a `#[expect(clippy::...)]` attribute does not link to a
+# `policy:clippy-NNNN` id present in this file.
+#
+# Required fields:
+#   id             - "clippy-NNNN" with zero-padded counter, unique.
+#   lint           - "clippy::<lint>" name.
+#   path           - file or glob the suppression covers.
+#   classification - generated_table | test_helper | fixture | tooling | production.
+#   owner          - team/role.
+#   reason         - why the exception is permitted (not what the lint says).
+#   expires        - ISO-8601 date; expired entries fail the gate.
+#
+# Optional:
+#   [exception.selector]
+#     kind            - expr | item | macro_invocation | impl_block | etc.
+#     container       - enclosing function or item path.
+#     text_contains   - textual fragment that must appear at the suppression site.
+#   [exception.last_seen]
+#     line / column - advisory only.
+
+# The ledger starts empty. Existing source `#[expect(clippy::...)]` use
+# is allowed during the rollout; --strict turns the link requirement on
+# once the source has been migrated.

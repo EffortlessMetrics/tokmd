@@ -118,9 +118,11 @@ paths = [
   "clippy.toml",
   "docs/CLIPPY_POLICY.md",
   "policy/clippy-debt.toml",
+  "policy/clippy-exceptions.toml",
   "policy/clippy-lints.toml",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
+  "xtask/src/tasks/clippy_exceptions.rs",
   "xtask/src/tasks/lint_policy.rs",
   "xtask/src/tasks/mod.rs",
   "xtask/tests/lint_policy_w93.rs",
@@ -128,7 +130,9 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask check-lint-policy",
+  "cargo xtask check-clippy-exceptions",
   "cargo test -p xtask lint_policy --verbose",
+  "cargo test -p xtask clippy_exceptions --verbose",
   "cargo clippy -p xtask --all-targets -- -D warnings",
 ]
 mutation = false

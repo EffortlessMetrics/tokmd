@@ -50,6 +50,8 @@ pub enum Commands {
     CiActuals(CiActualsArgs),
     /// Verify the non-Rust file allowlist (file policy checker)
     CheckFilePolicy(FilePolicyArgs),
+    /// Verify the AST-backed Clippy exception ledger
+    CheckClippyExceptions(ClippyExceptionsArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
@@ -189,10 +191,35 @@ pub struct FilePolicyArgs {
     pub strict: bool,
 }
 
+#[derive(Args, Debug, Clone)]
+pub struct ClippyExceptionsArgs {
+    /// Clippy exceptions TOML
+    #[arg(long, default_value = "policy/clippy-exceptions.toml")]
+    pub policy: std::path::PathBuf,
+
+    /// Optional report output directory
+    #[arg(long, value_name = "DIR")]
+    pub report_dir: Option<std::path::PathBuf>,
+
+    /// Treat findings as errors (default is advisory)
+    #[arg(long)]
+    pub strict: bool,
+}
+
 impl Default for FilePolicyArgs {
     fn default() -> Self {
         Self {
             allowlist: std::path::PathBuf::from("policy/non-rust-allowlist.toml"),
+            report_dir: None,
+            strict: false,
+        }
+    }
+}
+
+impl Default for ClippyExceptionsArgs {
+    fn default() -> Self {
+        Self {
+            policy: std::path::PathBuf::from("policy/clippy-exceptions.toml"),
             report_dir: None,
             strict: false,
         }

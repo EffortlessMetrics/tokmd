@@ -49,6 +49,10 @@ carveouts such as `allow-unwrap-in-tests`, `allow-expect-in-tests`,
   lints, MSRV, posture flags, and planned Rust 1.94/1.95 flips.
 - `policy/clippy-debt.toml` is for temporary repo-specific debt. Each debt entry
   must include `lint`, `path`, `owner`, `reason`, and `expires`.
+- `policy/clippy-exceptions.toml` is the AST-backed Clippy exception ledger.
+  Every `#[expect(clippy::<lint>, reason = "policy:clippy-NNNN ...")]` attribute
+  in source must link to an entry here. Validated by
+  `cargo xtask check-clippy-exceptions`.
 - `clippy.toml` is reserved for repo-specific `disallowed-*` policy. It must not
   weaken the workspace baseline.
 
