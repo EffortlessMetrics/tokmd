@@ -33,6 +33,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
+        Some(cli::Commands::CiPlan(args)) => tasks::ci_plan::run(args),
         Some(cli::Commands::CheckLintPolicy(args)) => tasks::lint_policy::run(args),
         Some(cli::Commands::CoverageReceipt(args)) => tasks::coverage_receipt::run(args),
         Some(cli::Commands::CiActuals(args)) => tasks::ci_actuals::run(args),

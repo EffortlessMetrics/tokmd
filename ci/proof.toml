@@ -56,6 +56,7 @@ kind = "rust"
 paths = [
   ".github/workflows/ci.yml",
   ".github/workflows/no-panic-policy.yml",
+  ".github/workflows/pr-plan.yml",
   ".github/workflows/proof-observation-collection.yml",
   ".github/workflows/proof-executor.yml",
   ".github/workflows/coverage.yml",
@@ -81,6 +82,7 @@ paths = [
   "xtask/src/tasks/affected.rs",
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/ci_actuals.rs",
+  "xtask/src/tasks/ci_plan.rs",
   "xtask/src/tasks/coverage_receipt.rs",
   "xtask/src/tasks/file_policy.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
@@ -673,6 +675,19 @@ proof = [
   "cargo xtask proof-policy --check",
 ]
 reason = "CI lane whitelist and its docs govern verification economics receipts; checked via proof-policy and the lane whitelist linter (PR 03 onward)."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ci_pr_plan"
+kind = "non_rust"
+paths = [
+  "policy/ci-risk-packs.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "PR Plan policy data: risk-pack routing and the LEM-aware advisory plan."
 mutation = false
 coverage = false
 

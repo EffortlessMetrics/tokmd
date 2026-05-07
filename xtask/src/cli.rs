@@ -52,6 +52,8 @@ pub enum Commands {
     CheckFilePolicy(FilePolicyArgs),
     /// Verify the AST-backed Clippy exception ledger
     CheckClippyExceptions(ClippyExceptionsArgs),
+    /// Generate the LEM-aware advisory PR Plan
+    CiPlan(CiPlanArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
@@ -222,6 +224,51 @@ impl Default for ClippyExceptionsArgs {
             policy: std::path::PathBuf::from("policy/clippy-exceptions.toml"),
             report_dir: None,
             strict: false,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CiPlanArgs {
+    /// Base git revision
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// JSON labels payload (object form, bare-array form, or CSV)
+    #[arg(long, value_name = "JSON")]
+    pub labels_json: Option<String>,
+
+    /// Lane whitelist TOML
+    #[arg(long, default_value = "policy/ci-lane-whitelist.toml")]
+    pub lanes: std::path::PathBuf,
+
+    /// Risk-pack TOML
+    #[arg(long, default_value = "policy/ci-risk-packs.toml")]
+    pub risk_packs: std::path::PathBuf,
+
+    /// Output path for the JSON plan; if absent, prints to stdout
+    #[arg(long, value_name = "PATH")]
+    pub json_out: Option<std::path::PathBuf>,
+
+    /// Optional path to GITHUB_STEP_SUMMARY (the workflow appends to it)
+    #[arg(long, value_name = "PATH")]
+    pub github_summary: Option<std::path::PathBuf>,
+}
+
+impl Default for CiPlanArgs {
+    fn default() -> Self {
+        Self {
+            base: "origin/main".into(),
+            head: "HEAD".into(),
+            labels_json: None,
+            lanes: std::path::PathBuf::from("policy/ci-lane-whitelist.toml"),
+            risk_packs: std::path::PathBuf::from("policy/ci-risk-packs.toml"),
+            json_out: None,
+            github_summary: None,
         }
     }
 }
