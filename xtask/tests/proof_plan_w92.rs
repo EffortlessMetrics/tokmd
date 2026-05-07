@@ -196,6 +196,53 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
 }
 
 #[test]
+fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
+    let root = workspace_root();
+    let collector =
+        fs::read_to_string(root.join(".github/workflows/proof-observation-collection.yml"))
+            .expect("proof observation collection workflow should be readable");
+    let ci =
+        fs::read_to_string(root.join(".github/workflows/ci.yml")).expect("ci workflow readable");
+
+    assert!(
+        collector.contains("workflow_dispatch:"),
+        "collector should be manually dispatched"
+    );
+    assert!(
+        collector.contains("actions: read"),
+        "collector needs read-only workflow artifact access"
+    );
+    assert!(
+        collector.contains("gh run list --workflow proof-executor.yml --status success"),
+        "collector should enumerate successful proof executor runs"
+    );
+    assert!(
+        collector.contains("gh run download \"${run_id}\" --name proof-executor-artifacts"),
+        "collector should download the stable proof executor artifact"
+    );
+    assert!(
+        collector.contains("cargo xtask proof-execution-observations-summary"),
+        "collector should keep observation summarization Rust-owned"
+    );
+    assert!(
+        collector.contains("--min-observations \"${MIN_OBSERVATIONS}\""),
+        "collector should expose observation readiness thresholds"
+    );
+    assert!(
+        collector.contains("proof-executor-observation-collection.md"),
+        "collector should append the Rust-generated Markdown summary"
+    );
+    assert!(
+        !collector.contains("proof --profile affected"),
+        "collector must not execute new planner-selected evidence commands"
+    );
+    assert!(
+        !ci.contains("proof-observation-collection"),
+        "required CI aggregate must not depend on the manual collector"
+    );
+}
+
+#[test]
 fn affected_proof_plan_reports_no_changes_for_same_ref() {
     let (stdout, stderr, success) = run_xtask(&[
         "proof",
