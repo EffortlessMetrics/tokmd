@@ -1,7 +1,6 @@
 {
-  "run_id": "librarian_api_doctests",
   "prompt_id": "librarian_api_doctests",
-  "persona": "Librarian",
+  "persona": "Librarian \ud83d\udcda",
   "style": "Prover",
   "primary_shard": "interfaces",
   "allowed_paths": [
@@ -13,8 +12,7 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "docs-executable",
-  "allowed_outcomes": [
-    "proof-improvement patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["proof_patch", "learning_pr"],
+  "mission": "Improve factual docs quality and executable examples.",
+  "target": "Doctest and example coverage for public interfaces, specifically focusing on config resolution and context loading."
 }

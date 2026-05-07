@@ -1,20 +1,17 @@
-## Target Assessment
+# Decision: Doctest coverage for `crates/tokmd/src/config.rs`
 
-The primary targets identified for improvement are the doctests within `crates/tokmd-core/src/lib.rs` and `crates/tokmd/src/config.rs`.
+## Inspection
+I explored the `tokmd-core` and `tokmd` crates, specifically looking for gaps in doctest coverage around config resolution and loading. I found that `tokmd::config::load_config` did not have any doctests demonstrating its behavior, and that the existing doctests for the `resolve_*_with_config` functions were referencing `tokmd::resolve_config` instead of the correct `tokmd::config::resolve_config` path.
 
-1.  `cockpit_workflow` in `crates/tokmd-core/src/lib.rs` (lines 537-550): The doctest is marked with `no_run`. This violates the gate profile expectation (`docs-executable`) where doctests and examples should execute or compile where possible to prevent silent drift.
-2.  `analysis_facade` in `crates/tokmd-core/src/lib.rs` (lines 612-624): Similar to `cockpit_workflow`, the doctest is marked with `no_run`.
-3.  `resolve_export` and `resolve_export_with_config` in `crates/tokmd/src/config.rs`: The doctests initialize `CliExportArgs` but omit many fields recently added to the struct, causing warnings or errors if checked strictly, or simply lacking coverage of the full CLI arguments structure. However, in `config.rs`, these examples currently compile because they omit fields and Rust allows partial initialization with `..Default::default()` *if* the struct implements `Default`, BUT as per memory:
-    "In the `tokmd-config` crate, CLI argument struct types like `CliModuleArgs` and `CliExportArgs` do not derive `Default`. When initializing them in tests, you must explicitly provide all fields (usually as `None` or `false`) instead of using `..Default::default()`."
-    Looking at the current source code, the doctest just specifies fields individually up to `strip_prefix`. Let's check `CliExportArgs` definition. It might have new fields like `split` or `merge`.
+## Option A: Add missing doctests and fix incorrect references in `tokmd/src/config.rs`
+- **What it is:** Add a detailed doctest to `load_config` showing how to use the `ConfigContext` it returns. Fix the broken module references in `resolve_config`, `resolve_lang_with_config`, `resolve_module_with_config`, and `resolve_export_with_config` doctests.
+- **Why it fits this repo and shard:** The shard focuses on interfaces and configuration. Ensuring public config resolution APIs have executable examples ensures the docs don't silently drift from reality. The `docs-executable` gate profile aligns with proving the correctness of these examples.
+- **Trade-offs:** Minimal complexity, high confidence. Fixes concrete drift (incorrect `tokmd::resolve_config` calls) while adding a missing example for a core interface (`load_config`).
 
-Let's inspect the `CliExportArgs` struct to see what fields are missing in the doctest.
+## Option B: Refactor config resolution logic
+- **What it is:** Instead of just adding docs, we could refactor the duplication across `resolve_lang_with_config`, `resolve_module_with_config`, etc. into a single unified generic resolver.
+- **When to choose it instead:** If the primary problem was maintainability or bugginess of the resolution logic itself.
+- **Trade-offs:** High velocity risk, goes beyond the 'Librarian' persona's focus on factual docs quality and executable examples.
 
-Option A (recommended)
-Update the `no_run` doctests in `tokmd-core` to be fully executable, removing the `no_run` attribute by using `#[cfg(feature = "cockpit")]` or similar conditional compilation around the doctest if needed, or just mocking the required arguments correctly. Also update the `tokmd/src/config.rs` doctests to ensure all fields of `CliExportArgs`, `CliLangArgs`, `CliModuleArgs` are correctly and fully specified.
-
-Option B
-Write a learning PR indicating that `no_run` is acceptable for features that require heavy Git context.
-
-Decision
-We will proceed with Option A. `no_run` should be avoided for public APIs if we can make them compile/run. We can change them to compile-only or fully executable tests by setting up minimal valid state. However, making them fully executable might be tricky if they require an active Git repository. In that case, we can keep them compile-only (by using `no_run` or by wrapping in a main function that isn't called, or ignoring the execution). Wait, removing `no_run` and replacing it with something that just verifies compilation is better than nothing, but let's see if we can make it run.
+## Decision
+**Option A**. It directly addresses the Librarian mission of improving factual docs quality and executable examples. It fixes the incorrect module paths in existing doctests and adds a missing example for a key public function, adhering to the `docs-executable` gate expectations.

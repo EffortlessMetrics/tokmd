@@ -1,41 +1,57 @@
 ## 💡 Summary
-This is a learning PR. Made the `analysis_facade` doctest in `tokmd-core` executable to prevent silent drift, and recorded a friction item detailing why `cockpit_workflow` cannot easily be made executable without complex Git mocking.
+Added an executable doctest for `tokmd::config::load_config` to demonstrate typical `ConfigContext` usage. Fixed incorrect module path references in the `resolve_*_with_config` doctests, ensuring they compile and reflect reality.
 
 ## 🎯 Why
-Several doctests in `tokmd-core` (like `cockpit_workflow` and `analysis_facade`) were marked with `no_run` which skips validation, potentially hiding compilation and runtime drift. This violates the `docs-executable` gate profile expectation. While `analysis_facade` was straightforward to fix, `cockpit_workflow` fails during `cargo test` because it implicitly relies on being executed inside an active Git repository.
+The `Librarian` persona prioritizes executable examples that can't silently drift. The config resolution module is a key interface. `load_config` lacked an example entirely, and several existing doctests referenced `tokmd::resolve_config` instead of the correct `tokmd::config::resolve_config` path. This could confuse contributors or AI agents referencing the code.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/lib.rs` had `rust,no_run` applied to multiple facade and workflow routines.
-- Running `cockpit_workflow` in a test environment without a properly initialized Git repository causes it to error with "not inside a git repository", leading to a test failure if `no_run` is removed.
+- **File:** `crates/tokmd/src/config.rs`
+- **Finding:** `load_config` had no doctest. The examples for `resolve_lang_with_config`, `resolve_module_with_config`, etc. contained broken imports like `use tokmd::{resolve_config, ConfigContext};` or directly called `tokmd::resolve_config`.
+- **Receipt:** Doctests failed to compile initially with the mocked patch, confirming the paths needed fixing to pass `cargo test --doc`.
 
 ## 🧭 Options considered
-### Option A
-- Wrap the `cockpit_workflow` assertion in an `if let Ok(receipt) = ...` block to swallow the Git error.
-- Trade-offs: This is an anti-pattern. If the workflow fails due to missing Git context in CI, the test silently passes without executing the assertions, which is functionally no better than `no_run`.
+### Option A (recommended)
+- **What it is:** Add a missing `load_config` doctest and fix the incorrect paths in existing doctests.
+- **Why it fits this repo and shard:** Focuses strictly on fixing factual drift in the `interfaces` shard while satisfying the `docs-executable` gate.
+- **Trade-offs:** Low risk, directly improves documentation reliability.
 
-### Option B (recommended)
-- Fix what can be cleanly executed (`analysis_facade`) and document the `cockpit_workflow` Git dependency issue as a friction item so that a proper mocking or temporary directory fixture solution can be implemented later.
-- Fits the `interfaces` shard properly without compromising test integrity.
+### Option B
+- **What it is:** Refactor the config resolution logic to remove duplication across `resolve_lang_with_config` and others.
+- **When to choose it instead:** If the logic was the primary issue rather than missing/drifting docs.
+- **Trade-offs:** Too high risk for a documentation and examples pass.
 
 ## ✅ Decision
-Selected Option B. We replaced `no_run` instances in `tokmd-core` for `analysis_facade` which has no external dependencies. We documented the `cockpit_workflow` issue as friction to avoid swallowing errors in tests.
+Option A was chosen to fulfill the 'Librarian' mission of improving factual docs and ensuring examples are executable.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-core/src/lib.rs`: Removed `no_run` from `analysis_facade`.
+- `crates/tokmd/src/config.rs`: Added doctest to `load_config`. Fixed module paths for `resolve_config`, `resolve_lang_with_config`, `resolve_module_with_config`, and `resolve_export_with_config`.
 
 ## 🧪 Verification receipts
 ```text
-{"command": "cargo test -p tokmd-core --doc", "outcome": "Success (9 passed)"}
-{"command": "cargo fmt-check", "outcome": "Success"}
-{"command": "git diff --check", "outcome": "Success"}
+$ cargo test --doc -p tokmd
+running 12 tests
+test crates/tokmd/src/config.rs - config::ResolvedConfig (line 210) ... ok
+test crates/tokmd/src/config.rs - config::get_profile_name (line 145) ... ok
+test crates/tokmd/src/config.rs - config::load_config (line 46) ... ok
+test crates/tokmd/src/config.rs - config::ConfigContext (line 11) ... ok
+test crates/tokmd/src/config.rs - config::resolve_config (line 310) ... ok
+test crates/tokmd/src/config.rs - config::resolve_export (line 616) ... ok
+test crates/tokmd/src/config.rs - config::resolve_lang (line 337) ... ok
+test crates/tokmd/src/config.rs - config::resolve_export_with_config (line 699) ... ok
+test crates/tokmd/src/config.rs - config::resolve_lang_with_config (line 394) ... ok
+test crates/tokmd/src/config.rs - config::resolve_module (line 464) ... ok
+test crates/tokmd/src/config.rs - config::resolve_module_with_config (line 532) ... ok
+test crates/tokmd/src/config.rs - config::resolve_profile (line 172) ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Proof improvement and Learning.
-- Blast radius: API docs. Zero production logic altered.
-- Risk class: Low risk. Proof improvement.
-- Rollback: Safe to revert.
-- Gates run: `cargo test -p tokmd-core --doc`, `cargo fmt-check`, `git diff --check`.
+- Change shape: Documentation update (doctests)
+- Blast radius: Docs only
+- Risk class: Safe
+- Rollback: `git checkout crates/tokmd/src/config.rs`
+- Gates run: `cargo test --doc -p tokmd`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -43,7 +59,6 @@ Selected Option B. We replaced `no_run` instances in `tokmd-core` for `analysis_
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
-- `.jules/friction/open/librarian_doctest_git_dependency.md`
 
 ## 🔜 Follow-ups
-- See friction item regarding `cockpit_workflow` needing a robust way to mock Git state in doctests.
+None

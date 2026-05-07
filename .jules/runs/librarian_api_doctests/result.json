@@ -1,7 +1,19 @@
 {
-  "outcome": "learning PR",
-  "files_changed": [
-    "crates/tokmd-core/src/lib.rs"
+  "outcome": "proof_patch",
+  "title": "librarian: add executable doctest for load_config and fix path references \ud83d\udcda",
+  "summary": "Added a concrete, executable doctest for `tokmd::config::load_config` demonstrating `ConfigContext` usage, and fixed broken path references (`tokmd::resolve_config` -> `tokmd::config::resolve_config`) in existing doctests to prevent silent drift.",
+  "target_paths": [
+    "crates/tokmd/src/config.rs"
   ],
-  "reason": "Made analysis_facade doctest executable. Could not safely make cockpit_workflow executable without suppressing errors or creating complex Git mock environments, which was logged as a friction item instead."
+  "proof_summary": "Doctests run successfully via `cargo test --doc -p tokmd`.",
+  "gates_run": [
+    "cargo test --doc -p tokmd",
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd/src/config.rs",
+  "follow_ups": []
 }
