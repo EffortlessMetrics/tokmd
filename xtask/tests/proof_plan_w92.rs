@@ -229,6 +229,10 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
         "collector should expose observation readiness thresholds"
     );
     assert!(
+        collector.contains("MIN_EXECUTED: ${{ github.event.inputs.min_executed || '0' }}"),
+        "collector discovery runs should not fail before executed evidence exists"
+    );
+    assert!(
         collector.contains("proof-executor-observation-collection.md"),
         "collector should append the Rust-generated Markdown summary"
     );

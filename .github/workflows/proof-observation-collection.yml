@@ -14,15 +14,15 @@ on:
       min_executed:
         description: Minimum executed advisory commands required
         required: false
-        default: "1"
+        default: "0"
       min_scopes:
         description: Minimum distinct scopes required
         required: false
-        default: "1"
+        default: "0"
       min_artifacts:
         description: Minimum produced evidence artifacts required
         required: false
-        default: "1"
+        default: "0"
 
 permissions:
   contents: read
@@ -38,9 +38,9 @@ env:
   GH_TOKEN: ${{ github.token }}
   RUN_LIMIT: ${{ github.event.inputs.run_limit || '25' }}
   MIN_OBSERVATIONS: ${{ github.event.inputs.min_observations || '1' }}
-  MIN_EXECUTED: ${{ github.event.inputs.min_executed || '1' }}
-  MIN_SCOPES: ${{ github.event.inputs.min_scopes || '1' }}
-  MIN_ARTIFACTS: ${{ github.event.inputs.min_artifacts || '1' }}
+  MIN_EXECUTED: ${{ github.event.inputs.min_executed || '0' }}
+  MIN_SCOPES: ${{ github.event.inputs.min_scopes || '0' }}
+  MIN_ARTIFACTS: ${{ github.event.inputs.min_artifacts || '0' }}
 
 jobs:
   collect-observations:
