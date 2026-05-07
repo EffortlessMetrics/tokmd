@@ -66,6 +66,7 @@ paths = [
   "xtask/src/tasks/mod.rs",
   "xtask/src/tasks/affected.rs",
   "xtask/src/tasks/boundaries_check.rs",
+  "xtask/src/tasks/ci_actuals.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
   "xtask/src/tasks/proof_artifacts_check.rs",
   "xtask/src/tasks/proof_policy.rs",
@@ -565,6 +566,20 @@ proof = [
   "cargo test -p tokmd --test docs --verbose",
 ]
 reason = "The composite GitHub Action is a YAML and documentation contract for repository consumers."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "ci_actuals"
+kind = "non_rust"
+paths = [
+  ".config/nextest.toml",
+  "docs/ci/ci-actuals.md",
+]
+proof = [
+  "cargo xtask docs --check",
+]
+reason = "ci-actuals telemetry config + docs; PR 14/15 read the artifact."
 mutation = false
 coverage = false
 

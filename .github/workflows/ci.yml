@@ -436,6 +436,40 @@ jobs:
       - feature-boundaries
       - proof-policy
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Persist needs context for ci-actuals
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
+        run: |
+          mkdir -p target/ci
+          printf '%s' "$NEEDS_JSON" > target/ci/needs.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Emit ci-actuals.json (advisory)
+        continue-on-error: true
+        run: |
+          cargo xtask ci-actuals \
+            --needs target/ci/needs.json \
+            --json-out target/ci/ci-actuals.json || true
+
+      - name: Upload ci-actuals
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-actuals
+          path: target/ci/ci-actuals.json
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: Check overall status
         env:
           NEEDS_JSON: ${{ toJson(needs) }}

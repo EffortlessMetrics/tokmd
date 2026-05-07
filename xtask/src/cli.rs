@@ -48,6 +48,8 @@ pub enum Commands {
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
     NoPanicPropose(NoPanicProposeArgs),
+    /// Emit ci-actuals.json from the workflow `needs` context
+    CiActuals(CiActualsArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -72,6 +74,51 @@ pub struct VersionConsistencyArgs {}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct LintPolicyArgs {}
+
+#[derive(Args, Debug, Clone)]
+pub struct CiActualsArgs {
+    /// Path to a JSON file containing the workflow's needs context
+    #[arg(long, default_value = "target/ci/needs.json")]
+    pub needs: std::path::PathBuf,
+
+    /// Optional path to a JSON file with per-job duration_seconds
+    #[arg(long, value_name = "PATH")]
+    pub timings: Option<std::path::PathBuf>,
+
+    /// Lane whitelist TOML (for static estimates)
+    #[arg(long, value_name = "PATH")]
+    pub lanes: Option<std::path::PathBuf>,
+
+    /// Output path for ci-actuals.json
+    #[arg(long, default_value = "target/ci/ci-actuals.json")]
+    pub json_out: std::path::PathBuf,
+
+    /// Repo identifier
+    #[arg(long, default_value = "tokmd")]
+    pub repo: String,
+
+    /// Commit SHA
+    #[arg(long, default_value = "HEAD")]
+    pub sha: String,
+
+    /// Workflow name
+    #[arg(long, default_value = "CI")]
+    pub workflow: String,
+}
+
+impl Default for CiActualsArgs {
+    fn default() -> Self {
+        Self {
+            needs: std::path::PathBuf::from("target/ci/needs.json"),
+            timings: None,
+            lanes: None,
+            json_out: std::path::PathBuf::from("target/ci/ci-actuals.json"),
+            repo: "tokmd".into(),
+            sha: "HEAD".into(),
+            workflow: "CI".into(),
+        }
+    }
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct NoPanicArgs {

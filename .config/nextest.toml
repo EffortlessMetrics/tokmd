@@ -1,0 +1,26 @@
+# nextest configuration for tokmd.
+#
+# Currently the repo runs `cargo test --all-features --verbose`. This
+# config exists so any future migration to `cargo nextest` keeps the
+# emitted JUnit XML and timing posture consistent with the ci-actuals
+# pipeline (PR 13) and learned estimates (PR 15).
+
+[profile.default]
+# Match cargo test's default behaviour as closely as possible.
+slow-timeout = { period = "60s", terminate-after = 2 }
+status-level = "fail"
+
+[profile.ci]
+# Surface slow tests so they're visible to ci-actuals.
+slow-timeout = { period = "60s", terminate-after = 2 }
+fail-fast = false
+final-status-level = "slow"
+status-level = "skip"
+junit = { path = "target/nextest/junit.xml" }
+
+[profile.ci.junit]
+# Make per-test classnames emit cargo target + crate so reports group
+# usefully when the actuals pipeline ingests them.
+report-name = "tokmd"
+store-success-output = false
+store-failure-output = true
