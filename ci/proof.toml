@@ -506,6 +506,7 @@ paths = [
   "crates/tokmd-types/tests/cockpit_tests.rs",
   "crates/tokmd/src/commands/cockpit.rs",
   "crates/tokmd/tests/cockpit_*.rs",
+  "docs/review-packet.md",
   "docs/tokmd-in-cockpit.md",
 ]
 packages = ["tokmd-cockpit", "tokmd-types", "tokmd"]

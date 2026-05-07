@@ -14,6 +14,11 @@ artifacts/tokmd/
 
 These paths are the stable integration contract for cockpit directors.
 
+The planned review-packet contract is documented separately in
+[`review-packet.md`](review-packet.md). It is a future packet shape for PR
+review artifacts, not a replacement for the shipped `--artifacts-dir` contract
+until packet emission is implemented.
+
 ## Default Policy
 
 tokmd is **informational by default**. A repo may choose to gate on tokmd output,
