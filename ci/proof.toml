@@ -57,6 +57,7 @@ paths = [
   ".github/workflows/ci.yml",
   ".github/workflows/proof-executor.yml",
   "ci/proof.toml",
+  "docs/external-services.md",
   "docs/NEXT.md",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",

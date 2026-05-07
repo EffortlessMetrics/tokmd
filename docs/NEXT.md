@@ -63,4 +63,5 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 ## References
 
 - Historical drain ledger: [PR_DRAIN.md](../PR_DRAIN.md)
+- External service policy: [external-services.md](external-services.md)
 - Current testing strategy: [testing.md](testing.md)
