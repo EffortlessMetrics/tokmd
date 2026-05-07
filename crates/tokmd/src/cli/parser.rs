@@ -804,6 +804,10 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "DIR")]
     pub artifacts_dir: Option<std::path::PathBuf>,
 
+    /// Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `comment.md`) to directory.
+    #[arg(long, value_name = "DIR")]
+    pub review_packet_dir: Option<std::path::PathBuf>,
+
     /// Path to baseline receipt for trend comparison.
     ///
     /// When provided, cockpit will compute delta metrics showing how

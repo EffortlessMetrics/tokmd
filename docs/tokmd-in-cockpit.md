@@ -8,16 +8,18 @@ When using `tokmd cockpit --artifacts-dir`, tokmd writes:
 
 ```
 artifacts/tokmd/
+├── cockpit.json  # raw cockpit receipt (JSON)
 ├── report.json   # full cockpit receipt (JSON)
 └── comment.md    # compact summary (3–8 bullets)
 ```
 
 These paths are the stable integration contract for cockpit directors.
 
-The planned review-packet contract is documented separately in
-[`review-packet.md`](review-packet.md). It is a future packet shape for PR
-review artifacts, not a replacement for the shipped `--artifacts-dir` contract
-until packet emission is implemented.
+For packet-shaped PR-review artifacts, use
+`tokmd cockpit --review-packet-dir .tokmd/review`. The review-packet contract is
+documented separately in [`review-packet.md`](review-packet.md). It is an
+additive PR review artifact shape, not a replacement for the shipped
+`--artifacts-dir` contract.
 
 ## Default Policy
 

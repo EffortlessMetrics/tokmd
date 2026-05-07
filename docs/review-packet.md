@@ -1,8 +1,8 @@
 # Review Packet Contract
 
-Status: draft contract. This document defines the intended cockpit review-packet
-artifact shape before adding a new command or changing the existing default
-`tokmd cockpit` behavior.
+Status: initial implementation. `tokmd cockpit --review-packet-dir <dir>`
+emits the first packet slice without changing the existing default
+`tokmd cockpit` stdout behavior or the shipped `--artifacts-dir` contract.
 
 ## Purpose
 
@@ -16,7 +16,7 @@ orchestrator over this packet instead of duplicating cockpit computation.
 
 ## Existing Cockpit Artifacts
 
-Today, `tokmd cockpit --artifacts-dir <dir>` writes:
+`tokmd cockpit --artifacts-dir <dir>` writes:
 
 ```text
 <dir>/
@@ -25,13 +25,15 @@ Today, `tokmd cockpit --artifacts-dir <dir>` writes:
   comment.md
 ```
 
-Those artifacts remain the shipped contract until packet emission is
-implemented. Sensor mode continues to use the `sensor.report.v1` envelope and
-its documented sidecars.
+Those artifacts remain the shipped cockpit-director contract. Sensor mode
+continues to use the `sensor.report.v1` envelope and its documented sidecars.
+
+`tokmd cockpit --review-packet-dir <dir>` writes the packet-shaped PR-review
+artifacts documented below. It is an additive output option.
 
 ## Target Layout
 
-The target review packet directory is:
+The review packet directory is:
 
 ```text
 .tokmd/review/
@@ -39,11 +41,11 @@ The target review packet directory is:
   cockpit.json
   evidence.json
   comment.md
-  review-map.json
-  review-map.md
+  review-map.json   # future
+  review-map.md     # future
 ```
 
-The first implementation may emit only `manifest.json`, `cockpit.json`,
+The initial implementation emits `manifest.json`, `cockpit.json`,
 `evidence.json`, and `comment.md`. `review-map.json` and `review-map.md` should
 land once the priority model is stable enough to treat as a contract.
 
@@ -85,12 +87,13 @@ Missing, stale, degraded, and unavailable evidence should be visible in
 - `generated_by` with `name`, `version`, and command arguments
 - `generated_at_ms`
 - `base_ref` and `head_ref`
-- `artifacts` with `id`, `path`, `schema`, `sha256`, and `media_type`
+- `artifacts` with `id`, `path`, `schema`, `media_type`, and `hash`
 - `verdict` with `status`, `blocking`, and `reason`
 - `capabilities` or links to capability details when checks are unavailable
 
-Artifact paths in the manifest are relative to the packet directory. Hashes are
-computed from the final bytes written to disk.
+Artifact paths in the manifest are relative to the packet directory. Hashes use
+the repo-standard BLAKE3 digest and are computed from the final bytes written
+to disk.
 
 ## Exit Codes
 
@@ -135,7 +138,8 @@ that uses this packet.
 
 ## Implementation Checklist
 
-- `tokmd cockpit` can emit packet artifacts without changing default stdout.
+- `tokmd cockpit --review-packet-dir <dir>` can emit packet artifacts without
+  changing default stdout.
 - `manifest.json` hashes every artifact it lists.
 - `cockpit.json` remains a valid cockpit receipt with the current cockpit schema.
 - `evidence.json` records unavailable and degraded evidence explicitly.
