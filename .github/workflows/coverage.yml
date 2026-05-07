@@ -121,30 +121,6 @@ jobs:
           name: tokmd-rust
           fail_ci_if_error: ${{ github.event_name == 'push' }}
 
-      - name: Generate coverage receipt
-        run: |
-          set -euo pipefail
-          mkdir -p target/coverage
-          cat > target/coverage/coverage-receipt.json <<'RECEIPT'
-          {
-            "schema_version": 1,
-            "repo": "tokmd",
-            "lane": "coverage",
-            "flag": "rust",
-            "workflow": "Coverage",
-            "artifacts": [
-              "coverage.json",
-              "coverage.txt",
-              "lcov.info"
-            ],
-            "status": {
-              "coverage_json_present": true,
-              "lcov_present": true,
-              "text_present": true
-            }
-          }
-          RECEIPT
-
       - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v7
