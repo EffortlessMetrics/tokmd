@@ -1,0 +1,25 @@
+# ripr — static "mutation-testing-lite" configuration.
+#
+# ripr does not run mutants. It asks whether a changed behavior appears
+# exposed to a meaningful test discriminator. Severities map to advisory
+# notice / warning levels for the rollout phase; PR 16 may flip narrow
+# cases to soft-block.
+
+[analysis]
+mode = "diff"
+
+[report]
+max_related_tests = 8
+include_context = true
+
+[severity]
+exposed = "notice"
+weakly_exposed = "warning"
+reachable_unrevealed = "warning"
+no_static_path = "notice"
+infection_unknown = "notice"
+propagation_unknown = "notice"
+static_unknown = "notice"
+
+[suppressions]
+path = "policy/ripr-suppressions.toml"

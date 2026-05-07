@@ -603,6 +603,21 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "ripr_policy"
+kind = "non_rust"
+paths = [
+  ".github/workflows/ripr.yml",
+  "policy/ripr-suppressions.toml",
+  "ripr.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "ripr static-mutation analyzer config + suppressions ledger; advisory until PR 16 soft-gate."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "schema_contracts"
 kind = "rust"
 paths = [

@@ -1,0 +1,104 @@
+name: ripr (advisory)
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ripr-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -C debuginfo=0
+
+jobs:
+  ripr:
+    name: ripr (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Fetch base ref
+        if: github.event_name == 'pull_request'
+        run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
+
+      - name: Identify changed Rust files (production only)
+        id: changed
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          mkdir -p target/ripr
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
+            | grep -v '/tests/' \
+            | grep -v '_test\.rs$' \
+            | grep -v '^fuzz/' \
+            | grep -v '/fuzz/' \
+            > target/ripr/changed.txt || true
+          COUNT="$(wc -l < target/ripr/changed.txt | tr -d ' ')"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Install ripr (best-effort)
+        id: install
+        run: |
+          set +e
+          if cargo install ripr --locked >/dev/null 2>&1; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ripr not yet available on crates.io; running advisory placeholder."
+          fi
+
+      - name: Run ripr or placeholder
+        run: |
+          set -euo pipefail
+          mkdir -p target/ripr
+          if [ "${{ steps.install.outputs.installed }}" = "true" ]; then
+            ripr analyze \
+              --config ripr.toml \
+              --diff-only \
+              --json target/ripr/ripr.json \
+              --sarif target/ripr/ripr.sarif \
+              --markdown target/ripr/ripr.md \
+              || true
+            {
+              echo "## ripr (advisory)"
+              echo ""
+              if [ -f target/ripr/ripr.md ]; then
+                cat target/ripr/ripr.md
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            cat <<'EOF' > target/ripr/ripr.md
+          ## ripr (advisory)
+
+          ripr is not yet wired up in this repo. This advisory job is a
+          placeholder so the slot exists in the lane whitelist and the
+          rollout (PR 11) lands. When ripr ships, replace the install
+          step's fallback with the real binary and remove this notice.
+          EOF
+            cat target/ripr/ripr.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload ripr report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ripr-report
+          path: target/ripr/
+          if-no-files-found: ignore
+          retention-days: 14
