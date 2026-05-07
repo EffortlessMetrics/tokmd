@@ -1176,14 +1176,8 @@ mod tests {
             .iter()
             .map(|f| f.selector.container.as_str())
             .collect();
-        assert!(
-            containers.contains(&"run::<closure-0>"),
-            "{containers:?}"
-        );
-        assert!(
-            containers.contains(&"run::<closure-1>"),
-            "{containers:?}"
-        );
+        assert!(containers.contains(&"run::<closure-0>"), "{containers:?}");
+        assert!(containers.contains(&"run::<closure-1>"), "{containers:?}");
     }
 
     #[test]
@@ -1197,7 +1191,10 @@ mod tests {
         // A distinct tail produces a distinct hash even when the head matches.
         let other: String = format!("{}b", "a".repeat(499));
         let fp_other = truncate_fingerprint(&other);
-        assert_ne!(fp, fp_other, "head-collision must not yield same fingerprint");
+        assert_ne!(
+            fp, fp_other,
+            "head-collision must not yield same fingerprint"
+        );
     }
 
     #[test]
