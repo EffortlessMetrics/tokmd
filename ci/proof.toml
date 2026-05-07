@@ -634,6 +634,20 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "ci_economics_policy"
+kind = "non_rust"
+paths = [
+  "policy/ci-lane-whitelist.toml",
+  "policy/ci-whitelist-exceptions.toml",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+]
+reason = "CI lane whitelist and its docs govern verification economics receipts; checked via proof-policy and the lane whitelist linter (PR 03 onward)."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "schema_contracts"
 kind = "rust"
 paths = [
