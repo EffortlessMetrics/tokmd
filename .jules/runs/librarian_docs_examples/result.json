@@ -1,0 +1,14 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record librarian learning on docs/reference-cli.md drift fix 📚",
+  "summary": "Attempted to fix factual documentation drift in `docs/reference-cli.md` by updating the `Global Arguments` section to include missing flags (`--format`, `--top`, `--files`, and `--children`). The fix was superseded by a merged PR #1720, so reverting changes to create a learning PR documenting the collision.",
+  "target_paths": [
+    "docs/reference-cli.md"
+  ],
+  "proof_summary": "CLI help output for `tokmd --help` without subcommands exposes flags that were missing in the hand-written `docs/reference-cli.md` table.",
+  "gates_run": [],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout -- docs/reference-cli.md",
+  "follow_ups": []
+}
