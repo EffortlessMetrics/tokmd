@@ -32,6 +32,7 @@ pub fn validate_policy(policy: &ProofPolicy) -> Vec<PolicyViolation> {
     }
 
     validate_executor(policy, &mut violations);
+    validate_proof_run(policy, &mut violations);
     validate_scopes(policy, &mut violations);
     validate_workspace_allowlists(&policy.allow.workspace_area, &mut violations);
     validate_fixture_blob_rules(&policy.forbid.fixture_blob, &mut violations);
@@ -162,6 +163,66 @@ fn validate_executor(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>
                 "default Codecov upload from the proof executor is not implemented; keep default_codecov_upload false",
             ));
         }
+    }
+}
+
+fn validate_proof_run(policy: &ProofPolicy, violations: &mut Vec<PolicyViolation>) {
+    match policy.proof_run.pr.as_ref() {
+        Some(pr) => {
+            if pr.default_enabled != Some(true) {
+                violations.push(PolicyViolation::new(
+                    "proof_run.pr.default_enabled",
+                    "fast proof-run PR observation is policy-default-on; keep default_enabled true",
+                ));
+            }
+
+            match pr.profile.as_deref() {
+                Some("fast") => {}
+                Some(profile) if profile.trim().is_empty() => {
+                    violations.push(PolicyViolation::new(
+                        "proof_run.pr.profile",
+                        "fast proof-run PR profile must not be empty",
+                    ))
+                }
+                Some(profile) => violations.push(PolicyViolation::new(
+                    "proof_run.pr.profile",
+                    format!("unsupported fast proof-run PR profile `{profile}`; expected `fast`"),
+                )),
+                None => violations.push(PolicyViolation::new(
+                    "proof_run.pr.profile",
+                    "fast proof-run PR profile must be set to `fast`",
+                )),
+            }
+
+            if pr.required != Some(false) {
+                violations.push(PolicyViolation::new(
+                    "proof_run.pr.required",
+                    "fast proof-run PR observations are not required gates; keep required false",
+                ));
+            }
+
+            match pr.artifact_name.as_deref() {
+                Some("fast-proof-run") => {}
+                Some(name) if name.trim().is_empty() => violations.push(PolicyViolation::new(
+                    "proof_run.pr.artifact_name",
+                    "fast proof-run artifact name must not be empty",
+                )),
+                Some(name) => violations.push(PolicyViolation::new(
+                    "proof_run.pr.artifact_name",
+                    format!(
+                        "unsupported fast proof-run artifact name `{name}`; expected `fast-proof-run`"
+                    ),
+                )),
+                None => violations.push(PolicyViolation::new(
+                    "proof_run.pr.artifact_name",
+                    "fast proof-run artifact name must be set to `fast-proof-run`",
+                )),
+            }
+        }
+        None => violations.push(PolicyViolation::new(
+            "proof_run.pr",
+            "policy must declare advisory fast proof-run PR defaults",
+        )),
     }
 }
 
@@ -463,6 +524,12 @@ schema = "tokmd.proof_policy.v1"
 
 {extra}
 
+[proof_run.pr]
+default_enabled = true
+profile = "fast"
+required = false
+artifact_name = "fast-proof-run"
+
 [[dependency_boundary]]
 name = "retired_tokmd_config_must_not_return"
 packages = ["*"]
@@ -665,6 +732,74 @@ codecov_upload = true
         assert!(violations.iter().any(|violation| {
             violation.path == "executor.pr.codecov_upload"
                 && violation.message.contains("not implemented")
+        }));
+    }
+
+    #[test]
+    fn rejects_invalid_proof_run_pr_defaults() {
+        let violations = {
+            let policy = parse_policy_str(
+                r#"
+schema = "tokmd.proof_policy.v1"
+
+[proof_run.pr]
+default_enabled = false
+profile = "affected"
+required = true
+artifact_name = "wrong-artifact"
+
+[[dependency_boundary]]
+name = "retired_tokmd_config_must_not_return"
+packages = ["*"]
+forbid = ["tokmd-config"]
+reason = "tokmd-config is retired."
+"#,
+            )
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "proof_run.pr.default_enabled"
+                && violation.message.contains("policy-default-on")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "proof_run.pr.profile"
+                && violation.message.contains("expected `fast`")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "proof_run.pr.required"
+                && violation.message.contains("not required gates")
+        }));
+        assert!(violations.iter().any(|violation| {
+            violation.path == "proof_run.pr.artifact_name"
+                && violation.message.contains("expected `fast-proof-run`")
+        }));
+    }
+
+    #[test]
+    fn rejects_missing_proof_run_pr_defaults() {
+        let violations = {
+            let policy = parse_policy_str(
+                r#"
+schema = "tokmd.proof_policy.v1"
+
+[[dependency_boundary]]
+name = "retired_tokmd_config_must_not_return"
+packages = ["*"]
+forbid = ["tokmd-config"]
+reason = "tokmd-config is retired."
+"#,
+            )
+            .expect("policy should parse");
+            validate_policy(&policy)
+        };
+
+        assert!(violations.iter().any(|violation| {
+            violation.path == "proof_run.pr"
+                && violation
+                    .message
+                    .contains("must declare advisory fast proof-run")
         }));
     }
 

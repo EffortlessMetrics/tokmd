@@ -16,6 +16,7 @@ struct ProofPolicyReport {
     fixture_blob_rule_count: usize,
     dependency_boundary_count: usize,
     executor: ExecutorPolicyReport,
+    proof_run: ProofRunPolicyReport,
     violations: Vec<PolicyViolation>,
 }
 
@@ -49,12 +50,26 @@ struct ExecutorPromotionReport {
     default_codecov_upload: Option<bool>,
 }
 
+#[derive(Debug, Serialize)]
+struct ProofRunPolicyReport {
+    pr: Option<ProofRunPrReport>,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofRunPrReport {
+    default_enabled: Option<bool>,
+    profile: Option<String>,
+    required: Option<bool>,
+    artifact_name: Option<String>,
+}
+
 pub fn run(args: ProofPolicyArgs) -> Result<()> {
     let _check_requested = args.check || !args.json;
     let path = args.policy;
     let policy = load_policy(&path)?;
     let violations = validate_policy(&policy);
     let executor = ExecutorPolicyReport::from_policy(&policy);
+    let proof_run = ProofRunPolicyReport::from_policy(&policy);
     let report = ProofPolicyReport {
         ok: violations.is_empty(),
         policy: display_path(&path),
@@ -64,6 +79,7 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
         fixture_blob_rule_count: policy.forbid.fixture_blob.len(),
         dependency_boundary_count: policy.dependency_boundary.len(),
         executor,
+        proof_run,
         violations,
     };
 
@@ -80,6 +96,29 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
             "proof policy validation failed with {} violation(s)",
             report.violations.len()
         )
+    }
+}
+
+impl ProofRunPolicyReport {
+    fn from_policy(policy: &ProofPolicy) -> Self {
+        Self {
+            pr: policy
+                .proof_run
+                .pr
+                .as_ref()
+                .map(ProofRunPrReport::from_policy),
+        }
+    }
+}
+
+impl ProofRunPrReport {
+    fn from_policy(pr: &crate::proof::policy_ast::ProofRunPr) -> Self {
+        Self {
+            default_enabled: pr.default_enabled,
+            profile: pr.profile.clone(),
+            required: pr.required,
+            artifact_name: pr.artifact_name.clone(),
+        }
     }
 }
 
@@ -142,14 +181,15 @@ impl ExecutorPromotionReport {
 fn print_human_report(report: &ProofPolicyReport) {
     if report.ok {
         println!(
-            "Proof policy OK: {} (schema {}, {} scope(s), {} allowlist(s), {} fixture blob rule(s), {} dependency boundary rule(s), executor {})",
+            "Proof policy OK: {} (schema {}, {} scope(s), {} allowlist(s), {} fixture blob rule(s), {} dependency boundary rule(s), executor {}, proof-run {})",
             report.policy,
             report.schema,
             report.scope_count,
             report.allowlist_count,
             report.fixture_blob_rule_count,
             report.dependency_boundary_count,
-            executor_summary(&report.executor)
+            executor_summary(&report.executor),
+            proof_run_summary(&report.proof_run)
         );
         return;
     }
@@ -162,6 +202,19 @@ fn print_human_report(report: &ProofPolicyReport) {
 
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
+}
+
+fn proof_run_summary(proof_run: &ProofRunPolicyReport) -> String {
+    match proof_run.pr.as_ref() {
+        Some(pr) => format!(
+            "pr-default-{}/pr-profile-{}/pr-required-{}/pr-artifact-{}",
+            display_optional_bool(pr.default_enabled),
+            display_optional_string(pr.profile.as_deref()),
+            display_optional_bool(pr.required),
+            display_optional_string(pr.artifact_name.as_deref())
+        ),
+        None => "not-configured".to_string(),
+    }
 }
 
 fn executor_summary(executor: &ExecutorPolicyReport) -> String {

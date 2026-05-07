@@ -32,6 +32,12 @@ min_passing_collector_runs = 1
 required_gate = false
 default_codecov_upload = false
 
+[proof_run.pr]
+default_enabled = true
+profile = "fast"
+required = false
+artifact_name = "fast-proof-run"
+
 [[scope]]
 name = "workspace_dependency_graph"
 kind = "rust"

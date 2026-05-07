@@ -57,6 +57,15 @@ fn proof_policy_check_accepts_repo_policy() {
         "stdout: {stdout}"
     );
     assert!(stdout.contains("required-gate-off"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("proof-run pr-default-on"),
+        "stdout: {stdout}"
+    );
+    assert!(stdout.contains("pr-profile-fast"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("pr-artifact-fast-proof-run"),
+        "stdout: {stdout}"
+    );
 }
 
 #[test]
@@ -218,6 +227,22 @@ fn proof_policy_declares_coverage_executor_promotion_rule() {
 }
 
 #[test]
+fn proof_policy_declares_advisory_fast_proof_run_rule() {
+    let value = repo_policy();
+    let proof_run = value["proof_run"]
+        .as_table()
+        .expect("repo policy should expose proof_run policy");
+    let pr = proof_run["pr"]
+        .as_table()
+        .expect("repo policy should expose proof_run PR defaults");
+
+    assert_eq!(pr["default_enabled"].as_bool(), Some(true));
+    assert_eq!(pr["profile"].as_str(), Some("fast"));
+    assert_eq!(pr["required"].as_bool(), Some(false));
+    assert_eq!(pr["artifact_name"].as_str(), Some("fast-proof-run"));
+}
+
+#[test]
 fn proof_policy_json_reports_current_schema() {
     let (stdout, stderr, success) = run_xtask(&["proof-policy", "--json"]);
 
@@ -259,6 +284,10 @@ fn proof_policy_json_reports_current_schema() {
         value["executor"]["promotion"]["default_codecov_upload"],
         false
     );
+    assert_eq!(value["proof_run"]["pr"]["default_enabled"], true);
+    assert_eq!(value["proof_run"]["pr"]["profile"], "fast");
+    assert_eq!(value["proof_run"]["pr"]["required"], false);
+    assert_eq!(value["proof_run"]["pr"]["artifact_name"], "fast-proof-run");
 }
 
 #[test]

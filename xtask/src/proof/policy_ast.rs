@@ -18,6 +18,9 @@ pub struct ProofPolicy {
     pub executor: Executor,
 
     #[serde(default)]
+    pub proof_run: ProofRun,
+
+    #[serde(default)]
     pub scope: Vec<Scope>,
 
     #[serde(default)]
@@ -81,6 +84,22 @@ pub struct ExecutorPromotion {
     pub min_passing_collector_runs: Option<usize>,
     pub required_gate: Option<bool>,
     pub default_codecov_upload: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProofRun {
+    #[serde(default)]
+    pub pr: Option<ProofRunPr>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProofRunPr {
+    pub default_enabled: Option<bool>,
+    pub profile: Option<String>,
+    pub required: Option<bool>,
+    pub artifact_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]

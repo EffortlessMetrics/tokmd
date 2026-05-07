@@ -324,20 +324,57 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
+      - id: proof_run_policy
+        name: Resolve fast proof-run policy
+        run: |
+          set -euo pipefail
+          mkdir -p target/proof-run
+          cargo xtask proof-policy --json > target/proof-run/proof-policy.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import pathlib
+          import sys
+
+          policy = json.loads(pathlib.Path("target/proof-run/proof-policy.json").read_text(encoding="utf-8"))
+          pr = policy.get("proof_run", {}).get("pr") or {}
+          if pr.get("default_enabled") is not True:
+              print("::error::proof_run.pr.default_enabled must be true", file=sys.stderr)
+              sys.exit(1)
+          if pr.get("required") is not False:
+              print("::error::proof_run.pr.required must remain false", file=sys.stderr)
+              sys.exit(1)
+          profile = pr.get("profile")
+          artifact_name = pr.get("artifact_name")
+          if profile != "fast":
+              print(f"::error::proof_run.pr.profile must be fast, got {profile!r}", file=sys.stderr)
+              sys.exit(1)
+          if artifact_name != "fast-proof-run":
+              print(f"::error::proof_run.pr.artifact_name must be fast-proof-run, got {artifact_name!r}", file=sys.stderr)
+              sys.exit(1)
+          print(f"profile={profile}")
+          print(f"artifact_name={artifact_name}")
+          PY
+
       - name: Run fast proof runner
+        env:
+          PROOF_RUN_PROFILE: ${{ steps.proof_run_policy.outputs.profile }}
         run: |
           set +e
           mkdir -p target/proof-run
 
-          cargo xtask proof --profile fast --run-required --allow-ci-required-execution --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-plan.json
+          cargo xtask proof --profile "${PROOF_RUN_PROFILE}" --run-required --allow-ci-required-execution --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-plan.json
           proof_run_status=$?
 
           cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-run-artifacts-check.txt 2>&1
           proof_run_artifacts_status=$?
 
+          cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json > target/proof-run/proof-run-observation.txt 2>&1
+          proof_run_observation_status=$?
+
           {
             echo "proof_run_status=${proof_run_status}"
             echo "proof_run_artifacts_status=${proof_run_artifacts_status}"
+            echo "proof_run_observation_status=${proof_run_observation_status}"
           } > target/proof-run/status.env
 
           {
@@ -345,13 +382,19 @@ jobs:
             echo ""
             echo "| Command | Exit |"
             echo "| --- | ---: |"
+            echo "| proof-run policy | 0 |"
             echo "| proof run | ${proof_run_status} |"
             echo "| proof run artifacts | ${proof_run_artifacts_status} |"
+            echo "| proof run observation | ${proof_run_observation_status} |"
             echo ""
             echo "Fast proof-run artifact generation is advisory and is not part of the required CI aggregate yet."
             if [ -f target/proof-run/proof-run-artifacts-check.txt ]; then
               echo ""
               cat target/proof-run/proof-run-artifacts-check.txt
+            fi
+            if [ -f target/proof-run/proof-run-observation.txt ]; then
+              echo ""
+              cat target/proof-run/proof-run-observation.txt
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -363,13 +406,17 @@ jobs:
             exit "${proof_run_artifacts_status}"
           fi
 
+          if [ "${proof_run_observation_status}" -ne 0 ]; then
+            exit "${proof_run_observation_status}"
+          fi
+
           exit 0
 
       - name: Upload fast proof-run artifacts
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: fast-proof-run
+          name: ${{ steps.proof_run_policy.outputs.artifact_name || 'fast-proof-run' }}
           path: target/proof-run/
           if-no-files-found: error
 

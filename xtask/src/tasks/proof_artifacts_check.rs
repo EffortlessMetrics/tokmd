@@ -1,6 +1,6 @@
 use crate::cli::{
     ProofArtifactsCheckArgs, ProofExecutionObservationArgs, ProofExecutionObservationsSummaryArgs,
-    ProofRunArtifactsCheckArgs,
+    ProofRunArtifactsCheckArgs, ProofRunObservationArgs,
 };
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,7 @@ use walkdir::WalkDir;
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
 const PROOF_RUN_SUMMARY_SCHEMA: &str = "tokmd.proof_run_summary.v1";
+const PROOF_RUN_OBSERVATION_SCHEMA: &str = "tokmd.proof_run_observation.v1";
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
 const PROMOTION_READINESS_SCHEMA: &str = "tokmd.proof_executor_promotion_readiness.v1";
@@ -80,6 +81,18 @@ pub fn run_proof_run(args: ProofRunArtifactsCheckArgs) -> Result<()> {
     println!(
         "Proof run artifacts OK: {} executed required command(s), guard {}",
         report.executed, report.guard_reason
+    );
+    Ok(())
+}
+
+pub fn run_proof_run_observation(args: ProofRunObservationArgs) -> Result<()> {
+    let summary = read_json(&args.proof_run_summary, "proof run summary")?;
+    let observation = proof_run_observation(&summary)?;
+    write_proof_run_observation(&args.output, &observation)?;
+    println!(
+        "Proof run observation OK: {} executed required command(s), wrote `{}`",
+        observation.counts.executed,
+        args.output.display()
     );
     Ok(())
 }
@@ -168,6 +181,48 @@ struct ProofArtifactsReport {
 struct ProofRunArtifactsReport {
     executed: usize,
     guard_reason: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+struct ProofRunObservation {
+    schema: String,
+    status: String,
+    execution_status: String,
+    profile: String,
+    base: String,
+    head: String,
+    ok: bool,
+    execution_guard: ProofRunObservationGuard,
+    counts: ProofRunObservationCounts,
+    scopes: Vec<ProofRunObservationScope>,
+    changed_files: Vec<String>,
+    unknown_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+struct ProofRunObservationGuard {
+    enabled: bool,
+    ci: bool,
+    reason: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+struct ProofRunObservationCounts {
+    commands_total: usize,
+    required_planned: usize,
+    advisory_skipped: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+struct ProofRunObservationScope {
+    name: String,
+    kind: String,
+    command: String,
+    status: String,
+    exit_code: Option<i64>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -400,6 +455,10 @@ fn write_observation(path: &Path, observation: &ProofExecutionObservation) -> Re
     write_text(path, &serde_json::to_string_pretty(observation)?)
 }
 
+fn write_proof_run_observation(path: &Path, observation: &ProofRunObservation) -> Result<()> {
+    write_text(path, &serde_json::to_string_pretty(observation)?)
+}
+
 fn write_text(path: &Path, text: &str) -> Result<()> {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
@@ -408,6 +467,116 @@ fn write_text(path: &Path, text: &str) -> Result<()> {
             .with_context(|| format!("failed to create `{}`", parent.display()))?;
     }
     fs::write(path, text).with_context(|| format!("failed to write `{}`", path.display()))
+}
+
+fn proof_run_observation(summary: &Value) -> Result<ProofRunObservation> {
+    validate_proof_run_summary(summary)?;
+    let entries = expect_array(
+        field(summary, "entries", "proof run summary")?,
+        "entries",
+        "proof run summary",
+    )?;
+    let mut scopes = entries
+        .iter()
+        .map(proof_run_observation_scope)
+        .collect::<Result<Vec<_>>>()?;
+    scopes.sort_by(|left, right| {
+        (&left.name, &left.kind, &left.command).cmp(&(&right.name, &right.kind, &right.command))
+    });
+
+    Ok(ProofRunObservation {
+        schema: PROOF_RUN_OBSERVATION_SCHEMA.to_string(),
+        status: expect_string(
+            field(summary, "status", "proof run summary")?,
+            "status",
+            "proof run summary",
+        )?,
+        execution_status: expect_string(
+            field(summary, "execution_status", "proof run summary")?,
+            "execution_status",
+            "proof run summary",
+        )?,
+        profile: expect_string(
+            field(summary, "profile", "proof run summary")?,
+            "profile",
+            "proof run summary",
+        )?,
+        base: expect_string(
+            field(summary, "base", "proof run summary")?,
+            "base",
+            "proof run summary",
+        )?,
+        head: expect_string(
+            field(summary, "head", "proof run summary")?,
+            "head",
+            "proof run summary",
+        )?,
+        ok: expect_bool(
+            field(summary, "ok", "proof run summary")?,
+            "ok",
+            "proof run summary",
+        )?,
+        execution_guard: ProofRunObservationGuard {
+            enabled: expect_bool(
+                field(summary, "execution_guard.enabled", "proof run summary")?,
+                "execution_guard.enabled",
+                "proof run summary",
+            )?,
+            ci: expect_bool(
+                field(summary, "execution_guard.ci", "proof run summary")?,
+                "execution_guard.ci",
+                "proof run summary",
+            )?,
+            reason: expect_string(
+                field(summary, "execution_guard.reason", "proof run summary")?,
+                "execution_guard.reason",
+                "proof run summary",
+            )?,
+        },
+        counts: ProofRunObservationCounts {
+            commands_total: expect_usize(
+                field(summary, "counts.commands_total", "proof run summary")?,
+                "counts.commands_total",
+                "proof run summary",
+            )?,
+            required_planned: expect_usize(
+                field(summary, "counts.required_planned", "proof run summary")?,
+                "counts.required_planned",
+                "proof run summary",
+            )?,
+            advisory_skipped: expect_usize(
+                field(summary, "counts.advisory_skipped", "proof run summary")?,
+                "counts.advisory_skipped",
+                "proof run summary",
+            )?,
+            executed: expect_usize(
+                field(summary, "counts.executed", "proof run summary")?,
+                "counts.executed",
+                "proof run summary",
+            )?,
+            passed: expect_usize(
+                field(summary, "counts.passed", "proof run summary")?,
+                "counts.passed",
+                "proof run summary",
+            )?,
+            failed: expect_usize(
+                field(summary, "counts.failed", "proof run summary")?,
+                "counts.failed",
+                "proof run summary",
+            )?,
+        },
+        scopes,
+        changed_files: expect_string_array(
+            field(summary, "changed_files", "proof run summary")?,
+            "changed_files",
+            "proof run summary",
+        )?,
+        unknown_files: expect_string_array(
+            field(summary, "unknown_files", "proof run summary")?,
+            "unknown_files",
+            "proof run summary",
+        )?,
+    })
 }
 
 #[cfg(test)]
@@ -1290,6 +1459,36 @@ fn validate_executor_artifacts_with_artifact_root(
         executed: summary_executed,
         execution_status,
         guard_reason,
+    })
+}
+
+fn proof_run_observation_scope(entry: &Value) -> Result<ProofRunObservationScope> {
+    Ok(ProofRunObservationScope {
+        name: expect_string(
+            field(entry, "scope", "proof run summary entry")?,
+            "scope",
+            "proof run summary entry",
+        )?,
+        kind: expect_string(
+            field(entry, "kind", "proof run summary entry")?,
+            "kind",
+            "proof run summary entry",
+        )?,
+        command: expect_string(
+            field(entry, "command", "proof run summary entry")?,
+            "command",
+            "proof run summary entry",
+        )?,
+        status: expect_string(
+            field(entry, "status", "proof run summary entry")?,
+            "status",
+            "proof run summary entry",
+        )?,
+        exit_code: expect_optional_i64(
+            field(entry, "exit_code", "proof run summary entry")?,
+            "exit_code",
+            "proof run summary entry",
+        )?,
     })
 }
 
@@ -2370,6 +2569,27 @@ mod tests {
                 guard_reason: "local_explicit_required_opt_in_enabled".to_string(),
             }
         );
+    }
+
+    #[test]
+    fn builds_compact_proof_run_observation() {
+        let summary = proof_run_summary();
+
+        let observation = proof_run_observation(&summary).unwrap();
+
+        assert_eq!(observation.schema, PROOF_RUN_OBSERVATION_SCHEMA);
+        assert_eq!(observation.status, "passed");
+        assert_eq!(observation.execution_status, "executed");
+        assert_eq!(observation.profile, "affected");
+        assert!(observation.ok);
+        assert_eq!(
+            observation.execution_guard.reason,
+            "local_explicit_required_opt_in_enabled"
+        );
+        assert_eq!(observation.counts.executed, 1);
+        assert_eq!(observation.scopes.len(), 1);
+        assert_eq!(observation.scopes[0].name, "tokmd_core_ffi");
+        assert_eq!(observation.scopes[0].exit_code, Some(0));
     }
 
     #[test]

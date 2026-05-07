@@ -105,6 +105,18 @@ fn proof_run_artifacts_check_help_mentions_summary_path() {
 }
 
 #[test]
+fn proof_run_observation_help_mentions_summary_path_and_output() {
+    let (stdout, stderr, success) = run_xtask(&["proof-run-observation", "--help"]);
+
+    assert!(
+        success,
+        "proof-run-observation --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--proof-run-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--output"), "stdout: {stdout}");
+}
+
+#[test]
 fn proof_execution_observation_help_mentions_executor_paths_and_output() {
     let (stdout, stderr, success) = run_xtask(&["proof-execution-observation", "--help"]);
 
@@ -190,22 +202,34 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should advertise advisory status"
     );
     assert!(
-        ci.contains(
-            "cargo xtask proof --profile fast --run-required --allow-ci-required-execution"
-        ),
-        "fast proof job should use the required proof runner"
+        ci.contains("cargo xtask proof-policy --json > target/proof-run/proof-policy.json"),
+        "fast proof job should resolve checked policy"
+    );
+    assert!(
+        ci.contains("proof_run.pr.required must remain false"),
+        "fast proof policy should keep the PR job non-required"
+    );
+    assert!(
+        ci.contains("cargo xtask proof --profile \"${PROOF_RUN_PROFILE}\" --run-required --allow-ci-required-execution"),
+        "fast proof job should use the policy-selected required proof runner"
     );
     assert!(
         ci.contains("cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json"),
         "fast proof job should verify the required-run summary"
     );
     assert!(
+        ci.contains("cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json"),
+        "fast proof job should emit a compact proof-run observation"
+    );
+    assert!(
         ci.contains("Fast proof-run artifact generation is advisory"),
         "fast proof job summary should state advisory status"
     );
     assert!(
-        ci.contains("name: fast-proof-run"),
-        "fast proof job should upload a stable artifact"
+        ci.contains(
+            "name: ${{ steps.proof_run_policy.outputs.artifact_name || 'fast-proof-run' }}"
+        ),
+        "fast proof job should upload the policy-named artifact with a stable fallback"
     );
     assert!(
         !required_section.contains("- fast-proof-run"),
@@ -668,6 +692,29 @@ fn local_required_execution_can_write_zero_command_summary() {
         stdout.contains("Proof run artifacts OK: 0 executed required command(s)"),
         "stdout: {stdout}"
     );
+
+    let observation_path = temp.path().join("proof-run-observation.json");
+    let observation_arg = observation_path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-observation",
+        "--proof-run-summary",
+        &summary_arg,
+        "--output",
+        &observation_arg,
+    ]);
+    assert!(success, "proof-run-observation failed. stderr: {stderr}");
+    assert!(
+        stdout.contains("Proof run observation OK: 0 executed required command(s)"),
+        "stdout: {stdout}"
+    );
+    let observation =
+        fs::read_to_string(observation_path).expect("proof-run observation should be written");
+    let observation: serde_json::Value =
+        serde_json::from_str(&observation).expect("observation should be valid JSON");
+    assert_eq!(observation["schema"], "tokmd.proof_run_observation.v1");
+    assert_eq!(observation["execution_status"], "executed");
+    assert_eq!(observation["counts"]["executed"], 0);
+    assert!(observation["scopes"].as_array().unwrap().is_empty());
 }
 
 #[test]
