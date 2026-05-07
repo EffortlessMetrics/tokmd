@@ -46,6 +46,8 @@ pub enum Commands {
     CheckLintPolicy(LintPolicyArgs),
     /// Emit a durable receipt for coverage artifacts
     CoverageReceipt(CoverageReceiptArgs),
+    /// Emit a durable receipt for CI job actuals
+    CiActuals(CiActualsArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
@@ -125,6 +127,46 @@ impl Default for CoverageReceiptArgs {
             lane: "coverage".to_string(),
             flag: "rust".to_string(),
             workflow: "Coverage".to_string(),
+            sha: None,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CiActualsArgs {
+    /// JSON file containing the GitHub Actions `needs` context
+    #[arg(long, default_value = "target/ci/needs.json")]
+    pub needs: std::path::PathBuf,
+
+    /// Optional JSON sidecar with measured job durations
+    #[arg(long, value_name = "PATH")]
+    pub timings: Option<std::path::PathBuf>,
+
+    /// Output path for the CI actuals receipt
+    #[arg(long, default_value = "target/ci/ci-actuals.json")]
+    pub output: std::path::PathBuf,
+
+    /// Repository identifier recorded in the receipt
+    #[arg(long, default_value = "tokmd")]
+    pub repo: String,
+
+    /// Workflow name recorded in the receipt
+    #[arg(long, default_value = "CI")]
+    pub workflow: String,
+
+    /// Commit SHA recorded in the receipt; defaults to GITHUB_SHA or HEAD
+    #[arg(long)]
+    pub sha: Option<String>,
+}
+
+impl Default for CiActualsArgs {
+    fn default() -> Self {
+        Self {
+            needs: std::path::PathBuf::from("target/ci/needs.json"),
+            timings: None,
+            output: std::path::PathBuf::from("target/ci/ci-actuals.json"),
+            repo: "tokmd".to_string(),
+            workflow: "CI".to_string(),
             sha: None,
         }
     }

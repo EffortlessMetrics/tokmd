@@ -80,6 +80,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Advisory Codecov coverage now has README visibility, documented lane boundaries in `docs/ci/coverage.md`, proof-control-plane routing for `.github/workflows/coverage.yml`, `codecov.yml`, and the coverage docs, plus a narrow `project_readme` scope so README-only edits route to docs checks instead of unknown-file failures. Coverage remains telemetry, not a ratchet or required gate.
 - `cargo xtask coverage-receipt` now emits `tokmd.coverage_receipt.v1` for `coverage.json`, `coverage.txt`, and `lcov.info`, and the coverage workflow uploads `target/coverage/coverage-receipt.json` with the coverage artifacts. The receipt records coverage artifact presence and byte counts without making coverage a required gate.
 - Codecov project and patch statuses remain informational during the baseline phase, and coverage receipt generation is owned by `cargo xtask coverage-receipt` rather than a duplicate workflow heredoc.
+- `cargo xtask ci-actuals` now emits `tokmd.ci_actuals.v1` from a GitHub Actions `needs` payload plus optional timing sidecar data. Missing timing is recorded as missing rather than zero so later budget and learned-estimate work can consume the receipt without inventing measurements.
 - Next proof-policy operational slice: collect additional coverage-enabled executor observations across more product scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References

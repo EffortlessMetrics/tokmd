@@ -35,6 +35,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
         Some(cli::Commands::CheckLintPolicy(args)) => tasks::lint_policy::run(args),
         Some(cli::Commands::CoverageReceipt(args)) => tasks::coverage_receipt::run(args),
+        Some(cli::Commands::CiActuals(args)) => tasks::ci_actuals::run(args),
         Some(cli::Commands::CheckNoPanicFamily(args)) => tasks::no_panic::run_check(args),
         Some(cli::Commands::NoPanicPropose(args)) => tasks::no_panic::run_propose(args),
         Some(cli::Commands::LintFix(args)) => tasks::lint_fix::run(args),
