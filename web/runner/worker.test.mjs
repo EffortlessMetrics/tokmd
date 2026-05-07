@@ -58,14 +58,24 @@ function createMockWasmBundle(options = {}) {
         includeRunModule = false,
         includeRunExport = false,
         includeRunAnalyze = false,
+        capabilities = null,
+        capabilitiesRequiresInit = false,
         version = "1.9.0",
         schemaVersion = 2,
         analysisSchemaVersion = 9,
     } = options;
 
     const moduleSourceLines = [];
+    if (capabilitiesRequiresInit) {
+        moduleSourceLines.push("let initialized = false;");
+    }
+
     if (includeDefault) {
-        moduleSourceLines.push("export default async function init() {}");
+        moduleSourceLines.push(
+            capabilitiesRequiresInit
+                ? "export default async function init() { initialized = true; }"
+                : "export default async function init() {}"
+        );
     }
 
     if (includeVersion) {
@@ -98,6 +108,14 @@ function createMockWasmBundle(options = {}) {
         moduleSourceLines.push(
             `export function analysisSchemaVersion() { return ${analysisSchemaVersion}; }`,
             "export function runAnalyze(args) { return { mode: 'analysis', preset: args.preset ?? 'receipt', source: { inputs: args.inputs.map((input) => input.path) } }; }"
+        );
+    }
+
+    if (capabilities !== null) {
+        moduleSourceLines.push(
+            capabilitiesRequiresInit
+                ? `export function capabilities() { if (!initialized) { throw new Error("capabilities before init"); } return ${JSON.stringify(capabilities)}; }`
+                : `export function capabilities() { return ${JSON.stringify(capabilities)}; }`
         );
     }
 
@@ -306,6 +324,122 @@ test("worker advertises analyze support when runAnalyze exists", async () => {
         assert.equal(message.type, MESSAGE_TYPES.READY);
         assert.deepEqual(message.capabilities.modes, ["lang", "analyze"]);
         assert.deepEqual(message.capabilities.analyzePresets, ["receipt", "estimate"]);
+    } finally {
+        await worker.terminate();
+        cleanup();
+    }
+});
+
+test("worker uses wasm capabilities payload for advertised modes and presets", async () => {
+    const { worker, cleanup } = createWorkerForMockWasm({
+        includeRunLang: true,
+        includeRunModule: true,
+        includeRunAnalyze: true,
+        capabilities: {
+            modes: ["lang", "analyze"],
+            analyze: {
+                rootlessPresets: ["estimate"],
+            },
+        },
+    });
+
+    try {
+        const message = await onceMessage(worker);
+
+        assert.equal(message.type, MESSAGE_TYPES.READY);
+        assert.deepEqual(message.capabilities.modes, ["lang", "analyze"]);
+        assert.deepEqual(message.capabilities.analyzePresets, ["estimate"]);
+
+        worker.postMessage({
+            type: "run",
+            requestId: "mock-hidden-module",
+            mode: "module",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}" }],
+            },
+        });
+
+        const hiddenMode = await onceMessage(worker);
+        assert.equal(hiddenMode.type, MESSAGE_TYPES.ERROR);
+        assert.equal(hiddenMode.error.code, "unsupported_mode");
+
+        worker.postMessage({
+            type: "run",
+            requestId: "mock-hidden-preset",
+            mode: "analyze",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}" }],
+                preset: "receipt",
+            },
+        });
+
+        const hiddenPreset = await onceMessage(worker);
+        assert.equal(hiddenPreset.type, MESSAGE_TYPES.ERROR);
+        assert.equal(hiddenPreset.error.code, "unsupported_preset");
+
+        worker.postMessage({
+            type: "run",
+            requestId: "mock-cap-estimate",
+            mode: "analyze",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}" }],
+                preset: "estimate",
+            },
+        });
+
+        const { message: result } = await nextMessageOfType(worker, MESSAGE_TYPES.RESULT);
+        assert.equal(result.type, MESSAGE_TYPES.RESULT);
+        assert.equal(result.requestId, "mock-cap-estimate");
+        assert.equal(result.data.mode, "analysis");
+        assert.equal(result.data.preset, "estimate");
+    } finally {
+        await worker.terminate();
+        cleanup();
+    }
+});
+
+test("worker reads wasm capabilities payload only after initialization", async () => {
+    const { worker, cleanup } = createWorkerForMockWasm({
+        includeRunLang: true,
+        capabilitiesRequiresInit: true,
+        capabilities: {
+            modes: ["lang"],
+            analyze: {
+                rootlessPresets: [],
+            },
+        },
+    });
+
+    try {
+        const message = await onceMessage(worker);
+
+        assert.equal(message.type, MESSAGE_TYPES.READY);
+        assert.deepEqual(message.capabilities.modes, ["lang"]);
+        assert.deepEqual(message.capabilities.analyzePresets, []);
+    } finally {
+        await worker.terminate();
+        cleanup();
+    }
+});
+
+test("worker does not advertise wasm-declared modes without matching exports", async () => {
+    const { worker, cleanup } = createWorkerForMockWasm({
+        includeRunLang: true,
+        includeRunAnalyze: false,
+        capabilities: {
+            modes: ["lang", "analyze"],
+            analyze: {
+                rootlessPresets: ["receipt", "estimate"],
+            },
+        },
+    });
+
+    try {
+        const message = await onceMessage(worker);
+
+        assert.equal(message.type, MESSAGE_TYPES.READY);
+        assert.deepEqual(message.capabilities.modes, ["lang"]);
+        assert.deepEqual(message.capabilities.analyzePresets, []);
     } finally {
         await worker.terminate();
         cleanup();

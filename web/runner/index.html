@@ -9,14 +9,15 @@
   <body>
     <main>
       <section class="hero">
-        <p class="eyebrow">tokmd 1.9.0 browser runner</p>
+        <p class="eyebrow">tokmd browser runner</p>
         <h1>Worker-first browser runner</h1>
         <p>
           This page boots <code>tokmd-wasm</code> inside a dedicated Worker and
           exercises the current browser-safe in-memory modes. Public GitHub repo
-          fetch now uses browser-safe tree and contents APIs. Repo-load progress
-          and cancel are wired in the main thread, worker runs emit progress,
-          and worker run-cancel stays explicitly unavailable.
+          fetch now uses browser-safe tree and contents APIs. The worker reports
+          the loaded wasm bundle's capability surface, repo-load progress and
+          cancel are wired in the main thread, worker runs emit progress, and
+          worker run-cancel stays explicitly unavailable.
         </p>
       </section>
 
