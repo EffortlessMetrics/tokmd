@@ -27,7 +27,7 @@ jobs:
       - name: Set up Rust (MSRV)
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.92
+          toolchain: 1.93
       - uses: Swatinem/rust-cache@v2
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
