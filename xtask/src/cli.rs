@@ -238,12 +238,12 @@ pub struct ProofExecutionObservationArgs {
 #[derive(Args, Debug, Clone)]
 pub struct ProofExecutionObservationsSummaryArgs {
     /// Proof executor observation artifact to include. Repeat for multiple runs.
-    #[arg(
-        long = "observation",
-        value_name = "PATH",
-        default_value = "target/proof/proof-executor-observation.json"
-    )]
+    #[arg(long = "observation", value_name = "PATH")]
     pub observations: Vec<std::path::PathBuf>,
+
+    /// Directory tree to scan for proof-executor-observation.json artifacts.
+    #[arg(long = "observations-dir", value_name = "DIR")]
+    pub observation_dirs: Vec<std::path::PathBuf>,
 
     /// Output path for the collection summary. Prints JSON to stdout when omitted.
     #[arg(long, value_name = "PATH")]

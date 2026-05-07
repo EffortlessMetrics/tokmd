@@ -101,6 +101,7 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
         "proof-execution-observations-summary --help failed. stderr: {stderr}"
     );
     assert!(stdout.contains("--observation"), "stdout: {stdout}");
+    assert!(stdout.contains("--observations-dir"), "stdout: {stdout}");
     assert!(stdout.contains("--output"), "stdout: {stdout}");
 }
 
@@ -410,6 +411,24 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     assert_eq!(collection["counts"]["executed"], 0);
     assert!(collection["scopes"].as_array().unwrap().is_empty());
     assert_eq!(collection["sources"].as_array().unwrap().len(), 1);
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observations-dir",
+        &temp.path().to_string_lossy(),
+    ]);
+    assert!(
+        success,
+        "proof-execution-observations-summary --observations-dir failed. stderr: {stderr}"
+    );
+    let collection: serde_json::Value =
+        serde_json::from_str(&stdout).expect("directory collection should be valid JSON");
+    assert_eq!(
+        collection["schema"],
+        "tokmd.proof_executor_observation_collection.v1"
+    );
+    assert_eq!(collection["counts"]["observations"], 1);
+    assert_eq!(collection["counts"]["executed"], 0);
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-artifacts-check",
