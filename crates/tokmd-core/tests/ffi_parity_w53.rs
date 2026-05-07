@@ -2,6 +2,7 @@
 //!
 //! Verifies that every documented mode returns the correct envelope shape,
 //! required fields are present, and error handling is robust.
+//! Proof-executor coverage-scope sentinel: behavior-neutral PR-only change.
 
 use serde_json::Value;
 use std::fs;
