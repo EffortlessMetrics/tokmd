@@ -155,4 +155,39 @@ The flip from advisory to strict is gated on three things, in this order:
    matches the receipt ledger exactly.
 
 The checker is wired into the `no_panic_policy` proof scope in
-`ci/proof.toml`.
+`ci/proof.toml` and runs as an advisory job in
+`.github/workflows/no-panic-policy.yml` on every PR.
+
+## Family taxonomy
+
+The current detector recognises the following families
+(see `xtask/src/tasks/no_panic.rs :: Family`):
+
+| Family | Surface |
+|--------|---------|
+| `unwrap` | `.unwrap()` method calls. |
+| `expect` | `.expect("…")` method calls. |
+| `get_unwrap` | `.get(idx).unwrap()` chains. |
+| `panic_macro` | `panic!(…)`. |
+| `todo` | `todo!()`. |
+| `unimplemented` | `unimplemented!()`. |
+| `unreachable` | `unreachable!()`. |
+| `element_indexing` | `slice[idx]` element indexing. |
+| `range_indexing` | `slice[a..b]` range indexing. |
+
+Future families considered in the rollout plan but not yet implemented:
+`string_slice`, `unchecked_time_subtraction`. These can be added by
+extending `Family` and the AST visitor in `xtask/src/tasks/no_panic.rs`.
+
+## Adding entries
+
+```bash
+cargo xtask no-panic-propose
+```
+
+Writes proposed allowlist entries to
+`target/no-panic-proposed-allowlist.toml`. Edit each proposed entry to
+fill in `owner`, `classification`, `explanation`, and `expires`, then
+move the entry into `policy/no-panic-allowlist.toml`. Re-run
+`cargo xtask check-no-panic-family` to confirm the receipt covers the
+finding.
