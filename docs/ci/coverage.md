@@ -1,0 +1,51 @@
+# Coverage
+
+Coverage is advisory execution-surface telemetry.
+
+It answers whether tests executed Rust code. It does not prove that assertions are strong, mutation adequacy is high, proof policy is complete, WASM/browser behavior works, release packaging is valid, or security posture is acceptable. Those remain separate lanes: mutation, proof policy, affected proof plans, WASM, Nix, publish surface, cargo-deny, and release checks.
+
+## Lane
+
+The coverage workflow runs on:
+
+- pushes to `main`;
+- manual `workflow_dispatch`;
+- pull requests labeled `coverage`;
+- pull requests labeled `full-ci`.
+
+It uses Rust `1.92`, `cargo-llvm-cov`, `--workspace`, `--all-features`, and `--locked`.
+
+## Artifacts
+
+Each run validates and uploads:
+
+- `coverage.json`;
+- `coverage.txt`;
+- `lcov.info`;
+- the `coverage-report` GitHub Actions artifact.
+
+When `CODECOV_TOKEN` is configured, the workflow uploads `lcov.info` to Codecov with the `rust` flag. Upload failures are allowed to fail `main` push runs, but pull request coverage remains label-gated and advisory.
+
+## Codecov
+
+`codecov.yml` keeps coverage statuses informational during the baseline phase:
+
+- project coverage target: automatic;
+- project threshold: `5%`;
+- patch coverage target: `70%`;
+- patch threshold: `20%`;
+- comments disabled;
+- GitHub annotations disabled.
+
+The dashboard and README badge are visibility surfaces, not release gates. Coverage should not become blocking until maintainers intentionally promote it after enough stable baseline runs.
+
+## Policy Routing
+
+Coverage workflow, Codecov config, and this document are routed through the `proof_control_plane` scope in `ci/proof.toml`. That keeps coverage-lane edits visible to affected proof plans without requiring a separate lane-whitelist policy file before a checker exists.
+
+## See Also
+
+- `.github/workflows/coverage.yml`
+- `codecov.yml`
+- `ci/proof.toml`
+- `docs/NEXT.md`
