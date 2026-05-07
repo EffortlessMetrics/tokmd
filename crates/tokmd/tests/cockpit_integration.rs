@@ -535,19 +535,92 @@ fn test_cockpit_review_packet_dir() {
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
             .expect("valid manifest JSON");
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
-    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 5);
+    let artifacts = manifest["artifacts"].as_array().unwrap();
+    assert_eq!(artifacts.len(), 5);
+
+    let mut listed_paths = std::collections::BTreeSet::new();
+    for artifact in artifacts {
+        let id = artifact["id"].as_str().expect("artifact id");
+        let path = artifact["path"].as_str().expect("artifact path");
+        let schema = artifact["schema"].as_str().expect("artifact schema");
+        let media_type = artifact["media_type"]
+            .as_str()
+            .expect("artifact media type");
+
+        assert!(!id.is_empty(), "artifact id should not be empty");
+        assert!(!schema.is_empty(), "artifact schema should not be empty");
+        assert!(
+            !media_type.is_empty(),
+            "artifact media type should not be empty"
+        );
+        assert!(
+            std::path::Path::new(path)
+                .components()
+                .all(|component| matches!(component, std::path::Component::Normal(_))),
+            "artifact path should stay relative within the packet dir: {path}"
+        );
+
+        let artifact_path = packet_dir.join(path);
+        let artifact_bytes = std::fs::read(&artifact_path)
+            .unwrap_or_else(|err| panic!("failed to read {path}: {err}"));
+        assert!(
+            !artifact_bytes.is_empty(),
+            "artifact should not be empty: {path}"
+        );
+        assert_eq!(artifact["hash"]["algo"], "blake3");
+        assert_eq!(
+            artifact["hash"]["hash"].as_str().expect("artifact hash"),
+            blake3::hash(&artifact_bytes).to_hex().as_str(),
+            "manifest hash should match artifact bytes for {path}"
+        );
+
+        listed_paths.insert(path.to_string());
+    }
+
+    assert_eq!(
+        listed_paths,
+        std::collections::BTreeSet::from([
+            "cockpit.json".to_string(),
+            "comment.md".to_string(),
+            "evidence.json".to_string(),
+            "review-map.json".to_string(),
+            "review-map.md".to_string(),
+        ])
+    );
+
+    let cockpit_bytes = std::fs::read(packet_dir.join("cockpit.json")).unwrap();
+    let _: tokmd_cockpit::CockpitReceipt =
+        serde_json::from_slice(&cockpit_bytes).expect("cockpit.json should parse as a receipt");
 
     let evidence: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
             .expect("valid evidence JSON");
     assert_eq!(evidence["schema"], "tokmd.review_packet_evidence.v1");
-    assert!(evidence["gates"].is_array());
+    let gates = evidence["gates"].as_array().expect("evidence gates array");
+    assert!(
+        gates
+            .iter()
+            .any(|gate| gate["availability"] == "unavailable"),
+        "missing evidence should be represented explicitly"
+    );
+    for gate in gates {
+        assert!(gate["id"].is_string(), "gate should have an id");
+        assert!(
+            gate["status"].is_string(),
+            "gate should report status explicitly"
+        );
+        assert!(
+            gate["availability"].is_string(),
+            "gate should report availability explicitly"
+        );
+    }
 
     let review_map: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("review-map.json")).unwrap())
             .expect("valid review map JSON");
     assert_eq!(review_map["schema"], "tokmd.review_map.v1");
-    assert!(review_map["items"].is_array());
+    let items = review_map["items"].as_array().expect("review map items");
+    assert_eq!(review_map["item_count"], items.len() as u64);
 
     let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
