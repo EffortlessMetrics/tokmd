@@ -7,14 +7,14 @@ coverage:
     project:
       default:
         target: auto
-        threshold: 5%
-        informational: true
+        threshold: 3%
+        informational: false
         flags:
           - rust
 
     patch:
       default:
-        target: 70%
+        target: 60%
         threshold: 20%
         informational: true
         flags:
