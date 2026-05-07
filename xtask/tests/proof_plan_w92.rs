@@ -94,6 +94,17 @@ fn proof_execution_artifacts_check_help_mentions_executor_paths() {
 }
 
 #[test]
+fn proof_run_artifacts_check_help_mentions_summary_path() {
+    let (stdout, stderr, success) = run_xtask(&["proof-run-artifacts-check", "--help"]);
+
+    assert!(
+        success,
+        "proof-run-artifacts-check --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--proof-run-summary"), "stdout: {stdout}");
+}
+
+#[test]
 fn proof_execution_observation_help_mentions_executor_paths_and_output() {
     let (stdout, stderr, success) = run_xtask(&["proof-execution-observation", "--help"]);
 
@@ -605,6 +616,20 @@ fn local_required_execution_can_write_zero_command_summary() {
     assert_eq!(summary["counts"]["passed"], 0);
     assert_eq!(summary["counts"]["failed"], 0);
     assert!(summary["entries"].as_array().unwrap().is_empty());
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-artifacts-check",
+        "--proof-run-summary",
+        &summary_arg,
+    ]);
+    assert!(
+        success,
+        "proof-run-artifacts-check failed. stderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("Proof run artifacts OK: 0 executed required command(s)"),
+        "stdout: {stdout}"
+    );
 }
 
 #[test]

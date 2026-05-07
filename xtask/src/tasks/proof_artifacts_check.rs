@@ -1,5 +1,6 @@
 use crate::cli::{
     ProofArtifactsCheckArgs, ProofExecutionObservationArgs, ProofExecutionObservationsSummaryArgs,
+    ProofRunArtifactsCheckArgs,
 };
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,7 @@ use walkdir::WalkDir;
 
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
+const PROOF_RUN_SUMMARY_SCHEMA: &str = "tokmd.proof_run_summary.v1";
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
 const PROMOTION_READINESS_SCHEMA: &str = "tokmd.proof_executor_promotion_readiness.v1";
@@ -66,6 +68,17 @@ pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
     )?;
     println!(
         "Proof execution artifacts OK: {} executed command(s), guard {}",
+        report.executed, report.guard_reason
+    );
+    Ok(())
+}
+
+pub fn run_proof_run(args: ProofRunArtifactsCheckArgs) -> Result<()> {
+    let summary = read_json(&args.proof_run_summary, "proof run summary")?;
+    let report = validate_proof_run_summary(&summary)?;
+
+    println!(
+        "Proof run artifacts OK: {} executed required command(s), guard {}",
         report.executed, report.guard_reason
     );
     Ok(())
@@ -148,6 +161,12 @@ struct ProofArtifactsReport {
     selected: usize,
     executed: usize,
     execution_status: String,
+    guard_reason: String,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct ProofRunArtifactsReport {
+    executed: usize,
     guard_reason: String,
 }
 
@@ -1274,6 +1293,154 @@ fn validate_executor_artifacts_with_artifact_root(
     })
 }
 
+fn validate_proof_run_summary(summary: &Value) -> Result<ProofRunArtifactsReport> {
+    expect_schema(summary, PROOF_RUN_SUMMARY_SCHEMA, "proof run summary")?;
+    expect_string_value(
+        field(summary, "status", "proof run summary")?,
+        "passed",
+        "status",
+        "proof run summary",
+    )?;
+    expect_string_value(
+        field(summary, "execution_status", "proof run summary")?,
+        "executed",
+        "execution_status",
+        "proof run summary",
+    )?;
+    expect_bool_value(
+        field(summary, "ok", "proof run summary")?,
+        true,
+        "ok",
+        "proof run summary",
+    )?;
+    expect_bool_value(
+        field(summary, "execution_guard.required", "proof run summary")?,
+        true,
+        "execution_guard.required",
+        "proof run summary",
+    )?;
+    expect_bool_value(
+        field(summary, "execution_guard.enabled", "proof run summary")?,
+        true,
+        "execution_guard.enabled",
+        "proof run summary",
+    )?;
+    expect_bool(
+        field(summary, "execution_guard.ci", "proof run summary")?,
+        "execution_guard.ci",
+        "proof run summary",
+    )?;
+    expect_bool(
+        field(
+            summary,
+            "execution_guard.allow_ci_required_execution",
+            "proof run summary",
+        )?,
+        "execution_guard.allow_ci_required_execution",
+        "proof run summary",
+    )?;
+    expect_bool(
+        field(
+            summary,
+            "execution_guard.allow_local_required_execution",
+            "proof run summary",
+        )?,
+        "execution_guard.allow_local_required_execution",
+        "proof run summary",
+    )?;
+    let guard_reason = expect_string(
+        field(summary, "execution_guard.reason", "proof run summary")?,
+        "execution_guard.reason",
+        "proof run summary",
+    )?;
+
+    expect_string_array(
+        field(summary, "changed_files", "proof run summary")?,
+        "changed_files",
+        "proof run summary",
+    )?;
+    let unknown_files = expect_string_array(
+        field(summary, "unknown_files", "proof run summary")?,
+        "unknown_files",
+        "proof run summary",
+    )?;
+    if !unknown_files.is_empty() {
+        bail!(
+            "proof run summary has {} unknown file(s); required execution verifier requires none",
+            unknown_files.len()
+        );
+    }
+
+    let commands_total = expect_usize(
+        field(summary, "counts.commands_total", "proof run summary")?,
+        "counts.commands_total",
+        "proof run summary",
+    )?;
+    let required_planned = expect_usize(
+        field(summary, "counts.required_planned", "proof run summary")?,
+        "counts.required_planned",
+        "proof run summary",
+    )?;
+    let advisory_skipped = expect_usize(
+        field(summary, "counts.advisory_skipped", "proof run summary")?,
+        "counts.advisory_skipped",
+        "proof run summary",
+    )?;
+    let executed = expect_usize(
+        field(summary, "counts.executed", "proof run summary")?,
+        "counts.executed",
+        "proof run summary",
+    )?;
+    let passed = expect_usize(
+        field(summary, "counts.passed", "proof run summary")?,
+        "counts.passed",
+        "proof run summary",
+    )?;
+    let failed = expect_usize(
+        field(summary, "counts.failed", "proof run summary")?,
+        "counts.failed",
+        "proof run summary",
+    )?;
+    if commands_total != required_planned + advisory_skipped {
+        bail!(
+            "proof run summary command count drift: commands_total {commands_total} != required_planned {required_planned} + advisory_skipped {advisory_skipped}"
+        );
+    }
+    if failed != 0 {
+        bail!("proof run summary reports {failed} failed command(s); verifier requires zero");
+    }
+    if executed != required_planned {
+        bail!(
+            "proof run summary reports {executed} executed command(s) for {required_planned} required command(s)"
+        );
+    }
+    if passed != required_planned {
+        bail!(
+            "proof run summary reports {passed} passed command(s) for {required_planned} required command(s)"
+        );
+    }
+
+    let entries = expect_array(
+        field(summary, "entries", "proof run summary")?,
+        "entries",
+        "proof run summary",
+    )?;
+    if entries.len() != required_planned {
+        bail!(
+            "proof run summary entries length {} does not match required count {required_planned}",
+            entries.len()
+        );
+    }
+    for (index, entry) in entries.iter().enumerate() {
+        validate_proof_run_entry(index, entry)?;
+    }
+
+    Ok(ProofRunArtifactsReport {
+        executed,
+        guard_reason,
+    })
+}
+
 fn validate_execution_state(
     summary: &Value,
     entries: &[Value],
@@ -1394,6 +1561,44 @@ fn validate_executed_entry(index: usize, entry: &Value) -> Result<()> {
     if exit_code.as_i64() != Some(0) {
         bail!(
             "executor summary entry {expected_index} exit_code must be 0 for passed execution, got {}",
+            render_json(exit_code)
+        );
+    }
+    Ok(())
+}
+
+fn validate_proof_run_entry(index: usize, entry: &Value) -> Result<()> {
+    let expected_index = index + 1;
+    for field_name in ENTRY_FIELDS {
+        field(entry, field_name, "proof run summary entry")
+            .with_context(|| format!("proof run summary entry {expected_index} is incomplete"))?;
+    }
+    expect_bool_value(
+        field(entry, "required", "proof run summary entry")?,
+        true,
+        "required",
+        "proof run summary entry",
+    )
+    .with_context(|| format!("proof run summary entry {expected_index} must be required"))?;
+    expect_string_value(
+        field(entry, "status", "proof run summary entry")?,
+        "passed",
+        "status",
+        "proof run summary entry",
+    )
+    .with_context(|| format!("proof run summary entry {expected_index} failed status check"))?;
+    expect_string_value(
+        field(entry, "skip_reason", "proof run summary entry")?,
+        "",
+        "skip_reason",
+        "proof run summary entry",
+    )
+    .with_context(|| format!("proof run summary entry {expected_index} failed skip check"))?;
+
+    let exit_code = field(entry, "exit_code", "proof run summary entry")?;
+    if exit_code.as_i64() != Some(0) {
+        bail!(
+            "proof run summary entry {expected_index} exit_code must be 0 for passed execution, got {}",
             render_json(exit_code)
         );
     }
@@ -2152,6 +2357,65 @@ mod tests {
         assert!(error.contains("`mode` must be `execute`"));
     }
 
+    #[test]
+    fn accepts_matching_required_proof_run_summary() {
+        let summary = proof_run_summary();
+
+        let report = validate_proof_run_summary(&summary).unwrap();
+
+        assert_eq!(
+            report,
+            ProofRunArtifactsReport {
+                executed: 1,
+                guard_reason: "local_explicit_required_opt_in_enabled".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn accepts_zero_command_required_proof_run_summary() {
+        let mut summary = proof_run_summary();
+        summary["counts"]["commands_total"] = json!(0);
+        summary["counts"]["required_planned"] = json!(0);
+        summary["counts"]["advisory_skipped"] = json!(0);
+        summary["counts"]["executed"] = json!(0);
+        summary["counts"]["passed"] = json!(0);
+        summary["entries"] = json!([]);
+
+        let report = validate_proof_run_summary(&summary).unwrap();
+
+        assert_eq!(report.executed, 0);
+    }
+
+    #[test]
+    fn rejects_required_proof_run_summary_with_failed_commands() {
+        let mut summary = proof_run_summary();
+        summary["status"] = json!("failed");
+        summary["counts"]["passed"] = json!(0);
+        summary["counts"]["failed"] = json!(1);
+        summary["entries"][0]["status"] = json!("failed");
+        summary["entries"][0]["skip_reason"] = json!("command_failed");
+        summary["entries"][0]["exit_code"] = json!(1);
+
+        let error = validate_proof_run_summary(&summary)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("`status` must be `passed`"));
+    }
+
+    #[test]
+    fn rejects_required_proof_run_summary_with_advisory_entry() {
+        let mut summary = proof_run_summary();
+        summary["entries"][0]["required"] = json!(false);
+
+        let error = validate_proof_run_summary(&summary)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("must be required"));
+    }
+
     fn executed_artifacts() -> (Value, Value) {
         let (mut summary, mut manifest) = matching_artifacts();
         let artifact_path = write_test_lcov_artifact();
@@ -2181,6 +2445,46 @@ mod tests {
         summary["entries"][0]["artifact_path"] = json!(artifact_path);
         manifest["commands"][0]["artifact_path"] = json!(artifact_path);
         (summary, manifest)
+    }
+
+    fn proof_run_summary() -> Value {
+        json!({
+            "schema": PROOF_RUN_SUMMARY_SCHEMA,
+            "status": "passed",
+            "execution_status": "executed",
+            "execution_guard": {
+                "required": true,
+                "enabled": true,
+                "ci": false,
+                "allow_ci_required_execution": false,
+                "allow_local_required_execution": true,
+                "reason": "local_explicit_required_opt_in_enabled"
+            },
+            "profile": "affected",
+            "base": "origin/main",
+            "head": "HEAD",
+            "ok": true,
+            "changed_files": ["crates/tokmd-core/src/ffi.rs"],
+            "counts": {
+                "commands_total": 2,
+                "required_planned": 1,
+                "advisory_skipped": 1,
+                "executed": 1,
+                "passed": 1,
+                "failed": 0
+            },
+            "entries": [{
+                "scope": "tokmd_core_ffi",
+                "kind": "proof",
+                "required": true,
+                "command": "rustc --version",
+                "artifact_path": null,
+                "status": "passed",
+                "skip_reason": "",
+                "exit_code": 0
+            }],
+            "unknown_files": []
+        })
     }
 
     fn write_test_lcov_artifact() -> String {

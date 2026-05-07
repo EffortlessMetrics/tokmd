@@ -30,6 +30,8 @@ pub enum Commands {
     ProofArtifactsCheck(ProofArtifactsCheckArgs),
     /// Verify opted-in executed proof artifacts agree and passed
     ProofExecutionArtifactsCheck(ProofArtifactsCheckArgs),
+    /// Verify an opted-in required proof-run summary
+    ProofRunArtifactsCheck(ProofRunArtifactsCheckArgs),
     /// Write a compact observation report for opted-in executed proof artifacts
     ProofExecutionObservation(ProofExecutionObservationArgs),
     /// Summarize one or more proof executor observation artifacts
@@ -479,6 +481,17 @@ pub struct ProofArtifactsCheckArgs {
         default_value = "target/proof/executor-manifest.json"
     )]
     pub executor_manifest: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofRunArtifactsCheckArgs {
+    /// Required proof-run summary artifact to verify
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-run-summary.json"
+    )]
+    pub proof_run_summary: std::path::PathBuf,
 }
 
 #[derive(Args, Debug, Clone)]
