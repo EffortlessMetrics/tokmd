@@ -758,6 +758,13 @@ fn scenario_write_review_packet_creates_contract_files() {
     let mut receipt = minimal_receipt();
     receipt.evidence.mutation.meta.status = GateStatus::Pass;
     receipt.evidence.mutation.meta.commit_match = CommitMatch::Exact;
+    receipt.review_plan = vec![ReviewItem {
+        path: "src/lib.rs".to_string(),
+        reason: "Large changed file".to_string(),
+        priority: 1,
+        complexity: Some(4),
+        lines_changed: Some(240),
+    }];
     let out = dir.path().join("review");
 
     tokmd_cockpit::render::write_review_packet(&out, &receipt).unwrap();
@@ -765,6 +772,8 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert!(out.join("manifest.json").exists());
     assert!(out.join("cockpit.json").exists());
     assert!(out.join("evidence.json").exists());
+    assert!(out.join("review-map.json").exists());
+    assert!(out.join("review-map.md").exists());
     assert!(out.join("comment.md").exists());
 
     let manifest: serde_json::Value =
@@ -772,7 +781,7 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
     assert_eq!(manifest["generated_by"]["mode"], "cockpit");
     assert_eq!(manifest["verdict"]["blocking"].as_bool(), Some(false));
-    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 3);
+    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 5);
     assert_eq!(manifest["artifacts"][0]["path"], "cockpit.json");
     assert_eq!(manifest["artifacts"][0]["hash"]["algo"], "blake3");
     assert_eq!(
@@ -790,6 +799,21 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert_eq!(evidence["gates"][0]["availability"], "available");
     assert_eq!(evidence["gates"][1]["id"], "diff_coverage");
     assert_eq!(evidence["gates"][1]["availability"], "unavailable");
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    assert_eq!(review_map["schema"], "tokmd.review_map.v1");
+    assert_eq!(review_map["item_count"], 1);
+    assert_eq!(review_map["items"][0]["path"], "src/lib.rs");
+    assert_eq!(
+        review_map["items"][0]["evidence_refs"][0],
+        "cockpit.json#/review_plan/0"
+    );
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("# Review Map"));
+    assert!(review_map_md.contains("`src/lib.rs`"));
 }
 
 // ===========================================================================

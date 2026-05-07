@@ -1,8 +1,8 @@
 # Review Packet Contract
 
-Status: initial implementation. `tokmd cockpit --review-packet-dir <dir>`
-emits the first packet slice without changing the existing default
-`tokmd cockpit` stdout behavior or the shipped `--artifacts-dir` contract.
+Status: implemented. `tokmd cockpit --review-packet-dir <dir>` emits packet
+artifacts without changing the existing default `tokmd cockpit` stdout behavior
+or the shipped `--artifacts-dir` contract.
 
 ## Purpose
 
@@ -41,13 +41,12 @@ The review packet directory is:
   cockpit.json
   evidence.json
   comment.md
-  review-map.json   # future
-  review-map.md     # future
+  review-map.json
+  review-map.md
 ```
 
-The initial implementation emits `manifest.json`, `cockpit.json`,
-`evidence.json`, and `comment.md`. `review-map.json` and `review-map.md` should
-land once the priority model is stable enough to treat as a contract.
+`review-map.json` and `review-map.md` are derived from the existing cockpit
+`review_plan`. They do not add a new scoring model.
 
 ## Artifacts
 
@@ -57,7 +56,7 @@ land once the priority model is stable enough to treat as a contract.
 | `cockpit.json` | Full `CockpitReceipt` JSON. This is the same receipt produced by `tokmd cockpit --format json`. |
 | `evidence.json` | Evidence availability and gate status. It distinguishes passed evidence from missing, skipped, stale, degraded, or unavailable evidence. |
 | `comment.md` | PR-comment-ready summary. It stays concise and links readers to packet artifacts when hosted by CI. |
-| `review-map.json` | Machine-readable prioritized review plan with files, reasons, evidence references, and reproduction commands. |
+| `review-map.json` | Machine-readable prioritized review plan with files, reasons, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review. |
 
 ## Evidence Semantics
@@ -94,6 +93,20 @@ Missing, stale, degraded, and unavailable evidence should be visible in
 Artifact paths in the manifest are relative to the packet directory. Hashes use
 the repo-standard BLAKE3 digest and are computed from the final bytes written
 to disk.
+
+## Review Map Requirements
+
+`review-map.json` should use schema `tokmd.review_map.v1` and include:
+
+- `schema`
+- `base_ref` and `head_ref`
+- `source` identifying `cockpit.review_plan`
+- `item_count`
+- `items` sorted in cockpit review-plan order
+
+Each item includes rank, path, priority, priority label, reason, optional
+complexity, optional lines changed, evidence references, and reproduction
+commands. `review-map.md` is a Markdown rendering of the same ordered items.
 
 ## Exit Codes
 

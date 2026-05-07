@@ -19,7 +19,8 @@ For packet-shaped PR-review artifacts, use
 `tokmd cockpit --review-packet-dir .tokmd/review`. The review-packet contract is
 documented separately in [`review-packet.md`](review-packet.md). It is an
 additive PR review artifact shape, not a replacement for the shipped
-`--artifacts-dir` contract.
+`--artifacts-dir` contract. The packet includes `review-map.json` and
+`review-map.md` derived from the cockpit review plan.
 
 ## Default Policy
 
