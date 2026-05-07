@@ -2,6 +2,7 @@
 //!
 //! Verifies that every documented mode returns the correct envelope shape,
 //! required fields are present, and error handling is robust.
+//! This file is also a useful scoped-coverage probe for FFI contract changes.
 
 use serde_json::Value;
 use std::fs;

@@ -5,6 +5,7 @@
 //! This module provides redaction utilities for `tokmd` receipts.
 //! It's the canonical source for hashing functions used to redact sensitive
 //! information (paths, patterns) in output while preserving useful structure.
+//! This module is a focused scoped-coverage probe for redaction boundaries.
 //!
 //! ## What belongs here
 //! * Path redaction (hash while preserving extension)
