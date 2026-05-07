@@ -112,6 +112,15 @@ struct LaneSelection {
     runner: String,
     blocking: bool,
     estimated_lem: u64,
+    /// `static`, `learned-p50`, or `learned-p90` once a calibration window exists.
+    estimate_source: String,
+    /// Optional learned percentiles in LEM, when `--actuals-dir` is provided.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    learned_p50_lem: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    learned_p90_lem: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    learned_p95_lem: Option<f64>,
     reason: String,
 }
 
@@ -127,6 +136,11 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
     let root = workspace_root()?;
     let whitelist: WhitelistFile = parse_toml(&root.join(&args.lanes), "ci-lane-whitelist")?;
     let risk_packs: RiskPacksFile = parse_toml(&root.join(&args.risk_packs), "ci-risk-packs")?;
+
+    let actuals = match &args.actuals_dir {
+        Some(dir) => load_actuals(&root.join(dir))?,
+        None => BTreeMap::new(),
+    };
 
     let budget = whitelist.budget.unwrap_or(Budget {
         preferred_default_lem: 25,
@@ -155,7 +169,7 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
         .filter(|l| l.default_pr && !l.expensive)
     {
         selected.entry(lane.id.clone()).or_insert_with(|| {
-            lane_to_selection(lane, &whitelist.runner_multipliers, "default_pr")
+            lane_to_selection(lane, &whitelist.runner_multipliers, &actuals, "default_pr")
         });
     }
 
@@ -175,6 +189,7 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
                     lane_to_selection(
                         lane,
                         &whitelist.runner_multipliers,
+                        &actuals,
                         &format!("risk_pack:{name}"),
                     )
                 });
@@ -187,6 +202,7 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
                         lane_to_selection(
                             lane,
                             &whitelist.runner_multipliers,
+                            &actuals,
                             &format!("risk_pack:{name}:deep"),
                         )
                     });
@@ -198,7 +214,12 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
     if want_full_ci {
         for lane in &whitelist.lane {
             selected.entry(lane.id.clone()).or_insert_with(|| {
-                lane_to_selection(lane, &whitelist.runner_multipliers, "label:full-ci")
+                lane_to_selection(
+                    lane,
+                    &whitelist.runner_multipliers,
+                    &actuals,
+                    "label:full-ci",
+                )
             });
         }
     }
@@ -388,13 +409,38 @@ fn match_paths(globs: &[String], files: &[String]) -> Result<Vec<String>> {
 fn lane_to_selection(
     lane: &Lane,
     runner_multipliers: &BTreeMap<String, f64>,
+    actuals: &BTreeMap<String, Vec<f64>>,
     reason: &str,
 ) -> LaneSelection {
     let multiplier = runner_multipliers
         .get(lane.runner.as_str())
         .copied()
         .unwrap_or(1.0);
-    let estimated = ((lane.base_lem as f64) * multiplier).round() as u64;
+    let static_lem = ((lane.base_lem as f64) * multiplier).round() as u64;
+
+    let (estimate_source, estimated, p50, p90, p95) = match actuals.get(&lane.id) {
+        Some(samples) if !samples.is_empty() => {
+            let p50_secs = percentile(samples, 0.50);
+            let p90_secs = percentile(samples, 0.90);
+            let p95_secs = percentile(samples, 0.95);
+            let to_lem = |secs: f64| (secs / 60.0) * multiplier;
+            let p50_lem = to_lem(p50_secs);
+            let p90_lem = to_lem(p90_secs);
+            let p95_lem = to_lem(p95_secs);
+            // estimate = max(static_floor, p50 * 1.15)
+            let learned = (p50_lem * 1.15).round() as u64;
+            let estimate = static_lem.max(learned);
+            (
+                "learned-p50".to_string(),
+                estimate,
+                Some(p50_lem),
+                Some(p90_lem),
+                Some(p95_lem),
+            )
+        }
+        _ => ("static".to_string(), static_lem, None, None, None),
+    };
+
     LaneSelection {
         id: lane.id.clone(),
         workflow: lane.workflow.clone(),
@@ -404,8 +450,72 @@ fn lane_to_selection(
         runner: lane.runner.clone(),
         blocking: lane.blocking,
         estimated_lem: estimated,
+        estimate_source,
+        learned_p50_lem: p50,
+        learned_p90_lem: p90,
+        learned_p95_lem: p95,
         reason: reason.to_string(),
     }
+}
+
+fn percentile(samples: &[f64], p: f64) -> f64 {
+    if samples.is_empty() {
+        return 0.0;
+    }
+    let mut sorted: Vec<f64> = samples.to_vec();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let rank = (p * (sorted.len() as f64 - 1.0)).round() as usize;
+    sorted[rank.min(sorted.len() - 1)]
+}
+
+/// Walk a directory of past `ci-actuals.json` artifacts and collect per-job
+/// `actual_seconds` samples keyed by job id. Files that fail to parse are
+/// skipped — actuals are advisory.
+fn load_actuals(dir: &Path) -> Result<BTreeMap<String, Vec<f64>>> {
+    let mut by_job: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+    if !dir.is_dir() {
+        return Ok(by_job);
+    }
+    for entry in walkdir::WalkDir::new(dir).max_depth(3) {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let name = entry
+            .path()
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default();
+        if !name.ends_with(".json") {
+            continue;
+        }
+        let body = match fs::read_to_string(entry.path()) {
+            Ok(b) => b,
+            Err(_) => continue,
+        };
+        let Ok(value) = serde_json::from_str::<serde_json::Value>(&body) else {
+            continue;
+        };
+        let Some(jobs) = value.get("jobs").and_then(|j| j.as_array()) else {
+            continue;
+        };
+        for job in jobs {
+            let (Some(name), Some(seconds)) = (
+                job.get("name").and_then(|v| v.as_str()),
+                job.get("actual_seconds").and_then(|v| v.as_f64()),
+            ) else {
+                continue;
+            };
+            if seconds <= 0.0 {
+                continue;
+            }
+            by_job.entry(name.to_string()).or_default().push(seconds);
+        }
+    }
+    Ok(by_job)
 }
 
 fn classify_band(lem: u64, budget: Budget) -> &'static str {
@@ -541,7 +651,40 @@ mod tests {
         };
         let mut multipliers = BTreeMap::new();
         multipliers.insert("windows_latest".into(), 2.0);
-        let sel = lane_to_selection(&lane, &multipliers, "test");
+        let actuals = BTreeMap::new();
+        let sel = lane_to_selection(&lane, &multipliers, &actuals, "test");
         assert_eq!(sel.estimated_lem, 20);
+        assert_eq!(sel.estimate_source, "static");
+    }
+
+    #[test]
+    fn percentile_basic_quantiles() {
+        let samples = vec![10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0];
+        assert_eq!(percentile(&samples, 0.50), 60.0);
+        assert!((percentile(&samples, 0.90) - 90.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn lane_to_selection_uses_actuals_when_higher() {
+        let lane = Lane {
+            id: "x".into(),
+            workflow: "w.yml".into(),
+            job: "X".into(),
+            kind: "rust".into(),
+            tier: "frontdoor".into(),
+            default_pr: true,
+            blocking: true,
+            runner: "ubuntu_latest".into(),
+            base_lem: 5,
+            expensive: false,
+        };
+        let multipliers = BTreeMap::new();
+        // p50 = 600s = 10 LEM × 1.15 = 11.5 → 12, beats static 5.
+        let mut actuals: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+        actuals.insert("x".into(), vec![300.0, 400.0, 600.0, 700.0, 900.0]);
+        let sel = lane_to_selection(&lane, &multipliers, &actuals, "test");
+        assert!(sel.estimated_lem >= 11);
+        assert_eq!(sel.estimate_source, "learned-p50");
+        assert!(sel.learned_p50_lem.is_some());
     }
 }
