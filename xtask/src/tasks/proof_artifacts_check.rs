@@ -81,13 +81,15 @@ pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
 pub fn run_observations_summary(args: ProofExecutionObservationsSummaryArgs) -> Result<()> {
     let observations = collect_observation_paths(&args)?;
     let collection = proof_execution_observation_collection(&observations)?;
+    validate_observation_collection_thresholds(&collection, &args)?;
     let json = serde_json::to_string_pretty(&collection)?;
 
     if let Some(output) = &args.output {
         write_text(output, &json)?;
         println!(
-            "Proof execution observation collection OK: {} observation(s), wrote `{}`",
+            "Proof execution observation collection OK: {} observation(s), {} scope(s), wrote `{}`",
             collection.counts.observations,
+            collection.scopes.len(),
             output.display()
         );
     } else {
@@ -369,6 +371,46 @@ fn proof_execution_observation_collection(
         .collect::<Result<Vec<_>>>()?;
 
     Ok(summarize_observations(&observations))
+}
+
+fn validate_observation_collection_thresholds(
+    collection: &ProofExecutionObservationCollection,
+    args: &ProofExecutionObservationsSummaryArgs,
+) -> Result<()> {
+    validate_minimum(
+        "--min-observations",
+        "observation(s)",
+        collection.counts.observations,
+        args.min_observations,
+    )?;
+    validate_minimum(
+        "--min-executed",
+        "executed command(s)",
+        collection.counts.executed,
+        args.min_executed,
+    )?;
+    validate_minimum(
+        "--min-scopes",
+        "scope(s)",
+        collection.scopes.len(),
+        args.min_scopes,
+    )?;
+    validate_minimum(
+        "--min-artifacts",
+        "artifact(s)",
+        collection.counts.artifacts,
+        args.min_artifacts,
+    )
+}
+
+fn validate_minimum(flag: &str, display_label: &str, actual: usize, required: usize) -> Result<()> {
+    if actual < required {
+        bail!(
+            "proof executor observation collection has {actual} {display_label}, below {flag} {required}"
+        );
+    }
+
+    Ok(())
 }
 
 fn collect_observation_paths(args: &ProofExecutionObservationsSummaryArgs) -> Result<Vec<PathBuf>> {
@@ -1291,6 +1333,39 @@ mod tests {
     }
 
     #[test]
+    fn validates_observation_collection_thresholds() {
+        let (summary, manifest) = executed_artifacts();
+        let first = proof_execution_observation(&summary, &manifest).unwrap();
+        let mut second = first.clone();
+        second.scopes[0].name = "analysis_derived".to_string();
+
+        let collection = summarize_observations(&[
+            sourced("target/proof/run-a/proof-executor-observation.json", first),
+            sourced("target/proof/run-b/proof-executor-observation.json", second),
+        ]);
+        let args = summary_args_with_thresholds(2, 2, 2, 2);
+
+        validate_observation_collection_thresholds(&collection, &args).unwrap();
+    }
+
+    #[test]
+    fn rejects_observation_collection_below_thresholds() {
+        let (summary, manifest) = executed_artifacts();
+        let observation = proof_execution_observation(&summary, &manifest).unwrap();
+        let collection = summarize_observations(&[sourced(
+            "target/proof/run-a/proof-executor-observation.json",
+            observation,
+        )]);
+        let args = summary_args_with_thresholds(2, 1, 1, 1);
+
+        let error = validate_observation_collection_thresholds(&collection, &args)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("--min-observations 2"));
+    }
+
+    #[test]
     fn rejects_failed_observation_for_collection() {
         let (summary, manifest) = executed_artifacts();
         let mut observation = proof_execution_observation(&summary, &manifest).unwrap();
@@ -1460,6 +1535,23 @@ mod tests {
         SourcedProofExecutionObservation {
             path: PathBuf::from(path),
             observation,
+        }
+    }
+
+    fn summary_args_with_thresholds(
+        min_observations: usize,
+        min_executed: usize,
+        min_scopes: usize,
+        min_artifacts: usize,
+    ) -> ProofExecutionObservationsSummaryArgs {
+        ProofExecutionObservationsSummaryArgs {
+            observations: Vec::new(),
+            observation_dirs: Vec::new(),
+            min_observations,
+            min_executed,
+            min_scopes,
+            min_artifacts,
+            output: None,
         }
     }
 

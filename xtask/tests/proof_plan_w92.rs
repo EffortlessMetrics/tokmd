@@ -102,6 +102,10 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
     );
     assert!(stdout.contains("--observation"), "stdout: {stdout}");
     assert!(stdout.contains("--observations-dir"), "stdout: {stdout}");
+    assert!(stdout.contains("--min-observations"), "stdout: {stdout}");
+    assert!(stdout.contains("--min-executed"), "stdout: {stdout}");
+    assert!(stdout.contains("--min-scopes"), "stdout: {stdout}");
+    assert!(stdout.contains("--min-artifacts"), "stdout: {stdout}");
     assert!(stdout.contains("--output"), "stdout: {stdout}");
 }
 
@@ -437,6 +441,19 @@ fn local_execute_can_write_zero_command_executor_artifacts() {
     );
     assert_eq!(collection["counts"]["observations"], 1);
     assert_eq!(collection["counts"]["executed"], 0);
+
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof-execution-observations-summary",
+        "--observation",
+        &observation_arg,
+        "--min-executed",
+        "1",
+    ]);
+    assert!(
+        !success,
+        "collection threshold should reject zero executed observations"
+    );
+    assert!(stderr.contains("--min-executed 1"), "stderr: {stderr}");
 
     let (_stdout, stderr, success) = run_xtask(&[
         "proof-artifacts-check",

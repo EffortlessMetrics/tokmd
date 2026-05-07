@@ -245,6 +245,22 @@ pub struct ProofExecutionObservationsSummaryArgs {
     #[arg(long = "observations-dir", value_name = "DIR")]
     pub observation_dirs: Vec<std::path::PathBuf>,
 
+    /// Minimum number of observation artifacts required in the collection.
+    #[arg(long, default_value_t = 0)]
+    pub min_observations: usize,
+
+    /// Minimum number of executed commands required in the collection.
+    #[arg(long, default_value_t = 0)]
+    pub min_executed: usize,
+
+    /// Minimum number of distinct scope rows required in the collection.
+    #[arg(long, default_value_t = 0)]
+    pub min_scopes: usize,
+
+    /// Minimum number of produced artifact paths required in the collection.
+    #[arg(long, default_value_t = 0)]
+    pub min_artifacts: usize,
+
     /// Output path for the collection summary. Prints JSON to stdout when omitted.
     #[arg(long, value_name = "PATH")]
     pub output: Option<std::path::PathBuf>,
