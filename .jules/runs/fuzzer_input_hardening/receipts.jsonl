@@ -1,1 +1,0 @@
-{"cmd": "cargo test -p tokmd --test fuzz_cli_w81", "status": 0, "summary": "Added and passed CLI parser fuzzing test with 500 cases.", "phase": "validation"}

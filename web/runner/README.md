@@ -15,6 +15,8 @@ Use this project when you want `tokmd` inside a browser worker, backed by
 - runtime validation and protocol handling in `runtime.js`
 - public GitHub repo ingestion through browser-safe tree + contents APIs
 - `lang`, `module`, `export`, and `analyze` with `receipt` or `estimate`
+- worker mode/preset reporting from the `tokmd-wasm` capability payload, guarded
+  by actual exported entrypoints
 - worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - visible run-progress and repo-load-progress panels in the browser shell
 - session-only GitHub token UX with explicit clear behavior

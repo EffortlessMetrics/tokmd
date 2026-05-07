@@ -13,6 +13,12 @@ let nodeWorkerData = null;
 let isNodeWorker = false;
 const DEFAULT_WASM_MODULE_URL = new URL("./vendor/tokmd-wasm/tokmd_wasm.js", import.meta.url);
 const DEFAULT_WASM_BINARY_URL = new URL("./vendor/tokmd-wasm/tokmd_wasm_bg.wasm", import.meta.url);
+const MODE_EXPORTS = Object.freeze({
+    lang: "runLang",
+    module: "runModule",
+    export: "runExport",
+    analyze: "runAnalyze",
+});
 
 if (
     typeof globalThis.postMessage === "function" &&
@@ -110,27 +116,77 @@ function describeMissingExports(wasmModule) {
     return missing;
 }
 
-function buildModeCapabilities(wasmModule) {
-    const modes = [];
-    if (typeof wasmModule.runLang === "function") {
-        modes.push("lang");
+function uniqueSupportedStrings(values, allowedValues) {
+    const allowed = new Set(allowedValues);
+    const seen = new Set();
+    const result = [];
+
+    for (const value of Array.isArray(values) ? values : []) {
+        if (typeof value !== "string" || !allowed.has(value) || seen.has(value)) {
+            continue;
+        }
+
+        seen.add(value);
+        result.push(value);
     }
 
-    if (typeof wasmModule.runModule === "function") {
-        modes.push("module");
-    }
+    return result;
+}
 
-    if (typeof wasmModule.runExport === "function") {
-        modes.push("export");
-    }
-
-    if (typeof wasmModule.runAnalyze === "function") {
-        modes.push("analyze");
-    }
+function buildExportCapabilities(wasmModule) {
+    const modes = Object.entries(MODE_EXPORTS)
+        .filter(([, exportName]) => typeof wasmModule[exportName] === "function")
+        .map(([mode]) => mode);
 
     return {
         modes,
         analyzePresets: typeof wasmModule.runAnalyze === "function" ? [...SUPPORTED_ANALYZE_PRESETS] : [],
+    };
+}
+
+function readWasmCapabilityPayload(wasmModule) {
+    if (typeof wasmModule.capabilities !== "function") {
+        return null;
+    }
+
+    let capabilities;
+    try {
+        capabilities = wasmModule.capabilities();
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`tokmd-wasm capabilities export failed: ${message}`);
+    }
+
+    if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities)) {
+        throw new Error("tokmd-wasm capabilities export returned an invalid payload");
+    }
+
+    return capabilities;
+}
+
+function buildModeCapabilities(wasmModule) {
+    const exportCapabilities = buildExportCapabilities(wasmModule);
+    const wasmCapabilities = readWasmCapabilityPayload(wasmModule);
+
+    if (!wasmCapabilities) {
+        return exportCapabilities;
+    }
+
+    const exportedModes = new Set(exportCapabilities.modes);
+    const modes = uniqueSupportedStrings(
+        wasmCapabilities.modes,
+        Object.keys(MODE_EXPORTS)
+    ).filter((mode) => exportedModes.has(mode));
+    const analyzePresets = modes.includes("analyze")
+        ? uniqueSupportedStrings(
+              wasmCapabilities.analyze?.rootlessPresets,
+              SUPPORTED_ANALYZE_PRESETS
+          )
+        : [];
+
+    return {
+        modes,
+        analyzePresets,
     };
 }
 
@@ -206,7 +262,7 @@ async function loadTokmdRunner() {
         throw createMissingExportsError(missingExports);
     }
 
-    const modeCapabilities = buildModeCapabilities(wasmModule);
+    const modeCapabilities = buildExportCapabilities(wasmModule);
     const hasAnyModes = modeCapabilities.modes.length > 0;
 
     if (!hasAnyModes) {
