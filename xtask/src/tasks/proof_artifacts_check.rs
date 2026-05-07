@@ -287,6 +287,7 @@ fn validate_execution_state(
 
             for (index, entry) in entries.iter().enumerate() {
                 validate_executed_entry(index, entry)?;
+                validate_executed_artifact_path(index, entry)?;
             }
         }
     }
@@ -317,6 +318,31 @@ fn validate_executed_entry(index: usize, entry: &Value) -> Result<()> {
             render_json(exit_code)
         );
     }
+    Ok(())
+}
+
+fn validate_executed_artifact_path(index: usize, entry: &Value) -> Result<()> {
+    let expected_index = index + 1;
+    let artifact_path = field(entry, "artifact_path", "executor summary entry")?;
+    if artifact_path.is_null() {
+        return Ok(());
+    }
+
+    let artifact_path = expect_string(artifact_path, "artifact_path", "executor summary entry")?;
+    if artifact_path.trim().is_empty() {
+        bail!("executor summary entry {expected_index} artifact_path must not be empty");
+    }
+
+    let metadata = fs::metadata(&artifact_path).with_context(|| {
+        format!("executor summary entry {expected_index} artifact `{artifact_path}` was not found")
+    })?;
+    if !metadata.is_file() {
+        bail!("executor summary entry {expected_index} artifact `{artifact_path}` is not a file");
+    }
+    if metadata.len() == 0 {
+        bail!("executor summary entry {expected_index} artifact `{artifact_path}` is empty");
+    }
+
     Ok(())
 }
 
@@ -575,6 +601,27 @@ mod tests {
     }
 
     #[test]
+    fn rejects_execution_artifacts_with_missing_output_file() {
+        let (mut summary, mut manifest) = executed_artifacts();
+        let missing = std::env::temp_dir()
+            .join(format!(
+                "tokmd-missing-proof-artifact-{}.lcov",
+                std::process::id()
+            ))
+            .to_string_lossy()
+            .to_string();
+        let _ = fs::remove_file(&missing);
+        summary["entries"][0]["artifact_path"] = json!(missing);
+        manifest["commands"][0]["artifact_path"] = json!(missing);
+
+        let error = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)
+            .unwrap_err()
+            .to_string();
+
+        assert!(error.contains("was not found"));
+    }
+
+    #[test]
     fn rejects_dry_run_artifacts_with_execution_verifier() {
         let (summary, manifest) = matching_artifacts();
 
@@ -587,6 +634,7 @@ mod tests {
 
     fn executed_artifacts() -> (Value, Value) {
         let (mut summary, mut manifest) = matching_artifacts();
+        let artifact_path = write_test_lcov_artifact();
         summary["mode"] = json!("execute");
         manifest["mode"] = json!("execute");
         summary["status"] = json!("passed");
@@ -610,7 +658,20 @@ mod tests {
         manifest["commands"][0]["skip_reason"] = json!("");
         summary["entries"][0]["exit_code"] = json!(0);
         manifest["commands"][0]["exit_code"] = json!(0);
+        summary["entries"][0]["artifact_path"] = json!(artifact_path);
+        manifest["commands"][0]["artifact_path"] = json!(artifact_path);
         (summary, manifest)
+    }
+
+    fn write_test_lcov_artifact() -> String {
+        let path =
+            std::env::temp_dir().join(format!("tokmd-proof-artifact-{}.lcov", std::process::id()));
+        fs::write(
+            &path,
+            "TN:\nSF:crates/tokmd-core/src/ffi.rs\nend_of_record\n",
+        )
+        .expect("test LCOV artifact should be writable");
+        path.to_string_lossy().to_string()
     }
 
     fn matching_artifacts() -> (Value, Value) {

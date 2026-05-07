@@ -64,6 +64,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - Browser worker protocol v2 now emits run progress messages for in-memory worker execution. Worker runs produce `start`, `scan` or `analyze`, `done`, and `error` progress phases while keeping cancellation explicitly unavailable.
 - Browser runner GitHub token UX now uses session-only storage, shows anonymous/authenticated state without exposing the raw token, and provides an explicit clear-token action.
 - Browser GitHub ingest now surfaces numeric or HTTP-date `Retry-After` guidance in the UI and enables a manual retry action only for retryable GitHub rate-limit failures.
+- `cargo xtask proof-execution-artifacts-check` now verifies that executed entries with declared artifact paths point at existing, non-empty files, so a passing executor command cannot claim missing LCOV evidence.
 - Next proof-policy operational slice: collect successful non-required PR executor runs across multiple affected scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References
