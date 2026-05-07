@@ -27,7 +27,7 @@ permissions:
 
 concurrency:
   group: coverage-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
 
 env:
   CARGO_TERM_COLOR: always

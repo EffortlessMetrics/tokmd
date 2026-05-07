@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: nix-macos-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
 
 jobs:
   nix-macos:

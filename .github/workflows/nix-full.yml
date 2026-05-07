@@ -16,7 +16,7 @@ concurrency:
   # Keep workflow_run validation and nightly schedule runs from canceling each
   # other when they target the same main-branch commit.
   group: nix-full-${{ github.event_name }}-${{ github.event.workflow_run.head_sha || github.sha }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
 
 jobs:
   nix-full:
