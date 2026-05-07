@@ -67,6 +67,7 @@ fn proof_policy_includes_current_product_scopes() {
         "jules_workspace",
         "model_scan_path_normalization",
         "no_panic_policy",
+        "project_readme",
         "tokmd_cli",
         "workspace_dependency_graph",
     ] {
@@ -187,7 +188,7 @@ fn proof_policy_json_reports_current_schema() {
 
     assert_eq!(value["ok"], true);
     assert_eq!(value["schema"], "tokmd.proof_policy.v1");
-    assert_eq!(value["scope_count"], 35);
+    assert_eq!(value["scope_count"], 36);
     assert_eq!(value["allowlist_count"], 1);
     assert_eq!(value["fixture_blob_rule_count"], 1);
     assert_eq!(value["dependency_boundary_count"], 1);

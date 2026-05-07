@@ -6,6 +6,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/EffortlessMetrics/tokmd?display_name=tag)](https://github.com/EffortlessMetrics/tokmd/releases)
 [![Docs.rs](https://img.shields.io/docsrs/tokmd)](https://docs.rs/tokmd)
 [![CI](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml/badge.svg)](https://github.com/EffortlessMetrics/tokmd/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/EffortlessMetrics/tokmd/graph/badge.svg?branch=main)](https://codecov.io/gh/EffortlessMetrics/tokmd)
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 

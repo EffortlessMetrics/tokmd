@@ -57,9 +57,12 @@ paths = [
   ".github/workflows/ci.yml",
   ".github/workflows/proof-observation-collection.yml",
   ".github/workflows/proof-executor.yml",
+  ".github/workflows/coverage.yml",
   "ci/proof.toml",
+  "codecov.yml",
   "docs/external-services.md",
   "docs/NEXT.md",
+  "docs/ci/coverage.md",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
   "xtask/src/proof/**",
@@ -537,6 +540,15 @@ kind = "non_rust"
 paths = [".jules/**"]
 proof = ["cargo xtask proof-policy --check"]
 reason = "Jules provenance, specs, investigations, friction notes, runbooks, ledgers, envelopes, and generated indexes are intentional repo knowledge artifacts."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "project_readme"
+kind = "non_rust"
+paths = ["README.md"]
+proof = ["cargo xtask docs --check"]
+reason = "The project README is a user-facing documentation surface; README-only edits should route to documentation checks instead of appearing as unknown files."
 mutation = false
 coverage = false
 

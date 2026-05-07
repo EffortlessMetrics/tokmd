@@ -55,8 +55,14 @@ pub fn run(args: ProofArtifactsCheckArgs) -> Result<()> {
 pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
     let summary = read_json(&args.executor_summary, "executor summary")?;
     let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+    let artifact_root = artifact_root_for(&args.executor_summary);
 
-    let report = validate_executor_artifacts(&summary, &manifest, VerificationMode::Execution)?;
+    let report = validate_executor_artifacts_with_artifact_root(
+        &summary,
+        &manifest,
+        VerificationMode::Execution,
+        Some(&artifact_root),
+    )?;
     println!(
         "Proof execution artifacts OK: {} executed command(s), guard {}",
         report.executed, report.guard_reason
@@ -67,8 +73,10 @@ pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
 pub fn run_observation(args: ProofExecutionObservationArgs) -> Result<()> {
     let summary = read_json(&args.executor_summary, "executor summary")?;
     let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+    let artifact_root = artifact_root_for(&args.executor_summary);
 
-    let observation = proof_execution_observation(&summary, &manifest)?;
+    let observation =
+        proof_execution_observation_with_artifact_root(&summary, &manifest, Some(&artifact_root))?;
     write_observation(&args.output, &observation)?;
     println!(
         "Proof execution observation OK: {} executed command(s), wrote `{}`",
@@ -127,6 +135,15 @@ struct ProofArtifactsReport {
     executed: usize,
     execution_status: String,
     guard_reason: String,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ExecutionStateContext<'a> {
+    execution_status: &'a str,
+    guard_enabled: bool,
+    selected: usize,
+    executed: usize,
+    artifact_root: Option<&'a Path>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -258,6 +275,14 @@ fn read_json(path: &Path, label: &str) -> Result<Value> {
         .with_context(|| format!("failed to parse {label} artifact `{}`", path.display()))
 }
 
+fn artifact_root_for(summary_path: &Path) -> PathBuf {
+    summary_path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf()
+}
+
 fn write_observation(path: &Path, observation: &ProofExecutionObservation) -> Result<()> {
     write_text(path, &serde_json::to_string_pretty(observation)?)
 }
@@ -272,11 +297,25 @@ fn write_text(path: &Path, text: &str) -> Result<()> {
     fs::write(path, text).with_context(|| format!("failed to write `{}`", path.display()))
 }
 
+#[cfg(test)]
 fn proof_execution_observation(
     summary: &Value,
     manifest: &Value,
 ) -> Result<ProofExecutionObservation> {
-    let report = validate_executor_artifacts(summary, manifest, VerificationMode::Execution)?;
+    proof_execution_observation_with_artifact_root(summary, manifest, None)
+}
+
+fn proof_execution_observation_with_artifact_root(
+    summary: &Value,
+    manifest: &Value,
+    artifact_root: Option<&Path>,
+) -> Result<ProofExecutionObservation> {
+    let report = validate_executor_artifacts_with_artifact_root(
+        summary,
+        manifest,
+        VerificationMode::Execution,
+        artifact_root,
+    )?;
     let entries = expect_array(
         field(summary, "entries", "executor summary")?,
         "entries",
@@ -823,6 +862,15 @@ fn validate_executor_artifacts(
     manifest: &Value,
     mode: VerificationMode,
 ) -> Result<ProofArtifactsReport> {
+    validate_executor_artifacts_with_artifact_root(summary, manifest, mode, None)
+}
+
+fn validate_executor_artifacts_with_artifact_root(
+    summary: &Value,
+    manifest: &Value,
+    mode: VerificationMode,
+    artifact_root: Option<&Path>,
+) -> Result<ProofArtifactsReport> {
     expect_schema(summary, SUMMARY_SCHEMA, "executor summary")?;
     expect_schema(manifest, MANIFEST_SCHEMA, "executor manifest")?;
 
@@ -917,10 +965,13 @@ fn validate_executor_artifacts(
         summary,
         entries,
         mode,
-        &execution_status,
-        guard_enabled,
-        summary_selected,
-        summary_executed,
+        ExecutionStateContext {
+            execution_status: &execution_status,
+            guard_enabled,
+            selected: summary_selected,
+            executed: summary_executed,
+            artifact_root,
+        },
     )?;
 
     let guard_reason = expect_string(
@@ -941,21 +992,19 @@ fn validate_execution_state(
     summary: &Value,
     entries: &[Value],
     mode: VerificationMode,
-    execution_status: &str,
-    guard_enabled: bool,
-    selected: usize,
-    executed: usize,
+    context: ExecutionStateContext<'_>,
 ) -> Result<()> {
     match mode {
         VerificationMode::NoExecution => {
-            if execution_status == "executed" {
+            if context.execution_status == "executed" {
                 bail!(
                     "executor artifacts report executed commands; use proof-execution-artifacts-check for executed artifacts"
                 );
             }
-            if executed != 0 {
+            if context.executed != 0 {
                 bail!(
-                    "executor artifacts report {executed} executed command(s); no-execution verifier requires zero"
+                    "executor artifacts report {} executed command(s); no-execution verifier requires zero",
+                    context.executed
                 );
             }
         }
@@ -966,12 +1015,13 @@ fn validate_execution_state(
                 "mode",
                 "executor summary",
             )?;
-            if execution_status != "executed" {
+            if context.execution_status != "executed" {
                 bail!(
-                    "executor artifacts have execution_status `{execution_status}`; execution verifier requires `executed`"
+                    "executor artifacts have execution_status `{}`; execution verifier requires `executed`",
+                    context.execution_status
                 );
             }
-            if !guard_enabled {
+            if !context.guard_enabled {
                 bail!(
                     "executor artifacts have execution_guard.enabled=false; execution verifier requires explicit opt-in"
                 );
@@ -1008,14 +1058,17 @@ fn validate_execution_state(
                     "executor artifacts report skipped={skipped} dry_run={dry_run}; execution verifier requires executed commands only"
                 );
             }
-            if executed != selected {
+            if context.executed != context.selected {
                 bail!(
-                    "executor artifacts report {executed} executed command(s) for {selected} selected command(s)"
+                    "executor artifacts report {} executed command(s) for {} selected command(s)",
+                    context.executed,
+                    context.selected
                 );
             }
-            if passed != selected {
+            if passed != context.selected {
                 bail!(
-                    "executor artifacts report {passed} passed command(s) for {selected} selected command(s)"
+                    "executor artifacts report {passed} passed command(s) for {} selected command(s)",
+                    context.selected
                 );
             }
             expect_string_value(
@@ -1027,7 +1080,7 @@ fn validate_execution_state(
 
             for (index, entry) in entries.iter().enumerate() {
                 validate_executed_entry(index, entry)?;
-                validate_executed_artifact_path(index, entry)?;
+                validate_executed_artifact_path(index, entry, context.artifact_root)?;
             }
         }
     }
@@ -1061,7 +1114,11 @@ fn validate_executed_entry(index: usize, entry: &Value) -> Result<()> {
     Ok(())
 }
 
-fn validate_executed_artifact_path(index: usize, entry: &Value) -> Result<()> {
+fn validate_executed_artifact_path(
+    index: usize,
+    entry: &Value,
+    artifact_root: Option<&Path>,
+) -> Result<()> {
     let expected_index = index + 1;
     let kind = expect_string(
         field(entry, "kind", "executor summary entry")?,
@@ -1078,36 +1135,71 @@ fn validate_executed_artifact_path(index: usize, entry: &Value) -> Result<()> {
         bail!("executor summary entry {expected_index} artifact_path must not be empty");
     }
 
-    let metadata = fs::metadata(&artifact_path).with_context(|| {
+    let resolved_path = resolve_artifact_path(&artifact_path, artifact_root);
+    let metadata = fs::metadata(&resolved_path).with_context(|| {
         format!("executor summary entry {expected_index} artifact `{artifact_path}` was not found")
     })?;
     if !metadata.is_file() {
-        bail!("executor summary entry {expected_index} artifact `{artifact_path}` is not a file");
+        bail!(
+            "executor summary entry {expected_index} artifact `{}` is not a file",
+            resolved_path.display()
+        );
     }
     if metadata.len() == 0 {
-        bail!("executor summary entry {expected_index} artifact `{artifact_path}` is empty");
+        bail!(
+            "executor summary entry {expected_index} artifact `{}` is empty",
+            resolved_path.display()
+        );
     }
 
     if kind == "coverage" {
-        validate_lcov_artifact(expected_index, &artifact_path)?;
+        validate_lcov_artifact(expected_index, &resolved_path)?;
     }
 
     Ok(())
 }
 
-fn validate_lcov_artifact(index: usize, artifact_path: &str) -> Result<()> {
+fn resolve_artifact_path(artifact_path: &str, artifact_root: Option<&Path>) -> PathBuf {
+    let direct = PathBuf::from(artifact_path);
+    if direct.exists() {
+        return direct;
+    }
+
+    if let Some(root) = artifact_root {
+        let rooted = root.join(&direct);
+        if rooted.exists() {
+            return rooted;
+        }
+
+        if let Ok(stripped) = direct.strip_prefix(Path::new("target/proof")) {
+            let rooted_stripped = root.join(stripped);
+            if rooted_stripped.exists() {
+                return rooted_stripped;
+            }
+        }
+    }
+
+    direct
+}
+
+fn validate_lcov_artifact(index: usize, artifact_path: &Path) -> Result<()> {
     let raw = fs::read_to_string(artifact_path).with_context(|| {
         format!(
-            "executor summary entry {index} LCOV artifact `{artifact_path}` is not readable text"
+            "executor summary entry {index} LCOV artifact `{}` is not readable text",
+            artifact_path.display()
         )
     })?;
 
     if !raw.lines().any(|line| line.starts_with("SF:")) {
-        bail!("executor summary entry {index} LCOV artifact `{artifact_path}` has no `SF:` record");
+        bail!(
+            "executor summary entry {index} LCOV artifact `{}` has no `SF:` record",
+            artifact_path.display()
+        );
     }
     if !raw.lines().any(|line| line == "end_of_record") {
         bail!(
-            "executor summary entry {index} LCOV artifact `{artifact_path}` has no `end_of_record`"
+            "executor summary entry {index} LCOV artifact `{}` has no `end_of_record`",
+            artifact_path.display()
         );
     }
 
@@ -1586,6 +1678,40 @@ mod tests {
             .to_string();
 
         assert!(error.contains("was not found"));
+    }
+
+    #[test]
+    fn accepts_downloaded_execution_artifacts_with_stripped_workflow_root() {
+        let (mut summary, mut manifest) = executed_artifacts();
+        let root = std::env::temp_dir().join(format!(
+            "tokmd-downloaded-proof-artifacts-{}-{}",
+            std::process::id(),
+            TEST_ARTIFACT_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        let coverage_dir = root.join("coverage");
+        fs::create_dir_all(&coverage_dir).expect("downloaded coverage dir should be writable");
+        let downloaded_lcov = coverage_dir.join("tokmd_core_ffi.lcov");
+        fs::write(
+            &downloaded_lcov,
+            "TN:\nSF:crates/tokmd-core/src/ffi.rs\nend_of_record\n",
+        )
+        .expect("downloaded LCOV should be writable");
+
+        summary["entries"][0]["artifact_path"] = json!("target/proof/coverage/tokmd_core_ffi.lcov");
+        manifest["commands"][0]["artifact_path"] =
+            json!("target/proof/coverage/tokmd_core_ffi.lcov");
+
+        let report = validate_executor_artifacts_with_artifact_root(
+            &summary,
+            &manifest,
+            VerificationMode::Execution,
+            Some(&root),
+        )
+        .expect("downloaded artifacts should resolve under artifact root");
+
+        assert_eq!(report.executed, 1);
+
+        let _ = fs::remove_dir_all(root);
     }
 
     #[test]
