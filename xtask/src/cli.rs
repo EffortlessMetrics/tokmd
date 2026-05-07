@@ -405,6 +405,26 @@ pub struct ProofArgs {
     #[arg(long)]
     pub plan: bool,
 
+    /// Execute required proof-plan commands and write a proof-run summary
+    #[arg(long)]
+    pub run_required: bool,
+
+    /// Explicitly opt a CI invocation into required proof command execution
+    #[arg(long)]
+    pub allow_ci_required_execution: bool,
+
+    /// Explicitly opt a local invocation into required proof command execution
+    #[arg(long)]
+    pub allow_local_required_execution: bool,
+
+    /// Write the required proof-run execution summary
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-run-summary.json"
+    )]
+    pub proof_run_summary: std::path::PathBuf,
+
     /// Write a Markdown summary for the generated proof plan
     #[arg(long, value_name = "PATH")]
     pub summary_md: Option<std::path::PathBuf>,

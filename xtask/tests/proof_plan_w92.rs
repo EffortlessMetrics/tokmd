@@ -40,6 +40,16 @@ fn proof_help_mentions_profile_and_plan() {
     assert!(success, "proof --help failed. stderr: {stderr}");
     assert!(stdout.contains("--profile"), "stdout: {stdout}");
     assert!(stdout.contains("--plan"), "stdout: {stdout}");
+    assert!(stdout.contains("--run-required"), "stdout: {stdout}");
+    assert!(stdout.contains("--proof-run-summary"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("--allow-ci-required-execution"),
+        "stdout: {stdout}"
+    );
+    assert!(
+        stdout.contains("--allow-local-required-execution"),
+        "stdout: {stdout}"
+    );
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
     assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
@@ -390,11 +400,30 @@ fn proof_artifacts_check_accepts_generated_executor_artifacts() {
 fn proof_without_plan_refuses_to_execute() {
     let (_stdout, stderr, success) = run_xtask(&["proof", "--profile", "affected"]);
 
-    assert!(!success, "proof without --plan should fail for now");
+    assert!(!success, "proof without an execution opt-in should fail");
     assert!(
-        stderr.contains("--plan") || stderr.contains("not implemented"),
+        stderr.contains("--plan") && stderr.contains("--run-required"),
         "stderr: {stderr}"
     );
+}
+
+#[test]
+fn proof_plan_refuses_required_execution_mode() {
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--run-required",
+    ]);
+
+    assert!(!success, "proof --plan --run-required should fail");
+    assert!(stderr.contains("--run-required"), "stderr: {stderr}");
+    assert!(stderr.contains("--plan"), "stderr: {stderr}");
 }
 
 #[test]
@@ -415,6 +444,32 @@ fn proof_plan_refuses_execute_executor_mode() {
     assert!(!success, "proof --plan --executor-mode execute should fail");
     assert!(stderr.contains("--plan"), "stderr: {stderr}");
     assert!(stderr.contains("execute"), "stderr: {stderr}");
+}
+
+#[test]
+fn required_execution_refuses_advisory_executor_mode() {
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--run-required",
+        "--executor-mode",
+        "execute",
+    ]);
+
+    assert!(
+        !success,
+        "proof --run-required --executor-mode execute should fail"
+    );
+    assert!(stderr.contains("--run-required"), "stderr: {stderr}");
+    assert!(
+        stderr.contains("--executor-mode execute"),
+        "stderr: {stderr}"
+    );
 }
 
 #[test]
@@ -440,6 +495,116 @@ fn proof_plan_rejects_zero_executor_max_commands() {
         stderr.contains("--executor-max-commands"),
         "stderr: {stderr}"
     );
+}
+
+#[test]
+fn local_required_execution_requires_explicit_local_opt_in() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("proof-run-summary.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+
+    let (_stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--run-required",
+        "--proof-run-summary",
+        &summary_arg,
+    ]);
+
+    assert!(
+        !success,
+        "local required execution should require explicit opt-in"
+    );
+    assert!(
+        stderr.contains("--allow-local-required-execution"),
+        "stderr: {stderr}"
+    );
+    assert!(
+        !summary_path.exists(),
+        "summary should not be written before guard opt-in"
+    );
+}
+
+#[test]
+fn ci_required_execution_requires_explicit_ci_opt_in() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("proof-run-summary.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+
+    let (_stdout, stderr, success) = run_xtask_with_env(
+        &[
+            "proof",
+            "--profile",
+            "affected",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--run-required",
+            "--proof-run-summary",
+            &summary_arg,
+        ],
+        &[("CI", "true")],
+    );
+
+    assert!(
+        !success,
+        "CI required execution should require explicit CI opt-in"
+    );
+    assert!(
+        stderr.contains("--allow-ci-required-execution"),
+        "stderr: {stderr}"
+    );
+}
+
+#[test]
+fn local_required_execution_can_write_zero_command_summary() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let summary_path = temp.path().join("proof-run-summary.json");
+    let summary_arg = summary_path.to_string_lossy().to_string();
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--run-required",
+        "--allow-local-required-execution",
+        "--proof-run-summary",
+        &summary_arg,
+    ]);
+
+    assert!(success, "local required execution failed. stderr: {stderr}");
+    let value: serde_json::Value =
+        serde_json::from_str(&stdout).expect("proof run should still emit JSON plan");
+    assert_eq!(value["schema"], "tokmd.proof_plan.v1");
+
+    let summary = fs::read_to_string(summary_path).expect("summary should be written");
+    let summary: serde_json::Value =
+        serde_json::from_str(&summary).expect("summary should be valid JSON");
+    assert_eq!(summary["schema"], "tokmd.proof_run_summary.v1");
+    assert_eq!(summary["status"], "passed");
+    assert_eq!(summary["execution_status"], "executed");
+    assert_eq!(summary["execution_guard"]["enabled"], true);
+    assert_eq!(
+        summary["execution_guard"]["reason"],
+        "local_explicit_required_opt_in_enabled"
+    );
+    assert_eq!(summary["counts"]["commands_total"], 0);
+    assert_eq!(summary["counts"]["required_planned"], 0);
+    assert_eq!(summary["counts"]["advisory_skipped"], 0);
+    assert_eq!(summary["counts"]["executed"], 0);
+    assert_eq!(summary["counts"]["passed"], 0);
+    assert_eq!(summary["counts"]["failed"], 0);
+    assert!(summary["entries"].as_array().unwrap().is_empty());
 }
 
 #[test]

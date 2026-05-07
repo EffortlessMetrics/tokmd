@@ -64,6 +64,54 @@ struct ProofEvidenceKindCounts {
 }
 
 #[derive(Debug, Serialize)]
+struct ProofRunSummary {
+    schema: String,
+    status: String,
+    execution_status: String,
+    execution_guard: ProofRunExecutionGuard,
+    profile: String,
+    base: String,
+    head: String,
+    ok: bool,
+    changed_files: Vec<String>,
+    counts: ProofRunCounts,
+    entries: Vec<ProofRunEntry>,
+    unknown_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ProofRunExecutionGuard {
+    required: bool,
+    enabled: bool,
+    ci: bool,
+    allow_ci_required_execution: bool,
+    allow_local_required_execution: bool,
+    reason: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofRunCounts {
+    commands_total: usize,
+    required_planned: usize,
+    advisory_skipped: usize,
+    executed: usize,
+    passed: usize,
+    failed: usize,
+}
+
+#[derive(Debug, Serialize)]
+struct ProofRunEntry {
+    scope: String,
+    kind: String,
+    required: bool,
+    command: String,
+    artifact_path: Option<String>,
+    status: String,
+    skip_reason: String,
+    exit_code: Option<i32>,
+}
+
+#[derive(Debug, Serialize)]
 struct ProofEvidenceEntry {
     scope: String,
     kind: String,
@@ -184,19 +232,46 @@ pub fn run(args: ProofArgs) -> Result<()> {
         bail!("--executor-mode execute cannot be combined with --plan");
     }
 
-    if !args.plan && args.executor_mode != ProofExecutorMode::Execute {
+    if args.plan && args.run_required {
+        bail!("--run-required cannot be combined with --plan");
+    }
+
+    if args.run_required && args.executor_mode == ProofExecutorMode::Execute {
+        bail!("--run-required cannot be combined with --executor-mode execute");
+    }
+
+    if args.run_required && (args.summary_md.is_some() || args.evidence_json.is_some()) {
         bail!(
-            "proof execution is not implemented for required commands; pass --plan to print the proof plan or --executor-mode execute to run selected advisory evidence commands"
+            "--run-required cannot be combined with --summary-md or --evidence-json; run --plan separately to write plan artifacts"
+        );
+    }
+
+    if args.run_required
+        && (args.executor_summary.is_some()
+            || args.executor_manifest.is_some()
+            || args.executor_max_commands.is_some()
+            || args.allow_ci_evidence_execution
+            || args.allow_local_evidence_execution)
+    {
+        bail!("--run-required cannot be combined with advisory executor options");
+    }
+
+    if !args.plan && !args.run_required && args.executor_mode != ProofExecutorMode::Execute {
+        bail!(
+            "proof execution requires explicit opt-in; pass --plan to print the proof plan, --run-required to execute required commands, or --executor-mode execute to run selected advisory evidence commands"
         );
     }
 
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
-    let executor_config = proof_executor_config(&policy, args.executor_max_commands)?;
 
     if args.executor_mode == ProofExecutorMode::Execute {
+        let executor_config = proof_executor_config(&policy, args.executor_max_commands)?;
         run_executor_mode(&args, &report, &executor_config)?;
+    } else if args.run_required {
+        run_required_mode(&args, &report)?;
     } else {
+        let executor_config = proof_executor_config(&policy, args.executor_max_commands)?;
         write_plan_artifacts(&args, &report, &executor_config)?;
     }
 
@@ -286,6 +361,38 @@ fn run_executor_mode(
     } else {
         bail!(
             "proof executor command execution failed for {} command(s)",
+            summary.counts.failed
+        )
+    }
+}
+
+fn run_required_mode(args: &ProofArgs, report: &ProofPlanReport) -> Result<()> {
+    if !report.ok {
+        bail!(
+            "required proof execution refused to run with {} unknown file(s)",
+            report.unknown_files.len()
+        );
+    }
+
+    let guard = proof_run_execution_guard(
+        args.allow_ci_required_execution,
+        args.allow_local_required_execution,
+    );
+    if !guard.enabled {
+        bail!(
+            "required proof execution guard is not enabled: {}",
+            guard.reason
+        );
+    }
+
+    let summary = proof_run_execute_summary(report, guard)?;
+    write_proof_run_summary(&args.proof_run_summary, &summary)?;
+
+    if summary.counts.failed == 0 {
+        Ok(())
+    } else {
+        bail!(
+            "required proof command execution failed for {} command(s)",
             summary.counts.failed
         )
     }
@@ -488,6 +595,12 @@ fn write_evidence_json(path: &Path, report: &ProofPlanReport) -> Result<()> {
     Ok(())
 }
 
+fn write_proof_run_summary(path: &Path, summary: &ProofRunSummary) -> Result<()> {
+    ensure_parent_dir(path)?;
+    fs::write(path, serde_json::to_string_pretty(summary)?)?;
+    Ok(())
+}
+
 fn write_executor_summary(path: &Path, summary: &ProofExecutorSummary) -> Result<()> {
     ensure_parent_dir(path)?;
     fs::write(path, serde_json::to_string_pretty(summary)?)?;
@@ -558,6 +671,52 @@ fn proof_evidence_plan(report: &ProofPlanReport) -> ProofEvidencePlan {
         entries,
         unknown_files: report.unknown_files.clone(),
     }
+}
+
+fn proof_run_execute_summary(
+    report: &ProofPlanReport,
+    execution_guard: ProofRunExecutionGuard,
+) -> Result<ProofRunSummary> {
+    let required_commands = report
+        .commands
+        .iter()
+        .filter(|command| command.required)
+        .collect::<Vec<_>>();
+    let entries = required_commands
+        .iter()
+        .map(|command| execute_proof_run_entry(command))
+        .collect::<Result<Vec<_>>>()?;
+    let executed = entries.len();
+    let passed = entries
+        .iter()
+        .filter(|entry| entry.status == "passed")
+        .count();
+    let failed = entries
+        .iter()
+        .filter(|entry| entry.status == "failed")
+        .count();
+
+    Ok(ProofRunSummary {
+        schema: "tokmd.proof_run_summary.v1".to_string(),
+        status: if failed == 0 { "passed" } else { "failed" }.to_string(),
+        execution_status: "executed".to_string(),
+        execution_guard,
+        profile: report.profile.clone(),
+        base: report.base.clone(),
+        head: report.head.clone(),
+        ok: report.ok,
+        changed_files: report.changed_files.clone(),
+        counts: ProofRunCounts {
+            commands_total: report.commands.len(),
+            required_planned: required_commands.len(),
+            advisory_skipped: report.commands.len() - required_commands.len(),
+            executed,
+            passed,
+            failed,
+        },
+        entries,
+        unknown_files: report.unknown_files.clone(),
+    })
 }
 
 fn evidence_entry(command: &ProofPlanCommand) -> ProofEvidenceEntry {
@@ -810,10 +969,53 @@ fn proof_executor_execution_guard(
     )
 }
 
+fn proof_run_execution_guard(
+    allow_ci_required_execution: bool,
+    allow_local_required_execution: bool,
+) -> ProofRunExecutionGuard {
+    proof_run_execution_guard_for(
+        ci_env_enabled(),
+        allow_ci_required_execution,
+        allow_local_required_execution,
+    )
+}
+
 fn ci_env_enabled() -> bool {
     std::env::var(CI_ENV_VAR)
         .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
         .unwrap_or(false)
+}
+
+fn proof_run_execution_guard_for(
+    ci: bool,
+    allow_ci_required_execution: bool,
+    allow_local_required_execution: bool,
+) -> ProofRunExecutionGuard {
+    let enabled = if ci {
+        allow_ci_required_execution
+    } else {
+        allow_local_required_execution
+    };
+    let reason = match (
+        ci,
+        allow_ci_required_execution,
+        allow_local_required_execution,
+    ) {
+        (true, true, _) => "ci_explicit_required_opt_in_enabled",
+        (true, false, _) => "ci_requires_--allow-ci-required-execution",
+        (false, _, true) => "local_explicit_required_opt_in_enabled",
+        (false, true, false) => "not_ci_execution_context",
+        (false, false, false) => "local_requires_--allow-local-required-execution",
+    };
+
+    ProofRunExecutionGuard {
+        required: true,
+        enabled,
+        ci,
+        allow_ci_required_execution,
+        allow_local_required_execution,
+        reason: reason.to_string(),
+    }
 }
 
 fn proof_executor_execution_guard_for(
@@ -881,6 +1083,21 @@ fn executor_entry(command: &ProofPlanCommand, mode: ProofExecutorMode) -> ProofE
         skip_reason: executor_skip_reason(mode).to_string(),
         exit_code: None,
     }
+}
+
+fn execute_proof_run_entry(command: &ProofPlanCommand) -> Result<ProofRunEntry> {
+    let executor_entry = execute_entry(command)?;
+
+    Ok(ProofRunEntry {
+        scope: executor_entry.scope,
+        kind: executor_entry.kind,
+        required: executor_entry.required,
+        command: executor_entry.command,
+        artifact_path: executor_entry.artifact_path,
+        status: executor_entry.status,
+        skip_reason: executor_entry.skip_reason,
+        exit_code: executor_entry.exit_code,
+    })
 }
 
 fn execute_entry(command: &ProofPlanCommand) -> Result<ProofExecutorEntry> {
@@ -1221,7 +1438,8 @@ mod tests {
         ProofExecutorConfig, ProofPlanCommand, ProofPlanReport, affected_commands, dedupe_commands,
         is_mutation_candidate, proof_evidence_plan, proof_executor_config,
         proof_executor_execute_summary, proof_executor_execution_guard_for,
-        proof_executor_manifest, proof_executor_summary, render_markdown_summary, split_command,
+        proof_executor_manifest, proof_executor_summary, proof_run_execute_summary,
+        proof_run_execution_guard_for, render_markdown_summary, split_command,
         static_profile_commands,
     };
     use crate::cli::{ProofExecutorMode, ProofProfile};
@@ -1545,6 +1763,62 @@ coverage = "cargo-llvm-cov"
         );
         assert_eq!(evidence.entries[1].kind, "mutation");
         assert_eq!(evidence.entries[1].artifact_path, None);
+    }
+
+    #[test]
+    fn required_proof_run_executes_required_commands_only() {
+        let report = ProofPlanReport {
+            schema: "tokmd.proof_plan.v1".to_string(),
+            ok: true,
+            profile: "affected".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            changed_files: vec!["crates/tokmd-core/src/ffi.rs".to_string()],
+            commands: vec![
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "proof".to_string(),
+                    required: true,
+                    command: "rustc --version".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "coverage".to_string(),
+                    required: false,
+                    command: "definitely-not-a-real-command-for-advisory-proof".to_string(),
+                },
+                ProofPlanCommand {
+                    scope: "tokmd_core_ffi".to_string(),
+                    kind: "mutation".to_string(),
+                    required: false,
+                    command: "definitely-not-a-real-command-for-mutation-proof".to_string(),
+                },
+            ],
+            unknown_files: Vec::new(),
+        };
+
+        let summary =
+            proof_run_execute_summary(&report, proof_run_execution_guard_for(false, false, true))
+                .expect("required proof summary");
+
+        assert_eq!(summary.schema, "tokmd.proof_run_summary.v1");
+        assert_eq!(summary.status, "passed");
+        assert_eq!(summary.execution_status, "executed");
+        assert!(summary.execution_guard.enabled);
+        assert_eq!(
+            summary.execution_guard.reason,
+            "local_explicit_required_opt_in_enabled"
+        );
+        assert_eq!(summary.counts.commands_total, 3);
+        assert_eq!(summary.counts.required_planned, 1);
+        assert_eq!(summary.counts.advisory_skipped, 2);
+        assert_eq!(summary.counts.executed, 1);
+        assert_eq!(summary.counts.passed, 1);
+        assert_eq!(summary.counts.failed, 0);
+        assert_eq!(summary.entries.len(), 1);
+        assert_eq!(summary.entries[0].kind, "proof");
+        assert!(summary.entries[0].required);
+        assert_eq!(summary.entries[0].status, "passed");
     }
 
     #[test]
