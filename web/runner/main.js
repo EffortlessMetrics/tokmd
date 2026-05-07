@@ -3,12 +3,21 @@ import {
     createRunMessage,
     MESSAGE_TYPES,
 } from "./messages.js";
+import {
+    authModeForToken,
+    clearSessionToken,
+    readSessionToken,
+    resolveSessionStorage,
+    writeSessionToken,
+} from "./auth.js";
 import { fetchGitHubRepoInputs } from "./ingest.js";
 import { isProtocolMessage } from "./runtime.js";
 
 const repoInput = document.querySelector("[data-repo]");
 const refInput = document.querySelector("[data-ref]");
 const tokenInput = document.querySelector("[data-token]");
+const clearTokenButton = document.querySelector("[data-clear-token]");
+const authStateOutput = document.querySelector("[data-auth-state]");
 const modeInput = document.querySelector("[data-mode]");
 const argsInput = document.querySelector("[data-args]");
 const loadRepoButton = document.querySelector("[data-load-repo]");
@@ -157,6 +166,21 @@ function updateRepoLoadControls() {
     repoInput.disabled = loading;
     refInput.disabled = loading;
     tokenInput.disabled = loading;
+    clearTokenButton.disabled = loading || authModeForToken(tokenInput.value) === "anonymous";
+}
+
+function syncTokenState({ persist = true } = {}) {
+    const storage = resolveSessionStorage();
+    const token = persist
+        ? writeSessionToken(storage, tokenInput.value)
+        : readSessionToken(storage);
+
+    if (!persist) {
+        tokenInput.value = token;
+    }
+
+    authStateOutput.textContent = authModeForToken(token);
+    updateRepoLoadControls();
 }
 
 function artifactFileName(data) {
@@ -579,6 +603,17 @@ cancelLoadButton.addEventListener("click", () => {
     setStatus(loadStatusOutput, "canceling repo load...", "warning");
 });
 
+tokenInput.addEventListener("input", () => {
+    syncTokenState();
+});
+
+clearTokenButton.addEventListener("click", () => {
+    tokenInput.value = "";
+    clearSessionToken(resolveSessionStorage());
+    syncTokenState({ persist: false });
+    setStatus(loadStatusOutput, "GitHub token cleared", "neutral");
+});
+
 window.addEventListener("beforeunload", () => {
     clearDownloadUrl();
 });
@@ -638,6 +673,7 @@ downloadButton.addEventListener("click", () => {
 
 setStatus(loadStatusOutput, "repo load idle", "neutral");
 setStatus(runStatusOutput, "starting worker...", "neutral");
+syncTokenState({ persist: false });
 renderRepoCapabilities();
 renderIngestSummary();
 updateRepoLoadControls();

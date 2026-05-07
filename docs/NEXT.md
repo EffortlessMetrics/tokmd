@@ -62,6 +62,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The cockpit review packet now includes `review-map.json` / `review-map.md` generated from the existing cockpit `review_plan`, giving packet consumers a stable prioritized review map without introducing a separate `tokmd review` command.
 - The composite GitHub Action now exposes an opt-in cockpit `review-packet` input. In `mode: cockpit`, `review-packet: true` writes `.tokmd/review`, exposes it as the `review-packet` output, and uses `.tokmd/review/comment.md` as the optional pull request comment body.
 - Browser worker protocol v2 now emits run progress messages for in-memory worker execution. Worker runs produce `start`, `scan` or `analyze`, `done`, and `error` progress phases while keeping cancellation explicitly unavailable.
+- Browser runner GitHub token UX now uses session-only storage, shows anonymous/authenticated state without exposing the raw token, and provides an explicit clear-token action.
 - Next proof-policy operational slice: collect successful non-required PR executor runs across multiple affected scopes before considering any required-gate or default Codecov-upload promotion.
 
 ## References
