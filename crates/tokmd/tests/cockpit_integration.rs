@@ -521,6 +521,8 @@ fn test_cockpit_review_packet_dir() {
         "manifest.json",
         "cockpit.json",
         "evidence.json",
+        "review-map.json",
+        "review-map.md",
         "comment.md",
     ] {
         assert!(
@@ -533,13 +535,22 @@ fn test_cockpit_review_packet_dir() {
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
             .expect("valid manifest JSON");
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
-    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 3);
+    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 5);
 
     let evidence: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
             .expect("valid evidence JSON");
     assert_eq!(evidence["schema"], "tokmd.review_packet_evidence.v1");
     assert!(evidence["gates"].is_array());
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("review-map.json")).unwrap())
+            .expect("valid review map JSON");
+    assert_eq!(review_map["schema"], "tokmd.review_map.v1");
+    assert!(review_map["items"].is_array());
+
+    let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("# Review Map"));
 }
 
 #[test]

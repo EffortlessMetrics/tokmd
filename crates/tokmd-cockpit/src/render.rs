@@ -9,8 +9,8 @@ use serde_json::{Value, json};
 use tokmd_envelope::{SensorReport, ToolMeta, Verdict};
 
 use crate::{
-    CockpitReceipt, CommitMatch, GateMeta, GateStatus, RiskLevel, format_signed_f64, now_iso8601,
-    sparkline, trend_direction_label,
+    CockpitReceipt, CommitMatch, GateMeta, GateStatus, ReviewItem, RiskLevel, format_signed_f64,
+    now_iso8601, sparkline, trend_direction_label,
 };
 
 /// Render receipt as JSON.
@@ -621,13 +621,24 @@ pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
 
     let cockpit_json = render_json(receipt)?;
     let evidence_json = serde_json::to_string_pretty(&review_packet_evidence(receipt))?;
+    let review_map_json = serde_json::to_string_pretty(&review_packet_review_map(receipt))?;
+    let review_map_md = render_review_map_md(receipt);
     let comment_md = render_comment_md(receipt);
 
     std::fs::write(dir.join("cockpit.json"), &cockpit_json)?;
     std::fs::write(dir.join("evidence.json"), &evidence_json)?;
+    std::fs::write(dir.join("review-map.json"), &review_map_json)?;
+    std::fs::write(dir.join("review-map.md"), &review_map_md)?;
     std::fs::write(dir.join("comment.md"), &comment_md)?;
 
-    let manifest = review_packet_manifest(receipt, &cockpit_json, &evidence_json, &comment_md);
+    let manifest = review_packet_manifest(
+        receipt,
+        &cockpit_json,
+        &evidence_json,
+        &review_map_json,
+        &review_map_md,
+        &comment_md,
+    );
     std::fs::write(
         dir.join("manifest.json"),
         serde_json::to_string_pretty(&manifest)?,
@@ -640,6 +651,8 @@ fn review_packet_manifest(
     receipt: &CockpitReceipt,
     cockpit_json: &str,
     evidence_json: &str,
+    review_map_json: &str,
+    review_map_md: &str,
     comment_md: &str,
 ) -> Value {
     json!({
@@ -672,6 +685,20 @@ fn review_packet_manifest(
                 "tokmd.review_packet_evidence.v1",
                 "application/json",
                 evidence_json,
+            ),
+            review_packet_artifact(
+                "review-map",
+                "review-map.json",
+                "tokmd.review_map.v1",
+                "application/json",
+                review_map_json,
+            ),
+            review_packet_artifact(
+                "review-map-md",
+                "review-map.md",
+                "markdown",
+                "text/markdown",
+                review_map_md,
             ),
             review_packet_artifact(
                 "comment",
@@ -733,6 +760,98 @@ fn review_packet_evidence(receipt: &CockpitReceipt) -> Value {
             ),
         ],
     })
+}
+
+fn review_packet_review_map(receipt: &CockpitReceipt) -> Value {
+    let items: Vec<_> = receipt
+        .review_plan
+        .iter()
+        .enumerate()
+        .map(|(idx, item)| review_map_item(idx, item, receipt))
+        .collect();
+
+    json!({
+        "schema": "tokmd.review_map.v1",
+        "base_ref": receipt.base_ref,
+        "head_ref": receipt.head_ref,
+        "source": "cockpit.review_plan",
+        "item_count": items.len(),
+        "items": items,
+    })
+}
+
+fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> Value {
+    json!({
+        "rank": idx + 1,
+        "path": &item.path,
+        "priority": item.priority,
+        "priority_label": review_priority_label(item.priority),
+        "reason": &item.reason,
+        "complexity": item.complexity,
+        "lines_changed": item.lines_changed,
+        "evidence_refs": [
+            format!("cockpit.json#/review_plan/{idx}"),
+            "evidence.json#/gates",
+        ],
+        "reproduce": [
+            format!(
+                "tokmd cockpit --base {} --head {} --format json",
+                receipt.base_ref, receipt.head_ref
+            ),
+            format!(
+                "tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review",
+                receipt.base_ref, receipt.head_ref
+            ),
+        ],
+    })
+}
+
+fn review_priority_label(priority: u32) -> &'static str {
+    match priority {
+        1 => "highest",
+        2 => "medium",
+        _ => "low",
+    }
+}
+
+fn render_review_map_md(receipt: &CockpitReceipt) -> String {
+    use std::fmt::Write;
+
+    let mut s = String::new();
+    let _ = writeln!(s, "# Review Map");
+    let _ = writeln!(s);
+    let _ = writeln!(s, "Base: `{}`", receipt.base_ref);
+    let _ = writeln!(s, "Head: `{}`", receipt.head_ref);
+    let _ = writeln!(s);
+
+    if receipt.review_plan.is_empty() {
+        let _ = writeln!(s, "No prioritized files were identified.");
+        return s;
+    }
+
+    for (idx, item) in receipt.review_plan.iter().enumerate() {
+        let _ = writeln!(
+            s,
+            "{}. `{}`
+   Priority: {} ({})
+   Reason: {}",
+            idx + 1,
+            item.path,
+            item.priority,
+            review_priority_label(item.priority),
+            item.reason
+        );
+
+        if let Some(lines_changed) = item.lines_changed {
+            let _ = writeln!(s, "   Lines changed: {lines_changed}");
+        }
+        if let Some(complexity) = item.complexity {
+            let _ = writeln!(s, "   Review complexity: {complexity}/5");
+        }
+        let _ = writeln!(s);
+    }
+
+    s
 }
 
 fn evidence_gate(id: &str, meta: Option<&GateMeta>) -> Value {
