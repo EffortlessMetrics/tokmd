@@ -94,6 +94,47 @@ jobs:
             cat target/ripr/ripr.md >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      - name: Evaluate ripr soft-gate
+        if: github.event_name == 'pull_request'
+        env:
+          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          set -euo pipefail
+          # The soft-gate is opt-in via [soft_gate].enabled in ripr.toml.
+          # Until that flag is true, this step only logs the planned
+          # decision so reviewers can see what would have been gated.
+          enabled=$(grep -E '^enabled\s*=\s*true' ripr.toml | head -1 || true)
+          if [ -z "$enabled" ]; then
+            echo "::notice::ripr soft-gate is disabled in ripr.toml. Findings remain advisory."
+            exit 0
+          fi
+          # Override label check.
+          for lbl in "ripr-waive" "full-ci" "ci-budget-ack"; do
+            if echo "$LABELS_JSON" | grep -q "\"name\":\"$lbl\""; then
+              echo "::warning::ripr soft-gate satisfied by override label '$lbl'."
+              exit 0
+            fi
+          done
+          # If a real ripr report exists, look for high-confidence
+          # reachable_unrevealed / weakly_exposed entries that are not
+          # suppressed. The placeholder run produces no JSON, so this
+          # remains a no-op until ripr is wired up.
+          if [ ! -s target/ripr/ripr.json ]; then
+            echo "::notice::ripr soft-gate enabled but no JSON report; nothing to gate."
+            exit 0
+          fi
+          high=$(jq '[.findings[]?
+            | select(.kind == "reachable_unrevealed" or .kind == "weakly_exposed")
+            | select(.confidence == "high")
+            | select(.suppressed != true)
+            | select(.test_changed_nearby != true)] | length' \
+            target/ripr/ripr.json)
+          if [ "${high:-0}" -gt 0 ]; then
+            echo "::error::ripr soft-gate: ${high} high-confidence finding(s); apply 'ripr-waive' to acknowledge."
+            exit 1
+          fi
+          echo "ripr soft-gate clean."
+
       - name: Upload ripr report
         if: always()
         uses: actions/upload-artifact@v7
