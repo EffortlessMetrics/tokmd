@@ -710,15 +710,6 @@ reason = "Integration test data fixtures (JS, JSON, etc.)."
 covered_by = ["cargo test -p tokmd"]
 
 [[allow]]
-glob = "*.ps1"
-kind = "tooling"
-owner = "core/policy"
-surface = "build"
-classification = "config"
-reason = "Local convenience PowerShell scripts."
-covered_by = []
-
-[[allow]]
 glob = "*.bat"
 kind = "tooling"
 owner = "core/policy"

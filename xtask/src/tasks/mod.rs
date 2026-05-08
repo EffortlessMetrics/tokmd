@@ -12,6 +12,7 @@ pub mod docs;
 pub mod file_policy;
 pub mod fixture_blobs_check;
 pub mod gate;
+pub mod jules_index;
 pub mod lint_fix;
 pub mod lint_policy;
 pub mod no_panic;
