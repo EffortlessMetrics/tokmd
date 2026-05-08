@@ -56,6 +56,8 @@ pub enum Commands {
     CiActuals(CiActualsArgs),
     /// Verify the non-Rust file allowlist (file policy checker)
     CheckFilePolicy(FilePolicyArgs),
+    /// Generate Jules run and friction rollup indexes
+    JulesIndex(JulesIndexArgs),
     /// Verify the AST-backed Clippy exception ledger
     CheckClippyExceptions(ClippyExceptionsArgs),
     /// Generate the LEM-aware advisory PR Plan
@@ -184,6 +186,13 @@ impl Default for CiActualsArgs {
             sha: None,
         }
     }
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct JulesIndexArgs {
+    /// Verify generated Jules indexes are already up to date
+    #[arg(long)]
+    pub check: bool,
 }
 
 #[derive(Args, Debug, Clone)]
