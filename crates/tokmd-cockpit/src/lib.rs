@@ -21,6 +21,7 @@ mod display;
 #[cfg(feature = "git")]
 mod gates;
 pub mod render;
+mod review_plan;
 #[cfg(feature = "git")]
 mod supply_chain;
 
@@ -35,6 +36,7 @@ pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_di
 pub use gates::compute_determinism_gate;
 #[cfg(feature = "git")]
 use gates::compute_evidence;
+pub use review_plan::generate_review_plan;
 #[cfg(all(test, feature = "git"))]
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 // Re-export types from tokmd_types::cockpit for convenience
@@ -593,44 +595,6 @@ fn compute_risk_owned(
             .filter(|stat| stat.insertions + stat.deletions > 300)
             .map(|stat| stat.path),
     )
-}
-
-/// Generate review plan.
-pub fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> Vec<ReviewItem> {
-    let mut items = Vec::new();
-
-    for stat in file_stats {
-        let lines = stat.insertions + stat.deletions;
-        let priority = if lines > 200 {
-            1
-        } else if lines > 50 {
-            2
-        } else {
-            3
-        };
-        let complexity = if lines > 300 {
-            5
-        } else if lines > 100 {
-            3
-        } else {
-            1
-        };
-
-        items.push(ReviewItem {
-            path: stat.path.clone(),
-            reason: format!("{} lines changed", lines),
-            priority,
-            complexity: Some(complexity),
-            lines_changed: Some(lines),
-        });
-    }
-
-    items.sort_by(|a, b| {
-        a.priority
-            .cmp(&b.priority)
-            .then_with(|| a.path.cmp(&b.path))
-    });
-    items
 }
 
 #[cfg(test)]
