@@ -16,6 +16,10 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  # The workspace release profile enables LTO/strip for shipped binaries. Fuzz
+  # builds need sanitizer coverage symbols preserved for libFuzzer.
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_STRIP: "false"
 
 jobs:
   fuzz:
@@ -27,7 +31,7 @@ jobs:
       matrix:
         include:
           - target: fuzz_module_key
-            features: model
+            features: module_key
             dict: path.dict
           - target: fuzz_normalize_path
             features: model
@@ -76,13 +80,13 @@ jobs:
       - name: Build fuzzer
         run: |
           cd fuzz
-          cargo +nightly fuzz build ${{ matrix.target }} --features ${{ matrix.features }}
+          cargo +nightly fuzz build ${{ matrix.target }} --features ${{ matrix.features }} --strip-dead-code false
 
       - name: Run fuzzer
         run: |
           DURATION=${{ github.event.inputs.duration || '1800' }}
           cd fuzz
-          cargo +nightly fuzz run ${{ matrix.target }} --features ${{ matrix.features }} -- \
+          cargo +nightly fuzz run ${{ matrix.target }} --features ${{ matrix.features }} --strip-dead-code false -- \
             -max_total_time=$DURATION \
             -timeout=10 \
             -rss_limit_mb=4096 \
