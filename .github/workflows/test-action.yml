@@ -403,6 +403,7 @@ jobs:
           grep -q 'Workflow run:' tokmd-review-packet-comment.md
           grep -q 'Artifact: `tokmd-receipts`' tokmd-review-packet-comment.md
           grep -q 'Packet path: `.tokmd/review`' tokmd-review-packet-comment.md
+          cargo xtask review-packet-check --dir .tokmd/review
 
       - name: Clean generated files
         shell: bash
