@@ -617,6 +617,18 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "crate_guidance_docs"
+kind = "non_rust"
+paths = [
+  "crates/*/CLAUDE.md",
+  "crates/*/README.md",
+]
+proof = ["cargo xtask docs --check"]
+reason = "Crate-local README and agent guidance files are contributor-facing architecture surfaces; edits should route to documentation checks instead of appearing as unknown files."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "project_truth_docs"
 kind = "non_rust"
 paths = [

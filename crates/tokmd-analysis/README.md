@@ -14,7 +14,9 @@ You need one analysis entrypoint that can assemble receipt enrichments without w
 ## Integration notes
 - Default features: `fun`, `topics`, `archetype`, `effort`.
 - Optional features: `git`, `walk`, `content`, `halstead`, `effort`, `fun`, `topics`, `archetype`.
-- Use this crate when you want preset-driven orchestration; use the leaf crates directly when you only need one report.
+- Use this crate when you want preset-driven orchestration or a focused analysis report.
+- Analysis leaf implementations are owner modules inside this crate, not separate public crates to depend on or restore.
+- Rendering analysis receipts belongs in `tokmd-format::analysis`.
 
 ## Go deeper
 - Tutorial: [Tutorial](../../docs/tutorial.md)

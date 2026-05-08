@@ -93,6 +93,7 @@ When `--meta` is enabled:
 
 - `serde_json`, `csv`, `uuid`, `time`
 - `tokmd-types`
+- `tokmd-analysis-types` for analysis receipt rendering
 
 ## Testing
 
@@ -108,6 +109,6 @@ Tests cover:
 
 ## Do NOT
 
-- Add analysis-specific formatting under `src/analysis/`
+- Add analysis computation or enrichment logic (use `tokmd-analysis`)
 - Add scanning logic
 - Modify JSON schema without updating version
