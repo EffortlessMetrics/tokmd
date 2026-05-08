@@ -657,11 +657,11 @@ _Goal: Accurate parsing for precise metrics. This is a significant undertaking r
 
 #### J. Tree-sitter AST Parsing
 
-- `tokmd-treesitter` crate with multi-language AST parsing
-- Language-specific complexity rules (Rust, TypeScript, Python, Go, etc.)
-- Accurate function boundary detection
-- Nested scope analysis for cognitive complexity
-- Call graph extraction for coupling analysis
+- Feature-gated AST foundation defined by ADR-0008
+- Rust-first owner module under `tokmd-analysis` before any public parser crate
+- Shadow comparison artifacts for heuristic-vs-AST function, import, and control-flow evidence
+- Later language-specific complexity rules only after deterministic shadow evidence
+- Public receipt/schema changes only after schema review and migration policy
 
 ---
 
@@ -673,7 +673,7 @@ These are explicitly out of scope for tokmd:
 - **Dependency vulnerability scanning** — tokmd delegates to external tools (cargo-audit, npm audit) when available; it does not maintain its own advisory database
 - **Test execution** — Use cargo test, pytest, jest
 - **Build orchestration** — Use cargo, make, just
-- **Full AST analysis** — tokmd uses heuristics, not parsers (tree-sitter is a long-term v3.0 aspiration)
+- **Default full AST analysis** — tokmd remains heuristic-first until feature-gated AST shadow evidence justifies public receipt/schema changes
 
 ---
 

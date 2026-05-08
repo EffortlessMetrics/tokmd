@@ -436,39 +436,50 @@ authenticated fetch.
 
 **Goal**: Accurate parsing for precise metrics. This is a significant R&D effort requiring multi-language grammar integration, cross-platform build toolchains, and extensive correctness validation. Intentionally deferred well beyond v2.x.
 
+ADR-0008 defines the rollout boundary: AST work starts as a feature-gated,
+Rust-first owner module with deterministic shadow comparison artifacts. It must
+not change default receipt semantics until maintainers accept the evidence,
+schema impact, and runtime capability story.
+
 ### Language Support
 
-1. **Parser crate**: `tokmd-treesitter` (new)
-2. **Languages**: Rust, TypeScript, Python, Go, Java
-3. **Feature-gated**: Optional dependency
+1. **First module**: `crates/tokmd-analysis/src/ast/`
+2. **First language**: Rust
+3. **Feature-gated**: explicit `ast` capability
+4. **Later languages**: TypeScript, Python, Go, and Java only after Rust shadow evidence
+5. **Optional crate boundary**: only if ADR-0002 justifies dependency isolation or a public contract
 
 ### Capabilities
 
 - Accurate function boundary detection
 - Nested scope analysis for cognitive complexity
 - Call graph extraction for coupling analysis
+- Deterministic heuristic-vs-AST shadow comparisons
 
 ### Prerequisites
 
 - Stable tokmd-core API (Phase 3)
 - Halstead and function-level metrics (Phase 4) as integration surface
 - MCP server mode (Phase 6) to validate use cases that require AST precision
+- Proof-policy scopes and publish-surface review for any new parser dependency
 
 ### Work Items
 
-- [ ] Evaluate tree-sitter grammar availability and build complexity per language
-- [ ] Create tokmd-treesitter crate with feature-gated dependency
-- [ ] Implement language-specific parsers
-- [ ] Integrate with tokmd-analysis content helpers for precise boundary detection
-- [ ] Update complexity calculation to use AST when available
-- [ ] Performance benchmarks (must not regress heuristic-based path)
+- [ ] Evaluate Tree-sitter Rust grammar availability, build complexity, and dependency footprint
+- [ ] Add feature-gated `tokmd-analysis::ast` owner module
+- [ ] Parse Rust functions, imports, and simple control-flow landmarks
+- [ ] Emit deterministic shadow artifacts under `target/tokmd-ast-shadow/`
+- [ ] Compare heuristic and AST evidence without changing default receipts
+- [ ] Add proof scope coverage and performance benchmarks
+- [ ] Decide later whether AST-derived public fields need schema changes
 
 ### Tests
 
-- Unit tests: Parser correctness per language
-- Golden tests: Parse tree snapshots
+- Unit tests: Rust parser fixture correctness
+- Golden tests: Deterministic shadow comparison artifacts
 - Fuzz tests: Parser robustness
 - Benchmarks: Performance regression detection
+- WASM/browser tests only before exposing AST capabilities in browser bundles
 
 ---
 
