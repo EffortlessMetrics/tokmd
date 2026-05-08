@@ -635,6 +635,13 @@ fn test_cockpit_review_packet_dir() {
 
     let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
+
+    let comment_md = std::fs::read_to_string(packet_dir.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Evidence availability"));
+    assert!(
+        comment_md.contains("unavailable"),
+        "comment.md should expose unavailable evidence, not just evidence.json"
+    );
 }
 
 #[test]

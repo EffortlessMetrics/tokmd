@@ -555,6 +555,7 @@ kind = "rust"
 paths = [
   ".github/workflows/cockpit.yml",
   "crates/tokmd-cockpit/**",
+  "crates/tokmd-core/tests/cockpit_workflow.rs",
   "crates/tokmd-types/src/cockpit.rs",
   "crates/tokmd-types/tests/cockpit_tests.rs",
   "crates/tokmd/src/commands/cockpit.rs",
@@ -562,9 +563,10 @@ paths = [
   "docs/review-packet.md",
   "docs/tokmd-in-cockpit.md",
 ]
-packages = ["tokmd-cockpit", "tokmd-types", "tokmd"]
+packages = ["tokmd-cockpit", "tokmd-core", "tokmd-types", "tokmd"]
 proof = [
   "cargo test -p tokmd-cockpit --verbose",
+  "cargo test -p tokmd-core --features cockpit --test cockpit_workflow --verbose",
   "cargo test -p tokmd-types cockpit --verbose",
   "cargo test -p tokmd --test cockpit_integration --verbose",
 ]

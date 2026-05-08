@@ -101,7 +101,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 - [ ] Define port traits (if adding extensibility)
 - [x] Implement `analyze_workflow`
-- [ ] Implement `cockpit_workflow`
+- [x] Implement `cockpit_workflow`
 - [ ] Add comprehensive API documentation
 - [ ] Publish tokmd-core to crates.io (when stable)
 
