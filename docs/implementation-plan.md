@@ -465,12 +465,14 @@ schema impact, and runtime capability story.
 
 ### Work Items
 
-- [ ] Evaluate Tree-sitter Rust grammar availability, build complexity, and dependency footprint
-- [ ] Add feature-gated `tokmd-analysis::ast` owner module
-- [ ] Parse Rust functions, imports, and simple control-flow landmarks
+- [x] Evaluate Tree-sitter Rust grammar availability and dependency footprint for a first shadow slice
+- [x] Add feature-gated `tokmd-analysis::ast` owner module
+- [x] Parse initial Rust function landmarks
+- [ ] Add Rust import and simple control-flow landmarks
 - [ ] Emit deterministic shadow artifacts under `target/tokmd-ast-shadow/`
 - [ ] Compare heuristic and AST evidence without changing default receipts
-- [ ] Add proof scope coverage and performance benchmarks
+- [x] Add proof scope coverage for AST shadow parsing
+- [ ] Add performance benchmarks
 - [ ] Decide later whether AST-derived public fields need schema changes
 
 ### Tests

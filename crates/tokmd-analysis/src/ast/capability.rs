@@ -18,7 +18,7 @@ impl AstLanguage {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AstParserStatus {
-    PlannedShadow,
+    ParserBackedShadow,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -31,11 +31,11 @@ pub struct AstCapability {
 }
 
 impl AstCapability {
-    pub const fn planned_shadow(language: AstLanguage, parser_crate: &'static str) -> Self {
+    pub const fn parser_backed_shadow(language: AstLanguage, parser_crate: &'static str) -> Self {
         Self {
             language,
             parser_crate,
-            parser_status: AstParserStatus::PlannedShadow,
+            parser_status: AstParserStatus::ParserBackedShadow,
             shadow_only: true,
             changes_default_receipts: false,
         }
@@ -52,11 +52,14 @@ mod tests {
     use super::{AstCapability, AstLanguage, AstParserStatus};
 
     #[test]
-    fn planned_shadow_constructor_never_changes_default_receipts() {
-        let capability = AstCapability::planned_shadow(AstLanguage::Rust, "tree-sitter-rust");
+    fn parser_backed_shadow_constructor_never_changes_default_receipts() {
+        let capability = AstCapability::parser_backed_shadow(AstLanguage::Rust, "tree-sitter-rust");
 
         assert_eq!(capability.language.as_str(), "rust");
-        assert_eq!(capability.parser_status, AstParserStatus::PlannedShadow);
+        assert_eq!(
+            capability.parser_status,
+            AstParserStatus::ParserBackedShadow
+        );
         assert!(capability.shadow_only);
         assert!(!capability.changes_default_receipts);
     }

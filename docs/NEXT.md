@@ -168,6 +168,10 @@ architecture-consolidation program.
   with shadow-only capability metadata, stable shadow artifact names, and a
   dedicated proof-policy scope. It adds no parser dependency and changes no
   default receipts.
+- The Rust AST shadow scaffold now uses optional `tree-sitter` /
+  `tree-sitter-rust` dependencies behind the `ast` feature to parse
+  deterministic Rust function landmarks. It still emits no default receipt
+  changes and does not expose browser/WASM AST capability.
 
 ## References
 

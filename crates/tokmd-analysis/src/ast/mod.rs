@@ -2,7 +2,7 @@
 //!
 //! This module is intentionally shadow-only. It records the initial capability
 //! and artifact contract from ADR-0008 without changing default receipt
-//! semantics or adding parser dependencies.
+//! semantics.
 
 mod capability;
 mod rust;
@@ -11,6 +11,7 @@ mod shadow;
 pub use capability::{
     AST_SHADOW_SCHEMA_VERSION, AstCapability, AstLanguage, AstParserStatus, capabilities,
 };
+pub use rust::{RustAstError, RustAstShadow, RustLandmark, RustLandmarkKind, parse_rust_landmarks};
 pub use shadow::{DEFAULT_SHADOW_OUTPUT_DIR, ShadowArtifactSet, default_shadow_artifacts};
 
 #[cfg(test)]
@@ -28,7 +29,7 @@ mod tests {
         assert_eq!(capabilities[0].language, AstLanguage::Rust);
         assert_eq!(
             capabilities[0].parser_status,
-            AstParserStatus::PlannedShadow
+            AstParserStatus::ParserBackedShadow
         );
         assert!(capabilities[0].shadow_only);
         assert!(!capabilities[0].changes_default_receipts);
