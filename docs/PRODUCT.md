@@ -6,7 +6,10 @@
 
 **tokmd transforms code scans into actionable intelligence: receipts for automation, metrics for understanding, and signals for decision-making.**
 
-It is not just a counter. It is a **lightweight code intelligence tool** that converts raw counts into trusted artifacts and derived insights.
+It is not just a counter. It is the **fast deterministic code-intelligence and
+review-receipt engine** in the Effortless Metrics evidence stack. It converts
+raw counts into trusted code artifacts and derived insights without trying to
+own the whole evidence transport layer.
 
 ## The Problems We Solve
 
@@ -61,6 +64,13 @@ Analysis provides information, not judgments:
 *   "File changed 47 times" — not "This is a problem file"
 *   Users interpret signals in their context.
 
+### 6. Code Evidence, Not The Backplane
+`tokmd` produces deterministic code evidence. It does not own the universal
+evidence bundle, merge verdict, or multi-tool inventory. In the wider Effortless
+Metrics stack, `evidencebus` is the schema-first backplane that validates,
+bundles, inventories, and exports evidence from `tokmd`, `mergecode`, CI
+sensors, gates, perf tools, and other producers.
+
 ## Safety Posture
 
 **"If you wouldn't email it, don't paste."**
@@ -107,7 +117,9 @@ Analysis provides information, not judgments:
 `tokmd` explicitly does **not**:
 *   Format or lint code (use rustfmt, eslint)
 *   Implement vulnerability detection (tokmd delegates to cargo-audit/npm audit but does not maintain its own advisory database)
-*   Execute tests (use cargo test, pytest)
+*   Replace test runners (proof planning may route `cargo test`, pytest, or
+    coverage commands, but those tools remain the source of build/test truth)
+*   Own the evidence transport backplane or global merge decision
 *   Parse AST deeply (uses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide absolute quality judgments

@@ -82,7 +82,10 @@ Every JSON receipt includes:
 }
 ```
 
-tokmd is a **sensor**: it produces receipts, not orchestration. External directors can aggregate tokmd receipts with other tools.
+tokmd is a **code-evidence producer**: it produces receipts, review packets,
+proof-routing inputs, and context bundles, not the whole evidence backplane.
+External directors and `evidencebus` can aggregate tokmd receipts with evidence
+from `mergecode`, CI sensors, gates, perf tools, and other producers.
 
 ### Schema Versioning
 

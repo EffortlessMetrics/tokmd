@@ -163,6 +163,10 @@ architecture-consolidation program.
   ownership model: analysis rendering lives in `tokmd-format`, review evidence
   in `tokmd-cockpit`, and implementation details should stay as SRP owner
   modules unless they are durable public surfaces.
+- Product truth docs now distinguish tokmd's role from the wider Effortless
+  Metrics evidence stack: tokmd is the deterministic code-intelligence and
+  review-receipt producer, while evidencebus remains the schema-first evidence
+  backplane for cross-tool validation, inventory, bundling, and export.
 - Roadmap-era implementation notes now distinguish historical microcrate
   extraction from the current owner-module consolidation shape, so future
   architecture work starts from the actual crate graph instead of retired

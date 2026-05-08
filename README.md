@@ -10,7 +10,10 @@
 [![License](https://img.shields.io/crates/l/tokmd)](https://crates.io/crates/tokmd)
 [![Downloads](https://img.shields.io/crates/d/tokmd)](https://crates.io/crates/tokmd)
 
-`tokmd` turns a source tree into stable Markdown and JSON artifacts: language and module summaries, file receipts, analysis reports, diffs, policy gates, baselines, sensor reports, and LLM-ready context bundles.
+`tokmd` is the fast deterministic code-intelligence instrument in the Effortless
+Metrics evidence stack. It turns a source tree into stable Markdown and JSON
+artifacts: language and module summaries, file receipts, analysis reports,
+diffs, policy gates, baselines, sensor reports, and LLM-ready context bundles.
 
 Use it from the CLI first; wire the same surfaces into CI when you want automated receipts, comments, and gates.
 
@@ -84,6 +87,11 @@ Raw LOC output is easy to generate and hard to reuse.
 CI needs artifacts and gates. Review workflows need stable before/after surfaces. LLM workflows need bounded context instead of pasted terminal output.
 
 `tokmd` makes repository shape repeatable, diffable, and machine-readable.
+
+In the wider Effortless Metrics stack, `tokmd` produces code evidence.
+`evidencebus` carries and inventories evidence from `tokmd`, `mergecode`, CI
+sensors, gates, and other producers. `tokmd` stays useful on its own while
+remaining a focused producer rather than the whole evidence backplane.
 
 ## What It Looks Like
 

@@ -1,12 +1,15 @@
 # tokmd responsibilities
 
-tokmd is the **Change Surface + Repo Intelligence** sensor in the sensors → receipts → cockpit stack.
+tokmd is the **Change Surface + Repo Intelligence** instrument in the
+Effortless Metrics evidence stack.
 
 It exists to answer one reviewer / LLM question well:
 
 > “What changed, where is risk concentrated, and what should I look at first?”
 
-tokmd stays useful standalone. It integrates with the cockpit via **artifacts + receipts**, not by becoming a director.
+tokmd stays useful standalone. It integrates with cockpit, `evidencebus`, and
+other directors via **artifacts + receipts**, not by becoming the director or
+evidence backplane.
 
 ---
 
@@ -45,8 +48,15 @@ tokmd stays useful standalone. It integrates with the cockpit via **artifacts + 
 - does not decide the global merge verdict
 - does not post PR comments via network APIs
 
+**Not the evidence backplane**
+- does not validate or inventory every tool's evidence packet
+- does not own cross-tool bundle export
+- does not replace `evidencebus`
+
 **Not build truth**
-- does not run tests/coverage/clippy/bench
+- does not replace tests/coverage/clippy/bench as sources of truth
+- proof planning may route or observe those commands, but the native tools
+  produce the build evidence
 - does not map build artifacts onto diffs (covguard/lintdiff/perfgate do that)
 
 **Not machine truth**
@@ -204,15 +214,19 @@ Both `tokmd context` and `tokmd handoff` must consume the same plan to prevent d
 
 ## Interactions with the rest of the stack
 
-tokmd complements the other sensors:
+tokmd complements the other evidence producers and transport layers:
 
+- evidencebus: schema-first evidence backplane for validation, inventory,
+  bundling, and export
+- mergecode: deeper AST and semantic graph intelligence
 - builddiag / depguard / diffguard: enforce repo/diff policy contracts
 - covguard / lintdiff / perfgate: consume build outputs and map truth onto diffs
 - env-check: validates machine state
 - buildfix: applies allowlisted fixes from receipts
 - cockpitctl: ingests receipts and renders one merge surface
 
-tokmd does not replace any of these. It provides the missing “context” slice that makes the cockpit readable.
+tokmd does not replace any of these. It provides the code lens and review
+receipt slice that makes the wider evidence stack readable.
 
 ---
 
