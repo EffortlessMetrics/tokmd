@@ -169,6 +169,7 @@ fn proof_policy_includes_current_product_scopes() {
         .filter_map(toml::Value::as_str)
         .collect::<BTreeSet<_>>();
 
+    assert!(fuzz_paths.contains(".github/workflows/fuzz.yml"));
     assert!(fuzz_paths.contains("fuzz/Cargo.toml"));
     assert!(fuzz_paths.contains("fuzz/corpus/**"));
     assert!(fuzz_paths.contains("fuzz/dict/**"));

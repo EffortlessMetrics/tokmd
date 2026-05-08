@@ -60,6 +60,7 @@ coverage = false
 name = "fuzz_harnesses"
 kind = "rust"
 paths = [
+  ".github/workflows/fuzz.yml",
   "fuzz/Cargo.toml",
   "fuzz/README.md",
   "fuzz/corpus/**",
