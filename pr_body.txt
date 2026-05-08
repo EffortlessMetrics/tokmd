@@ -1,0 +1,32 @@
+## Glass Cockpit
+
+**Lane**: Scout Discovery
+**Target**: CLI Doctests (`tokmd run`, `tokmd diff`, `tokmd context`)
+
+### The Friction
+The README and official tutorials (`docs/tutorial.md`) heavily feature `tokmd run`, `tokmd diff`, and `tokmd context --budget 128k` as primary workflows. However, these commands lacked "Docs as tests" coverage in `crates/tokmd/tests/docs.rs`. This creates a risk of silent documentation drift if the CLI flags or behavior change.
+
+### Options Evaluated
+- **Option A (Recommended)**: Add tests matching the specific exact strings used in `docs/tutorial.md` and `README.md` for `tokmd run`, `tokmd diff`, and `tokmd context`.
+- **Option B**: Only test `tokmd diff` since `tokmd run` is indirectly covered by other integration tests.
+
+### The Fix
+Chose **Option A**. Appended `recipe_run_and_diff` and `recipe_context_budget` to `crates/tokmd/tests/docs.rs`, directly mapping to the user-facing documentation. The `run_and_diff` test correctly isolates execution by generating a pair of local temporary `.runs/` directories (baseline and current) and diffing them, fulfilling the architectural determinism invariants.
+
+### Receipts
+
+**doctest execution**
+```text
+running 16 tests
+test recipe_context_budget ... ok
+test recipe_run_and_diff ... ok
+[... truncated 14 others ...]
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+```
+
+**clippy & format**
+```text
+cargo fmt -- --check
+cargo clippy -p tokmd -- -D warnings
+# (passed cleanly)
+```
