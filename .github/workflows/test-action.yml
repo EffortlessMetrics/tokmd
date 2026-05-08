@@ -356,7 +356,7 @@ jobs:
           head: HEAD
           review-packet: 'true'
           comment: 'false'
-          artifact: 'false'
+          artifact: 'true'
 
       - name: Verify cockpit review packet mode
         shell: bash
