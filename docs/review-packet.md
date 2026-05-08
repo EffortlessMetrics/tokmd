@@ -90,6 +90,11 @@ Recommended evidence availability values:
 Missing, stale, degraded, and unavailable evidence should be visible in
 `comment.md`, `evidence.json`, and `manifest.json` verdict metadata.
 
+Future cockpit proof imports should follow
+[`cockpit-proof-evidence.md`](cockpit-proof-evidence.md). Imported proof must
+preserve required/advisory classification and commit freshness, and must not
+promote advisory proof into blocking evidence.
+
 ## Manifest Requirements
 
 `manifest.json` should use schema `tokmd.review_packet_manifest.v1` and include:
@@ -189,3 +194,5 @@ that uses this packet.
 - `comment.md` remains concise enough for PR comments.
 - Existing `--format comment` and `--artifacts-dir` behavior remains compatible.
 - Action artifact upload works even when comments are disabled or unavailable.
+- Future proof evidence imports preserve required/advisory status and mark
+  stale or unknown-commit evidence explicitly.
