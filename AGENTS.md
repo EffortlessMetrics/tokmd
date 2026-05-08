@@ -39,33 +39,40 @@ For cross-worktree cache reuse, use `cargo xtask sccache --basedir <PATH> -- <ca
 
 ## Architecture
 
-The codebase follows a tiered microcrate architecture: **types → scan → model → format → analysis → CLI**
+The codebase follows a tiered crate-and-module architecture:
+**types → scan/model → format/adapters → analysis/cockpit/gate → core → products**.
+Public crates represent durable contracts, facades, adapters, or products.
+Implementation details that do not need an independent package live as
+single-responsibility owner modules inside those crates.
 
 ### Crate Hierarchy
 
 | Tier | Crate | Purpose |
 |------|-------|---------|
-| 0 | `tokmd-types` | Core data structures, no dependencies |
+| 0 | `tokmd-types` | Core receipt data structures |
 | 0 | `tokmd-analysis-types` | Analysis receipt types |
+| 0 | `tokmd-settings` | Clap-free workflow settings |
+| 0 | `tokmd-envelope` | Shared sensor/FFI envelope contracts |
+| 0 | `tokmd-io-port` | Host-abstracted file access contracts |
 | 1 | `tokmd-scan` | tokei wrapper for code scanning |
 | 1 | `tokmd-model` | Aggregation logic (lang, module, file rows) |
-| 2 | `tokmd-format` | Output rendering (Markdown, TSV, JSON) |
-| 2 | `tokmd-walk` | File system traversal for assets |
-| 2 | `tokmd-content` | File content scanning (entropy, imports) |
+| 1 | `tokmd-sensor` | Sensor substrate and report builder |
+| 2 | `tokmd-format` | Output rendering, redaction, badges, export-tree, analysis rendering |
 | 2 | `tokmd-git` | Git history analysis |
 | 3 | `tokmd-analysis` | Analysis orchestration and enrichers |
-| 3 | `tokmd-analysis-format` | Analysis output rendering |
-| 3 | `tokmd-fun` | Novelty outputs (eco-label, etc.) |
+| 3 | `tokmd-cockpit` | PR cockpit metrics and review evidence |
 | 3 | `tokmd-gate` | Policy evaluation with JSON pointer rules |
 | 4 | `tokmd-core` | Library facade with FFI layer |
 | 5 | `tokmd` | CLI binary |
 | 5 | `tokmd-python` | PyO3 bindings for PyPI |
 | 5 | `tokmd-node` | napi-rs bindings for npm |
+| 5 | `tokmd-wasm` | wasm-bindgen bindings for browser/worker callers |
 
 Former helper microcrates such as redaction, scan-args, badge rendering,
-progress, module-key, path/exclude/math, tokeignore, context policy/git, and
-tool-schema now live as owner modules inside `tokmd-format`, `tokmd-scan`,
-`tokmd-model`, `tokmd-core`, or `tokmd`.
+analysis rendering, progress, module-key, path/exclude/math, tokeignore,
+context policy/git, fun renderers, content/import enrichers, and tool-schema now
+live as owner modules inside `tokmd-format`, `tokmd-scan`, `tokmd-model`,
+`tokmd-analysis`, `tokmd-core`, or `tokmd`.
 
 ### CLI Commands
 

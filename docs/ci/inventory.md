@@ -11,7 +11,7 @@ companion to `policy/ci-lane-whitelist.toml`. Update on rollout PRs.
 | `quality_gate` | Quality Gate | ubuntu | 8 | `cargo xtask gate --check`. |
 | `proof_policy` | Proof Policy | ubuntu | 3 | `cargo xtask proof-policy --check`. |
 | `affected_proof_plan` | Affected Proof Plan | ubuntu | 4 | Wrapped by PR 08 PR Plan. |
-| `feature_boundaries` | Feature Boundaries | ubuntu | 10 | Analysis microcrate boundaries. |
+| `feature_boundaries` | Feature Boundaries | ubuntu | 10 | Analysis feature/module boundaries. |
 | `typos` | Typos | ubuntu | 1 | crate-ci/typos. |
 | `cargo_deny` | Cargo Deny | ubuntu | 4 | Advisories + licenses. |
 | `version_consistency` | Version consistency | ubuntu | 2 | Release metadata alignment. |

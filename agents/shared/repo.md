@@ -32,9 +32,13 @@ git config core.hooksPath .githooks
 
 ## Architecture
 
-The codebase follows a tiered microcrate architecture:
+The codebase follows a tiered crate-and-module architecture:
 
-`types -> scan -> model -> format -> analysis -> CLI`
+`types -> scan/model -> format/adapters -> analysis/cockpit/gate -> core -> products`
+
+Public crates represent durable contracts, facades, adapters, or products.
+Implementation details that do not need an independent package live as
+single-responsibility owner modules inside those crates.
 
 Tier summary:
 
@@ -42,15 +46,16 @@ Tier summary:
 |------|---------|----------------|
 | 0 | Contracts and settings | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope`, `tokmd-io-port` |
 | 1 | Core scan and aggregation | `tokmd-scan`, `tokmd-model`, `tokmd-sensor` |
-| 2 | Adapters and rendering | `tokmd-format`, `tokmd-walk`, `tokmd-content`, `tokmd-git` |
-| 3 | Analysis orchestration | `tokmd-analysis`, `tokmd-analysis-format`, `tokmd-analysis-*`, `tokmd-fun`, `tokmd-gate` |
+| 2 | Adapters and rendering | `tokmd-format`, `tokmd-git` |
+| 3 | Analysis and review orchestration | `tokmd-analysis`, `tokmd-cockpit`, `tokmd-gate` |
 | 4 | Library facade | `tokmd-core` |
 | 5 | End-user products | `tokmd`, `tokmd-python`, `tokmd-node`, `tokmd-wasm` |
 
 Former helper microcrates such as redaction, scan-args, badge rendering,
-progress, module-key, path/exclude/math, tokeignore, context policy/git, and
-tool-schema now live as owner modules inside `tokmd-format`, `tokmd-scan`,
-`tokmd-model`, `tokmd-core`, or `tokmd`.
+analysis rendering, progress, module-key, path/exclude/math, tokeignore,
+context policy/git, fun renderers, content/import enrichers, and tool-schema now
+live as owner modules inside `tokmd-format`, `tokmd-scan`, `tokmd-model`,
+`tokmd-analysis`, `tokmd-core`, or `tokmd`.
 
 Dependency rule:
 

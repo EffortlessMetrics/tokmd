@@ -61,10 +61,10 @@ Tier 1: Core scan and aggregation
   tokmd-scan, tokmd-model, tokmd-sensor
 
 Tier 2: Adapters and rendering
-  tokmd-format, tokmd-walk, tokmd-content, tokmd-git
+  tokmd-format, tokmd-git
 
-Tier 3: Analysis orchestration
-  tokmd-analysis, tokmd-analysis-format, tokmd-analysis-*, tokmd-fun, tokmd-gate
+Tier 3: Analysis and review orchestration
+  tokmd-analysis, tokmd-cockpit, tokmd-gate
 
 Tier 4: Library facade
   tokmd-core
@@ -90,9 +90,9 @@ Supported feature flags:
 | Flag | Purpose | Tier Gate |
 |------|---------|-----------|
 | `git` | Git history analysis | Gate at Tier 2+ (tokmd-git) |
-| `content` | File content scanning | Gate at Tier 2+ (tokmd-content) |
-| `walk` | Filesystem traversal | Gate at Tier 2+ (tokmd-walk) |
-| `halstead` | Halstead metrics (requires `content` + `walk`) | Gate at Tier 2+ |
+| `content` | File content scanning | Gate at Tier 3+ (`tokmd-analysis` content modules) |
+| `walk` | Filesystem traversal helpers | Gate at Tier 1+ (`tokmd-scan` owner modules) |
+| `halstead` | Halstead metrics (requires `content` + `walk`) | Gate at Tier 3+ (`tokmd-analysis`) |
 
 **Rules**:
 - Feature gate must be applied at the crate that introduces the feature
