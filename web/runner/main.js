@@ -20,6 +20,9 @@ const clearTokenButton = document.querySelector("[data-clear-token]");
 const authStateOutput = document.querySelector("[data-auth-state]");
 const modeInput = document.querySelector("[data-mode]");
 const argsInput = document.querySelector("[data-args]");
+const localFilesInput = document.querySelector("[data-local-files]");
+const localDirectoryInput = document.querySelector("[data-local-directory]");
+const loadLocalButton = document.querySelector("[data-load-local]");
 const loadRepoButton = document.querySelector("[data-load-repo]");
 const retryLoadButton = document.querySelector("[data-retry-load]");
 const cancelLoadButton = document.querySelector("[data-cancel-load]");
@@ -46,6 +49,7 @@ const state = {
     nextRequestId: 1,
     activeRequestId: null,
     repoLoadAbortController: null,
+    localLoadActive: false,
     downloadUrl: null,
     latestResult: null,
     latestSource: null,
@@ -156,6 +160,101 @@ function currentArgsOrSample(mode) {
     return sampleArgsForMode(mode);
 }
 
+function argsWithInputs(inputs) {
+    const nextArgs = {
+        ...currentArgsOrSample(modeInput.value),
+        inputs,
+    };
+
+    if (
+        modeInput.value === "analyze" &&
+        typeof nextArgs.preset !== "string" &&
+        typeof nextArgs.analyze?.preset !== "string"
+    ) {
+        nextArgs.preset = defaultAnalyzePreset();
+    }
+
+    return nextArgs;
+}
+
+function normalizeLocalFilePath(file, index) {
+    const raw =
+        typeof file?.webkitRelativePath === "string" && file.webkitRelativePath.trim()
+            ? file.webkitRelativePath
+            : typeof file?.name === "string" && file.name.trim()
+              ? file.name
+              : `file-${index + 1}`;
+
+    return raw.replace(/\\/g, "/").replace(/^\/+/, "") || `file-${index + 1}`;
+}
+
+function compareByCodePoint(left, right) {
+    let leftIndex = 0;
+    let rightIndex = 0;
+
+    while (leftIndex < left.length && rightIndex < right.length) {
+        const leftCodePoint = left.codePointAt(leftIndex);
+        const rightCodePoint = right.codePointAt(rightIndex);
+
+        if (leftCodePoint !== rightCodePoint) {
+            return leftCodePoint < rightCodePoint ? -1 : 1;
+        }
+
+        leftIndex += leftCodePoint > 0xffff ? 2 : 1;
+        rightIndex += rightCodePoint > 0xffff ? 2 : 1;
+    }
+
+    if (leftIndex === left.length && rightIndex === right.length) {
+        return 0;
+    }
+
+    return leftIndex === left.length ? -1 : 1;
+}
+
+function localIngestReceipt(fileEntries, inputs, bytesRead) {
+    return {
+        bytesRead,
+        loadedFiles: inputs.length,
+        skippedBinaryContent: 0,
+        skippedBudget: 0,
+        partial: false,
+        partialReasons: [],
+        treeEntriesTruncated: false,
+        cache: {
+            scope: "none",
+            hit: false,
+        },
+        authMode: "local",
+        treeEntries: fileEntries.length,
+        selectedFiles: inputs.length,
+        skippedVendor: 0,
+        skippedBinaryPath: 0,
+        skippedTooLarge: 0,
+        skippedFileLimit: 0,
+        maxFiles: fileEntries.length,
+        maxBytes: bytesRead,
+        maxFileBytes: fileEntries.reduce(
+            (largest, entry) =>
+                Number.isFinite(entry.file?.size)
+                    ? Math.max(largest, entry.file.size)
+                    : largest,
+            0
+        ),
+    };
+}
+
+function selectedLocalFileEntries() {
+    return [
+        ...Array.from(localFilesInput.files ?? []),
+        ...Array.from(localDirectoryInput.files ?? []),
+    ]
+        .map((file, index) => ({
+            file,
+            path: normalizeLocalFilePath(file, index),
+        }))
+        .sort((left, right) => compareByCodePoint(left.path, right.path));
+}
+
 function clearDownloadUrl() {
     if (state.downloadUrl) {
         URL.revokeObjectURL(state.downloadUrl);
@@ -206,10 +305,14 @@ function updateRunControls() {
 }
 
 function updateRepoLoadControls() {
-    const loading = Boolean(state.repoLoadAbortController);
+    const repoLoading = Boolean(state.repoLoadAbortController);
+    const loading = repoLoading || state.localLoadActive;
+    loadLocalButton.disabled = loading;
+    localFilesInput.disabled = loading;
+    localDirectoryInput.disabled = loading;
     loadRepoButton.disabled = loading;
     retryLoadButton.disabled = loading || !isRetryableLoadError(state.latestLoadError);
-    cancelLoadButton.disabled = !loading;
+    cancelLoadButton.disabled = !repoLoading;
     repoInput.disabled = loading;
     refInput.disabled = loading;
     tokenInput.disabled = loading;
@@ -263,16 +366,20 @@ function renderWorkerCapabilities(message) {
 
 function renderRepoCapabilities() {
     const lastAuthMode = state.latestIngest?.authMode ?? "anonymous";
-    const lastCache = state.latestIngest?.cache?.hit
-        ? "memory hit"
-        : state.latestIngest
-          ? "memory miss"
-          : "not loaded yet";
+    const lastCache =
+        state.latestIngest?.cache?.scope === "none"
+            ? "none"
+            : state.latestIngest?.cache?.hit
+              ? "memory hit"
+              : state.latestIngest
+                ? "memory miss"
+                : "not loaded yet";
     const lines = [
-        "strategy: GitHub tree + contents",
+        "strategy: GitHub tree + contents or local files",
         "tokenAuth: optional",
         "repoLoadProgress: yes",
         "repoLoadCancel: yes",
+        "localFiles: yes",
         "runCancel: no (worker protocol reserved only)",
         "cache: in-memory",
         "partialWarnings: surfaced",
@@ -667,18 +774,7 @@ loadRepoButton.addEventListener("click", async () => {
                 setStatus(loadStatusOutput, update.message, "working");
             },
         });
-        const nextArgs = {
-            ...currentArgsOrSample(modeInput.value),
-            inputs: result.inputs,
-        };
-
-        if (
-            modeInput.value === "analyze" &&
-            typeof nextArgs.preset !== "string" &&
-            typeof nextArgs.analyze?.preset !== "string"
-        ) {
-            nextArgs.preset = defaultAnalyzePreset();
-        }
+        const nextArgs = argsWithInputs(result.inputs);
 
         state.latestSource = result.source;
         state.latestIngest = result.ingest;
@@ -729,6 +825,94 @@ loadRepoButton.addEventListener("click", async () => {
         if (state.repoLoadAbortController === controller) {
             state.repoLoadAbortController = null;
         }
+        updateRepoLoadControls();
+    }
+});
+
+loadLocalButton.addEventListener("click", async () => {
+    const fileEntries = selectedLocalFileEntries();
+
+    if (fileEntries.length === 0) {
+        setStatus(loadStatusOutput, "choose local files or a directory first", "warning");
+        return;
+    }
+
+    state.localLoadActive = true;
+    state.latestLoadError = null;
+    updateRepoLoadControls();
+    renderLoadProgress({
+        phase: "start",
+        current: 0,
+        total: fileEntries.length,
+        message: `Reading ${fileEntries.length} local file(s)`,
+    });
+    setStatus(loadStatusOutput, `reading ${fileEntries.length} local file(s)...`, "working");
+
+    try {
+        const inputs = [];
+        let bytesRead = 0;
+
+        for (const [index, { file, path }] of fileEntries.entries()) {
+            renderLoadProgress({
+                phase: "files",
+                current: index + 1,
+                total: fileEntries.length,
+                loadedFiles: inputs.length,
+                message: `Reading ${path}`,
+            });
+
+            const text = await file.text();
+            bytesRead += Number.isFinite(file?.size)
+                ? file.size
+                : new TextEncoder().encode(text).byteLength;
+            inputs.push({ path, text });
+        }
+
+        if (inputs.length === 0) {
+            throw new Error("No local files were loaded.");
+        }
+
+        const source = {
+            repo: "local files",
+            ref: "browser",
+            strategy: "local-file-input",
+        };
+        const ingest = localIngestReceipt(fileEntries, inputs, bytesRead);
+
+        state.latestSource = source;
+        state.latestIngest = ingest;
+        state.latestLoadError = null;
+        renderRepoCapabilities();
+        renderIngestSummary();
+        argsInput.value = JSON.stringify(argsWithInputs(inputs), null, 2);
+        appendLog("local files -> main", {
+            source,
+            ingest,
+            samplePaths: inputs.slice(0, 5).map((input) => input.path),
+        });
+        renderLoadProgress({
+            phase: "complete",
+            current: inputs.length,
+            total: inputs.length,
+            loadedFiles: inputs.length,
+            message: `Loaded ${inputs.length} local file(s)`,
+        });
+        setStatus(loadStatusOutput, `loaded ${inputs.length} local file(s)`, "success");
+    } catch (error) {
+        const localError = error instanceof Error ? error : new Error(String(error));
+        state.latestLoadError = localError;
+        renderRepoCapabilities();
+        renderIngestSummary();
+        appendLog("local files error -> main", sanitizeErrorForLog(localError));
+        renderLoadProgress({
+            phase: "error",
+            current: 0,
+            total: fileEntries.length,
+            message: localError.message,
+        });
+        setStatus(loadStatusOutput, `local file load failed: ${localError.message}`, "error");
+    } finally {
+        state.localLoadActive = false;
         updateRepoLoadControls();
     }
 });

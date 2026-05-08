@@ -61,7 +61,18 @@
               <textarea id="args" data-args spellcheck="false"></textarea>
             </div>
 
+            <div class="field">
+              <label for="local-files">Local Files</label>
+              <input id="local-files" data-local-files type="file" multiple>
+            </div>
+
+            <div class="field">
+              <label for="local-directory">Local Directory</label>
+              <input id="local-directory" data-local-directory type="file" multiple webkitdirectory>
+            </div>
+
             <div class="actions">
+              <button class="secondary" type="button" data-load-local>Load Local Files</button>
               <button class="secondary" type="button" data-load-repo>Load GitHub Repo</button>
               <button class="secondary" type="button" data-retry-load disabled>Retry Repo Load</button>
               <button class="secondary" type="button" data-cancel-load disabled>Cancel Repo Load</button>

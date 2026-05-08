@@ -19,6 +19,8 @@ Use this project when you want `tokmd` inside a browser worker, backed by
   by actual exported entrypoints
 - mode controls that disable unavailable worker modes and choose a supported
   default analyze preset from the loaded bundle
+- local file or directory selection that fills the existing ordered in-memory
+  `inputs` payload without requiring GitHub or network access
 - worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - visible run-progress and repo-load-progress panels in the browser shell
 - session-only GitHub token UX with explicit clear behavior
@@ -75,6 +77,13 @@ Cache lifecycle:
 - Page refreshes and new browser processes start with an empty cache.
 
 Concurrent callers for the same key share the in-flight network load. Each waiter keeps its own `AbortSignal`, so canceling one waiter does not cancel the shared load for other waiters.
+
+## Local file ingest
+
+The browser shell can also read selected local files or directories and replace
+the current args with ordered `{ path, text }` inputs. Directory selections use
+browser-provided relative paths when available, normalize path separators to
+`/`, and do not touch the GitHub cache or token state.
 
 ## Go deeper
 

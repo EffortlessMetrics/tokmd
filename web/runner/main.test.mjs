@@ -24,6 +24,7 @@ class FakeElement {
         this.className = "";
         this.dataset = {};
         this.disabled = false;
+        this.files = [];
         this.hidden = false;
         this.max = 1;
         this.options = [];
@@ -110,6 +111,9 @@ function createDocumentHarness() {
         ["[data-auth-state]", ""],
         ["[data-mode]", "lang"],
         ["[data-args]", ""],
+        ["[data-local-files]", ""],
+        ["[data-local-directory]", ""],
+        ["[data-load-local]", ""],
         ["[data-load-repo]", ""],
         ["[data-retry-load]", ""],
         ["[data-cancel-load]", ""],
@@ -421,6 +425,93 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     assert.equal(storage.getItem("tokmd.githubToken"), null);
     assert.equal(authState.textContent, "anonymous");
     assert.equal(clearTokenButton.disabled, true);
+});
+
+test("main page loads local files into worker args without GitHub fetch", async (t) => {
+    const harness = installBrowserHarness(t, {
+        storage: createMemoryStorage(),
+        fetchImpl: async () => {
+            throw new Error("GitHub fetch should not run for local files");
+        },
+    });
+
+    await import(`./main.js?localFiles=${Date.now()}`);
+    const worker = FakeWorker.instances[0];
+
+    worker.emit({
+        type: "ready",
+        protocolVersion: 2,
+        capabilities: {
+            modes: ["lang", "module", "export", "analyze"],
+            analyzePresets: ["receipt", "estimate"],
+            wasm: true,
+            downloads: true,
+            progress: true,
+            cancel: false,
+            zipball: false,
+        },
+        engine: {
+            version: "test",
+            schemaVersion: 2,
+            analysisSchemaVersion: 9,
+        },
+    });
+
+    const runButton = harness.element("[data-run]");
+    const resultOutput = harness.element("[data-result]");
+    const localFilesInput = harness.element("[data-local-files]");
+    const loadLocalButton = harness.element("[data-load-local]");
+    const loadStatusOutput = harness.element("[data-load-status]");
+    const loadProgressText = harness.element("[data-load-progress-text]");
+    const repoCapabilitiesOutput = harness.element("[data-repo-capabilities]");
+    const logOutput = harness.element("[data-log]");
+
+    await runButton.click();
+    const runMessage = worker.messages.at(-1);
+    worker.emit({
+        type: "result",
+        requestId: runMessage.requestId,
+        data: {
+            mode: "lang",
+            total: { files: 1 },
+        },
+    });
+    const resultBeforeLocalLoad = resultOutput.textContent;
+
+    localFilesInput.files = [
+        {
+            name: "lib.rs",
+            size: 20,
+            async text() {
+                return "pub fn local() {}\n";
+            },
+        },
+        {
+            name: "readme.md",
+            webkitRelativePath: "docs\\readme.md",
+            size: 26,
+            async text() {
+                return "super-secret-local-text\n";
+            },
+        },
+    ];
+
+    await loadLocalButton.click();
+
+    const args = JSON.parse(harness.element("[data-args]").value);
+    assert.deepEqual(
+        args.inputs.map((input) => input.path),
+        ["docs/readme.md", "lib.rs"]
+    );
+    assert.equal(args.inputs[0].text, "super-secret-local-text\n");
+    assert.equal(args.inputs[1].text, "pub fn local() {}\n");
+    assert.match(loadStatusOutput.textContent, /loaded 2 local file\(s\)/);
+    assert.match(loadProgressText.textContent, /Loaded 2 local file\(s\)/);
+    assert.match(repoCapabilitiesOutput.textContent, /localFiles: yes/);
+    assert.match(repoCapabilitiesOutput.textContent, /lastAuthMode: local/);
+    assert.match(repoCapabilitiesOutput.textContent, /lastCache: none/);
+    assert.equal(resultOutput.textContent, resultBeforeLocalLoad);
+    assert.doesNotMatch(collectText(logOutput), /super-secret-local-text/);
 });
 
 test("main page constrains mode controls to worker capabilities", async (t) => {
