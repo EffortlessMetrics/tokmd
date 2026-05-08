@@ -1,30 +1,27 @@
 # Decision
 
 ## Context
-The `workspace-wide` shard involves structural or meta work across the entire repository. The `Archivist` persona is tasked with improving Jules itself by consolidating run packets, friction, learnings, and shared scaffolding. Specifically, target #4 states: "move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files."
+The Archivist persona focuses on improving Jules itself by consolidating learnings and sharing scaffolding. Target ranking #2 is "summarize per-run packets into generated indexes/rollups", and target #1 is "consolidate recurring friction themes into better templates/policy/docs".
 
-Currently, 16 different persona README files under `.jules/personas/*/README.md` contain an identical `## Notes` section (or duplicated lines) that instructs the agent:
-`Use this persona's notes/ directory only for **reusable learnings** that later runs can benefit from.`
-`Do not write per-run summaries here; per-run packets belong under .jules/runs/<run-id>/.`
+Looking at the generated indexes (`.jules/index/generated/RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md`), they are currently out-of-date and missing some metadata, which is exposed by running `cargo xtask jules-index`. Also, the `FRICTION_ROLLUP.md` shows missing or "Unknown" metadata for friction items like `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` because they don't conform precisely to the metadata schema in `.jules/runbooks/FRICTION_ITEM.md`.
 
-These instructions are neutral and shared, not persona-specific. However, the `archivist` persona also contains a prompt-critical instruction in its `## Notes` section:
-`Do not remove prompt-critical instructions from persona README files just because they also appear in shared docs; personas are sent individually.`
+## Options considered
 
-## Options
+### Option A: Clean up friction items metadata and regenerate the indexes (Recommended)
+1. Fix the metadata frontmatter in the `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` friction items so they match the expected schema from the runbook.
+2. Run `cargo xtask jules-index` to update the generated `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` files.
+3. Commit these changes.
 
-### Option A: Consolidate shared `notes/` instructions into `.jules/README.md` (Recommended)
-Remove the identical duplicated lines about `notes/` and `runs/` directory usage from all 16 persona README files. For personas like `archivist` that have additional prompt-critical instructions in the `## Notes` section, retain those specific instructions. Ensure `.jules/README.md` and `.jules/runbooks/RUN_PACKET.md` already clearly specify these rules (which they do, mostly, but we can make it explicit in `.jules/README.md` under "Storage rules").
+- **Structure**: High. Brings disparate friction items into compliance with the official runbook.
+- **Velocity**: Low impact on product code velocity, but improves Jules system health.
+- **Governance**: High. The generated indexes will now correctly track all friction items and run statuses.
 
-- **Structure**: Reduces duplication and centralizes neutral shared policy in the shared `.jules/README.md`. Follows target #4 directly.
-- **Velocity**: Future personas won't need to copy-paste this boilerplate.
-- **Governance**: Policy updates regarding run packets or notes happen in one place.
+### Option B: Only regenerate the indexes without fixing the friction metadata
+1. Just run `cargo xtask jules-index`.
 
-### Option B: Leave as-is and add a new policy file
-Create a new file like `.jules/policy/notes.md` detailing how to use notes, but leave the duplicated lines in the persona READMEs.
-
-- **Structure**: Increases documentation fragmentation without removing the duplication.
-- **Velocity**: Requires maintaining two sources of truth for the same policy.
-- **Governance**: Agents might get confused between the shared policy and the persona README.
+- **Structure**: Low. The indexes will still show "Unknown" values for important metadata.
+- **Velocity**: Low.
+- **Governance**: Low. We leave broken metadata in the repo.
 
 ## Decision
-**Option A**. It directly fulfills target #4 of the Archivist persona's mission ("move only neutral shared conventions into shared guidance; keep prompt-critical persona instructions in the individual persona README files"). It reduces noise in 16 files while preserving the prompt-critical instruction for the `archivist` persona.
+**Option A**. By fixing the friction item metadata frontmatter to align with `.jules/runbooks/FRICTION_ITEM.md` and then regenerating the indexes, we accomplish both target #1 (consolidate friction themes/docs) and target #2 (summarize into generated indexes/rollups).
