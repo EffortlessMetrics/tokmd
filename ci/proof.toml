@@ -248,6 +248,19 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "analysis_ast_shadow"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis/Cargo.toml",
+  "crates/tokmd-analysis/src/ast/**",
+  "docs/adr/0008-ast-foundation.md",
+]
+packages = ["tokmd-analysis"]
+proof = ["cargo test -p tokmd-analysis --features ast ast --verbose"]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "analysis_complexity"
 kind = "rust"
 paths = [

@@ -164,6 +164,10 @@ architecture-consolidation program.
 - ADR-0008 now defines the AST foundation as feature-gated, Rust-first, and
   shadow-mode-only until real comparison evidence justifies schema or default
   metric changes.
+- The first `tokmd-analysis` AST scaffold now exists behind the `ast` feature
+  with shadow-only capability metadata, stable shadow artifact names, and a
+  dedicated proof-policy scope. It adds no parser dependency and changes no
+  default receipts.
 
 ## References
 

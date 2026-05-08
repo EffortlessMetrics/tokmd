@@ -23,6 +23,8 @@ mod api_surface;
 mod archetype;
 #[cfg(feature = "walk")]
 mod assets;
+#[cfg(feature = "ast")]
+pub mod ast;
 mod cocomo81_core;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod complexity;
