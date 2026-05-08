@@ -391,6 +391,10 @@ jobs:
           done
           grep -q '"schema": "tokmd.review_packet_manifest.v1"' .tokmd/review/manifest.json
           grep -q '"schema": "tokmd.review_map.v1"' .tokmd/review/review-map.json
+          grep -q 'Hosted packet' .tokmd/review/comment.md
+          grep -q 'Workflow run:' .tokmd/review/comment.md
+          grep -q 'Artifact: `tokmd-receipts`' .tokmd/review/comment.md
+          grep -q 'Packet path: `.tokmd/review`' .tokmd/review/comment.md
 
       - name: Clean generated files
         shell: bash

@@ -376,6 +376,34 @@ runs:
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
+    - name: Annotate Review Packet Comment
+      if: steps.generate.outputs['review-packet'] != '' && steps.generate.outputs.summary != ''
+      shell: bash
+      env:
+        SUMMARY_FILE: ${{ steps.generate.outputs.summary }}
+        REVIEW_PACKET_DIR: ${{ steps.generate.outputs['review-packet'] }}
+        ARTIFACT_ENABLED: ${{ inputs.artifact }}
+        RUN_ID: ${{ github.run_id }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+
+        if [ ! -f "$SUMMARY_FILE" ]; then
+          exit 0
+        fi
+
+        {
+          echo
+          echo "**Hosted packet**:"
+          if [ "$ARTIFACT_ENABLED" = "true" ]; then
+            echo "- Workflow run: [$RUN_ID]($RUN_URL)"
+            echo "- Artifact: \`tokmd-receipts\`"
+          else
+            echo "- Workflow artifact upload: disabled"
+          fi
+          echo "- Packet path: \`$REVIEW_PACKET_DIR\`"
+        } >> "$SUMMARY_FILE"
+
     - name: Upload Artifact
       if: inputs.artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
