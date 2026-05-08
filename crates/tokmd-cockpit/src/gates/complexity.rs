@@ -4,7 +4,7 @@ use anyhow::Result;
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 use tokmd_types::cockpit::*;
 
-use super::is_relevant_rust_source;
+use super::rust_source::is_relevant_rust_source;
 use crate::{COMPLEXITY_THRESHOLD, FileStat, round_pct};
 
 /// Compute complexity gate.

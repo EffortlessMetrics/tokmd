@@ -4,7 +4,7 @@ use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 use tokmd_types::cockpit::*;
 
-use super::is_relevant_rust_source;
+use super::rust_source::is_relevant_rust_source;
 use crate::FileStat;
 
 /// Get the current HEAD commit hash.
