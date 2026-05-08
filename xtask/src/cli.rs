@@ -60,6 +60,8 @@ pub enum Commands {
     CheckClippyExceptions(ClippyExceptionsArgs),
     /// Generate the LEM-aware advisory PR Plan
     CiPlan(CiPlanArgs),
+    /// Generate Jules run and friction rollup indexes
+    JulesIndex(JulesIndexArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
@@ -87,6 +89,13 @@ pub struct DocsArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct VersionConsistencyArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct JulesIndexArgs {
+    /// Verify generated Jules indexes are up to date without writing files
+    #[arg(long)]
+    pub check: bool,
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct LintPolicyArgs {}

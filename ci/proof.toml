@@ -129,6 +129,7 @@ paths = [
   "xtask/src/tasks/coverage_receipt.rs",
   "xtask/src/tasks/file_policy.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
+  "xtask/src/tasks/jules_index.rs",
   "xtask/src/tasks/proof_artifacts_check.rs",
   "xtask/src/tasks/proof_policy.rs",
   "xtask/src/tasks/proof_plan.rs",
@@ -146,6 +147,7 @@ proof = [
   "cargo test -p xtask affected --verbose",
   "cargo test -p xtask ci_actuals --verbose",
   "cargo test -p xtask fixture_blob --verbose",
+  "cargo test -p xtask jules_index --verbose",
   "cargo test -p xtask proof_artifacts --verbose",
   "cargo test -p xtask proof_plan --verbose",
 ]
@@ -768,6 +770,9 @@ coverage = false
 name = "file_policy"
 kind = "non_rust"
 paths = [
+  "_fix_branch.ps1",
+  "run_checks.ps1",
+  "run_tests.bat",
   "docs/FILE_POLICY.md",
   "policy/non-rust-allowlist.toml",
   "*.patch",

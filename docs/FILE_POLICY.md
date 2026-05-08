@@ -12,6 +12,9 @@ tokmd is Rust-first but legitimately contains non-Rust surfaces:
 - Vendored / patched dependencies
 
 These should be **explicit, owned, and covered** rather than tolerated by silence.
+Prefer Rust-native tooling (`cargo xtask ...`) for generated or automatable repo
+workflows; keep non-Rust files only when the consuming platform requires that
+format or runtime.
 
 ## Allowlist shape
 
