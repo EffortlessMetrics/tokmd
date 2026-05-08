@@ -35,7 +35,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 | **v1.9.0** | ✅ Complete | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
-| **v1.11.0** | 🔭 Planned | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
 | **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
@@ -551,12 +551,12 @@ UX work is explicitly **incremental and non-breaking**:
 
 **Goal:** Deliver the browser runtime polish deferred from the v1.10 release fence: explicit cache semantics, visible progress, resilient fetch UX, and safe authenticated-fetch boundaries.
 
-### What is planned for v1.11.0
+### What shipped for v1.11.0
 
-- Browser cache key/invalidation semantics.
-- Browser progress events.
-- Retry and rate-limit UX.
-- Auth-safe fetch/cache boundaries.
+- [x] Browser cache key/invalidation semantics.
+- [x] Browser worker and repo-load progress visibility.
+- [x] Retry and rate-limit UX with retry-after guidance.
+- [x] Auth-safe fetch/cache boundaries with session-only token state.
 
 ## Future Horizons
 

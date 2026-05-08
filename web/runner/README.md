@@ -21,7 +21,8 @@ Use this project when you want `tokmd` inside a browser worker, backed by
   default analyze preset from the loaded bundle
 - local file or directory selection that fills the existing ordered in-memory
   `inputs` payload without requiring GitHub or network access
-- worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
+- worker run progress events for `start`, `fetch`, optional `analyze`, `done`,
+  and `error`
 - visible run-progress and repo-load-progress panels in the browser shell
 - session-only GitHub token UX with explicit clear behavior and rejected-token
   state

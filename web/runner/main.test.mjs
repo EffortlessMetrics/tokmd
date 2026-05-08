@@ -338,6 +338,14 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     });
     assert.match(runProgressText.textContent, /Starting lang run/);
     worker.emit({
+        type: "progress",
+        requestId: runMessage.requestId,
+        phase: "fetch",
+        mode: "lang",
+        message: "Fetching in-memory inputs",
+    });
+    assert.match(runProgressText.textContent, /Fetching in-memory inputs/);
+    worker.emit({
         type: "result",
         requestId: runMessage.requestId,
         data: {

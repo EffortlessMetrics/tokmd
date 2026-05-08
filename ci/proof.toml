@@ -608,9 +608,11 @@ name = "project_truth_docs"
 kind = "non_rust"
 paths = [
   "ROADMAP.md",
+  "docs/NOW.md",
   "docs/architecture.md",
   "docs/design.md",
   "docs/implementation-plan.md",
+  "docs/progress-events.md",
   "docs/requirements.md",
   "docs/specification.md",
 ]

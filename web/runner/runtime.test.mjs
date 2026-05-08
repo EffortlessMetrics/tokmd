@@ -397,7 +397,7 @@ test("runtime returns results once a runner is available", async () => {
     assert.equal(message.data.total.files, 1);
     assert.deepEqual(
         progress.map((update) => update.phase),
-        ["start", "scan", "done"]
+        ["start", "fetch", "done"]
     );
     assert.deepEqual(
         progress.map((update) => update.type),
@@ -427,7 +427,7 @@ test("analyze without preset defaults to receipt and returns a result", async ()
     assert.equal(message.data.preset, "receipt");
     assert.deepEqual(
         progress.map((update) => update.phase),
-        ["start", "analyze", "done"]
+        ["start", "fetch", "analyze", "done"]
     );
 });
 
@@ -491,7 +491,38 @@ test("runtime emits error progress when runner execution fails", async () => {
     assert.equal(message.error.code, "invalid_settings");
     assert.deepEqual(
         progress.map((update) => update.phase),
-        ["start", "scan", "error"]
+        ["start", "fetch", "error"]
     );
     assert.match(progress.at(-1).message, /Cannot use both paths and inputs/);
+});
+
+test("runtime emits analyze progress before analyze runner failures", async () => {
+    const progress = [];
+    const runner = {
+        runAnalyze() {
+            throw new Error("[analysis_failed] analysis exploded");
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-analyze-progress-error",
+            mode: "analyze",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        {
+            runner,
+            onProgress: (update) => progress.push(update),
+        }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "analysis_failed");
+    assert.deepEqual(
+        progress.map((update) => update.phase),
+        ["start", "fetch", "analyze", "error"]
+    );
+    assert.match(progress.at(-1).message, /analysis exploded/);
 });

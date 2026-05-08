@@ -69,8 +69,8 @@ async function invokeRunner(runner, mode, args) {
     }
 }
 
-function progressPhaseForMode(mode) {
-    return mode === "analyze" ? "analyze" : "scan";
+function progressPhasesForMode(mode) {
+    return mode === "analyze" ? ["fetch", "analyze"] : ["fetch"];
 }
 
 function emitProgress(onProgress, message) {
@@ -157,13 +157,18 @@ export async function handleRunnerMessage(message, options = {}) {
                 message: `Starting ${message.mode} run`,
             })
         );
-        emitProgress(
-            onProgress,
-            createProgressMessage(message.requestId, progressPhaseForMode(message.mode), {
-                mode: message.mode,
-                message: `Running ${message.mode}`,
-            })
-        );
+        for (const phase of progressPhasesForMode(message.mode)) {
+            emitProgress(
+                onProgress,
+                createProgressMessage(message.requestId, phase, {
+                    mode: message.mode,
+                    message:
+                        phase === "fetch"
+                            ? "Fetching in-memory inputs"
+                            : `Running ${message.mode}`,
+                })
+            );
+        }
         const data = await invokeRunner(runner, message.mode, message.args);
         emitProgress(
             onProgress,

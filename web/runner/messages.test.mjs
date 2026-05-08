@@ -116,9 +116,9 @@ test("run and cancel helpers produce valid protocol messages", () => {
 });
 
 test("progress helper produces protocol messages with stable fields", () => {
-    const message = createProgressMessage("run-1", "scan", {
+    const message = createProgressMessage("run-1", "fetch", {
         mode: "lang",
-        message: "Scanning inputs",
+        message: "Fetching in-memory inputs",
         current: 1,
         total: 3,
     });
@@ -126,9 +126,9 @@ test("progress helper produces protocol messages with stable fields", () => {
     assert.deepEqual(message, {
         type: MESSAGE_TYPES.PROGRESS,
         requestId: "run-1",
-        phase: "scan",
+        phase: "fetch",
         mode: "lang",
-        message: "Scanning inputs",
+        message: "Fetching in-memory inputs",
         current: 1,
         total: 3,
     });

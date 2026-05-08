@@ -209,6 +209,7 @@ test("worker forwards nested scan inputs through the stub runner", async () => {
                 MESSAGE_TYPES.PROGRESS,
                 MESSAGE_TYPES.PROGRESS,
                 MESSAGE_TYPES.PROGRESS,
+                MESSAGE_TYPES.PROGRESS,
                 MESSAGE_TYPES.RESULT,
             ]
         );
@@ -216,7 +217,7 @@ test("worker forwards nested scan inputs through the stub runner", async () => {
             messages
                 .filter((message) => message.type === MESSAGE_TYPES.PROGRESS)
                 .map((message) => message.phase),
-            ["start", "analyze", "done"]
+            ["start", "fetch", "analyze", "done"]
         );
     } finally {
         await worker.terminate();
