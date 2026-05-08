@@ -376,7 +376,8 @@ runs:
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
-    - name: Annotate Review Packet Comment
+    - name: Prepare Review Packet Comment
+      id: review_packet_comment
       if: steps.generate.outputs['review-packet'] != '' && steps.generate.outputs.summary != ''
       shell: bash
       env:
@@ -392,6 +393,9 @@ runs:
           exit 0
         fi
 
+        comment_file="tokmd-review-packet-comment.md"
+        cp "$SUMMARY_FILE" "$comment_file"
+
         {
           echo
           echo "**Hosted packet**:"
@@ -402,7 +406,9 @@ runs:
             echo "- Workflow artifact upload: disabled"
           fi
           echo "- Packet path: \`$REVIEW_PACKET_DIR\`"
-        } >> "$SUMMARY_FILE"
+        } >> "$comment_file"
+
+        echo "comment-file=$comment_file" >> "$GITHUB_OUTPUT"
 
     - name: Upload Artifact
       if: inputs.artifact == 'true'
@@ -415,6 +421,7 @@ runs:
           ${{ steps.generate.outputs['gate-verdict'] }}
           ${{ steps.generate.outputs['cockpit-report'] }}
           ${{ steps.generate.outputs['review-packet'] }}
+          ${{ steps.review_packet_comment.outputs['comment-file'] }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
           extras/
@@ -423,7 +430,7 @@ runs:
       if: inputs.comment == 'true' && github.event_name == 'pull_request' && steps.generate.outputs.summary != ''
       uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
       with:
-        file-path: ${{ steps.generate.outputs.summary }}
+        file-path: ${{ steps.review_packet_comment.outputs['comment-file'] || steps.generate.outputs.summary }}
         comment_tag: tokmd-summary
 
     - name: Publish workflow summary

@@ -147,11 +147,13 @@ The Action uploads the packet as an artifact when `artifact: 'true'` and
 `review-packet: 'true'` are both set. Comment posting remains fork-safe and is
 not required for packet generation.
 
-When the composite Action generates a review packet, it appends a hosted-packet
-block to `.tokmd/review/comment.md` before artifact upload and PR commenting.
-With artifact upload enabled, that block points to the workflow run, the
-`tokmd-receipts` artifact, and the packet path. With artifact upload disabled,
-it states that the packet was not uploaded.
+When the composite Action generates a review packet, it copies
+`.tokmd/review/comment.md` to `tokmd-review-packet-comment.md` and appends a
+hosted-packet block to that comment copy before artifact upload and PR
+commenting. With artifact upload enabled, that block points to the workflow run,
+the `tokmd-receipts` artifact, and the packet path. With artifact upload
+disabled, it states that the packet was not uploaded. The packet-local
+`comment.md` is not mutated after `manifest.json` hashes are written.
 
 Action inputs build on the cockpit surface first:
 
