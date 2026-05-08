@@ -677,7 +677,7 @@ loadRepoButton.addEventListener("click", async () => {
             typeof nextArgs.preset !== "string" &&
             typeof nextArgs.analyze?.preset !== "string"
         ) {
-            nextArgs.preset = "estimate";
+            nextArgs.preset = defaultAnalyzePreset();
         }
 
         state.latestSource = result.source;

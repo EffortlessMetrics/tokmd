@@ -492,3 +492,56 @@ test("main page constrains mode controls to worker capabilities", async (t) => {
     assert.equal(runButton.disabled, true);
     assert.equal(modeInput.options.find((option) => option.value === "analyze").disabled, true);
 });
+
+test("repo load uses the loaded wasm analyze preset fallback", async (t) => {
+    const harness = installBrowserHarness(t, {
+        storage: createMemoryStorage(),
+        fetchImpl: async (url) => {
+            if (url.includes("/git/trees/")) {
+                return jsonResponse({
+                    tree: [{ path: "src/lib.rs", size: 32, type: "blob" }],
+                });
+            }
+
+            if (url.includes("/contents/src/lib.rs")) {
+                return textResponse("pub fn alpha() -> usize { 1 }\n");
+            }
+
+            throw new Error(`unexpected fetch url: ${url}`);
+        },
+    });
+
+    await import(`./main.js?analyzePresetFallback=${Date.now()}`);
+    const worker = FakeWorker.instances[0];
+    const argsInput = harness.element("[data-args]");
+    const loadRepoButton = harness.element("[data-load-repo]");
+    const modeInput = harness.element("[data-mode]");
+
+    worker.emit({
+        type: "ready",
+        protocolVersion: 2,
+        capabilities: {
+            modes: ["analyze"],
+            analyzePresets: ["receipt"],
+            wasm: true,
+            downloads: true,
+            progress: true,
+            cancel: false,
+            zipball: false,
+        },
+        engine: {
+            version: "test",
+            schemaVersion: 2,
+            analysisSchemaVersion: 9,
+        },
+    });
+
+    assert.equal(modeInput.value, "analyze");
+    argsInput.value = JSON.stringify({ inputs: [] }, null, 2);
+
+    await loadRepoButton.click();
+
+    assert.match(argsInput.value, /"preset": "receipt"/);
+    assert.doesNotMatch(argsInput.value, /"preset": "estimate"/);
+    assert.match(argsInput.value, /src\/lib\.rs/);
+});
