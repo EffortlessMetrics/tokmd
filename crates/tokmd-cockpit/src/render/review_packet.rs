@@ -292,12 +292,19 @@ fn review_packet_review_map(receipt: &CockpitReceipt) -> Value {
         "base_ref": receipt.base_ref,
         "head_ref": receipt.head_ref,
         "source": "cockpit.review_plan",
+        "evidence": {
+            "summary": review_packet_evidence_summary(receipt),
+            "groups": review_packet_evidence_capabilities(receipt),
+            "refs": ["evidence.json#/gates"],
+        },
         "item_count": items.len(),
         "items": items,
     })
 }
 
 fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> Value {
+    let evidence = review_map_item_evidence(item, receipt);
+
     json!({
         "rank": idx + 1,
         "path": &item.path,
@@ -310,6 +317,16 @@ fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> V
             format!("cockpit.json#/review_plan/{idx}"),
             "evidence.json#/gates",
         ],
+        "evidence": {
+            "status": evidence.status(),
+            "present": evidence.present,
+            "missing": evidence.missing,
+            "degraded": evidence.degraded,
+            "stale": evidence.stale,
+            "skipped": evidence.skipped,
+            "unavailable": evidence.unavailable,
+            "refs": ["evidence.json#/gates"],
+        },
         "reproduce": [
             format!(
                 "tokmd cockpit --base {} --head {} --format json",
@@ -321,6 +338,67 @@ fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> V
             ),
         ],
     })
+}
+
+#[derive(Default)]
+struct ReviewMapItemEvidence {
+    present: Vec<&'static str>,
+    missing: Vec<&'static str>,
+    degraded: Vec<&'static str>,
+    stale: Vec<&'static str>,
+    skipped: Vec<&'static str>,
+    unavailable: Vec<&'static str>,
+}
+
+impl ReviewMapItemEvidence {
+    fn status(&self) -> &'static str {
+        if !self.missing.is_empty() {
+            "missing"
+        } else if !self.stale.is_empty() {
+            "stale"
+        } else if !self.degraded.is_empty() {
+            "degraded"
+        } else if !self.present.is_empty() {
+            "available"
+        } else if !self.skipped.is_empty() {
+            "skipped"
+        } else {
+            "unavailable"
+        }
+    }
+}
+
+fn review_map_item_evidence(item: &ReviewItem, receipt: &CockpitReceipt) -> ReviewMapItemEvidence {
+    let mut evidence = ReviewMapItemEvidence::default();
+
+    for (id, meta) in review_packet_evidence_gate_specs(receipt) {
+        if !evidence_gate_applies_to_item(meta, item) {
+            continue;
+        }
+
+        match evidence_availability_optional(meta) {
+            "available" => evidence.present.push(id),
+            "missing" => evidence.missing.push(id),
+            "degraded" => evidence.degraded.push(id),
+            "stale" => evidence.stale.push(id),
+            "skipped" => evidence.skipped.push(id),
+            "unavailable" => evidence.unavailable.push(id),
+            _ => {}
+        }
+    }
+
+    evidence
+}
+
+fn evidence_gate_applies_to_item(meta: Option<&GateMeta>, item: &ReviewItem) -> bool {
+    let Some(meta) = meta else {
+        return false;
+    };
+
+    let is_global = meta.scope.relevant.is_empty() && meta.scope.tested.is_empty();
+    is_global
+        || meta.scope.relevant.iter().any(|path| path == &item.path)
+        || meta.scope.tested.iter().any(|path| path == &item.path)
 }
 
 fn review_priority_label(priority: u32) -> &'static str {
@@ -341,17 +419,34 @@ fn render_review_map_md(receipt: &CockpitReceipt) -> String {
     let _ = writeln!(s, "Head: `{}`", receipt.head_ref);
     let _ = writeln!(s);
 
+    let evidence = evidence_counts(receipt);
+    let _ = writeln!(
+        s,
+        "Evidence overview: {} available, {} degraded, {} stale, {} skipped, {} unavailable, {} missing.",
+        evidence.available,
+        evidence.degraded,
+        evidence.stale,
+        evidence.skipped,
+        evidence.unavailable,
+        evidence.missing,
+    );
+    let _ = writeln!(s);
+
     if receipt.review_plan.is_empty() {
         let _ = writeln!(s, "No prioritized files were identified.");
         return s;
     }
 
+    let _ = writeln!(s, "## Review First");
+    let _ = writeln!(s);
+
     for (idx, item) in receipt.review_plan.iter().enumerate() {
+        let evidence = review_map_item_evidence(item, receipt);
         let _ = writeln!(
             s,
             "{}. `{}`
    Priority: {} ({})
-   Reason: {}",
+   Why it matters: {}",
             idx + 1,
             item.path,
             item.priority,
@@ -365,6 +460,13 @@ fn render_review_map_md(receipt: &CockpitReceipt) -> String {
         if let Some(complexity) = item.complexity {
             let _ = writeln!(s, "   Review complexity: {complexity}/5");
         }
+        let _ = writeln!(s, "   Evidence status: {}", evidence.status());
+        write_evidence_list(&mut s, "Evidence present", &evidence.present);
+        write_evidence_list(&mut s, "Evidence missing", &evidence.missing);
+        write_evidence_list(&mut s, "Evidence degraded", &evidence.degraded);
+        write_evidence_list(&mut s, "Evidence stale", &evidence.stale);
+        write_evidence_list(&mut s, "Evidence skipped", &evidence.skipped);
+        write_evidence_list(&mut s, "Evidence unavailable", &evidence.unavailable);
         let _ = writeln!(s, "   Evidence references:");
         let _ = writeln!(s, "   - cockpit.json#/review_plan/{idx}");
         let _ = writeln!(s, "   - evidence.json#/gates");
@@ -383,6 +485,16 @@ fn render_review_map_md(receipt: &CockpitReceipt) -> String {
     }
 
     s
+}
+
+fn write_evidence_list(s: &mut String, label: &str, gates: &[&str]) {
+    use std::fmt::Write;
+
+    if gates.is_empty() {
+        return;
+    }
+
+    let _ = writeln!(s, "   {label}: {}", gates.join(", "));
 }
 
 fn evidence_gate(id: &str, meta: Option<&GateMeta>) -> Value {
