@@ -54,7 +54,7 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
 
     let root = ValidatedRoot::new(root)?;
 
-    if let Some(files) = git_ls_files(root.input())? {
+    if let Some(files) = git_ls_files(root.canonical())? {
         let mut bounded = Vec::new();
         for path in files {
             if let Some(path) = bound_git_relative_path(&root, &path)? {
@@ -70,7 +70,7 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
     }
 
     let mut files: Vec<PathBuf> = Vec::new();
-    let mut builder = WalkBuilder::new(root.input());
+    let mut builder = WalkBuilder::new(root.canonical());
     builder.hidden(false);
     builder.git_ignore(true);
     builder.git_exclude(true);
@@ -424,6 +424,38 @@ mod tests {
     }
 
     #[test]
+    fn test_list_files_resolves_parent_segments_before_walking() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("repo");
+        fs::create_dir_all(root.join("src")).unwrap();
+        fs::create_dir_all(root.join("nested")).unwrap();
+        fs::write(root.join("src/lib.rs"), "pub fn lib() {}\n").unwrap();
+
+        let files = list_files(&root.join("nested").join(".."), None).unwrap();
+
+        assert_eq!(files, vec![PathBuf::from("src/lib.rs")]);
+    }
+
+    #[test]
+    fn test_list_files_does_not_return_symlink_escape_when_supported() {
+        let root_dir = tempfile::tempdir().unwrap();
+        let outside_dir = tempfile::tempdir().unwrap();
+        let outside_file = outside_dir.path().join("secret.rs");
+        let link = root_dir.path().join("leak.rs");
+        fs::write(&outside_file, "fn secret() {}\n").unwrap();
+        if create_file_symlink(&outside_file, &link).is_err() {
+            return;
+        }
+
+        let files = list_files(root_dir.path(), None).unwrap();
+
+        assert!(
+            !files.iter().any(|path| path == Path::new("leak.rs")),
+            "walk should not expose symlink escapes: {files:?}"
+        );
+    }
+
+    #[test]
     fn test_bound_git_relative_path_accepts_existing_relative_file() {
         let dir = tempfile::tempdir().unwrap();
         fs::create_dir_all(dir.path().join("src")).unwrap();
@@ -465,5 +497,15 @@ mod tests {
         let err = bound_git_relative_path(&root, Path::new("/secret.txt")).unwrap_err();
 
         assert!(err.to_string().contains("must be relative"));
+    }
+
+    #[cfg(unix)]
+    fn create_file_symlink(src: &Path, dst: &Path) -> std::io::Result<()> {
+        std::os::unix::fs::symlink(src, dst)
+    }
+
+    #[cfg(windows)]
+    fn create_file_symlink(src: &Path, dst: &Path) -> std::io::Result<()> {
+        std::os::windows::fs::symlink_file(src, dst)
     }
 }
