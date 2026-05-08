@@ -1347,6 +1347,153 @@ struct ComplexityAnalysis {
     max_function_length: usize,
 }
 
+/// Masks Rust source spans that should not contribute to cockpit complexity.
+#[cfg(feature = "git")]
+#[derive(Default)]
+struct RustCodeMask {
+    in_string: bool,
+    in_char: bool,
+    block_comment_depth: usize,
+    raw_string_hashes: Option<usize>,
+}
+
+#[cfg(feature = "git")]
+impl RustCodeMask {
+    fn code_only_line(&mut self, line: &str) -> String {
+        let chars: Vec<char> = line.chars().collect();
+        let mut code = String::with_capacity(line.len());
+        let mut i = 0;
+
+        while i < chars.len() {
+            if let Some(hashes) = self.raw_string_hashes {
+                if raw_string_closes_at(&chars, i, hashes) {
+                    self.raw_string_hashes = None;
+                    i += 1 + hashes;
+                } else {
+                    i += 1;
+                }
+                continue;
+            }
+
+            if self.block_comment_depth > 0 {
+                if starts_pair(&chars, i, '/', '*') {
+                    self.block_comment_depth += 1;
+                    i += 2;
+                    continue;
+                }
+                if starts_pair(&chars, i, '*', '/') {
+                    self.block_comment_depth -= 1;
+                    i += 2;
+                    continue;
+                }
+                i += 1;
+                continue;
+            }
+
+            if !self.in_string && !self.in_char {
+                if starts_pair(&chars, i, '/', '/') {
+                    break;
+                }
+                if starts_pair(&chars, i, '/', '*') {
+                    self.block_comment_depth = 1;
+                    i += 2;
+                    continue;
+                }
+                if let Some((opening_len, hashes)) = raw_string_opens_at(&chars, i) {
+                    self.raw_string_hashes = Some(hashes);
+                    i += opening_len;
+                    continue;
+                }
+            }
+
+            let c = chars[i];
+
+            if !self.in_char && c == '"' && !is_escaped(&chars, i) {
+                self.in_string = !self.in_string;
+                i += 1;
+                continue;
+            }
+
+            if !self.in_string && c == '\'' && !is_escaped(&chars, i) {
+                if self.in_char {
+                    self.in_char = false;
+                    i += 1;
+                    continue;
+                }
+                if starts_char_literal(&chars, i) {
+                    self.in_char = true;
+                    i += 1;
+                    continue;
+                }
+            }
+
+            if self.in_string || self.in_char {
+                i += 1;
+                continue;
+            }
+
+            code.push(c);
+            i += 1;
+        }
+
+        code
+    }
+}
+
+#[cfg(feature = "git")]
+fn starts_pair(chars: &[char], i: usize, first: char, second: char) -> bool {
+    chars.get(i) == Some(&first) && chars.get(i + 1) == Some(&second)
+}
+
+#[cfg(feature = "git")]
+fn is_escaped(chars: &[char], i: usize) -> bool {
+    if i == 0 {
+        return false;
+    }
+
+    let mut slash_count = 0;
+    let mut cursor = i;
+    while cursor > 0 && chars[cursor - 1] == '\\' {
+        slash_count += 1;
+        cursor -= 1;
+    }
+    slash_count % 2 == 1
+}
+
+#[cfg(feature = "git")]
+fn starts_char_literal(chars: &[char], i: usize) -> bool {
+    matches!(
+        (chars.get(i + 1), chars.get(i + 2), chars.get(i + 3)),
+        (Some('\\'), Some(_), Some('\'')) | (Some(_), Some('\''), _)
+    )
+}
+
+#[cfg(feature = "git")]
+fn raw_string_opens_at(chars: &[char], i: usize) -> Option<(usize, usize)> {
+    let mut cursor = match (chars.get(i), chars.get(i + 1)) {
+        (Some('b'), Some('r')) => i + 2,
+        (Some('r'), _) => i + 1,
+        _ => return None,
+    };
+
+    let hash_start = cursor;
+    while chars.get(cursor) == Some(&'#') {
+        cursor += 1;
+    }
+
+    if chars.get(cursor) == Some(&'"') {
+        let hashes = cursor - hash_start;
+        Some((cursor - i + 1, hashes))
+    } else {
+        None
+    }
+}
+
+#[cfg(feature = "git")]
+fn raw_string_closes_at(chars: &[char], i: usize, hashes: usize) -> bool {
+    chars.get(i) == Some(&'"') && (0..hashes).all(|offset| chars.get(i + 1 + offset) == Some(&'#'))
+}
+
 /// Analyze the cyclomatic complexity of Rust source code.
 /// Uses a simple heuristic approach counting decision points.
 #[cfg(feature = "git")]
@@ -1361,12 +1508,11 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
     let mut function_brace_depth: i32 = 0; // Depth when function started
     let mut function_start_line: usize = 0;
     let mut current_complexity: u32 = 1; // Start at 1 for the function itself
-    let mut in_string = false;
-    let mut in_char = false;
-    let mut in_block_comment = false;
+    let mut mask = RustCodeMask::default();
 
     for (line_idx, line) in content.lines().enumerate() {
-        let trimmed = line.trim();
+        let code_line = mask.code_only_line(line);
+        let trimmed = code_line.trim();
 
         // Skip empty lines
         if trimmed.is_empty() {
@@ -1376,7 +1522,6 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
         // Check for function start BEFORE processing braces
         // (so we can track the starting brace depth correctly)
         let is_fn_start = !in_function
-            && !in_block_comment
             && (trimmed.starts_with("fn ")
                 || trimmed.starts_with("pub fn ")
                 || trimmed.starts_with("pub(crate) fn ")
@@ -1395,59 +1540,7 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
             current_complexity = 1;
         }
 
-        let mut in_line_comment = false;
-
-        // Simple state machine for parsing
-        let chars: Vec<char> = line.chars().collect();
-        let mut i = 0;
-        while i < chars.len() {
-            let c = chars[i];
-            let next = chars.get(i + 1).copied();
-
-            // Handle block comments
-            if in_block_comment {
-                if c == '*' && next == Some('/') {
-                    in_block_comment = false;
-                    i += 2;
-                    continue;
-                }
-                i += 1;
-                continue;
-            }
-
-            // Handle line comments
-            if c == '/' && next == Some('/') {
-                in_line_comment = true;
-                break;
-            }
-
-            // Handle block comment start
-            if c == '/' && next == Some('*') {
-                in_block_comment = true;
-                i += 2;
-                continue;
-            }
-
-            // Handle strings
-            if !in_char && c == '"' && (i == 0 || chars[i - 1] != '\\') {
-                in_string = !in_string;
-                i += 1;
-                continue;
-            }
-
-            // Handle chars
-            if !in_string && c == '\'' && (i == 0 || chars[i - 1] != '\\') {
-                in_char = !in_char;
-                i += 1;
-                continue;
-            }
-
-            // Skip if in string or char
-            if in_string || in_char {
-                i += 1;
-                continue;
-            }
-
+        for c in code_line.chars() {
             // Track brace depth
             if c == '{' {
                 brace_depth += 1;
@@ -1464,13 +1557,6 @@ fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
                     current_complexity = 1;
                 }
             }
-
-            i += 1;
-        }
-
-        // Skip complexity counting if in comment
-        if in_line_comment || in_block_comment {
-            continue;
         }
 
         // Count decision points for complexity (only inside functions)
@@ -2685,6 +2771,44 @@ mod tests {
         assert_eq!(huge.complexity, Some(5));
         assert_eq!(med.complexity, Some(3));
         assert_eq!(small.complexity, Some(1));
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_rust_complexity_ignores_decisions_in_strings_and_comments() {
+        let analysis = analyze_rust_complexity(
+            r###"
+fn only_real_branch(flag: bool) {
+    let _normal = "if while for loop match && || ? => { }";
+    let _raw = r##"if while for loop match && || ? => { }"##;
+    let _char = '?';
+    /* if outer /* while nested */ match ignored => */
+    if flag {
+        println!("ok"); // else if ignored && ||
+    }
+}
+"###,
+        );
+
+        assert_eq!(analysis.function_count, 1);
+        assert_eq!(analysis.total_complexity, 2);
+        assert_eq!(analysis.max_complexity, 2);
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_rust_complexity_counts_code_before_trailing_comment() {
+        let analysis = analyze_rust_complexity(
+            r#"
+fn branch_before_comment(flag: bool) {
+    if flag { return; } // if ignored && ||
+}
+"#,
+        );
+
+        assert_eq!(analysis.function_count, 1);
+        assert_eq!(analysis.total_complexity, 2);
+        assert_eq!(analysis.max_complexity, 2);
     }
 
     // ---- flush_uncovered_hunks ----
