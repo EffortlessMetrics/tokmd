@@ -4,7 +4,10 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ## Vision
 
-`tokmd` is a **lightweight code intelligence tool** that transforms repository scans into actionable insights for humans, machines, and LLMs.
+`tokmd` is the **fast deterministic code-intelligence instrument** in the
+Effortless Metrics evidence stack. It transforms repository scans into
+actionable code receipts, review surfaces, proof-routing inputs, and LLM-ready
+context for humans, machines, CI, and agents.
 
 - **Receipt-Grade**: Outputs are deterministic, versioned, and safe for automated pipelines.
 - **Analysis-Ready**: Rich derived metrics, git integration, and semantic analysis.

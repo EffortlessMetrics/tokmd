@@ -77,7 +77,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `head` | no | `HEAD` | Head git ref for `cockpit` and `sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
 | `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
-| `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory and use its `comment.md` as the Markdown summary/comment body. |
+| `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory. The packet-local `comment.md` remains the `summary` output; hosted pull request comments use a copied summary when metadata is added. |
 
 ## Outputs
 
@@ -126,13 +126,15 @@ If `base` is omitted, the Action infers a repository-aware base ref. Set `base` 
 
 When `review-packet: 'true'`, cockpit mode also runs with
 `--review-packet-dir .tokmd/review`. The `review-packet` output points to that
-directory, and the `summary` output points to `.tokmd/review/comment.md` so the
-existing `comment` input can post the packet summary on pull requests.
+directory, and the `summary` output points to the packet-local
+`.tokmd/review/comment.md`.
 
-When artifact upload is enabled, the Action also appends hosted packet metadata
-to `.tokmd/review/comment.md`: the workflow run URL, the `tokmd-receipts`
-artifact name, and the packet path. This keeps pull request comments useful even
-though the packet's local file links are artifact-relative.
+When artifact upload is enabled, the Action also prepares
+`tokmd-review-packet-comment.md` from `.tokmd/review/comment.md` and appends
+hosted packet metadata: the workflow run URL, the `tokmd-receipts` artifact
+name, and the packet path. The packet's own `comment.md` remains unchanged so
+`manifest.json` hashes stay valid, while pull request comments still point to
+hosted artifacts.
 
 ### `sensor`
 
@@ -160,6 +162,7 @@ Artifact candidates include:
 - `tokmd-receipt.*`
 - `tokmd-gate-verdict.json`
 - `tokmd-cockpit-report.json`
+- `tokmd-review-packet-comment.md`
 - `.tokmd/review`
 - `tokmd-sensor-report.json`
 - `tokmd-baseline.json`
@@ -178,14 +181,15 @@ permissions:
 
 Commenting only runs on `pull_request` events. Set `comment: 'false'` for scheduled jobs, push jobs, private smoke tests, or workflows where comments are not desired.
 
-The default flow comments with `tokmd-summary.md`. `sensor` comments with `comment.md`. JSON-only modes such as `gate`, `cockpit`, and `baseline` normally leave the `summary` output empty. `cockpit` with `review-packet: 'true'` comments with `.tokmd/review/comment.md`.
+The default flow comments with `tokmd-summary.md`. `sensor` comments with `comment.md`. JSON-only modes such as `gate`, `cockpit`, and `baseline` normally leave the `summary` output empty. `cockpit` with `review-packet: 'true'` comments with the packet summary, using `tokmd-review-packet-comment.md` when hosted packet metadata is added.
 
-For cockpit review packets, the Action appends a short hosted-packet block to
-that comment before posting it. With `artifact: 'true'`, the block points
+For cockpit review packets, the Action copies `.tokmd/review/comment.md` to
+`tokmd-review-packet-comment.md` and appends a short hosted-packet block before
+posting the pull request comment. With `artifact: 'true'`, the block points
 reviewers to the workflow run and `tokmd-receipts` artifact that contains the
 full `.tokmd/review/` directory. With artifact upload disabled, the comment
 states that the packet was generated locally in the workflow workspace but not
-uploaded.
+uploaded. The packet-local `comment.md` is not mutated after generation.
 
 ## Checkout Guidance
 

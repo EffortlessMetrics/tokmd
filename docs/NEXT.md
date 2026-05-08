@@ -84,7 +84,7 @@ architecture-consolidation program.
 - The proof executor workflow now runs on pull requests as `Scoped Coverage Executor (Non-Required)`. It remains outside the required CI aggregate, executes only planner-selected non-required coverage commands, keeps Codecov upload manual-only, and leaves existing proof jobs authoritative.
 - `tokmd cockpit --review-packet-dir <dir>` now emits the cockpit review packet while leaving default stdout and the existing `--artifacts-dir` director contract unchanged.
 - The cockpit review packet now includes `review-map.json` / `review-map.md` generated from the existing cockpit `review_plan`, giving packet consumers a stable prioritized review map without introducing a separate `tokmd review` command.
-- The composite GitHub Action now exposes an opt-in cockpit `review-packet` input. In `mode: cockpit`, `review-packet: true` writes `.tokmd/review`, exposes it as the `review-packet` output, and uses `.tokmd/review/comment.md` as the optional pull request comment body.
+- The composite GitHub Action now exposes an opt-in cockpit `review-packet` input. In `mode: cockpit`, `review-packet: true` writes `.tokmd/review`, exposes it as the `review-packet` output, keeps `.tokmd/review/comment.md` as the packet-local summary output, and prepares `tokmd-review-packet-comment.md` for optional hosted pull request comments when metadata is added.
 - The composite Action self-test now exercises `mode: cockpit`, `review-packet: true`, `artifact: true`, and `comment: false` together, proving packet artifact upload stays independent from pull request commenting.
 - `tokmd_core::cockpit_workflow` now has a feature-gated contract test against a real temporary git repo, and the cockpit proof scope routes that facade test through the affected proof plan.
 - Cockpit `comment.md` now includes compact evidence availability counts so missing, degraded, stale, skipped, or unavailable evidence is visible in the PR-comment-ready artifact, not only in packet JSON.
@@ -152,7 +152,8 @@ architecture-consolidation program.
 - Proof-control-plane status: routine PR observations continue under the two-command default. There is no active promotion slice for a required gate, default Codecov upload, or larger command-limit default.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
-- The composite Action now appends hosted packet metadata to review-packet comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.
+- The composite Action now adds hosted packet metadata to review-packet PR comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.
+- The composite Action now prepares hosted review-packet comments in `tokmd-review-packet-comment.md` instead of mutating `.tokmd/review/comment.md`, preserving `manifest.json` hashes for packet-local artifacts while keeping hosted PR comments useful.
 - Cockpit's Rust complexity gate now delegates function-scoped source analysis
   to `tokmd-analysis::source_complexity` instead of owning a duplicate parser.
   The `else if` double-count is fixed as a correctness improvement; impact
@@ -162,6 +163,10 @@ architecture-consolidation program.
   ownership model: analysis rendering lives in `tokmd-format`, review evidence
   in `tokmd-cockpit`, and implementation details should stay as SRP owner
   modules unless they are durable public surfaces.
+- Product truth docs now distinguish tokmd's role from the wider Effortless
+  Metrics evidence stack: tokmd is the deterministic code-intelligence and
+  review-receipt producer, while evidencebus remains the schema-first evidence
+  backplane for cross-tool validation, inventory, bundling, and export.
 - Roadmap-era implementation notes now distinguish historical microcrate
   extraction from the current owner-module consolidation shape, so future
   architecture work starts from the actual crate graph instead of retired

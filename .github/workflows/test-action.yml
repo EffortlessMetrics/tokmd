@@ -336,7 +336,7 @@ jobs:
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
+        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
 
       - name: Set up Rust for local review packet binary
         uses: dtolnay/rust-toolchain@stable
@@ -391,14 +391,22 @@ jobs:
           done
           grep -q '"schema": "tokmd.review_packet_manifest.v1"' .tokmd/review/manifest.json
           grep -q '"schema": "tokmd.review_map.v1"' .tokmd/review/review-map.json
-          grep -q 'Hosted packet' .tokmd/review/comment.md
-          grep -q 'Workflow run:' .tokmd/review/comment.md
-          grep -q 'Artifact: `tokmd-receipts`' .tokmd/review/comment.md
-          grep -q 'Packet path: `.tokmd/review`' .tokmd/review/comment.md
+          if grep -q 'Hosted packet' .tokmd/review/comment.md; then
+            echo "::error::review packet comment.md should remain manifest-hashed packet content"
+            exit 1
+          fi
+          if [ ! -f tokmd-review-packet-comment.md ]; then
+            echo "::error::hosted review packet comment copy not generated"
+            exit 1
+          fi
+          grep -q 'Hosted packet' tokmd-review-packet-comment.md
+          grep -q 'Workflow run:' tokmd-review-packet-comment.md
+          grep -q 'Artifact: `tokmd-receipts`' tokmd-review-packet-comment.md
+          grep -q 'Packet path: `.tokmd/review`' tokmd-review-packet-comment.md
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
+        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
 
       - name: Run cockpit mode with inferred pull request base
         id: cockpit_inferred_base
