@@ -279,7 +279,7 @@ fn hidden_files_excluded_by_gitignore_are_omitted() {
     // Given a .gitignore that explicitly ignores a hidden file
     let tmp = git_tempdir();
     std::fs::write(tmp.path().join(".gitignore"), ".secret\n").unwrap();
-    std::fs::write(tmp.path().join(".secret"), "password").unwrap();
+    std::fs::write(tmp.path().join(".secret"), "ignored fixture").unwrap();
     std::fs::write(tmp.path().join(".visible_hidden"), "visible").unwrap();
 
     // When we list files
@@ -409,7 +409,7 @@ fn file_size_for_file_in_hidden_directory() {
 #[test]
 fn file_size_for_dotfile() {
     let tmp = non_git_tempdir();
-    std::fs::write(tmp.path().join(".env"), "SECRET=abc").unwrap();
+    std::fs::write(tmp.path().join(".env"), "MODE=demo\n").unwrap();
 
     let size = file_size(tmp.path(), std::path::Path::new(".env")).unwrap();
     assert_eq!(size, 10);

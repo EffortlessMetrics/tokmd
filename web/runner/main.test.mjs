@@ -237,7 +237,7 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     const fetchCalls = [];
     let treeAttempts = 0;
     const storage = createMemoryStorage({
-        "tokmd.githubToken": "  ghp_saved  ",
+        "tokmd.githubToken": "  test-token-saved  ",
     });
     const harness = installBrowserHarness(t, {
         storage,
@@ -312,7 +312,7 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     const runProgressText = harness.element("[data-run-progress-text]");
     const logOutput = harness.element("[data-log]");
 
-    assert.equal(tokenInput.value, "ghp_saved");
+    assert.equal(tokenInput.value, "test-token-saved");
     assert.equal(authState.textContent, "authenticated");
     assert.equal(clearTokenButton.disabled, false);
     assert.match(harness.element("[data-worker-capabilities]").textContent, /downloads: yes/);
@@ -402,13 +402,13 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     await loadRepoButton.click();
 
     assert.equal(fetchCalls.length, 1);
-    assert.equal(fetchCalls[0].authorization, "token ghp_saved");
+    assert.equal(fetchCalls[0].authorization, "token test-token-saved");
     assert.equal(retryLoadButton.disabled, false);
     assert.equal(loadProgressPanel.hidden, false);
     assert.match(loadProgressText.textContent, /Retry after 12s/);
     assert.match(loadStatusOutput.textContent, /repo load failed:/);
     assert.equal(resultOutput.textContent, secondResultBeforeRepoError);
-    assert.doesNotMatch(collectText(logOutput), /ghp_saved/);
+    assert.doesNotMatch(collectText(logOutput), /test-token-saved/);
 
     await retryLoadButton.click();
     await loadRepoButton.lastClickPromise;
@@ -440,7 +440,7 @@ test("main page marks rejected GitHub tokens without exposing token text", async
     let responseStatus = 401;
     let responseMessage = "Bad credentials";
     const storage = createMemoryStorage({
-        "tokmd.githubToken": "  ghp_rejected  ",
+        "tokmd.githubToken": "  test-token-rejected  ",
     });
     const harness = installBrowserHarness(t, {
         storage,
@@ -474,32 +474,32 @@ test("main page marks rejected GitHub tokens without exposing token text", async
     const ingestSummaryOutput = harness.element("[data-ingest-summary]");
     const logOutput = harness.element("[data-log]");
 
-    assert.equal(tokenInput.value, "ghp_rejected");
+    assert.equal(tokenInput.value, "test-token-rejected");
     assert.equal(authState.textContent, "authenticated");
     assert.equal(authState.dataset.tone, "success");
 
     await loadRepoButton.click();
 
     assert.equal(fetchCalls.length, 1);
-    assert.equal(fetchCalls[0].authorization, "token ghp_rejected");
+    assert.equal(fetchCalls[0].authorization, "token test-token-rejected");
     assert.equal(authState.textContent, "token rejected");
     assert.equal(authState.dataset.tone, "error");
     assert.equal(clearTokenButton.disabled, false);
     assert.equal(retryLoadButton.disabled, true);
     assert.match(loadStatusOutput.textContent, /GitHub rejected the supplied token/);
     assert.match(collectText(ingestSummaryOutput), /Update or clear the GitHub token/);
-    assert.doesNotMatch(collectText(logOutput), /ghp_rejected/);
+    assert.doesNotMatch(collectText(logOutput), /test-token-rejected/);
 
     responseStatus = 404;
     responseMessage = "Not Found";
     await loadRepoButton.click();
 
     assert.equal(fetchCalls.length, 2);
-    assert.equal(fetchCalls[1].authorization, "token ghp_rejected");
+    assert.equal(fetchCalls[1].authorization, "token test-token-rejected");
     assert.equal(authState.textContent, "check token/repo");
     assert.equal(authState.dataset.tone, "error");
     assert.match(loadStatusOutput.textContent, /not found for the supplied token/);
-    assert.doesNotMatch(collectText(logOutput), /ghp_rejected/);
+    assert.doesNotMatch(collectText(logOutput), /test-token-rejected/);
 
     await clearTokenButton.click();
 

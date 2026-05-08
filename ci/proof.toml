@@ -150,6 +150,15 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_envelope_contract"
+kind = "rust"
+paths = ["crates/tokmd-envelope/**"]
+packages = ["tokmd-envelope"]
+proof = ["cargo test -p tokmd-envelope --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "lint_policy"
 kind = "rust"
 paths = [
