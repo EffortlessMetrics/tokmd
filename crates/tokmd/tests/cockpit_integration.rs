@@ -667,11 +667,40 @@ fn test_cockpit_review_packet_dir() {
             .expect("valid review map JSON");
     assert_validates_against_schema(REVIEW_MAP_SCHEMA_JSON, &review_map, "review map");
     assert_eq!(review_map["schema"], "tokmd.review_map.v1");
+    assert_eq!(
+        review_map["evidence"]["summary"]["details"],
+        "evidence.json#/gates"
+    );
+    assert!(
+        review_map["evidence"]["summary"]["unavailable"]
+            .as_u64()
+            .unwrap()
+            > 0,
+        "review map should summarize packet-level unavailable evidence"
+    );
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reference| reference == "evidence.json#/gates"),
+        "review map should link back to evidence gates"
+    );
     let items = review_map["items"].as_array().expect("review map items");
     assert_eq!(review_map["item_count"], items.len() as u64);
+    assert!(
+        items
+            .iter()
+            .all(|item| item["evidence"]["status"].is_string()),
+        "each review-map item should expose compact evidence status"
+    );
 
     let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
+    assert!(review_map_md.contains("Evidence overview:"));
+    assert!(review_map_md.contains("## Review First"));
+    assert!(review_map_md.contains("Why it matters:"));
+    assert!(review_map_md.contains("Evidence status:"));
     assert!(review_map_md.contains("Evidence references:"));
     assert!(review_map_md.contains("cockpit.json#/review_plan/0"));
     assert!(review_map_md.contains("evidence.json#/gates"));

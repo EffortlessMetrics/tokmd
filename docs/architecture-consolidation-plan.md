@@ -1,0 +1,283 @@
+# Architecture Consolidation Plan
+
+Status: active planning baseline for owner-module consolidation.
+
+This plan turns the current architecture direction into small implementation
+batches. It starts from the present workspace and proof-policy state rather
+than from historical microcrate names.
+
+## Goal
+
+Keep `tokmd`'s public package surface stable while continuing to split large
+implementation files into single-responsibility owner modules.
+
+The intended result is:
+
+- public crates remain contracts, facades, workflows, capability surfaces, or
+  products;
+- implementation seams live as modules under the owning crate;
+- proof scopes in [`ci/proof.toml`](../ci/proof.toml) preserve targeted test,
+  coverage, and mutation routing as files move;
+- crates.io publish closure stays verified by
+  `cargo xtask publish-surface --json --verify-publish`.
+
+## Current Surface
+
+The current publish-surface verifier reports:
+
+| Class | Crates |
+| --- | --- |
+| Public product | `tokmd`, `tokmd-core`, `tokmd-wasm` |
+| Public contract | `tokmd-analysis-types`, `tokmd-envelope`, `tokmd-io-port`, `tokmd-settings`, `tokmd-types` |
+| Public workflow | `tokmd-cockpit`, `tokmd-gate`, `tokmd-sensor` |
+| Public capability | `tokmd-analysis`, `tokmd-format`, `tokmd-git`, `tokmd-model`, `tokmd-scan` |
+| Non-crates.io workspace packages | `tokmd-fuzz`, `tokmd-node`, `tokmd-python`, `xtask` |
+
+There are no current target-gap support crates, internal module-family
+packages, dev-only workspace packages, or publish-surface violations.
+
+## Consolidation Rules
+
+1. Do not add new implementation microcrates.
+2. Prefer `pub(crate)` module boundaries unless a public API is already part of
+   the crate contract.
+3. Preserve existing JSON schemas and receipt semantics unless a separate
+   schema-change PR documents and validates the contract change.
+4. Keep moves mechanical first: split modules, preserve exports, run targeted
+   proof, then simplify visibility in a follow-up when needed.
+5. Update `ci/proof.toml` in the same PR when a moved file would otherwise
+   weaken affected-scope routing.
+6. Run `cargo xtask publish-surface --json --verify-publish` for any change
+   that moves dependencies, manifests, public exports, or crate ownership.
+7. Keep proof-control-plane lanes advisory unless a maintainer explicitly
+   approves a promotion decision.
+
+## Current Pressure Points
+
+The first consolidation candidates are large production files, not test
+fixtures:
+
+| Area | Current file | Approx. lines | Owner direction |
+| --- | --- | ---: | --- |
+| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` | 2484 | Split parser, scoring, aggregation, and tests under `content::complexity` |
+| Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
+| Analysis rendering | `crates/tokmd-format/src/analysis/mod.rs` | 1815 | Continue moving format-specific renderers into `tokmd-format::analysis` submodules |
+| Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
+| Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
+| Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` | 1432 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
+| CLI parser | `crates/tokmd/src/cli/parser.rs` | 1264 | Split command argument families while preserving clap output |
+| Cockpit gates | `crates/tokmd-cockpit/src/gates.rs` | 1196 | Split gate evidence, freshness, and rendering helpers inside `tokmd-cockpit` |
+| Model aggregation | `crates/tokmd-model/src/lib.rs` | 1159 | Split aggregation, row sorting, and child-language behavior under `tokmd-model` |
+
+## Batch Order
+
+### Batch A: Cockpit Owner Modules
+
+Why first: cockpit is the active product lane, has strong packet/verifier
+coverage, and recent splits already proved the pattern.
+
+Target modules:
+
+```text
+crates/tokmd-cockpit/src/
+  gates/
+    mod.rs
+    availability.rs
+    freshness.rs
+    scope.rs
+  render/
+    review_packet.rs
+    review_map.rs
+    comment.rs
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd-cockpit --verbose
+cargo test -p tokmd --test cockpit_integration --verbose
+cargo test -p tokmd-core --features cockpit --test cockpit_workflow --verbose
+cargo xtask review-packet-check --dir <generated-review-packet>
+```
+
+`ci/proof.toml` scope: `tokmd_cockpit`.
+
+### Batch B: Format Analysis Rendering
+
+Why next: `tokmd-format` owns rendering and already has a dedicated
+`format_analysis_rendering` proof scope.
+
+Target modules:
+
+```text
+crates/tokmd-format/src/analysis/
+  mod.rs
+  markdown.rs
+  html.rs
+  json.rs
+  svg.rs
+  tables.rs
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd-format analysis_format --verbose
+cargo test -p tokmd --test schema_validation test_review_packet --verbose
+cargo xtask docs --check
+```
+
+`ci/proof.toml` scope: `format_analysis_rendering`.
+
+### Batch C: Analysis Contracts and Metric Modules
+
+Why third: these files carry more public DTO and metric risk, so they should
+follow the lower-risk cockpit/format splits.
+
+Target modules:
+
+```text
+crates/tokmd-analysis-types/src/
+  lib.rs
+  receipt.rs
+  metrics.rs
+  findings.rs
+  util.rs
+
+crates/tokmd-analysis/src/
+  complexity/
+  content/complexity/
+  maintainability/
+  halstead/
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd-analysis-types --verbose
+cargo test -p tokmd-analysis --all-features complexity --verbose
+cargo test -p tokmd-analysis --all-features content --verbose
+cargo test -p tokmd-types schema --verbose
+```
+
+Relevant proof scopes: `analysis_receipt_types`, `analysis_complexity`,
+`analysis_content_assets`, `analysis_halstead`, and
+`analysis_maintainability`.
+
+### Batch D: Core Facade and Binding Boundaries
+
+Why later: `tokmd-core::run_json` and binding-facing behavior are public
+contracts.
+
+Target modules:
+
+```text
+crates/tokmd-core/src/
+  lib.rs
+  workflows/
+  ffi/
+    mod.rs
+    modes.rs
+    envelope.rs
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd-core --all-targets --verbose
+cargo test -p tokmd-core --features cockpit --test cockpit_workflow --verbose
+cargo test -p tokmd-python --no-default-features --verbose
+cargo check -p tokmd-node --all-targets
+```
+
+Relevant proof scopes: `tokmd_core_ffi`, `tokmd_python_binding`, and any
+binding scope added for Node-specific packaging.
+
+### Batch E: CLI and Context Packing
+
+Why later: clap help, config precedence, snapshots, and handoff/context schemas
+make this a high-visible surface.
+
+Target modules:
+
+```text
+crates/tokmd/src/
+  context_pack/
+    mod.rs
+    budget.rs
+    select.rs
+    render.rs
+  cli/
+    parser/
+      mod.rs
+      analysis.rs
+      cockpit.rs
+      context.rs
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd --test cli_snapshot_golden --verbose
+cargo test -p tokmd --test cockpit_integration --verbose
+cargo test -p tokmd --test context_handoff_deep --verbose
+cargo xtask docs --check
+```
+
+Relevant proof scopes: `tokmd_cli`, `tokmd_pipeline_integration`, and any
+future context/handoff-specific scope if the affected plan becomes too broad.
+
+### Batch F: Model and Scan Internals
+
+Why last: path normalization and child-language behavior are deterministic
+receipt foundations.
+
+Target modules:
+
+```text
+crates/tokmd-model/src/
+  lib.rs
+  aggregate.rs
+  rows.rs
+  children.rs
+  sorting.rs
+
+crates/tokmd-scan/src/
+  roots.rs
+  walk/
+  path/
+```
+
+Required proof:
+
+```bash
+cargo test -p tokmd-model --verbose
+cargo test -p tokmd-scan --verbose
+cargo test -p tokmd --test integration --verbose
+cargo test -p tokmd --test schema_sync --verbose
+```
+
+Relevant proof scope: `model_scan_path_normalization`.
+
+## Stop Conditions
+
+Stop and split the work if a consolidation PR:
+
+- changes receipt JSON shape or schema version;
+- changes clap help output unintentionally;
+- changes package closure or publish-surface classification;
+- weakens an affected proof scope;
+- mixes module movement with algorithm rewrites;
+- touches AST behavior beyond keeping feature-gated shadow code compiling;
+- promotes coverage, mutation, fast proof, or Codecov defaults.
+
+## First Suggested PRs
+
+1. Split `tokmd-cockpit/src/gates.rs` into gate evidence owner modules.
+2. Split `tokmd-format/src/analysis/mod.rs` into renderer-focused modules.
+3. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
+   preserving re-exports.
+
+Each PR should include the affected proof-plan output in the PR body and should
+leave `publish-surface --verify-publish` green when public exports or
+manifests are touched.
