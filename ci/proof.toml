@@ -409,6 +409,7 @@ paths = [
   "crates/tokmd-model/src/lib.rs",
   "crates/tokmd-model/src/module_key/**",
   "crates/tokmd-model/tests/**",
+  "crates/tokmd-scan/src/lib.rs",
   "crates/tokmd-scan/src/path/**",
   "crates/tokmd-scan/tests/**",
 ]
