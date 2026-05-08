@@ -18,10 +18,9 @@
 //! * CLI argument parsing
 //! * Analysis computation (use tokmd-analysis)
 
-use std::borrow::Cow;
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
-use std::io::{self, BufWriter, Write};
+use std::io::{self, Write};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -29,13 +28,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::path::PathBuf;
 
 use anyhow::Result;
-use serde::Serialize;
-use time::OffsetDateTime;
-use time::format_description::well_known::Rfc3339;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow,
     LangArgs, LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
     ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
@@ -43,6 +38,7 @@ use tokmd_types::{
 pub mod analysis;
 pub mod badge;
 mod diff;
+mod export;
 pub mod export_tree;
 #[cfg(feature = "fun")]
 pub mod fun;
@@ -53,6 +49,11 @@ pub use badge::badge_svg;
 pub use diff::{
     DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
     render_diff_md, render_diff_md_with_options,
+};
+pub use export::{
+    write_export, write_export_csv_to, write_export_cyclonedx_to,
+    write_export_cyclonedx_with_options, write_export_json_to, write_export_jsonl_to,
+    write_export_jsonl_to_file,
 };
 pub use export_tree::{render_analysis_tree, render_handoff_tree};
 pub use redact::{redact_path, short_hash};
@@ -318,385 +319,6 @@ fn render_module_tsv(report: &ModuleReport) -> String {
 }
 
 // -----------------
-// Export (datasets)
-// -----------------
-
-#[derive(Debug, Clone, Serialize)]
-struct ExportMeta {
-    #[serde(rename = "type")]
-    ty: &'static str,
-    schema_version: u32,
-    generated_at_ms: u128,
-    tool: ToolInfo,
-    mode: String,
-    status: ScanStatus,
-    warnings: Vec<String>,
-    scan: ScanArgs,
-    args: ExportArgsMeta,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct JsonlRow<'a> {
-    #[serde(rename = "type")]
-    ty: &'static str,
-    #[serde(flatten)]
-    row: &'a FileRow,
-}
-
-pub fn write_export(export: &ExportData, global: &ScanOptions, args: &ExportArgs) -> Result<()> {
-    match &args.output {
-        Some(path) => {
-            let file = File::create(path)?;
-            let mut out = BufWriter::new(file);
-            write_export_to(&mut out, export, global, args)?;
-            out.flush()?;
-        }
-        None => {
-            let stdout = io::stdout();
-            let mut out = stdout.lock();
-            write_export_to(&mut out, export, global, args)?;
-            out.flush()?;
-        }
-    }
-    Ok(())
-}
-
-fn write_export_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    match args.format {
-        ExportFormat::Csv => write_export_csv(out, export, args),
-        ExportFormat::Jsonl => write_export_jsonl(out, export, global, args),
-        ExportFormat::Json => write_export_json(out, export, global, args),
-        ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
-    }
-}
-
-fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArgs) -> Result<()> {
-    let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(out);
-    wtr.write_record([
-        "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
-    ])?;
-
-    for r in redact_rows(&export.rows, args.redact) {
-        let code = r.code.to_string();
-        let comments = r.comments.to_string();
-        let blanks = r.blanks.to_string();
-        let lines = r.lines.to_string();
-        let bytes = r.bytes.to_string();
-        let tokens = r.tokens.to_string();
-        let kind = match r.kind {
-            FileKind::Parent => "parent",
-            FileKind::Child => "child",
-        };
-
-        wtr.write_record([
-            r.path.as_str(),
-            r.module.as_str(),
-            r.lang.as_str(),
-            kind,
-            &code,
-            &comments,
-            &blanks,
-            &lines,
-            &bytes,
-            &tokens,
-        ])?;
-    }
-
-    wtr.flush()?;
-    Ok(())
-}
-
-fn write_export_jsonl<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
-    if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
-        let meta = ExportMeta {
-            ty: "meta",
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: ToolInfo::current(),
-            mode: "export".to_string(),
-            status: ScanStatus::Complete,
-            warnings: vec![],
-            scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-        };
-        writeln!(out, "{}", serde_json::to_string(&meta)?)?;
-    }
-
-    for row in redact_rows(&export.rows, args.redact) {
-        let wrapper = JsonlRow {
-            ty: "row",
-            row: &row,
-        };
-        writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
-    }
-    Ok(())
-}
-
-fn write_export_json<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
-    if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
-        let receipt = ExportReceipt {
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: ToolInfo::current(),
-            mode: "export".to_string(),
-            status: ScanStatus::Complete,
-            warnings: vec![],
-            scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-            data: ExportData {
-                rows: redact_rows(&export.rows, args.redact)
-                    .map(|c| c.into_owned())
-                    .collect(),
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-            },
-        };
-        writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
-    } else {
-        writeln!(
-            out,
-            "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact).collect::<Vec<_>>())?
-        )?;
-    }
-    Ok(())
-}
-
-fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
-    rows.iter().map(move |r| match mode {
-        RedactMode::None => Cow::Borrowed(r),
-        RedactMode::Paths => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: r.module.clone(),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
-        RedactMode::All => Cow::Owned(FileRow {
-            path: redact_path(&r.path),
-            module: short_hash(&r.module),
-            lang: r.lang.clone(),
-            kind: r.kind,
-            code: r.code,
-            comments: r.comments,
-            blanks: r.blanks,
-            lines: r.lines,
-            bytes: r.bytes,
-            tokens: r.tokens,
-        }),
-    })
-}
-
-// -----------------
-// CycloneDX SBOM
-// -----------------
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct CycloneDxBom {
-    bom_format: &'static str,
-    spec_version: &'static str,
-    serial_number: String,
-    version: u32,
-    metadata: CycloneDxMetadata,
-    components: Vec<CycloneDxComponent>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CycloneDxMetadata {
-    timestamp: String,
-    tools: Vec<CycloneDxTool>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CycloneDxTool {
-    vendor: &'static str,
-    name: &'static str,
-    version: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CycloneDxComponent {
-    #[serde(rename = "type")]
-    ty: &'static str,
-    name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    group: Option<String>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    properties: Vec<CycloneDxProperty>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CycloneDxProperty {
-    name: String,
-    value: String,
-}
-
-fn write_export_cyclonedx<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-) -> Result<()> {
-    write_export_cyclonedx_impl(out, export, redact, None, None)
-}
-
-fn write_export_cyclonedx_impl<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-    serial_number: Option<String>,
-    timestamp: Option<String>,
-) -> Result<()> {
-    let timestamp = timestamp.unwrap_or_else(|| {
-        OffsetDateTime::now_utc()
-            .format(&Rfc3339)
-            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
-    });
-
-    // Apply redaction to rows before generating components
-    let components: Vec<CycloneDxComponent> = redact_rows(&export.rows, redact)
-        .map(|row| {
-            let mut properties = vec![
-                CycloneDxProperty {
-                    name: "tokmd:lang".to_string(),
-                    value: row.lang.clone(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:code".to_string(),
-                    value: row.code.to_string(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:comments".to_string(),
-                    value: row.comments.to_string(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:blanks".to_string(),
-                    value: row.blanks.to_string(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:lines".to_string(),
-                    value: row.lines.to_string(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:bytes".to_string(),
-                    value: row.bytes.to_string(),
-                },
-                CycloneDxProperty {
-                    name: "tokmd:tokens".to_string(),
-                    value: row.tokens.to_string(),
-                },
-            ];
-
-            // Add kind if it's a child
-            if row.kind == FileKind::Child {
-                properties.push(CycloneDxProperty {
-                    name: "tokmd:kind".to_string(),
-                    value: "child".to_string(),
-                });
-            }
-
-            CycloneDxComponent {
-                ty: "file",
-                name: row.path.clone(),
-                group: if row.module.is_empty() {
-                    None
-                } else {
-                    Some(row.module.clone())
-                },
-                properties,
-            }
-        })
-        .collect();
-
-    let bom = CycloneDxBom {
-        bom_format: "CycloneDX",
-        spec_version: "1.6",
-        serial_number: serial_number
-            .unwrap_or_else(|| format!("urn:uuid:{}", uuid::Uuid::new_v4())),
-        version: 1,
-        metadata: CycloneDxMetadata {
-            timestamp,
-            tools: vec![CycloneDxTool {
-                vendor: "tokmd",
-                name: "tokmd",
-                version: env!("CARGO_PKG_VERSION").to_string(),
-            }],
-        },
-        components,
-    };
-
-    writeln!(out, "{}", serde_json::to_string_pretty(&bom)?)?;
-    Ok(())
-}
-
-// -----------------
 // Run command helpers
 // -----------------
 
@@ -764,106 +386,6 @@ pub fn write_module_json_to_file(
     let file = File::create(path)?;
     serde_json::to_writer(file, &receipt)?;
     Ok(())
-}
-
-/// Write export data as JSONL to a file path.
-///
-/// This is a convenience function for the `run` command that accepts
-/// pre-constructed `ScanArgs` and `ExportArgsMeta` rather than requiring
-/// the full `ScanOptions` and `ExportArgs` structs.
-pub fn write_export_jsonl_to_file(
-    path: &Path,
-    export: &ExportData,
-    scan: &ScanArgs,
-    args_meta: &ExportArgsMeta,
-) -> Result<()> {
-    let file = File::create(path)?;
-    let mut out = BufWriter::new(file);
-
-    let mut final_args = args_meta.clone();
-    final_args.module_roots = redact_module_roots(&final_args.module_roots, args_meta.redact);
-
-    let meta = ExportMeta {
-        ty: "meta",
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "export".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: final_args,
-    };
-    writeln!(out, "{}", serde_json::to_string(&meta)?)?;
-
-    for row in redact_rows(&export.rows, args_meta.redact) {
-        let wrapper = JsonlRow {
-            ty: "row",
-            row: &row,
-        };
-        writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
-    }
-
-    out.flush()?;
-    Ok(())
-}
-
-// =============================================================================
-// Public test helpers - expose internal functions for integration tests
-// =============================================================================
-
-/// Write CSV export to a writer (exposed for testing).
-#[doc(hidden)]
-pub fn write_export_csv_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    args: &ExportArgs,
-) -> Result<()> {
-    write_export_csv(out, export, args)
-}
-
-/// Write JSONL export to a writer (exposed for testing).
-#[doc(hidden)]
-pub fn write_export_jsonl_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    write_export_jsonl(out, export, global, args)
-}
-
-/// Write JSON export to a writer (exposed for testing).
-#[doc(hidden)]
-pub fn write_export_json_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    write_export_json(out, export, global, args)
-}
-
-/// Write CycloneDX export to a writer (exposed for testing).
-#[doc(hidden)]
-pub fn write_export_cyclonedx_to<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-) -> Result<()> {
-    write_export_cyclonedx(out, export, redact)
-}
-
-/// Write CycloneDX export to a writer with explicit options (exposed for testing).
-#[doc(hidden)]
-pub fn write_export_cyclonedx_with_options<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    redact: RedactMode,
-    serial_number: Option<String>,
-    timestamp: Option<String>,
-) -> Result<()> {
-    write_export_cyclonedx_impl(out, export, redact, serial_number, timestamp)
 }
 
 #[cfg(test)]
@@ -944,35 +466,6 @@ mod tests {
             children: tokmd_settings::ChildIncludeMode::Separate,
             top: 0,
         }
-    }
-
-    fn sample_file_rows() -> Vec<FileRow> {
-        vec![
-            FileRow {
-                path: "src/lib.rs".to_string(),
-                module: "src".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 20,
-                blanks: 10,
-                lines: 130,
-                bytes: 1000,
-                tokens: 250,
-            },
-            FileRow {
-                path: "tests/test.rs".to_string(),
-                module: "tests".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code: 50,
-                comments: 5,
-                blanks: 5,
-                lines: 60,
-                bytes: 500,
-                tokens: 125,
-            },
-        ]
     }
 
     // ========================
@@ -1131,65 +624,6 @@ mod tests {
     }
 
     // ========================
-    // Redaction Tests
-    // ========================
-
-    #[test]
-    fn redact_rows_none_mode() {
-        let rows = sample_file_rows();
-        let redacted: Vec<_> = redact_rows(&rows, RedactMode::None).collect();
-
-        // Should be identical
-        assert_eq!(redacted.len(), rows.len());
-        assert_eq!(redacted[0].path, "src/lib.rs");
-        assert_eq!(redacted[0].module, "src");
-    }
-
-    #[test]
-    fn redact_rows_paths_mode() {
-        let rows = sample_file_rows();
-        let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
-
-        // Paths should be redacted (16 char hash + extension)
-        assert_ne!(redacted[0].path, "src/lib.rs");
-        assert!(redacted[0].path.ends_with(".rs"));
-        assert_eq!(redacted[0].path.len(), 16 + 3); // hash + ".rs"
-
-        // Module should NOT be redacted
-        assert_eq!(redacted[0].module, "src");
-    }
-
-    #[test]
-    fn redact_rows_all_mode() {
-        let rows = sample_file_rows();
-        let redacted: Vec<_> = redact_rows(&rows, RedactMode::All).collect();
-
-        // Paths should be redacted
-        assert_ne!(redacted[0].path, "src/lib.rs");
-        assert!(redacted[0].path.ends_with(".rs"));
-
-        // Module should ALSO be redacted (16 char hash)
-        assert_ne!(redacted[0].module, "src");
-        assert_eq!(redacted[0].module.len(), 16);
-    }
-
-    #[test]
-    fn redact_rows_preserves_other_fields() {
-        let rows = sample_file_rows();
-        let redacted: Vec<_> = redact_rows(&rows, RedactMode::All).collect();
-
-        // All other fields should be preserved
-        assert_eq!(redacted[0].lang, "Rust");
-        assert_eq!(redacted[0].kind, FileKind::Parent);
-        assert_eq!(redacted[0].code, 100);
-        assert_eq!(redacted[0].comments, 20);
-        assert_eq!(redacted[0].blanks, 10);
-        assert_eq!(redacted[0].lines, 130);
-        assert_eq!(redacted[0].bytes, 1000);
-        assert_eq!(redacted[0].tokens, 250);
-    }
-
-    // ========================
     // Path Normalization Tests
     // ========================
 
@@ -1240,76 +674,6 @@ mod tests {
             prop_assert!(!normalized.starts_with("./"), "Should not start with ./: {}", normalized);
         }
 
-        #[test]
-        fn redact_rows_preserves_count(
-            code in 0usize..10000,
-            comments in 0usize..1000,
-            blanks in 0usize..500
-        ) {
-            let rows = vec![FileRow {
-                path: "test/file.rs".to_string(),
-                module: "test".to_string(),
-                lang: "Rust".to_string(),
-                kind: FileKind::Parent,
-                code,
-                comments,
-                blanks,
-                lines: code + comments + blanks,
-                bytes: 1000,
-                tokens: 250,
-            }];
-
-            for mode in [RedactMode::None, RedactMode::Paths, RedactMode::All] {
-                let redacted: Vec<_> = redact_rows(&rows, mode).collect();
-                prop_assert_eq!(redacted.len(), 1);
-                prop_assert_eq!(redacted[0].code, code);
-                prop_assert_eq!(redacted[0].comments, comments);
-                prop_assert_eq!(redacted[0].blanks, blanks);
-            }
-        }
-
-        #[test]
-        fn redact_rows_paths_preserve_allowlisted_extensions(ext in "rs|js|ts|json|md|toml|gz") {
-            let path = format!("some/path/file.{}", ext);
-            let rows = vec![FileRow {
-                path: path.clone(),
-                module: "some".to_string(),
-                lang: "Test".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 10,
-                blanks: 5,
-                lines: 115,
-                bytes: 1000,
-                tokens: 250,
-            }];
-
-            let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
-            prop_assert!(redacted[0].path.ends_with(&format!(".{}", ext)),
-                "Redacted path '{}' should end with .{}", redacted[0].path, ext);
-        }
-
-        #[test]
-        fn redact_rows_paths_strip_untrusted_extensions(ext in "passwd|secret|pass1234|token") {
-            let path = format!("some/path/file.{}", ext);
-            let rows = vec![FileRow {
-                path: path.clone(),
-                module: "some".to_string(),
-                lang: "Test".to_string(),
-                kind: FileKind::Parent,
-                code: 100,
-                comments: 10,
-                blanks: 5,
-                lines: 115,
-                bytes: 1000,
-                tokens: 250,
-            }];
-
-            let redacted: Vec<_> = redact_rows(&rows, RedactMode::Paths).collect();
-            prop_assert_eq!(redacted[0].path.len(), 16);
-            prop_assert!(!redacted[0].path.contains('.'));
-            prop_assert!(!redacted[0].path.contains(&ext));
-        }
     }
 
     // ========================
