@@ -74,7 +74,7 @@ Recommended evidence availability values:
 | Availability | Meaning |
 | --- | --- |
 | `available` | Evidence ran for the requested commit/scope and can be interpreted with the gate status. |
-| `missing` | Evidence was expected but no usable result was found. |
+| `missing` | Evidence was expected for a relevant scope, but no tested scope or usable result was found. |
 | `skipped` | Evidence was intentionally not requested for this run. |
 | `stale` | Evidence exists but does not match the requested commit or scope. |
 | `degraded` | Evidence exists but is partial, incomplete, or lower confidence than the normal policy requires. |

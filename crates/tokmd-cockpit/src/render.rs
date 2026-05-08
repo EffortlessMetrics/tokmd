@@ -830,6 +830,7 @@ fn review_packet_evidence_capabilities(receipt: &CockpitReceipt) -> Value {
     let mut stale = Vec::new();
     let mut skipped = Vec::new();
     let mut unavailable = Vec::new();
+    let mut missing = Vec::new();
 
     for (id, meta) in review_packet_evidence_gate_specs(receipt) {
         match evidence_availability_optional(meta) {
@@ -838,6 +839,7 @@ fn review_packet_evidence_capabilities(receipt: &CockpitReceipt) -> Value {
             "stale" => stale.push(id),
             "skipped" => skipped.push(id),
             "unavailable" => unavailable.push(id),
+            "missing" => missing.push(id),
             _ => {}
         }
     }
@@ -849,7 +851,7 @@ fn review_packet_evidence_capabilities(receipt: &CockpitReceipt) -> Value {
         "stale": stale,
         "skipped": skipped,
         "unavailable": unavailable,
-        "missing": Vec::<&str>::new(),
+        "missing": missing,
     })
 }
 
@@ -1035,6 +1037,13 @@ fn evidence_gate(id: &str, meta: Option<&GateMeta>) -> Value {
 fn evidence_availability(meta: &GateMeta) -> &'static str {
     if matches!(meta.status, GateStatus::Skipped) {
         return "skipped";
+    }
+
+    if matches!(meta.status, GateStatus::Pending)
+        && !meta.scope.relevant.is_empty()
+        && meta.scope.tested.is_empty()
+    {
+        return "missing";
     }
 
     match meta.commit_match {

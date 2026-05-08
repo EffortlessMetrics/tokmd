@@ -151,6 +151,7 @@ architecture-consolidation program.
 - Manual proof-observation collector run `25516861742` on `main` passed on 2026-05-07 after #1750 merged. The collection recorded 82 observations, 16 selected/executed/passed coverage commands, 16 artifacts, and 7 distinct scopes: `analysis_complexity`, `analysis_content_assets`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_cockpit`, `tokmd_core_ffi`, and `tokmd_gate`. The new source-run window accounting reported `expected_runs = 99`, `observed_runs = 82`, `missing_runs = 17`, and `unmatched_observations = 0`, proving the collector can distinguish successful executor runs that lacked downloadable observation artifacts from observations outside the saved run window.
 - Proof-control-plane status: routine PR observations continue under the two-command default. There is no active promotion slice for a required gate, default Codecov upload, or larger command-limit default.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
+- Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 
 ## References
 
