@@ -440,7 +440,7 @@ fn edge_deeply_nested_single_file() {
 #[test]
 fn edge_directory_with_only_hidden_files() {
     let dir = tempfile::tempdir().unwrap();
-    fs::write(dir.path().join(".env"), "SECRET=x").unwrap();
+    fs::write(dir.path().join(".env"), "MODE=x").unwrap();
     fs::write(dir.path().join(".config"), "key=val").unwrap();
     fs::write(dir.path().join(".gitkeep"), "").unwrap();
     let files = list_files(dir.path(), None).unwrap();

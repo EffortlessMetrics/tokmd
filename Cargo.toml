@@ -22,6 +22,7 @@ members = [
     "fuzz",
     "xtask",
 ]
+exclude = ["vendor/home-0.5.12"]
 default-members = [
     "crates/tokmd",
     "crates/tokmd-analysis",

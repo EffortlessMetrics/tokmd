@@ -30,9 +30,9 @@ test("session token helpers read, trim, write, and clear token values", () => {
     const storage = createMemoryStorage();
 
     assert.equal(readSessionToken(storage), "");
-    assert.equal(writeSessionToken(storage, "  ghp_example  "), "ghp_example");
-    assert.equal(storage.getItem(GITHUB_TOKEN_STORAGE_KEY), "ghp_example");
-    assert.equal(readSessionToken(storage), "ghp_example");
+    assert.equal(writeSessionToken(storage, "  test-token-example  "), "test-token-example");
+    assert.equal(storage.getItem(GITHUB_TOKEN_STORAGE_KEY), "test-token-example");
+    assert.equal(readSessionToken(storage), "test-token-example");
 
     assert.equal(writeSessionToken(storage, "   "), "");
     assert.equal(storage.getItem(GITHUB_TOKEN_STORAGE_KEY), null);
@@ -73,5 +73,5 @@ test("session token helpers tolerate unavailable storage", () => {
 test("auth mode never exposes token text", () => {
     assert.equal(authModeForToken(""), "anonymous");
     assert.equal(authModeForToken("   "), "anonymous");
-    assert.equal(authModeForToken("ghp_secret_value"), "authenticated");
+    assert.equal(authModeForToken("test-token-value"), "authenticated");
 });

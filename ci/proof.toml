@@ -59,6 +59,21 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "vendored_home_patch"
+kind = "rust"
+paths = [
+  "Cargo.toml",
+  "vendor/home-0.5.12/**",
+]
+proof = [
+  "cargo tree -i home --edges normal",
+  "cargo test --manifest-path vendor/home-0.5.12/Cargo.toml --verbose",
+]
+reason = "The patched `home` crate is vendored to supply tokmd's non-Unix/non-Windows fallback while preserving the upstream Windows implementation."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "fuzz_harnesses"
 kind = "rust"
 paths = [
@@ -146,6 +161,15 @@ proof = [
   "cargo test -p tokmd-core ffi",
   "cargo test -p tokmd-core --test ffi_parity_w53",
 ]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_envelope_contract"
+kind = "rust"
+paths = ["crates/tokmd-envelope/**"]
+packages = ["tokmd-envelope"]
+proof = ["cargo test -p tokmd-envelope --verbose"]
 mutation = true
 coverage = true
 

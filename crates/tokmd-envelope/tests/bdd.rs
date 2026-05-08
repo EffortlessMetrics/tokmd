@@ -146,7 +146,11 @@ fn scenario_finding_builder_chain() {
         "Possible secret",
         "File has high entropy",
     )
-    .with_location(FindingLocation::path_line_column("secrets.env", 1, 1))
+    .with_location(FindingLocation::path_line_column(
+        "finding-fixture.env",
+        1,
+        1,
+    ))
     .with_evidence(serde_json::json!({"entropy": 7.8}))
     .with_docs_url("https://docs.example.com/entropy")
     .with_fingerprint("tokmd");
@@ -157,7 +161,7 @@ fn scenario_finding_builder_chain() {
     assert_eq!(finding.severity, FindingSeverity::Error);
     assert!(finding.location.is_some());
     let loc = finding.location.as_ref().unwrap();
-    assert_eq!(loc.path, "secrets.env");
+    assert_eq!(loc.path, "finding-fixture.env");
     assert_eq!(loc.line, Some(1));
     assert_eq!(loc.column, Some(1));
     assert!(finding.evidence.is_some());

@@ -655,5 +655,7 @@ pub mod walk;
 
 pub use exclude::{add_exclude_pattern, has_exclude_pattern, normalize_exclude_pattern};
 pub use math::{gini_coefficient, percentile, round_f64, safe_ratio};
-pub use path::{normalize_rel_path, normalize_slashes};
+pub use path::{
+    canonicalize_bounded_path, normalize_bounded_rel_path, normalize_rel_path, normalize_slashes,
+};
 pub use tokeignore::{InitArgs, InitProfile, init_tokeignore};
