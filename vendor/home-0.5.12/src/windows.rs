@@ -18,6 +18,13 @@ pub fn home_dir_inner() -> Option<PathBuf> {
 
 #[cfg(not(target_vendor = "uwp"))]
 fn home_dir_crt() -> Option<PathBuf> {
+    // SAFETY: `SHGetKnownFolderPath` initializes `path` to a
+    // `CoTaskMemFree`-owned, NUL-terminated UTF-16 buffer when it returns
+    // `S_OK`. This code only reads up to the terminator reported by `wcslen`,
+    // converts that slice immediately, and frees the allocation with
+    // `CoTaskMemFree` on both success and failure paths. The implementation is
+    // vendored from `home` 0.5.12; tokmd's local patch only adds the
+    // non-Unix/non-Windows fallback documented in `README.tokmd.md`.
     unsafe {
         let mut path = ptr::null_mut();
         match SHGetKnownFolderPath(
@@ -62,6 +69,8 @@ mod tests {
     fn test_with_without() {
         let olduserprofile = env::var_os("USERPROFILE").unwrap();
 
+        // SAFETY: this vendored crate has a single Windows test that mutates
+        // process environment variables to exercise `home_dir_inner`.
         unsafe {
             env::remove_var("HOME");
             env::remove_var("USERPROFILE");
@@ -71,11 +80,13 @@ mod tests {
 
         let home = Path::new(r"C:\Users\foo tar baz");
 
+        // SAFETY: see the test-level environment mutation note above.
         unsafe {
             env::set_var("HOME", home.as_os_str());
         }
         assert_ne!(home_dir_inner().as_ref().map(Deref::deref), Some(home));
 
+        // SAFETY: see the test-level environment mutation note above.
         unsafe {
             env::set_var("USERPROFILE", home.as_os_str());
         }
