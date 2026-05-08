@@ -29,7 +29,7 @@ fn lint_policy_accepts_repo_policy() {
 
     assert!(success, "check-lint-policy failed. stderr: {stderr}");
     assert!(stdout.contains("lint policy ok"), "stdout: {stdout}");
-    assert!(stdout.contains("MSRV 1.93"), "stdout: {stdout}");
+    assert!(stdout.contains("MSRV 1.95"), "stdout: {stdout}");
 }
 
 #[test]

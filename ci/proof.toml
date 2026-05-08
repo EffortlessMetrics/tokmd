@@ -45,6 +45,8 @@ paths = [
   "Cargo.lock",
   "Cargo.toml",
   "crates/**/Cargo.toml",
+  "crates/tokmd-node/package.json",
+  "crates/tokmd-node/npm/package.json",
   "deny.toml",
   "crates/tokmd-types/tests/manifest_contract.rs",
   "xtask/Cargo.toml",
@@ -718,12 +720,13 @@ paths = [
   "docs/design.md",
   "docs/implementation-plan.md",
   "docs/adr/**",
+  "docs/audits/**",
   "docs/progress-events.md",
   "docs/requirements.md",
   "docs/specification.md",
 ]
 proof = ["cargo xtask docs --check"]
-reason = "Top-level architecture, ADR, design, roadmap, and requirements docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
+reason = "Top-level architecture, ADR, design, roadmap, requirements, and audit docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
 mutation = false
 coverage = false
 
@@ -829,6 +832,20 @@ proof = [
   "cargo xtask proof-policy --check",
 ]
 reason = "PR Plan policy data: risk-pack routing and the LEM-aware advisory plan."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "release_metadata"
+kind = "non_rust"
+paths = [
+  "CHANGELOG.md",
+]
+proof = [
+  "cargo xtask version-consistency",
+  "cargo xtask docs --check",
+]
+reason = "CHANGELOG is a release artifact updated with every version bump; proof routes to version-consistency and docs checks."
 mutation = false
 coverage = false
 
