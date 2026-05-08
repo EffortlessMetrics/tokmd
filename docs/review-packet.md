@@ -59,6 +59,13 @@ The review packet directory is:
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review. |
 
+Formal JSON Schemas are published with the docs and embedded in the CLI test
+package:
+
+- [`review-packet-manifest.schema.json`](review-packet-manifest.schema.json)
+- [`review-packet-evidence.schema.json`](review-packet-evidence.schema.json)
+- [`review-map.schema.json`](review-map.schema.json)
+
 ## Evidence Semantics
 
 Packet consumers must not treat unavailable evidence as passing evidence.

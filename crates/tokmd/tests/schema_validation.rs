@@ -23,6 +23,17 @@ const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json")
 /// Embedded JSON schema for sensor.report.v1 envelope (from schemas/sensor.report.v1.schema.json)
 const SENSOR_REPORT_SCHEMA_JSON: &str = include_str!("../schemas/sensor.report.v1.schema.json");
 
+/// Embedded JSON schema for review packet manifests
+const REVIEW_PACKET_MANIFEST_SCHEMA_JSON: &str =
+    include_str!("../schemas/review-packet-manifest.schema.json");
+
+/// Embedded JSON schema for review packet evidence
+const REVIEW_PACKET_EVIDENCE_SCHEMA_JSON: &str =
+    include_str!("../schemas/review-packet-evidence.schema.json");
+
+/// Embedded JSON schema for review maps
+const REVIEW_MAP_SCHEMA_JSON: &str = include_str!("../schemas/review-map.schema.json");
+
 /// Load the JSON schema from embedded content
 fn load_schema() -> Result<Value> {
     serde_json::from_str(SCHEMA_JSON).context("Failed to parse embedded schema.json")
@@ -38,6 +49,13 @@ fn load_handoff_schema() -> Result<Value> {
 fn load_sensor_report_schema() -> Result<Value> {
     serde_json::from_str(SENSOR_REPORT_SCHEMA_JSON)
         .context("Failed to parse embedded sensor.report.v1.schema.json")
+}
+
+fn compile_schema(schema_json: &str, name: &str) -> Result<jsonschema::Validator> {
+    let schema: Value = serde_json::from_str(schema_json)
+        .with_context(|| format!("Failed to parse embedded {name}"))?;
+    jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile {name}: {}", e))
 }
 
 /// Build a validator for a specific definition in the schema
@@ -375,6 +393,52 @@ fn test_schema_copies_in_sync() {
         embedded, docs,
         "crates/tokmd/schemas/schema.json and docs/schema.json have diverged — update both copies"
     );
+}
+
+#[test]
+fn test_review_packet_schema_copies_in_sync() -> Result<()> {
+    for (schema_name, embedded) in [
+        (
+            "review-packet-manifest.schema.json",
+            REVIEW_PACKET_MANIFEST_SCHEMA_JSON,
+        ),
+        (
+            "review-packet-evidence.schema.json",
+            REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        ),
+        ("review-map.schema.json", REVIEW_MAP_SCHEMA_JSON),
+    ] {
+        let docs_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs")
+            .join(schema_name);
+        let docs_schema = std::fs::read_to_string(&docs_path)
+            .with_context(|| format!("read {}", docs_path.display()))?;
+
+        let embedded: Value = serde_json::from_str(&embedded.replace("\r\n", "\n"))
+            .with_context(|| format!("embedded {schema_name} should be valid JSON"))?;
+        let docs: Value = serde_json::from_str(&docs_schema.replace("\r\n", "\n"))
+            .with_context(|| format!("docs/{schema_name} should be valid JSON"))?;
+        assert_eq!(
+            embedded, docs,
+            "crates/tokmd/schemas/{schema_name} and docs/{schema_name} have diverged"
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_review_packet_schemas_are_valid_json_schema() -> Result<()> {
+    compile_schema(
+        REVIEW_PACKET_MANIFEST_SCHEMA_JSON,
+        "review-packet-manifest.schema.json",
+    )?;
+    compile_schema(
+        REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        "review-packet-evidence.schema.json",
+    )?;
+    compile_schema(REVIEW_MAP_SCHEMA_JSON, "review-map.schema.json")?;
+    Ok(())
 }
 
 #[test]

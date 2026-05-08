@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://effortlessmetrics.dev/tokmd/schemas/review-packet-evidence.schema.json",
+  "title": "tokmd Review Packet Evidence",
+  "description": "Schema for .tokmd/review/evidence.json emitted by tokmd cockpit --review-packet-dir.",
+  "type": "object",
+  "required": ["schema", "overall_status", "base_ref", "head_ref", "gates"],
+  "properties": {
+    "schema": { "type": "string", "const": "tokmd.review_packet_evidence.v1" },
+    "overall_status": { "$ref": "#/definitions/gateStatus" },
+    "base_ref": { "type": "string", "minLength": 1 },
+    "head_ref": { "type": "string", "minLength": 1 },
+    "gates": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/evidenceGate" }
+    }
+  },
+  "definitions": {
+    "evidenceGate": {
+      "type": "object",
+      "required": [
+        "id",
+        "status",
+        "availability",
+        "source",
+        "commit_match",
+        "scope",
+        "evidence_commit",
+        "evidence_generated_at_ms"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "warn", "fail", "skipped", "pending", "unavailable"]
+        },
+        "availability": { "$ref": "#/definitions/availability" },
+        "source": {
+          "anyOf": [
+            { "type": "string", "enum": ["ci_artifact", "cached", "ran_local"] },
+            { "type": "null" }
+          ]
+        },
+        "commit_match": {
+          "anyOf": [
+            { "type": "string", "enum": ["exact", "partial", "stale", "unknown"] },
+            { "type": "null" }
+          ]
+        },
+        "scope": { "$ref": "#/definitions/scopeCoverage" },
+        "evidence_commit": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        },
+        "evidence_generated_at_ms": {
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "scopeCoverage": {
+      "type": "object",
+      "required": ["relevant", "tested", "ratio", "lines_relevant", "lines_tested"],
+      "properties": {
+        "relevant": { "$ref": "#/definitions/stringList" },
+        "tested": { "$ref": "#/definitions/stringList" },
+        "ratio": { "type": "number", "minimum": 0 },
+        "lines_relevant": {
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
+        },
+        "lines_tested": {
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "availability": {
+      "type": "string",
+      "enum": ["available", "missing", "skipped", "stale", "degraded", "unavailable"]
+    },
+    "gateStatus": {
+      "type": "string",
+      "enum": ["pass", "warn", "fail", "skipped", "pending"]
+    }
+  }
+}

@@ -600,8 +600,14 @@ paths = [
   "crates/tokmd-types/src/cockpit.rs",
   "crates/tokmd-types/tests/cockpit_tests.rs",
   "crates/tokmd/src/commands/cockpit.rs",
+  "crates/tokmd/schemas/review-map.schema.json",
+  "crates/tokmd/schemas/review-packet-evidence.schema.json",
+  "crates/tokmd/schemas/review-packet-manifest.schema.json",
   "crates/tokmd/tests/cockpit_*.rs",
   "docs/review-packet.md",
+  "docs/review-map.schema.json",
+  "docs/review-packet-evidence.schema.json",
+  "docs/review-packet-manifest.schema.json",
   "docs/tokmd-in-cockpit.md",
 ]
 packages = ["tokmd-cockpit", "tokmd-core", "tokmd-types", "tokmd"]
@@ -790,6 +796,9 @@ paths = [
   "docs/baseline.schema.json",
   "docs/handoff.schema.json",
   "docs/handoff-schema.md",
+  "docs/review-map.schema.json",
+  "docs/review-packet-evidence.schema.json",
+  "docs/review-packet-manifest.schema.json",
   "docs/schema.json",
   "docs/requirements.md",
 ]

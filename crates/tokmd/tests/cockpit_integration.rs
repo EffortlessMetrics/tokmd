@@ -13,6 +13,32 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+const REVIEW_PACKET_MANIFEST_SCHEMA_JSON: &str =
+    include_str!("../schemas/review-packet-manifest.schema.json");
+const REVIEW_PACKET_EVIDENCE_SCHEMA_JSON: &str =
+    include_str!("../schemas/review-packet-evidence.schema.json");
+const REVIEW_MAP_SCHEMA_JSON: &str = include_str!("../schemas/review-map.schema.json");
+
+fn assert_validates_against_schema(schema_json: &str, instance: &serde_json::Value, label: &str) {
+    let schema: serde_json::Value =
+        serde_json::from_str(schema_json).unwrap_or_else(|err| panic!("{label} schema: {err}"));
+    let validator = jsonschema::validator_for(&schema)
+        .unwrap_or_else(|err| panic!("{label} schema should compile: {err}"));
+
+    if !validator.is_valid(instance) {
+        let errors: Vec<String> = validator
+            .iter_errors(instance)
+            .map(|err| format!("{} at {}", err, err.instance_path()))
+            .collect();
+        panic!(
+            "{label} did not validate against schema:\n{}\n\nInstance:\n{}",
+            errors.join("\n"),
+            serde_json::to_string_pretty(instance)
+                .expect("failed to serialize invalid schema instance")
+        );
+    }
+}
+
 #[test]
 fn test_cockpit_help() {
     // Given: The cockpit command exists
@@ -534,6 +560,11 @@ fn test_cockpit_review_packet_dir() {
     let manifest: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
             .expect("valid manifest JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_MANIFEST_SCHEMA_JSON,
+        &manifest,
+        "review packet manifest",
+    );
     assert_eq!(manifest["schema"], "tokmd.review_packet_manifest.v1");
     assert_eq!(
         manifest["capabilities"]["evidence"]["details"],
@@ -606,6 +637,11 @@ fn test_cockpit_review_packet_dir() {
     let evidence: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
             .expect("valid evidence JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        &evidence,
+        "review packet evidence",
+    );
     assert_eq!(evidence["schema"], "tokmd.review_packet_evidence.v1");
     let gates = evidence["gates"].as_array().expect("evidence gates array");
     assert!(
@@ -629,6 +665,7 @@ fn test_cockpit_review_packet_dir() {
     let review_map: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(packet_dir.join("review-map.json")).unwrap())
             .expect("valid review map JSON");
+    assert_validates_against_schema(REVIEW_MAP_SCHEMA_JSON, &review_map, "review map");
     assert_eq!(review_map["schema"], "tokmd.review_map.v1");
     let items = review_map["items"].as_array().expect("review map items");
     assert_eq!(review_map["item_count"], items.len() as u64);

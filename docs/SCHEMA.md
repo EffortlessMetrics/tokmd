@@ -1,7 +1,11 @@
 # tokmd Receipt Schema
 
-> **Note**: Core/analysis receipts are defined in [schema.json](schema.json).  
+> **Note**: Core/analysis receipts are defined in [schema.json](schema.json).
 > Handoff manifests are defined in [handoff.schema.json](handoff.schema.json).
+> Cockpit review packet sidecars are defined in
+> [review-packet-manifest.schema.json](review-packet-manifest.schema.json),
+> [review-packet-evidence.schema.json](review-packet-evidence.schema.json), and
+> [review-map.schema.json](review-map.schema.json).
 
 `tokmd` produces structured JSON outputs called "receipts". These schemas are stable and intended for machine consumption.
 
