@@ -210,6 +210,11 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 **Goal**: Near-duplicate detection, commit intent classification, and focused microcrate extraction.
 
+Historical note: this phase first extracted several implementation boundaries as
+independent crates. The current architecture preserves the useful seams as
+single-responsibility owner modules in `tokmd-scan`, `tokmd-model`,
+`tokmd-format`, `tokmd-analysis`, `tokmd-core`, and `tokmd`.
+
 ### Near-Duplicate Detection (v1.7.0)
 
 1. **Enricher**: near-duplicate module for content-similarity detection
@@ -222,12 +227,12 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 2. **Coupling metrics**: Jaccard similarity and Lift in coupling reports
 3. **Token estimation**: Renamed `tokens_low`/`tokens_high` → `tokens_min`/`tokens_max` with backward-compatible serde aliases
 
-### Microcrate Extraction (v1.7.1)
+### Boundary Extraction (v1.7.1)
 
-1. **Tier 1 microcrates**: `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-exclude`, `tokmd-path`, `tokmd-module-key`
-2. **Tier 2 microcrates**: `tokmd-context-git`, `tokmd-export-tree`
+1. **Tier 1 owner modules**: context policy, scan args, math, exclude, path, and module-key seams
+2. **Tier 2 owner modules**: context git and export-tree seams
 3. **Tier 3 seams**: CLI-local analysis explanations, analysis implementation modules, and analysis renderers under `tokmd-format`
-4. **Tier 4 seams**: `tokmd-tool-schema`, `tokmd-envelope/src/ffi.rs`
+4. **Tier 4 seams**: tool-schema wiring and `tokmd-envelope/src/ffi.rs`
 5. **Architectural**: Moved `AnalysisFormat` to `tokmd-types` (Tier 0)
 
 ### Schema Changes
@@ -240,9 +245,9 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - [x] Add commit intent classification to git reports
 - [x] Add Jaccard similarity and Lift to coupling metrics
 - [x] Rename token estimation fields with backward-compatible aliases
-- [x] Extract 15 focused microcrates from monolithic modules
+- [x] Extract focused boundaries from monolithic modules, later consolidated as owner modules
 - [x] Move `AnalysisFormat` to `tokmd-types` (Tier 0)
-- [x] Update CI/tooling for 40+ crate workspace
+- [x] Update CI/tooling for the expanded workspace
 - [x] Fix clippy/lint across all new crates
 
 ### Tests
@@ -250,7 +255,7 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 - [x] Near-dup detection integration tests
 - [x] Serde alias backward compatibility tests for token field renames
 - [x] E2E `ContextReceipt` backward compatibility test
-- [x] Boundary checks for microcrate extraction
+- [x] Boundary checks for the extracted crate/module seams
 
 ---
 

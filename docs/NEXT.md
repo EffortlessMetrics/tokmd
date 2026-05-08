@@ -157,6 +157,10 @@ architecture-consolidation program.
   ownership model: analysis rendering lives in `tokmd-format`, review evidence
   in `tokmd-cockpit`, and implementation details should stay as SRP owner
   modules unless they are durable public surfaces.
+- Roadmap-era implementation notes now distinguish historical microcrate
+  extraction from the current owner-module consolidation shape, so future
+  architecture work starts from the actual crate graph instead of retired
+  package names.
 
 ## References
 

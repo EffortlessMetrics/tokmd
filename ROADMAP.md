@@ -79,6 +79,12 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 **Goal**: Modular crate structure for selective compilation and ecosystem reuse.
 
+This section records the historical v1.2.0 architecture milestone. The current
+workspace has since consolidated implementation-only crates into owner modules;
+see [docs/architecture.md](docs/architecture.md) and
+[docs/publish-surface.md](docs/publish-surface.md) for the active crate graph
+and publishing surface.
+
 ### Crate Hierarchy
 
 | Tier | Crate                   | Purpose                               |
@@ -90,8 +96,8 @@ This document outlines the evolution of `tokmd` and the path forward.
 | 1    | `tokmd-sensor::substrate` | Shared repo context (`RepoSubstrate`) |
 | 1    | `tokmd-scan`            | tokei wrapper                         |
 | 1    | `tokmd-model`           | Aggregation logic                     |
-| 1    | `tokmd-tokeignore`      | Template generation                   |
-| 1    | `tokmd-redact`          | BLAKE3-based path redaction utilities |
+| 1    | `tokmd-scan` owner modules | Template generation and walk/path helpers |
+| 2    | `tokmd-format::redact`  | BLAKE3-based path redaction utilities |
 | 1    | `tokmd-sensor`          | `EffortlessSensor` trait + builder    |
 | 1    | `tokmd-scan::walk`      | File system traversal helpers         |
 | 2    | `tokmd-format`          | Output rendering                      |
@@ -106,7 +112,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 
 ### v1.2.0 Features Delivered
 
-- [x] **Microcrate Architecture**: Focused crates for modularity (16 initial crates; now 58 crate members in the workspace by `1.8.0`)
+- [x] **Microcrate Architecture**: Focused crates for modularity (16 initial crates; later consolidated where boundaries were implementation-only)
 - [x] **Context Packing**: `tokmd context` command for LLM context window optimization
 - [x] **Check-Ignore Command**: `tokmd check-ignore` for troubleshooting ignored files
 - [x] **Shell Completions**: `tokmd completions` for bash, zsh, fish, powershell
@@ -154,7 +160,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Git-Ranked Context**: `--rank-by churn/hotspot` in `tokmd context` command
 - [x] **Tools Schema**: `tokmd tools` for LLM tool definitions (OpenAI, Anthropic, JSON Schema)
 - [x] **Context Output Options**: `--out`, `--force`, `--bundle-dir`, `--log`, `--max-output-bytes` flags
-- [x] **Documentation**: README files for all 17 crates
+- [x] **Documentation**: README files for the then-current crate graph
 - [x] **Documentation**: Updated troubleshooting guide with new error behaviors
 - [x] **Documentation**: Updated CLI reference with exit code changes
 - [x] **Documentation**: CONTRIBUTING.md guide with setup, testing, and publishing workflow
@@ -165,7 +171,7 @@ This document outlines the evolution of `tokmd` and the path forward.
 - [x] **Architecture**: Exposed `git`/`walk`/`content` feature flags in CLI for lightweight builds
 - [x] **Architecture**: New `tokmd-gate` crate for policy evaluation
 - [x] **Testing**: Comprehensive integration tests across all major crates
-- [x] **Testing**: Property-based tests for tokmd-redact, tokmd-tokeignore, and tokmd-scan walk helpers
+- [x] **Testing**: Property-based tests for redaction, tokeignore, and tokmd-scan walk helpers
 - [x] **Testing**: Fuzz targets for path redaction and JSON deserialization
 - [x] **Testing**: Mutation testing with cargo-mutants and CI gate
 - [x] **CI/CD**: Enhanced publish workflow via `cargo xtask publish`
@@ -297,7 +303,7 @@ _Goal: Native integration in CI pipelines and tooling ecosystems._
 | Maintainability Index     | ✅ Complete | SEI formula (simplified without Halstead, full with)      |
 | Technical debt ratio      | ✅ Complete | Complexity-to-size ratio as a heuristic debt signal       |
 | Duplication density       | ✅ Complete | Extend duplicate detection into a per-module density metric |
-| API surface area          | ✅ Complete | Public export ratio (language-specific heuristics) via `tokmd-analysis-api-surface` |
+| API surface area          | ✅ Complete | Public export ratio via language-specific heuristics in `tokmd-analysis` |
 | Code age distribution     | ✅ Complete | Extend git freshness into age buckets with trend tracking |
 
 ### Cockpit & CLI Improvements
@@ -356,8 +362,8 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### v1.6.3 Features Delivered
 
-- [x] Extracted `tokmd-progress` microcrate for CLI progress rendering primitives
-- [x] Extracted `tokmd-badge` microcrate for SVG badge generation
+- [x] Added CLI progress rendering primitives, now owned by `tokmd`
+- [x] Added SVG badge generation, now owned by `tokmd-format`
 - [x] Added side-by-side summary comparison rows for diff totals (LOC, lines, files, bytes, tokens)
 - [x] Added baseline-aware summary comparison tables to cockpit markdown output
 - [x] Added integration tests to lock dynamic completion values for `--preset` and `--format`
@@ -372,7 +378,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 | Feature                    | Status      | Description                                                  |
 | :------------------------- | :---------- | :----------------------------------------------------------- |
-| Near-dup enricher          | ✅ Complete | Content-similarity detection via `tokmd-analysis-near-dup`   |
+| Near-dup enricher          | ✅ Complete | Content-similarity detection via the `tokmd-analysis` near-dup module |
 | `--near-dup` flag          | ✅ Complete | Enable near-duplicate detection in analysis                  |
 | `--near-dup-threshold`     | ✅ Complete | Configurable similarity threshold (default 0.8)              |
 | `--near-dup-scope`         | ✅ Complete | Scope filter for near-dup scanning                           |
@@ -407,30 +413,32 @@ UX work is explicitly **incremental and non-breaking**:
 
 **Goal**: Extract focused microcrates from monolithic modules for better separation of concerns.
 
-### New Microcrates
+This section records the extraction step that existed at the time. The current
+architecture has kept the useful seams but moved implementation-only packages
+back into single-responsibility owner modules.
 
-| Crate                          | Tier | Purpose                                                |
-| :----------------------------- | :--- | :----------------------------------------------------- |
-| `tokmd-context-policy`         | 1    | Context/handoff policy helpers (smart excludes, classification) |
-| `tokmd-scan-args`              | 1    | Deterministic `ScanArgs` metadata construction         |
-| `tokmd-math`                   | 1    | Deterministic numeric/statistical helpers              |
-| `tokmd-exclude`                | 1    | Exclude-pattern normalization + dedup                  |
-| `tokmd-path`                   | 1    | Cross-platform path normalization                      |
-| `tokmd-module-key`             | 1    | Deterministic module-key derivation                    |
-| `tokmd-context-git`            | 2    | Git-derived hotspot/churn scoring for context ranking  |
-| `tokmd-export-tree`            | 2    | Deterministic tree renderers for analysis/handoff exports |
-| `tokmd/src/analysis_explain`   | 5    | CLI metric/finding explanation catalog and alias lookup |
-| `tokmd-analysis/src/imports`   | 3    | Language-aware import parsing + normalization          |
-| `tokmd-analysis-maintainability` | 3  | Maintainability index scoring + Halstead merge         |
-| `tokmd-tool-schema`            | 4    | AI tool-schema generation from clap command trees      |
-| `tokmd-envelope/src/ffi.rs`    | 0    | Shared FFI envelope parser for Python/Node bindings    |
+### Extracted Boundaries
+
+| Current owner | Tier | Purpose |
+| :------------ | :--- | :------ |
+| `tokmd-core` / `tokmd` owner modules | 4/5 | Context/handoff policy helpers and CLI wiring |
+| `tokmd-format::scan_args` | 2 | Deterministic `ScanArgs` metadata construction |
+| `tokmd-analysis-types` / owner modules | 0+ | Deterministic numeric/statistical helpers |
+| `tokmd-scan` owner modules | 1 | Exclude-pattern, path, walk, and tokeignore helpers |
+| `tokmd-model::module_key` | 1 | Deterministic module-key derivation |
+| `tokmd-core` owner modules | 4 | Git-derived context ranking helpers |
+| `tokmd-format::export_tree` | 2 | Deterministic tree renderers for analysis/handoff exports |
+| `tokmd/src/analysis_explain` | 5 | CLI metric/finding explanation catalog and alias lookup |
+| `tokmd-analysis` owner modules | 3 | Imports, maintainability, metrics, content, and enrichers |
+| `tokmd` owner modules | 5 | AI tool-schema generation from clap command trees |
+| `tokmd-envelope::ffi` | 0 | Shared FFI envelope parser for Python/Node bindings |
 
 ### Architectural Changes
 
 - [x] Moved `AnalysisFormat` to `tokmd-types` (Tier 0) for broader reuse
-- [x] Extracted 15 focused microcrates from monolithic modules
+- [x] Extracted focused boundaries from monolithic modules; later consolidation retained the seams as owner modules
 - [x] Analysis schema version: 7 → 8
-- [x] Workspace graph continued to expand beyond the original 16-crate v1.2.0 layout and now sits at 58 crate members in `1.8.0`
+- [x] Workspace graph expanded beyond the original 16-crate v1.2.0 layout before later consolidation reduced implementation package surface
 - [x] Fixed clippy/lint across all new crates for strict `--all-targets` check coverage
 - [x] Updated CI/tooling for release and publish readiness
 
@@ -453,9 +461,9 @@ UX work is explicitly **incremental and non-breaking**:
 | Tier | Crates Covered | Test Types Added |
 | :--- | :------------- | :--------------- |
 | 0 | `tokmd-types`, `tokmd-analysis-types`, `tokmd-settings`, `tokmd-envelope` | Determinism regression, contract expansion, boundary props |
-| 1 | `tokmd-scan`, `tokmd-model`, `tokmd-redact`, `tokmd-context-policy`, `tokmd-scan-args`, `tokmd-math`, `tokmd-path`, `tokmd-module-key`, `tokmd-exclude` | Property tests, deep proptests, snapshot suites |
-| 2 | `tokmd-format`, `tokmd-git`, `tokmd-badge`, `tokmd-export-tree`, `tokmd-context-git`, `tokmd-analysis::content` | Snapshot tests for all renderers, traversal properties |
-| 3 | All `tokmd-analysis-*` microcrates and `tokmd-gate` | BDD scenarios, enricher contract verification, deep proptests |
+| 1 | `tokmd-scan`, `tokmd-model`, and their path/walk/module-key owner modules | Property tests, deep proptests, snapshot suites |
+| 2 | `tokmd-format`, `tokmd-git`, and format owner modules for badges, export trees, redaction, scan args, fun, and analysis rendering | Snapshot tests for renderers, traversal properties |
+| 3 | `tokmd-analysis`, its enricher owner modules, `tokmd-cockpit`, and `tokmd-gate` | BDD scenarios, enricher contract verification, deep proptests |
 | 4 | `tokmd-core`, `tokmd-envelope/src/ffi.rs` | FFI workflow integration, JSON API round-trip tests |
 | 5 | `tokmd` CLI | E2E tests for `lang`, `module`, `export`, `run`, `analyze`, `diff`, `badge`, `gate`, `cockpit`, `context`, `handoff`, `sensor`, and `baseline` |
 
@@ -471,7 +479,7 @@ UX work is explicitly **incremental and non-breaking**:
 - [x] FFI and workflow integration tests in `tokmd-core`
 - [x] Property tests expanded across 14+ crates with `proptest`
 - [x] 3 new fuzz targets (import parser, export tree, policy TOML)
-- [x] BDD-style scenario tests (`tests/bdd.rs`) in every `tokmd-analysis-*` crate
+- [x] BDD-style scenario tests across the analysis owner-module surface
 - [x] Doctest coverage expanded across crates
 
 ### CI & Performance
@@ -490,7 +498,7 @@ UX work is explicitly **incremental and non-breaking**:
 
 ### What landed
 
-- [x] **Effort estimation engine**: new `tokmd-analysis-effort` crate with COCOMO 81, COCOMO II, and Monte Carlo scaffolding.
+- [x] **Effort estimation engine**: `tokmd-analysis` effort module with COCOMO 81, COCOMO II, and Monte Carlo scaffolding.
 - [x] **Estimate preset and receipt/report support**: effort outputs now flow through analysis receipts and Markdown renderers.
 - [x] **Preset grid expansion**: the analysis surface now exposes 12 presets, with `estimate` joining a stronger `receipt` baseline.
 - [x] **Schema evolution**: analysis schema advanced to v9 to carry effort estimation data.
