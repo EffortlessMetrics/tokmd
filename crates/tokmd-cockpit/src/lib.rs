@@ -18,6 +18,8 @@
 
 pub mod determinism;
 pub mod render;
+#[cfg(feature = "git")]
+mod supply_chain;
 
 #[cfg(feature = "git")]
 use std::collections::BTreeMap;
@@ -31,6 +33,8 @@ use anyhow::Result;
 use anyhow::{Context, bail};
 #[cfg(feature = "git")]
 use serde::Deserialize;
+#[cfg(feature = "git")]
+use supply_chain::compute_supply_chain_gate;
 #[cfg(feature = "git")]
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 
@@ -915,196 +919,6 @@ fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
         status,
         diff_summary: summary,
     }
-}
-
-// =============================================================================
-// Supply chain gate
-// =============================================================================
-
-/// Compute supply chain gate.
-/// Checks if Cargo.lock changed and runs cargo-audit if available.
-#[cfg(feature = "git")]
-fn compute_supply_chain_gate(
-    repo_root: &Path,
-    changed_files: &[FileStat],
-) -> Result<Option<SupplyChainGate>> {
-    // Only compute if Cargo.lock changed
-    let lock_changed = changed_files.iter().any(|f| f.path.ends_with("Cargo.lock"));
-    if !lock_changed {
-        return Ok(None);
-    }
-
-    // Check if cargo-audit is available
-    let check = Command::new("cargo").arg("audit").arg("--version").output();
-
-    let audit_available = check.as_ref().map(|o| o.status.success()).unwrap_or(false);
-
-    if !audit_available {
-        // cargo-audit not available, return Pending status
-        return Ok(Some(SupplyChainGate {
-            meta: GateMeta {
-                status: GateStatus::Pending,
-                source: EvidenceSource::RanLocal,
-                commit_match: CommitMatch::Unknown,
-                scope: ScopeCoverage {
-                    relevant: vec!["Cargo.lock".to_string()],
-                    tested: Vec::new(),
-                    ratio: 0.0,
-                    lines_relevant: None,
-                    lines_tested: None,
-                },
-                evidence_commit: None,
-                evidence_generated_at_ms: None,
-            },
-            vulnerabilities: Vec::new(),
-            denied: Vec::new(),
-            advisory_db_version: None,
-        }));
-    }
-
-    // Run cargo audit with JSON output
-    let audit_output = Command::new("cargo")
-        .args(["audit", "--json"])
-        .current_dir(repo_root)
-        .output();
-
-    let output = match audit_output {
-        Ok(o) => o,
-        Err(_) => {
-            // Failed to run cargo-audit, return Pending
-            return Ok(Some(SupplyChainGate {
-                meta: GateMeta {
-                    status: GateStatus::Pending,
-                    source: EvidenceSource::RanLocal,
-                    commit_match: CommitMatch::Unknown,
-                    scope: ScopeCoverage {
-                        relevant: vec!["Cargo.lock".to_string()],
-                        tested: Vec::new(),
-                        ratio: 0.0,
-                        lines_relevant: None,
-                        lines_tested: None,
-                    },
-                    evidence_commit: None,
-                    evidence_generated_at_ms: None,
-                },
-                vulnerabilities: Vec::new(),
-                denied: Vec::new(),
-                advisory_db_version: None,
-            }));
-        }
-    };
-
-    // Parse JSON output
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    // Intermediate structs for parsing cargo-audit JSON output
-    #[derive(Deserialize)]
-    struct AuditOutput {
-        database: Option<AuditDatabase>,
-        vulnerabilities: Option<AuditVulnerabilities>,
-    }
-
-    #[derive(Deserialize)]
-    #[allow(dead_code)]
-    struct AuditDatabase {
-        #[serde(rename = "advisory-count")]
-        advisory_count: Option<u32>,
-        version: Option<String>,
-    }
-
-    #[derive(Deserialize)]
-    #[allow(dead_code)]
-    struct AuditVulnerabilities {
-        found: Option<bool>,
-        count: Option<u32>,
-        list: Option<Vec<AuditVulnEntry>>,
-    }
-
-    #[derive(Deserialize)]
-    struct AuditVulnEntry {
-        advisory: Option<AuditAdvisory>,
-        package: Option<AuditPackage>,
-    }
-
-    #[derive(Deserialize)]
-    struct AuditAdvisory {
-        id: Option<String>,
-        severity: Option<String>,
-        title: Option<String>,
-    }
-
-    #[derive(Deserialize)]
-    struct AuditPackage {
-        name: Option<String>,
-    }
-
-    let parsed: Result<AuditOutput, _> = serde_json::from_str(&stdout);
-
-    let (vulnerabilities, advisory_db_version, status) = match parsed {
-        Ok(audit) => {
-            let db_version = audit.database.and_then(|db| db.version);
-
-            let vulns: Vec<Vulnerability> = audit
-                .vulnerabilities
-                .and_then(|v| v.list)
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|entry| {
-                    let advisory = entry.advisory?;
-                    Some(Vulnerability {
-                        id: advisory.id.unwrap_or_default(),
-                        package: entry.package.and_then(|p| p.name).unwrap_or_default(),
-                        severity: advisory
-                            .severity
-                            .clone()
-                            .unwrap_or_else(|| "unknown".to_string()),
-                        title: advisory.title.unwrap_or_default(),
-                    })
-                })
-                .collect();
-
-            // Determine status based on vulnerability severities
-            let has_critical_or_high = vulns.iter().any(|v| {
-                let sev = v.severity.to_lowercase();
-                sev == "critical" || sev == "high"
-            });
-            let has_medium = vulns.iter().any(|v| v.severity.to_lowercase() == "medium");
-
-            let status = if has_critical_or_high {
-                GateStatus::Fail
-            } else if has_medium {
-                GateStatus::Warn
-            } else {
-                GateStatus::Pass
-            };
-
-            (vulns, db_version, status)
-        }
-        Err(_) => {
-            // Failed to parse JSON, return Pending
-            (Vec::new(), None, GateStatus::Pending)
-        }
-    };
-
-    Ok(Some(SupplyChainGate {
-        meta: GateMeta {
-            status,
-            source: EvidenceSource::RanLocal,
-            commit_match: CommitMatch::Unknown,
-            scope: ScopeCoverage {
-                relevant: vec!["Cargo.lock".to_string()],
-                tested: vec!["Cargo.lock".to_string()],
-                ratio: 1.0,
-                lines_relevant: None,
-                lines_tested: None,
-            },
-            evidence_commit: None,
-            evidence_generated_at_ms: None,
-        },
-        vulnerabilities,
-        denied: Vec::new(),
-        advisory_db_version,
-    }))
 }
 
 // =============================================================================
