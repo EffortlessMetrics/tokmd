@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::{CockpitReceipt, GateMeta, ReviewItem};
 
-use super::review_packet::{
+use super::evidence::{
     evidence_availability_optional, evidence_counts, review_packet_evidence_capabilities,
     review_packet_evidence_gate_specs, review_packet_evidence_summary,
 };

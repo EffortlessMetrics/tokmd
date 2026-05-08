@@ -12,6 +12,7 @@ use crate::{
     trend_direction_label,
 };
 
+mod evidence;
 mod review_map;
 mod review_packet;
 
@@ -488,7 +489,7 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
         "**Evidence gates**: {:?}",
         receipt.evidence.overall_status
     );
-    let availability = review_packet::evidence_counts(receipt);
+    let availability = evidence::evidence_counts(receipt);
     let _ = writeln!(
         s,
         "- **Evidence availability**: {} available, {} degraded, {} stale, {} skipped, {} unavailable, {} missing",
