@@ -13,6 +13,7 @@ use crate::{
 };
 
 mod evidence;
+mod manifest;
 mod review_map;
 mod review_packet;
 
