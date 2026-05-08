@@ -496,6 +496,7 @@ name = "format_core_outputs"
 kind = "rust"
 paths = [
   "crates/tokmd-format/src/diff.rs",
+  "crates/tokmd-format/src/export.rs",
   "crates/tokmd-format/src/lib.rs",
   "crates/tokmd-format/tests/format_*.rs",
   "crates/tokmd-format/tests/snapshot*.rs",
