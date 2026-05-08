@@ -70,6 +70,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The browser runner UI now displays worker-run progress in a dedicated run-progress panel, while preserving the latest successful result during later repo-load or worker-run progress updates.
 - Browser runner terminal worker messages now follow the same active-request guard as progress messages, so stale `result` or `error` events from an older run cannot overwrite a newer run's UI state.
 - Browser runner GitHub token UX now uses session-only storage, shows anonymous/authenticated state without exposing the raw token, and provides an explicit clear-token action.
+- Browser runner GitHub token UX now marks rejected tokens after GitHub auth/access failures, surfaces update-or-clear guidance, and keeps raw token text out of logs and status output.
 - Browser GitHub ingest now surfaces numeric or HTTP-date `Retry-After` guidance in the UI and enables a manual retry action only for retryable GitHub rate-limit failures.
 - Browser worker mode and preset reporting now reads the `tokmd-wasm` capability payload when present and intersects it with actual exported entrypoints, so the UI and runtime validation do not promise modes the loaded bundle cannot execute.
 - Browser runner mode controls now consume that loaded worker capability surface: unavailable modes are disabled, unsupported current selections are switched to the first supported mode, and analyze sample args choose a preset advertised by the loaded bundle.

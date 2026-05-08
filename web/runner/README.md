@@ -23,7 +23,8 @@ Use this project when you want `tokmd` inside a browser worker, backed by
   `inputs` payload without requiring GitHub or network access
 - worker run progress events for `start`, `scan` or `analyze`, `done`, and `error`
 - visible run-progress and repo-load-progress panels in the browser shell
-- session-only GitHub token UX with explicit clear behavior
+- session-only GitHub token UX with explicit clear behavior and rejected-token
+  state
 - explicit GitHub rate-limit retry guidance and a manual repo-load retry action
 - `cancel` reserved in the protocol but not wired yet
 - live result panes with downloadable JSON artifacts

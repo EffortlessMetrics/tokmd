@@ -374,11 +374,11 @@ authenticated fetch.
 
 ### Work Items
 
-- [ ] Define cache key and invalidation semantics
-- [ ] Emit explicit progress events (CLI grammar documented in
-      `docs/progress-events.md`; browser worker progress remains in scope)
-- [ ] Improve retry and rate-limit UX
-- [ ] Partition authenticated fetch/cache behavior safely
+- [x] Define cache key and invalidation semantics
+- [x] Emit explicit progress events (CLI grammar documented in
+      `docs/progress-events.md`; browser worker progress is shipped)
+- [x] Improve retry and rate-limit UX
+- [x] Partition authenticated fetch/cache behavior safely
 
 ### Tests
 

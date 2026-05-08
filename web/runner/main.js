@@ -55,6 +55,7 @@ const state = {
     latestSource: null,
     latestIngest: null,
     latestLoadError: null,
+    latestAuthIssue: null,
     capabilities: {
         cancel: false,
         downloads: false,
@@ -319,6 +320,34 @@ function updateRepoLoadControls() {
     clearTokenButton.disabled = loading || authModeForToken(tokenInput.value) === "anonymous";
 }
 
+function isAuthRepairLoadError(error) {
+    return (
+        error instanceof Error &&
+        (error.code === "github_auth_required" || error.code === "github_repo_unavailable")
+    );
+}
+
+function renderAuthState() {
+    const authMode = authModeForToken(tokenInput.value);
+    if (authMode === "anonymous") {
+        authStateOutput.textContent = "anonymous";
+        authStateOutput.dataset.tone = "neutral";
+        return;
+    }
+
+    if (state.latestAuthIssue) {
+        authStateOutput.textContent =
+            state.latestAuthIssue.code === "github_repo_unavailable"
+                ? "check token/repo"
+                : "token rejected";
+        authStateOutput.dataset.tone = "error";
+        return;
+    }
+
+    authStateOutput.textContent = "authenticated";
+    authStateOutput.dataset.tone = "success";
+}
+
 function syncTokenState({ persist = true } = {}) {
     const storage = resolveSessionStorage();
     const token = persist
@@ -329,7 +358,7 @@ function syncTokenState({ persist = true } = {}) {
         tokenInput.value = token;
     }
 
-    authStateOutput.textContent = authModeForToken(token);
+    renderAuthState();
     updateRepoLoadControls();
 }
 
@@ -495,6 +524,9 @@ function loadErrorNoticeLines(error) {
     const lines = [describeLoadError(error)];
     if (isRetryableLoadError(error)) {
         lines.push(describeRetryWindow(error));
+    }
+    if (isAuthRepairLoadError(error)) {
+        lines.push("Update or clear the GitHub token, then verify the repository and ref.");
     }
 
     return lines;
@@ -750,7 +782,9 @@ loadRepoButton.addEventListener("click", async () => {
 
     state.repoLoadAbortController = controller;
     state.latestLoadError = null;
+    state.latestAuthIssue = null;
     updateRepoLoadControls();
+    renderAuthState();
     renderLoadProgress({
         phase: "start",
         current: 0,
@@ -779,7 +813,9 @@ loadRepoButton.addEventListener("click", async () => {
         state.latestSource = result.source;
         state.latestIngest = result.ingest;
         state.latestLoadError = null;
+        state.latestAuthIssue = null;
         renderRepoCapabilities();
+        renderAuthState();
         renderIngestSummary();
         argsInput.value = JSON.stringify(nextArgs, null, 2);
         appendLog("github -> main", {
@@ -805,7 +841,15 @@ loadRepoButton.addEventListener("click", async () => {
             state.latestIngest = repoError.ingest;
         }
         state.latestLoadError = repoError;
+        state.latestAuthIssue =
+            authModeForToken(tokenInput.value) === "authenticated" &&
+            isAuthRepairLoadError(repoError)
+                ? {
+                      code: repoError.code,
+                  }
+                : null;
         renderRepoCapabilities();
+        renderAuthState();
         renderIngestSummary();
         appendLog("github error -> main", sanitizeErrorForLog(repoError));
         renderLoadProgress({
@@ -937,11 +981,13 @@ retryLoadButton.addEventListener("click", () => {
 });
 
 tokenInput.addEventListener("input", () => {
+    state.latestAuthIssue = null;
     syncTokenState();
 });
 
 clearTokenButton.addEventListener("click", () => {
     tokenInput.value = "";
+    state.latestAuthIssue = null;
     clearSessionToken(resolveSessionStorage());
     syncTokenState({ persist: false });
     setStatus(loadStatusOutput, "GitHub token cleared", "neutral");
