@@ -52,6 +52,7 @@ mod license;
 mod maintainability;
 #[cfg(feature = "content")]
 mod near_dup;
+pub mod source_complexity;
 #[cfg(feature = "topics")]
 mod topics;
 mod util;

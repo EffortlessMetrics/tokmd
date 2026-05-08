@@ -31,6 +31,8 @@ use anyhow::Result;
 use anyhow::{Context, bail};
 #[cfg(feature = "git")]
 use serde::Deserialize;
+#[cfg(feature = "git")]
+use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 
 // Re-export types from tokmd_types::cockpit for convenience
 pub use tokmd_types::cockpit::*;
@@ -1266,7 +1268,7 @@ fn compute_complexity_gate(
         }
 
         if let Ok(content) = std::fs::read_to_string(&full_path) {
-            let analysis = analyze_rust_complexity(&content);
+            let analysis = analyze_rust_function_complexity(&content);
             files_analyzed += 1;
             total_complexity += analysis.total_complexity as u64;
             max_cyclomatic = max_cyclomatic.max(analysis.max_complexity);
@@ -1332,270 +1334,6 @@ fn compute_complexity_gate(
         max_cyclomatic,
         threshold_exceeded,
     }))
-}
-
-/// Results from analyzing a Rust file's complexity.
-#[cfg(feature = "git")]
-struct ComplexityAnalysis {
-    /// Total cyclomatic complexity across all functions.
-    total_complexity: u32,
-    /// Maximum complexity of any single function.
-    max_complexity: u32,
-    /// Number of functions found.
-    function_count: usize,
-    /// Maximum function length in lines.
-    max_function_length: usize,
-}
-
-/// Masks Rust source spans that should not contribute to cockpit complexity.
-#[cfg(feature = "git")]
-#[derive(Default)]
-struct RustCodeMask {
-    in_string: bool,
-    in_char: bool,
-    block_comment_depth: usize,
-    raw_string_hashes: Option<usize>,
-}
-
-#[cfg(feature = "git")]
-impl RustCodeMask {
-    fn code_only_line(&mut self, line: &str) -> String {
-        let chars: Vec<char> = line.chars().collect();
-        let mut code = String::with_capacity(line.len());
-        let mut i = 0;
-
-        while i < chars.len() {
-            if let Some(hashes) = self.raw_string_hashes {
-                if raw_string_closes_at(&chars, i, hashes) {
-                    self.raw_string_hashes = None;
-                    i += 1 + hashes;
-                } else {
-                    i += 1;
-                }
-                continue;
-            }
-
-            if self.block_comment_depth > 0 {
-                if starts_pair(&chars, i, '/', '*') {
-                    self.block_comment_depth += 1;
-                    i += 2;
-                    continue;
-                }
-                if starts_pair(&chars, i, '*', '/') {
-                    self.block_comment_depth -= 1;
-                    i += 2;
-                    continue;
-                }
-                i += 1;
-                continue;
-            }
-
-            if !self.in_string && !self.in_char {
-                if starts_pair(&chars, i, '/', '/') {
-                    break;
-                }
-                if starts_pair(&chars, i, '/', '*') {
-                    self.block_comment_depth = 1;
-                    i += 2;
-                    continue;
-                }
-                if let Some((opening_len, hashes)) = raw_string_opens_at(&chars, i) {
-                    self.raw_string_hashes = Some(hashes);
-                    i += opening_len;
-                    continue;
-                }
-            }
-
-            let c = chars[i];
-
-            if !self.in_char && c == '"' && !is_escaped(&chars, i) {
-                self.in_string = !self.in_string;
-                i += 1;
-                continue;
-            }
-
-            if !self.in_string && c == '\'' && !is_escaped(&chars, i) {
-                if self.in_char {
-                    self.in_char = false;
-                    i += 1;
-                    continue;
-                }
-                if starts_char_literal(&chars, i) {
-                    self.in_char = true;
-                    i += 1;
-                    continue;
-                }
-            }
-
-            if self.in_string || self.in_char {
-                i += 1;
-                continue;
-            }
-
-            code.push(c);
-            i += 1;
-        }
-
-        code
-    }
-}
-
-#[cfg(feature = "git")]
-fn starts_pair(chars: &[char], i: usize, first: char, second: char) -> bool {
-    chars.get(i) == Some(&first) && chars.get(i + 1) == Some(&second)
-}
-
-#[cfg(feature = "git")]
-fn is_escaped(chars: &[char], i: usize) -> bool {
-    if i == 0 {
-        return false;
-    }
-
-    let mut slash_count = 0;
-    let mut cursor = i;
-    while cursor > 0 && chars[cursor - 1] == '\\' {
-        slash_count += 1;
-        cursor -= 1;
-    }
-    slash_count % 2 == 1
-}
-
-#[cfg(feature = "git")]
-fn starts_char_literal(chars: &[char], i: usize) -> bool {
-    matches!(
-        (chars.get(i + 1), chars.get(i + 2), chars.get(i + 3)),
-        (Some('\\'), Some(_), Some('\'')) | (Some(_), Some('\''), _)
-    )
-}
-
-#[cfg(feature = "git")]
-fn raw_string_opens_at(chars: &[char], i: usize) -> Option<(usize, usize)> {
-    let mut cursor = match (chars.get(i), chars.get(i + 1)) {
-        (Some('b'), Some('r')) => i + 2,
-        (Some('r'), _) => i + 1,
-        _ => return None,
-    };
-
-    let hash_start = cursor;
-    while chars.get(cursor) == Some(&'#') {
-        cursor += 1;
-    }
-
-    if chars.get(cursor) == Some(&'"') {
-        let hashes = cursor - hash_start;
-        Some((cursor - i + 1, hashes))
-    } else {
-        None
-    }
-}
-
-#[cfg(feature = "git")]
-fn raw_string_closes_at(chars: &[char], i: usize, hashes: usize) -> bool {
-    chars.get(i) == Some(&'"') && (0..hashes).all(|offset| chars.get(i + 1 + offset) == Some(&'#'))
-}
-
-/// Analyze the cyclomatic complexity of Rust source code.
-/// Uses a simple heuristic approach counting decision points.
-#[cfg(feature = "git")]
-fn analyze_rust_complexity(content: &str) -> ComplexityAnalysis {
-    let mut total_complexity: u32 = 0;
-    let mut max_complexity: u32 = 0;
-    let mut function_count: usize = 0;
-    let mut max_function_length: usize = 0;
-
-    let mut in_function = false;
-    let mut brace_depth: i32 = 0;
-    let mut function_brace_depth: i32 = 0; // Depth when function started
-    let mut function_start_line: usize = 0;
-    let mut current_complexity: u32 = 1; // Start at 1 for the function itself
-    let mut mask = RustCodeMask::default();
-
-    for (line_idx, line) in content.lines().enumerate() {
-        let code_line = mask.code_only_line(line);
-        let trimmed = code_line.trim();
-
-        // Skip empty lines
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        // Check for function start BEFORE processing braces
-        // (so we can track the starting brace depth correctly)
-        let is_fn_start = !in_function
-            && (trimmed.starts_with("fn ")
-                || trimmed.starts_with("pub fn ")
-                || trimmed.starts_with("pub(crate) fn ")
-                || trimmed.starts_with("pub(super) fn ")
-                || trimmed.starts_with("async fn ")
-                || trimmed.starts_with("pub async fn ")
-                || trimmed.starts_with("const fn ")
-                || trimmed.starts_with("pub const fn ")
-                || trimmed.starts_with("unsafe fn ")
-                || trimmed.starts_with("pub unsafe fn "));
-
-        if is_fn_start {
-            in_function = true;
-            function_start_line = line_idx;
-            function_brace_depth = brace_depth;
-            current_complexity = 1;
-        }
-
-        for c in code_line.chars() {
-            // Track brace depth
-            if c == '{' {
-                brace_depth += 1;
-            } else if c == '}' {
-                brace_depth -= 1;
-                if in_function && brace_depth == function_brace_depth {
-                    // End of function
-                    let function_length = line_idx - function_start_line + 1;
-                    max_function_length = max_function_length.max(function_length);
-                    total_complexity += current_complexity;
-                    max_complexity = max_complexity.max(current_complexity);
-                    function_count += 1;
-                    in_function = false;
-                    current_complexity = 1;
-                }
-            }
-        }
-
-        // Count decision points for complexity (only inside functions)
-        if in_function {
-            // Count control flow keywords
-            let keywords = [
-                "if ", "else if ", "while ", "for ", "loop ", "match ", "&&", "||", "?",
-            ];
-            for kw in &keywords {
-                // Count occurrences of each keyword
-                let mut search_line = trimmed;
-                while let Some(pos) = search_line.find(kw) {
-                    current_complexity += 1;
-                    search_line = &search_line[pos + kw.len()..];
-                }
-            }
-
-            // Count match arms (each => in a match adds complexity)
-            if trimmed.contains("=>") && !trimmed.starts_with("//") {
-                // Count number of => in the line
-                let arrow_count = trimmed.matches("=>").count();
-                current_complexity += arrow_count as u32;
-            }
-        }
-    }
-
-    // Handle case where file ends without closing brace
-    if in_function {
-        function_count += 1;
-        total_complexity += current_complexity;
-        max_complexity = max_complexity.max(current_complexity);
-    }
-
-    ComplexityAnalysis {
-        total_complexity,
-        max_complexity,
-        function_count,
-        max_function_length,
-    }
 }
 
 /// Check if a file is a relevant Rust source file for mutation testing.
@@ -2776,7 +2514,7 @@ mod tests {
     #[test]
     #[cfg(feature = "git")]
     fn test_rust_complexity_ignores_decisions_in_strings_and_comments() {
-        let analysis = analyze_rust_complexity(
+        let analysis = analyze_rust_function_complexity(
             r###"
 fn only_real_branch(flag: bool) {
     let _normal = "if while for loop match && || ? => { }";
@@ -2798,7 +2536,7 @@ fn only_real_branch(flag: bool) {
     #[test]
     #[cfg(feature = "git")]
     fn test_rust_complexity_counts_code_before_trailing_comment() {
-        let analysis = analyze_rust_complexity(
+        let analysis = analyze_rust_function_complexity(
             r#"
 fn branch_before_comment(flag: bool) {
     if flag { return; } // if ignored && ||
@@ -2809,6 +2547,30 @@ fn branch_before_comment(flag: bool) {
         assert_eq!(analysis.function_count, 1);
         assert_eq!(analysis.total_complexity, 2);
         assert_eq!(analysis.max_complexity, 2);
+    }
+
+    #[test]
+    #[cfg(feature = "git")]
+    fn test_rust_complexity_counts_else_if_once() {
+        let analysis = analyze_rust_function_complexity(
+            r#"
+fn branchy(x: i32) -> i32 {
+    if x > 0 {
+        1
+    } else if x < 0 {
+        -1
+    } else if x == 0 {
+        0
+    } else {
+        42
+    }
+}
+"#,
+        );
+
+        assert_eq!(analysis.function_count, 1);
+        assert_eq!(analysis.total_complexity, 4);
+        assert_eq!(analysis.max_complexity, 4);
     }
 
     // ---- flush_uncovered_hunks ----

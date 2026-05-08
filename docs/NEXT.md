@@ -153,6 +153,11 @@ architecture-consolidation program.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 - The composite Action now appends hosted packet metadata to review-packet comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.
+- Cockpit's Rust complexity gate now delegates function-scoped source analysis
+  to `tokmd-analysis::source_complexity` instead of owning a duplicate parser.
+  The `else if` double-count is fixed as a correctness improvement; impact
+  analysis over 183 current relevant Rust source files found 52 files near the
+  10-20 complexity range and 0 files flipping from fail to pass at threshold 15.
 - Agent-facing architecture docs now reflect the current crate-and-module
   ownership model: analysis rendering lives in `tokmd-format`, review evidence
   in `tokmd-cockpit`, and implementation details should stay as SRP owner
