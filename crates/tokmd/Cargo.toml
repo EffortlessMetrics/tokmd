@@ -65,7 +65,7 @@ tokmd-settings.workspace = true
 
 tokmd-core.workspace = true
 tokmd-format.workspace = true
-tokmd-types = { workspace = true, features = ["clap"] }
+tokmd-types.workspace = true
 tokmd-cockpit = { workspace = true, optional = true }
 tokmd-git = { workspace = true, optional = true }
 clap_complete = "4.6.3"

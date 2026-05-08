@@ -45,11 +45,13 @@ paths = [
   "Cargo.lock",
   "Cargo.toml",
   "crates/**/Cargo.toml",
+  "crates/tokmd-types/tests/manifest_contract.rs",
   "xtask/Cargo.toml",
 ]
 packages = ["xtask"]
 proof = [
   "cargo deny --all-features check",
+  "cargo test -p tokmd-types manifest_stays_clap_free --verbose",
   "cargo xtask boundaries-check",
   "cargo xtask publish-surface --json",
 ]

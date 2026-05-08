@@ -58,7 +58,7 @@ This version applies to core receipts: `lang`, `module`, `export`, `diff`, `cont
 ## Dependencies
 
 - `serde` with derive feature (serialization)
-- Optional `clap` feature for shared CLI enum parsing
+- No CLI parser dependencies; `tokmd::cli` owns Clap-facing adapters for these contract types
 
 ## Testing
 

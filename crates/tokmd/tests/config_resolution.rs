@@ -1,6 +1,7 @@
-use tokmd::cli::{CliLangArgs, TableFormat};
+use tokmd::cli::{CliLangArgs, TableFormat as CliTableFormat};
 use tokmd::resolve_lang;
 use tokmd_settings::Profile;
+use tokmd_types::TableFormat;
 
 #[test]
 fn test_resolve_lang_no_args_no_profile() {
@@ -20,7 +21,7 @@ fn test_resolve_lang_no_args_no_profile() {
 fn test_resolve_lang_cli_overrides_profile() {
     let cli = CliLangArgs {
         top: Some(50),
-        format: Some(TableFormat::Json),
+        format: Some(CliTableFormat::Json),
         ..Default::default()
     };
 
@@ -76,11 +77,12 @@ fn test_resolve_lang_partial_overrides() {
 
 #[test]
 fn test_resolve_export_cli_overrides_profile() {
-    use tokmd::cli::{CliExportArgs, ExportFormat};
+    use tokmd::cli::{CliExportArgs, ExportFormat as CliExportFormat};
     use tokmd::resolve_export;
+    use tokmd_types::ExportFormat;
 
     let cli = CliExportArgs {
-        format: Some(ExportFormat::Csv),
+        format: Some(CliExportFormat::Csv),
         min_code: Some(50),
         paths: None,
         output: None,
@@ -133,12 +135,12 @@ fn test_resolve_module_profile_overrides_default() {
 
 #[test]
 fn test_resolve_module_cli_overrides_profile_scalars() {
-    use tokmd::cli::{CliModuleArgs, TableFormat};
+    use tokmd::cli::CliModuleArgs;
     use tokmd::resolve_module;
 
     let cli = CliModuleArgs {
         paths: None,
-        format: Some(TableFormat::Tsv),
+        format: Some(CliTableFormat::Tsv),
         top: Some(100),
         module_roots: None,
         module_depth: None,
@@ -159,12 +161,13 @@ fn test_resolve_module_cli_overrides_profile_scalars() {
 
 #[test]
 fn test_resolve_export_with_config() {
-    use tokmd::cli::{CliExportArgs, ExportFormat};
+    use tokmd::cli::{CliExportArgs, ExportFormat as CliExportFormat};
     use tokmd::{ResolvedConfig, resolve_export_with_config};
     use tokmd_settings::{ExportConfig, TomlConfig};
+    use tokmd_types::ExportFormat;
 
     let cli = CliExportArgs {
-        format: Some(ExportFormat::Csv),
+        format: Some(CliExportFormat::Csv),
         min_code: None,
         paths: None,
         output: None,
@@ -197,8 +200,9 @@ fn test_resolve_export_with_config() {
 
 #[test]
 fn test_resolve_export_profile_overrides_default_format() {
-    use tokmd::cli::{CliExportArgs, ExportFormat};
+    use tokmd::cli::CliExportArgs;
     use tokmd::resolve_export;
+    use tokmd_types::ExportFormat;
 
     let cli = CliExportArgs {
         paths: None,
@@ -260,8 +264,9 @@ fn test_resolve_module_with_config() {
 
 #[test]
 fn test_resolve_export_no_args_no_profile() {
-    use tokmd::cli::{CliExportArgs, ExportFormat};
+    use tokmd::cli::CliExportArgs;
     use tokmd::resolve_export;
+    use tokmd_types::ExportFormat;
 
     let cli = CliExportArgs {
         paths: None,
@@ -306,7 +311,7 @@ fn test_resolve_module_no_args_no_profile() {
     let resolved = resolve_module(&cli, None);
 
     assert_eq!(resolved.paths[0].to_string_lossy(), ".");
-    assert_eq!(resolved.format, tokmd::cli::TableFormat::Md);
+    assert_eq!(resolved.format, TableFormat::Md);
     assert_eq!(resolved.top, 0);
     assert_eq!(
         resolved.module_roots,

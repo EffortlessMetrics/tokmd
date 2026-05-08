@@ -4,6 +4,36 @@ use crate::cli;
 use clap::ValueEnum;
 use tokmd_settings::{Profile, TomlConfig, UserConfig, ViewProfile};
 
+fn parse_table_format(value: Option<&str>) -> Option<tokmd_types::TableFormat> {
+    value
+        .and_then(|s| cli::TableFormat::from_str(s, true).ok())
+        .map(Into::into)
+}
+
+fn parse_children_mode(value: Option<&str>) -> Option<tokmd_types::ChildrenMode> {
+    value
+        .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
+        .map(Into::into)
+}
+
+fn parse_child_include_mode(value: Option<&str>) -> Option<tokmd_types::ChildIncludeMode> {
+    value
+        .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+        .map(Into::into)
+}
+
+fn parse_export_format(value: Option<&str>) -> Option<tokmd_types::ExportFormat> {
+    value
+        .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
+        .map(Into::into)
+}
+
+fn parse_redact_mode(value: Option<&str>) -> Option<tokmd_types::RedactMode> {
+    value
+        .and_then(|s| cli::RedactMode::from_str(s, true).ok())
+        .map(Into::into)
+}
+
 /// Configuration context combining TOML config, JSON config, and resolved profile.
 ///
 /// # Example
@@ -347,12 +377,9 @@ pub fn resolve_lang(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::TableFormat::Md),
+            .map(Into::into)
+            .or_else(|| parse_table_format(profile.and_then(|p| p.format.as_deref())))
+            .unwrap_or(tokmd_types::TableFormat::Md),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -360,12 +387,9 @@ pub fn resolve_lang(
         files: cli_args.files || profile.and_then(|p| p.files).unwrap_or(false),
         children: cli_args
             .children
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildrenMode::Collapse),
+            .map(Into::into)
+            .or_else(|| parse_children_mode(profile.and_then(|p| p.children.as_deref())))
+            .unwrap_or(tokmd_types::ChildrenMode::Collapse),
     }
 }
 
@@ -420,22 +444,16 @@ pub fn resolve_lang_with_config(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                resolved
-                    .format()
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::TableFormat::Md),
+            .map(Into::into)
+            .or_else(|| parse_table_format(resolved.format()))
+            .unwrap_or(tokmd_types::TableFormat::Md),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         files: cli_args.files || resolved.files().unwrap_or(false),
         children: cli_args
             .children
-            .or_else(|| {
-                resolved
-                    .children()
-                    .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildrenMode::Collapse),
+            .map(Into::into)
+            .or_else(|| parse_children_mode(resolved.children()))
+            .unwrap_or(tokmd_types::ChildrenMode::Collapse),
     }
 }
 
@@ -477,12 +495,9 @@ pub fn resolve_module(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::TableFormat::Md),
+            .map(Into::into)
+            .or_else(|| parse_table_format(profile.and_then(|p| p.format.as_deref())))
+            .unwrap_or(tokmd_types::TableFormat::Md),
         top: cli_args
             .top
             .or_else(|| profile.and_then(|p| p.top))
@@ -498,12 +513,9 @@ pub fn resolve_module(
             .unwrap_or(2),
         children: cli_args
             .children
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .map(Into::into)
+            .or_else(|| parse_child_include_mode(profile.and_then(|p| p.children.as_deref())))
+            .unwrap_or(tokmd_types::ChildIncludeMode::Separate),
     }
 }
 
@@ -564,12 +576,9 @@ pub fn resolve_module_with_config(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                resolved
-                    .format()
-                    .and_then(|s| cli::TableFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::TableFormat::Md),
+            .map(Into::into)
+            .or_else(|| parse_table_format(resolved.format()))
+            .unwrap_or(tokmd_types::TableFormat::Md),
         top: cli_args.top.or(resolved.top()).unwrap_or(0),
         module_roots: cli_args
             .module_roots
@@ -582,12 +591,9 @@ pub fn resolve_module_with_config(
             .unwrap_or(2),
         children: cli_args
             .children
-            .or_else(|| {
-                resolved
-                    .children()
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .map(Into::into)
+            .or_else(|| parse_child_include_mode(resolved.children()))
+            .unwrap_or(tokmd_types::ChildIncludeMode::Separate),
     }
 }
 
@@ -630,12 +636,9 @@ pub fn resolve_export(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.format.as_deref())
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ExportFormat::Jsonl),
+            .map(Into::into)
+            .or_else(|| parse_export_format(profile.and_then(|p| p.format.as_deref())))
+            .unwrap_or(tokmd_types::ExportFormat::Jsonl),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -648,12 +651,9 @@ pub fn resolve_export(
             .unwrap_or(2),
         children: cli_args
             .children
-            .or_else(|| {
-                profile
-                    .and_then(|p| p.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .map(Into::into)
+            .or_else(|| parse_child_include_mode(profile.and_then(|p| p.children.as_deref())))
+            .unwrap_or(tokmd_types::ChildIncludeMode::Separate),
         min_code: cli_args
             .min_code
             .or(profile.and_then(|p| p.min_code))
@@ -664,8 +664,9 @@ pub fn resolve_export(
             .unwrap_or(0),
         redact: cli_args
             .redact
+            .map(Into::into)
             .or(profile.and_then(|p| p.redact))
-            .unwrap_or(cli::RedactMode::None),
+            .unwrap_or(tokmd_types::RedactMode::None),
         meta: cli_args
             .meta
             .or(profile.and_then(|p| p.meta))
@@ -679,8 +680,9 @@ pub fn resolve_export(
 /// # Examples
 ///
 /// ```
-/// use tokmd::cli::{CliExportArgs, ExportFormat};
 /// use tokmd::{resolve_export_with_config, ConfigContext};
+/// use tokmd::cli::CliExportArgs;
+/// use tokmd_types::ExportFormat;
 /// use tokmd_settings::{TomlConfig, ExportConfig};
 ///
 /// // Create config with specific export format
@@ -712,7 +714,7 @@ pub fn resolve_export(
 /// // CLI arg overrides config
 /// let cli_args_override = CliExportArgs {
 ///     paths: None,
-///     format: Some(ExportFormat::Jsonl),
+///     format: Some(tokmd::cli::ExportFormat::Jsonl),
 ///     output: None,
 ///     module_roots: None,
 ///     module_depth: None,
@@ -737,18 +739,10 @@ pub fn resolve_export_with_config(
             .unwrap_or_else(|| vec![PathBuf::from(".")]),
         format: cli_args
             .format
-            .or_else(|| {
-                resolved
-                    .format()
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
-            })
-            .or_else(|| {
-                resolved
-                    .toml
-                    .and_then(|t| t.export.format.as_deref())
-                    .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ExportFormat::Jsonl),
+            .map(Into::into)
+            .or_else(|| parse_export_format(resolved.format()))
+            .or_else(|| parse_export_format(resolved.toml.and_then(|t| t.export.format.as_deref())))
+            .unwrap_or(tokmd_types::ExportFormat::Jsonl),
         output: cli_args.output.clone(),
         module_roots: cli_args
             .module_roots
@@ -761,28 +755,19 @@ pub fn resolve_export_with_config(
             .unwrap_or(2),
         children: cli_args
             .children
+            .map(Into::into)
+            .or_else(|| parse_child_include_mode(resolved.children()))
             .or_else(|| {
-                resolved
-                    .children()
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
+                parse_child_include_mode(resolved.toml.and_then(|t| t.export.children.as_deref()))
             })
-            .or_else(|| {
-                resolved
-                    .toml
-                    .and_then(|t| t.export.children.as_deref())
-                    .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::ChildIncludeMode::Separate),
+            .unwrap_or(tokmd_types::ChildIncludeMode::Separate),
         min_code: cli_args.min_code.or(resolved.min_code()).unwrap_or(0),
         max_rows: cli_args.max_rows.or(resolved.max_rows()).unwrap_or(0),
         redact: cli_args
             .redact
-            .or_else(|| {
-                resolved
-                    .redact()
-                    .and_then(|s| cli::RedactMode::from_str(s, true).ok())
-            })
-            .unwrap_or(cli::RedactMode::None),
+            .map(Into::into)
+            .or_else(|| parse_redact_mode(resolved.redact()))
+            .unwrap_or(tokmd_types::RedactMode::None),
         meta: cli_args.meta.or(resolved.meta()).unwrap_or(true),
         strip_prefix: cli_args.strip_prefix.clone(),
     }

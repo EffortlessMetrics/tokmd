@@ -13,7 +13,7 @@ Receipts, rows, and enums need one stable serde contract without pulling in CLI 
 
 ## API / usage notes
 - Use this crate for serde-compatible receipt payloads and report rows.
-- Enable the `clap` feature only if you need derive support for the exported enums.
+- CLI parsing lives in `tokmd::cli`; this contract crate intentionally stays `clap`-free.
 - `src/lib.rs` is the source of truth for field names, schema versions, and wrapper shapes.
 
 ## Go deeper
