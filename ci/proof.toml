@@ -45,6 +45,7 @@ paths = [
   "Cargo.lock",
   "Cargo.toml",
   "crates/**/Cargo.toml",
+  "deny.toml",
   "crates/tokmd-types/tests/manifest_contract.rs",
   "xtask/Cargo.toml",
 ]
@@ -648,6 +649,19 @@ proof = [
 ]
 mutation = true
 coverage = true
+
+[[scope]]
+name = "review_packet_verifier"
+kind = "rust"
+paths = ["xtask/src/tasks/review_packet_check.rs"]
+packages = ["xtask", "tokmd-cockpit"]
+proof = [
+  "cargo test -p xtask review_packet --verbose",
+  "cargo test -p tokmd-cockpit review_packet --verbose",
+]
+reason = "The Rust-owned review packet verifier guards the cockpit review-packet artifact contract without changing cockpit receipt semantics."
+mutation = false
+coverage = false
 
 [[scope]]
 name = "tokmd_wasm"

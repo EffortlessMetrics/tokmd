@@ -9,10 +9,12 @@ repository.workspace = true
 
 [dependencies]
 anyhow = "1.0.101"
+blake3.workspace = true
 clap = { version = "4.6.0", features = ["derive"] }
 serde = { workspace = true }
 toml = "1.1.2"
 cargo_metadata = "0.23.1"
+jsonschema = { version = "0.46.4", default-features = false }
 petgraph = "0.8.3"
 chrono = "0.4"
 globset = "0.4.18"

@@ -3551,10 +3551,12 @@ name = "xtask"
 version = "1.10.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "cargo_metadata",
  "chrono",
  "clap",
  "globset",
+ "jsonschema",
  "petgraph",
  "proc-macro2",
  "quote",

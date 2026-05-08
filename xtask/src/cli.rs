@@ -40,6 +40,8 @@ pub enum Commands {
     ProofExecutionObservation(ProofExecutionObservationArgs),
     /// Summarize one or more proof executor observation artifacts
     ProofExecutionObservationsSummary(ProofExecutionObservationsSummaryArgs),
+    /// Verify cockpit review-packet schemas and artifact hashes
+    ReviewPacketCheck(ReviewPacketCheckArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -625,6 +627,13 @@ pub struct ProofExecutionObservationsSummaryArgs {
     /// Output path for a promotion-readiness receipt.
     #[arg(long, value_name = "PATH")]
     pub promotion_readiness: Option<std::path::PathBuf>,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ReviewPacketCheckArgs {
+    /// Cockpit review packet directory, usually .tokmd/review
+    #[arg(long)]
+    pub dir: std::path::PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]

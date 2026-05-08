@@ -21,6 +21,7 @@ pub mod proof_plan;
 pub mod proof_policy;
 pub mod publish;
 pub mod publish_surface;
+pub mod review_packet_check;
 pub mod sccache;
 pub mod trim_target;
 pub mod version_consistency;

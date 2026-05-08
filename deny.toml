@@ -25,6 +25,7 @@ confidence-threshold = 0.8
 # Allow common permissive licenses (default-deny for unlisted)
 allow = [
     "MIT",
+    "MIT-0",
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-2-Clause",
