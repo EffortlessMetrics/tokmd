@@ -17,6 +17,7 @@ surface-specific schema documents.
 | [0005](0005-release-train-and-rc-semantics.md) | accepted | Release train and RC semantics |
 | [0006](0006-deterministic-receipts.md) | accepted | Deterministic receipts and renderers |
 | [0007](0007-schema-family-versioning.md) | accepted | Independent schema-family versioning |
+| [0008](0008-ast-foundation.md) | proposed | AST foundation and shadow rollout |
 
 ## House Style
 

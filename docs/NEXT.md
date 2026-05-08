@@ -123,7 +123,7 @@ architecture-consolidation program.
 - `cargo xtask coverage-receipt` now emits `tokmd.coverage_receipt.v1` for `coverage.json`, `coverage.txt`, and `lcov.info`, and the coverage workflow uploads `target/coverage/coverage-receipt.json` with the coverage artifacts. The receipt records coverage artifact presence and byte counts without making coverage a required gate.
 - Codecov project and patch statuses remain informational during the baseline phase, and coverage receipt generation is owned by `cargo xtask coverage-receipt` rather than a duplicate workflow heredoc.
 - `cargo xtask ci-actuals` now emits `tokmd.ci_actuals.v1` from a GitHub Actions `needs` payload plus optional timing sidecar data. Missing timing is recorded as missing rather than zero so later budget and learned-estimate work can consume the receipt without inventing measurements.
-- Top-level project truth docs (`ROADMAP.md`, architecture, design, implementation plan, requirements, and specification) now have a proof-policy scope that routes changes to `cargo xtask docs --check` instead of leaving architecture-doc-only fixes as unknown files.
+- Top-level project truth docs (`ROADMAP.md`, ADRs, architecture, design, implementation plan, requirements, and specification) now have a proof-policy scope that routes changes to `cargo xtask docs --check` instead of leaving architecture-doc-only fixes as unknown files.
 - The external-service policy now reflects the active safe Droid integration:
   Factory Droid is approved only through the pinned safe action wrapper,
   requires `FACTORY_API_KEY` and `MINIMAX_API_KEY`, skips fork PR auto-review,
@@ -161,6 +161,9 @@ architecture-consolidation program.
   extraction from the current owner-module consolidation shape, so future
   architecture work starts from the actual crate graph instead of retired
   package names.
+- ADR-0008 now defines the AST foundation as feature-gated, Rust-first, and
+  shadow-mode-only until real comparison evidence justifies schema or default
+  metric changes.
 
 ## References
 
