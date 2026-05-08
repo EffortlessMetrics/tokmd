@@ -284,7 +284,7 @@ fn empty_receipt_renders_all_text_formats() {
     ];
     for fmt in &text_formats {
         let result = render(&minimal_receipt(), *fmt);
-        assert!(result.is_ok(), "Empty receipt should render for {:?}", fmt,);
+        assert!(result.is_ok(), "Empty receipt should render for {:?}", fmt);
     }
 }
 

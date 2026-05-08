@@ -732,7 +732,7 @@ fn near_dup_scope_serialization_roundtrip() {
     ] {
         let json = serde_json::to_string(&scope).unwrap();
         let back: NearDupScope = serde_json::from_str(&json).unwrap();
-        assert_eq!(format!("{:?}", scope), format!("{:?}", back),);
+        assert_eq!(format!("{:?}", scope), format!("{:?}", back));
     }
 }
 

@@ -1,5 +1,5 @@
 schema = 1
-msrv = "1.93"
+msrv = "1.95"
 
 [policy]
 panic_free_tests = true
@@ -714,62 +714,71 @@ status = "active"
 class = "suppression"
 reason = "Clippy lint `should_panic_without_expect` is part of the shared Effortless Metrics baseline."
 
-[[planned]]
+[[lint]]
 name = "clippy::same_length_and_capacity"
 level = "deny"
-activate_when_msrv = "1.94"
-reason = "Catch raw-parts reconstruction mistakes."
+status = "active"
+class = "numeric"
+reason = "Catch raw-parts reconstruction mistakes. Activated with MSRV 1.95 (available since 1.94)."
 
-[[planned]]
+[[lint]]
 name = "clippy::manual_ilog2"
 level = "warn"
-activate_when_msrv = "1.94"
-reason = "Prefer the standard integer log helper."
+status = "active"
+class = "numeric"
+reason = "Prefer the standard integer log helper. Activated with MSRV 1.95 (available since 1.94)."
 
-[[planned]]
+[[lint]]
 name = "clippy::decimal_bitwise_operands"
 level = "warn"
-activate_when_msrv = "1.94"
-reason = "Make bit masks visually inspectable."
+status = "active"
+class = "numeric"
+reason = "Make bit masks visually inspectable. Activated with MSRV 1.95 (available since 1.94)."
 
-[[planned]]
+[[lint]]
 name = "clippy::needless_type_cast"
 level = "warn"
-activate_when_msrv = "1.94"
-reason = "Avoid stale numeric type drift."
+status = "active"
+class = "numeric"
+reason = "Avoid stale numeric type drift. Activated with MSRV 1.95 (available since 1.94)."
+
+[[lint]]
+name = "clippy::manual_checked_ops"
+level = "warn"
+status = "active"
+class = "numeric"
+reason = "Prefer checked arithmetic over manual divide-by-zero guards. Activated with MSRV 1.95."
+
+[[lint]]
+name = "clippy::manual_take"
+level = "warn"
+status = "active"
+class = "taste"
+reason = "Use standard ownership helper instead of local reimplementation. Activated with MSRV 1.95."
+
+[[lint]]
+name = "clippy::manual_pop_if"
+level = "warn"
+status = "active"
+class = "taste"
+reason = "Use collection APIs that encode predicate-and-pop intent directly. Activated with MSRV 1.95."
+
+[[lint]]
+name = "clippy::duration_suboptimal_units"
+level = "warn"
+status = "active"
+class = "time"
+reason = "Make durations legible without mental unit conversion. Activated with MSRV 1.95."
+
+[[lint]]
+name = "clippy::unnecessary_trailing_comma"
+level = "warn"
+status = "active"
+class = "taste"
+reason = "Keep generated and hand-written format macro calls clean. Activated with MSRV 1.95."
 
 [[planned]]
 name = "clippy::disallowed_fields"
 level = "deny"
 activate_when_msrv = "1.95"
-reason = "Allow architecture policy to ban direct field access across protected seams."
-
-[[planned]]
-name = "clippy::manual_checked_ops"
-level = "warn"
-activate_when_msrv = "1.95"
-reason = "Prefer checked arithmetic over manual divide-by-zero guards."
-
-[[planned]]
-name = "clippy::manual_take"
-level = "warn"
-activate_when_msrv = "1.95"
-reason = "Use standard ownership helper instead of local reimplementation."
-
-[[planned]]
-name = "clippy::manual_pop_if"
-level = "warn"
-activate_when_msrv = "1.95"
-reason = "Use collection APIs that encode predicate-and-pop intent directly."
-
-[[planned]]
-name = "clippy::duration_suboptimal_units"
-level = "warn"
-activate_when_msrv = "1.95"
-reason = "Make durations legible without mental unit conversion."
-
-[[planned]]
-name = "clippy::unnecessary_trailing_comma"
-level = "warn"
-activate_when_msrv = "1.95"
-reason = "Keep generated and hand-written format macro calls clean."
+reason = "Allow architecture policy to ban direct field access across protected seams. Held until protected-field inventory is complete."
