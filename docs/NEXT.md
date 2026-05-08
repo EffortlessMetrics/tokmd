@@ -8,23 +8,43 @@ later safe Droid migration is now active through the pinned
 trusted-actor guards, disabled raw debug artifacts, and the service policy in
 `docs/external-services.md`.
 
-## Active Program: Rust-Native Proof Control Plane
+## Current Operating Mode
 
-Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-owned `xtask` policy and planning logic. GitHub Actions should eventually install tools, restore cache, run `cargo xtask proof ...`, upload artifacts, and show summaries while Rust owns scope mapping, allowlists, dependency boundaries, fixture policy, mutation targeting, coverage targeting, and proof reports.
+The Rust-native proof control plane is in routine-observation mode. It now owns
+proof policy, affected planning, scoped advisory execution, executor
+observation collection, fast proof-run observation collection, and artifact
+verification. Do not promote fast proof into the required aggregate or enable
+default Codecov upload without a fresh maintainer decision backed by collected
+evidence.
 
-## Initial Work Packets
+The v1.11 browser runtime polish lane is closed on main: cache semantics,
+worker and repo-load progress, retry/rate-limit guidance, authenticated fetch
+UX, loaded-bundle capability filtering, and local browser file input are all
+implemented.
 
-1. Add `ci/proof.toml` and `cargo xtask proof-policy --check`.
-2. Move dependency-boundary and fixture/blob allowlists into the proof policy while preserving current behavior.
-3. Add `cargo xtask affected --base origin/main --head HEAD --json` for changed-file to proof-scope discovery.
-4. Add `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` to print a stable proof plan without running it.
-5. Wire policy validation and affected-plan artifacts into CI before replacing larger workflow logic.
+The active product lane is cockpit review-packet hardening. Improve cockpit as
+the PR-review evidence surface before adding any separate `tokmd review`
+command. After the review packet/action surface is stable, move into the
+architecture-consolidation program.
+
+## Next Work Packets
+
+1. Keep collecting routine proof observations under the current advisory shape;
+   do not promote gates or Codecov defaults.
+2. Finish small cockpit review-packet and Action-hosting gaps as they appear.
+3. Preserve `tokmd cockpit` as the review evidence implementation surface until
+   a separate review orchestrator has a real contract.
+4. Start architecture consolidation in batches, preserving `ci/proof.toml`
+   scope granularity as implementation microcrates collapse into SRP modules.
+5. Draft AST foundation work only after the review packet and consolidation
+   direction are stable.
 
 ## Directional Rules
 
 - `tokmd-config` is retired. It must remain forbidden by policy, with ownership in `tokmd-settings`, `tokmd-core`, and `tokmd`.
 - `.jules` is an allowed knowledge workspace for durable specs, investigations, friction notes, persona learnings, runbooks, ledgers, envelopes, and generated indexes.
 - Coverage remains advisory telemetry until maintainers intentionally promote it to a gate.
+- Fast proof-run and scoped coverage observations remain advisory until maintainers intentionally promote them.
 - Cockpit remains the current PR-review evidence surface until a separate review command has a distinct artifact contract.
 
 ## Checkpoints
@@ -129,7 +149,8 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - PR proof-executor run `25514476862` on #1748 passed on 2026-05-07 under the two-command PR default. It matched `crates/tokmd/tests/cockpit_integration.rs` to `tokmd_cockpit`, selected/executed/passed one non-required coverage command, produced `tokmd_cockpit.lcov`, and locally re-verified with `cargo xtask proof-execution-artifacts-check`.
 - Manual proof-observation collector run `25515026895` on `main` passed on 2026-05-07 after #1748 merged. The workflow resolved `run_limit = 100`, `min_observations = 1`, `min_executed = 4`, `min_scopes = 4`, `min_artifacts = 4`, and `min_passing_collector_runs = 1` from `ci/proof.toml`; the collection recorded 80 observations, 16 selected/executed/passed coverage commands, 16 artifacts, and 7 distinct scopes: `analysis_complexity`, `analysis_content_assets`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_cockpit`, `tokmd_core_ffi`, and `tokmd_gate`. The `proof-executor-promotion-readiness.json` receipt reported schema `tokmd.proof_executor_promotion_readiness.v1`, `ok = true`, and 1 recent passing collector run from `25512575044`.
 - Manual proof-observation collector run `25516861742` on `main` passed on 2026-05-07 after #1750 merged. The collection recorded 82 observations, 16 selected/executed/passed coverage commands, 16 artifacts, and 7 distinct scopes: `analysis_complexity`, `analysis_content_assets`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_cockpit`, `tokmd_core_ffi`, and `tokmd_gate`. The new source-run window accounting reported `expected_runs = 99`, `observed_runs = 82`, `missing_runs = 17`, and `unmatched_observations = 0`, proving the collector can distinguish successful executor runs that lacked downloadable observation artifacts from observations outside the saved run window.
-- Next proof-policy operational slice: collect routine PR observations under the two-command default before considering a required-gate, default Codecov upload, or larger command-limit promotion.
+- Proof-control-plane status: routine PR observations continue under the two-command default. There is no active promotion slice for a required gate, default Codecov upload, or larger command-limit default.
+- The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 
 ## References
 
