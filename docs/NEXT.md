@@ -172,6 +172,10 @@ architecture-consolidation program.
   Metrics evidence stack: tokmd is the deterministic code-intelligence and
   review-receipt producer, while evidencebus remains the schema-first evidence
   backplane for cross-tool validation, inventory, bundling, and export.
+- Cockpit proof-evidence import now has a docs-only contract in
+  `docs/cockpit-proof-evidence.md`, defining accepted proof artifacts,
+  required/advisory classification, commit freshness, rendering expectations,
+  and explicit non-goals before any CLI/API import surface is added.
 - Roadmap-era implementation notes now distinguish historical microcrate
   extraction from the current owner-module consolidation shape, so future
   architecture work starts from the actual crate graph instead of retired

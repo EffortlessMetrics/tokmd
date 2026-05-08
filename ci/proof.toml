@@ -634,6 +634,7 @@ paths = [
   "crates/tokmd/schemas/review-packet-evidence.schema.json",
   "crates/tokmd/schemas/review-packet-manifest.schema.json",
   "crates/tokmd/tests/cockpit_*.rs",
+  "docs/cockpit-proof-evidence.md",
   "docs/review-packet.md",
   "docs/review-map.schema.json",
   "docs/review-packet-evidence.schema.json",
