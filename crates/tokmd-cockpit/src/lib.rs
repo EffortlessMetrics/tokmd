@@ -21,6 +21,7 @@ pub mod determinism;
 mod display;
 #[cfg(feature = "git")]
 mod gates;
+mod proof_evidence;
 pub mod render;
 mod review_plan;
 #[cfg(feature = "git")]
