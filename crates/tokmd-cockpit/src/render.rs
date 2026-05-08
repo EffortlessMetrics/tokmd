@@ -12,6 +12,7 @@ use crate::{
     trend_direction_label,
 };
 
+mod review_map;
 mod review_packet;
 
 pub use review_packet::write_review_packet;
