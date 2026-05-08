@@ -58,8 +58,8 @@ carveouts such as `allow-unwrap-in-tests`, `allow-expect-in-tests`,
 
 ## Upgrade ledger
 
-The workspace currently targets Rust 1.93. Planned Clippy flips for Rust 1.94
-and 1.95 are recorded before the MSRV bump so that upgrades are reviewable,
+The workspace currently targets Rust 1.95. Planned Clippy flips for future
+releases are recorded before the MSRV bump so that upgrades are reviewable,
 searchable, and gated by policy.
 
 ## Gate

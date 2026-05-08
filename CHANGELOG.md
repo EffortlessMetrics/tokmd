@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-05-08
+
+### Changed
+- Raised the minimum supported Rust version from 1.93 to 1.95.
+- Activated the Rust 1.94/1.95 lint policy ratchets staged in `policy/clippy-lints.toml`: `same_length_and_capacity` (deny), `manual_ilog2`, `decimal_bitwise_operands`, `needless_type_cast`, `manual_checked_ops`, `manual_take`, `manual_pop_if`, `duration_suboptimal_units`, and `unnecessary_trailing_comma` (all warn).
+
 ## [1.10.0] - 2026-04-30
 
 Stable release following `v1.10.0-rc.1` validation.
