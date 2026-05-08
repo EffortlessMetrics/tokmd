@@ -1,48 +1,48 @@
 ## 💡 Summary
-Fixed a factual drift in `docs/requirements.md` where the `Analysis receipts` schema version incorrectly referenced `v5` instead of `v9`.
+Updates `ROADMAP.md` and `docs/implementation-plan.md` to align with the active shipped reality governed by `NEXT.md`. This closes the factual drift where the roadmap skipped from v1.11 browser polish straight to v2.0 MCP integration without documenting the current "cockpit review-packet hardening" and "architecture-consolidation" phases.
 
 ## 🎯 Why
-The `docs/requirements.md` document listed `- **Analysis receipts**: Schema v5` under the `Receipt Contracts` section. However, `crates/tokmd-analysis-types/src/lib.rs` explicitly defines `ANALYSIS_SCHEMA_VERSION = 9`, and `docs/design.md` and `docs/architecture.md` correctly reference `v9`. This fixes the factual drift between the shipped reality and the requirements documentation.
+`NEXT.md` explicitly lists "cockpit review-packet hardening" and "architecture-consolidation program" as the active work lanes. However, both `ROADMAP.md` and `docs/implementation-plan.md` suffered from factual drift: they lacked any mention of these phases, and `docs/implementation-plan.md` failed to mark Phase 5c (Browser Runtime Polish) as complete. This update ensures design/roadmap docs accurately reflect shipped and active priorities, making future work planning clearer.
 
 ## 🔎 Evidence
-- **File**: `docs/requirements.md`
-- **Observed behavior**: It claimed Analysis receipts were Schema v5.
+- **File paths**: `docs/NEXT.md`, `ROADMAP.md`, `docs/implementation-plan.md`
+- **Observed behavior**: `ROADMAP.md` skips from `v1.11.0` directly to `v2.0` Future Horizons. `docs/implementation-plan.md` had Phase 5c unmarked as complete and no Phase 5d/active lane.
 - **Receipts**:
-  - `grep -r "ANALYSIS_SCHEMA_VERSION =" crates/`
-    - `crates/tokmd-analysis-types/src/lib.rs:pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;`
-  - `grep "Schema v" docs/requirements.md`
-    - `- **Analysis receipts**: Schema v5`
+  ```text
+  {"command": "cat docs/implementation-plan.md | grep -A 20 \"Phase 5c\"", "exit_code": 0}
+  {"command": "cat docs/NEXT.md", "exit_code": 0}
+  ```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Updating the schema version inline in `docs/requirements.md` from `v5` to `v9`.
-- **Why it fits**: Directly addresses the factual drift within the tooling-governance shard.
-- **Trade-offs**: High alignment with current repo structure and velocity, but could drift again in the future.
+- **What it is**: Update both `docs/implementation-plan.md` (to mark Phase 5c complete and add active Phase 5d) and `ROADMAP.md` (to insert `v1.12.0 Cockpit & Architecture Consolidation` under Future Horizons).
+- **Why it fits this repo and shard**: It strictly fixes factual drift between the governance-driven `NEXT.md` state and the active product roadmap docs within the `tooling-governance` shard.
+- **Trade-offs**: Structure / Velocity / Governance - Strengthens governance alignment without slowing velocity, as it aligns documented reality with the actual active development program.
 
 ### Option B
-- Removing the schema version number entirely from `docs/requirements.md` and pointing to `docs/design.md`.
-- **When to choose**: If we want to centralize schema versions entirely to avoid future drifts.
-- **Trade-offs**: Reduces immediate readability of the requirements doc.
+- **What it is**: Only update `ROADMAP.md`, leaving `docs/implementation-plan.md` out of date.
+- **When to choose it instead**: If `implementation-plan.md` was deprecated (it's not).
+- **Trade-offs**: Risks confusing contributors who rely on the phase checklist in `docs/implementation-plan.md`.
 
 ## ✅ Decision
-Chose Option A to accurately reflect the shipped `v9` schema in the requirements doc, keeping the document descriptive.
+Implemented Option A to ensure all forward-looking documentation precisely reflects the active directives set in `NEXT.md`.
 
 ## 🧱 Changes made (SRP)
-- `docs/requirements.md`: Updated `Schema v5` to `Schema v9` for Analysis receipts.
+- `docs/implementation-plan.md`: Marked Phase 5c as `✅ Complete` and inserted Phase 5d (Cockpit Hardening & Architecture Consolidation).
+- `ROADMAP.md`: Added `v1.12.0 — Cockpit & Architecture Consolidation (Active)` to the `Future Horizons` section.
 
 ## 🧪 Verification receipts
 ```text
-$ sed -i 's/- \*\*Analysis receipts\*\*: Schema v5/- \*\*Analysis receipts\*\*: Schema v9/' docs/requirements.md
-$ cargo xtask docs --check
-Documentation is up to date.
+{"command": "cat docs/implementation-plan.md | grep -n \"Phase 5d\" -A 15", "exit_code": 0}
+{"command": "cat ROADMAP.md | grep -n \"v1.12.0\" -A 10", "exit_code": 0}
 ```
 
 ## 🧭 Telemetry
-- **Change shape**: Docs update.
-- **Blast radius**: `docs/` (Information/documentation only, no code change).
-- **Risk class**: Trivial. Non-functional documentation fix.
-- **Rollback**: Trivial revert.
-- **Gates run**: `cargo xtask docs --check`
+- **Change shape**: Docs alignment / Factual drift resolution
+- **Blast radius**: `docs` (no API, schema, IO, or concurrency risks).
+- **Risk class + why**: Low risk. pure documentation update.
+- **Rollback**: Revert git commits touching `.md` files.
+- **Gates run**: `cargo xtask docs --check`, `cargo xtask version-consistency`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design_1/envelope.json`

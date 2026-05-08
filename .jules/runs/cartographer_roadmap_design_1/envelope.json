@@ -10,8 +10,13 @@
     "ROADMAP.md",
     "CHANGELOG.md",
     "Cargo.toml",
-    "Cargo.lock"
+    "Cargo.lock",
+    "crates/**/Cargo.toml",
+    ".cargo/**"
   ],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["pr-ready patch", "proof-improvement patch", "learning pr"]
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
 }
