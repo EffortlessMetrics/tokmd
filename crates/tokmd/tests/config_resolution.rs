@@ -319,3 +319,65 @@ fn test_resolve_module_no_args_no_profile() {
     );
     assert_eq!(resolved.module_depth, 2);
 }
+
+#[test]
+fn test_resolve_lang_with_config_precedence() {
+    use tokmd::cli::{ChildrenMode as CliChildrenMode, CliLangArgs, TableFormat as CliTableFormat};
+    use tokmd::{ResolvedConfig, resolve_lang_with_config};
+    use tokmd_settings::ViewProfile;
+    use tokmd_types::{ChildrenMode, TableFormat};
+
+    let cli = CliLangArgs {
+        format: Some(CliTableFormat::Json),
+        top: None,
+        files: false,
+        paths: None,
+        children: Some(CliChildrenMode::Separate),
+    };
+
+    let view = ViewProfile {
+        top: Some(15),
+        format: Some("tsv".to_string()),
+        files: Some(true),
+        children: Some("collapse".to_string()),
+        ..Default::default()
+    };
+
+    let profile = Profile {
+        top: Some(30),
+        format: Some("json".to_string()),
+        files: Some(false),
+        children: Some("separate".to_string()),
+        ..Default::default()
+    };
+
+    let config = ResolvedConfig {
+        toml_view: Some(&view),
+        json_profile: Some(&profile),
+        toml: None,
+    };
+
+    let resolved = resolve_lang_with_config(&cli, &config);
+
+    // CLI format and children mode override TOML view and JSON profile.
+    assert_eq!(resolved.format, TableFormat::Json);
+    assert_eq!(resolved.children, ChildrenMode::Separate);
+
+    // TOML view supplies defaults ahead of JSON profile when CLI omits a value.
+    assert_eq!(resolved.top, 15);
+
+    // TOML view files is true, CLI is false, OR logic results in true.
+    assert!(resolved.files);
+
+    let fallback_config = ResolvedConfig {
+        toml_view: None,
+        json_profile: Some(&profile),
+        toml: None,
+    };
+    let fallback_resolved = resolve_lang_with_config(&CliLangArgs::default(), &fallback_config);
+
+    assert_eq!(fallback_resolved.format, TableFormat::Json);
+    assert_eq!(fallback_resolved.top, 30);
+    assert!(!fallback_resolved.files);
+    assert_eq!(fallback_resolved.children, ChildrenMode::Separate);
+}

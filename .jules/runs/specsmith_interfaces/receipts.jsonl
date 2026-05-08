@@ -1,0 +1,2 @@
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "echo envelope written", "output": "envelope written"}
+{"timestamp": "2026-05-08T19:43:12Z", "command": "cargo test -p tokmd --test config_resolution", "output": "test test_resolve_lang_with_config ... ok\n13 passed; 0 failed"}
