@@ -963,6 +963,20 @@ fn render_review_map_md(receipt: &CockpitReceipt) -> String {
         if let Some(complexity) = item.complexity {
             let _ = writeln!(s, "   Review complexity: {complexity}/5");
         }
+        let _ = writeln!(s, "   Evidence references:");
+        let _ = writeln!(s, "   - cockpit.json#/review_plan/{idx}");
+        let _ = writeln!(s, "   - evidence.json#/gates");
+        let _ = writeln!(s, "   Reproduce:");
+        let _ = writeln!(
+            s,
+            "   - `tokmd cockpit --base {} --head {} --format json`",
+            receipt.base_ref, receipt.head_ref
+        );
+        let _ = writeln!(
+            s,
+            "   - `tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review`",
+            receipt.base_ref, receipt.head_ref
+        );
         let _ = writeln!(s);
     }
 

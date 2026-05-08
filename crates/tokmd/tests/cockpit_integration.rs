@@ -635,6 +635,15 @@ fn test_cockpit_review_packet_dir() {
 
     let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
+    assert!(review_map_md.contains("Evidence references:"));
+    assert!(review_map_md.contains("cockpit.json#/review_plan/0"));
+    assert!(review_map_md.contains("evidence.json#/gates"));
+    assert!(review_map_md.contains("Reproduce:"));
+    assert!(review_map_md.contains("tokmd cockpit --base main --head HEAD --format json"));
+    assert!(
+        review_map_md
+            .contains("tokmd cockpit --base main --head HEAD --review-packet-dir .tokmd/review")
+    );
 
     let comment_md = std::fs::read_to_string(packet_dir.join("comment.md")).unwrap();
     assert!(comment_md.contains("Evidence availability"));

@@ -114,7 +114,9 @@ to disk.
 
 Each item includes rank, path, priority, priority label, reason, optional
 complexity, optional lines changed, evidence references, and reproduction
-commands. `review-map.md` is a Markdown rendering of the same ordered items.
+commands. `review-map.md` is a Markdown rendering of the same ordered items,
+including the evidence references and reproduction commands for artifact
+browsing and local review.
 
 ## Exit Codes
 
