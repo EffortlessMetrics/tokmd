@@ -1,15 +1,17 @@
 use std::fmt::Write as FmtWrite;
+use std::fs::File;
 use std::io::{self, Write};
+use std::path::Path;
 
 use anyhow::Result;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
     LangArgs, LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
-    ModuleReport, ScanStatus, TableFormat, ToolInfo,
+    ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
 };
 
-use crate::{now_ms, scan_args};
+use crate::{now_ms, redact_module_roots, scan_args, short_hash};
 
 // -----------------------
 // Language summary output
@@ -204,6 +206,76 @@ pub fn print_module_report(
     let stdout = io::stdout();
     let out = stdout.lock();
     write_module_report_to(out, report, global, args)
+}
+
+// -----------------
+// Run command helpers
+// -----------------
+
+/// Write a lang report as JSON to a file path.
+///
+/// This is a convenience function for the `run` command that accepts
+/// pre-constructed `ScanArgs` and `LangArgsMeta` rather than requiring
+/// the full CLI args structs.
+pub fn write_lang_json_to_file(
+    path: &Path,
+    report: &LangReport,
+    scan: &ScanArgs,
+    args_meta: &LangArgsMeta,
+) -> Result<()> {
+    let receipt = LangReceipt {
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "lang".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan.clone(),
+        args: args_meta.clone(),
+        report: report.clone(),
+    };
+    let file = File::create(path)?;
+    serde_json::to_writer(file, &receipt)?;
+    Ok(())
+}
+
+/// Write a module report as JSON to a file path.
+///
+/// This is a convenience function for the `run` command that accepts
+/// pre-constructed `ScanArgs` and `ModuleArgsMeta` rather than requiring
+/// the full CLI args structs.
+pub fn write_module_json_to_file(
+    path: &Path,
+    report: &ModuleReport,
+    scan: &ScanArgs,
+    args_meta: &ModuleArgsMeta,
+    redact: RedactMode,
+) -> Result<()> {
+    let mut final_args = args_meta.clone();
+    let mut final_report = report.clone();
+
+    if redact == RedactMode::All {
+        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
+        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
+        for row in &mut final_report.rows {
+            row.module = short_hash(&row.module);
+        }
+    }
+
+    let receipt = ModuleReceipt {
+        schema_version: tokmd_types::SCHEMA_VERSION,
+        generated_at_ms: now_ms(),
+        tool: ToolInfo::current(),
+        mode: "module".to_string(),
+        status: ScanStatus::Complete,
+        warnings: vec![],
+        scan: scan.clone(),
+        args: final_args,
+        report: final_report,
+    };
+    let file = File::create(path)?;
+    serde_json::to_writer(file, &receipt)?;
+    Ok(())
 }
 
 fn render_module_md(report: &ModuleReport) -> String {

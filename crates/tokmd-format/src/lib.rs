@@ -18,16 +18,9 @@
 //! * CLI argument parsing
 //! * Analysis computation (use tokmd-analysis)
 
-use std::fs::File;
-use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use anyhow::Result;
-
-use tokmd_types::{
-    LangArgsMeta, LangReceipt, LangReport, ModuleArgsMeta, ModuleReceipt, ModuleReport, RedactMode,
-    ScanArgs, ScanStatus, ToolInfo,
-};
+use tokmd_types::RedactMode;
 
 pub mod analysis;
 pub mod badge;
@@ -54,7 +47,8 @@ pub use export_tree::{render_analysis_tree, render_handoff_tree};
 pub use redact::{redact_path, short_hash};
 pub use scan_args::{normalize_scan_input, scan_args};
 pub use summary::{
-    print_lang_report, print_module_report, write_lang_report_to, write_module_report_to,
+    print_lang_report, print_module_report, write_lang_json_to_file, write_lang_report_to,
+    write_module_json_to_file, write_module_report_to,
 };
 
 fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {
@@ -70,76 +64,6 @@ fn now_ms() -> u128 {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis()
-}
-
-// -----------------
-// Run command helpers
-// -----------------
-
-/// Write a lang report as JSON to a file path.
-///
-/// This is a convenience function for the `run` command that accepts
-/// pre-constructed `ScanArgs` and `LangArgsMeta` rather than requiring
-/// the full CLI args structs.
-pub fn write_lang_json_to_file(
-    path: &Path,
-    report: &LangReport,
-    scan: &ScanArgs,
-    args_meta: &LangArgsMeta,
-) -> Result<()> {
-    let receipt = LangReceipt {
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "lang".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: args_meta.clone(),
-        report: report.clone(),
-    };
-    let file = File::create(path)?;
-    serde_json::to_writer(file, &receipt)?;
-    Ok(())
-}
-
-/// Write a module report as JSON to a file path.
-///
-/// This is a convenience function for the `run` command that accepts
-/// pre-constructed `ScanArgs` and `ModuleArgsMeta` rather than requiring
-/// the full CLI args structs.
-pub fn write_module_json_to_file(
-    path: &Path,
-    report: &ModuleReport,
-    scan: &ScanArgs,
-    args_meta: &ModuleArgsMeta,
-    redact: RedactMode,
-) -> Result<()> {
-    let mut final_args = args_meta.clone();
-    let mut final_report = report.clone();
-
-    if redact == RedactMode::All {
-        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
-        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
-        for row in &mut final_report.rows {
-            row.module = short_hash(&row.module);
-        }
-    }
-
-    let receipt = ModuleReceipt {
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "module".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: final_args,
-        report: final_report,
-    };
-    let file = File::create(path)?;
-    serde_json::to_writer(file, &receipt)?;
-    Ok(())
 }
 
 #[cfg(test)]
