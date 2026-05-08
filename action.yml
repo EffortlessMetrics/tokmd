@@ -37,7 +37,7 @@ inputs:
     description: 'Whether to post the generated Markdown summary as a pull request comment'
     default: 'true'
   review-packet:
-    description: 'Whether mode: cockpit should emit a review packet directory and use its comment.md as the PR comment body'
+    description: 'Whether mode: cockpit should emit a review packet directory and prepare a hosted comment copy'
     default: 'false'
 
 outputs:

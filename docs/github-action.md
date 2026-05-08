@@ -77,7 +77,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `head` | no | `HEAD` | Head git ref for `cockpit` and `sensor`. |
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
 | `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
-| `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory and use its `comment.md` as the Markdown summary/comment body. |
+| `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory. The packet-local `comment.md` remains the `summary` output; hosted pull request comments use a copied summary when metadata is added. |
 
 ## Outputs
 
