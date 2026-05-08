@@ -498,6 +498,7 @@ paths = [
   "crates/tokmd-format/src/diff.rs",
   "crates/tokmd-format/src/export.rs",
   "crates/tokmd-format/src/lib.rs",
+  "crates/tokmd-format/src/summary.rs",
   "crates/tokmd-format/tests/format_*.rs",
   "crates/tokmd-format/tests/snapshot*.rs",
   "crates/tokmd-format/tests/snapshots/**",
