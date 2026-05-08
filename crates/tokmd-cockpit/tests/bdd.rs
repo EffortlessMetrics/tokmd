@@ -761,6 +761,30 @@ fn scenario_write_review_packet_creates_contract_files() {
     let mut receipt = minimal_receipt();
     receipt.evidence.mutation.meta.status = GateStatus::Pass;
     receipt.evidence.mutation.meta.commit_match = CommitMatch::Exact;
+    receipt.evidence.diff_coverage = Some(DiffCoverageGate {
+        meta: GateMeta {
+            status: GateStatus::Pending,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: vec!["src/lib.rs".to_string()],
+                tested: Vec::new(),
+                ratio: 0.0,
+                lines_relevant: Some(42),
+                lines_tested: Some(0),
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        lines_added: 42,
+        lines_covered: 0,
+        coverage_pct: 0.0,
+        uncovered_hunks: vec![UncoveredHunk {
+            file: "src/lib.rs".to_string(),
+            start_line: 1,
+            end_line: 42,
+        }],
+    });
     receipt.review_plan = vec![ReviewItem {
         path: "src/lib.rs".to_string(),
         reason: "Large changed file".to_string(),
@@ -790,17 +814,22 @@ fn scenario_write_review_packet_creates_contract_files() {
     );
     assert_eq!(manifest["verdict"]["evidence"]["total_gates"], 6);
     assert_eq!(manifest["verdict"]["evidence"]["available"], 1);
-    assert_eq!(manifest["verdict"]["evidence"]["unavailable"], 5);
+    assert_eq!(manifest["verdict"]["evidence"]["missing"], 1);
+    assert_eq!(manifest["verdict"]["evidence"]["unavailable"], 4);
     assert_eq!(
         manifest["capabilities"]["evidence"]["available"][0],
         "mutation"
+    );
+    assert_eq!(
+        manifest["capabilities"]["evidence"]["missing"][0],
+        "diff_coverage"
     );
     assert!(
         manifest["capabilities"]["evidence"]["unavailable"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|gate| gate == "diff_coverage")
+            .any(|gate| gate == "contracts")
     );
     assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 5);
     assert_eq!(manifest["artifacts"][0]["path"], "cockpit.json");
@@ -819,7 +848,15 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert_eq!(evidence["gates"][0]["id"], "mutation");
     assert_eq!(evidence["gates"][0]["availability"], "available");
     assert_eq!(evidence["gates"][1]["id"], "diff_coverage");
-    assert_eq!(evidence["gates"][1]["availability"], "unavailable");
+    assert_eq!(evidence["gates"][1]["availability"], "missing");
+    assert_eq!(evidence["gates"][1]["scope"]["relevant"][0], "src/lib.rs");
+    assert_eq!(
+        evidence["gates"][1]["scope"]["tested"]
+            .as_array()
+            .unwrap()
+            .len(),
+        0
+    );
 
     let review_map: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
@@ -848,7 +885,8 @@ fn scenario_write_review_packet_creates_contract_files() {
     let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
     assert!(comment_md.contains("Evidence availability"));
     assert!(comment_md.contains("1 available"));
-    assert!(comment_md.contains("5 unavailable"));
+    assert!(comment_md.contains("4 unavailable"));
+    assert!(comment_md.contains("1 missing"));
     assert!(comment_md.contains("Review packet artifacts"));
     assert!(comment_md.contains("[Evidence gates](evidence.json)"));
     assert!(comment_md.contains("[Review map](review-map.md)"));
