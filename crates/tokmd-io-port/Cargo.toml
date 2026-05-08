@@ -7,7 +7,7 @@ homepage.workspace = true
 repository.workspace = true
 description = "I/O port traits for host-abstracted file access, enabling WASM targets."
 readme = "README.md"
-keywords = ["io", "wasm", "abstraction", "filesystem", "microcrate"]
+keywords = ["io", "wasm", "abstraction", "filesystem", "adapter"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-io-port"
 

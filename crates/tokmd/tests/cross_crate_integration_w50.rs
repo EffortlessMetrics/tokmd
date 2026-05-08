@@ -1,5 +1,5 @@
 //! Cross-crate integration tests verifying complete data flow through the
-//! tiered microcrate architecture: types → scan → model → format → analysis.
+//! tiered crate/module architecture: types → scan → model → format → analysis.
 
 mod common;
 

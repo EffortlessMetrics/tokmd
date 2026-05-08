@@ -227,7 +227,7 @@ fn run_with_json_module(
     // valid &str. The core FFI receives only valid, owned data.
     let result_json = py.detach(move || tokmd_core::ffi::run_json(mode, &args_json));
 
-    // Parse/extract with the shared FFI-envelope microcrate, then convert to PyObject.
+    // Parse/extract with the shared FFI-envelope contract crate, then convert to PyObject.
     //
     // Rationale: The envelope extraction handles the "ok": true/false protocol.
     // Success returns the `data` field, failure returns a TokmdError.

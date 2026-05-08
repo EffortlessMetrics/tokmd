@@ -2,7 +2,7 @@
 
 //! Cross-crate full-pipeline integration tests (W55).
 //!
-//! Exercises the complete data-flow across the tiered microcrate architecture:
+//! Exercises the complete data flow across the tiered crate/module architecture:
 //! types → scan → model → format → analysis, including CLI round-trips.
 
 mod common;

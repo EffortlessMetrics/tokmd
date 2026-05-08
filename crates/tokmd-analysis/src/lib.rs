@@ -9,7 +9,7 @@
 //! * Analysis orchestration and module coordination
 //! * Derived metric computation
 //! * Preset-based feature inclusion
-//! * Enricher orchestration and adapters (delegated to microcrates)
+//! * Enricher orchestration and adapters (delegated to owner modules)
 //!
 //! ## What does NOT belong here
 //! * Output formatting (use tokmd-format::analysis)
