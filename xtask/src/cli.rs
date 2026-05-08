@@ -20,6 +20,8 @@ pub enum Commands {
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
     Docs(DocsArgs),
+    /// Generate Jules run and friction rollup indexes
+    JulesIndex,
     /// Validate the Rust-native proof policy
     ProofPolicy(ProofPolicyArgs),
     /// Discover proof scopes affected by a git diff
