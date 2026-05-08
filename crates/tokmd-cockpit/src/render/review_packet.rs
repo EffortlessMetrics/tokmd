@@ -6,10 +6,11 @@ use anyhow::Result;
 
 use crate::CockpitReceipt;
 
+use super::comment::render_review_packet_comment_md;
 use super::evidence::review_packet_evidence;
 use super::manifest::review_packet_manifest;
+use super::render_json;
 use super::review_map::{render_review_map_md, review_packet_review_map};
-use super::{render_comment_md, render_json};
 
 /// Write review packet artifacts to directory.
 ///
@@ -46,16 +47,4 @@ pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     )?;
 
     Ok(())
-}
-
-fn render_review_packet_comment_md(receipt: &CockpitReceipt) -> String {
-    use std::fmt::Write;
-
-    let mut s = render_comment_md(receipt);
-    let _ = writeln!(s, "**Review packet artifacts**:");
-    let _ = writeln!(s, "- [Evidence gates](evidence.json)");
-    let _ = writeln!(s, "- [Review map](review-map.md)");
-    let _ = writeln!(s, "- [Full cockpit receipt](cockpit.json)");
-    let _ = writeln!(s);
-    s
 }
