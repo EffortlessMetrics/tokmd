@@ -713,6 +713,7 @@ paths = [
   "tokmd-role.md",
   "docs/PRODUCT.md",
   "docs/NOW.md",
+  "docs/architecture-consolidation-plan.md",
   "docs/architecture.md",
   "docs/design.md",
   "docs/implementation-plan.md",

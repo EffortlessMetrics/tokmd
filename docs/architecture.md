@@ -39,6 +39,9 @@ metric/security analysis enrichers plus content/import/Git adapters in
 `tokmd-core`, sensor substrate context in `tokmd-sensor`, and
 CLI/config/progress/tool-schema/explain wiring in `tokmd`.
 
+The active owner-module batch plan lives in
+[`architecture-consolidation-plan.md`](architecture-consolidation-plan.md).
+
 ### Tier 0: Contracts (Pure Data)
 
 | Crate | Purpose | Dependencies |

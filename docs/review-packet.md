@@ -56,8 +56,8 @@ The review packet directory is:
 | `cockpit.json` | Full `CockpitReceipt` JSON. This is the same receipt produced by `tokmd cockpit --format json`. |
 | `evidence.json` | Evidence availability and gate status. It distinguishes passed evidence from missing, skipped, stale, degraded, or unavailable evidence. |
 | `comment.md` | PR-comment-ready summary. It stays concise and points readers to packet artifacts when hosted by CI. |
-| `review-map.json` | Machine-readable prioritized review plan with files, reasons, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
-| `review-map.md` | Human-readable review plan for artifact browsing and local review. |
+| `review-map.json` | Machine-readable prioritized review plan with files, reasons, compact evidence status, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
+| `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first and which evidence is present or missing. |
 
 Formal JSON Schemas are published with the docs and embedded in the CLI test
 package:
@@ -119,10 +119,13 @@ to disk.
 - `item_count`
 - `items` sorted in cockpit review-plan order
 
-Each item includes rank, path, priority, priority label, reason, optional
-complexity, optional lines changed, evidence references, and reproduction
+The map may also include a packet-level evidence summary copied from the same
+availability buckets as `manifest.json`. Each item includes rank, path,
+priority, priority label, reason, optional complexity, optional lines changed,
+compact item-level evidence status, evidence references, and reproduction
 commands. `review-map.md` is a Markdown rendering of the same ordered items,
-including the evidence references and reproduction commands for artifact
+including a "Review First" section, evidence present/missing lines where
+applicable, evidence references, and reproduction commands for artifact
 browsing and local review.
 
 ## Exit Codes

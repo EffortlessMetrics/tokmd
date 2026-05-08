@@ -862,16 +862,39 @@ fn scenario_write_review_packet_creates_contract_files() {
         serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
             .unwrap();
     assert_eq!(review_map["schema"], "tokmd.review_map.v1");
+    assert_eq!(
+        review_map["evidence"]["summary"]["details"],
+        "evidence.json#/gates"
+    );
+    assert_eq!(review_map["evidence"]["summary"]["available"], 1);
+    assert_eq!(review_map["evidence"]["summary"]["missing"], 1);
+    assert_eq!(review_map["evidence"]["groups"]["available"][0], "mutation");
+    assert_eq!(
+        review_map["evidence"]["groups"]["missing"][0],
+        "diff_coverage"
+    );
     assert_eq!(review_map["item_count"], 1);
     assert_eq!(review_map["items"][0]["path"], "src/lib.rs");
     assert_eq!(
         review_map["items"][0]["evidence_refs"][0],
         "cockpit.json#/review_plan/0"
     );
+    assert_eq!(review_map["items"][0]["evidence"]["status"], "missing");
+    assert_eq!(review_map["items"][0]["evidence"]["present"][0], "mutation");
+    assert_eq!(
+        review_map["items"][0]["evidence"]["missing"][0],
+        "diff_coverage"
+    );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
+    assert!(review_map_md.contains("Evidence overview: 1 available"));
+    assert!(review_map_md.contains("## Review First"));
     assert!(review_map_md.contains("`src/lib.rs`"));
+    assert!(review_map_md.contains("Why it matters: Large changed file"));
+    assert!(review_map_md.contains("Evidence status: missing"));
+    assert!(review_map_md.contains("Evidence present: mutation"));
+    assert!(review_map_md.contains("Evidence missing: diff_coverage"));
     assert!(review_map_md.contains("Evidence references:"));
     assert!(review_map_md.contains("cockpit.json#/review_plan/0"));
     assert!(review_map_md.contains("evidence.json#/gates"));
