@@ -105,15 +105,16 @@ impl MaterializedScan {
 /// ```
 pub fn scan(paths: &[PathBuf], args: &ScanOptions) -> Result<Languages> {
     let cfg = config_from_scan_options(args);
-    let ignores = ignored_patterns(args);
     let roots = validated_scan_roots(paths)?;
+    let ignores = ignored_patterns(args, &roots);
+    let ignore_refs: Vec<_> = ignores.iter().map(String::as_str).collect();
     let scan_paths: Vec<PathBuf> = roots
         .iter()
         .map(|root| root.canonical().to_path_buf())
         .collect();
 
     let mut languages = Languages::new();
-    languages.get_statistics(&scan_paths, &ignores, &cfg);
+    languages.get_statistics(&scan_paths, &ignore_refs, &cfg);
     rebase_report_paths(&mut languages, &roots);
 
     Ok(languages)
@@ -229,8 +230,48 @@ fn build_config(args: &ScanOptions) -> Config {
     cfg
 }
 
-fn ignored_patterns(args: &ScanOptions) -> Vec<&str> {
-    args.excluded.iter().map(|s| s.as_str()).collect()
+fn ignored_patterns(args: &ScanOptions, roots: &[ValidatedRoot]) -> Vec<String> {
+    let mut patterns = BTreeSet::new();
+
+    for pattern in &args.excluded {
+        patterns.insert(pattern.clone());
+
+        if is_absolute_pattern(pattern) {
+            continue;
+        }
+
+        let relative = normalize_relative_ignore_pattern(pattern);
+        if relative.is_empty() {
+            continue;
+        }
+
+        if !relative.starts_with("**/") {
+            patterns.insert(format!("**/{relative}"));
+        }
+
+        for root in roots {
+            let canonical = normalize_slashes(&root.canonical().to_string_lossy());
+            patterns.insert(format!("{}/{}", canonical.trim_end_matches('/'), relative));
+        }
+    }
+
+    patterns.into_iter().collect()
+}
+
+fn is_absolute_pattern(pattern: &str) -> bool {
+    let path = Path::new(pattern);
+    path.is_absolute()
+        || pattern.starts_with('/')
+        || pattern.starts_with('\\')
+        || pattern.as_bytes().get(1).is_some_and(|byte| *byte == b':')
+}
+
+fn normalize_relative_ignore_pattern(pattern: &str) -> String {
+    let mut normalized = normalize_slashes(pattern);
+    while let Some(rest) = normalized.strip_prefix("./") {
+        normalized = rest.to_string();
+    }
+    normalized.trim_start_matches('/').to_string()
 }
 
 fn normalize_logical_paths(
@@ -425,6 +466,40 @@ mod tests {
             child_report.name,
             fs::canonicalize(&root)?.join("web/index.html"),
             "child report path should preserve the caller-facing input root"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn scan_keeps_relative_excludes_matching_canonical_walk_roots() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let root = dir.path().join("repo");
+        let secret = root.join("secret_folder");
+        fs::create_dir_all(&secret)?;
+        fs::write(secret.join("app.rs"), "fn secret() {}\n")?;
+        fs::write(root.join("other.rs"), "fn other() {}\n")?;
+
+        let mut args = default_scan_options();
+        args.excluded = vec!["secret_folder/**".to_string()];
+        let languages = scan(&[root.join(".")], &args)?;
+        let rust = languages
+            .get(&tokei::LanguageType::Rust)
+            .expect("scan should find the visible Rust file");
+        let report_paths: Vec<_> = rust
+            .reports
+            .iter()
+            .map(|report| normalize_slashes(&report.name.to_string_lossy()))
+            .collect();
+
+        assert!(
+            report_paths.iter().any(|path| path.ends_with("other.rs")),
+            "visible file should be scanned: {report_paths:?}"
+        );
+        assert!(
+            !report_paths
+                .iter()
+                .any(|path| path.contains("secret_folder")),
+            "relative exclude should still match after canonicalizing scan roots: {report_paths:?}"
         );
         Ok(())
     }
