@@ -1,0 +1,17 @@
+{
+  "outcome_type": "proof_patch",
+  "reviewer_title": "mutant: strengthen proof surfaces in core types 🧬",
+  "summary": "Added test coverage in `tokmd-types` to explicitly verify mathematical boundaries, zero-states, and serialization behavior of LLM artifacts and context rows, successfully eliminating previously missed mutants.",
+  "target_paths": [
+    "crates/tokmd-types/tests/mutant_coverage.rs"
+  ],
+  "proof_summary": "Created `mutant_coverage.rs` that explicitly exercises `ToolInfo::current()`, `TokenEstimationMeta` from bounds, `TokenAudit` boundaries, and `is_default_policy` JSON serialization. `cargo mutants` on `tokmd-types` reported 0 missed mutants after this change.",
+  "gates_run": [
+    "cargo test -p tokmd-types",
+    "cargo mutants (tokmd-types)"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Remove `crates/tokmd-types/tests/mutant_coverage.rs`",
+  "follow_ups": []
+}
