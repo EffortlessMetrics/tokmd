@@ -373,7 +373,7 @@ authenticated fetch.
 - [x] Add determinism, snapshot, and property-test proof coverage for release-critical paths
 - [x] Clarify Jules provenance policy without blanket-blocking intentional `.jules/**` history
 
-## Phase 5c: Browser Runtime Polish (v1.11.0)
+## Phase 5c: Browser Runtime Polish (v1.11.0) ✅ Complete
 
 **Goal**: Deliver browser runtime polish for cache semantics, long-running analysis visibility, fetch resilience, and authenticated-fetch boundaries.
 
@@ -390,6 +390,19 @@ authenticated fetch.
 - Unit tests: cache key and invalidation behavior
 - Worker tests: progress event emission during long scans
 - Runner tests: retry/rate-limit and authenticated-cache partition behavior
+
+---
+
+## Phase 5d: Cockpit Hardening & Architecture Consolidation (Active)
+
+**Goal**: Improve cockpit as the PR-review evidence surface before adding a separate review orchestrator, and consolidate implementation microcrates into SRP modules.
+
+### Work Items
+
+- [ ] Finish small cockpit review-packet and Action-hosting gaps
+- [ ] Preserve `tokmd cockpit` as the review evidence implementation surface
+- [ ] Consolidate architecture in batches, preserving `ci/proof.toml` scope granularity
+- [ ] Ensure proof-run and scoped coverage observations remain advisory
 
 ---
 

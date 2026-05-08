@@ -568,6 +568,14 @@ back into single-responsibility owner modules.
 
 ## Future Horizons
 
+### v1.12.0 — Cockpit & Architecture Consolidation (Active)
+
+_Goal: Improve cockpit as the PR-review evidence surface before adding a separate review orchestrator, and consolidate implementation microcrates into SRP modules._
+
+- Finish small cockpit review-packet and Action-hosting gaps.
+- Preserve `tokmd cockpit` as the review evidence implementation surface.
+- Start architecture consolidation in batches, preserving scope granularity.
+
 ### v2.0 — Platform Evolution
 
 #### A. AI Agent Integration & MCP Server Mode

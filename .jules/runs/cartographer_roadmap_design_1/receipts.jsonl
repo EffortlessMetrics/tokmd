@@ -1,2 +1,6 @@
-{"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","command":"sed -i 's/- \\*\\*Analysis receipts\\*\\*: Schema v5/- \\*\\*Analysis receipts\\*\\*: Schema v9/' docs/requirements.md","status":"success","notes":"Updated factual drift in docs/requirements.md"}
-{"timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","command":"cargo xtask docs --check","status":"success","notes":"Ran docs verification gate"}
+{"command": "grep -rin \"Tree-sitter\" docs/", "exit_code": 0}
+{"command": "cat docs/implementation-plan.md | grep -A 20 \"Phase 5c\"", "exit_code": 0}
+{"command": "cat docs/NEXT.md", "exit_code": 0}
+{"command": "cat docs/implementation-plan.md | grep -n \\"Phase 5d\\" -A 15", "exit_code": 0}
+{"command": "cat ROADMAP.md | grep -n \\"v1.12.0\\" -A 10", "exit_code": 0}
+{"command": "cargo xtask version-consistency && cargo xtask docs --check && cargo xtask publish --plan && cargo deny --all-features check && cargo test -p xtask && cargo fmt -- --check && cargo clippy -- -D warnings", "exit_code": 0}

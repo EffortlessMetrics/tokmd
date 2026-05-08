@@ -1,5 +1,28 @@
 {
-  "status": "success",
-  "reason": "Found and fixed factual drift in docs/requirements.md regarding Analysis receipts schema version (was v5, updated to v9 to match code and architecture docs).",
-  "patch_ready": true
+  "outcome": "PR-ready patch",
+  "provenance": {
+    "run_id": "cartographer_roadmap_design_1",
+    "persona": "cartographer"
+  },
+  "changes": [
+    {
+      "file": "ROADMAP.md",
+      "action": "modified",
+      "description": "Added the active v1.12.0 Cockpit & Architecture Consolidation horizon, aligning with NEXT.md directives."
+    },
+    {
+      "file": "docs/implementation-plan.md",
+      "action": "modified",
+      "description": "Marked Phase 5c as complete and inserted Phase 5d for Cockpit Hardening & Architecture Consolidation."
+    }
+  ],
+  "telemetry": {
+    "blast_radius": "docs",
+    "risk_class": "low",
+    "rollback_instructions": "Revert the commit on ROADMAP.md and docs/implementation-plan.md.",
+    "gates_run": [
+      "cargo xtask docs --check",
+      "cargo xtask version-consistency"
+    ]
+  }
 }
