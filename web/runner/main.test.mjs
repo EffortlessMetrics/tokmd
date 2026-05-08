@@ -301,6 +301,7 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     const resultOutput = harness.element("[data-result]");
     const repoCapabilitiesOutput = harness.element("[data-repo-capabilities]");
     const loadStatusOutput = harness.element("[data-load-status]");
+    const runStatusOutput = harness.element("[data-run-status]");
     const loadProgressPanel = harness.element("[data-load-progress-panel]");
     const loadProgressText = harness.element("[data-load-progress-text]");
     const runProgressPanel = harness.element("[data-run-progress-panel]");
@@ -344,6 +345,48 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     assert.match(resultBeforeRepoError, /"mode": "lang"/);
     assert.match(runProgressText.textContent, /completed run-1/);
 
+    await runButton.click();
+    const secondRunMessage = worker.messages.at(-1);
+    assert.equal(secondRunMessage.type, "run");
+    assert.equal(secondRunMessage.requestId, "run-2");
+    assert.match(runProgressText.textContent, /sent run-2/);
+
+    worker.emit({
+        type: "result",
+        requestId: runMessage.requestId,
+        data: {
+            mode: "export",
+            stale: true,
+        },
+    });
+    assert.equal(resultOutput.textContent, resultBeforeRepoError);
+    assert.match(runProgressText.textContent, /sent run-2/);
+    assert.match(runStatusOutput.textContent, /sent run-2/);
+
+    worker.emit({
+        type: "error",
+        requestId: runMessage.requestId,
+        error: {
+            code: "stale_worker_error",
+            message: "stale worker terminal error",
+        },
+    });
+    assert.equal(resultOutput.textContent, resultBeforeRepoError);
+    assert.match(runProgressText.textContent, /sent run-2/);
+    assert.doesNotMatch(runStatusOutput.textContent, /stale worker terminal error/);
+
+    worker.emit({
+        type: "result",
+        requestId: secondRunMessage.requestId,
+        data: {
+            mode: "lang",
+            total: { files: 2 },
+        },
+    });
+    const secondResultBeforeRepoError = resultOutput.textContent;
+    assert.match(secondResultBeforeRepoError, /"files": 2/);
+    assert.match(runProgressText.textContent, /completed run-2/);
+
     await loadRepoButton.click();
 
     assert.equal(fetchCalls.length, 1);
@@ -352,7 +395,7 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     assert.equal(loadProgressPanel.hidden, false);
     assert.match(loadProgressText.textContent, /Retry after 12s/);
     assert.match(loadStatusOutput.textContent, /repo load failed:/);
-    assert.equal(resultOutput.textContent, resultBeforeRepoError);
+    assert.equal(resultOutput.textContent, secondResultBeforeRepoError);
     assert.doesNotMatch(collectText(logOutput), /ghp_saved/);
 
     await retryLoadButton.click();
@@ -364,13 +407,13 @@ test("main page wires token state, retryable repo loads, cache display, and resu
     assert.match(repoCapabilitiesOutput.textContent, /lastAuthMode: token/);
     assert.match(repoCapabilitiesOutput.textContent, /lastCache: memory miss/);
     assert.match(harness.element("[data-args]").value, /README\.md/);
-    assert.equal(resultOutput.textContent, resultBeforeRepoError);
+    assert.equal(resultOutput.textContent, secondResultBeforeRepoError);
 
     await loadRepoButton.click();
 
     assert.equal(fetchCalls.length, 3);
     assert.match(repoCapabilitiesOutput.textContent, /lastCache: memory hit/);
-    assert.equal(resultOutput.textContent, resultBeforeRepoError);
+    assert.equal(resultOutput.textContent, secondResultBeforeRepoError);
 
     await clearTokenButton.click();
 

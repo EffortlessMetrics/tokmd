@@ -67,6 +67,7 @@ Goal: move proof orchestration out of ad hoc GitHub YAML and into checked Rust-o
 - The composite GitHub Action now exposes an opt-in cockpit `review-packet` input. In `mode: cockpit`, `review-packet: true` writes `.tokmd/review`, exposes it as the `review-packet` output, and uses `.tokmd/review/comment.md` as the optional pull request comment body.
 - Browser worker protocol v2 now emits run progress messages for in-memory worker execution. Worker runs produce `start`, `scan` or `analyze`, `done`, and `error` progress phases while keeping cancellation explicitly unavailable.
 - The browser runner UI now displays worker-run progress in a dedicated run-progress panel, while preserving the latest successful result during later repo-load or worker-run progress updates.
+- Browser runner terminal worker messages now follow the same active-request guard as progress messages, so stale `result` or `error` events from an older run cannot overwrite a newer run's UI state.
 - Browser runner GitHub token UX now uses session-only storage, shows anonymous/authenticated state without exposing the raw token, and provides an explicit clear-token action.
 - Browser GitHub ingest now surfaces numeric or HTTP-date `Retry-After` guidance in the UI and enables a manual retry action only for retryable GitHub rate-limit failures.
 - Browser worker mode and preset reporting now reads the `tokmd-wasm` capability payload when present and intersects it with actual exported entrypoints, so the UI and runtime validation do not promise modes the loaded bundle cannot execute.

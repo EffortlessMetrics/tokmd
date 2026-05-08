@@ -413,6 +413,13 @@ function workerProgressTone(phase) {
     return "working";
 }
 
+function isStaleRunScopedWorkerMessage(message) {
+    return (
+        typeof message.requestId === "string" &&
+        state.activeRequestId !== message.requestId
+    );
+}
+
 function renderProgress(target, update = null) {
     const { panel, element, text } = target;
 
@@ -583,6 +590,9 @@ worker.addEventListener("message", (event) => {
             }
             break;
         case MESSAGE_TYPES.RESULT:
+            if (isStaleRunScopedWorkerMessage(message)) {
+                break;
+            }
             if (state.activeRequestId === message.requestId) {
                 state.activeRequestId = null;
             }
@@ -597,6 +607,9 @@ worker.addEventListener("message", (event) => {
             setStatus(runStatusOutput, `completed ${message.requestId}`, "success");
             break;
         case MESSAGE_TYPES.ERROR:
+            if (isStaleRunScopedWorkerMessage(message)) {
+                break;
+            }
             if (state.activeRequestId === message.requestId) {
                 state.activeRequestId = null;
             }
