@@ -578,6 +578,18 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
     s
 }
 
+fn render_review_packet_comment_md(receipt: &CockpitReceipt) -> String {
+    use std::fmt::Write;
+
+    let mut s = render_comment_md(receipt);
+    let _ = writeln!(s, "**Review packet artifacts**:");
+    let _ = writeln!(s, "- [Evidence gates](evidence.json)");
+    let _ = writeln!(s, "- [Review map](review-map.md)");
+    let _ = writeln!(s, "- [Full cockpit receipt](cockpit.json)");
+    let _ = writeln!(s);
+    s
+}
+
 /// Write artifacts to directory.
 pub fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     std::fs::create_dir_all(dir)?;
@@ -634,7 +646,7 @@ pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
     let evidence_json = serde_json::to_string_pretty(&review_packet_evidence(receipt))?;
     let review_map_json = serde_json::to_string_pretty(&review_packet_review_map(receipt))?;
     let review_map_md = render_review_map_md(receipt);
-    let comment_md = render_comment_md(receipt);
+    let comment_md = render_review_packet_comment_md(receipt);
 
     std::fs::write(dir.join("cockpit.json"), &cockpit_json)?;
     std::fs::write(dir.join("evidence.json"), &evidence_json)?;

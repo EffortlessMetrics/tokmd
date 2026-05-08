@@ -651,6 +651,10 @@ fn test_cockpit_review_packet_dir() {
         comment_md.contains("unavailable"),
         "comment.md should expose unavailable evidence, not just evidence.json"
     );
+    assert!(comment_md.contains("Review packet artifacts"));
+    assert!(comment_md.contains("[Evidence gates](evidence.json)"));
+    assert!(comment_md.contains("[Review map](review-map.md)"));
+    assert!(comment_md.contains("[Full cockpit receipt](cockpit.json)"));
 }
 
 #[test]

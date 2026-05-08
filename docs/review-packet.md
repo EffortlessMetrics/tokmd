@@ -55,7 +55,7 @@ The review packet directory is:
 | `manifest.json` | Packet index with schema name, generated-by metadata, base/head refs, artifact paths, hashes, and verdict metadata. |
 | `cockpit.json` | Full `CockpitReceipt` JSON. This is the same receipt produced by `tokmd cockpit --format json`. |
 | `evidence.json` | Evidence availability and gate status. It distinguishes passed evidence from missing, skipped, stale, degraded, or unavailable evidence. |
-| `comment.md` | PR-comment-ready summary. It stays concise and links readers to packet artifacts when hosted by CI. |
+| `comment.md` | PR-comment-ready summary. It stays concise and points readers to packet artifacts when hosted by CI. |
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review. |
 

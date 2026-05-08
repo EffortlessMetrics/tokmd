@@ -849,6 +849,10 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert!(comment_md.contains("Evidence availability"));
     assert!(comment_md.contains("1 available"));
     assert!(comment_md.contains("5 unavailable"));
+    assert!(comment_md.contains("Review packet artifacts"));
+    assert!(comment_md.contains("[Evidence gates](evidence.json)"));
+    assert!(comment_md.contains("[Review map](review-map.md)"));
+    assert!(comment_md.contains("[Full cockpit receipt](cockpit.json)"));
 }
 
 // ===========================================================================
