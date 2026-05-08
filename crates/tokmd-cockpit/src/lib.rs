@@ -17,6 +17,7 @@
 //! * Type definitions (use tokmd-types::cockpit)
 
 pub mod determinism;
+mod display;
 #[cfg(feature = "git")]
 mod gates;
 pub mod render;
@@ -29,6 +30,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 #[cfg(feature = "git")]
 use anyhow::{Context, bail};
+pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_direction_label};
 #[cfg(feature = "git")]
 pub use gates::compute_determinism_gate;
 #[cfg(feature = "git")]
@@ -631,173 +633,9 @@ pub fn generate_review_plan(file_stats: &[FileStat], _contracts: &Contracts) -> 
     items
 }
 
-// =============================================================================
-// Utility helpers
-// =============================================================================
-
-/// Format a float with a sign prefix.
-pub fn format_signed_f64(value: f64) -> String {
-    if value > 0.0 {
-        format!("+{value:.2}")
-    } else {
-        format!("{value:.2}")
-    }
-}
-
-/// Human-readable label for a trend direction.
-pub fn trend_direction_label(direction: TrendDirection) -> &'static str {
-    match direction {
-        TrendDirection::Improving => "improving",
-        TrendDirection::Stable => "stable",
-        TrendDirection::Degrading => "degrading",
-    }
-}
-
-/// Render a sparkline string from a slice of values.
-pub fn sparkline(values: &[f64]) -> String {
-    if values.is_empty() {
-        return String::new();
-    }
-
-    const BARS: &[char] = &[
-        '\u{2581}', '\u{2582}', '\u{2583}', '\u{2584}', '\u{2585}', '\u{2586}', '\u{2587}',
-        '\u{2588}',
-    ];
-    let min = values
-        .iter()
-        .copied()
-        .fold(f64::INFINITY, |acc, v| acc.min(v));
-    let max = values
-        .iter()
-        .copied()
-        .fold(f64::NEG_INFINITY, |acc, v| acc.max(v));
-
-    if !min.is_finite() || !max.is_finite() {
-        return String::new();
-    }
-
-    if (max - min).abs() < f64::EPSILON {
-        return std::iter::repeat_n(BARS[3], values.len()).collect();
-    }
-
-    let span = max - min;
-    values
-        .iter()
-        .map(|v| {
-            let norm = ((v - min) / span).clamp(0.0, 1.0);
-            let idx = (norm * (BARS.len() as f64 - 1.0)).round() as usize;
-            BARS[idx]
-        })
-        .collect()
-}
-
-/// Return the current time as an ISO 8601 string.
-pub fn now_iso8601() -> String {
-    let now = time::OffsetDateTime::now_utc();
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-        now.year(),
-        now.month() as u8,
-        now.day(),
-        now.hour(),
-        now.minute(),
-        now.second(),
-    )
-}
-
-/// Round a float to two decimal places.
-pub fn round_pct(val: f64) -> f64 {
-    (val * 100.0).round() / 100.0
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ---- round_pct ----
-
-    #[test]
-    fn test_round_pct_basic() {
-        assert_eq!(round_pct(0.123456), 0.12);
-        assert_eq!(round_pct(0.999), 1.0);
-        assert_eq!(round_pct(0.0), 0.0);
-    }
-
-    #[test]
-    fn test_round_pct_rounding_up() {
-        assert_eq!(round_pct(0.125), 0.13);
-    }
-
-    #[test]
-    fn test_round_pct_negative() {
-        assert_eq!(round_pct(-0.567), -0.57);
-    }
-
-    // ---- format_signed_f64 ----
-
-    #[test]
-    fn test_format_signed_positive() {
-        assert_eq!(format_signed_f64(5.0), "+5.00");
-        assert_eq!(format_signed_f64(0.5), "+0.50");
-    }
-
-    #[test]
-    fn test_format_signed_negative() {
-        assert_eq!(format_signed_f64(-2.50), "-2.50");
-    }
-
-    #[test]
-    fn test_format_signed_zero() {
-        assert_eq!(format_signed_f64(0.0), "0.00");
-    }
-
-    // ---- trend_direction_label ----
-
-    #[test]
-    fn test_trend_direction_labels() {
-        assert_eq!(
-            trend_direction_label(TrendDirection::Improving),
-            "improving"
-        );
-        assert_eq!(trend_direction_label(TrendDirection::Stable), "stable");
-        assert_eq!(
-            trend_direction_label(TrendDirection::Degrading),
-            "degrading"
-        );
-    }
-
-    // ---- sparkline ----
-
-    #[test]
-    fn test_sparkline_empty() {
-        assert_eq!(sparkline(&[]), "");
-    }
-
-    #[test]
-    fn test_sparkline_single_value() {
-        let result = sparkline(&[5.0]);
-        assert_eq!(result.chars().count(), 1);
-    }
-
-    #[test]
-    fn test_sparkline_ascending() {
-        let result = sparkline(&[0.0, 25.0, 50.0, 75.0, 100.0]);
-        assert_eq!(result.chars().count(), 5);
-        let chars: Vec<char> = result.chars().collect();
-        // First should be lowest bar, last should be highest
-        assert_eq!(chars[0], '\u{2581}');
-        assert_eq!(chars[4], '\u{2588}');
-    }
-
-    #[test]
-    fn test_sparkline_constant_values() {
-        let result = sparkline(&[42.0, 42.0, 42.0]);
-        assert_eq!(result.chars().count(), 3);
-        let chars: Vec<char> = result.chars().collect();
-        // All should be same middle bar
-        assert_eq!(chars[0], chars[1]);
-        assert_eq!(chars[1], chars[2]);
-    }
 
     // ---- compute_metric_trend ----
 
@@ -1214,16 +1052,6 @@ fn branchy(x: i32) -> i32 {
         assert_eq!(analysis.function_count, 1);
         assert_eq!(analysis.total_complexity, 4);
         assert_eq!(analysis.max_complexity, 4);
-    }
-
-    // ---- now_iso8601 ----
-
-    #[test]
-    fn test_now_iso8601_format() {
-        let ts = now_iso8601();
-        assert!(ts.ends_with('Z'));
-        assert!(ts.contains('T'));
-        assert_eq!(ts.len(), 20);
     }
 
     // ---- FileStat AsRef ----
