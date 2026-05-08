@@ -484,6 +484,17 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
         "**Evidence gates**: {:?}",
         receipt.evidence.overall_status
     );
+    let availability = review_packet_evidence_counts(receipt);
+    let _ = writeln!(
+        s,
+        "- **Evidence availability**: {} available, {} degraded, {} stale, {} skipped, {} unavailable, {} missing",
+        availability.available,
+        availability.degraded,
+        availability.stale,
+        availability.skipped,
+        availability.unavailable,
+        availability.missing,
+    );
     if !receipt.evidence.mutation.survivors.is_empty() {
         let _ = writeln!(
             s,
@@ -753,33 +764,52 @@ fn review_packet_evidence(receipt: &CockpitReceipt) -> Value {
 }
 
 fn review_packet_evidence_summary(receipt: &CockpitReceipt) -> Value {
-    let mut available = 0;
-    let mut degraded = 0;
-    let mut stale = 0;
-    let mut skipped = 0;
-    let mut unavailable = 0;
+    let counts = review_packet_evidence_counts(receipt);
+
+    json!({
+        "details": "evidence.json#/gates",
+        "total_gates": counts.total_gates(),
+        "available": counts.available,
+        "degraded": counts.degraded,
+        "stale": counts.stale,
+        "skipped": counts.skipped,
+        "unavailable": counts.unavailable,
+        "missing": counts.missing,
+    })
+}
+
+#[derive(Default)]
+struct EvidenceAvailabilityCounts {
+    available: usize,
+    degraded: usize,
+    stale: usize,
+    skipped: usize,
+    unavailable: usize,
+    missing: usize,
+}
+
+impl EvidenceAvailabilityCounts {
+    fn total_gates(&self) -> usize {
+        self.available + self.degraded + self.stale + self.skipped + self.unavailable + self.missing
+    }
+}
+
+fn review_packet_evidence_counts(receipt: &CockpitReceipt) -> EvidenceAvailabilityCounts {
+    let mut counts = EvidenceAvailabilityCounts::default();
 
     for (_, meta) in review_packet_evidence_gate_specs(receipt) {
         match evidence_availability_optional(meta) {
-            "available" => available += 1,
-            "degraded" => degraded += 1,
-            "stale" => stale += 1,
-            "skipped" => skipped += 1,
-            "unavailable" => unavailable += 1,
+            "available" => counts.available += 1,
+            "degraded" => counts.degraded += 1,
+            "stale" => counts.stale += 1,
+            "skipped" => counts.skipped += 1,
+            "unavailable" => counts.unavailable += 1,
+            "missing" => counts.missing += 1,
             _ => {}
         }
     }
 
-    json!({
-        "details": "evidence.json#/gates",
-        "total_gates": available + degraded + stale + skipped + unavailable,
-        "available": available,
-        "degraded": degraded,
-        "stale": stale,
-        "skipped": skipped,
-        "unavailable": unavailable,
-        "missing": 0,
-    })
+    counts
 }
 
 fn review_packet_evidence_capabilities(receipt: &CockpitReceipt) -> Value {

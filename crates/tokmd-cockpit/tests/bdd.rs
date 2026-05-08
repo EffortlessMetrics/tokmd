@@ -725,6 +725,9 @@ fn scenario_render_comment_md_summary() {
     assert!(comment.contains("## Glass Cockpit Summary"));
     assert!(comment.contains("Health"));
     assert!(comment.contains("Risk"));
+    assert!(comment.contains("Evidence availability"));
+    assert!(comment.contains("1 skipped"));
+    assert!(comment.contains("5 unavailable"));
 }
 
 // ===========================================================================
@@ -832,6 +835,11 @@ fn scenario_write_review_packet_creates_contract_files() {
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
     assert!(review_map_md.contains("`src/lib.rs`"));
+
+    let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Evidence availability"));
+    assert!(comment_md.contains("1 available"));
+    assert!(comment_md.contains("5 unavailable"));
 }
 
 // ===========================================================================
