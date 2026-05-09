@@ -1,0 +1,264 @@
+//! Proof evidence normalization, execution status, and freshness classification.
+
+use std::path::{Path, PathBuf};
+
+use tokmd_types::cockpit::CommitMatch;
+
+use super::artifacts::ProofEvidenceArtifact;
+use super::inputs::{CoverageReceiptInput, ProofRunEntryInput};
+use super::{
+    NormalizedProofEvidence, ProofEvidenceAvailability, ProofEvidenceInput, ProofEvidenceKind,
+    ProofExecutionStatus,
+};
+
+pub(crate) fn normalize_proof_evidence_inputs(
+    inputs: &[ProofEvidenceInput],
+    cockpit_base: Option<&str>,
+    cockpit_head: Option<&str>,
+) -> Vec<NormalizedProofEvidence> {
+    inputs
+        .iter()
+        .flat_map(|input| {
+            normalize_proof_evidence(
+                &input.artifact,
+                input.source_path.clone(),
+                cockpit_base,
+                cockpit_head,
+            )
+        })
+        .collect()
+}
+
+pub(crate) fn normalize_proof_evidence(
+    artifact: &ProofEvidenceArtifact,
+    source_path: impl Into<PathBuf>,
+    cockpit_base: Option<&str>,
+    cockpit_head: Option<&str>,
+) -> Vec<NormalizedProofEvidence> {
+    let source_path = source_path.into();
+    let source_ref = normalize_path_for_ref(&source_path);
+    let commit_match = classify_commit_match(
+        artifact_base(artifact),
+        artifact.head(),
+        cockpit_base,
+        cockpit_head,
+    );
+
+    match artifact {
+        ProofEvidenceArtifact::ProofRunSummary(summary) => summary
+            .entries
+            .iter()
+            .enumerate()
+            .map(|(idx, entry)| {
+                let execution_status = proof_run_entry_status(entry);
+                let availability = availability_for(execution_status, commit_match);
+                NormalizedProofEvidence {
+                    source_path: source_path.clone(),
+                    source_schema: summary.schema.clone(),
+                    kind: ProofEvidenceKind::ProofRunSummary,
+                    profile: Some(summary.profile.clone()),
+                    scope: Some(entry.scope.clone()),
+                    command: Some(entry.command.clone()),
+                    required: entry.required,
+                    advisory: !entry.required,
+                    execution_status,
+                    availability,
+                    commit_match,
+                    artifact_refs: vec![format!("{source_ref}#/entries/{idx}")],
+                }
+            })
+            .collect(),
+        ProofEvidenceArtifact::ProofRunObservation(observation) => observation
+            .scopes
+            .iter()
+            .enumerate()
+            .map(|(idx, scope)| {
+                let execution_status = scope_status(&scope.status, scope.exit_code);
+                let availability = availability_for(execution_status, commit_match);
+                let required = observation.counts.required_planned > 0;
+                NormalizedProofEvidence {
+                    source_path: source_path.clone(),
+                    source_schema: observation.schema.clone(),
+                    kind: ProofEvidenceKind::ProofRunObservation,
+                    profile: Some(observation.profile.clone()),
+                    scope: Some(scope.name.clone()),
+                    command: Some(scope.command.clone()),
+                    required,
+                    advisory: !required,
+                    execution_status,
+                    availability,
+                    commit_match,
+                    artifact_refs: vec![format!("{source_ref}#/scopes/{idx}")],
+                }
+            })
+            .collect(),
+        ProofEvidenceArtifact::ProofExecutorObservation(observation) => observation
+            .scopes
+            .iter()
+            .enumerate()
+            .map(|(idx, scope)| {
+                let execution_status = scope_status(&scope.status, scope.exit_code);
+                let availability = availability_for(execution_status, commit_match);
+                NormalizedProofEvidence {
+                    source_path: source_path.clone(),
+                    source_schema: observation.schema.clone(),
+                    kind: ProofEvidenceKind::ProofExecutorObservation,
+                    profile: Some(observation.profile.clone()),
+                    scope: Some(scope.name.clone()),
+                    command: Some(scope.command.clone()),
+                    required: observation.required,
+                    advisory: !observation.required,
+                    execution_status,
+                    availability,
+                    commit_match,
+                    artifact_refs: vec![format!("{source_ref}#/scopes/{idx}")],
+                }
+            })
+            .collect(),
+        ProofEvidenceArtifact::CoverageReceipt(receipt) => {
+            let execution_status = if receipt.status.ok {
+                ProofExecutionStatus::ExecutedPassed
+            } else {
+                ProofExecutionStatus::ExecutedFailed
+            };
+            let base_availability = coverage_availability(receipt);
+            let availability = availability_with_commit_match(base_availability, commit_match);
+            let artifact_refs = receipt
+                .artifacts
+                .iter()
+                .enumerate()
+                .map(|(idx, _)| format!("{source_ref}#/artifacts/{idx}"))
+                .collect();
+
+            vec![NormalizedProofEvidence {
+                source_path,
+                source_schema: receipt.schema.clone(),
+                kind: ProofEvidenceKind::CoverageReceipt,
+                profile: None,
+                scope: Some(receipt.flag.clone()),
+                command: None,
+                required: false,
+                advisory: true,
+                execution_status,
+                availability,
+                commit_match,
+                artifact_refs,
+            }]
+        }
+    }
+}
+
+fn artifact_base(artifact: &ProofEvidenceArtifact) -> Option<&str> {
+    match artifact {
+        ProofEvidenceArtifact::ProofRunSummary(artifact) => Some(&artifact.base),
+        ProofEvidenceArtifact::ProofRunObservation(artifact) => Some(&artifact.base),
+        ProofEvidenceArtifact::ProofExecutorObservation(artifact) => Some(&artifact.base),
+        ProofEvidenceArtifact::CoverageReceipt(_) => None,
+    }
+}
+
+fn classify_commit_match(
+    artifact_base: Option<&str>,
+    artifact_head: Option<&str>,
+    cockpit_base: Option<&str>,
+    cockpit_head: Option<&str>,
+) -> CommitMatch {
+    let artifact_head = non_empty(artifact_head);
+    let cockpit_head = non_empty(cockpit_head);
+
+    match (artifact_head, cockpit_head) {
+        (Some(artifact_head), Some(cockpit_head)) if artifact_head == cockpit_head => {
+            CommitMatch::Exact
+        }
+        (Some(_), Some(_)) => CommitMatch::Stale,
+        _ if non_empty(artifact_base).is_some()
+            || artifact_head.is_some()
+            || non_empty(cockpit_base).is_some()
+            || cockpit_head.is_some() =>
+        {
+            CommitMatch::Partial
+        }
+        _ => CommitMatch::Unknown,
+    }
+}
+
+fn non_empty(value: Option<&str>) -> Option<&str> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then_some(trimmed)
+    })
+}
+
+fn proof_run_entry_status(entry: &ProofRunEntryInput) -> ProofExecutionStatus {
+    if !entry.skip_reason.trim().is_empty() && entry.exit_code.is_none() {
+        return ProofExecutionStatus::NotExecuted;
+    }
+
+    scope_status(&entry.status, entry.exit_code.map(i64::from))
+}
+
+fn scope_status(status: &str, exit_code: Option<i64>) -> ProofExecutionStatus {
+    match status.trim().to_ascii_lowercase().as_str() {
+        "passed" | "pass" | "success" => ProofExecutionStatus::ExecutedPassed,
+        "failed" | "fail" | "error" => ProofExecutionStatus::ExecutedFailed,
+        "planned" => ProofExecutionStatus::Planned,
+        "dry_run" | "dry-run" => ProofExecutionStatus::DryRun,
+        "skipped" | "not_executed" | "not-executed" => ProofExecutionStatus::NotExecuted,
+        _ => match exit_code {
+            Some(0) => ProofExecutionStatus::ExecutedPassed,
+            Some(_) => ProofExecutionStatus::ExecutedFailed,
+            None => ProofExecutionStatus::NotExecuted,
+        },
+    }
+}
+
+fn availability_for(
+    execution_status: ProofExecutionStatus,
+    commit_match: CommitMatch,
+) -> ProofEvidenceAvailability {
+    let base = match execution_status {
+        ProofExecutionStatus::ExecutedPassed | ProofExecutionStatus::ExecutedFailed => {
+            ProofEvidenceAvailability::Available
+        }
+        ProofExecutionStatus::Planned | ProofExecutionStatus::NotExecuted => {
+            ProofEvidenceAvailability::Missing
+        }
+        ProofExecutionStatus::DryRun => ProofEvidenceAvailability::Skipped,
+    };
+
+    availability_with_commit_match(base, commit_match)
+}
+
+fn coverage_availability(receipt: &CoverageReceiptInput) -> ProofEvidenceAvailability {
+    if receipt.status.ok && receipt.artifacts.iter().any(|artifact| artifact.non_empty) {
+        ProofEvidenceAvailability::Available
+    } else if !receipt.status.missing.is_empty() {
+        ProofEvidenceAvailability::Missing
+    } else if !receipt.status.empty.is_empty()
+        || receipt.artifacts.iter().all(|artifact| !artifact.non_empty)
+    {
+        ProofEvidenceAvailability::Degraded
+    } else {
+        ProofEvidenceAvailability::Unavailable
+    }
+}
+
+fn availability_with_commit_match(
+    availability: ProofEvidenceAvailability,
+    commit_match: CommitMatch,
+) -> ProofEvidenceAvailability {
+    match commit_match {
+        CommitMatch::Exact => availability,
+        CommitMatch::Stale => ProofEvidenceAvailability::Stale,
+        CommitMatch::Partial | CommitMatch::Unknown
+            if availability == ProofEvidenceAvailability::Available =>
+        {
+            ProofEvidenceAvailability::Degraded
+        }
+        CommitMatch::Partial | CommitMatch::Unknown => availability,
+    }
+}
+
+fn normalize_path_for_ref(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
