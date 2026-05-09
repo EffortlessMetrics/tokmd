@@ -25,6 +25,7 @@ mod duplication;
 mod effort;
 mod entropy;
 pub mod findings;
+mod fun;
 mod git;
 mod imports;
 mod license;
@@ -61,6 +62,7 @@ pub use effort::{
     EffortEstimateReport, EffortModel, EffortResults, EffortSizeBasis, EffortTagSizeRow,
 };
 pub use entropy::{EntropyClass, EntropyFinding, EntropyReport};
+pub use fun::{EcoLabel, FunReport};
 pub use git::{
     BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentKind,
     CommitIntentReport, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow,
@@ -444,23 +446,6 @@ fn chrono_timestamp_iso8601(ms: u128) -> String {
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
         y, m, d, hour, min, sec, millis
     )
-}
-
-// ---------
-// Fun stuff
-// ---------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunReport {
-    pub eco_label: Option<EcoLabel>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EcoLabel {
-    pub score: f64,
-    pub label: String,
-    pub bytes: u64,
-    pub notes: String,
 }
 
 // =========================
