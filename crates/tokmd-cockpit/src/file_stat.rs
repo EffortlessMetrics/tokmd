@@ -13,3 +13,19 @@ impl AsRef<str> for FileStat {
         &self.path
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filestat_as_ref() {
+        let stat = FileStat {
+            path: "src/main.rs".to_string(),
+            insertions: 10,
+            deletions: 5,
+        };
+        let s: &str = stat.as_ref();
+        assert_eq!(s, "src/main.rs");
+    }
+}
