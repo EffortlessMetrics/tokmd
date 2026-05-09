@@ -20,6 +20,7 @@ use std::fmt::Write;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 
 mod api_surface;
+mod assets;
 mod complexity;
 mod duplicates;
 mod effort;
@@ -401,35 +402,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(assets) = &receipt.assets {
-        out.push_str("## Assets\n\n");
-        let _ = writeln!(
-            out,
-            "- Total files: `{}`\n- Total bytes: `{}`\n",
-            assets.total_files, assets.total_bytes
-        );
-        if !assets.categories.is_empty() {
-            out.push_str("|Category|Files|Bytes|Extensions|\n");
-            out.push_str("|---|---:|---:|---|\n");
-            for row in &assets.categories {
-                let _ = writeln!(
-                    out,
-                    "|{}|{}|{}|{}|",
-                    row.category,
-                    row.files,
-                    row.bytes,
-                    row.extensions.join(", ")
-                );
-            }
-            out.push('\n');
-        }
-        if !assets.top_files.is_empty() {
-            out.push_str("|File|Bytes|Category|\n");
-            out.push_str("|---|---:|---|\n");
-            for row in &assets.top_files {
-                let _ = writeln!(out, "|{}|{}|{}|", row.path, row.bytes, row.category);
-            }
-            out.push('\n');
-        }
+        assets::render_asset_report(&mut out, assets);
     }
 
     if let Some(deps) = &receipt.deps {
