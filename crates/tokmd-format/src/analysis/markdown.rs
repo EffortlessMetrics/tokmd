@@ -25,6 +25,7 @@ mod complexity;
 mod corporate_fingerprint;
 mod dependencies;
 mod duplicates;
+mod eco_label;
 mod effort;
 mod entropy;
 mod git;
@@ -359,15 +360,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     if let Some(fun) = &receipt.fun
         && let Some(label) = &fun.eco_label
     {
-        out.push_str("## Eco label\n\n");
-        let _ = writeln!(
-            out,
-            "- Label: `{}`\n- Score: `{}`\n- Bytes: `{}`\n- Notes: `{}`\n",
-            label.label,
-            fmt_f64(label.score, 1),
-            label.bytes,
-            label.notes
-        );
+        eco_label::render_eco_label(&mut out, label);
     }
 
     out
