@@ -38,6 +38,7 @@ mod jsonld;
 mod markdown;
 mod mermaid;
 mod svg;
+mod tree;
 mod xml;
 
 pub enum RenderedOutput {
@@ -55,21 +56,13 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
         AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
         AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
-        AnalysisFormat::Tree => Ok(RenderedOutput::Text(render_tree(receipt))),
+        AnalysisFormat::Tree => Ok(RenderedOutput::Text(tree::render(receipt))),
         AnalysisFormat::Html => Ok(RenderedOutput::Text(render_html(receipt))),
     }
 }
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
     markdown::render_md(receipt)
-}
-
-fn render_tree(receipt: &AnalysisReceipt) -> String {
-    receipt
-        .derived
-        .as_ref()
-        .and_then(|d| d.tree.clone())
-        .unwrap_or_else(|| "(tree unavailable)".to_string())
 }
 
 // --- fun enabled impls ---
@@ -494,7 +487,7 @@ mod tests {
     fn test_render_tree() {
         let mut receipt = minimal_receipt();
         receipt.derived = Some(sample_derived());
-        let result = render_tree(&receipt);
+        let result = tree::render(&receipt);
         assert_eq!(result, "test-tree");
     }
 
@@ -502,7 +495,7 @@ mod tests {
     #[test]
     fn test_render_tree_no_derived() {
         let receipt = minimal_receipt();
-        let result = render_tree(&receipt);
+        let result = tree::render(&receipt);
         assert_eq!(result, "(tree unavailable)");
     }
 
@@ -513,7 +506,7 @@ mod tests {
         let mut derived = sample_derived();
         derived.tree = None;
         receipt.derived = Some(derived);
-        let result = render_tree(&receipt);
+        let result = tree::render(&receipt);
         assert_eq!(result, "(tree unavailable)");
     }
 
