@@ -1,14 +1,7 @@
 {
   "status": "success",
-  "outcome": "pr_ready_patch",
-  "summary": "Updated docs/architecture-consolidation-plan.md to fix factual drift regarding file sizes and completed architecture consolidation batches.",
-  "gates_run": [
-    "cargo xtask docs --check",
-    "cargo test -p xtask",
-    "cargo xtask version-consistency",
-    "cargo xtask publish --plan --verbose",
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings"
-  ],
+  "outcome": "learning_pr",
+  "summary": "Aborted documentation update because the target fix was superseded by another merged PR (#1902).",
+  "gates_run": [],
   "patch_type": "docs"
 }

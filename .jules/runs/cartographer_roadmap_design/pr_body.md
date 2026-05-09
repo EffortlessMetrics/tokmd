@@ -1,44 +1,43 @@
 ## 💡 Summary
-Updated `docs/architecture-consolidation-plan.md` to resolve factual drift between the document and the shipped codebase. Removed completed tasks from the active pressure points and suggested PR list, and updated file line counts to accurately reflect current state.
+This is a learning PR. The planned fix to correct factual drift in `docs/architecture-consolidation-plan.md` was gracefully aborted because it was superseded by #1902 during execution.
 
 ## 🎯 Why
-The `docs/architecture-consolidation-plan.md` was out-of-date compared to reality. It claimed that `crates/tokmd-cockpit/src/gates.rs` was 1196 lines and needed splitting, but it had already been split into `crates/tokmd-cockpit/src/gates/` and is now only 118 lines. Other files had inaccurate line counts. Keeping this document aligned with reality ensures that future contributors and bots aren't misled.
+A maintainer commented that the issue was already resolved by #1902. Continuing with the update would cause a workflow collision and duplicate work.
 
 ## 🔎 Evidence
 - file path(s): `docs/architecture-consolidation-plan.md`
-- observed behavior / finding: The `gates.rs` file was listed as a pressure point with ~1196 lines. Running `wc -l crates/tokmd-cockpit/src/gates.rs` yielded 118 lines. `ls -la crates/tokmd-cockpit/src/gates/` showed the extracted modules.
+- observed behavior / finding: PR comment indicated the work was superseded by #1902.
+- receipt: Received PR comment stating: "Superseded by #1902, which refreshed docs/architecture-consolidation-plan.md against current post-#1900/#1901 repository state and landed with green checks."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `docs/architecture-consolidation-plan.md` to fix the factual drift by removing the completed tasks (Cockpit gates) and correcting the line counts for the others.
-- why it fits this repo and shard: Directly aligns with Cartographer's mission to fix factual drift between shipped reality and roadmap/design docs.
-- trade-offs: Structure / Velocity / Governance: Improves governance and clarity by cleaning up stale instructions.
+- what it is: Abort the patch and generate a learning PR instead.
+- why it fits this repo and shard: Follows the rule to gracefully abort redundant fixes and document workflow collisions.
+- trade-offs: Structure / Velocity / Governance: Prioritizes velocity and governance by avoiding merge conflicts and redundant effort.
 
 ### Option B
-- what it is: Ignore the specific line numbers and just remove the completed items from "First Suggested PRs".
-- when to choose it instead: If the line counts fluctuated constantly and weren't meant to be accurate indicators of size.
-- trade-offs: Leaves the pressure points table factually incorrect and misaligned with reality.
+- what it is: Push the changes anyway.
+- when to choose it instead: Never, as it explicitly goes against maintainer feedback.
+- trade-offs: High risk of merge conflicts and wasted review cycles.
 
 ## ✅ Decision
-Chosen Option A. It completely addresses the drift between the documented plan and the actual codebase, preventing future work from targeting already-completed migrations.
+Chosen Option A. Aborting the patch and creating a learning PR to document the workflow collision.
 
 ## 🧱 Changes made (SRP)
-- `docs/architecture-consolidation-plan.md`: Updated line counts for pressure point files, removed `crates/tokmd-cockpit/src/gates.rs` from pressure points and "First Suggested PRs", and added a note that Batch A is largely complete.
+- Created learning PR packet.
+- Added friction item `.jules/friction/open/superseded_by_1902.md`.
 
 ## 🧪 Verification receipts
 ```text
-{"command": "wc -l crates/tokmd-cockpit/src/gates.rs", "outcome": "success"}
-{"command": "cargo xtask docs --check && cargo test -p xtask", "outcome": "success"}
-{"command": "cargo xtask version-consistency && cargo xtask publish --plan --verbose", "outcome": "success"}
-{"command": "cargo fmt -- --check && cargo clippy -- -D warnings", "outcome": "success"}
+None
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update.
-- Blast radius: Internal documentation alignment only.
-- Risk class + why: Low risk. Modifies only a markdown file (`docs/architecture-consolidation-plan.md`).
-- Rollback: Revert the git commit.
-- Gates run: `cargo xtask docs --check`, `cargo test -p xtask`, `cargo xtask version-consistency`, `cargo xtask publish --plan --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`.
+- Change shape: Learning PR
+- Blast radius: None.
+- Risk class + why: Lowest risk. No code or documentation was modified.
+- Rollback: N/A
+- Gates run: None.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
@@ -46,6 +45,7 @@ Chosen Option A. It completely addresses the drift between the documented plan a
 - `.jules/runs/cartographer_roadmap_design/receipts.jsonl`
 - `.jules/runs/cartographer_roadmap_design/result.json`
 - `.jules/runs/cartographer_roadmap_design/pr_body.md`
+- `.jules/friction/open/superseded_by_1902.md`
 
 ## 🔜 Follow-ups
 None.
