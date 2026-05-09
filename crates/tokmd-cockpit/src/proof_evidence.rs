@@ -17,6 +17,7 @@ mod fixtures;
 mod inputs;
 mod model;
 mod normalize;
+mod status;
 #[cfg(test)]
 mod tests;
 

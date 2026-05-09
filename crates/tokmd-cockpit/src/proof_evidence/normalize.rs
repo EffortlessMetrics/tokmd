@@ -5,10 +5,12 @@ use std::path::{Path, PathBuf};
 use tokmd_types::cockpit::CommitMatch;
 
 use super::artifacts::ProofEvidenceArtifact;
-use super::inputs::{CoverageReceiptInput, ProofRunEntryInput};
 use super::model::{
-    NormalizedProofEvidence, ProofEvidenceAvailability, ProofEvidenceInput, ProofEvidenceKind,
-    ProofExecutionStatus,
+    NormalizedProofEvidence, ProofEvidenceInput, ProofEvidenceKind, ProofExecutionStatus,
+};
+use super::status::{
+    availability_for, availability_with_commit_match, coverage_availability,
+    proof_run_entry_status, scope_status,
 };
 
 pub(crate) fn normalize_proof_evidence_inputs(
@@ -189,76 +191,6 @@ fn non_empty(value: Option<&str>) -> Option<&str> {
     })
 }
 
-fn proof_run_entry_status(entry: &ProofRunEntryInput) -> ProofExecutionStatus {
-    if !entry.skip_reason.trim().is_empty() && entry.exit_code.is_none() {
-        return ProofExecutionStatus::NotExecuted;
-    }
-
-    scope_status(&entry.status, entry.exit_code.map(i64::from))
-}
-
-fn scope_status(status: &str, exit_code: Option<i64>) -> ProofExecutionStatus {
-    match status.trim().to_ascii_lowercase().as_str() {
-        "passed" | "pass" | "success" => ProofExecutionStatus::ExecutedPassed,
-        "failed" | "fail" | "error" => ProofExecutionStatus::ExecutedFailed,
-        "planned" => ProofExecutionStatus::Planned,
-        "dry_run" | "dry-run" => ProofExecutionStatus::DryRun,
-        "skipped" | "not_executed" | "not-executed" => ProofExecutionStatus::NotExecuted,
-        _ => match exit_code {
-            Some(0) => ProofExecutionStatus::ExecutedPassed,
-            Some(_) => ProofExecutionStatus::ExecutedFailed,
-            None => ProofExecutionStatus::NotExecuted,
-        },
-    }
-}
-
-fn availability_for(
-    execution_status: ProofExecutionStatus,
-    commit_match: CommitMatch,
-) -> ProofEvidenceAvailability {
-    let base = match execution_status {
-        ProofExecutionStatus::ExecutedPassed | ProofExecutionStatus::ExecutedFailed => {
-            ProofEvidenceAvailability::Available
-        }
-        ProofExecutionStatus::Planned | ProofExecutionStatus::NotExecuted => {
-            ProofEvidenceAvailability::Missing
-        }
-        ProofExecutionStatus::DryRun => ProofEvidenceAvailability::Skipped,
-    };
-
-    availability_with_commit_match(base, commit_match)
-}
-
-fn coverage_availability(receipt: &CoverageReceiptInput) -> ProofEvidenceAvailability {
-    if receipt.status.ok && receipt.artifacts.iter().any(|artifact| artifact.non_empty) {
-        ProofEvidenceAvailability::Available
-    } else if !receipt.status.missing.is_empty() {
-        ProofEvidenceAvailability::Missing
-    } else if !receipt.status.empty.is_empty()
-        || receipt.artifacts.iter().all(|artifact| !artifact.non_empty)
-    {
-        ProofEvidenceAvailability::Degraded
-    } else {
-        ProofEvidenceAvailability::Unavailable
-    }
-}
-
-fn availability_with_commit_match(
-    availability: ProofEvidenceAvailability,
-    commit_match: CommitMatch,
-) -> ProofEvidenceAvailability {
-    match commit_match {
-        CommitMatch::Exact => availability,
-        CommitMatch::Stale => ProofEvidenceAvailability::Stale,
-        CommitMatch::Partial | CommitMatch::Unknown
-            if availability == ProofEvidenceAvailability::Available =>
-        {
-            ProofEvidenceAvailability::Degraded
-        }
-        CommitMatch::Partial | CommitMatch::Unknown => availability,
-    }
-}
-
 fn normalize_path_for_ref(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
@@ -274,6 +206,7 @@ mod tests {
         coverage_receipt_artifact, proof_executor_observation_artifact,
         proof_run_observation_artifact, proof_run_summary_artifact,
     };
+    use crate::proof_evidence::model::ProofEvidenceAvailability;
 
     fn single_evidence(
         artifact: &ProofEvidenceArtifact,
