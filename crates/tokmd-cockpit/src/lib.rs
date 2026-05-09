@@ -22,6 +22,7 @@ mod composition;
 mod contracts;
 pub mod determinism;
 mod display;
+mod file_stat;
 #[cfg(feature = "git")]
 mod gates;
 mod health;
@@ -44,6 +45,7 @@ pub use change_surface::get_file_stats;
 pub use composition::compute_composition;
 pub use contracts::detect_contracts;
 pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_direction_label};
+pub use file_stat::FileStat;
 #[cfg(feature = "git")]
 pub use gates::compute_determinism_gate;
 #[cfg(feature = "git")]
@@ -77,21 +79,6 @@ pub fn parse_proof_evidence_input(
     source_path: impl Into<std::path::PathBuf>,
 ) -> Result<ProofEvidenceInput> {
     proof_evidence::parse_proof_evidence_input(raw, source_path)
-}
-
-/// File stat from git diff --numstat.
-/// File stat from git diff --numstat.
-#[derive(Debug, Clone)]
-pub struct FileStat {
-    pub path: String,
-    pub insertions: usize,
-    pub deletions: usize,
-}
-
-impl AsRef<str> for FileStat {
-    fn as_ref(&self) -> &str {
-        &self.path
-    }
 }
 
 // =============================================================================
