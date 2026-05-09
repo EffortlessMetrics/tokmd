@@ -705,3 +705,183 @@ allowed_triggers = ["pull_request", "push"]
 duplicate_of     = []
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
+
+[[lane]]
+id               = "ci_build_test_linux"
+workflow         = ".github/workflows/ci.yml"
+job              = "Build & Test (Linux)"
+kind             = "test"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 10
+owner            = "release/ci"
+intent           = "Run primary build and tests on Linux."
+failure_mode     = "Linux build or tests fail on main."
+proof_obligation = "Run cargo test and cargo xtask gate."
+evidence         = ["CI logs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ci_build_test_windows"
+workflow         = ".github/workflows/ci.yml"
+job              = "Build & Test (Windows)"
+kind             = "test"
+tier             = "frontdoor"
+default_pr       = false
+blocking         = true
+runner           = "windows_latest"
+base_lem         = 15
+owner            = "release/ci"
+intent           = "Run primary build and tests on Windows."
+failure_mode     = "Windows build or tests fail on main."
+proof_obligation = "Run cargo test on Windows."
+evidence         = ["CI logs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ci_detect_risk_packs"
+workflow         = ".github/workflows/ci.yml"
+job              = "Detect risk packs"
+kind             = "summary"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "release/ci"
+intent           = "Detect changed files and assign risk packs for conditional CI jobs."
+failure_mode     = "Conditional CI jobs do not run when required."
+proof_obligation = "Run path filters."
+evidence         = ["CI outputs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ci_fast_proof_run"
+workflow         = ".github/workflows/ci.yml"
+job              = "Fast Proof Run (Advisory)"
+kind             = "experimental"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "proof"
+intent           = "Run fast proof tasks on PRs."
+failure_mode     = "Fast proof regressions slip into main."
+proof_obligation = "Run cargo xtask proof with fast profile."
+evidence         = ["Proof artifacts"]
+allowed_triggers = ["pull_request"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ci_mutation_testing"
+workflow         = ".github/workflows/ci.yml"
+job              = "Mutation Testing"
+kind             = "mutation"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 90
+owner            = "testing/oracle"
+intent           = "Run targeted mutation tests based on label or PR changes."
+failure_mode     = "Mutants survive in new code."
+proof_obligation = "Run cargo-mutants on changed files."
+evidence         = ["mutants.out"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["mutation_testing_calibration"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "coverage_codecov"
+workflow         = ".github/workflows/coverage.yml"
+job              = "Codecov Coverage"
+kind             = "coverage"
+tier             = "deep"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 25
+owner            = "testing/coverage"
+intent           = "Generate and upload code coverage to Codecov."
+failure_mode     = "Coverage drops are not visible on PRs."
+proof_obligation = "Run cargo llvm-cov and upload."
+evidence         = ["Codecov report"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "no_panic_family"
+workflow         = ".github/workflows/no-panic-policy.yml"
+job              = "No-panic Family"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "governance"
+intent           = "Verify the workspace panic-family allowlist."
+failure_mode     = "Unapproved panic families are introduced."
+proof_obligation = "Run cargo xtask check-no-panic-family."
+evidence         = ["CI logs"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "pr_plan_advisory"
+workflow         = ".github/workflows/pr-plan.yml"
+job              = "PR Plan (advisory)"
+kind             = "summary"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "governance"
+intent           = "Generate a PR plan summary."
+failure_mode     = "PR plan is missing from checks."
+proof_obligation = "Run cargo xtask ci-plan."
+evidence         = ["PR plan comment"]
+allowed_triggers = ["pull_request"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ripr_advisory"
+workflow         = ".github/workflows/ripr.yml"
+job              = "ripr (advisory)"
+kind             = "experimental"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "governance"
+intent           = "Run ripr tool on PRs."
+failure_mode     = "Ripr checks fail silently."
+proof_obligation = "Run ripr."
+evidence         = ["ripr output"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
