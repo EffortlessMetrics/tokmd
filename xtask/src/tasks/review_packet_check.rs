@@ -1,6 +1,6 @@
 use crate::cli::ReviewPacketCheckArgs;
 use anyhow::{Context, Result, bail};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::fs;
@@ -21,9 +21,14 @@ const REQUIRED_PACKET_ARTIFACTS: &[&str] = &[
     "comment.md",
 ];
 const HOSTED_COMMENT_COPY: &str = "tokmd-review-packet-comment.md";
+const REVIEW_PACKET_CHECK_SCHEMA: &str = "tokmd.review_packet_check.v1";
+const VERIFIED_SCHEMAS: &[&str] = &["manifest.json", "evidence.json", "review-map.json"];
 
 pub fn run(args: ReviewPacketCheckArgs) -> Result<()> {
     let report = validate_review_packet_dir(&args.dir)?;
+    if let Some(path) = &args.json {
+        write_check_receipt(path, &report)?;
+    }
     println!(
         "Review packet OK: {} artifact(s) in `{}`",
         report.artifact_count,
@@ -32,9 +37,23 @@ pub fn run(args: ReviewPacketCheckArgs) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Serialize, PartialEq, Eq)]
 struct ReviewPacketCheckReport {
+    schema: &'static str,
+    ok: bool,
     artifact_count: usize,
+    hashes_verified: usize,
+    schemas_verified: Vec<&'static str>,
+    artifacts: Vec<VerifiedReviewPacketArtifact>,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct VerifiedReviewPacketArtifact {
+    id: String,
+    path: String,
+    hash_algo: String,
+    hash: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -51,6 +70,7 @@ struct ReviewPacketArtifact {
 
 #[derive(Debug, Deserialize)]
 struct ReviewPacketArtifactHash {
+    algo: String,
     hash: String,
 }
 
@@ -87,6 +107,7 @@ fn validate_review_packet_dir(dir: &Path) -> Result<ReviewPacketCheckReport> {
     let manifest = serde_json::from_value::<ReviewPacketManifest>(manifest_value)
         .context("manifest.json should match review packet manifest shape")?;
 
+    let artifact_count = manifest.artifacts.len();
     errors.extend(validate_manifest_artifacts(dir, &manifest.artifacts));
 
     if !errors.is_empty() {
@@ -94,8 +115,25 @@ fn validate_review_packet_dir(dir: &Path) -> Result<ReviewPacketCheckReport> {
     }
 
     Ok(ReviewPacketCheckReport {
-        artifact_count: manifest.artifacts.len(),
+        schema: REVIEW_PACKET_CHECK_SCHEMA,
+        ok: true,
+        artifact_count,
+        hashes_verified: artifact_count,
+        schemas_verified: VERIFIED_SCHEMAS.to_vec(),
+        artifacts: verified_artifacts(&manifest.artifacts),
+        errors,
     })
+}
+
+fn write_check_receipt(path: &Path, report: &ReviewPacketCheckReport) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+
+    let json = serde_json::to_string_pretty(report).context("serialize review packet check")?;
+    fs::write(path, format!("{json}\n")).with_context(|| format!("write {}", path.display()))
 }
 
 fn read_json(path: &Path, label: &str) -> Result<Value> {
@@ -173,6 +211,18 @@ fn validate_manifest_artifacts(dir: &Path, artifacts: &[ReviewPacketArtifact]) -
     errors
 }
 
+fn verified_artifacts(artifacts: &[ReviewPacketArtifact]) -> Vec<VerifiedReviewPacketArtifact> {
+    artifacts
+        .iter()
+        .map(|artifact| VerifiedReviewPacketArtifact {
+            id: artifact.id.clone(),
+            path: artifact.path.clone(),
+            hash_algo: artifact.hash.algo.clone(),
+            hash: artifact.hash.hash.clone(),
+        })
+        .collect()
+}
+
 fn verify_artifact_hash(
     artifact_path: &Path,
     display_path: &str,
@@ -227,7 +277,10 @@ fn portable_path(path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{HOSTED_COMMENT_COPY, validate_review_packet_dir};
+    use super::{
+        HOSTED_COMMENT_COPY, REVIEW_PACKET_CHECK_SCHEMA, validate_review_packet_dir,
+        write_check_receipt,
+    };
     use serde_json::{Value, json};
     use std::fs;
     use std::path::Path;
@@ -243,6 +296,51 @@ mod tests {
         let report = validate_review_packet_dir(dir.path()).expect("valid packet should pass");
 
         assert_eq!(report.artifact_count, 5);
+        assert!(report.ok);
+        assert_eq!(report.schema, REVIEW_PACKET_CHECK_SCHEMA);
+        assert_eq!(report.hashes_verified, 5);
+        assert_eq!(
+            report.schemas_verified,
+            vec!["manifest.json", "evidence.json", "review-map.json"]
+        );
+        assert_eq!(report.errors, Vec::<String>::new());
+        assert_eq!(
+            report
+                .artifacts
+                .iter()
+                .map(|artifact| artifact.path.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "cockpit.json",
+                "evidence.json",
+                "review-map.json",
+                "review-map.md",
+                "comment.md",
+            ]
+        );
+    }
+
+    #[test]
+    fn can_write_machine_readable_check_receipt() {
+        let dir = tempdir().expect("tempdir");
+        write_valid_packet(dir.path());
+        let report = validate_review_packet_dir(dir.path()).expect("valid packet should pass");
+
+        let output = dir.path().join("target").join("review-packet-check.json");
+        write_check_receipt(&output, &report).expect("write check receipt");
+
+        let receipt = read_json(&output);
+        assert_eq!(receipt["schema"], REVIEW_PACKET_CHECK_SCHEMA);
+        assert_eq!(receipt["ok"], true);
+        assert_eq!(receipt["artifact_count"], 5);
+        assert_eq!(receipt["hashes_verified"], 5);
+        assert_eq!(
+            receipt["schemas_verified"],
+            json!(["manifest.json", "evidence.json", "review-map.json"])
+        );
+        assert_eq!(receipt["errors"], json!([]));
+        assert_eq!(receipt["artifacts"][0]["path"], "cockpit.json");
+        assert_eq!(receipt["artifacts"][0]["hash_algo"], "blake3");
     }
 
     #[test]

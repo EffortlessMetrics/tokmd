@@ -76,6 +76,26 @@ package:
 - [`review-packet-evidence.schema.json`](review-packet-evidence.schema.json)
 - [`review-map.schema.json`](review-map.schema.json)
 
+## Packet Verification
+
+`cargo xtask review-packet-check --dir <dir>` validates the packet manifest,
+`evidence.json`, and `review-map.json` against their embedded schemas, verifies
+that manifest artifact paths are packet-local, rejects hosted comment copies in
+the manifest, and recomputes BLAKE3 hashes for listed artifacts.
+
+Use `--json <path>` to write a machine-readable verifier receipt:
+
+```bash
+cargo xtask review-packet-check \
+  --dir .tokmd/review \
+  --json target/review-packet-check.json
+```
+
+The receipt uses schema `tokmd.review_packet_check.v1` and records the verified
+schemas, artifact count, hash count, packet-local artifact paths, and verifier
+errors. It is a verifier artifact for CI and downstream systems; it is not
+listed in the packet manifest.
+
 ## Evidence Semantics
 
 Packet consumers must not treat unavailable evidence as passing evidence.

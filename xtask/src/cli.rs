@@ -634,6 +634,10 @@ pub struct ReviewPacketCheckArgs {
     /// Cockpit review packet directory, usually .tokmd/review
     #[arg(long)]
     pub dir: std::path::PathBuf,
+
+    /// Write a machine-readable verification receipt to this path.
+    #[arg(long, value_name = "PATH")]
+    pub json: Option<std::path::PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
