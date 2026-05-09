@@ -6,14 +6,19 @@ use time::OffsetDateTime;
 use time::macros::format_description;
 use tokmd_analysis_types::AnalysisReceipt;
 
+mod format;
+mod metrics;
+mod report_json;
+mod table;
+
 /// Render a self-contained HTML report for an analysis receipt.
 pub fn render(receipt: &AnalysisReceipt) -> String {
-    const TEMPLATE: &str = include_str!("templates/report.html");
+    const TEMPLATE: &str = include_str!("../templates/report.html");
 
     let timestamp = timestamp_utc();
-    let metrics_cards = build_metrics_cards(receipt);
-    let table_rows = build_table_rows(receipt);
-    let report_json = build_report_json(receipt);
+    let metrics_cards = metrics::build_metrics_cards(receipt);
+    let table_rows = table::build_table_rows(receipt);
+    let report_json = report_json::build_report_json(receipt);
 
     TEMPLATE
         .replace("{{TIMESTAMP}}", &timestamp)
@@ -27,108 +32,6 @@ fn timestamp_utc() -> String {
     OffsetDateTime::now_utc()
         .format(&format)
         .unwrap_or_else(|_| "1970-01-01 00:00:00 UTC".to_string())
-}
-
-fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {
-    let mut cards = String::new();
-
-    if let Some(derived) = &receipt.derived {
-        let metrics = [
-            ("Files", derived.totals.files.to_string()),
-            ("Lines", format_number(derived.totals.lines)),
-            ("Code", format_number(derived.totals.code)),
-            ("Tokens", format_number(derived.totals.tokens)),
-            ("Doc%", format_pct(derived.doc_density.total.ratio)),
-        ];
-
-        for (label, value) in metrics {
-            cards.push_str(&format!(
-                r#"<div class="metric-card"><span class="value">{}</span><span class="label">{}</span></div>"#,
-                value, label
-            ));
-        }
-
-        if let Some(ctx) = &derived.context_window {
-            cards.push_str(&format!(
-                r#"<div class="metric-card"><span class="value">{}</span><span class="label">Context Fit</span></div>"#,
-                format_pct(ctx.pct)
-            ));
-        }
-    }
-
-    cards
-}
-
-fn build_table_rows(receipt: &AnalysisReceipt) -> String {
-    let mut rows = String::new();
-
-    if let Some(derived) = &receipt.derived {
-        for row in derived.top.largest_lines.iter().take(100) {
-            rows.push_str(&format!(
-                r#"<tr><td class="path" data-path="{path}">{path}</td><td data-module="{module}">{module}</td><td data-lang="{lang}"><span class="lang-badge">{lang}</span></td><td class="num" data-lines="{lines}">{lines_fmt}</td><td class="num" data-code="{code}">{code_fmt}</td><td class="num" data-tokens="{tokens}">{tokens_fmt}</td><td class="num" data-bytes="{bytes}">{bytes_fmt}</td></tr>"#,
-                path = escape_html(&row.path),
-                module = escape_html(&row.module),
-                lang = escape_html(&row.lang),
-                lines = row.lines,
-                lines_fmt = format_number(row.lines),
-                code = row.code,
-                code_fmt = format_number(row.code),
-                tokens = row.tokens,
-                tokens_fmt = format_number(row.tokens),
-                bytes = row.bytes,
-                bytes_fmt = format_number(row.bytes),
-            ));
-        }
-    }
-
-    rows
-}
-
-fn build_report_json(receipt: &AnalysisReceipt) -> String {
-    let mut files = Vec::new();
-
-    if let Some(derived) = &receipt.derived {
-        for row in &derived.top.largest_lines {
-            files.push(serde_json::json!({
-                "path": row.path,
-                "module": row.module,
-                "lang": row.lang,
-                "code": row.code,
-                "lines": row.lines,
-                "tokens": row.tokens,
-            }));
-        }
-    }
-
-    // Escape < and > to prevent </script> breakout XSS attacks.
-    // JSON remains valid because \u003c and \u003e are valid JSON string escapes.
-    serde_json::json!({ "files": files })
-        .to_string()
-        .replace('<', "\\u003c")
-        .replace('>', "\\u003e")
-}
-
-fn format_number(n: usize) -> String {
-    if n >= 1_000_000 {
-        format!("{:.1}M", n as f64 / 1_000_000.0)
-    } else if n >= 1_000 {
-        format!("{:.1}K", n as f64 / 1_000.0)
-    } else {
-        n.to_string()
-    }
-}
-
-fn format_pct(ratio: f64) -> String {
-    format!("{:.1}%", ratio * 100.0)
-}
-
-fn escape_html(value: &str) -> String {
-    value
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-        .replace('\'', "&#x27;")
 }
 
 #[cfg(test)]
@@ -352,22 +255,22 @@ mod tests {
 
     #[test]
     fn format_number_thresholds() {
-        assert_eq!(format_number(500), "500");
-        assert_eq!(format_number(1_000), "1.0K");
-        assert_eq!(format_number(1_500), "1.5K");
-        assert_eq!(format_number(1_000_000), "1.0M");
-        assert_eq!(format_number(2_500_000), "2.5M");
+        assert_eq!(format::format_number(500), "500");
+        assert_eq!(format::format_number(1_000), "1.0K");
+        assert_eq!(format::format_number(1_500), "1.5K");
+        assert_eq!(format::format_number(1_000_000), "1.0M");
+        assert_eq!(format::format_number(2_500_000), "2.5M");
     }
 
     #[test]
     fn escape_html_encodes_special_chars() {
-        assert_eq!(escape_html("hello"), "hello");
-        assert_eq!(escape_html("<script>"), "&lt;script&gt;");
-        assert_eq!(escape_html("a & b"), "a &amp; b");
-        assert_eq!(escape_html("\"quoted\""), "&quot;quoted&quot;");
-        assert_eq!(escape_html("it's"), "it&#x27;s");
+        assert_eq!(format::escape_html("hello"), "hello");
+        assert_eq!(format::escape_html("<script>"), "&lt;script&gt;");
+        assert_eq!(format::escape_html("a & b"), "a &amp; b");
+        assert_eq!(format::escape_html("\"quoted\""), "&quot;quoted&quot;");
+        assert_eq!(format::escape_html("it's"), "it&#x27;s");
         assert_eq!(
-            escape_html("<a href=\"test\">&'"),
+            format::escape_html("<a href=\"test\">&'"),
             "&lt;a href=&quot;test&quot;&gt;&amp;&#x27;"
         );
     }
@@ -382,14 +285,14 @@ mod tests {
     #[test]
     fn metrics_cards_empty_without_derived() {
         let receipt = minimal_receipt();
-        assert!(build_metrics_cards(&receipt).is_empty());
+        assert!(metrics::build_metrics_cards(&receipt).is_empty());
     }
 
     #[test]
     fn metrics_cards_include_context_fit_when_available() {
         let mut receipt = minimal_receipt();
         receipt.derived = Some(sample_derived());
-        let cards = build_metrics_cards(&receipt);
+        let cards = metrics::build_metrics_cards(&receipt);
         assert!(cards.contains("class=\"metric-card\""));
         assert!(cards.contains("Context Fit"));
     }
@@ -403,7 +306,7 @@ mod tests {
         derived.top.largest_lines[0].lang = "Ru\"st".to_string();
         receipt.derived = Some(derived);
 
-        let rows = build_table_rows(&receipt);
+        let rows = table::build_table_rows(&receipt);
         assert!(rows.contains("src/&lt;script&gt;.rs"));
         assert!(rows.contains("mod&amp;name"));
         assert!(rows.contains("Ru&quot;st"));
@@ -416,7 +319,7 @@ mod tests {
         derived.top.largest_lines[0].path = "</script><script>alert(1)</script>".to_string();
         receipt.derived = Some(derived);
 
-        let json = build_report_json(&receipt);
+        let json = report_json::build_report_json(&receipt);
         assert!(
             json.contains("\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e")
         );
@@ -427,7 +330,7 @@ mod tests {
     #[test]
     fn report_json_without_derived_is_empty_files_array() {
         let receipt = minimal_receipt();
-        assert_eq!(build_report_json(&receipt), "{\"files\":[]}");
+        assert_eq!(report_json::build_report_json(&receipt), "{\"files\":[]}");
     }
 
     #[test]
