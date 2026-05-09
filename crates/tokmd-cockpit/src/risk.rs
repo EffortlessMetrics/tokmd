@@ -59,3 +59,50 @@ pub(crate) fn compute_risk_owned(
             .map(|stat| stat.path),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::health::compute_code_health;
+
+    fn make_stat(path: &str, insertions: usize, deletions: usize) -> FileStat {
+        FileStat {
+            path: path.to_string(),
+            insertions,
+            deletions,
+        }
+    }
+
+    #[test]
+    fn test_risk_no_hotspots() {
+        let stats = vec![make_stat("src/main.rs", 10, 5)];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        let risk = compute_risk(&stats, &contracts, &health);
+        assert_eq!(risk.level, RiskLevel::Low);
+        assert!(risk.hotspots_touched.is_empty());
+    }
+
+    #[test]
+    fn test_risk_with_hotspots() {
+        let stats = vec![
+            make_stat("src/huge.rs", 200, 200), // >300 lines total
+            make_stat("src/big.rs", 200, 200),  // >300 lines total
+        ];
+        let contracts = Contracts {
+            api_changed: false,
+            cli_changed: false,
+            schema_changed: false,
+            breaking_indicators: 0,
+        };
+        let health = compute_code_health(&stats, &contracts);
+        let risk = compute_risk(&stats, &contracts, &health);
+        assert!(!risk.hotspots_touched.is_empty());
+        assert!(risk.score > 0);
+    }
+}
