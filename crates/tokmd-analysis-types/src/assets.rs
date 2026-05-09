@@ -1,7 +1,7 @@
 //! Asset receipt DTOs.
 //!
-//! These supply-chain-adjacent contract types remain re-exported from the crate
-//! root to preserve existing `tokmd_analysis_types::...` names.
+//! These contract types remain re-exported from the crate root to preserve
+//! existing `tokmd_analysis_types::...` names.
 
 use serde::{Deserialize, Serialize};
 

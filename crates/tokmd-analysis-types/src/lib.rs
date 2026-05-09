@@ -15,6 +15,7 @@
 //! * File I/O operations
 
 mod api_surface;
+mod assets;
 mod churn;
 mod corporate;
 mod dependencies;
@@ -25,7 +26,6 @@ mod entropy;
 pub mod findings;
 mod git;
 mod license;
-mod supply;
 mod topics;
 pub mod util;
 
@@ -33,6 +33,7 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 pub use api_surface::{ApiExportItem, ApiSurfaceReport, LangApiSurface, ModuleApiRow};
+pub use assets::{AssetCategoryRow, AssetFileRow, AssetReport};
 pub use churn::{ChurnTrend, PredictiveChurnReport, TrendClass};
 pub use corporate::{CorporateFingerprint, DomainStat};
 pub use dependencies::{DependencyReport, LockfileReport};
@@ -59,7 +60,6 @@ pub use git::{
     ModuleIntentRow,
 };
 pub use license::{LicenseFinding, LicenseReport, LicenseSourceKind};
-pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport};
 pub use topics::{TopicClouds, TopicTerm};
 pub use util::{
     AnalysisLimits, empty_file_row, is_infra_lang, is_test_path, normalize_path, normalize_root,
