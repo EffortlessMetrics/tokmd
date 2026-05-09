@@ -59,7 +59,7 @@ fixtures:
 
 | Area | Current file | Approx. lines | Owner direction |
 | --- | --- | ---: | --- |
-| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | 2152 + 452 + 181 | Continue splitting detection, scoring, nesting, aggregation, and tests under `content::complexity` |
+| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | 1865 + 452 + 294 + 181 | Continue splitting detection, scoring, nesting, aggregation, and tests under `content::complexity` |
 | Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
