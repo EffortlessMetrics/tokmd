@@ -16,6 +16,7 @@
 
 mod effort;
 pub mod findings;
+mod supply;
 pub mod util;
 
 use std::collections::BTreeMap;
@@ -28,6 +29,7 @@ pub use effort::{
     EffortDeltaClassification, EffortDeltaReport, EffortDriver, EffortDriverDirection,
     EffortEstimateReport, EffortModel, EffortResults, EffortSizeBasis, EffortTagSizeRow,
 };
+pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
 pub use util::{
     AnalysisLimits, empty_file_row, is_infra_lang, is_test_path, normalize_path, normalize_root,
     now_ms, path_depth,
@@ -432,51 +434,6 @@ pub struct IntegrityReport {
     pub algo: String,
     pub hash: String,
     pub entries: usize,
-}
-
-// -------------
-// Asset metrics
-// -------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetReport {
-    pub total_files: usize,
-    pub total_bytes: u64,
-    pub categories: Vec<AssetCategoryRow>,
-    pub top_files: Vec<AssetFileRow>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetCategoryRow {
-    pub category: String,
-    pub files: usize,
-    pub bytes: u64,
-    pub extensions: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetFileRow {
-    pub path: String,
-    pub bytes: u64,
-    pub category: String,
-    pub extension: String,
-}
-
-// -----------------
-// Dependency metrics
-// -----------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DependencyReport {
-    pub total: usize,
-    pub lockfiles: Vec<LockfileReport>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LockfileReport {
-    pub path: String,
-    pub kind: String,
-    pub dependencies: usize,
 }
 
 // ---------
