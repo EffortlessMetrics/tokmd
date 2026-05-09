@@ -838,7 +838,6 @@ kind = "rust"
 paths = [
   "crates/tokmd/schemas/**",
   "crates/tokmd/tests/schema*.rs",
-  "crates/tokmd/tests/properties.rs",
   "crates/tokmd-types/src/lib.rs",
   "crates/tokmd-types/tests/schema*.rs",
   "docs/SCHEMA.md",

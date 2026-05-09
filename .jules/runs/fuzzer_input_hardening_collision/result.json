@@ -1,0 +1,20 @@
+{
+  "outcome": "learning PR",
+  "summary": "Gracefully aborted duplicate fuzzer coverage. Documented the collision with upstream coverage of scan_args invariants in `tokmd-format`.",
+  "telemetry": {
+    "change_shape": "learning",
+    "blast_radius": {
+      "api": false,
+      "io": false,
+      "docs": false,
+      "schema": false,
+      "concurrency": false,
+      "compatibility": false,
+      "dependencies": false
+    },
+    "risk_class": "none",
+    "risk_explanation": "Learning PR only. Code changes reverted.",
+    "rollback_instructions": "n/a",
+    "gates_run": []
+  }
+}

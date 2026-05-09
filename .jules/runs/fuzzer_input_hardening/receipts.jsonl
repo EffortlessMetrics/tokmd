@@ -1,7 +1,0 @@
-{"time": "2026-05-08T21:46:04Z", "command": "envelope initialized", "outcome": "success"}
-{"time": "2026-05-08T21:54:27Z", "command": "cargo test -p tokmd --test properties", "outcome": "success"}
-{"time": "2026-05-08T21:55:15Z", "command": "decision.md created", "outcome": "success"}
-{"time": "2026-05-08T21:55:39Z", "command": "result.json created", "outcome": "success"}
-{"time": "2026-05-08T21:56:24Z", "command": "pr_body.md created", "outcome": "success"}
-{"time": "2026-05-08T21:57:03Z", "command": "CI=true cargo test -p tokmd --test properties", "outcome": "success"}
-{"time": "2026-05-08T21:58:42Z", "command": "Cleaned up temporary workspace files", "outcome": "success"}
