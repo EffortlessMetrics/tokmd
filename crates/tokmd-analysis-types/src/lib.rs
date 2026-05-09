@@ -15,6 +15,7 @@
 //! * File I/O operations
 
 mod api_surface;
+mod archetype;
 mod assets;
 mod churn;
 mod complexity;
@@ -36,6 +37,7 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 pub use api_surface::{ApiExportItem, ApiSurfaceReport, LangApiSurface, ModuleApiRow};
+pub use archetype::Archetype;
 pub use assets::{AssetCategoryRow, AssetFileRow, AssetReport};
 pub use churn::{ChurnTrend, PredictiveChurnReport, TrendClass};
 pub use complexity::{
@@ -138,16 +140,6 @@ pub struct AnalysisArgsMeta {
     pub max_commit_files: Option<usize>,
     pub max_file_bytes: Option<u64>,
     pub import_granularity: String,
-}
-
-// ---------------
-// Project context
-// ---------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Archetype {
-    pub kind: String,
-    pub evidence: Vec<String>,
 }
 
 // -------------------
