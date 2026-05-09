@@ -1,28 +1,29 @@
 # Decision
 
-## What was inspected
+## Problem
+The document `docs/architecture-consolidation-plan.md` contains factual drift.
+The "Current Pressure Points" and "First Suggested PRs" sections are out of date:
+- `crates/tokmd-cockpit/src/gates.rs` is no longer ~1196 lines; it is 118 lines. The files were split into the `crates/tokmd-cockpit/src/gates/` directory.
+- `crates/tokmd-format/src/analysis/mod.rs` was claimed to be 1815 lines but it is actually 1746 lines, and there's already `markdown.rs`, `html.rs`, `jsonld.rs`, `svg.rs`, `tree.rs`, `xml.rs` in `crates/tokmd-format/src/analysis/`.
+- `crates/tokmd-cockpit/src/render/` already exists with `artifacts.rs`, `comment.rs`, `evidence.rs`, `manifest.rs`, `markdown.rs`, `review_map.rs`, `review_packet.rs`, `sections.rs`.
+- `crates/tokmd-analysis-types/src/lib.rs` is 1886 lines, slightly more than 1702 lines, and still seems mostly unified (though there is a `findings.rs` and `util/`).
+- `crates/tokmd/src/context_pack.rs` is 2195 lines.
+- `crates/tokmd-core/src/ffi.rs` is 1647 lines.
+- `crates/tokmd-analysis/src/content/complexity.rs` is 2766 lines.
 
-I broadly explored the `tooling-governance` shard, specifically looking at `docs/architecture.md`, `ROADMAP.md`, `docs/implementation-plan.md`, `docs/design.md`, `docs/specification.md`, and compared them against `crates/tokmd/Cargo.toml` and other truth sources. The goal was to find factual drift between shipped reality and roadmap/design/requirements docs.
+The document should be updated to reflect the true state of the architecture consolidation: `Batch A: Cockpit Owner Modules` is already complete. `Batch B: Format Analysis Rendering` has also seen significant progress (modules were extracted). The line numbers need to be updated.
 
-During this investigation, I noticed a discrepancy in `docs/architecture.md` regarding the `fun` feature flag. The documentation listed `fun = ["tokmd-analysis/fun", "tokmd-format/fun"]`, but the actual `crates/tokmd/Cargo.toml` implements `fun = ["tokmd-analysis/fun", "tokmd-core/fun"]`.
-
-I also checked for larger discrepancies like `tokmd serve` vs `tokmd tools`, but the docs correctly labeled `serve` as a Phase 6 future goal, and `tools` as a shipped capability. Overall, the documentation is well-aligned with the v1.10.0 release.
-
-## Options considered
+## Options Considered
 
 ### Option A (recommended)
-- **What it is:** Update `docs/architecture.md` to fix the factual drift in the `fun` feature flag.
-- **Why it fits this repo and this shard:** It resolves a small but real factual drift between the architecture documentation and the shipped workspace features.
-- **Trade-offs:**
-  - *Structure:* Corrects documentation to align with code.
-  - *Velocity:* Quick and low-risk change.
-  - *Governance:* Preserves the accuracy of the architecture doc.
+Update `docs/architecture-consolidation-plan.md` to fix the factual drift.
+1. Remove completed tasks from the "Current Pressure Points" table and "First Suggested PRs" (like `crates/tokmd-cockpit/src/gates.rs`).
+2. Update line counts for the remaining pressure points.
+3. Update "Batch Order" to mark Batch A (Cockpit) and parts of Batch B (Format Analysis) as complete/removed from target list since they are mostly extracted.
 
 ### Option B
-- **What it is:** Do not change the docs and only create a learning PR documenting that the current state of the design/roadmap docs is perfectly aligned with the codebase for the v1.10.0 release.
-- **When to choose it instead:** When absolutely no factual drift can be found, or when fixing the drift would violate the boundaries of the shard or the assignment.
-- **Trade-offs:** Misses the opportunity to fix a small real factual error.
+Ignore the specific line numbers and just remove the completed items from "First Suggested PRs".
+- This leaves the pressure points table factually incorrect.
 
 ## Decision
-
-**Option A**, because there was a clear, small factual drift regarding the `fun` feature flag in `docs/architecture.md` versus `crates/tokmd/Cargo.toml`. Fixing it directly improves the quality of the architecture documentation.
+Option A. It accurately reflects the current state of the repo, fixes drift in both the table and the suggested PRs, and satisfies the Cartographer persona's primary mission.

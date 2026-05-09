@@ -1,18 +1,14 @@
 {
-  "outcome": "patch",
-  "title": "cartographer: sync fun feature flag in architecture docs to match cargo.toml 🗺️",
-  "summary": "Fixed factual drift in `docs/architecture.md` where the `fun` feature flag mapping incorrectly listed `tokmd-format/fun` instead of `tokmd-core/fun`.",
-  "target_paths": [
-    "docs/architecture.md"
-  ],
-  "proof_summary": "Compared `crates/tokmd/Cargo.toml` with `docs/architecture.md` and corrected the mismatch.",
+  "status": "success",
+  "outcome": "pr_ready_patch",
+  "summary": "Updated docs/architecture-consolidation-plan.md to fix factual drift regarding file sizes and completed architecture consolidation batches.",
   "gates_run": [
     "cargo xtask docs --check",
+    "cargo test -p xtask",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
     "cargo fmt -- --check",
-    "cargo test -p xtask"
+    "cargo clippy -- -D warnings"
   ],
-  "friction_items_created": [],
-  "persona_notes_created": [],
-  "rollback": "git checkout -- docs/architecture.md",
-  "follow_ups": []
+  "patch_type": "docs"
 }

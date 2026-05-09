@@ -59,22 +59,21 @@ fixtures:
 
 | Area | Current file | Approx. lines | Owner direction |
 | --- | --- | ---: | --- |
-| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` | 2484 | Split parser, scoring, aggregation, and tests under `content::complexity` |
-| Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
-| Analysis rendering | `crates/tokmd-format/src/analysis/mod.rs` | 1815 | Continue moving format-specific renderers into `tokmd-format::analysis` submodules |
-| Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
-| Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
-| Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` | 1432 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
-| CLI parser | `crates/tokmd/src/cli/parser.rs` | 1264 | Split command argument families while preserving clap output |
-| Cockpit gates | `crates/tokmd-cockpit/src/gates.rs` | 1196 | Split gate evidence, freshness, and rendering helpers inside `tokmd-cockpit` |
-| Model aggregation | `crates/tokmd-model/src/lib.rs` | 1159 | Split aggregation, row sorting, and child-language behavior under `tokmd-model` |
+| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` | 2766 | Split parser, scoring, aggregation, and tests under `content::complexity` |
+| Context packing | `crates/tokmd/src/context_pack.rs` | 2195 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
+| Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1886 | Split receipt DTO families while preserving re-exports |
+| Analysis rendering | `crates/tokmd-format/src/analysis/mod.rs` | 1746 | Continue moving format-specific renderers into `tokmd-format::analysis` submodules |
+| Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | ~1647 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
+| Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` | 1598 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
+| CLI parser | `crates/tokmd/src/cli/parser.rs` | 1525 | Split command argument families while preserving clap output |
+| Model aggregation | `crates/tokmd-model/src/lib.rs` | 1310 | Split aggregation, row sorting, and child-language behavior under `tokmd-model` |
 
 ## Batch Order
 
-### Batch A: Cockpit Owner Modules
+### Batch A: Cockpit Owner Modules (Largely Complete)
 
 Why first: cockpit is the active product lane, has strong packet/verifier
-coverage, and recent splits already proved the pattern.
+coverage, and recent splits already proved the pattern. The `gates` and `render` modules have already been successfully split.
 
 Target modules:
 
@@ -273,9 +272,8 @@ Stop and split the work if a consolidation PR:
 
 ## First Suggested PRs
 
-1. Split `tokmd-cockpit/src/gates.rs` into gate evidence owner modules.
-2. Split `tokmd-format/src/analysis/mod.rs` into renderer-focused modules.
-3. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
+1. Split `tokmd-format/src/analysis/mod.rs` into renderer-focused modules.
+2. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
    preserving re-exports.
 
 Each PR should include the affected proof-plan output in the PR body and should

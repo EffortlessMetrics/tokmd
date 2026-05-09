@@ -1,3 +1,38 @@
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat crates/tokmd/Cargo.toml | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected Cargo.toml features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat docs/architecture.md | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected architecture.md features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "execution", "cwd": ".", "cmd": "git diff docs/architecture.md", "status": "success", "summary": "Verified drift fix", "artifacts": ["docs/architecture.md"]}
+{"command": "mkdir -p .jules/runs/cartographer_roadmap_design", "outcome": "success"}
+{"command": "cat << 'EOF' > .jules/runs/cartographer_roadmap_design/envelope.json\n{...}\nEOF", "outcome": "success"}
+{"command": "ls -la", "outcome": "success"}
+{"command": "cat ROADMAP.md | head -n 50", "outcome": "success"}
+{"command": "grep -rn \"v1.12.0\" ROADMAP.md CHANGELOG.md Cargo.toml", "outcome": "success"}
+{"command": "cat Cargo.toml | grep version", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 20 \"Status Summary\"", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 20 \"v1.11.0\"", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 20 \"## v1.11.0\"", "outcome": "success"}
+{"command": "cat Cargo.toml | grep \"version = \"", "outcome": "success"}
+{"command": "cargo xtask version-consistency", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 30 \"## v1.11.0\"", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 20 \"### v1.12.0\"", "outcome": "success"}
+{"command": "ls crates/", "outcome": "success"}
+{"command": "cat docs/architecture.md 2>/dev/null || cat ARCHITECTURE.md 2>/dev/null", "outcome": "success"}
+{"command": "cat docs/architecture-consolidation-plan.md 2>/dev/null || ls docs/", "outcome": "success"}
+{"command": "cat Cargo.toml | grep -C 5 \"workspace\"", "outcome": "success"}
+{"command": "ls -la crates/tokmd-cockpit/src/", "outcome": "success"}
+{"command": "wc -l crates/tokmd-cockpit/src/gates.rs", "outcome": "success"}
+{"command": "ls -la crates/tokmd-cockpit/src/gates/", "outcome": "success"}
+{"command": "wc -l crates/tokmd-format/src/analysis/mod.rs", "outcome": "success"}
+{"command": "wc -l crates/tokmd-analysis-types/src/lib.rs", "outcome": "success"}
+{"command": "cat docs/architecture.md | grep -n \"architecture-consolidation-plan\"", "outcome": "success"}
+{"command": "cat docs/architecture-consolidation-plan.md | grep -A 10 \"Batch A:\"", "outcome": "success"}
+{"command": "ls crates/tokmd-cockpit/src/gates/", "outcome": "success"}
+{"command": "cat ROADMAP.md | grep -A 20 \"## Status Summary\"", "outcome": "success"}
+{"command": "cat crates/tokmd-cockpit/src/gates.rs", "outcome": "success"}
+{"command": "ls -la crates/tokmd-format/src/analysis/", "outcome": "success"}
+{"command": "ls -la crates/tokmd-cockpit/src/render", "outcome": "success"}
+{"command": "cat docs/architecture-consolidation-plan.md", "outcome": "success"}
+{"command": "ls -l crates/tokmd/src/context_pack* crates/tokmd-core/src/ffi* crates/tokmd-model/src/lib.rs crates/tokmd/src/cli/parser* crates/tokmd-analysis/src/complexity/mod.rs crates/tokmd-analysis/src/content/complexity.rs 2>/dev/null", "outcome": "success"}
+{"command": "wc -l crates/tokmd/src/context_pack.rs crates/tokmd-core/src/ffi.rs crates/tokmd-model/src/lib.rs crates/tokmd/src/cli/parser.rs crates/tokmd-analysis/src/complexity/mod.rs crates/tokmd-analysis/src/content/complexity.rs", "outcome": "success"}
+{"command": "cat docs/architecture-consolidation-plan.md | grep -A 20 \"First Suggested PRs\"", "outcome": "success"}
+{"command": "ls -l crates/tokmd-analysis-types/src/", "outcome": "success"}
+{"command": "cat docs/architecture-consolidation-plan.md", "outcome": "success"}
+{"command": "cargo xtask docs --check && cargo test -p xtask", "outcome": "success"}
+{"command": "cargo xtask version-consistency && cargo xtask publish --plan --verbose", "outcome": "success"}
+{"command": "cargo fmt -- --check && cargo clippy -- -D warnings", "outcome": "success"}

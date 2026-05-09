@@ -1,45 +1,44 @@
 ## 💡 Summary
-Fixed a small factual drift in `docs/architecture.md` where the `fun` feature flag was incorrectly documented as mapping to `tokmd-format/fun`. It has been updated to correctly map to `tokmd-core/fun`, matching the shipped reality in `crates/tokmd/Cargo.toml`.
+Updated `docs/architecture-consolidation-plan.md` to resolve factual drift between the document and the shipped codebase. Removed completed tasks from the active pressure points and suggested PR list, and updated file line counts to accurately reflect current state.
 
 ## 🎯 Why
-The `docs/architecture.md` file serves as a reference for the workspace's feature flags. Stale or incorrect feature flag documentation can mislead contributors trying to understand the dependency boundaries.
+The `docs/architecture-consolidation-plan.md` was out-of-date compared to reality. It claimed that `crates/tokmd-cockpit/src/gates.rs` was 1196 lines and needed splitting, but it had already been split into `crates/tokmd-cockpit/src/gates/` and is now only 118 lines. Other files had inaccurate line counts. Keeping this document aligned with reality ensures that future contributors and bots aren't misled.
 
 ## 🔎 Evidence
-- `docs/architecture.md` (prior to fix)
-- `crates/tokmd/Cargo.toml`
-- Checked `crates/tokmd/Cargo.toml` and found: `fun = ["tokmd-analysis/fun", "tokmd-core/fun"]`
-- Checked `docs/architecture.md` and found the stale mapping: `fun = ["tokmd-analysis/fun", "tokmd-format/fun"]`
+- file path(s): `docs/architecture-consolidation-plan.md`
+- observed behavior / finding: The `gates.rs` file was listed as a pressure point with ~1196 lines. Running `wc -l crates/tokmd-cockpit/src/gates.rs` yielded 118 lines. `ls -la crates/tokmd-cockpit/src/gates/` showed the extracted modules.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update `docs/architecture.md` to match the actual implementation in `crates/tokmd/Cargo.toml`.
-- Fits the `tooling-governance` shard by maintaining workspace documentation alignment.
-- Trade-offs: Structure is improved, Velocity impact is negligible, Governance is maintained.
+- what it is: Update `docs/architecture-consolidation-plan.md` to fix the factual drift by removing the completed tasks (Cockpit gates) and correcting the line counts for the others.
+- why it fits this repo and shard: Directly aligns with Cartographer's mission to fix factual drift between shipped reality and roadmap/design docs.
+- trade-offs: Structure / Velocity / Governance: Improves governance and clarity by cleaning up stale instructions.
 
 ### Option B
-- Ignore the drift and create a learning PR documenting that the docs are otherwise well-aligned with the v1.10.0 release.
-- Choose this if no actionable drift could be found.
-- Trade-offs: Misses fixing a real, easily fixable factual error.
+- what it is: Ignore the specific line numbers and just remove the completed items from "First Suggested PRs".
+- when to choose it instead: If the line counts fluctuated constantly and weren't meant to be accurate indicators of size.
+- trade-offs: Leaves the pressure points table factually incorrect and misaligned with reality.
 
 ## ✅ Decision
-Option A, because it directly resolves a small but real factual drift between the architecture documentation and the shipped workspace features.
+Chosen Option A. It completely addresses the drift between the documented plan and the actual codebase, preventing future work from targeting already-completed migrations.
 
 ## 🧱 Changes made (SRP)
-- `docs/architecture.md`: Updated `fun` feature flag mapping from `tokmd-format/fun` to `tokmd-core/fun`.
+- `docs/architecture-consolidation-plan.md`: Updated line counts for pressure point files, removed `crates/tokmd-cockpit/src/gates.rs` from pressure points and "First Suggested PRs", and added a note that Batch A is largely complete.
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat crates/tokmd/Cargo.toml | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected Cargo.toml features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat docs/architecture.md | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected architecture.md features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "execution", "cwd": ".", "cmd": "git diff docs/architecture.md", "status": "success", "summary": "Verified drift fix", "artifacts": ["docs/architecture.md"]}
+{"command": "wc -l crates/tokmd-cockpit/src/gates.rs", "outcome": "success"}
+{"command": "cargo xtask docs --check && cargo test -p xtask", "outcome": "success"}
+{"command": "cargo xtask version-consistency && cargo xtask publish --plan --verbose", "outcome": "success"}
+{"command": "cargo fmt -- --check && cargo clippy -- -D warnings", "outcome": "success"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation patch
-- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): Docs only. No code or schema impact.
-- Risk class + why: Low. Just a documentation typo fix.
-- Rollback: `git checkout -- docs/architecture.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo test -p xtask`
+- Change shape: Docs update.
+- Blast radius: Internal documentation alignment only.
+- Risk class + why: Low risk. Modifies only a markdown file (`docs/architecture-consolidation-plan.md`).
+- Rollback: Revert the git commit.
+- Gates run: `cargo xtask docs --check`, `cargo test -p xtask`, `cargo xtask version-consistency`, `cargo xtask publish --plan --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
