@@ -18,7 +18,7 @@ mod review_map;
 mod review_packet;
 
 pub use comment::render_comment_md;
-pub use review_packet::write_review_packet;
+pub use review_packet::{write_review_packet, write_review_packet_with_proof_evidence};
 
 /// Render receipt as JSON.
 pub fn render_json(receipt: &CockpitReceipt) -> Result<String> {

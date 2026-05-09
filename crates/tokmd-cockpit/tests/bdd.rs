@@ -857,6 +857,10 @@ fn scenario_write_review_packet_creates_contract_files() {
             .len(),
         0
     );
+    assert!(
+        evidence.get("proof").is_none(),
+        "packets without proof inputs should preserve the current evidence shape"
+    );
 
     let review_map: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
@@ -914,6 +918,81 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert!(comment_md.contains("[Evidence gates](evidence.json)"));
     assert!(comment_md.contains("[Review map](review-map.md)"));
     assert!(comment_md.contains("[Full cockpit receipt](cockpit.json)"));
+}
+
+#[test]
+fn scenario_write_review_packet_includes_imported_proof_evidence() {
+    let dir = tempfile::tempdir().unwrap();
+    let receipt = minimal_receipt();
+    let out = dir.path().join("review");
+    let proof = tokmd_cockpit::parse_proof_evidence_input(
+        r#"{
+  "schema": "tokmd.proof_run_observation.v1",
+  "status": "passed",
+  "execution_status": "executed",
+  "profile": "fast",
+  "base": "main",
+  "head": "feature",
+  "ok": true,
+  "execution_guard": {
+    "enabled": true,
+    "ci": true,
+    "reason": "required proof-run summary verified"
+  },
+  "counts": {
+    "commands_total": 1,
+    "required_planned": 1,
+    "advisory_skipped": 0,
+    "executed": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "scopes": [
+    {
+      "name": "tokmd_cockpit",
+      "kind": "test",
+      "command": "cargo test -p tokmd-cockpit",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "changed_files": ["crates/tokmd-cockpit/src/lib.rs"],
+  "unknown_files": []
+}"#,
+        "proof-run-observation.json",
+    )
+    .unwrap();
+
+    tokmd_cockpit::render::write_review_packet_with_proof_evidence(&out, &receipt, &[proof])
+        .unwrap();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    let proof = evidence["proof"].as_array().expect("proof evidence array");
+    assert_eq!(proof.len(), 1);
+    assert_eq!(proof[0]["kind"], "proof_run_observation");
+    assert_eq!(proof[0]["source"], "proof-run-observation.json");
+    assert_eq!(proof[0]["source_schema"], "tokmd.proof_run_observation.v1");
+    assert_eq!(proof[0]["profile"], "fast");
+    assert_eq!(proof[0]["scope"], "tokmd_cockpit");
+    assert_eq!(proof[0]["command"], "cargo test -p tokmd-cockpit");
+    assert_eq!(proof[0]["required"], true);
+    assert_eq!(proof[0]["advisory"], false);
+    assert_eq!(proof[0]["execution_status"], "executed_passed");
+    assert_eq!(proof[0]["availability"], "available");
+    assert_eq!(proof[0]["commit_match"], "exact");
+    assert_eq!(proof[0]["refs"][0], "proof-run-observation.json#/scopes/0");
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("manifest.json")).unwrap()).unwrap();
+    assert_eq!(
+        manifest["verdict"]["reason"],
+        "cockpit review packets are advisory by default"
+    );
+    assert_eq!(
+        manifest["verdict"]["evidence"]["details"], "evidence.json#/gates",
+        "imported proof should not change gate verdict counts yet"
+    );
 }
 
 // ===========================================================================

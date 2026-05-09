@@ -13,6 +13,10 @@
     "gates": {
       "type": "array",
       "items": { "$ref": "#/definitions/evidenceGate" }
+    },
+    "proof": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/proofEvidence" }
     }
   },
   "definitions": {
@@ -56,6 +60,66 @@
             { "type": "integer", "minimum": 0 },
             { "type": "null" }
           ]
+        }
+      }
+    },
+    "proofEvidence": {
+      "type": "object",
+      "required": [
+        "kind",
+        "source",
+        "source_schema",
+        "profile",
+        "scope",
+        "command",
+        "required",
+        "advisory",
+        "execution_status",
+        "availability",
+        "commit_match",
+        "refs"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "proof_run_summary",
+            "proof_run_observation",
+            "proof_executor_observation",
+            "coverage_receipt"
+          ]
+        },
+        "source": { "type": "string", "minLength": 1 },
+        "source_schema": { "type": "string", "minLength": 1 },
+        "profile": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "scope": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "command": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "required": { "type": "boolean" },
+        "advisory": { "type": "boolean" },
+        "execution_status": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "executed_passed",
+            "executed_failed",
+            "not_executed",
+            "dry_run"
+          ]
+        },
+        "availability": { "$ref": "#/definitions/availability" },
+        "commit_match": {
+          "type": "string",
+          "enum": ["exact", "partial", "stale", "unknown"]
+        },
+        "refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
         }
       }
     },
