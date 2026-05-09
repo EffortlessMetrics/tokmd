@@ -63,7 +63,7 @@ fixtures:
 | Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
-| Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/risk.rs` + `complexity/debt.rs` | 631 + 301 + 343 + 78 + 69 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
+| Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` | 600 + 301 + 343 + 78 + 69 + 33 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
 | CLI parser | `crates/tokmd/src/cli/parser.rs` | 1276 | Split command argument families while preserving clap output |
 | Model aggregation | `crates/tokmd-model/src/lib.rs` | 1159 | Split aggregation, row sorting, and child-language behavior under `tokmd-model` |
 
