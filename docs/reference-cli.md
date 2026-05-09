@@ -1268,19 +1268,19 @@ Options:
           When provided, cockpit will compute delta metrics showing how the current state compares to the baseline.
 
       --proof-run-summary <PATH>
-          Validate a required proof-run summary artifact before rendering
+          Import required proof-run summary evidence into review packets
 
       --proof-observation <PATH>
-          Validate a proof-run observation artifact before rendering
+          Import proof-run observation evidence into review packets
 
       --executor-observation <PATH>
-          Validate a proof-executor observation artifact before rendering
+          Import proof-executor observation evidence into review packets
 
       --no-progress
           Disable progress spinners
 
       --coverage-receipt <PATH>
-          Validate a coverage receipt artifact before rendering
+          Import coverage receipt evidence into review packets
 
       --diff-range <DIFF_RANGE>
           Diff range syntax: two-dot (default) or three-dot
@@ -1318,10 +1318,10 @@ Options:
 | `--artifacts-dir <DIR>` | In standard cockpit mode, write `cockpit.json`, `report.json`, and `comment.md` to a directory. | `(none)` |
 | `--review-packet-dir <DIR>` | Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `review-map.json`, `review-map.md`, `comment.md`) to a directory. | `(none)` |
 | `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
-| `--proof-run-summary <PATH>` | Validate a required proof-run summary artifact before rendering. | `(none)` |
-| `--proof-observation <PATH>` | Validate a proof-run observation artifact before rendering. | `(none)` |
-| `--executor-observation <PATH>` | Validate a proof-executor observation artifact before rendering. | `(none)` |
-| `--coverage-receipt <PATH>` | Validate a coverage receipt artifact before rendering. | `(none)` |
+| `--proof-run-summary <PATH>` | Import required proof-run summary evidence into review packets. | `(none)` |
+| `--proof-observation <PATH>` | Import proof-run observation evidence into review packets. | `(none)` |
+| `--executor-observation <PATH>` | Import proof-executor observation evidence into review packets. | `(none)` |
+| `--coverage-receipt <PATH>` | Import coverage receipt evidence into review packets. | `(none)` |
 | `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
 | `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--no-progress` | Disable progress spinners. | `false` |

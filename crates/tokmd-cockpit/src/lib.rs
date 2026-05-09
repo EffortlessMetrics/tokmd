@@ -65,8 +65,8 @@ pub const COMPLEXITY_THRESHOLD: u32 = 15;
 
 /// Parse a proof-control-plane evidence artifact and return its artifact family.
 ///
-/// This is intentionally validation-only for now: cockpit can accept explicit
-/// proof evidence inputs without changing review packet output semantics.
+/// The CLI uses this lightweight classifier to validate that proof-evidence
+/// flags point at the expected artifact family before packet rendering.
 pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {
     proof_evidence::proof_evidence_kind(raw)
 }

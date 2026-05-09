@@ -1039,19 +1039,19 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "PATH")]
     pub baseline: Option<std::path::PathBuf>,
 
-    /// Validate a required proof-run summary artifact before rendering.
+    /// Import required proof-run summary evidence into review packets.
     #[arg(long, value_name = "PATH")]
     pub proof_run_summary: Option<std::path::PathBuf>,
 
-    /// Validate a proof-run observation artifact before rendering.
+    /// Import proof-run observation evidence into review packets.
     #[arg(long, value_name = "PATH")]
     pub proof_observation: Option<std::path::PathBuf>,
 
-    /// Validate a proof-executor observation artifact before rendering.
+    /// Import proof-executor observation evidence into review packets.
     #[arg(long, value_name = "PATH")]
     pub executor_observation: Option<std::path::PathBuf>,
 
-    /// Validate a coverage receipt artifact before rendering.
+    /// Import coverage receipt evidence into review packets.
     #[arg(long, value_name = "PATH")]
     pub coverage_receipt: Option<std::path::PathBuf>,
 
