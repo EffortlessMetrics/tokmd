@@ -33,29 +33,37 @@ green `CI (Required)` row provided the lanes that *did* run all passed.
 
 ## Default-PR LEM after the slimming
 
-Roughly (per PR 02's `inventory.md`, with cache normalised in PR 09):
+Roughly (per `docs/ci/inventory.md`, with advisory proof/cockpit lanes now
+included in the inventory):
 
 ```text
 msrv_check                   5
 quality_gate                 8
 proof_policy                 3
 affected_proof_plan          4
+ci_detect_risk_packs         1
+fast_proof_run_advisory      5
 feature_boundaries          10
 typos                        1
 cargo_deny                   4
 version_consistency          2
 docs_check                   4
-build (Linux only)          12   (matrix Linux entry)
+build_test_linux            12
 publish_surface              8
+ci_lane_whitelist            3
+pr_cockpit_report            3
+no_panic_family              3
+pr_plan_advisory             1
+ripr_advisory                2
+scoped_coverage_executor_non_required 12
 ci_required                  1
                           ----
-                            62   default PR (was ~203)
+                            92   default PR (was ~203)
 ```
 
-PR 11 will add a `ripr` advisory at ~2 LEM in place of the demoted
-mutation lane, leaving the default ordinary PR around 64 LEM — within
-the `elevated` band on first roll-out, with PR 12's risk-pack routing
-designed to bring this further down for narrow PRs.
+That remains below the hard override ceiling, but it is intentionally reported
+as high-cost while the advisory proof executor and proof-run observation lanes
+collect real timing evidence.
 
 ## Anti-patterns
 

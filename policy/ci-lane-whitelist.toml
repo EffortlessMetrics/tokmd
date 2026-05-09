@@ -108,9 +108,49 @@ evidence = [
   "target/proof/executor-manifest.json",
 ]
 allowed_triggers = ["pull_request"]
-duplicate_of     = ["future:pr_plan"]
+duplicate_of     = ["pr_plan_advisory"]
 review_after     = "2026-06-07"
 expires          = "2026-08-07"
+
+[[lane]]
+id               = "ci_detect_risk_packs"
+workflow         = ".github/workflows/ci.yml"
+job              = "Detect risk packs"
+kind             = "planner"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 1
+owner            = "release/ci"
+intent           = "Classify changed paths into risk packs for conditional CI routing."
+failure_mode     = "Risk-gated jobs skip changes that should have selected them."
+proof_obligation = "Run the workflow path classifier and expose risk-pack outputs."
+evidence         = ["job outputs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["affected_proof_plan"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "fast_proof_run_advisory"
+workflow         = ".github/workflows/ci.yml"
+job              = "Fast Proof Run (Advisory)"
+kind             = "proof"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "proof"
+intent           = "Run the fast proof profile on PRs as advisory observation evidence."
+failure_mode     = "Fast proof-run regressions lose visibility before required promotion decisions."
+proof_obligation = "Run cargo xtask proof --profile fast --run-required --allow-ci-required-execution."
+evidence         = ["target/proof-run/proof-run-summary.json", "target/proof-run/proof-run-observation.json"]
+allowed_triggers = ["pull_request"]
+duplicate_of     = ["proof_policy", "affected_proof_plan"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
 
 [[lane]]
 id               = "feature_boundaries"
@@ -213,33 +253,49 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 # -----------------------------------------------------------------------
-# Expensive default-PR lanes (transition exceptions in
-# policy/ci-whitelist-exceptions.toml)
+# Build and risk-gated CI lanes
 # -----------------------------------------------------------------------
 
 [[lane]]
-id                     = "build_test_linux_windows"
-workflow               = ".github/workflows/ci.yml"
-job                    = "Build & Test"
-kind                   = "rust"
-tier                   = "frontdoor"
-default_pr             = true
-blocking               = true
-runner                 = "mixed"
-runners_used           = ["ubuntu_latest", "windows_latest"]
-base_lem               = 40
-owner                  = "core/build"
-intent                 = "Run full all-features tests on Ubuntu and Windows."
-failure_mode           = "All-features test failure or Windows-specific failure reaches main."
-proof_obligation       = "Run cargo test --all-features on Linux and Windows."
-evidence               = ["job logs"]
-allowed_triggers       = ["pull_request", "push"]
-expensive              = true
-expensive_reason       = "Windows doubles Linux-equivalent cost and all-features is broad."
-default_pr_exception   = "ci_exception_windows_full_test_default"
-duplicate_of           = ["quality_gate"]
-review_after           = "2026-06-07"
-expires                = "2026-08-07"
+id               = "build_test_linux"
+workflow         = ".github/workflows/ci.yml"
+job              = "Build & Test (Linux)"
+kind             = "rust"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "core/build"
+intent           = "Run full all-features tests on Ubuntu."
+failure_mode     = "All-features Linux test failure reaches main."
+proof_obligation = "Run cargo test --all-features on Linux."
+evidence         = ["job logs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["quality_gate"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "build_test_windows"
+workflow         = ".github/workflows/ci.yml"
+job              = "Build & Test (Windows)"
+kind             = "rust"
+tier             = "risk-gated"
+default_pr       = false
+blocking         = true
+runner           = "windows_latest"
+base_lem         = 20
+owner            = "platform/windows"
+intent           = "Run full all-features tests on Windows for pushes, labels, and Windows-relevant PRs."
+failure_mode     = "Windows-specific test failure reaches main."
+proof_obligation = "Run cargo test --all-features on Windows."
+evidence         = ["job logs"]
+allowed_triggers = ["pull_request", "push"]
+expensive        = true
+duplicate_of     = ["build_test_linux"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
 
 [[lane]]
 id                     = "wasm_compile_test"
@@ -247,7 +303,7 @@ workflow               = ".github/workflows/ci.yml"
 job                    = "Wasm Compile & Test"
 kind                   = "wasm"
 tier                   = "risk-gated"
-default_pr             = true
+default_pr             = false
 blocking               = true
 runner                 = "ubuntu_latest"
 base_lem               = 25
@@ -258,10 +314,9 @@ proof_obligation       = "Check tokmd-scan/core/wasm for wasm32, run wasm-pack t
 evidence               = ["job logs"]
 allowed_triggers       = ["pull_request", "push"]
 expensive              = true
-default_pr_exception   = "ci_exception_wasm_default"
 duplicate_of           = []
 review_after           = "2026-06-07"
-expires                = "2026-08-07"
+expires                = "2026-11-07"
 
 [[lane]]
 id                     = "nix_pr_package_gate"
@@ -269,7 +324,7 @@ workflow               = ".github/workflows/ci.yml"
 job                    = "Nix PR Package Gate"
 kind                   = "packaging"
 tier                   = "deep"
-default_pr             = true
+default_pr             = false
 blocking               = true
 runner                 = "ubuntu_latest"
 base_lem               = 35
@@ -280,32 +335,30 @@ proof_obligation       = "Run nix flake check --no-build and nix build .#tokmd."
 evidence               = ["job logs"]
 allowed_triggers       = ["pull_request", "push"]
 expensive              = true
-default_pr_exception   = "ci_exception_nix_default"
 duplicate_of           = ["publish_surface"]
 review_after           = "2026-06-07"
-expires                = "2026-08-07"
+expires                = "2026-11-07"
 
 [[lane]]
 id                     = "mutation_required"
 workflow               = ".github/workflows/ci.yml"
-job                    = "Mutation Testing (Required)"
+job                    = "Mutation Testing"
 kind                   = "mutation"
 tier                   = "deep"
-default_pr             = true
+default_pr             = false
 blocking               = true
 runner                 = "ubuntu_latest"
 base_lem               = 45
 owner                  = "testing/oracle"
-intent                 = "Run runtime mutation testing on changed production Rust files."
+intent                 = "Run runtime mutation testing on changed production Rust files for pushes and opted-in PRs."
 failure_mode           = "Changed code is covered but tests do not kill concrete mutants."
 proof_obligation       = "Run cargo-mutants on changed production Rust files."
 evidence               = ["mutants.out artifacts"]
-allowed_triggers       = ["pull_request"]
+allowed_triggers       = ["pull_request", "push"]
 expensive              = true
-default_pr_exception   = "ci_exception_mutation_default"
-duplicate_of           = ["future:ripr_advisory"]
+duplicate_of           = ["ripr_advisory"]
 review_after           = "2026-06-07"
-expires                = "2026-08-07"
+expires                = "2026-11-07"
 
 [[lane]]
 id                     = "proptest_smoke"
@@ -313,7 +366,7 @@ workflow               = ".github/workflows/ci.yml"
 job                    = "Proptest Smoke"
 kind                   = "property"
 tier                   = "risk-gated"
-default_pr             = true
+default_pr             = false
 blocking               = true
 runner                 = "ubuntu_latest"
 base_lem               = 8
@@ -424,9 +477,69 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
+id               = "no_panic_family"
+workflow         = ".github/workflows/no-panic-policy.yml"
+job              = "No-panic Family"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 3
+owner            = "core/policy"
+intent           = "Verify the panic-family allowlist and stale-entry policy."
+failure_mode     = "Schema, stale-entry, or expired panic-family policy drift reaches main."
+proof_obligation = "Run cargo xtask check-no-panic-family --json."
+evidence         = ["target/tokmd/reports/no-panic-report.json"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["quality_gate"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "pr_plan_advisory"
+workflow         = ".github/workflows/pr-plan.yml"
+job              = "PR Plan (advisory)"
+kind             = "planner"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 1
+owner            = "release/ci"
+intent           = "Publish the LEM-aware advisory PR plan for reviewers."
+failure_mode     = "Reviewers lose the planned proof/cost view for ordinary PRs."
+proof_obligation = "Run cargo xtask ci-plan --enforce and upload pr-plan artifacts."
+evidence         = ["target/ci-plan.json", "target/ci-plan.md"]
+allowed_triggers = ["pull_request"]
+duplicate_of     = ["ci_detect_risk_packs"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "ripr_advisory"
+workflow         = ".github/workflows/ripr.yml"
+job              = "ripr (advisory)"
+kind             = "analysis"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "testing/oracle"
+intent           = "Run static mutation-shaped oracle-gap analysis as advisory PR evidence."
+failure_mode     = "Reviewers lose cheap oracle-gap signal on changed production Rust files."
+proof_obligation = "Run ripr or the advisory placeholder and upload the ripr report."
+evidence         = ["target/ripr/ripr.json", "target/ripr/ripr.md", "target/ripr/ripr.sarif"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["mutation_required"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
 id               = "rust_coverage"
 workflow         = ".github/workflows/coverage.yml"
-job              = "Rust coverage"
+job              = "Codecov Coverage"
 kind             = "coverage"
 tier             = "deep"
 default_pr       = false
@@ -434,9 +547,9 @@ blocking         = false
 runner           = "ubuntu_latest"
 base_lem         = 30
 owner            = "testing/oracle"
-intent           = "Generate Rust coverage report for the workspace."
+intent           = "Generate Rust coverage report for the workspace and upload to Codecov when configured."
 failure_mode     = "Coverage drift goes unnoticed because no other lane measures it."
-proof_obligation = "Run cargo llvm-cov on the workspace."
+proof_obligation = "Run cargo llvm-cov on the workspace; upload to Codecov when CODECOV_TOKEN is available."
 evidence         = ["lcov / codecov upload"]
 allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
 expensive        = true

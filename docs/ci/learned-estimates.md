@@ -20,12 +20,12 @@ Each lane in `lanes_selected` now has:
 
 ```json
 {
-  "id": "build_test_linux_windows",
-  "estimated_lem": 38,
+  "id": "build_test_linux",
+  "estimated_lem": 12,
   "estimate_source": "learned-p50",
-  "learned_p50_lem": 33.0,
-  "learned_p90_lem": 41.5,
-  "learned_p95_lem": 44.2,
+  "learned_p50_lem": 10.5,
+  "learned_p90_lem": 14.0,
+  "learned_p95_lem": 16.0,
   ...
 }
 ```

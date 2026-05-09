@@ -27,7 +27,7 @@ paths = [
   "crates/tokmd-format/**",
 ]
 lanes = ["rust_fast_gate", "proof_policy", "ripr"]
-deep_lanes = ["build_test_linux_windows", "proptest_smoke"]
+deep_lanes = ["build_test_windows", "proptest_smoke"]
 
 [risk_pack.analysis]
 description = "Risk, effort, complexity, duplication, git, API-surface reports."
@@ -57,7 +57,7 @@ paths = [
   "crates/tokmd-scan/**",
 ]
 lanes = ["rust_fast_gate", "ripr"]
-deep_lanes = ["build_test_linux_windows"]
+deep_lanes = ["build_test_windows"]
 
 [risk_pack.wasm]
 description = "WASM/browser runner and web capability surface."
@@ -90,7 +90,7 @@ paths = [
   ".github/workflows/**",
 ]
 lanes = ["proof_policy", "quality_gate", "ci_lane_whitelist"]
-deep_lanes = ["build_test_linux_windows"]
+deep_lanes = ["build_test_windows"]
 
 [risk_pack.docs]
 description = "Documentation-only changes."
