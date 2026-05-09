@@ -26,6 +26,7 @@ mod health;
 mod proof_evidence;
 pub mod render;
 mod review_plan;
+mod risk;
 #[cfg(feature = "git")]
 mod supply_chain;
 mod trend;
@@ -46,6 +47,9 @@ use gates::compute_evidence;
 pub use health::compute_code_health;
 pub use proof_evidence::{ProofEvidenceInput, ProofEvidenceKind};
 pub use review_plan::generate_review_plan;
+pub use risk::compute_risk;
+#[cfg(feature = "git")]
+use risk::compute_risk_owned;
 #[cfg(all(test, feature = "git"))]
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 pub use trend::{compute_complexity_trend, compute_metric_trend, load_and_compute_trend};
@@ -257,67 +261,6 @@ fn compute_change_surface(
         churn_velocity,
         change_concentration,
     })
-}
-
-// =============================================================================
-// Composition, contracts, health, risk, review plan
-// =============================================================================
-
-fn compute_risk_from_iter<I>(_contracts: &Contracts, health: &CodeHealth, file_stats: I) -> Risk
-where
-    I: IntoIterator<Item = String>,
-{
-    let mut hotspots_touched = Vec::new();
-    let bus_factor_warnings = Vec::new();
-
-    for path in file_stats {
-        hotspots_touched.push(path);
-    }
-
-    let score = (hotspots_touched.len() * 15 + (100 - health.score) as usize).min(100) as u32;
-
-    let level = match score {
-        0..=20 => RiskLevel::Low,
-        21..=50 => RiskLevel::Medium,
-        51..=80 => RiskLevel::High,
-        _ => RiskLevel::Critical,
-    };
-
-    Risk {
-        hotspots_touched,
-        bus_factor_warnings,
-        level,
-        score,
-    }
-}
-
-/// Compute risk metrics for borrowed file stats.
-pub fn compute_risk(file_stats: &[FileStat], contracts: &Contracts, health: &CodeHealth) -> Risk {
-    compute_risk_from_iter(
-        contracts,
-        health,
-        file_stats
-            .iter()
-            .filter(|stat| stat.insertions + stat.deletions > 300)
-            .map(|stat| stat.path.clone()),
-    )
-}
-
-/// Internal fast path used by cockpit assembly when it already owns the stats.
-#[cfg(feature = "git")]
-fn compute_risk_owned(
-    file_stats: Vec<FileStat>,
-    contracts: &Contracts,
-    health: &CodeHealth,
-) -> Risk {
-    compute_risk_from_iter(
-        contracts,
-        health,
-        file_stats
-            .into_iter()
-            .filter(|stat| stat.insertions + stat.deletions > 300)
-            .map(|stat| stat.path),
-    )
 }
 
 #[cfg(test)]
