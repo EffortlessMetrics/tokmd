@@ -1,4 +1,0 @@
-{
-  "outcome": "success",
-  "reason": "Fixed missing jobs in the CI lane whitelist policy to ensure all contract-bearing surfaces in GitHub workflows are protected. Added 9 jobs to `policy/ci-lane-whitelist.toml` with `frontdoor` and `deep` tier classification, passing `cargo xtask ci-lane-whitelist` validation."
-}

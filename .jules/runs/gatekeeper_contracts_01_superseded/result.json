@@ -1,0 +1,4 @@
+{
+  "outcome": "learning",
+  "reason": "The intended fix for ci-lane-whitelist drift was superseded by PR #1903, which was merged during execution. Abandoned the redundant fix to avoid conflicts and created a learning PR."
+}
