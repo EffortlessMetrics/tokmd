@@ -196,8 +196,8 @@ to promote advisory proof into required proof.
 
 ## Rendering Requirements
 
-When proof evidence is imported, future packet outputs should show it in the
-same evidence vocabulary used by the current review packet:
+When proof evidence is imported, packet outputs show it in the same evidence
+vocabulary used by the current review packet:
 
 - `available`
 - `missing`
@@ -225,13 +225,16 @@ Diff coverage evidence is missing.
 
 ## Error Handling
 
-Future import behavior should distinguish:
+Explicit import behavior distinguishes:
 
 - absent optional proof artifact;
 - explicitly requested artifact that is missing;
 - malformed artifact;
 - unknown schema;
-- stale commit;
+- stale commit.
+
+Packet verification distinguishes:
+
 - manifest artifact paths that are not relative or are outside the packet root;
 - evidence artifact listed but missing on disk.
 
@@ -255,11 +258,11 @@ evidence.
 - Add deserializable DTOs for accepted proof artifacts. (done)
 - Validate explicit proof artifact inputs without changing receipt output. (done)
 - Keep absent imports compatible with current cockpit behavior. (done)
-- Normalize required/advisory status before rendering. (done for `evidence.json`)
-- Classify commit match as exact, partial, stale, or unknown. (done for `evidence.json`)
+- Normalize required/advisory status before rendering. (done)
+- Classify commit match as exact, partial, stale, or unknown. (done)
 - Attach imported proof entries to `evidence.json`. (done)
 - Copy supplied proof artifacts into packet-local `proof/*.json` files. (done)
-- Attach proof refs to review-map items without duplicating large artifacts. (done for `review-map.json` direct changed-file matches)
+- Attach proof refs to review-map items without duplicating large artifacts. (done for direct changed-file matches)
 - Render matching proof evidence in `review-map.md` without changing JSON schemas. (done for direct changed-file matches)
 - Render compact proof evidence totals in `comment.md` without listing raw commands. (done)
 - Keep review packet schemas versioned if output shape changes.
