@@ -14,6 +14,7 @@ mod debt;
 mod details;
 mod functions;
 mod histogram;
+mod language;
 mod risk;
 
 use debt::{average_parent_loc, compute_technical_debt_ratio};
@@ -24,50 +25,15 @@ use functions::count_functions;
 #[cfg(test)]
 use functions::{count_python_functions, count_rust_functions, is_rust_fn_start};
 pub(crate) use histogram::generate_complexity_histogram;
+use language::{is_complexity_lang, map_language_for_complexity};
 use risk::{classify_risk_extended, estimate_cyclomatic};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
 
-/// Map language strings to complexity-compatible names.
-fn map_language_for_complexity(lang: &str) -> &str {
-    match lang.to_lowercase().as_str() {
-        "rust" => "rust",
-        "javascript" | "jsx" => "javascript",
-        "typescript" | "tsx" => "typescript",
-        "python" => "python",
-        "go" => "go",
-        "c" => "c",
-        "c++" | "cpp" => "c++",
-        "java" => "java",
-        "c#" | "csharp" => "c#",
-        "php" => "php",
-        "ruby" => "ruby",
-        _ => lang,
-    }
-}
-
 #[cfg(test)]
 #[path = "tests.rs"]
 mod moved_tests;
-
-/// Languages that support complexity analysis.
-fn is_complexity_lang(lang: &str) -> bool {
-    matches!(
-        lang.to_lowercase().as_str(),
-        "rust"
-            | "javascript"
-            | "typescript"
-            | "python"
-            | "go"
-            | "c"
-            | "c++"
-            | "java"
-            | "c#"
-            | "php"
-            | "ruby"
-    )
-}
 
 /// Build a complexity report by analyzing function counts, lengths, cyclomatic and cognitive complexity.
 pub(crate) fn build_complexity_report(
