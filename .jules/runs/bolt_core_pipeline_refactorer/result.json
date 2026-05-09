@@ -1,9 +1,7 @@
 {
-  "status": "success",
-  "patch_type": "code",
+  "status": "learning",
+  "patch_type": "docs",
   "affected_paths": [
-    "crates/tokmd-scan/src/lib.rs",
-    "crates/tokmd-scan/src/path/mod.rs",
-    "crates/tokmd-model/src/lib.rs"
+    ".jules/friction/open/bolt_core_pipeline_refactorer_superseded.md"
   ]
 }

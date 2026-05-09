@@ -83,11 +83,7 @@ pub fn normalize_rel_path(path: &str) -> String {
     while let Some(rest) = s.strip_prefix("./") {
         s = rest;
     }
-    if s.len() == normalized.len() {
-        normalized.into_owned()
-    } else {
-        s.to_string()
-    }
+    s.to_string()
 }
 
 /// Normalize a root-relative path and reject traversal or absolute inputs.
