@@ -16,6 +16,7 @@
 
 mod api_surface;
 mod churn;
+mod corporate;
 mod derived;
 mod duplication;
 mod effort;
@@ -32,6 +33,7 @@ use tokmd_types::{ScanStatus, ToolInfo};
 
 pub use api_surface::{ApiExportItem, ApiSurfaceReport, LangApiSurface, ModuleApiRow};
 pub use churn::{ChurnTrend, PredictiveChurnReport, TrendClass};
+pub use corporate::{CorporateFingerprint, DomainStat};
 pub use derived::{
     BoilerplateReport, ContextWindowReport, DerivedReport, DerivedTotals, DistributionReport,
     FileStatRow, HistogramBucket, IntegrityReport, LangPurityReport, LangPurityRow, MaxFileReport,
@@ -51,8 +53,8 @@ pub use effort::{
 pub use entropy::{EntropyClass, EntropyFinding, EntropyReport};
 pub use git::{
     BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentKind,
-    CommitIntentReport, CorporateFingerprint, CouplingRow, DomainStat, FreshnessReport, GitReport,
-    HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
+    CommitIntentReport, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow,
+    ModuleIntentRow,
 };
 pub use license::{LicenseFinding, LicenseReport, LicenseSourceKind};
 pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
