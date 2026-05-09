@@ -485,6 +485,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-analysis/src/complexity/**",
   "crates/tokmd-analysis/src/content/complexity.rs",
+  "crates/tokmd-analysis/src/content/complexity/**",
   "crates/tokmd-analysis/src/source_complexity.rs",
 ]
 packages = ["tokmd-analysis"]
