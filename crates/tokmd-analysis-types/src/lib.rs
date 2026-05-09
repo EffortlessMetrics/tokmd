@@ -15,6 +15,7 @@
 //! * File I/O operations
 
 mod api_surface;
+mod churn;
 mod derived;
 mod duplication;
 mod effort;
@@ -30,6 +31,7 @@ use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 
 pub use api_surface::{ApiExportItem, ApiSurfaceReport, LangApiSurface, ModuleApiRow};
+pub use churn::{ChurnTrend, PredictiveChurnReport, TrendClass};
 pub use derived::{
     BoilerplateReport, ContextWindowReport, DerivedReport, DerivedTotals, DistributionReport,
     FileStatRow, HistogramBucket, IntegrityReport, LangPurityReport, LangPurityRow, MaxFileReport,
@@ -48,10 +50,9 @@ pub use effort::{
 };
 pub use entropy::{EntropyClass, EntropyFinding, EntropyReport};
 pub use git::{
-    BusFactorRow, ChurnTrend, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts,
-    CommitIntentKind, CommitIntentReport, CorporateFingerprint, CouplingRow, DomainStat,
-    FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
-    PredictiveChurnReport, TrendClass,
+    BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentKind,
+    CommitIntentReport, CorporateFingerprint, CouplingRow, DomainStat, FreshnessReport, GitReport,
+    HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
 };
 pub use license::{LicenseFinding, LicenseReport, LicenseSourceKind};
 pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
