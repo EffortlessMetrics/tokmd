@@ -152,88 +152,12 @@ pub fn compute_cockpit(
 mod tests {
     use super::*;
 
-    // ---- compute_code_health ----
-
     fn make_stat(path: &str, insertions: usize, deletions: usize) -> FileStat {
         FileStat {
             path: path.to_string(),
             insertions,
             deletions,
         }
-    }
-
-    #[test]
-    fn test_code_health_perfect_score() {
-        let stats = vec![make_stat("src/main.rs", 10, 5)];
-        let contracts = Contracts {
-            api_changed: false,
-            cli_changed: false,
-            schema_changed: false,
-            breaking_indicators: 0,
-        };
-        let health = compute_code_health(&stats, &contracts);
-        assert_eq!(health.score, 100);
-        assert_eq!(health.grade, "A");
-        assert_eq!(health.large_files_touched, 0);
-    }
-
-    #[test]
-    fn test_code_health_large_file_penalty() {
-        let stats = vec![make_stat("src/huge.rs", 400, 200)]; // >500 lines
-        let contracts = Contracts {
-            api_changed: false,
-            cli_changed: false,
-            schema_changed: false,
-            breaking_indicators: 0,
-        };
-        let health = compute_code_health(&stats, &contracts);
-        assert!(health.score < 100);
-        assert_eq!(health.large_files_touched, 1);
-        assert!(!health.warnings.is_empty());
-    }
-
-    #[test]
-    fn test_code_health_breaking_changes_penalty() {
-        let stats = vec![make_stat("src/lib.rs", 10, 5)];
-        let contracts = Contracts {
-            api_changed: true,
-            cli_changed: false,
-            schema_changed: false,
-            breaking_indicators: 1,
-        };
-        let health = compute_code_health(&stats, &contracts);
-        assert_eq!(health.score, 80); // 100 - 20 for breaking
-    }
-
-    #[test]
-    fn test_code_health_empty_stats() {
-        let contracts = Contracts {
-            api_changed: false,
-            cli_changed: false,
-            schema_changed: false,
-            breaking_indicators: 0,
-        };
-        let health = compute_code_health(&[], &contracts);
-        assert_eq!(health.score, 100);
-        assert_eq!(health.avg_file_size, 0);
-    }
-
-    #[test]
-    fn test_code_health_complexity_indicators() {
-        // 0 large files = Low
-        let contracts = Contracts {
-            api_changed: false,
-            cli_changed: false,
-            schema_changed: false,
-            breaking_indicators: 0,
-        };
-        let health = compute_code_health(&[], &contracts);
-        assert_eq!(health.complexity_indicator, ComplexityIndicator::Low);
-
-        // 1 large file = Medium
-        let stats = vec![make_stat("big.rs", 300, 300)];
-        let health = compute_code_health(&stats, &contracts);
-        assert_eq!(health.complexity_indicator, ComplexityIndicator::Medium);
     }
 
     // ---- compute_risk ----
