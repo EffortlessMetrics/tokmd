@@ -1,0 +1,6 @@
+{
+  "outcome": "learning PR",
+  "learning_type": "workflow-collision",
+  "surface_investigated": "governance-release",
+  "reason": "Original PR was declined as duplicate provenance because main already contains findings of the governance-release zero-drift state. Aborting redundant effort."
+}

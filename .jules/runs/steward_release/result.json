@@ -1,6 +1,0 @@
-{
-  "outcome": "learning PR",
-  "learning_type": "surface-hygienic",
-  "surface_investigated": "governance-release",
-  "reason": "All targeted checks (version consistency, publish plan, docs checks, cargo deny, and xtask tests) passed successfully. The workspace release state and governance surfaces are fully consistent and hygienic. No actionable drift was found."
-}

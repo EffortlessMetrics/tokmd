@@ -1,5 +1,5 @@
 {
-  "prompt_id": "steward_release",
+  "prompt_id": "steward_release_collision",
   "persona": "Steward",
   "style": "Stabilizer",
   "primary_shard": "tooling-governance",
@@ -12,10 +12,6 @@
     "Cargo.toml",
     "Cargo.lock"
   ],
-  "adjacent_paths": [
-    "crates/**/Cargo.toml",
-    ".cargo/**"
-  ],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+  "allowed_outcomes": ["learning PR"]
 }
