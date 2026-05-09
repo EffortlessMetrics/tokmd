@@ -56,8 +56,6 @@ pub use review_plan::generate_review_plan;
 pub use risk::compute_risk;
 #[cfg(feature = "git")]
 use risk::compute_risk_owned;
-#[cfg(all(test, feature = "git"))]
-use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 pub use trend::{compute_complexity_trend, compute_metric_trend, load_and_compute_trend};
 // Re-export types from tokmd_types::cockpit for convenience
 pub use tokmd_types::cockpit::*;
@@ -146,71 +144,4 @@ pub fn compute_cockpit(
         review_plan,
         trend: None, // Populated by caller if --baseline is provided
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[cfg(feature = "git")]
-    fn test_rust_complexity_ignores_decisions_in_strings_and_comments() {
-        let analysis = analyze_rust_function_complexity(
-            r###"
-fn only_real_branch(flag: bool) {
-    let _normal = "if while for loop match && || ? => { }";
-    let _raw = r##"if while for loop match && || ? => { }"##;
-    let _char = '?';
-    /* if outer /* while nested */ match ignored => */
-    if flag {
-        println!("ok"); // else if ignored && ||
-    }
-}
-"###,
-        );
-
-        assert_eq!(analysis.function_count, 1);
-        assert_eq!(analysis.total_complexity, 2);
-        assert_eq!(analysis.max_complexity, 2);
-    }
-
-    #[test]
-    #[cfg(feature = "git")]
-    fn test_rust_complexity_counts_code_before_trailing_comment() {
-        let analysis = analyze_rust_function_complexity(
-            r#"
-fn branch_before_comment(flag: bool) {
-    if flag { return; } // if ignored && ||
-}
-"#,
-        );
-
-        assert_eq!(analysis.function_count, 1);
-        assert_eq!(analysis.total_complexity, 2);
-        assert_eq!(analysis.max_complexity, 2);
-    }
-
-    #[test]
-    #[cfg(feature = "git")]
-    fn test_rust_complexity_counts_else_if_once() {
-        let analysis = analyze_rust_function_complexity(
-            r#"
-fn branchy(x: i32) -> i32 {
-    if x > 0 {
-        1
-    } else if x < 0 {
-        -1
-    } else if x == 0 {
-        0
-    } else {
-        42
-    }
-}
-"#,
-        );
-
-        assert_eq!(analysis.function_count, 1);
-        assert_eq!(analysis.total_complexity, 4);
-        assert_eq!(analysis.max_complexity, 4);
-    }
 }

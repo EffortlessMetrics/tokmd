@@ -344,6 +344,21 @@ fn only_real_branch(flag: bool) {
     }
 
     #[test]
+    fn rust_complexity_counts_code_before_trailing_comment() {
+        let analysis = analyze_rust_function_complexity(
+            r#"
+fn branch_before_comment(flag: bool) {
+    if flag { return; } // if ignored && ||
+}
+"#,
+        );
+
+        assert_eq!(analysis.function_count, 1);
+        assert_eq!(analysis.total_complexity, 2);
+        assert_eq!(analysis.max_complexity, 2);
+    }
+
+    #[test]
     fn rust_complexity_counts_match_arms() {
         let analysis = analyze_rust_function_complexity(
             r#"
