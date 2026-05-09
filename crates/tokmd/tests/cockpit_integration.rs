@@ -182,8 +182,12 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     let Some(dir) = basic_cockpit_repo() else {
         return;
     };
-    let proof_json =
-        PROOF_RUN_OBSERVATION_JSON.replace("\"head\": \"abc123\"", "\"head\": \"HEAD\"");
+    let proof_json = PROOF_RUN_OBSERVATION_JSON
+        .replace("\"head\": \"abc123\"", "\"head\": \"HEAD\"")
+        .replace(
+            "\"changed_files\": [\"crates/tokmd-cockpit/src/lib.rs\"]",
+            "\"changed_files\": [\"new.rs\"]",
+        );
     std::fs::write(dir.path().join("proof-run-observation.json"), proof_json).unwrap();
     let baseline_packet_dir = dir.path().join(".tokmd").join("review-baseline");
     let packet_dir = dir.path().join(".tokmd").join("review");
@@ -280,6 +284,42 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
         proof_artifact["hash"]["hash"].as_str().expect("proof hash"),
         blake3::hash(&copied_bytes).to_hex().as_str(),
         "manifest hash should match copied proof artifact bytes"
+    );
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("review-map.json")).unwrap())
+            .expect("valid review map JSON");
+    assert_validates_against_schema(
+        REVIEW_MAP_SCHEMA_JSON,
+        &review_map,
+        "review map with proof refs",
+    );
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .expect("review-map evidence refs")
+            .iter()
+            .any(|reference| reference == "evidence.json#/proof"),
+        "review map should expose packet-level proof evidence refs"
+    );
+    let item = review_map["items"]
+        .as_array()
+        .expect("review-map items")
+        .iter()
+        .find(|item| item["path"] == "new.rs")
+        .expect("new.rs review item");
+    let proof_refs = item["proof_refs"].as_array().expect("proof refs array");
+    assert!(
+        proof_refs
+            .iter()
+            .any(|reference| reference == "evidence.json#/proof/0"),
+        "review item should link to normalized proof evidence"
+    );
+    assert!(
+        proof_refs
+            .iter()
+            .any(|reference| reference == "proof/proof-run-observation.json#/scopes/0"),
+        "review item should link to packet-local proof artifact"
     );
 }
 

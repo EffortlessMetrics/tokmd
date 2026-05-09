@@ -163,6 +163,15 @@ impl ProofEvidenceArtifact {
             Self::CoverageReceipt(artifact) => Some(&artifact.sha),
         }
     }
+
+    pub(crate) fn changed_files(&self) -> &[String] {
+        match self {
+            Self::ProofRunSummary(artifact) => &artifact.changed_files,
+            Self::ProofRunObservation(artifact) => &artifact.changed_files,
+            Self::ProofExecutorObservation(artifact) => &artifact.changed_files,
+            Self::CoverageReceipt(_) => &[],
+        }
+    }
 }
 
 pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {

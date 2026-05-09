@@ -155,6 +155,10 @@
           "minItems": 1,
           "items": { "type": "string", "minLength": 1 }
         },
+        "proof_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
         "evidence": { "$ref": "#/definitions/reviewMapItemEvidence" },
         "reproduce": {
           "type": "array",

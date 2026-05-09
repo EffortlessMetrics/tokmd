@@ -889,6 +889,13 @@ fn scenario_write_review_packet_creates_contract_files() {
         review_map["items"][0]["evidence"]["missing"][0],
         "diff_coverage"
     );
+    assert!(
+        review_map["items"][0]["proof_refs"]
+            .as_array()
+            .unwrap()
+            .is_empty(),
+        "review-map item proof refs should stay empty when no proof evidence is imported"
+    );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
@@ -923,7 +930,23 @@ fn scenario_write_review_packet_creates_contract_files() {
 #[test]
 fn scenario_write_review_packet_includes_imported_proof_evidence() {
     let dir = tempfile::tempdir().unwrap();
-    let receipt = minimal_receipt();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![
+        ReviewItem {
+            path: "crates/tokmd-cockpit/src/lib.rs".to_string(),
+            reason: "Cockpit proof-aware review packet changed".to_string(),
+            priority: 1,
+            complexity: Some(3),
+            lines_changed: Some(12),
+        },
+        ReviewItem {
+            path: "unrelated.rs".to_string(),
+            reason: "Unrelated changed file".to_string(),
+            priority: 3,
+            complexity: None,
+            lines_changed: Some(1),
+        },
+    ];
     let out = dir.path().join("review");
     let proof = tokmd_cockpit::parse_proof_evidence_input(
         r#"{
@@ -1013,6 +1036,33 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
                 && artifact["media_type"] == "application/json"
         }),
         "manifest should list copied proof artifact"
+    );
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    let items = review_map["items"].as_array().expect("review-map items");
+    assert_eq!(items.len(), 2);
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reference| reference == "evidence.json#/proof"),
+        "packet-level review-map evidence refs should link to imported proof evidence"
+    );
+    assert_eq!(items[0]["path"], "crates/tokmd-cockpit/src/lib.rs");
+    assert_eq!(
+        items[0]["proof_refs"][0], "evidence.json#/proof/0",
+        "matching review item should link to normalized proof evidence"
+    );
+    assert_eq!(
+        items[0]["proof_refs"][1], "proof/proof-run-observation.json#/scopes/0",
+        "matching review item should link to packet-local source proof artifact"
+    );
+    assert!(
+        items[1]["proof_refs"].as_array().unwrap().is_empty(),
+        "unrelated review item must not inherit proof refs"
     );
 }
 

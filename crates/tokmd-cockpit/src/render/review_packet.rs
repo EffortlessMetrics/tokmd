@@ -41,7 +41,8 @@ pub fn write_review_packet_with_proof_evidence(
     let cockpit_json = render_json(receipt)?;
     let evidence_json =
         serde_json::to_string_pretty(&review_packet_evidence(receipt, &packet_proof_inputs))?;
-    let review_map_json = serde_json::to_string_pretty(&review_packet_review_map(receipt))?;
+    let review_map_json =
+        serde_json::to_string_pretty(&review_packet_review_map(receipt, &packet_proof_inputs))?;
     let review_map_md = render_review_map_md(receipt);
     let comment_md = render_review_packet_comment_md(receipt);
 
