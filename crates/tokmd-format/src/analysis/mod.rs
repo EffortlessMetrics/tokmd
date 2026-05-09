@@ -37,6 +37,7 @@ use tokmd_types::AnalysisFormat;
 pub mod html;
 mod markdown;
 mod mermaid;
+mod svg;
 
 pub enum RenderedOutput {
     Text(String),
@@ -49,7 +50,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Json => Ok(RenderedOutput::Text(serde_json::to_string_pretty(receipt)?)),
         AnalysisFormat::Jsonld => Ok(RenderedOutput::Text(render_jsonld(receipt))),
         AnalysisFormat::Xml => Ok(RenderedOutput::Text(render_xml(receipt))),
-        AnalysisFormat::Svg => Ok(RenderedOutput::Text(render_svg(receipt))),
+        AnalysisFormat::Svg => Ok(RenderedOutput::Text(svg::render(receipt))),
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
         AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
         AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
@@ -106,35 +107,6 @@ fn render_xml(receipt: &AnalysisReceipt) -> String {
     }
     out.push_str("</analysis>");
     out
-}
-
-fn render_svg(receipt: &AnalysisReceipt) -> String {
-    let (label, value) = if let Some(derived) = &receipt.derived {
-        if let Some(ctx) = &derived.context_window {
-            ("context".to_string(), format!("{:.1}%", ctx.pct * 100.0))
-        } else {
-            ("tokens".to_string(), derived.totals.tokens.to_string())
-        }
-    } else {
-        ("tokens".to_string(), "0".to_string())
-    };
-
-    let width = 240;
-    let height = 32;
-    let label_width = 80;
-    let value_width = width - label_width;
-    format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" role=\"img\"><rect width=\"{label_width}\" height=\"{height}\" fill=\"#555\"/><rect x=\"{label_width}\" width=\"{value_width}\" height=\"{height}\" fill=\"#4c9aff\"/><text x=\"{lx}\" y=\"{ty}\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"12\" text-anchor=\"middle\">{label}</text><text x=\"{vx}\" y=\"{ty}\" fill=\"#fff\" font-family=\"Verdana\" font-size=\"12\" text-anchor=\"middle\">{value}</text></svg>",
-        width = width,
-        height = height,
-        label_width = label_width,
-        value_width = value_width,
-        lx = label_width / 2,
-        vx = label_width + value_width / 2,
-        ty = 20,
-        label = label,
-        value = value
-    )
 }
 
 fn render_tree(receipt: &AnalysisReceipt) -> String {
@@ -500,7 +472,7 @@ mod tests {
     fn test_render_svg() {
         let mut receipt = minimal_receipt();
         receipt.derived = Some(sample_derived());
-        let result = render_svg(&receipt);
+        let result = svg::render(&receipt);
         assert!(result.contains("<svg"));
         assert!(result.contains("</svg>"));
         assert!(result.contains("context")); // has context_window
@@ -514,7 +486,7 @@ mod tests {
         let mut derived = sample_derived();
         derived.context_window = None;
         receipt.derived = Some(derived);
-        let result = render_svg(&receipt);
+        let result = svg::render(&receipt);
         assert!(result.contains("tokens"));
         assert!(result.contains("2500")); // total tokens
     }
@@ -523,7 +495,7 @@ mod tests {
     #[test]
     fn test_render_svg_no_derived() {
         let receipt = minimal_receipt();
-        let result = render_svg(&receipt);
+        let result = svg::render(&receipt);
         assert!(result.contains("tokens"));
         assert!(result.contains(">0<")); // default 0 value
     }
@@ -532,7 +504,7 @@ mod tests {
     #[test]
     fn test_render_svg_dimensions() {
         let receipt = minimal_receipt();
-        let result = render_svg(&receipt);
+        let result = svg::render(&receipt);
         // width=240, label_width=80, value_width should be 160
         assert!(result.contains("width=\"160\"")); // value_width = 240 - 80
     }
