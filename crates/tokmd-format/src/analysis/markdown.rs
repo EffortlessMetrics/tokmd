@@ -20,6 +20,7 @@ use std::fmt::Write;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 
 mod api_surface;
+mod archetype;
 mod assets;
 mod complexity;
 mod corporate_fingerprint;
@@ -49,12 +50,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(archetype) = &receipt.archetype {
-        out.push_str("## Archetype\n\n");
-        let _ = writeln!(out, "- Kind: `{}`", archetype.kind);
-        if !archetype.evidence.is_empty() {
-            let _ = writeln!(out, "- Evidence: `{}`", archetype.evidence.join("`, `"));
-        }
-        out.push('\n');
+        archetype::render_archetype(&mut out, archetype);
     }
 
     if let Some(topics) = &receipt.topics {
