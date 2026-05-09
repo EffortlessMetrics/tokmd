@@ -22,6 +22,7 @@ use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 mod api_surface;
 mod assets;
 mod complexity;
+mod dependencies;
 mod duplicates;
 mod effort;
 mod git;
@@ -406,16 +407,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(deps) = &receipt.deps {
-        out.push_str("## Dependencies\n\n");
-        let _ = writeln!(out, "- Total: `{}`\n", deps.total);
-        if !deps.lockfiles.is_empty() {
-            out.push_str("|Lockfile|Kind|Dependencies|\n");
-            out.push_str("|---|---|---:|\n");
-            for row in &deps.lockfiles {
-                let _ = writeln!(out, "|{}|{}|{}|", row.path, row.kind, row.dependencies);
-            }
-            out.push('\n');
-        }
+        dependencies::render_dependency_report(&mut out, deps);
     }
 
     if let Some(git) = &receipt.git {
