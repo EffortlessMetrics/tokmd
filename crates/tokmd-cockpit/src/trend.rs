@@ -144,3 +144,57 @@ pub fn compute_complexity_trend(
         avg_cognitive_delta: None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tokmd_types::cockpit::TrendDirection;
+
+    use super::compute_metric_trend;
+
+    #[test]
+    fn test_metric_trend_improving_higher_is_better() {
+        let trend = compute_metric_trend(90.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Improving);
+        assert_eq!(trend.delta, 10.0);
+        assert!(trend.delta_pct > 0.0);
+    }
+
+    #[test]
+    fn test_metric_trend_degrading_higher_is_better() {
+        let trend = compute_metric_trend(70.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Degrading);
+        assert_eq!(trend.delta, -10.0);
+    }
+
+    #[test]
+    fn test_metric_trend_stable() {
+        let trend = compute_metric_trend(80.0, 80.0, true);
+        assert_eq!(trend.direction, TrendDirection::Stable);
+    }
+
+    #[test]
+    fn test_metric_trend_improving_lower_is_better() {
+        // Risk: lower is better
+        let trend = compute_metric_trend(30.0, 50.0, false);
+        assert_eq!(trend.direction, TrendDirection::Improving);
+    }
+
+    #[test]
+    fn test_metric_trend_degrading_lower_is_better() {
+        let trend = compute_metric_trend(50.0, 30.0, false);
+        assert_eq!(trend.direction, TrendDirection::Degrading);
+    }
+
+    #[test]
+    fn test_metric_trend_from_zero() {
+        let trend = compute_metric_trend(10.0, 0.0, true);
+        assert_eq!(trend.delta_pct, 100.0);
+    }
+
+    #[test]
+    fn test_metric_trend_both_zero() {
+        let trend = compute_metric_trend(0.0, 0.0, true);
+        assert_eq!(trend.delta_pct, 0.0);
+        assert_eq!(trend.direction, TrendDirection::Stable);
+    }
+}
