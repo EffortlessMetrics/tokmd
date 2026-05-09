@@ -164,6 +164,9 @@ architecture-consolidation program.
 - Hosted review-packet comments now show verifier status, manifest hash status,
   and compact proof evidence counts while keeping packet-local `comment.md`
   immutable after manifest hashing.
+- `docs/cockpit-proof-evidence.md` now includes the maintainer-facing local
+  workflow for planning proof, optionally executing guarded required proof,
+  importing proof artifacts, and verifying the review packet.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and

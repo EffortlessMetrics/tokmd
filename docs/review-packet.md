@@ -131,6 +131,10 @@ items in `evidence.json`. Packet imports preserve required/advisory
 classification and commit freshness, and must not promote advisory proof into
 blocking evidence.
 
+For a complete local workflow that plans proof, optionally executes guarded
+required proof, imports proof artifacts, and verifies the packet, see the
+[`cockpit-proof-evidence.md` local review workflow](cockpit-proof-evidence.md#local-review-workflow).
+
 ## Manifest Requirements
 
 `manifest.json` should use schema `tokmd.review_packet_manifest.v1` and include:
@@ -246,3 +250,4 @@ that uses this packet.
 - Proof evidence imports preserve required/advisory status, mark stale or
   unknown-commit evidence explicitly, and list packet-local proof artifact
   copies in `manifest.json`.
+- Local proof-aware review workflow is documented with packet verification.

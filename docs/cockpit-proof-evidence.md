@@ -52,6 +52,68 @@ missing, malformed, or does not match the flag's expected artifact family,
 cockpit fails before rendering. Passive discovery can later record degraded
 evidence state instead of failing.
 
+## Local Review Workflow
+
+Use this workflow when you want a proof-aware packet for a local branch or a
+pull request checkout. The first command shows what proof would run without
+executing anything:
+
+```bash
+cargo xtask proof \
+  --profile affected \
+  --base origin/main \
+  --head HEAD \
+  --plan
+```
+
+When you intentionally want to execute required proof locally, use the explicit
+guard and then derive the compact observation artifact:
+
+```bash
+cargo xtask proof \
+  --profile fast \
+  --base origin/main \
+  --head HEAD \
+  --run-required \
+  --allow-local-required-execution \
+  --proof-run-summary target/proof-run/proof-run-summary.json \
+  --summary-md target/proof-run/proof-run-summary.md
+
+cargo xtask proof-run-observation \
+  --proof-run-summary target/proof-run/proof-run-summary.json \
+  --output target/proof-run/proof-run-observation.json
+```
+
+Then import the proof artifacts while writing the review packet:
+
+```bash
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --proof-run-summary target/proof-run/proof-run-summary.json \
+  --proof-observation target/proof-run/proof-run-observation.json \
+  --review-packet-dir .tokmd/review
+
+cargo xtask review-packet-check \
+  --dir .tokmd/review \
+  --json target/tokmd/review-packet-check.json
+```
+
+When advisory executor or coverage receipts exist, pass them too:
+
+```bash
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --executor-observation target/proof/proof-executor-observation.json \
+  --coverage-receipt target/coverage/coverage-receipt.json \
+  --review-packet-dir .tokmd/review
+```
+
+The packet remains advisory by default. Imported proof changes evidence
+visibility; it does not promote coverage, mutation, Codecov, or fast proof into
+required gates.
+
 ## Normalized Evidence Model
 
 Cockpit should normalize imported proof artifacts into a small internal evidence
