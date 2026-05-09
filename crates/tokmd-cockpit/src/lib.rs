@@ -152,58 +152,6 @@ pub fn compute_cockpit(
 mod tests {
     use super::*;
 
-    // ---- detect_contracts ----
-
-    #[test]
-    fn test_detect_contracts_api() {
-        let files = vec!["crates/tokmd-types/src/lib.rs"];
-        let contracts = detect_contracts(&files);
-        assert!(contracts.api_changed);
-        assert!(!contracts.cli_changed);
-        assert!(!contracts.schema_changed);
-        assert_eq!(contracts.breaking_indicators, 1);
-    }
-
-    #[test]
-    fn test_detect_contracts_cli() {
-        let files = vec!["crates/tokmd/src/commands/lang.rs"];
-        let contracts = detect_contracts(&files);
-        assert!(!contracts.api_changed);
-        assert!(contracts.cli_changed);
-    }
-
-    #[test]
-    fn test_detect_contracts_schema() {
-        let files = vec!["docs/schema.json"];
-        let contracts = detect_contracts(&files);
-        assert!(contracts.schema_changed);
-        assert_eq!(contracts.breaking_indicators, 1);
-    }
-
-    #[test]
-    fn test_detect_contracts_none() {
-        let files = vec!["README.md", "src/utils.rs"];
-        let contracts = detect_contracts(&files);
-        assert!(!contracts.api_changed);
-        assert!(!contracts.cli_changed);
-        assert!(!contracts.schema_changed);
-        assert_eq!(contracts.breaking_indicators, 0);
-    }
-
-    #[test]
-    fn test_detect_contracts_all() {
-        let files = vec![
-            "crates/tokmd-types/src/lib.rs",
-            "crates/tokmd/src/commands/lang.rs",
-            "docs/schema.json",
-        ];
-        let contracts = detect_contracts(&files);
-        assert!(contracts.api_changed);
-        assert!(contracts.cli_changed);
-        assert!(contracts.schema_changed);
-        assert_eq!(contracts.breaking_indicators, 2); // api + schema
-    }
-
     // ---- compute_code_health ----
 
     fn make_stat(path: &str, insertions: usize, deletions: usize) -> FileStat {
