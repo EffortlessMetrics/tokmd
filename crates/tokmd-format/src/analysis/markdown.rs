@@ -25,6 +25,7 @@ mod complexity;
 mod dependencies;
 mod duplicates;
 mod effort;
+mod entropy;
 mod git;
 mod imports;
 
@@ -83,25 +84,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(entropy) = &receipt.entropy {
-        out.push_str("## Entropy profiling\n\n");
-        if entropy.suspects.is_empty() {
-            out.push_str("- No entropy outliers detected.\n\n");
-        } else {
-            out.push_str("|Path|Module|Entropy|Sample bytes|Class|\n");
-            out.push_str("|---|---|---:|---:|---|\n");
-            for row in entropy.suspects.iter().take(10) {
-                let _ = writeln!(
-                    out,
-                    "|{}|{}|{}|{}|{:?}|",
-                    row.path,
-                    row.module,
-                    fmt_f64(row.entropy_bits_per_byte as f64, 2),
-                    row.sample_bytes,
-                    row.class
-                );
-            }
-            out.push('\n');
-        }
+        entropy::render_entropy_report(&mut out, entropy);
     }
 
     if let Some(license) = &receipt.license {
