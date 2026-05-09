@@ -1,0 +1,5 @@
+{
+  "summary": "Aborted `env_interpreter_token` mutant patch as it was superseded by #1905. Recorded learning PR instead.",
+  "outcome": "learning-pr",
+  "affected_files": []
+}
