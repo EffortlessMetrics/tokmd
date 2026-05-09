@@ -19,6 +19,7 @@
 use std::fmt::Write;
 use tokmd_analysis_types::{AnalysisReceipt, FileStatRow};
 
+mod complexity;
 mod duplicates;
 mod effort;
 mod git;
@@ -464,45 +465,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(cx) = &receipt.complexity {
-        out.push_str("## Complexity\n\n");
-        out.push_str("|Metric|Value|\n");
-        out.push_str("|---|---:|\n");
-        let _ = writeln!(out, "|Total functions|{}|", cx.total_functions);
-        let _ = writeln!(
-            out,
-            "|Avg function length|{}|",
-            fmt_f64(cx.avg_function_length, 1)
-        );
-        let _ = writeln!(out, "|Max function length|{}|", cx.max_function_length);
-        let _ = writeln!(out, "|Avg cyclomatic|{}|", fmt_f64(cx.avg_cyclomatic, 2));
-        let _ = writeln!(out, "|Max cyclomatic|{}|", cx.max_cyclomatic);
-        if let Some(cog) = cx.avg_cognitive {
-            let _ = writeln!(out, "|Avg cognitive|{}|", fmt_f64(cog, 2));
-        }
-        if let Some(cog) = cx.max_cognitive {
-            let _ = writeln!(out, "|Max cognitive|{}|", cog);
-        }
-        if let Some(avg_nesting) = cx.avg_nesting_depth {
-            let _ = writeln!(out, "|Avg nesting depth|{}|", fmt_f64(avg_nesting, 2));
-        }
-        if let Some(max_nesting) = cx.max_nesting_depth {
-            let _ = writeln!(out, "|Max nesting depth|{}|", max_nesting);
-        }
-        let _ = writeln!(out, "|High risk files|{}|\n", cx.high_risk_files);
-
-        if !cx.files.is_empty() {
-            out.push_str("### Top complex files\n\n");
-            out.push_str("|Path|CC|Functions|Max fn length|\n");
-            out.push_str("|---|---:|---:|---:|\n");
-            for f in cx.files.iter().take(10) {
-                let _ = writeln!(
-                    out,
-                    "|{}|{}|{}|{}|",
-                    f.path, f.cyclomatic_complexity, f.function_count, f.max_function_length
-                );
-            }
-            out.push('\n');
-        }
+        complexity::render_complexity_report(&mut out, cx);
     }
 
     if let Some(api) = &receipt.api_surface {
