@@ -321,6 +321,14 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
             .any(|reference| reference == "proof/proof-run-observation.json#/scopes/0"),
         "review item should link to packet-local proof artifact"
     );
+
+    let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains(
+        "Required: tokmd_cockpit passed (available, freshness: exact) - cargo test -p tokmd-cockpit"
+    ));
+    assert!(review_map_md.contains("Proof references:"));
+    assert!(review_map_md.contains("evidence.json#/proof/0"));
+    assert!(review_map_md.contains("proof/proof-run-observation.json#/scopes/0"));
 }
 
 #[test]

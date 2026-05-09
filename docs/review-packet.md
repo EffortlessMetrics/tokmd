@@ -66,7 +66,7 @@ state instead of being silently assumed to have passed.
 | `evidence.json` | Evidence availability and gate status. It distinguishes passed evidence from missing, skipped, stale, degraded, or unavailable evidence. |
 | `comment.md` | PR-comment-ready summary. It stays concise and points readers to packet artifacts when hosted by CI. |
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, compact evidence status, evidence references, item-level proof references where imported proof directly matches the item path, and reproduction commands derived from `cockpit.json#/review_plan`. |
-| `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first and which evidence is present or missing. |
+| `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first, which evidence is present or missing, and matching proof evidence lines when imported proof directly names the item path. |
 | `proof/*.json` | Optional packet-local copies of explicitly imported proof artifacts, listed and hash-verified through `manifest.json`. |
 
 Formal JSON Schemas are published with the docs and embedded in the CLI test
@@ -147,8 +147,8 @@ evidence directly lists the item path as a changed file; scope-only or global
 proof stays packet-level until a policy-backed scope matcher exists.
 `review-map.md` is a Markdown rendering of the same ordered items, including a
 "Review First" section, evidence present/missing lines where applicable,
-evidence references, and reproduction commands for artifact browsing and local
-review.
+matching proof evidence, proof references, evidence references, and reproduction
+commands for artifact browsing and local review.
 
 ## Exit Codes
 

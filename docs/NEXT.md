@@ -160,7 +160,9 @@ architecture-consolidation program.
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and
   link direct changed-file matches from `review-map.json` items to
   `evidence.json#/proof/*` plus the copied source proof artifact. Review-map
-  Markdown/comment proof summaries remain future work.
+  Markdown now renders direct changed-file proof matches with required/advisory,
+  execution, availability, freshness, command, and proof-reference lines.
+  Comment proof summaries remain future work.
 - Architecture consolidation now has a current-state batch plan in
   `docs/architecture-consolidation-plan.md`, grounded in the live
   publish-surface verifier, large-file inventory, and `ci/proof.toml` scopes.

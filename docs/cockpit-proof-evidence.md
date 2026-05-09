@@ -4,7 +4,8 @@ Status: partially implemented. `tokmd cockpit` can validate explicitly supplied
 proof artifacts, copy them into the review packet under `proof/`, and attach
 normalized imported proof items to `evidence.json` when `--review-packet-dir`
 is used. `review-map.json` can link matching review items to packet-local
-proof refs. Review-map Markdown and comment proof summaries remain future work.
+proof refs, and `review-map.md` renders matching item-level proof lines.
+Comment proof summaries remain future work.
 
 ## Purpose
 
@@ -146,7 +147,7 @@ The information should be visible in:
 
 - `evidence.json` gate entries and imported proof entries;
 - `review-map.json` item evidence status and `proof_refs`;
-- `review-map.md` proof lines for review-first items;
+- `review-map.md` item proof lines for review-first direct changed-file matches;
 - `comment.md` compact evidence availability text.
 
 Review map output should answer a reviewer-facing question:
@@ -196,5 +197,6 @@ evidence.
 - Attach imported proof entries to `evidence.json`. (done)
 - Copy supplied proof artifacts into packet-local `proof/*.json` files. (done)
 - Attach proof refs to review-map items without duplicating large artifacts. (done for `review-map.json` direct changed-file matches)
+- Render matching proof evidence in `review-map.md` without changing comment output. (done for direct changed-file matches)
 - Keep review packet schemas versioned if output shape changes.
 - Keep proof-control-plane promotion decisions outside cockpit.

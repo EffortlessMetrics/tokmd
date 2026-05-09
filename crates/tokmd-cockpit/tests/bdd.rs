@@ -1064,6 +1064,19 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
         items[1]["proof_refs"].as_array().unwrap().is_empty(),
         "unrelated review item must not inherit proof refs"
     );
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert_eq!(
+        review_map_md.matches("   Proof:").count(),
+        1,
+        "only the matching review item should render imported proof evidence"
+    );
+    assert!(review_map_md.contains(
+        "Required: tokmd_cockpit passed (available, freshness: exact) - cargo test -p tokmd-cockpit"
+    ));
+    assert!(review_map_md.contains("   Proof references:"));
+    assert!(review_map_md.contains("evidence.json#/proof/0"));
+    assert!(review_map_md.contains("proof/proof-run-observation.json#/scopes/0"));
 }
 
 // ===========================================================================

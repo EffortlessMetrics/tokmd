@@ -4,8 +4,11 @@ use std::collections::BTreeSet;
 
 use serde_json::{Value, json};
 
-use crate::proof_evidence::{ProofEvidenceInput, normalize_proof_evidence};
-use crate::{CockpitReceipt, GateMeta, ReviewItem};
+use crate::proof_evidence::{
+    NormalizedProofEvidence, ProofEvidenceAvailability, ProofEvidenceInput, ProofExecutionStatus,
+    normalize_proof_evidence,
+};
+use crate::{CockpitReceipt, CommitMatch, GateMeta, ReviewItem};
 
 use super::evidence::{
     evidence_availability_optional, evidence_counts, review_packet_evidence_capabilities,
@@ -47,7 +50,7 @@ fn review_map_item(
     proof_refs: &[ReviewMapProofRef],
 ) -> Value {
     let evidence = review_map_item_evidence(item, receipt);
-    let proof_refs = review_map_item_proof_refs(item, proof_refs);
+    let proof = review_map_item_proof(item, proof_refs);
 
     json!({
         "rank": idx + 1,
@@ -61,7 +64,7 @@ fn review_map_item(
             format!("cockpit.json#/review_plan/{idx}"),
             "evidence.json#/gates",
         ],
-        "proof_refs": proof_refs,
+        "proof_refs": proof.refs,
         "evidence": {
             "status": evidence.status(),
             "present": evidence.present,
@@ -88,6 +91,7 @@ fn review_map_item(
 struct ReviewMapProofRef {
     changed_files: BTreeSet<String>,
     refs: Vec<String>,
+    line: String,
 }
 
 fn review_map_proof_refs(
@@ -114,10 +118,11 @@ fn review_map_proof_refs(
         for proof in normalized {
             let mut refs = Vec::with_capacity(1 + proof.artifact_refs.len());
             refs.push(format!("evidence.json#/proof/{proof_index}"));
-            refs.extend(proof.artifact_refs);
+            refs.extend(proof.artifact_refs.iter().cloned());
             proof_refs.push(ReviewMapProofRef {
                 changed_files: changed_files.clone(),
                 refs,
+                line: review_map_proof_line(&proof),
             });
             proof_index += 1;
         }
@@ -134,9 +139,19 @@ fn review_map_evidence_refs(has_proof: bool) -> Vec<&'static str> {
     refs
 }
 
-fn review_map_item_proof_refs(item: &ReviewItem, proof_refs: &[ReviewMapProofRef]) -> Vec<String> {
+struct ReviewMapItemProof {
+    lines: Vec<String>,
+    refs: Vec<String>,
+}
+
+fn review_map_item_proof(
+    item: &ReviewItem,
+    proof_refs: &[ReviewMapProofRef],
+) -> ReviewMapItemProof {
     let item_path = normalize_path_for_match(&item.path);
     let mut refs = BTreeSet::new();
+    let mut seen_lines = BTreeSet::new();
+    let mut lines = Vec::new();
 
     for proof_ref in proof_refs {
         if !proof_ref.changed_files.contains(&item_path) {
@@ -144,9 +159,76 @@ fn review_map_item_proof_refs(item: &ReviewItem, proof_refs: &[ReviewMapProofRef
         }
 
         refs.extend(proof_ref.refs.iter().cloned());
+        if seen_lines.insert(proof_ref.line.clone()) {
+            lines.push(proof_ref.line.clone());
+        }
     }
 
-    refs.into_iter().collect()
+    ReviewMapItemProof {
+        lines,
+        refs: refs.into_iter().collect(),
+    }
+}
+
+fn review_map_proof_line(proof: &NormalizedProofEvidence) -> String {
+    let class = if proof.required {
+        "Required"
+    } else {
+        "Advisory"
+    };
+    let scope = proof
+        .scope
+        .as_deref()
+        .unwrap_or_else(|| proof.kind.as_str());
+    let mut line = format!(
+        "{}: {} {} ({}, freshness: {})",
+        class,
+        scope,
+        execution_status_label(proof.execution_status),
+        availability_label(proof.availability),
+        commit_match_label(proof.commit_match),
+    );
+
+    if let Some(command) = proof
+        .command
+        .as_deref()
+        .filter(|command| !command.is_empty())
+    {
+        line.push_str(" - ");
+        line.push_str(command);
+    }
+
+    line
+}
+
+fn execution_status_label(status: ProofExecutionStatus) -> &'static str {
+    match status {
+        ProofExecutionStatus::Planned => "planned",
+        ProofExecutionStatus::ExecutedPassed => "passed",
+        ProofExecutionStatus::ExecutedFailed => "failed",
+        ProofExecutionStatus::NotExecuted => "not run",
+        ProofExecutionStatus::DryRun => "dry run",
+    }
+}
+
+fn availability_label(availability: ProofEvidenceAvailability) -> &'static str {
+    match availability {
+        ProofEvidenceAvailability::Available => "available",
+        ProofEvidenceAvailability::Missing => "missing",
+        ProofEvidenceAvailability::Skipped => "skipped",
+        ProofEvidenceAvailability::Stale => "stale",
+        ProofEvidenceAvailability::Degraded => "degraded",
+        ProofEvidenceAvailability::Unavailable => "unavailable",
+    }
+}
+
+fn commit_match_label(commit_match: CommitMatch) -> &'static str {
+    match commit_match {
+        CommitMatch::Exact => "exact",
+        CommitMatch::Partial => "partial",
+        CommitMatch::Stale => "stale",
+        CommitMatch::Unknown => "unknown",
+    }
 }
 
 fn normalize_path_for_match(path: &str) -> String {
@@ -222,10 +304,14 @@ fn review_priority_label(priority: u32) -> &'static str {
     }
 }
 
-pub(super) fn render_review_map_md(receipt: &CockpitReceipt) -> String {
+pub(super) fn render_review_map_md(
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) -> String {
     use std::fmt::Write;
 
     let mut s = String::new();
+    let proof_refs = review_map_proof_refs(receipt, proof_inputs);
     let _ = writeln!(s, "# Review Map");
     let _ = writeln!(s);
     let _ = writeln!(s, "Base: `{}`", receipt.base_ref);
@@ -255,6 +341,7 @@ pub(super) fn render_review_map_md(receipt: &CockpitReceipt) -> String {
 
     for (idx, item) in receipt.review_plan.iter().enumerate() {
         let evidence = review_map_item_evidence(item, receipt);
+        let proof = review_map_item_proof(item, &proof_refs);
         let _ = writeln!(
             s,
             "{}. `{}`
@@ -280,6 +367,7 @@ pub(super) fn render_review_map_md(receipt: &CockpitReceipt) -> String {
         write_evidence_list(&mut s, "Evidence stale", &evidence.stale);
         write_evidence_list(&mut s, "Evidence skipped", &evidence.skipped);
         write_evidence_list(&mut s, "Evidence unavailable", &evidence.unavailable);
+        write_proof_block(&mut s, &proof);
         let _ = writeln!(s, "   Evidence references:");
         let _ = writeln!(s, "   - cockpit.json#/review_plan/{idx}");
         let _ = writeln!(s, "   - evidence.json#/gates");
@@ -308,4 +396,21 @@ fn write_evidence_list(s: &mut String, label: &str, gates: &[&str]) {
     }
 
     let _ = writeln!(s, "   {label}: {}", gates.join(", "));
+}
+
+fn write_proof_block(s: &mut String, proof: &ReviewMapItemProof) {
+    use std::fmt::Write;
+
+    if proof.lines.is_empty() {
+        return;
+    }
+
+    let _ = writeln!(s, "   Proof:");
+    for line in &proof.lines {
+        let _ = writeln!(s, "   - {line}");
+    }
+    let _ = writeln!(s, "   Proof references:");
+    for reference in &proof.refs {
+        let _ = writeln!(s, "   - {reference}");
+    }
 }
