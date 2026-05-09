@@ -24,6 +24,7 @@ mod complexity;
 mod duplicates;
 mod effort;
 mod git;
+mod imports;
 
 /// Render an [`AnalysisReceipt`] to a Markdown string.
 ///
@@ -449,16 +450,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(imports) = &receipt.imports {
-        out.push_str("## Imports\n\n");
-        let _ = writeln!(out, "- Granularity: `{}`\n", imports.granularity);
-        if !imports.edges.is_empty() {
-            out.push_str("|From|To|Count|\n");
-            out.push_str("|---|---|---:|\n");
-            for row in imports.edges.iter().take(20) {
-                let _ = writeln!(out, "|{}|{}|{}|", row.from, row.to, row.count);
-            }
-            out.push('\n');
-        }
+        imports::render_import_report(&mut out, imports);
     }
 
     if let Some(dup) = &receipt.dup {
