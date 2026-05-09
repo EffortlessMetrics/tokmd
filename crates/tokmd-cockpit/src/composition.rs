@@ -58,3 +58,65 @@ pub fn compute_composition<S: AsRef<str>>(files: &[S]) -> Composition {
         test_ratio,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_composition_mixed_files() {
+        let files = vec![
+            "src/main.rs",
+            "src/lib.rs",
+            "tests/test_main.rs",
+            "README.md",
+            "Cargo.toml",
+        ];
+        let comp = compute_composition(&files);
+        assert!(comp.code_pct > 0.0);
+        assert!(comp.test_pct > 0.0);
+        assert!(comp.docs_pct > 0.0);
+        assert!(comp.config_pct > 0.0);
+    }
+
+    #[test]
+    fn test_composition_empty_input() {
+        let files: Vec<&str> = vec![];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 0.0);
+        assert_eq!(comp.test_pct, 0.0);
+        assert_eq!(comp.test_ratio, 0.0);
+    }
+
+    #[test]
+    fn test_composition_only_code() {
+        let files = vec!["src/main.rs", "src/lib.rs"];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 1.0);
+        assert_eq!(comp.test_pct, 0.0);
+        assert_eq!(comp.test_ratio, 0.0);
+    }
+
+    #[test]
+    fn test_composition_test_ratio() {
+        let files = vec![
+            "src/main.rs",
+            "src/lib.rs",
+            "tests/test_main.rs",
+            "tests/test_lib.rs",
+        ];
+        let comp = compute_composition(&files);
+        // 2 code files, 2 test files -> ratio = 1.0
+        assert_eq!(comp.test_ratio, 1.0);
+    }
+
+    #[test]
+    fn test_composition_only_tests() {
+        let files = vec!["tests/test_main.rs", "tests/test_lib.rs"];
+        let comp = compute_composition(&files);
+        assert_eq!(comp.code_pct, 0.0);
+        assert_eq!(comp.test_pct, 1.0);
+        // No code files, but tests exist -> test_ratio = 1.0
+        assert_eq!(comp.test_ratio, 1.0);
+    }
+}
