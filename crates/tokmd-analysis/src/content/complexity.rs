@@ -40,6 +40,7 @@ mod cognitive;
 mod cyclomatic;
 mod functions;
 mod nesting;
+mod shared;
 
 #[allow(unused_imports)]
 pub use cognitive::{CognitiveComplexity, HighCognitiveFunction, estimate_cognitive_complexity};
@@ -53,48 +54,6 @@ pub use functions::{FunctionMetrics, analyze_functions};
 // though current callers only use `analyze_nesting_depth` directly.
 #[allow(unused_imports)]
 pub use nesting::{NestingAnalysis, analyze_nesting_depth};
-
-/// Get the indentation level (number of leading whitespace characters).
-fn get_indent(line: &str) -> usize {
-    line.len() - line.trim_start().len()
-}
-
-/// Check if line is a comment.
-fn is_comment_line(trimmed: &str, lang: &str) -> bool {
-    match lang {
-        "python" | "py" => trimmed.starts_with('#'),
-        _ => {
-            trimmed.starts_with("//")
-                || trimmed.starts_with("/*")
-                || trimmed.starts_with('*')
-                || trimmed.starts_with("*/")
-        }
-    }
-}
-
-/// Count occurrences of keyword ensuring it's a word boundary.
-fn count_keyword(line: &str, keyword: &str) -> usize {
-    let mut count = 0;
-    let mut pos = 0;
-
-    while let Some(idx) = line[pos..].find(keyword) {
-        let abs_pos = pos + idx;
-        // Check it's at word boundary (not part of larger identifier)
-        let before_ok = abs_pos == 0
-            || !line[..abs_pos]
-                .chars()
-                .last()
-                .map(|c| c.is_alphanumeric() || c == '_')
-                .unwrap_or(false);
-
-        if before_ok {
-            count += 1;
-        }
-        pos = abs_pos + keyword.len();
-    }
-
-    count
-}
 
 #[cfg(test)]
 mod tests {

@@ -3,7 +3,7 @@
 //! This module owns decision-point scoring while sharing function span
 //! detection and low-level source predicates with the parent complexity module.
 
-use super::{count_keyword, functions, is_comment_line};
+use super::{functions, shared::count_keyword, shared::is_comment_line};
 
 /// Result of cyclomatic complexity analysis.
 #[derive(Debug, Clone, PartialEq)]

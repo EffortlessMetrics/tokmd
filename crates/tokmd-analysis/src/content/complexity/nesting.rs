@@ -3,7 +3,7 @@
 //! This module owns brace- and indentation-based nesting depth heuristics used
 //! by the content complexity analyzer.
 
-use super::{get_indent, is_comment_line};
+use super::{shared::get_indent, shared::is_comment_line};
 
 /// Result of nesting depth analysis.
 #[derive(Debug, Clone, PartialEq)]

@@ -6,7 +6,7 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-use super::get_indent;
+use super::shared::get_indent;
 
 /// Metrics about functions in a source file.
 #[derive(Debug, Clone, PartialEq)]
