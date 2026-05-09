@@ -336,7 +336,7 @@ jobs:
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
+        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd target/tokmd/review-packet-check.json
 
       - name: Set up Rust for local review packet binary
         uses: dtolnay/rust-toolchain@stable
@@ -403,11 +403,19 @@ jobs:
           grep -q 'Workflow run:' tokmd-review-packet-comment.md
           grep -q 'Artifact: `tokmd-receipts`' tokmd-review-packet-comment.md
           grep -q 'Packet path: `.tokmd/review`' tokmd-review-packet-comment.md
+          if [ ! -f target/tokmd/review-packet-check.json ]; then
+            echo "::error::review packet verifier receipt not generated"
+            exit 1
+          fi
+          grep -q '"schema": "tokmd.review_packet_check.v1"' target/tokmd/review-packet-check.json
+          grep -q '"ok": true' target/tokmd/review-packet-check.json
+          grep -q '"hashes_verified": 5' target/tokmd/review-packet-check.json
+          grep -q '"path": "comment.md"' target/tokmd/review-packet-check.json
           cargo xtask review-packet-check --dir .tokmd/review
 
       - name: Clean generated files
         shell: bash
-        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd
+        run: rm -rf tokmd-summary.md tokmd-review-packet-comment.md tokmd-receipt.* tokmd-gate-verdict.json tokmd-cockpit-report.json tokmd-sensor-report.json tokmd-baseline.json tokmd.toml comment.md extras .tokmd target/tokmd/review-packet-check.json
 
       - name: Run cockpit mode with inferred pull request base
         id: cockpit_inferred_base

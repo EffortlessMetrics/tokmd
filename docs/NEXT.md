@@ -158,6 +158,9 @@ architecture-consolidation program.
 - `cargo xtask review-packet-check --dir <dir> --json <path>` now emits a
   `tokmd.review_packet_check.v1` verifier receipt with schema, artifact, hash,
   and packet-local path evidence for CI upload or downstream inspection.
+- The composite Action now writes `target/tokmd/review-packet-check.json` for
+  cockpit review packets after preparing the hosted comment copy and uploads it
+  with `tokmd-receipts` when artifact upload is enabled.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and
