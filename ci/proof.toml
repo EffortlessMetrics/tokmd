@@ -272,11 +272,188 @@ coverage = true
 name = "analysis_receipt_types"
 kind = "rust"
 paths = [
-  "crates/tokmd-analysis-types/**",
+  "crates/tokmd-analysis-types/src/lib.rs",
+  "crates/tokmd-analysis-types/src/findings.rs",
+  "crates/tokmd-analysis-types/src/util.rs",
+  "crates/tokmd-analysis-types/tests/**",
   "docs/SCHEMA.md",
 ]
 packages = ["tokmd-analysis-types"]
 proof = ["cargo test -p tokmd-analysis-types --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_api_surface"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/api_surface.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types api_surface --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_archetype"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/archetype.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types archetype --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_args"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/args.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types args --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_assets"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/assets.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types asset --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_baseline"
+kind = "rust"
+paths = [
+  "crates/tokmd-analysis-types/src/baseline.rs",
+  "docs/baseline.schema.json",
+]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types baseline --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_churn"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/churn.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types churn --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_complexity"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/complexity.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types complexity --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_corporate"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/corporate.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types domain --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_dependencies"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/dependencies.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types lockfile --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_derived"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/derived.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types derived --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_duplication"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/duplication.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types dup --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_effort"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/effort.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types effort --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_entropy"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/entropy.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types entropy --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_fun"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/fun.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types fun --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_git"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/git.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types git --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_imports"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/imports.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types import --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_license"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/license.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types license --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_source"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/source.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types source --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "analysis_types_topics"
+kind = "rust"
+paths = ["crates/tokmd-analysis-types/src/topics.rs"]
+packages = ["tokmd-analysis-types"]
+proof = ["cargo test -p tokmd-analysis-types topic --verbose"]
 mutation = true
 coverage = true
 
