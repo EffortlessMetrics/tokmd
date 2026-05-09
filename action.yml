@@ -410,6 +410,34 @@ runs:
 
         echo "comment-file=$comment_file" >> "$GITHUB_OUTPUT"
 
+    - name: Verify Review Packet
+      id: review_packet_check
+      if: steps.generate.outputs['review-packet'] != ''
+      shell: bash
+      env:
+        REVIEW_PACKET_DIR: ${{ steps.generate.outputs['review-packet'] }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+
+        case "$REVIEW_PACKET_DIR" in
+          /*) packet_dir="$REVIEW_PACKET_DIR" ;;
+          *) packet_dir="$GITHUB_WORKSPACE/$REVIEW_PACKET_DIR" ;;
+        esac
+
+        receipt_rel="target/tokmd/review-packet-check.json"
+        receipt_file="$GITHUB_WORKSPACE/$receipt_rel"
+        mkdir -p "$(dirname "$receipt_file")"
+
+        cargo run \
+          --manifest-path "$ACTION_PATH/Cargo.toml" \
+          -p xtask -- \
+          review-packet-check \
+          --dir "$packet_dir" \
+          --json "$receipt_file"
+
+        echo "receipt=$receipt_rel" >> "$GITHUB_OUTPUT"
+
     - name: Upload Artifact
       if: inputs.artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -422,6 +450,7 @@ runs:
           ${{ steps.generate.outputs['cockpit-report'] }}
           ${{ steps.generate.outputs['review-packet'] }}
           ${{ steps.review_packet_comment.outputs['comment-file'] }}
+          ${{ steps.review_packet_check.outputs.receipt }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
           extras/

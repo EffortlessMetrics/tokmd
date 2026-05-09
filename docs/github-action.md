@@ -136,6 +136,11 @@ name, and the packet path. The packet's own `comment.md` remains unchanged so
 `manifest.json` hashes stay valid, while pull request comments still point to
 hosted artifacts.
 
+The Action verifies the packet after preparing the hosted comment copy and
+writes `target/tokmd/review-packet-check.json`. That verifier receipt records
+the checked schemas, packet-local artifact paths, and BLAKE3 hash verification
+counts, and is uploaded with `tokmd-receipts` when artifact upload is enabled.
+
 ### `sensor`
 
 Runs `tokmd sensor --format json` and writes:
@@ -163,6 +168,7 @@ Artifact candidates include:
 - `tokmd-gate-verdict.json`
 - `tokmd-cockpit-report.json`
 - `tokmd-review-packet-comment.md`
+- `target/tokmd/review-packet-check.json`
 - `.tokmd/review`
 - `tokmd-sensor-report.json`
 - `tokmd-baseline.json`
