@@ -16,6 +16,7 @@
 
 mod api_surface;
 mod archetype;
+mod args;
 mod assets;
 mod churn;
 mod complexity;
@@ -39,6 +40,7 @@ use tokmd_types::{ScanStatus, ToolInfo};
 
 pub use api_surface::{ApiExportItem, ApiSurfaceReport, LangApiSurface, ModuleApiRow};
 pub use archetype::Archetype;
+pub use args::AnalysisArgsMeta;
 pub use assets::{AssetCategoryRow, AssetFileRow, AssetReport};
 pub use churn::{ChurnTrend, PredictiveChurnReport, TrendClass};
 pub use complexity::{
@@ -115,20 +117,6 @@ pub struct AnalysisReceipt {
     pub api_surface: Option<ApiSurfaceReport>,
     pub effort: Option<EffortEstimateReport>,
     pub fun: Option<FunReport>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalysisArgsMeta {
-    pub preset: String,
-    pub format: String,
-    pub window_tokens: Option<usize>,
-    pub git: Option<bool>,
-    pub max_files: Option<usize>,
-    pub max_bytes: Option<u64>,
-    pub max_commits: Option<usize>,
-    pub max_commit_files: Option<usize>,
-    pub max_file_bytes: Option<u64>,
-    pub import_granularity: String,
 }
 
 // -------------------
