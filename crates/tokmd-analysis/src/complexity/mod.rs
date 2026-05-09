@@ -13,6 +13,7 @@ use tokmd_analysis_types::{AnalysisLimits, normalize_path};
 
 mod details;
 mod functions;
+mod risk;
 
 use details::extract_function_details;
 #[cfg(test)]
@@ -20,6 +21,7 @@ use details::{detect_fn_spans_c_style, detect_fn_spans_python, detect_fn_spans_r
 use functions::count_functions;
 #[cfg(test)]
 use functions::{count_python_functions, count_rust_functions, is_rust_fn_start};
+use risk::{classify_risk_extended, estimate_cyclomatic};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
@@ -307,102 +309,6 @@ pub(crate) fn generate_complexity_histogram(
         buckets: (0..num_buckets).map(|i| (i as u32) * bucket_size).collect(),
         counts,
         total: files.len() as u32,
-    }
-}
-
-/// Estimate cyclomatic complexity by counting branching keywords.
-fn estimate_cyclomatic(lang: &str, text: &str) -> usize {
-    // Base complexity is 1
-    let mut complexity = 1usize;
-
-    let keywords: &[&str] = match lang.to_lowercase().as_str() {
-        "rust" => &["if ", "match ", "while ", "for ", "loop ", "?", "&&", "||"],
-        "javascript" | "typescript" => {
-            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
-        }
-        "python" => &["if ", "elif ", "while ", "for ", "except ", " and ", " or "],
-        "go" => &["if ", "case ", "for ", "select ", "&&", "||"],
-        "c" | "c++" | "java" | "c#" | "php" => {
-            &["if ", "case ", "while ", "for ", "?", "&&", "||", "catch "]
-        }
-        "ruby" => &[
-            "if ", "elsif ", "unless ", "while ", "until ", "for ", "when ", "rescue ", " and ",
-            " or ",
-        ],
-        _ => &[],
-    };
-
-    let lower = text.to_lowercase();
-    for keyword in keywords {
-        complexity += lower.matches(keyword).count();
-    }
-
-    complexity
-}
-
-/// Classify risk based on complexity metrics including cognitive and nesting.
-fn classify_risk_extended(
-    function_count: usize,
-    max_function_length: usize,
-    cyclomatic: usize,
-    cognitive: Option<usize>,
-    max_nesting: Option<usize>,
-) -> ComplexityRisk {
-    // Risk factors
-    let mut score = 0;
-
-    // Function count risk
-    if function_count > 50 {
-        score += 2;
-    } else if function_count > 20 {
-        score += 1;
-    }
-
-    // Function length risk (long functions are harder to maintain)
-    if max_function_length > 100 {
-        score += 3;
-    } else if max_function_length > 50 {
-        score += 2;
-    } else if max_function_length > 25 {
-        score += 1;
-    }
-
-    // Cyclomatic complexity risk
-    if cyclomatic > 50 {
-        score += 3;
-    } else if cyclomatic > 20 {
-        score += 2;
-    } else if cyclomatic > 10 {
-        score += 1;
-    }
-
-    // Cognitive complexity risk (higher thresholds than cyclomatic)
-    if let Some(cog) = cognitive {
-        if cog > 100 {
-            score += 3;
-        } else if cog > 50 {
-            score += 2;
-        } else if cog > 25 {
-            score += 1;
-        }
-    }
-
-    // Nesting depth risk
-    if let Some(nesting) = max_nesting {
-        if nesting > 8 {
-            score += 3;
-        } else if nesting > 5 {
-            score += 2;
-        } else if nesting > 4 {
-            score += 1;
-        }
-    }
-
-    match score {
-        0..=1 => ComplexityRisk::Low,
-        2..=4 => ComplexityRisk::Moderate,
-        5..=7 => ComplexityRisk::High,
-        _ => ComplexityRisk::Critical,
     }
 }
 
