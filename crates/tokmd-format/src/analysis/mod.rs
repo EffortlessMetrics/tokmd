@@ -36,6 +36,7 @@ use tokmd_types::AnalysisFormat;
 
 pub mod html;
 mod markdown;
+mod mermaid;
 
 pub enum RenderedOutput {
     Text(String),
@@ -49,7 +50,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Jsonld => Ok(RenderedOutput::Text(render_jsonld(receipt))),
         AnalysisFormat::Xml => Ok(RenderedOutput::Text(render_xml(receipt))),
         AnalysisFormat::Svg => Ok(RenderedOutput::Text(render_svg(receipt))),
-        AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(render_mermaid(receipt))),
+        AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
         AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
         AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
         AnalysisFormat::Tree => Ok(RenderedOutput::Text(render_tree(receipt))),
@@ -134,18 +135,6 @@ fn render_svg(receipt: &AnalysisReceipt) -> String {
         label = label,
         value = value
     )
-}
-
-fn render_mermaid(receipt: &AnalysisReceipt) -> String {
-    let mut out = String::from("graph TD\n");
-    if let Some(imports) = &receipt.imports {
-        for edge in imports.edges.iter().take(200) {
-            let from = sanitize_mermaid(&edge.from);
-            let to = sanitize_mermaid(&edge.to);
-            let _ = writeln!(out, "  {} -->|{}| {}", from, edge.count, to);
-        }
-    }
-    out
 }
 
 fn render_tree(receipt: &AnalysisReceipt) -> String {
@@ -240,12 +229,6 @@ fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
     {
         render_midi_disabled(receipt)
     }
-}
-
-fn sanitize_mermaid(name: &str) -> String {
-    name.chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-        .collect()
 }
 
 fn render_html(receipt: &AnalysisReceipt) -> String {
@@ -566,7 +549,7 @@ mod tests {
                 count: 5,
             }],
         });
-        let result = render_mermaid(&receipt);
+        let result = mermaid::render(&receipt);
         assert!(result.starts_with("graph TD\n"));
         assert!(result.contains("src_main -->|5| src_lib"));
     }
@@ -575,7 +558,7 @@ mod tests {
     #[test]
     fn test_render_mermaid_no_imports() {
         let receipt = minimal_receipt();
-        let result = render_mermaid(&receipt);
+        let result = mermaid::render(&receipt);
         assert_eq!(result, "graph TD\n");
     }
 
