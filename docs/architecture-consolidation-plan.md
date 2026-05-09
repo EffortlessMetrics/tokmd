@@ -146,10 +146,27 @@ Target modules:
 
 ```text
 crates/tokmd-analysis-types/src/
-  lib.rs
-  receipt.rs
-  metrics.rs
+  lib.rs                  # root re-exports and receipt envelope
+  api_surface.rs
+  archetype.rs
+  args.rs
+  assets.rs
+  baseline.rs
+  churn.rs
+  complexity.rs
+  corporate.rs
+  dependencies.rs
+  derived.rs
+  duplication.rs
+  effort.rs
+  entropy.rs
   findings.rs
+  fun.rs
+  git.rs
+  imports.rs
+  license.rs
+  source.rs
+  topics.rs
   util.rs
 
 crates/tokmd-analysis/src/
@@ -168,8 +185,8 @@ cargo test -p tokmd-analysis --all-features content --verbose
 cargo test -p tokmd-types schema --verbose
 ```
 
-Relevant proof scopes: `analysis_receipt_types`, `analysis_complexity`,
-`analysis_content_assets`, `analysis_halstead`, and
+Relevant proof scopes: `analysis_receipt_types`, `analysis_types_*`,
+`analysis_complexity`, `analysis_content_assets`, `analysis_halstead`, and
 `analysis_maintainability`.
 
 ### Batch D: Core Facade and Binding Boundaries
