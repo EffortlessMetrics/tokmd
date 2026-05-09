@@ -9,21 +9,20 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
-use serde_json::Value;
+use anyhow::Result;
 use tokmd_types::cockpit::CommitMatch;
 
+mod artifacts;
 mod inputs;
 
-use inputs::{
-    CoverageReceiptInput, ProofExecutorObservationInput, ProofRunEntryInput,
-    ProofRunObservationInput, ProofRunSummaryInput,
+pub(crate) use artifacts::ProofEvidenceArtifact;
+use artifacts::parse_proof_evidence_json;
+#[cfg(test)]
+use artifacts::{
+    COVERAGE_RECEIPT_SCHEMA, PROOF_EXECUTOR_OBSERVATION_SCHEMA, PROOF_RUN_OBSERVATION_SCHEMA,
+    PROOF_RUN_SUMMARY_SCHEMA,
 };
-
-const PROOF_RUN_SUMMARY_SCHEMA: &str = "tokmd.proof_run_summary.v1";
-const PROOF_RUN_OBSERVATION_SCHEMA: &str = "tokmd.proof_run_observation.v1";
-const PROOF_EXECUTOR_OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
-const COVERAGE_RECEIPT_SCHEMA: &str = "tokmd.coverage_receipt.v1";
+use inputs::{CoverageReceiptInput, ProofRunEntryInput};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProofEvidenceKind {
@@ -114,14 +113,6 @@ pub(crate) struct NormalizedProofEvidence {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProofEvidenceArtifact {
-    ProofRunSummary(ProofRunSummaryInput),
-    ProofRunObservation(ProofRunObservationInput),
-    ProofExecutorObservation(ProofExecutorObservationInput),
-    CoverageReceipt(CoverageReceiptInput),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProofEvidenceInput {
     pub source_path: PathBuf,
     pub artifact: ProofEvidenceArtifact,
@@ -130,53 +121,6 @@ pub struct ProofEvidenceInput {
 impl ProofEvidenceInput {
     pub fn kind(&self) -> ProofEvidenceKind {
         self.artifact.kind()
-    }
-}
-
-impl ProofEvidenceArtifact {
-    pub fn kind(&self) -> ProofEvidenceKind {
-        match self {
-            Self::ProofRunSummary(_) => ProofEvidenceKind::ProofRunSummary,
-            Self::ProofRunObservation(_) => ProofEvidenceKind::ProofRunObservation,
-            Self::ProofExecutorObservation(_) => ProofEvidenceKind::ProofExecutorObservation,
-            Self::CoverageReceipt(_) => ProofEvidenceKind::CoverageReceipt,
-        }
-    }
-
-    pub fn schema(&self) -> &str {
-        match self {
-            Self::ProofRunSummary(artifact) => &artifact.schema,
-            Self::ProofRunObservation(artifact) => &artifact.schema,
-            Self::ProofExecutorObservation(artifact) => &artifact.schema,
-            Self::CoverageReceipt(artifact) => &artifact.schema,
-        }
-    }
-
-    pub fn profile(&self) -> Option<&str> {
-        match self {
-            Self::ProofRunSummary(artifact) => Some(&artifact.profile),
-            Self::ProofRunObservation(artifact) => Some(&artifact.profile),
-            Self::ProofExecutorObservation(artifact) => Some(&artifact.profile),
-            Self::CoverageReceipt(_) => None,
-        }
-    }
-
-    pub fn head(&self) -> Option<&str> {
-        match self {
-            Self::ProofRunSummary(artifact) => Some(&artifact.head),
-            Self::ProofRunObservation(artifact) => Some(&artifact.head),
-            Self::ProofExecutorObservation(artifact) => Some(&artifact.head),
-            Self::CoverageReceipt(artifact) => Some(&artifact.sha),
-        }
-    }
-
-    pub(crate) fn changed_files(&self) -> &[String] {
-        match self {
-            Self::ProofRunSummary(artifact) => &artifact.changed_files,
-            Self::ProofRunObservation(artifact) => &artifact.changed_files,
-            Self::ProofExecutorObservation(artifact) => &artifact.changed_files,
-            Self::CoverageReceipt(_) => &[],
-        }
     }
 }
 
@@ -446,30 +390,6 @@ fn availability_with_commit_match(
 
 fn normalize_path_for_ref(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
-}
-
-pub fn parse_proof_evidence_json(raw: &str) -> Result<ProofEvidenceArtifact> {
-    let value: Value = serde_json::from_str(raw).context("parse proof evidence JSON")?;
-    let schema = value
-        .get("schema")
-        .and_then(Value::as_str)
-        .context("proof evidence artifact missing string schema")?;
-
-    match schema {
-        PROOF_RUN_SUMMARY_SCHEMA => Ok(ProofEvidenceArtifact::ProofRunSummary(
-            serde_json::from_value(value).context("parse proof-run summary evidence")?,
-        )),
-        PROOF_RUN_OBSERVATION_SCHEMA => Ok(ProofEvidenceArtifact::ProofRunObservation(
-            serde_json::from_value(value).context("parse proof-run observation evidence")?,
-        )),
-        PROOF_EXECUTOR_OBSERVATION_SCHEMA => Ok(ProofEvidenceArtifact::ProofExecutorObservation(
-            serde_json::from_value(value).context("parse proof-executor observation evidence")?,
-        )),
-        COVERAGE_RECEIPT_SCHEMA => Ok(ProofEvidenceArtifact::CoverageReceipt(
-            serde_json::from_value(value).context("parse coverage receipt evidence")?,
-        )),
-        _ => bail!("unsupported proof evidence schema `{schema}`"),
-    }
 }
 
 #[cfg(test)]
