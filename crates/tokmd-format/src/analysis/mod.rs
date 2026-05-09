@@ -35,6 +35,7 @@ use tokmd_analysis_types::AnalysisReceipt;
 use tokmd_types::AnalysisFormat;
 
 pub mod html;
+mod jsonld;
 mod markdown;
 mod mermaid;
 mod svg;
@@ -48,7 +49,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
     match format {
         AnalysisFormat::Md => Ok(RenderedOutput::Text(render_md(receipt))),
         AnalysisFormat::Json => Ok(RenderedOutput::Text(serde_json::to_string_pretty(receipt)?)),
-        AnalysisFormat::Jsonld => Ok(RenderedOutput::Text(render_jsonld(receipt))),
+        AnalysisFormat::Jsonld => Ok(RenderedOutput::Text(jsonld::render(receipt))),
         AnalysisFormat::Xml => Ok(RenderedOutput::Text(render_xml(receipt))),
         AnalysisFormat::Svg => Ok(RenderedOutput::Text(svg::render(receipt))),
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
@@ -61,31 +62,6 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
     markdown::render_md(receipt)
-}
-
-fn render_jsonld(receipt: &AnalysisReceipt) -> String {
-    let name = receipt
-        .source
-        .inputs
-        .first()
-        .cloned()
-        .unwrap_or_else(|| "tokmd".to_string());
-    let totals = receipt.derived.as_ref().map(|d| &d.totals);
-    let payload = serde_json::json!({
-        "@context": "https://schema.org",
-        "@type": "SoftwareSourceCode",
-        "name": name,
-        "codeLines": totals.map(|t| t.code).unwrap_or(0),
-        "commentCount": totals.map(|t| t.comments).unwrap_or(0),
-        "lineCount": totals.map(|t| t.lines).unwrap_or(0),
-        "fileSize": totals.map(|t| t.bytes).unwrap_or(0),
-        "interactionStatistic": {
-            "@type": "InteractionCounter",
-            "interactionType": "http://schema.org/ReadAction",
-            "userInteractionCount": totals.map(|t| t.tokens).unwrap_or(0)
-        }
-    });
-    serde_json::to_string_pretty(&payload).unwrap_or_else(|_| "{}".to_string())
 }
 
 fn render_xml(receipt: &AnalysisReceipt) -> String {
@@ -451,7 +427,7 @@ mod tests {
     fn test_render_jsonld() {
         let mut receipt = minimal_receipt();
         receipt.derived = Some(sample_derived());
-        let result = render_jsonld(&receipt);
+        let result = jsonld::render(&receipt);
         assert!(result.contains("\"@context\": \"https://schema.org\""));
         assert!(result.contains("\"@type\": \"SoftwareSourceCode\""));
         assert!(result.contains("\"name\": \"test\""));
@@ -463,7 +439,7 @@ mod tests {
     fn test_render_jsonld_empty_inputs() {
         let mut receipt = minimal_receipt();
         receipt.source.inputs.clear();
-        let result = render_jsonld(&receipt);
+        let result = jsonld::render(&receipt);
         assert!(result.contains("\"name\": \"tokmd\""));
     }
 
