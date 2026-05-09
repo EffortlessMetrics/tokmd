@@ -161,6 +161,9 @@ architecture-consolidation program.
 - The composite Action now writes `target/tokmd/review-packet-check.json` for
   cockpit review packets after preparing the hosted comment copy and uploads it
   with `tokmd-receipts` when artifact upload is enabled.
+- Hosted review-packet comments now show verifier status, manifest hash status,
+  and compact proof evidence counts while keeping packet-local `comment.md`
+  immutable after manifest hashing.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and

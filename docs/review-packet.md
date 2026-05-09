@@ -208,7 +208,9 @@ After preparing the hosted comment copy, the Action runs
 target/tokmd/review-packet-check.json`. The verifier receipt is uploaded with
 `tokmd-receipts` when artifact upload is enabled. It is intentionally outside
 the packet manifest because it verifies the final packet instead of being part
-of the packet itself.
+of the packet itself. The hosted comment copy includes the verification status,
+manifest hash status, and compact proof evidence counts; packet-local
+`comment.md` remains unchanged.
 
 Action inputs build on the cockpit surface first:
 

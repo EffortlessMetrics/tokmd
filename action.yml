@@ -438,6 +438,59 @@ runs:
 
         echo "receipt=$receipt_rel" >> "$GITHUB_OUTPUT"
 
+    - name: Append Review Packet Verification Status
+      if: steps.review_packet_comment.outputs['comment-file'] != '' && steps.review_packet_check.outputs.receipt != ''
+      shell: bash
+      env:
+        COMMENT_FILE: ${{ steps.review_packet_comment.outputs['comment-file'] }}
+        REVIEW_PACKET_DIR: ${{ steps.generate.outputs['review-packet'] }}
+        REVIEW_PACKET_CHECK: ${{ steps.review_packet_check.outputs.receipt }}
+      run: |
+        set -euo pipefail
+
+        python - <<'PY'
+        import json
+        import os
+        from pathlib import Path
+
+        comment_path = Path(os.environ["COMMENT_FILE"])
+        review_packet_dir = Path(os.environ["REVIEW_PACKET_DIR"])
+        check_path = Path(os.environ["REVIEW_PACKET_CHECK"])
+
+        with check_path.open(encoding="utf-8") as f:
+            check = json.load(f)
+        with (review_packet_dir / "evidence.json").open(encoding="utf-8") as f:
+            evidence = json.load(f)
+
+        proof_items = evidence.get("proof") or []
+
+        def available(item):
+            return item.get("availability") == "available"
+
+        def missing(item):
+            return item.get("availability") in {"missing", "unavailable"}
+
+        available_count = sum(1 for item in proof_items if available(item))
+        missing_count = sum(1 for item in proof_items if missing(item))
+        stale_count = sum(
+            1
+            for item in proof_items
+            if item.get("availability") == "stale" or item.get("commit_match") == "stale"
+        )
+
+        status = "verified" if check.get("ok") is True else "failed"
+        hash_status = "valid" if check.get("hashes_verified") == check.get("artifact_count") else "incomplete"
+
+        with comment_path.open("a", encoding="utf-8") as f:
+            f.write("\n**Review packet verification**:\n")
+            f.write(f"- Review packet: {status}\n")
+            f.write(f"- Verified artifacts: {check.get('artifact_count', 0)}\n")
+            f.write(f"- Manifest hashes: {hash_status}\n")
+            f.write(
+                f"- Proof evidence: {available_count} available, {missing_count} missing, {stale_count} stale\n"
+            )
+        PY
+
     - name: Upload Artifact
       if: inputs.artifact == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

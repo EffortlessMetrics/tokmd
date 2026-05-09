@@ -395,6 +395,10 @@ jobs:
             echo "::error::review packet comment.md should remain manifest-hashed packet content"
             exit 1
           fi
+          if grep -q 'Review packet verification' .tokmd/review/comment.md; then
+            echo "::error::review packet comment.md should not include hosted verifier status"
+            exit 1
+          fi
           if [ ! -f tokmd-review-packet-comment.md ]; then
             echo "::error::hosted review packet comment copy not generated"
             exit 1
@@ -403,6 +407,10 @@ jobs:
           grep -q 'Workflow run:' tokmd-review-packet-comment.md
           grep -q 'Artifact: `tokmd-receipts`' tokmd-review-packet-comment.md
           grep -q 'Packet path: `.tokmd/review`' tokmd-review-packet-comment.md
+          grep -q 'Review packet verification' tokmd-review-packet-comment.md
+          grep -q 'Review packet: verified' tokmd-review-packet-comment.md
+          grep -q 'Manifest hashes: valid' tokmd-review-packet-comment.md
+          grep -q 'Proof evidence: 0 available, 0 missing, 0 stale' tokmd-review-packet-comment.md
           if [ ! -f target/tokmd/review-packet-check.json ]; then
             echo "::error::review packet verifier receipt not generated"
             exit 1

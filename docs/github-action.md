@@ -140,6 +140,9 @@ The Action verifies the packet after preparing the hosted comment copy and
 writes `target/tokmd/review-packet-check.json`. That verifier receipt records
 the checked schemas, packet-local artifact paths, and BLAKE3 hash verification
 counts, and is uploaded with `tokmd-receipts` when artifact upload is enabled.
+The hosted comment copy also includes a compact verifier status and proof
+evidence count summary. The packet-local `.tokmd/review/comment.md` is still
+not mutated.
 
 ### `sensor`
 
@@ -195,7 +198,9 @@ posting the pull request comment. With `artifact: 'true'`, the block points
 reviewers to the workflow run and `tokmd-receipts` artifact that contains the
 full `.tokmd/review/` directory. With artifact upload disabled, the comment
 states that the packet was generated locally in the workflow workspace but not
-uploaded. The packet-local `comment.md` is not mutated after generation.
+uploaded. After packet verification, the hosted copy also shows whether the
+packet was verified, whether manifest hashes were valid, and compact proof
+evidence counts. The packet-local `comment.md` is not mutated after generation.
 
 ## Checkout Guidance
 
