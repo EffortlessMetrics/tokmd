@@ -28,6 +28,7 @@ mod effort;
 mod entropy;
 mod git;
 mod imports;
+mod license;
 
 /// Render an [`AnalysisReceipt`] to a Markdown string.
 ///
@@ -88,26 +89,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(license) = &receipt.license {
-        out.push_str("## License radar\n\n");
-        if let Some(effective) = &license.effective {
-            let _ = writeln!(out, "- Effective: `{}`", effective);
-        }
-        out.push_str("- Heuristic detection; not legal advice.\n\n");
-        if !license.findings.is_empty() {
-            out.push_str("|SPDX|Confidence|Source|Kind|\n");
-            out.push_str("|---|---:|---|---|\n");
-            for row in license.findings.iter().take(10) {
-                let _ = writeln!(
-                    out,
-                    "|{}|{}|{}|{:?}|",
-                    row.spdx,
-                    fmt_f64(row.confidence as f64, 2),
-                    row.source_path,
-                    row.source_kind
-                );
-            }
-            out.push('\n');
-        }
+        license::render_license_report(&mut out, license);
     }
 
     if let Some(fingerprint) = &receipt.corporate_fingerprint {
