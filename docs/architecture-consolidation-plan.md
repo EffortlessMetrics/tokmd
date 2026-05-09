@@ -61,22 +61,22 @@ fixtures:
 | --- | --- | ---: | --- |
 | Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` | 2484 | Split parser, scoring, aggregation, and tests under `content::complexity` |
 | Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
-| Analysis rendering | `crates/tokmd-format/src/analysis/mod.rs` | 1815 | Continue moving format-specific renderers into `tokmd-format::analysis` submodules |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` | 1432 | Keep shared complexity logic in `tokmd-analysis`, split language/source helpers |
-| CLI parser | `crates/tokmd/src/cli/parser.rs` | 1264 | Split command argument families while preserving clap output |
-| Cockpit gates | `crates/tokmd-cockpit/src/gates.rs` | 1196 | Split gate evidence, freshness, and rendering helpers inside `tokmd-cockpit` |
+| CLI parser | `crates/tokmd/src/cli/parser.rs` | 1276 | Split command argument families while preserving clap output |
 | Model aggregation | `crates/tokmd-model/src/lib.rs` | 1159 | Split aggregation, row sorting, and child-language behavior under `tokmd-model` |
 
 ## Batch Order
 
-### Batch A: Cockpit Owner Modules
+### Batch A: Cockpit Owner Modules (Complete)
 
 Why first: cockpit is the active product lane, has strong packet/verifier
-coverage, and recent splits already proved the pattern.
+coverage, and recent splits already proved the pattern. The cockpit gates and
+review-packet rendering surfaces now live under owner modules; the root
+`crates/tokmd-cockpit/src/gates.rs` file is a small coordinator.
 
-Target modules:
+Current module shape:
 
 ```text
 crates/tokmd-cockpit/src/
@@ -102,28 +102,36 @@ cargo xtask review-packet-check --dir <generated-review-packet>
 
 `ci/proof.toml` scope: `tokmd_cockpit`.
 
-### Batch B: Format Analysis Rendering
+### Batch B: Format Analysis Rendering (Complete)
 
 Why next: `tokmd-format` owns rendering and already has a dedicated
-`format_analysis_rendering` proof scope.
+`format_analysis_rendering` proof scope. The production analysis renderer is
+now split into format owners: `analysis/mod.rs` is a small dispatcher,
+Markdown rendering has section owner modules, and HTML rendering has helper
+owner modules for metric cards, table rows, embedded report JSON, and shared
+formatting.
 
-Target modules:
+Current module shape:
 
 ```text
 crates/tokmd-format/src/analysis/
   mod.rs
   markdown.rs
-  html.rs
-  json.rs
+  markdown/
+  html/
+  jsonld.rs
+  mermaid.rs
   svg.rs
-  tables.rs
+  tree.rs
+  xml.rs
 ```
 
 Required proof:
 
 ```bash
-cargo test -p tokmd-format analysis_format --verbose
-cargo test -p tokmd --test schema_validation test_review_packet --verbose
+cargo test -p tokmd-format --lib --verbose
+cargo test -p tokmd-format --test analysis_format --verbose
+cargo test -p tokmd-format --test analysis_html --verbose
 cargo xtask docs --check
 ```
 
@@ -273,10 +281,12 @@ Stop and split the work if a consolidation PR:
 
 ## First Suggested PRs
 
-1. Split `tokmd-cockpit/src/gates.rs` into gate evidence owner modules.
-2. Split `tokmd-format/src/analysis/mod.rs` into renderer-focused modules.
-3. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
+1. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
    preserving re-exports.
+2. Split `tokmd-analysis/src/content/complexity.rs` into parser, scoring,
+   aggregation, and tests under `content::complexity`.
+3. Split `crates/tokmd/src/context_pack.rs` into selection, budgeting,
+   rendering, and manifest helpers under `tokmd`.
 
 Each PR should include the affected proof-plan output in the PR body and should
 leave `publish-surface --verify-publish` green when public exports or
