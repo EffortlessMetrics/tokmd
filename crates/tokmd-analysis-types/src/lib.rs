@@ -21,6 +21,7 @@ mod effort;
 mod entropy;
 pub mod findings;
 mod git;
+mod license;
 mod supply;
 mod topics;
 pub mod util;
@@ -52,6 +53,7 @@ pub use git::{
     FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow, ModuleIntentRow,
     PredictiveChurnReport, TrendClass,
 };
+pub use license::{LicenseFinding, LicenseReport, LicenseSourceKind};
 pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
 pub use topics::{TopicClouds, TopicTerm};
 pub use util::{
@@ -131,31 +133,6 @@ pub struct AnalysisArgsMeta {
 pub struct Archetype {
     pub kind: String,
     pub evidence: Vec<String>,
-}
-
-// -------------
-// License radar
-// -------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LicenseReport {
-    pub findings: Vec<LicenseFinding>,
-    pub effective: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LicenseFinding {
-    pub spdx: String,
-    pub confidence: f32,
-    pub source_path: String,
-    pub source_kind: LicenseSourceKind,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum LicenseSourceKind {
-    Metadata,
-    Text,
 }
 
 // -----------------
