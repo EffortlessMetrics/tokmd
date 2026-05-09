@@ -3,7 +3,8 @@
 Status: partially implemented. `tokmd cockpit` can validate explicitly supplied
 proof artifacts, copy them into the review packet under `proof/`, and attach
 normalized imported proof items to `evidence.json` when `--review-packet-dir`
-is used. Review-map/comment proof refs remain future work.
+is used. `review-map.json` can link matching review items to packet-local
+proof refs. Review-map Markdown and comment proof summaries remain future work.
 
 ## Purpose
 
@@ -194,6 +195,6 @@ evidence.
 - Classify commit match as exact, partial, stale, or unknown. (done for `evidence.json`)
 - Attach imported proof entries to `evidence.json`. (done)
 - Copy supplied proof artifacts into packet-local `proof/*.json` files. (done)
-- Attach proof refs to review-map items without duplicating large artifacts.
+- Attach proof refs to review-map items without duplicating large artifacts. (done for `review-map.json` direct changed-file matches)
 - Keep review packet schemas versioned if output shape changes.
 - Keep proof-control-plane promotion decisions outside cockpit.

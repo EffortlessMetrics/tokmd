@@ -156,6 +156,11 @@ architecture-consolidation program.
 - The composite Action now prepares hosted review-packet comments in `tokmd-review-packet-comment.md` instead of mutating `.tokmd/review/comment.md`, preserving `manifest.json` hashes for packet-local artifacts while keeping hosted PR comments useful.
 - The composite Action self-test now runs `cargo xtask review-packet-check --dir .tokmd/review` after preparing the hosted comment copy, proving Action-hosted metadata does not drift packet-local manifest hashes.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
+- Cockpit review packets now keep imported proof artifacts packet-local under
+  `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and
+  link direct changed-file matches from `review-map.json` items to
+  `evidence.json#/proof/*` plus the copied source proof artifact. Review-map
+  Markdown/comment proof summaries remain future work.
 - Architecture consolidation now has a current-state batch plan in
   `docs/architecture-consolidation-plan.md`, grounded in the live
   publish-surface verifier, large-file inventory, and `ci/proof.toml` scopes.

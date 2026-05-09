@@ -1,7 +1,10 @@
 //! Review-map artifact rendering for cockpit review packets.
 
+use std::collections::BTreeSet;
+
 use serde_json::{Value, json};
 
+use crate::proof_evidence::{ProofEvidenceInput, normalize_proof_evidence};
 use crate::{CockpitReceipt, GateMeta, ReviewItem};
 
 use super::evidence::{
@@ -9,12 +12,17 @@ use super::evidence::{
     review_packet_evidence_gate_specs, review_packet_evidence_summary,
 };
 
-pub(super) fn review_packet_review_map(receipt: &CockpitReceipt) -> Value {
+pub(super) fn review_packet_review_map(
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) -> Value {
+    let proof_refs = review_map_proof_refs(receipt, proof_inputs);
+    let evidence_refs = review_map_evidence_refs(!proof_refs.is_empty());
     let items: Vec<_> = receipt
         .review_plan
         .iter()
         .enumerate()
-        .map(|(idx, item)| review_map_item(idx, item, receipt))
+        .map(|(idx, item)| review_map_item(idx, item, receipt, &proof_refs))
         .collect();
 
     json!({
@@ -25,15 +33,21 @@ pub(super) fn review_packet_review_map(receipt: &CockpitReceipt) -> Value {
         "evidence": {
             "summary": review_packet_evidence_summary(receipt),
             "groups": review_packet_evidence_capabilities(receipt),
-            "refs": ["evidence.json#/gates"],
+            "refs": evidence_refs,
         },
         "item_count": items.len(),
         "items": items,
     })
 }
 
-fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> Value {
+fn review_map_item(
+    idx: usize,
+    item: &ReviewItem,
+    receipt: &CockpitReceipt,
+    proof_refs: &[ReviewMapProofRef],
+) -> Value {
     let evidence = review_map_item_evidence(item, receipt);
+    let proof_refs = review_map_item_proof_refs(item, proof_refs);
 
     json!({
         "rank": idx + 1,
@@ -47,6 +61,7 @@ fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> V
             format!("cockpit.json#/review_plan/{idx}"),
             "evidence.json#/gates",
         ],
+        "proof_refs": proof_refs,
         "evidence": {
             "status": evidence.status(),
             "present": evidence.present,
@@ -68,6 +83,74 @@ fn review_map_item(idx: usize, item: &ReviewItem, receipt: &CockpitReceipt) -> V
             ),
         ],
     })
+}
+
+struct ReviewMapProofRef {
+    changed_files: BTreeSet<String>,
+    refs: Vec<String>,
+}
+
+fn review_map_proof_refs(
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) -> Vec<ReviewMapProofRef> {
+    let mut proof_refs = Vec::new();
+    let mut proof_index = 0;
+
+    for input in proof_inputs {
+        let changed_files = input
+            .artifact
+            .changed_files()
+            .iter()
+            .map(|path| normalize_path_for_match(path))
+            .collect::<BTreeSet<_>>();
+        let normalized = normalize_proof_evidence(
+            &input.artifact,
+            input.source_path.clone(),
+            Some(&receipt.base_ref),
+            Some(&receipt.head_ref),
+        );
+
+        for proof in normalized {
+            let mut refs = Vec::with_capacity(1 + proof.artifact_refs.len());
+            refs.push(format!("evidence.json#/proof/{proof_index}"));
+            refs.extend(proof.artifact_refs);
+            proof_refs.push(ReviewMapProofRef {
+                changed_files: changed_files.clone(),
+                refs,
+            });
+            proof_index += 1;
+        }
+    }
+
+    proof_refs
+}
+
+fn review_map_evidence_refs(has_proof: bool) -> Vec<&'static str> {
+    let mut refs = vec!["evidence.json#/gates"];
+    if has_proof {
+        refs.push("evidence.json#/proof");
+    }
+    refs
+}
+
+fn review_map_item_proof_refs(item: &ReviewItem, proof_refs: &[ReviewMapProofRef]) -> Vec<String> {
+    let item_path = normalize_path_for_match(&item.path);
+    let mut refs = BTreeSet::new();
+
+    for proof_ref in proof_refs {
+        if !proof_ref.changed_files.contains(&item_path) {
+            continue;
+        }
+
+        refs.extend(proof_ref.refs.iter().cloned());
+    }
+
+    refs.into_iter().collect()
+}
+
+fn normalize_path_for_match(path: &str) -> String {
+    path.replace('\\', "/")
 }
 
 #[derive(Default)]
