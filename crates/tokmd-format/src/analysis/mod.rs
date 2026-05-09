@@ -30,7 +30,6 @@
 //! * Analysis computation (use tokmd-analysis)
 
 use anyhow::Result;
-use std::fmt::Write;
 use tokmd_analysis_types::AnalysisReceipt;
 use tokmd_types::AnalysisFormat;
 
@@ -39,6 +38,7 @@ mod jsonld;
 mod markdown;
 mod mermaid;
 mod svg;
+mod xml;
 
 pub enum RenderedOutput {
     Text(String),
@@ -50,7 +50,7 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Md => Ok(RenderedOutput::Text(render_md(receipt))),
         AnalysisFormat::Json => Ok(RenderedOutput::Text(serde_json::to_string_pretty(receipt)?)),
         AnalysisFormat::Jsonld => Ok(RenderedOutput::Text(jsonld::render(receipt))),
-        AnalysisFormat::Xml => Ok(RenderedOutput::Text(render_xml(receipt))),
+        AnalysisFormat::Xml => Ok(RenderedOutput::Text(xml::render(receipt))),
         AnalysisFormat::Svg => Ok(RenderedOutput::Text(svg::render(receipt))),
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
         AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
@@ -62,27 +62,6 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
     markdown::render_md(receipt)
-}
-
-fn render_xml(receipt: &AnalysisReceipt) -> String {
-    let totals = receipt.derived.as_ref().map(|d| &d.totals);
-    let mut out = String::new();
-    out.push_str("<analysis>");
-    if let Some(totals) = totals {
-        let _ = write!(
-            out,
-            "<totals files=\"{}\" code=\"{}\" comments=\"{}\" blanks=\"{}\" lines=\"{}\" bytes=\"{}\" tokens=\"{}\"/>",
-            totals.files,
-            totals.code,
-            totals.comments,
-            totals.blanks,
-            totals.lines,
-            totals.bytes,
-            totals.tokens
-        );
-    }
-    out.push_str("</analysis>");
-    out
 }
 
 fn render_tree(receipt: &AnalysisReceipt) -> String {
@@ -407,7 +386,7 @@ mod tests {
     fn test_render_xml() {
         let mut receipt = minimal_receipt();
         receipt.derived = Some(sample_derived());
-        let result = render_xml(&receipt);
+        let result = xml::render(&receipt);
         assert!(result.starts_with("<analysis>"));
         assert!(result.ends_with("</analysis>"));
         assert!(result.contains("files=\"10\""));
@@ -418,7 +397,7 @@ mod tests {
     #[test]
     fn test_render_xml_no_derived() {
         let receipt = minimal_receipt();
-        let result = render_xml(&receipt);
+        let result = xml::render(&receipt);
         assert_eq!(result, "<analysis></analysis>");
     }
 
