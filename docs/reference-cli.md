@@ -1267,6 +1267,21 @@ Options:
 
           When provided, cockpit will compute delta metrics showing how the current state compares to the baseline.
 
+      --proof-run-summary <PATH>
+          Validate a required proof-run summary artifact before rendering
+
+      --proof-observation <PATH>
+          Validate a proof-run observation artifact before rendering
+
+      --executor-observation <PATH>
+          Validate a proof-executor observation artifact before rendering
+
+      --no-progress
+          Disable progress spinners
+
+      --coverage-receipt <PATH>
+          Validate a coverage receipt artifact before rendering
+
       --diff-range <DIFF_RANGE>
           Diff range syntax: two-dot (default) or three-dot
 
@@ -1280,9 +1295,6 @@ Options:
           Run in sensor mode for CI integration.
 
           When enabled: - Writes only sensor.report.v1 envelope to artifacts_dir/report.json - Exits 0 if receipt written successfully (verdict in envelope instead of exit code)
-
-      --no-progress
-          Disable progress spinners
 
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
@@ -1304,7 +1316,12 @@ Options:
 | `--format <FORMAT>` | Output format: `json`, `md`, `sections`. | `json` |
 | `--output <PATH>` | Write output to file instead of stdout. | `(stdout)` |
 | `--artifacts-dir <DIR>` | In standard cockpit mode, write `cockpit.json`, `report.json`, and `comment.md` to a directory. | `(none)` |
+| `--review-packet-dir <DIR>` | Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `review-map.json`, `review-map.md`, `comment.md`) to a directory. | `(none)` |
 | `--baseline <PATH>` | Path to baseline receipt for trend comparison. | `(none)` |
+| `--proof-run-summary <PATH>` | Validate a required proof-run summary artifact before rendering. | `(none)` |
+| `--proof-observation <PATH>` | Validate a proof-run observation artifact before rendering. | `(none)` |
+| `--executor-observation <PATH>` | Validate a proof-executor observation artifact before rendering. | `(none)` |
+| `--coverage-receipt <PATH>` | Validate a coverage receipt artifact before rendering. | `(none)` |
 | `--diff-range <MODE>` | Diff range syntax: `two-dot` or `three-dot`. | `two-dot` |
 | `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--no-progress` | Disable progress spinners. | `false` |

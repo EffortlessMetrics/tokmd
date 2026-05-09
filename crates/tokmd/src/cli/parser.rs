@@ -1039,6 +1039,22 @@ pub struct CockpitArgs {
     #[arg(long, value_name = "PATH")]
     pub baseline: Option<std::path::PathBuf>,
 
+    /// Validate a required proof-run summary artifact before rendering.
+    #[arg(long, value_name = "PATH")]
+    pub proof_run_summary: Option<std::path::PathBuf>,
+
+    /// Validate a proof-run observation artifact before rendering.
+    #[arg(long, value_name = "PATH")]
+    pub proof_observation: Option<std::path::PathBuf>,
+
+    /// Validate a proof-executor observation artifact before rendering.
+    #[arg(long, value_name = "PATH")]
+    pub executor_observation: Option<std::path::PathBuf>,
+
+    /// Validate a coverage receipt artifact before rendering.
+    #[arg(long, value_name = "PATH")]
+    pub coverage_receipt: Option<std::path::PathBuf>,
+
     /// Diff range syntax: two-dot (default) or three-dot.
     #[arg(long, value_enum, default_value_t = DiffRangeMode::TwoDot)]
     pub diff_range: DiffRangeMode,

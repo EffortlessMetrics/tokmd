@@ -6,7 +6,7 @@
 #[cfg(feature = "git")]
 use std::io::Write;
 #[cfg(feature = "git")]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::cli;
 #[cfg(feature = "git")]
@@ -38,6 +38,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
+        validate_proof_evidence_inputs(&args)?;
 
         let range_mode = match args.diff_range {
             cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
@@ -115,6 +116,67 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 
         Ok(())
     }
+}
+
+#[cfg(feature = "git")]
+fn validate_proof_evidence_inputs(args: &cli::CockpitArgs) -> Result<()> {
+    let inputs = [
+        (
+            "--proof-run-summary",
+            args.proof_run_summary.as_deref(),
+            tokmd_cockpit::ProofEvidenceKind::ProofRunSummary,
+        ),
+        (
+            "--proof-observation",
+            args.proof_observation.as_deref(),
+            tokmd_cockpit::ProofEvidenceKind::ProofRunObservation,
+        ),
+        (
+            "--executor-observation",
+            args.executor_observation.as_deref(),
+            tokmd_cockpit::ProofEvidenceKind::ProofExecutorObservation,
+        ),
+        (
+            "--coverage-receipt",
+            args.coverage_receipt.as_deref(),
+            tokmd_cockpit::ProofEvidenceKind::CoverageReceipt,
+        ),
+    ];
+
+    for (flag, path, expected_kind) in inputs {
+        if let Some(path) = path {
+            validate_proof_evidence_input(flag, path, expected_kind)?;
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(feature = "git")]
+fn validate_proof_evidence_input(
+    flag: &str,
+    path: &Path,
+    expected_kind: tokmd_cockpit::ProofEvidenceKind,
+) -> Result<()> {
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("failed to read {flag} proof evidence at {}", path.display()))?;
+    let actual_kind = tokmd_cockpit::proof_evidence_kind(&raw).with_context(|| {
+        format!(
+            "failed to parse {flag} proof evidence at {}",
+            path.display()
+        )
+    })?;
+
+    if actual_kind != expected_kind {
+        bail!(
+            "{flag} expected {:?} evidence at {}, found {:?}",
+            expected_kind,
+            path.display(),
+            actual_kind
+        );
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

@@ -40,6 +40,7 @@ pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_di
 pub use gates::compute_determinism_gate;
 #[cfg(feature = "git")]
 use gates::compute_evidence;
+pub use proof_evidence::ProofEvidenceKind;
 pub use review_plan::generate_review_plan;
 #[cfg(all(test, feature = "git"))]
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
@@ -49,6 +50,14 @@ pub use tokmd_types::cockpit::*;
 
 /// Cyclomatic complexity threshold for high complexity.
 pub const COMPLEXITY_THRESHOLD: u32 = 15;
+
+/// Parse a proof-control-plane evidence artifact and return its artifact family.
+///
+/// This is intentionally validation-only for now: cockpit can accept explicit
+/// proof evidence inputs without changing review packet output semantics.
+pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {
+    proof_evidence::proof_evidence_kind(raw)
+}
 
 /// File stat from git diff --numstat.
 /// File stat from git diff --numstat.

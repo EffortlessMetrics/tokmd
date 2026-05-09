@@ -1,8 +1,10 @@
 # Cockpit Proof Evidence Import Contract
 
-Status: proposed. No `tokmd cockpit` CLI flag or API currently imports these
-artifacts. This document defines the contract future implementation should
-follow when attaching proof-control-plane evidence to cockpit review packets.
+Status: partially implemented. `tokmd cockpit` can validate explicitly supplied
+proof artifacts through validation-only flags, but it does not yet attach
+imported proof evidence to review packet outputs. This document defines the
+contract future implementation should follow when attaching proof-control-plane
+evidence to cockpit review packets.
 
 ## Purpose
 
@@ -31,19 +33,21 @@ Imported proof evidence should help a reviewer answer:
 
 ## Accepted Inputs
 
-Future cockpit import support may accept these artifact families:
+Cockpit accepts these artifact families for validation. Future import support
+may normalize the same artifacts into review packet evidence:
 
-| Artifact | Role |
+| Artifact | CLI flag | Role |
 | --- | --- |
-| `proof-run-summary.json` | Summary from `cargo xtask proof --run-required ...`; represents required proof commands that were executed under an explicit guard. |
-| `proof-run-observation.json` | Compact observation derived from a verified required proof-run summary; useful for routine fast-proof visibility. |
-| `proof-executor-observation.json` | Observation from scoped advisory executor artifacts, such as non-required coverage runs. |
-| `coverage-receipt.json` | Coverage artifact inventory and byte-count receipt; useful for proving a coverage artifact exists without treating coverage as required. |
+| `proof-run-summary.json` | `--proof-run-summary <PATH>` | Summary from `cargo xtask proof --run-required ...`; represents required proof commands that were executed under an explicit guard. |
+| `proof-run-observation.json` | `--proof-observation <PATH>` | Compact observation derived from a verified required proof-run summary; useful for routine fast-proof visibility. |
+| `proof-executor-observation.json` | `--executor-observation <PATH>` | Observation from scoped advisory executor artifacts, such as non-required coverage runs. |
+| `coverage-receipt.json` | `--coverage-receipt <PATH>` | Coverage artifact inventory and byte-count receipt; useful for proving a coverage artifact exists without treating coverage as required. |
 
 Inputs are optional. A missing artifact is not an error unless the caller
-explicitly requested that artifact. If an artifact is present but malformed,
-cockpit should report a clear import error or degraded evidence state rather
-than silently ignoring it.
+explicitly requested that artifact. When an explicitly supplied artifact is
+missing, malformed, or does not match the flag's expected artifact family,
+cockpit fails before rendering. Passive discovery can later record degraded
+evidence state instead of failing.
 
 ## Normalized Evidence Model
 
@@ -170,8 +174,9 @@ evidence.
 
 ## Implementation Checklist
 
-- Add deserializable DTOs for accepted proof artifacts.
-- Keep absent imports compatible with current cockpit behavior.
+- Add deserializable DTOs for accepted proof artifacts. (done)
+- Validate explicit proof artifact inputs without changing receipt output. (done)
+- Keep absent imports compatible with current cockpit behavior. (done)
 - Normalize required/advisory status before rendering.
 - Classify commit match as exact, partial, stale, or unknown.
 - Attach proof refs to review-map items without duplicating large artifacts.

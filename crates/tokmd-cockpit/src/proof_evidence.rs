@@ -15,6 +15,14 @@ const PROOF_RUN_OBSERVATION_SCHEMA: &str = "tokmd.proof_run_observation.v1";
 const PROOF_EXECUTOR_OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const COVERAGE_RECEIPT_SCHEMA: &str = "tokmd.coverage_receipt.v1";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProofEvidenceKind {
+    ProofRunSummary,
+    ProofRunObservation,
+    ProofExecutorObservation,
+    CoverageReceipt,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProofEvidenceArtifact {
     ProofRunSummary(ProofRunSummaryInput),
@@ -24,6 +32,15 @@ pub enum ProofEvidenceArtifact {
 }
 
 impl ProofEvidenceArtifact {
+    pub fn kind(&self) -> ProofEvidenceKind {
+        match self {
+            Self::ProofRunSummary(_) => ProofEvidenceKind::ProofRunSummary,
+            Self::ProofRunObservation(_) => ProofEvidenceKind::ProofRunObservation,
+            Self::ProofExecutorObservation(_) => ProofEvidenceKind::ProofExecutorObservation,
+            Self::CoverageReceipt(_) => ProofEvidenceKind::CoverageReceipt,
+        }
+    }
+
     pub fn schema(&self) -> &str {
         match self {
             Self::ProofRunSummary(artifact) => &artifact.schema,
@@ -50,6 +67,10 @@ impl ProofEvidenceArtifact {
             Self::CoverageReceipt(artifact) => Some(&artifact.sha),
         }
     }
+}
+
+pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {
+    parse_proof_evidence_json(raw).map(|artifact| artifact.kind())
 }
 
 pub fn parse_proof_evidence_json(raw: &str) -> Result<ProofEvidenceArtifact> {
@@ -309,6 +330,27 @@ mod tests {
         assert_eq!(summary.profile, "fast");
         assert_eq!(summary.entries[0].scope, "tokmd_cockpit");
         assert_eq!(summary.entries[0].exit_code, Some(0));
+    }
+
+    #[test]
+    fn reports_proof_evidence_kind() {
+        let kind = proof_evidence_kind(
+            r#"{
+  "schema": "tokmd.coverage_receipt.v1",
+  "schema_version": 1,
+  "repo": "EffortlessMetrics/tokmd",
+  "lane": "scoped",
+  "flag": "tokmd_cockpit",
+  "workflow": "Coverage",
+  "sha": "abc123",
+  "github": {},
+  "artifacts": [],
+  "status": { "ok": true, "missing": [], "empty": [] }
+}"#,
+        )
+        .expect("parse coverage receipt kind");
+
+        assert_eq!(kind, ProofEvidenceKind::CoverageReceipt);
     }
 
     #[test]

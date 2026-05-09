@@ -5,7 +5,7 @@ mod common;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
-use tempfile::tempdir;
+use tempfile::{TempDir, tempdir};
 
 fn tokmd_cmd() -> Command {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
@@ -39,6 +39,89 @@ fn assert_validates_against_schema(schema_json: &str, instance: &serde_json::Val
     }
 }
 
+fn basic_cockpit_repo() -> Option<TempDir> {
+    if !common::git_available() {
+        eprintln!("Skipping: git not available");
+        return None;
+    }
+
+    let dir = tempdir().unwrap();
+    if !common::init_git_repo(dir.path()) {
+        eprintln!("Skipping: git init failed");
+        return None;
+    }
+
+    std::fs::write(dir.path().join("lib.rs"), "fn main() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Initial commit") {
+        eprintln!("Skipping: git commit failed");
+        return None;
+    }
+
+    let status = std::process::Command::new("git")
+        .args(["checkout", "-b", "feature"])
+        .current_dir(dir.path())
+        .status();
+    if !status.map(|s| s.success()).unwrap_or(false) {
+        eprintln!("Skipping: feature branch checkout failed");
+        return None;
+    }
+
+    std::fs::write(dir.path().join("new.rs"), "fn new() {}").unwrap();
+    if !common::git_add_commit(dir.path(), "Add new file") {
+        eprintln!("Skipping: second commit failed");
+        return None;
+    }
+
+    Some(dir)
+}
+
+const PROOF_RUN_OBSERVATION_JSON: &str = r#"{
+  "schema": "tokmd.proof_run_observation.v1",
+  "status": "passed",
+  "execution_status": "executed",
+  "profile": "fast",
+  "base": "origin/main",
+  "head": "abc123",
+  "ok": true,
+  "execution_guard": {
+    "enabled": true,
+    "ci": true,
+    "reason": "required proof-run summary verified"
+  },
+  "counts": {
+    "commands_total": 1,
+    "required_planned": 1,
+    "advisory_skipped": 0,
+    "executed": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "scopes": [
+    {
+      "name": "tokmd_cockpit",
+      "kind": "test",
+      "command": "cargo test -p tokmd-cockpit",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "changed_files": ["crates/tokmd-cockpit/src/lib.rs"],
+  "unknown_files": []
+}"#;
+
+const COVERAGE_RECEIPT_JSON: &str = r#"{
+  "schema": "tokmd.coverage_receipt.v1",
+  "schema_version": 1,
+  "repo": "EffortlessMetrics/tokmd",
+  "lane": "scoped",
+  "flag": "tokmd_cockpit",
+  "workflow": "Coverage",
+  "sha": "abc123",
+  "github": {},
+  "artifacts": [],
+  "status": { "ok": true, "missing": [], "empty": [] }
+}"#;
+
 #[test]
 fn test_cockpit_help() {
     // Given: The cockpit command exists
@@ -52,7 +135,98 @@ fn test_cockpit_help() {
         .stdout(predicate::str::contains("--base"))
         .stdout(predicate::str::contains("--head"))
         .stdout(predicate::str::contains("--format"))
+        .stdout(predicate::str::contains("--proof-run-summary"))
+        .stdout(predicate::str::contains("--proof-observation"))
+        .stdout(predicate::str::contains("--executor-observation"))
+        .stdout(predicate::str::contains("--coverage-receipt"))
         .stdout(predicate::str::contains("--output"));
+}
+
+#[test]
+fn test_cockpit_accepts_valid_proof_observation_input_without_receipt_change() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let proof_path = dir.path().join("proof-run-observation.json");
+    std::fs::write(&proof_path, PROOF_RUN_OBSERVATION_JSON).unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    let output = cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--format")
+        .arg("json")
+        .arg("--proof-observation")
+        .arg(&proof_path)
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "cockpit should accept valid proof observation input: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("valid cockpit JSON");
+    assert!(json.get("schema_version").is_some());
+    assert!(json.get("review_plan").is_some());
+}
+
+#[test]
+fn test_cockpit_rejects_unknown_proof_evidence_schema() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let proof_path = dir.path().join("unknown-proof.json");
+    std::fs::write(&proof_path, r#"{ "schema": "tokmd.unknown.v1" }"#).unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--proof-observation")
+        .arg(&proof_path)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "failed to parse --proof-observation proof evidence",
+        ))
+        .stderr(predicate::str::contains(
+            "unsupported proof evidence schema",
+        ));
+}
+
+#[test]
+fn test_cockpit_rejects_mismatched_proof_evidence_kind() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let proof_path = dir.path().join("coverage-receipt.json");
+    std::fs::write(&proof_path, COVERAGE_RECEIPT_JSON).unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--proof-observation")
+        .arg(&proof_path)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "--proof-observation expected ProofRunObservation evidence",
+        ))
+        .stderr(predicate::str::contains("found CoverageReceipt"));
 }
 
 #[test]
