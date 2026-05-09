@@ -32,6 +32,7 @@ mod git;
 mod imports;
 mod license;
 mod predictive_churn;
+mod topics;
 
 /// Render an [`AnalysisReceipt`] to a Markdown string.
 ///
@@ -60,31 +61,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     }
 
     if let Some(topics) = &receipt.topics {
-        out.push_str("## Topics\n\n");
-        if !topics.overall.is_empty() {
-            let _ = writeln!(
-                out,
-                "- Overall: `{}`",
-                topics
-                    .overall
-                    .iter()
-                    .map(|t| t.term.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            );
-        }
-        for (module, terms) in &topics.per_module {
-            if terms.is_empty() {
-                continue;
-            }
-            let line = terms
-                .iter()
-                .map(|t| t.term.as_str())
-                .collect::<Vec<_>>()
-                .join(", ");
-            let _ = writeln!(out, "- `{}`: {}", module, line);
-        }
-        out.push('\n');
+        topics::render_topic_clouds(&mut out, topics);
     }
 
     if let Some(entropy) = &receipt.entropy {
