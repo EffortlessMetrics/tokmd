@@ -3,18 +3,19 @@ use std::path::{Path, PathBuf};
 
 use crate::maintainability::compute_maintainability_index;
 use anyhow::Result;
-use tokmd_analysis_types::{
-    ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity, TechnicalDebtLevel,
-    TechnicalDebtRatio,
-};
+#[cfg(test)]
+use tokmd_analysis_types::TechnicalDebtLevel;
+use tokmd_analysis_types::{ComplexityHistogram, ComplexityReport, ComplexityRisk, FileComplexity};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use tokmd_analysis_types::{AnalysisLimits, normalize_path};
 
+mod debt;
 mod details;
 mod functions;
 mod risk;
 
+use debt::{average_parent_loc, compute_technical_debt_ratio};
 use details::extract_function_details;
 #[cfg(test)]
 use details::{detect_fn_spans_c_style, detect_fn_spans_python, detect_fn_spans_rust};
@@ -25,9 +26,6 @@ use risk::{classify_risk_extended, estimate_cyclomatic};
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
-const TECHNICAL_DEBT_LOW_THRESHOLD: f64 = 30.0;
-const TECHNICAL_DEBT_MODERATE_THRESHOLD: f64 = 60.0;
-const TECHNICAL_DEBT_HIGH_THRESHOLD: f64 = 100.0;
 
 /// Map language strings to complexity-compatible names.
 fn map_language_for_complexity(lang: &str) -> &str {
@@ -310,76 +308,6 @@ pub(crate) fn generate_complexity_histogram(
         counts,
         total: files.len() as u32,
     }
-}
-
-fn average_parent_loc(export: &ExportData) -> Option<f64> {
-    let total_code: usize = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .map(|r| r.code)
-        .sum();
-    let parent_count: usize = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .count();
-
-    if parent_count == 0 {
-        return None;
-    }
-
-    let avg_loc = total_code as f64 / parent_count as f64;
-    if avg_loc <= 0.0 {
-        return None;
-    }
-    Some(avg_loc)
-}
-
-/// Compute a complexity-to-size heuristic debt ratio.
-///
-/// Ratio = (sum cyclomatic + cognitive complexity points) / KLOC
-fn compute_technical_debt_ratio(
-    export: &ExportData,
-    file_complexities: &[FileComplexity],
-) -> Option<TechnicalDebtRatio> {
-    if file_complexities.is_empty() {
-        return None;
-    }
-
-    let total_code: usize = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .map(|r| r.code)
-        .sum();
-    if total_code == 0 {
-        return None;
-    }
-
-    let complexity_points: usize = file_complexities
-        .iter()
-        .map(|f| f.cyclomatic_complexity + f.cognitive_complexity.unwrap_or(0))
-        .sum();
-
-    let code_kloc = total_code as f64 / 1000.0;
-    let ratio = round_f64(complexity_points as f64 / code_kloc, 2);
-    let level = if ratio < TECHNICAL_DEBT_LOW_THRESHOLD {
-        TechnicalDebtLevel::Low
-    } else if ratio < TECHNICAL_DEBT_MODERATE_THRESHOLD {
-        TechnicalDebtLevel::Moderate
-    } else if ratio < TECHNICAL_DEBT_HIGH_THRESHOLD {
-        TechnicalDebtLevel::High
-    } else {
-        TechnicalDebtLevel::Critical
-    };
-
-    Some(TechnicalDebtRatio {
-        ratio,
-        complexity_points,
-        code_kloc: round_f64(code_kloc, 4),
-        level,
-    })
 }
 
 fn round_f64(val: f64, decimals: u32) -> f64 {
