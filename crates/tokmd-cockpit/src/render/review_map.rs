@@ -1,18 +1,16 @@
 //! Review-map artifact rendering for cockpit review packets.
 
-use std::collections::BTreeSet;
-
 use serde_json::{Value, json};
 
-use crate::proof_evidence::{
-    NormalizedProofEvidence, ProofEvidenceAvailability, ProofEvidenceInput, ProofExecutionStatus,
-    normalize_proof_evidence,
-};
-use crate::{CockpitReceipt, CommitMatch, GateMeta, ReviewItem};
+use crate::proof_evidence::ProofEvidenceInput;
+use crate::{CockpitReceipt, GateMeta, ReviewItem};
 
 use super::evidence::{
     evidence_availability_optional, evidence_counts, review_packet_evidence_capabilities,
     review_packet_evidence_gate_specs, review_packet_evidence_summary,
+};
+use super::review_map_proof::{
+    ReviewMapProofRef, review_map_item_proof, review_map_proof_refs, write_proof_block,
 };
 
 pub(super) fn review_packet_review_map(
@@ -88,151 +86,12 @@ fn review_map_item(
     })
 }
 
-struct ReviewMapProofRef {
-    changed_files: BTreeSet<String>,
-    refs: Vec<String>,
-    line: String,
-}
-
-fn review_map_proof_refs(
-    receipt: &CockpitReceipt,
-    proof_inputs: &[ProofEvidenceInput],
-) -> Vec<ReviewMapProofRef> {
-    let mut proof_refs = Vec::new();
-    let mut proof_index = 0;
-
-    for input in proof_inputs {
-        let changed_files = input
-            .artifact
-            .changed_files()
-            .iter()
-            .map(|path| normalize_path_for_match(path))
-            .collect::<BTreeSet<_>>();
-        let normalized = normalize_proof_evidence(
-            &input.artifact,
-            input.source_path.clone(),
-            Some(&receipt.base_ref),
-            Some(&receipt.head_ref),
-        );
-
-        for proof in normalized {
-            let mut refs = Vec::with_capacity(1 + proof.artifact_refs.len());
-            refs.push(format!("evidence.json#/proof/{proof_index}"));
-            refs.extend(proof.artifact_refs.iter().cloned());
-            proof_refs.push(ReviewMapProofRef {
-                changed_files: changed_files.clone(),
-                refs,
-                line: review_map_proof_line(&proof),
-            });
-            proof_index += 1;
-        }
-    }
-
-    proof_refs
-}
-
 fn review_map_evidence_refs(has_proof: bool) -> Vec<&'static str> {
     let mut refs = vec!["evidence.json#/gates"];
     if has_proof {
         refs.push("evidence.json#/proof");
     }
     refs
-}
-
-struct ReviewMapItemProof {
-    lines: Vec<String>,
-    refs: Vec<String>,
-}
-
-fn review_map_item_proof(
-    item: &ReviewItem,
-    proof_refs: &[ReviewMapProofRef],
-) -> ReviewMapItemProof {
-    let item_path = normalize_path_for_match(&item.path);
-    let mut refs = BTreeSet::new();
-    let mut seen_lines = BTreeSet::new();
-    let mut lines = Vec::new();
-
-    for proof_ref in proof_refs {
-        if !proof_ref.changed_files.contains(&item_path) {
-            continue;
-        }
-
-        refs.extend(proof_ref.refs.iter().cloned());
-        if seen_lines.insert(proof_ref.line.clone()) {
-            lines.push(proof_ref.line.clone());
-        }
-    }
-
-    ReviewMapItemProof {
-        lines,
-        refs: refs.into_iter().collect(),
-    }
-}
-
-fn review_map_proof_line(proof: &NormalizedProofEvidence) -> String {
-    let class = if proof.required {
-        "Required"
-    } else {
-        "Advisory"
-    };
-    let scope = proof
-        .scope
-        .as_deref()
-        .unwrap_or_else(|| proof.kind.as_str());
-    let mut line = format!(
-        "{}: {} {} ({}, freshness: {})",
-        class,
-        scope,
-        execution_status_label(proof.execution_status),
-        availability_label(proof.availability),
-        commit_match_label(proof.commit_match),
-    );
-
-    if let Some(command) = proof
-        .command
-        .as_deref()
-        .filter(|command| !command.is_empty())
-    {
-        line.push_str(" - ");
-        line.push_str(command);
-    }
-
-    line
-}
-
-fn execution_status_label(status: ProofExecutionStatus) -> &'static str {
-    match status {
-        ProofExecutionStatus::Planned => "planned",
-        ProofExecutionStatus::ExecutedPassed => "passed",
-        ProofExecutionStatus::ExecutedFailed => "failed",
-        ProofExecutionStatus::NotExecuted => "not run",
-        ProofExecutionStatus::DryRun => "dry run",
-    }
-}
-
-fn availability_label(availability: ProofEvidenceAvailability) -> &'static str {
-    match availability {
-        ProofEvidenceAvailability::Available => "available",
-        ProofEvidenceAvailability::Missing => "missing",
-        ProofEvidenceAvailability::Skipped => "skipped",
-        ProofEvidenceAvailability::Stale => "stale",
-        ProofEvidenceAvailability::Degraded => "degraded",
-        ProofEvidenceAvailability::Unavailable => "unavailable",
-    }
-}
-
-fn commit_match_label(commit_match: CommitMatch) -> &'static str {
-    match commit_match {
-        CommitMatch::Exact => "exact",
-        CommitMatch::Partial => "partial",
-        CommitMatch::Stale => "stale",
-        CommitMatch::Unknown => "unknown",
-    }
-}
-
-fn normalize_path_for_match(path: &str) -> String {
-    path.replace('\\', "/")
 }
 
 #[derive(Default)]
@@ -396,21 +255,4 @@ fn write_evidence_list(s: &mut String, label: &str, gates: &[&str]) {
     }
 
     let _ = writeln!(s, "   {label}: {}", gates.join(", "));
-}
-
-fn write_proof_block(s: &mut String, proof: &ReviewMapItemProof) {
-    use std::fmt::Write;
-
-    if proof.lines.is_empty() {
-        return;
-    }
-
-    let _ = writeln!(s, "   Proof:");
-    for line in &proof.lines {
-        let _ = writeln!(s, "   - {line}");
-    }
-    let _ = writeln!(s, "   Proof references:");
-    for reference in &proof.refs {
-        let _ = writeln!(s, "   - {reference}");
-    }
 }
