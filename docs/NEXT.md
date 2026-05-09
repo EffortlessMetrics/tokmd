@@ -162,7 +162,8 @@ architecture-consolidation program.
   `evidence.json#/proof/*` plus the copied source proof artifact. Review-map
   Markdown now renders direct changed-file proof matches with required/advisory,
   execution, availability, freshness, command, and proof-reference lines.
-  Comment proof summaries remain future work.
+  Packet-local `comment.md` now includes compact proof evidence totals for
+  required/advisory proof and freshness without listing raw command output.
 - Architecture consolidation now has a current-state batch plan in
   `docs/architecture-consolidation-plan.md`, grounded in the live
   publish-surface verifier, large-file inventory, and `ci/proof.toml` scopes.

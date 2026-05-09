@@ -329,6 +329,12 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     assert!(review_map_md.contains("Proof references:"));
     assert!(review_map_md.contains("evidence.json#/proof/0"));
     assert!(review_map_md.contains("proof/proof-run-observation.json#/scopes/0"));
+
+    let comment_md = std::fs::read_to_string(packet_dir.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Proof evidence"));
+    assert!(comment_md.contains("Required proof: 1 passed, 0 failed, 0 missing"));
+    assert!(comment_md.contains("Advisory proof: 0 available, 0 missing"));
+    assert!(comment_md.contains("Proof freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
 }
 
 #[test]

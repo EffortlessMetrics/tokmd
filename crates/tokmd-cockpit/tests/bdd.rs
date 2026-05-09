@@ -921,6 +921,7 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert!(comment_md.contains("1 available"));
     assert!(comment_md.contains("4 unavailable"));
     assert!(comment_md.contains("1 missing"));
+    assert!(!comment_md.contains("Proof evidence"));
     assert!(comment_md.contains("Review packet artifacts"));
     assert!(comment_md.contains("[Evidence gates](evidence.json)"));
     assert!(comment_md.contains("[Review map](review-map.md)"));
@@ -1077,6 +1078,12 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     assert!(review_map_md.contains("   Proof references:"));
     assert!(review_map_md.contains("evidence.json#/proof/0"));
     assert!(review_map_md.contains("proof/proof-run-observation.json#/scopes/0"));
+
+    let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Proof evidence"));
+    assert!(comment_md.contains("Required proof: 1 passed, 0 failed, 0 missing"));
+    assert!(comment_md.contains("Advisory proof: 0 available, 0 missing"));
+    assert!(comment_md.contains("Proof freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
 }
 
 // ===========================================================================

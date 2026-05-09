@@ -64,7 +64,7 @@ state instead of being silently assumed to have passed.
 | `manifest.json` | Packet index with schema name, generated-by metadata, base/head refs, artifact paths, hashes, and verdict metadata. |
 | `cockpit.json` | Full `CockpitReceipt` JSON. This is the same receipt produced by `tokmd cockpit --format json`. |
 | `evidence.json` | Evidence availability and gate status. It distinguishes passed evidence from missing, skipped, stale, degraded, or unavailable evidence. |
-| `comment.md` | PR-comment-ready summary. It stays concise and points readers to packet artifacts when hosted by CI. |
+| `comment.md` | PR-comment-ready summary. It stays concise, summarizes evidence/proof availability, and points readers to packet artifacts when hosted by CI. |
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, compact evidence status, evidence references, item-level proof references where imported proof directly matches the item path, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first, which evidence is present or missing, and matching proof evidence lines when imported proof directly names the item path. |
 | `proof/*.json` | Optional packet-local copies of explicitly imported proof artifacts, listed and hash-verified through `manifest.json`. |
@@ -99,6 +99,9 @@ Recommended evidence availability values:
 
 Missing, stale, degraded, and unavailable evidence should be visible in
 `comment.md`, `evidence.json`, and `manifest.json` verdict metadata.
+When explicit proof artifacts are imported, `comment.md` also summarizes
+required proof, advisory proof, and freshness counts without listing raw
+commands.
 
 Cockpit proof imports should follow
 [`cockpit-proof-evidence.md`](cockpit-proof-evidence.md). When proof artifacts
