@@ -971,7 +971,7 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     let proof = evidence["proof"].as_array().expect("proof evidence array");
     assert_eq!(proof.len(), 1);
     assert_eq!(proof[0]["kind"], "proof_run_observation");
-    assert_eq!(proof[0]["source"], "proof-run-observation.json");
+    assert_eq!(proof[0]["source"], "proof/proof-run-observation.json");
     assert_eq!(proof[0]["source_schema"], "tokmd.proof_run_observation.v1");
     assert_eq!(proof[0]["profile"], "fast");
     assert_eq!(proof[0]["scope"], "tokmd_cockpit");
@@ -981,7 +981,16 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     assert_eq!(proof[0]["execution_status"], "executed_passed");
     assert_eq!(proof[0]["availability"], "available");
     assert_eq!(proof[0]["commit_match"], "exact");
-    assert_eq!(proof[0]["refs"][0], "proof-run-observation.json#/scopes/0");
+    assert_eq!(
+        proof[0]["refs"][0],
+        "proof/proof-run-observation.json#/scopes/0"
+    );
+    assert!(
+        out.join("proof")
+            .join("proof-run-observation.json")
+            .exists(),
+        "imported proof artifact should be copied into the packet"
+    );
 
     let manifest: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(out.join("manifest.json")).unwrap()).unwrap();
@@ -992,6 +1001,18 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     assert_eq!(
         manifest["verdict"]["evidence"]["details"], "evidence.json#/gates",
         "imported proof should not change gate verdict counts yet"
+    );
+    let artifacts = manifest["artifacts"]
+        .as_array()
+        .expect("manifest artifacts");
+    assert!(
+        artifacts.iter().any(|artifact| {
+            artifact["id"] == "proof-run-observation"
+                && artifact["path"] == "proof/proof-run-observation.json"
+                && artifact["schema"] == "tokmd.proof_run_observation.v1"
+                && artifact["media_type"] == "application/json"
+        }),
+        "manifest should list copied proof artifact"
     );
 }
 

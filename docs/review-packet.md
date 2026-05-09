@@ -43,10 +43,19 @@ The review packet directory is:
   comment.md
   review-map.json
   review-map.md
+  proof/
+    proof-run-summary.json
+    proof-run-observation.json
+    proof-executor-observation.json
+    coverage-receipt.json
 ```
 
 `review-map.json` and `review-map.md` are derived from the existing cockpit
 `review_plan`. They do not add a new scoring model.
+
+The `proof/` directory is present only when explicit proof evidence artifacts
+are supplied. Missing optional proof artifacts are represented in evidence
+state instead of being silently assumed to have passed.
 
 ## Artifacts
 
@@ -58,6 +67,7 @@ The review packet directory is:
 | `comment.md` | PR-comment-ready summary. It stays concise and points readers to packet artifacts when hosted by CI. |
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, compact evidence status, evidence references, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first and which evidence is present or missing. |
+| `proof/*.json` | Optional packet-local copies of explicitly imported proof artifacts, listed and hash-verified through `manifest.json`. |
 
 Formal JSON Schemas are published with the docs and embedded in the CLI test
 package:
@@ -91,10 +101,12 @@ Missing, stale, degraded, and unavailable evidence should be visible in
 `comment.md`, `evidence.json`, and `manifest.json` verdict metadata.
 
 Cockpit proof imports should follow
-[`cockpit-proof-evidence.md`](cockpit-proof-evidence.md). Current CLI support is
-validation-only for explicitly supplied proof artifacts; future packet imports
-must preserve required/advisory classification and commit freshness, and must
-not promote advisory proof into blocking evidence.
+[`cockpit-proof-evidence.md`](cockpit-proof-evidence.md). When proof artifacts
+are supplied with `--review-packet-dir`, cockpit validates them, copies them
+into canonical packet-local `proof/*.json` paths, and records normalized proof
+items in `evidence.json`. Packet imports preserve required/advisory
+classification and commit freshness, and must not promote advisory proof into
+blocking evidence.
 
 ## Manifest Requirements
 
@@ -113,7 +125,8 @@ not promote advisory proof into blocking evidence.
 
 Artifact paths in the manifest are relative to the packet directory. Hashes use
 the repo-standard BLAKE3 digest and are computed from the final bytes written
-to disk.
+to disk. Optional copied proof artifacts must also be listed in the manifest
+using packet-local relative paths such as `proof/proof-run-observation.json`.
 
 ## Review Map Requirements
 
@@ -195,5 +208,6 @@ that uses this packet.
 - `comment.md` remains concise enough for PR comments.
 - Existing `--format comment` and `--artifacts-dir` behavior remains compatible.
 - Action artifact upload works even when comments are disabled or unavailable.
-- Future proof evidence imports preserve required/advisory status and mark
-  stale or unknown-commit evidence explicitly.
+- Proof evidence imports preserve required/advisory status, mark stale or
+  unknown-commit evidence explicitly, and list packet-local proof artifact
+  copies in `manifest.json`.

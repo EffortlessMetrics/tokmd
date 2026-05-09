@@ -10,7 +10,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokmd_types::cockpit::CommitMatch;
 
@@ -34,6 +34,15 @@ impl ProofEvidenceKind {
             Self::ProofRunObservation => "proof_run_observation",
             Self::ProofExecutorObservation => "proof_executor_observation",
             Self::CoverageReceipt => "coverage_receipt",
+        }
+    }
+
+    pub(crate) fn packet_file_name(self) -> &'static str {
+        match self {
+            Self::ProofRunSummary => "proof-run-summary.json",
+            Self::ProofRunObservation => "proof-run-observation.json",
+            Self::ProofExecutorObservation => "proof-executor-observation.json",
+            Self::CoverageReceipt => "coverage-receipt.json",
         }
     }
 }
@@ -448,7 +457,7 @@ pub fn parse_proof_evidence_json(raw: &str) -> Result<ProofEvidenceArtifact> {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunSummaryInput {
     pub schema: String,
     pub status: String,
@@ -467,7 +476,7 @@ pub struct ProofRunSummaryInput {
     pub unknown_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunExecutionGuardInput {
     pub required: bool,
     pub enabled: bool,
@@ -477,7 +486,7 @@ pub struct ProofRunExecutionGuardInput {
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunCountsInput {
     pub commands_total: usize,
     pub required_planned: usize,
@@ -487,7 +496,7 @@ pub struct ProofRunCountsInput {
     pub failed: usize,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunEntryInput {
     pub scope: String,
     pub kind: String,
@@ -499,7 +508,7 @@ pub struct ProofRunEntryInput {
     pub exit_code: Option<i32>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunObservationInput {
     pub schema: String,
     pub status: String,
@@ -518,14 +527,14 @@ pub struct ProofRunObservationInput {
     pub unknown_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofObservationGuardInput {
     pub enabled: bool,
     pub ci: bool,
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofRunObservationCountsInput {
     pub commands_total: usize,
     pub required_planned: usize,
@@ -535,7 +544,7 @@ pub struct ProofRunObservationCountsInput {
     pub failed: usize,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofObservationScopeInput {
     pub name: String,
     pub kind: String,
@@ -544,7 +553,7 @@ pub struct ProofObservationScopeInput {
     pub exit_code: Option<i64>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofExecutorObservationInput {
     pub schema: String,
     pub status: String,
@@ -565,7 +574,7 @@ pub struct ProofExecutorObservationInput {
     pub unknown_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofExecutorObservationCountsInput {
     pub selected: usize,
     pub executed: usize,
@@ -574,7 +583,7 @@ pub struct ProofExecutorObservationCountsInput {
     pub artifacts: usize,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ProofExecutorObservationScopeInput {
     pub name: String,
     pub kind: String,
@@ -584,7 +593,7 @@ pub struct ProofExecutorObservationScopeInput {
     pub exit_code: Option<i64>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CoverageReceiptInput {
     pub schema: String,
     pub schema_version: u32,
@@ -599,7 +608,7 @@ pub struct CoverageReceiptInput {
     pub status: CoverageStatusInput,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CoverageGithubInput {
     pub run_id: Option<String>,
     pub run_attempt: Option<String>,
@@ -607,7 +616,7 @@ pub struct CoverageGithubInput {
     pub ref_name: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CoverageArtifactInput {
     pub path: String,
     pub kind: String,
@@ -615,7 +624,7 @@ pub struct CoverageArtifactInput {
     pub non_empty: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct CoverageStatusInput {
     pub ok: bool,
     #[serde(default)]

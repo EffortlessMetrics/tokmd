@@ -324,6 +324,36 @@ mod tests {
         assert!(msg.contains("must not be listed in manifest"), "{msg}");
     }
 
+    #[test]
+    fn nested_proof_artifact_is_hash_verified() {
+        let dir = tempdir().expect("tempdir");
+        write_valid_packet(dir.path());
+        fs::create_dir_all(dir.path().join("proof")).expect("create proof dir");
+        let proof_json = r#"{"schema":"tokmd.proof_run_observation.v1","entries":[]}"#;
+        fs::write(
+            dir.path().join("proof").join("proof-run-observation.json"),
+            proof_json,
+        )
+        .expect("write proof artifact");
+
+        let mut manifest = read_json(&dir.path().join("manifest.json"));
+        manifest["artifacts"]
+            .as_array_mut()
+            .expect("artifacts array")
+            .push(artifact(
+                "proof-run-observation",
+                "proof/proof-run-observation.json",
+                "tokmd.proof_run_observation.v1",
+                "application/json",
+                proof_json,
+            ));
+        write_json(&dir.path().join("manifest.json"), &manifest);
+
+        let report = validate_review_packet_dir(dir.path()).expect("valid packet should pass");
+
+        assert_eq!(report.artifact_count, 6);
+    }
+
     fn write_valid_packet(dir: &Path) {
         fs::create_dir_all(dir).expect("create packet dir");
 

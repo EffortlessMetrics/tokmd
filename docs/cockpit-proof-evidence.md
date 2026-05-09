@@ -1,9 +1,9 @@
 # Cockpit Proof Evidence Import Contract
 
 Status: partially implemented. `tokmd cockpit` can validate explicitly supplied
-proof artifacts and attach normalized imported proof items to
-`evidence.json` when `--review-packet-dir` is used. Review-map/comment proof
-refs and packet-local proof artifact copying remain future work.
+proof artifacts, copy them into the review packet under `proof/`, and attach
+normalized imported proof items to `evidence.json` when `--review-packet-dir`
+is used. Review-map/comment proof refs remain future work.
 
 ## Purpose
 
@@ -17,6 +17,7 @@ The intended flow is:
 proof-plan / proof-run / executor artifacts
   -> cockpit proof evidence import
   -> evidence.json
+  -> proof/*.json packet-local artifact copies
   -> review-map.json / review-map.md
   -> comment.md
 ```
@@ -55,7 +56,7 @@ model before rendering packet artifacts.
 
 Each imported evidence item should preserve:
 
-- source artifact path;
+- packet-local source artifact path;
 - source schema;
 - source run or workflow URL when available;
 - base ref or commit when available;
@@ -69,19 +70,32 @@ Each imported evidence item should preserve:
 - artifact references, such as LCOV paths;
 - generated timestamp when available.
 
-Packet renderers should refer back to source artifacts using stable refs rather
-than copying large proof payloads into every packet file.
+Packet renderers should refer back to packet-local source artifacts using
+stable refs rather than copying large proof payloads into every packet file.
 
 Example future reference shape:
 
 ```json
 {
   "proof_refs": [
-    "proof-run-observation.json#/entries/0",
-    "proof-executor-observation.json#/entries/3"
+    "proof/proof-run-observation.json#/entries/0",
+    "proof/proof-executor-observation.json#/entries/3"
   ]
 }
 ```
+
+When proof artifacts are supplied with `--review-packet-dir`, cockpit copies
+the validated JSON input into canonical packet-local names:
+
+| Kind | Packet path |
+| --- | --- |
+| proof run summary | `proof/proof-run-summary.json` |
+| proof run observation | `proof/proof-run-observation.json` |
+| proof executor observation | `proof/proof-executor-observation.json` |
+| coverage receipt | `proof/coverage-receipt.json` |
+
+These copied artifacts are listed in `manifest.json` with BLAKE3 hashes. The
+review packet verifier treats them like any other packet artifact.
 
 ## Commit Matching
 
@@ -153,7 +167,7 @@ Future import behavior should distinguish:
 - malformed artifact;
 - unknown schema;
 - stale commit;
-- artifact paths that are not relative or are outside the packet root;
+- manifest artifact paths that are not relative or are outside the packet root;
 - evidence artifact listed but missing on disk.
 
 Malformed or unsafe inputs should fail fast when the caller explicitly provided
@@ -179,6 +193,7 @@ evidence.
 - Normalize required/advisory status before rendering. (done for `evidence.json`)
 - Classify commit match as exact, partial, stale, or unknown. (done for `evidence.json`)
 - Attach imported proof entries to `evidence.json`. (done)
+- Copy supplied proof artifacts into packet-local `proof/*.json` files. (done)
 - Attach proof refs to review-map items without duplicating large artifacts.
 - Keep review packet schemas versioned if output shape changes.
 - Keep proof-control-plane promotion decisions outside cockpit.

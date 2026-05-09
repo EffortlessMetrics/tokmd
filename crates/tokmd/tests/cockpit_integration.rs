@@ -235,7 +235,7 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     let proof = evidence["proof"].as_array().expect("proof evidence array");
     assert_eq!(proof.len(), 1);
     assert_eq!(proof[0]["kind"], "proof_run_observation");
-    assert_eq!(proof[0]["source"], "proof-run-observation.json");
+    assert_eq!(proof[0]["source"], "proof/proof-run-observation.json");
     assert_eq!(proof[0]["source_schema"], "tokmd.proof_run_observation.v1");
     assert_eq!(proof[0]["profile"], "fast");
     assert_eq!(proof[0]["scope"], "tokmd_cockpit");
@@ -245,10 +245,41 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     assert_eq!(proof[0]["execution_status"], "executed_passed");
     assert_eq!(proof[0]["availability"], "available");
     assert_eq!(proof[0]["commit_match"], "exact");
-    assert_eq!(proof[0]["refs"][0], "proof-run-observation.json#/scopes/0");
+    assert_eq!(
+        proof[0]["refs"][0],
+        "proof/proof-run-observation.json#/scopes/0"
+    );
     assert_eq!(
         evidence["overall_status"], baseline_evidence["overall_status"],
         "imported proof evidence must not promote or change cockpit verdicts"
+    );
+
+    let copied_proof_path = packet_dir.join("proof").join("proof-run-observation.json");
+    assert!(
+        copied_proof_path.exists(),
+        "proof artifact should be copied into the review packet"
+    );
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
+            .expect("valid manifest JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_MANIFEST_SCHEMA_JSON,
+        &manifest,
+        "review packet manifest with proof",
+    );
+    let proof_artifact = manifest["artifacts"]
+        .as_array()
+        .expect("manifest artifacts")
+        .iter()
+        .find(|artifact| artifact["path"] == "proof/proof-run-observation.json")
+        .expect("proof artifact listed in manifest");
+    assert_eq!(proof_artifact["id"], "proof-run-observation");
+    assert_eq!(proof_artifact["schema"], "tokmd.proof_run_observation.v1");
+    let copied_bytes = std::fs::read(&copied_proof_path).unwrap();
+    assert_eq!(
+        proof_artifact["hash"]["hash"].as_str().expect("proof hash"),
+        blake3::hash(&copied_bytes).to_hex().as_str(),
+        "manifest hash should match copied proof artifact bytes"
     );
 }
 

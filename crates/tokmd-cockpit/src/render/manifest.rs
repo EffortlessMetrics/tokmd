@@ -13,9 +13,57 @@ pub(super) fn review_packet_manifest(
     review_map_json: &str,
     review_map_md: &str,
     comment_md: &str,
+    extra_artifacts: &[ReviewPacketArtifactContent<'_>],
 ) -> Value {
     let evidence_summary = review_packet_evidence_summary(receipt);
     let evidence_capabilities = review_packet_evidence_capabilities(receipt);
+    let mut artifacts = vec![
+        review_packet_artifact(
+            "cockpit",
+            "cockpit.json",
+            "tokmd.cockpit_receipt.v3",
+            "application/json",
+            cockpit_json,
+        ),
+        review_packet_artifact(
+            "evidence",
+            "evidence.json",
+            "tokmd.review_packet_evidence.v1",
+            "application/json",
+            evidence_json,
+        ),
+        review_packet_artifact(
+            "review-map",
+            "review-map.json",
+            "tokmd.review_map.v1",
+            "application/json",
+            review_map_json,
+        ),
+        review_packet_artifact(
+            "review-map-md",
+            "review-map.md",
+            "markdown",
+            "text/markdown",
+            review_map_md,
+        ),
+        review_packet_artifact(
+            "comment",
+            "comment.md",
+            "markdown",
+            "text/markdown",
+            comment_md,
+        ),
+    ];
+
+    artifacts.extend(extra_artifacts.iter().map(|artifact| {
+        review_packet_artifact(
+            artifact.id,
+            artifact.path,
+            artifact.schema,
+            artifact.media_type,
+            artifact.content,
+        )
+    }));
 
     json!({
         "schema": "tokmd.review_packet_manifest.v1",
@@ -37,44 +85,16 @@ pub(super) fn review_packet_manifest(
         "capabilities": {
             "evidence": evidence_capabilities,
         },
-        "artifacts": [
-            review_packet_artifact(
-                "cockpit",
-                "cockpit.json",
-                "tokmd.cockpit_receipt.v3",
-                "application/json",
-                cockpit_json,
-            ),
-            review_packet_artifact(
-                "evidence",
-                "evidence.json",
-                "tokmd.review_packet_evidence.v1",
-                "application/json",
-                evidence_json,
-            ),
-            review_packet_artifact(
-                "review-map",
-                "review-map.json",
-                "tokmd.review_map.v1",
-                "application/json",
-                review_map_json,
-            ),
-            review_packet_artifact(
-                "review-map-md",
-                "review-map.md",
-                "markdown",
-                "text/markdown",
-                review_map_md,
-            ),
-            review_packet_artifact(
-                "comment",
-                "comment.md",
-                "markdown",
-                "text/markdown",
-                comment_md,
-            ),
-        ],
+        "artifacts": artifacts,
     })
+}
+
+pub(super) struct ReviewPacketArtifactContent<'a> {
+    pub(super) id: &'a str,
+    pub(super) path: &'a str,
+    pub(super) schema: &'a str,
+    pub(super) media_type: &'a str,
+    pub(super) content: &'a str,
 }
 
 fn review_packet_artifact(
