@@ -3,7 +3,7 @@
 use tokmd_analysis_types::{FileComplexity, TechnicalDebtLevel, TechnicalDebtRatio};
 use tokmd_types::{ExportData, FileKind};
 
-use super::round_f64;
+use super::math::round_f64;
 
 const TECHNICAL_DEBT_LOW_THRESHOLD: f64 = 30.0;
 const TECHNICAL_DEBT_MODERATE_THRESHOLD: f64 = 60.0;

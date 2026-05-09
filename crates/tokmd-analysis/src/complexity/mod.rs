@@ -4,8 +4,10 @@ use std::path::{Path, PathBuf};
 use crate::maintainability::compute_maintainability_index;
 use anyhow::Result;
 #[cfg(test)]
+use tokmd_analysis_types::ComplexityRisk;
+#[cfg(test)]
 use tokmd_analysis_types::TechnicalDebtLevel;
-use tokmd_analysis_types::{ComplexityReport, ComplexityRisk, FileComplexity};
+use tokmd_analysis_types::{ComplexityReport, FileComplexity};
 use tokmd_types::{ExportData, FileKind, FileRow};
 
 use tokmd_analysis_types::{AnalysisLimits, normalize_path};
@@ -15,7 +17,9 @@ mod details;
 mod functions;
 mod histogram;
 mod language;
+mod math;
 mod risk;
+mod summary;
 
 use debt::{average_parent_loc, compute_technical_debt_ratio};
 use details::extract_function_details;
@@ -27,6 +31,7 @@ use functions::{count_python_functions, count_rust_functions, is_rust_fn_start};
 pub(crate) use histogram::generate_complexity_histogram;
 use language::{is_complexity_lang, map_language_for_complexity};
 use risk::{classify_risk_extended, estimate_cyclomatic};
+use summary::summarize_file_complexities;
 
 const DEFAULT_MAX_FILE_BYTES: u64 = 128 * 1024;
 const MAX_COMPLEXITY_FILES: usize = 100;
@@ -133,92 +138,18 @@ pub(crate) fn build_complexity_report(
     });
 
     // Compute aggregates before truncating
-    let total_functions: usize = file_complexities.iter().map(|f| f.function_count).sum();
-    let file_count = file_complexities.len();
-
-    let avg_function_length = if total_functions == 0 {
-        0.0
-    } else {
-        let total_max_len: usize = file_complexities
-            .iter()
-            .map(|f| f.max_function_length)
-            .sum();
-        round_f64(total_max_len as f64 / file_count as f64, 2)
-    };
-
-    let max_function_length = file_complexities
-        .iter()
-        .map(|f| f.max_function_length)
-        .max()
-        .unwrap_or(0);
-
-    let avg_cyclomatic = if file_count == 0 {
-        0.0
-    } else {
-        let total_cyclo: usize = file_complexities
-            .iter()
-            .map(|f| f.cyclomatic_complexity)
-            .sum();
-        round_f64(total_cyclo as f64 / file_count as f64, 2)
-    };
-
-    let max_cyclomatic = file_complexities
-        .iter()
-        .map(|f| f.cyclomatic_complexity)
-        .max()
-        .unwrap_or(0);
-
-    // Compute cognitive complexity aggregates
-    let cognitive_values: Vec<usize> = file_complexities
-        .iter()
-        .filter_map(|f| f.cognitive_complexity)
-        .collect();
-    let (avg_cognitive, max_cognitive) = if cognitive_values.is_empty() {
-        (None, None)
-    } else {
-        let total: usize = cognitive_values.iter().sum();
-        let max = cognitive_values.iter().copied().max().unwrap_or(0);
-        (
-            Some(round_f64(total as f64 / cognitive_values.len() as f64, 2)),
-            Some(max),
-        )
-    };
-
-    // Compute nesting depth aggregates
-    let nesting_values: Vec<usize> = file_complexities
-        .iter()
-        .filter_map(|f| f.max_nesting)
-        .collect();
-    let (avg_nesting_depth, max_nesting_depth) = if nesting_values.is_empty() {
-        (None, None)
-    } else {
-        let total: usize = nesting_values.iter().sum();
-        let max = nesting_values.iter().copied().max().unwrap_or(0);
-        (
-            Some(round_f64(total as f64 / nesting_values.len() as f64, 2)),
-            Some(max),
-        )
-    };
-
-    let high_risk_files = file_complexities
-        .iter()
-        .filter(|f| {
-            matches!(
-                f.risk_level,
-                ComplexityRisk::High | ComplexityRisk::Critical
-            )
-        })
-        .count();
+    let summary = summarize_file_complexities(&file_complexities);
 
     // Generate histogram from all files before truncating
     let histogram = generate_complexity_histogram(&file_complexities, 5);
 
     // Compute maintainability index
-    let maintainability_index = if file_count == 0 {
+    let maintainability_index = if file_complexities.is_empty() {
         None
     } else {
-        average_parent_loc(export)
-            .and_then(|avg_loc| compute_maintainability_index(avg_cyclomatic, avg_loc, None))
+        average_parent_loc(export).and_then(|avg_loc| {
+            compute_maintainability_index(summary.avg_cyclomatic, avg_loc, None)
+        })
     };
     let technical_debt = compute_technical_debt_ratio(export, &file_complexities);
 
@@ -226,27 +157,22 @@ pub(crate) fn build_complexity_report(
     file_complexities.truncate(MAX_COMPLEXITY_FILES);
 
     Ok(ComplexityReport {
-        total_functions,
-        avg_function_length,
-        max_function_length,
-        avg_cyclomatic,
-        max_cyclomatic,
-        avg_cognitive,
-        max_cognitive,
-        avg_nesting_depth,
-        max_nesting_depth,
-        high_risk_files,
+        total_functions: summary.total_functions,
+        avg_function_length: summary.avg_function_length,
+        max_function_length: summary.max_function_length,
+        avg_cyclomatic: summary.avg_cyclomatic,
+        max_cyclomatic: summary.max_cyclomatic,
+        avg_cognitive: summary.avg_cognitive,
+        max_cognitive: summary.max_cognitive,
+        avg_nesting_depth: summary.avg_nesting_depth,
+        max_nesting_depth: summary.max_nesting_depth,
+        high_risk_files: summary.high_risk_files,
         histogram: Some(histogram),
         halstead: None, // Populated when halstead feature is enabled
         maintainability_index,
         technical_debt,
         files: file_complexities,
     })
-}
-
-fn round_f64(val: f64, decimals: u32) -> f64 {
-    let factor = 10f64.powi(decimals as i32);
-    (val * factor).round() / factor
 }
 
 #[cfg(test)]
