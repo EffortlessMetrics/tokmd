@@ -134,6 +134,8 @@ blocking evidence.
 For a complete local workflow that plans proof, optionally executes guarded
 required proof, imports proof artifacts, and verifies the packet, see the
 [`cockpit-proof-evidence.md` local review workflow](cockpit-proof-evidence.md#local-review-workflow).
+For the planned stack boundary where evidencebus carries a verified tokmd
+packet, see [tokmd and evidencebus integration](evidencebus-integration.md).
 
 ## Manifest Requirements
 
@@ -251,3 +253,5 @@ that uses this packet.
   unknown-commit evidence explicitly, and list packet-local proof artifact
   copies in `manifest.json`.
 - Local proof-aware review workflow is documented with packet verification.
+- Evidencebus packet mapping is documented without adding a tokmd CLI command
+  or evidencebus runtime dependency.

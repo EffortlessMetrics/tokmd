@@ -167,6 +167,10 @@ architecture-consolidation program.
 - `docs/cockpit-proof-evidence.md` now includes the maintainer-facing local
   workflow for planning proof, optionally executing guarded required proof,
   importing proof artifacts, and verifying the review packet.
+- `docs/evidencebus-integration.md` now maps verified tokmd review packets to
+  evidencebus producer inputs, preserving the boundary that tokmd emits code
+  evidence while evidencebus validates, inventories, bundles, and exports
+  cross-tool evidence.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and

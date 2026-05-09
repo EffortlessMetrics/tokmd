@@ -719,6 +719,7 @@ paths = [
   "docs/architecture-consolidation-plan.md",
   "docs/architecture.md",
   "docs/design.md",
+  "docs/evidencebus-integration.md",
   "docs/implementation-plan.md",
   "docs/adr/**",
   "docs/audits/**",
