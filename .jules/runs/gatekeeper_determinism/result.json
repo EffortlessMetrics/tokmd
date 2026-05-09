@@ -1,0 +1,26 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record gatekeeper learning on determinism proof surfaces ✅",
+  "summary": "Explored core pipeline snapshot and determinism coverage. Everything is securely locked in; no drift found. Generated learning PR packet.",
+  "target_paths": [
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd-types/tests",
+    "crates/tokmd-scan/tests",
+    "crates/tokmd-model/tests",
+    "crates/tokmd-format/tests"
+  ],
+  "proof_summary": "Determinism, snapshot stability, and schemas are already highly consistent. All test suites and cross-checks pass.",
+  "gates_run": [
+    "cargo test --test cli_snapshot_golden",
+    "cargo test -p tokmd-types -p tokmd-scan -p tokmd-model -p tokmd-format",
+    "cargo test --workspace",
+    "cargo xtask version-consistency",
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": ["gatekeeper_determinism"],
+  "persona_notes_created": [],
+  "rollback": "None needed; no behavior changed.",
+  "follow_ups": []
+}
