@@ -21,9 +21,8 @@ mod effort;
 pub mod findings;
 mod git;
 mod supply;
+mod topics;
 pub mod util;
-
-use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
@@ -52,6 +51,7 @@ pub use git::{
     PredictiveChurnReport, TrendClass,
 };
 pub use supply::{AssetCategoryRow, AssetFileRow, AssetReport, DependencyReport, LockfileReport};
+pub use topics::{TopicClouds, TopicTerm};
 pub use util::{
     AnalysisLimits, empty_file_row, is_infra_lang, is_test_path, normalize_path, normalize_root,
     now_ms, path_depth,
@@ -129,24 +129,6 @@ pub struct AnalysisArgsMeta {
 pub struct Archetype {
     pub kind: String,
     pub evidence: Vec<String>,
-}
-
-// -----------------
-// Semantic topics
-// -----------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TopicClouds {
-    pub per_module: BTreeMap<String, Vec<TopicTerm>>,
-    pub overall: Vec<TopicTerm>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TopicTerm {
-    pub term: String,
-    pub score: f64,
-    pub tf: u32,
-    pub df: u32,
 }
 
 // -----------------
