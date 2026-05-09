@@ -259,11 +259,10 @@ fn ignored_patterns(args: &ScanOptions, roots: &[ValidatedRoot]) -> Vec<String> 
 }
 
 fn is_absolute_pattern(pattern: &str) -> bool {
-    let path = Path::new(pattern);
-    path.is_absolute()
-        || pattern.starts_with('/')
+    pattern.starts_with('/')
         || pattern.starts_with('\\')
         || pattern.as_bytes().get(1).is_some_and(|byte| *byte == b':')
+        || Path::new(pattern).is_absolute()
 }
 
 fn normalize_relative_ignore_pattern(pattern: &str) -> String {

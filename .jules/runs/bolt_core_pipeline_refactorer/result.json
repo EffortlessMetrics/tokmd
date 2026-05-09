@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "affected_paths": [
+    "crates/tokmd-scan/src/lib.rs",
+    "crates/tokmd-scan/src/path/mod.rs",
+    "crates/tokmd-model/src/lib.rs"
+  ]
+}

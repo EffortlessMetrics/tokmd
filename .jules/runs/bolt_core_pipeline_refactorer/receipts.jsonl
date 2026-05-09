@@ -1,0 +1,3 @@
+{"command": "rustc benches_normalize_path.rs -O && ./benches_normalize_path", "output": "Original: 335.478232ms (len: 35000000)\nOptimized: 267.37771ms (len: 35000000)"}
+{"command": "rustc benches2.rs -O && ./benches2", "output": "Original normalize_rel_path: 165.514888ms (len: 53000000)\nOptimized normalize_rel_path: 148.717563ms (len: 53000000)"}
+{"command": "rustc benches3.rs -O && ./benches3", "output": "Original is_absolute_pattern: 7.712177ms (true: 2000000)\nOptimized is_absolute_pattern: 3.442905ms (true: 2000000)"}

@@ -810,22 +810,24 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
             }
         } else {
             // Slow path: avoid string allocation if not replacing
-            let pfx: Cow<str> = if needs_replace {
+            if needs_replace {
                 let mut pfx = p_cow_stripped.replace('\\', "/");
                 if needs_slash {
                     pfx.push('/');
                 }
-                Cow::Owned(pfx)
+                if slice.starts_with(&pfx) {
+                    slice = &slice[pfx.len()..];
+                }
             } else if needs_slash {
-                let mut pfx = p_cow_stripped.into_owned();
-                pfx.push('/');
-                Cow::Owned(pfx)
+                // To avoid allocation here when it doesn't match:
+                // We know it needs a slash. So it must match p_cow_stripped + '/'
+                if slice.starts_with(p_cow_stripped.as_ref()) && slice[p_cow_stripped.len()..].starts_with('/') {
+                    slice = &slice[p_cow_stripped.len() + 1..];
+                }
             } else {
-                p_cow_stripped.clone()
-            };
-
-            if slice.starts_with(pfx.as_ref()) {
-                slice = &slice[pfx.len()..];
+                if slice.starts_with(p_cow_stripped.as_ref()) {
+                    slice = &slice[p_cow_stripped.len()..];
+                }
             }
         }
     }
