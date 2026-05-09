@@ -1,0 +1,13 @@
+{"command": "mkdir -p .jules/runs/mutant_high_value", "exit_code": 0}
+{"command": "cat << EOF > .jules/runs/mutant_high_value/envelope.json", "exit_code": 0}
+{"command": "ls -la crates/tokmd-*/src/", "exit_code": 0}
+{"command": "cargo build --verbose -p tokmd-model -p tokmd-types -p tokmd-scan -p tokmd-format", "exit_code": 0}
+{"command": "CI=true cargo test --verbose -p tokmd-model -p tokmd-types -p tokmd-scan -p tokmd-format", "exit_code": 0}
+{"command": "cargo mutants --dir crates/tokmd-types --timeout 300", "exit_code": 1}
+{"command": "bash -c 'cargo mutants --dir crates/tokmd-types --timeout 300'", "exit_code": 101}
+{"command": "cargo install cargo-mutants", "exit_code": 0}
+{"command": "cargo mutants --dir crates/tokmd-types --timeout 300", "exit_code": 0}
+{"command": "cargo mutants --dir crates/tokmd-model --timeout 300", "exit_code": 1}
+{"command": "cargo test -p tokmd-model", "exit_code": 0}
+{"command": "cargo fmt -- --check", "exit_code": 0}
+{"command": "cargo clippy -- -D warnings", "exit_code": 0}

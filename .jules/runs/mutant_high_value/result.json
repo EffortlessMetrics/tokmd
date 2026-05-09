@@ -1,0 +1,7 @@
+{
+  "summary": "Closed mutant gap in `env_interpreter_token` by adding test coverage for missing CLI args.",
+  "outcome": "proof-improvement-patch",
+  "affected_files": [
+    "crates/tokmd-model/src/lib.rs"
+  ]
+}
