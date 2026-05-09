@@ -12,6 +12,8 @@ use std::path::PathBuf;
 use anyhow::Result;
 
 mod artifacts;
+#[cfg(test)]
+mod fixtures;
 mod inputs;
 mod model;
 mod normalize;

@@ -92,3 +92,76 @@ pub(super) fn parse_proof_evidence_json(raw: &str) -> Result<ProofEvidenceArtifa
         _ => bail!("unsupported proof evidence schema `{schema}`"),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proof_evidence::fixtures::{
+        coverage_receipt_artifact, proof_executor_observation_artifact,
+        proof_run_observation_artifact, proof_run_summary_artifact,
+    };
+
+    #[test]
+    fn parses_proof_run_summary() {
+        let artifact = proof_run_summary_artifact("abc123");
+
+        let ProofEvidenceArtifact::ProofRunSummary(summary) = artifact else {
+            panic!("expected proof-run summary");
+        };
+        assert_eq!(summary.schema, PROOF_RUN_SUMMARY_SCHEMA);
+        assert_eq!(summary.profile, "fast");
+        assert!(summary.execution_guard.required);
+        assert_eq!(summary.entries[0].scope, "tokmd_cockpit");
+    }
+
+    #[test]
+    fn parses_proof_run_observation() {
+        let artifact = proof_run_observation_artifact("abc123");
+
+        let ProofEvidenceArtifact::ProofRunObservation(observation) = artifact else {
+            panic!("expected proof-run observation");
+        };
+        assert_eq!(observation.schema, PROOF_RUN_OBSERVATION_SCHEMA);
+        assert_eq!(observation.profile, "fast");
+        assert_eq!(observation.scopes[0].name, "tokmd_cockpit");
+    }
+
+    #[test]
+    fn parses_proof_executor_observation() {
+        let artifact = proof_executor_observation_artifact("abc123");
+
+        let ProofEvidenceArtifact::ProofExecutorObservation(observation) = artifact else {
+            panic!("expected proof-executor observation");
+        };
+        assert_eq!(observation.schema, PROOF_EXECUTOR_OBSERVATION_SCHEMA);
+        assert_eq!(observation.family, "coverage");
+        assert!(!observation.required);
+        assert_eq!(
+            observation.scopes[0].artifact_path.as_deref(),
+            Some("target/proof/coverage/tokmd-cockpit.lcov")
+        );
+    }
+
+    #[test]
+    fn parses_coverage_receipt() {
+        let artifact = coverage_receipt_artifact("abc123", true, true);
+
+        let ProofEvidenceArtifact::CoverageReceipt(receipt) = artifact else {
+            panic!("expected coverage receipt");
+        };
+        assert_eq!(receipt.schema, COVERAGE_RECEIPT_SCHEMA);
+        assert_eq!(receipt.sha, "abc123");
+        assert!(receipt.status.ok);
+        assert_eq!(receipt.artifacts[0].kind, "lcov");
+    }
+
+    #[test]
+    fn rejects_unknown_schema() {
+        let err = parse_proof_evidence_json(r#"{ "schema": "tokmd.unknown.v1" }"#)
+            .expect_err("unknown schema should fail");
+        assert!(
+            err.to_string()
+                .contains("unsupported proof evidence schema `tokmd.unknown.v1`")
+        );
+    }
+}

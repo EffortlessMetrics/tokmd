@@ -262,3 +262,135 @@ fn availability_with_commit_match(
 fn normalize_path_for_ref(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use tokmd_types::cockpit::CommitMatch;
+
+    use super::*;
+    use crate::proof_evidence::fixtures::{
+        coverage_receipt_artifact, proof_executor_observation_artifact,
+        proof_run_observation_artifact, proof_run_summary_artifact,
+    };
+
+    fn single_evidence(
+        artifact: &ProofEvidenceArtifact,
+        source_path: &str,
+        cockpit_head: Option<&str>,
+    ) -> NormalizedProofEvidence {
+        let mut evidence = normalize_proof_evidence(
+            artifact,
+            PathBuf::from(source_path),
+            Some("origin/main"),
+            cockpit_head,
+        );
+        assert_eq!(evidence.len(), 1);
+        evidence.pop().expect("normalized evidence")
+    }
+
+    #[test]
+    fn normalizes_proof_run_summary_as_required_exact_evidence() {
+        let artifact = proof_run_summary_artifact("abc123");
+        let evidence = single_evidence(&artifact, "proof-run-summary.json", Some("abc123"));
+
+        assert_eq!(evidence.kind, ProofEvidenceKind::ProofRunSummary);
+        assert_eq!(evidence.profile.as_deref(), Some("fast"));
+        assert_eq!(evidence.scope.as_deref(), Some("tokmd_cockpit"));
+        assert_eq!(
+            evidence.command.as_deref(),
+            Some("cargo test -p tokmd-cockpit")
+        );
+        assert!(evidence.required);
+        assert!(!evidence.advisory);
+        assert_eq!(
+            evidence.execution_status,
+            ProofExecutionStatus::ExecutedPassed
+        );
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Available);
+        assert_eq!(evidence.commit_match, CommitMatch::Exact);
+    }
+
+    #[test]
+    fn normalizes_proof_run_observation_scope_as_required_evidence() {
+        let artifact = proof_run_observation_artifact("abc123");
+        let evidence = single_evidence(&artifact, "proof-run-observation.json", Some("abc123"));
+
+        assert_eq!(evidence.kind, ProofEvidenceKind::ProofRunObservation);
+        assert_eq!(evidence.scope.as_deref(), Some("tokmd_cockpit"));
+        assert!(evidence.required);
+        assert_eq!(
+            evidence.execution_status,
+            ProofExecutionStatus::ExecutedPassed
+        );
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Available);
+    }
+
+    #[test]
+    fn normalizes_executor_dry_run_as_advisory_skipped_evidence() {
+        let artifact = proof_executor_observation_artifact("abc123");
+        let evidence = single_evidence(
+            &artifact,
+            "proof/proof-executor-observation.json",
+            Some("abc123"),
+        );
+
+        assert_eq!(evidence.kind, ProofEvidenceKind::ProofExecutorObservation);
+        assert_eq!(evidence.profile.as_deref(), Some("affected"));
+        assert_eq!(evidence.scope.as_deref(), Some("tokmd_cockpit"));
+        assert!(!evidence.required);
+        assert!(evidence.advisory);
+        assert_eq!(evidence.execution_status, ProofExecutionStatus::DryRun);
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Skipped);
+        assert_eq!(
+            evidence.artifact_refs,
+            vec!["proof/proof-executor-observation.json#/scopes/0"]
+        );
+    }
+
+    #[test]
+    fn normalizes_coverage_receipt_as_advisory_artifact_evidence() {
+        let artifact = coverage_receipt_artifact("abc123", true, true);
+        let evidence = single_evidence(&artifact, "proof/coverage-receipt.json", Some("abc123"));
+
+        assert_eq!(evidence.kind, ProofEvidenceKind::CoverageReceipt);
+        assert_eq!(evidence.scope.as_deref(), Some("tokmd_cockpit"));
+        assert!(!evidence.required);
+        assert!(evidence.advisory);
+        assert_eq!(
+            evidence.execution_status,
+            ProofExecutionStatus::ExecutedPassed
+        );
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Available);
+        assert_eq!(
+            evidence.artifact_refs,
+            vec!["proof/coverage-receipt.json#/artifacts/0"]
+        );
+    }
+
+    #[test]
+    fn stale_commit_marks_otherwise_available_evidence_stale() {
+        let artifact = coverage_receipt_artifact("old", true, true);
+        let evidence = single_evidence(&artifact, "coverage-receipt.json", Some("new"));
+
+        assert_eq!(evidence.commit_match, CommitMatch::Stale);
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Stale);
+    }
+
+    #[test]
+    fn unknown_commit_does_not_become_available_evidence() {
+        let artifact = coverage_receipt_artifact("", true, true);
+        let mut evidence = normalize_proof_evidence(
+            &artifact,
+            PathBuf::from("proof/coverage-receipt.json"),
+            None,
+            None,
+        );
+        assert_eq!(evidence.len(), 1);
+        let evidence = evidence.pop().expect("normalized evidence");
+
+        assert_eq!(evidence.commit_match, CommitMatch::Unknown);
+        assert_eq!(evidence.availability, ProofEvidenceAvailability::Degraded);
+    }
+}
