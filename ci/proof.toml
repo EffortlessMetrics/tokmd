@@ -559,6 +559,7 @@ coverage = true
 name = "format_fun_outputs"
 kind = "rust"
 paths = [
+  "crates/tokmd-format/src/analysis/fun_outputs.rs",
   "crates/tokmd-format/src/fun/**",
   "crates/tokmd-format/tests/fun_*.rs",
   "crates/tokmd-format/tests/snapshots/fun_*.snap",

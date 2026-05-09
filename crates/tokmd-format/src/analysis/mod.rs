@@ -33,6 +33,7 @@ use anyhow::Result;
 use tokmd_analysis_types::AnalysisReceipt;
 use tokmd_types::AnalysisFormat;
 
+mod fun_outputs;
 pub mod html;
 mod jsonld;
 mod markdown;
@@ -54,8 +55,8 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
         AnalysisFormat::Xml => Ok(RenderedOutput::Text(xml::render(receipt))),
         AnalysisFormat::Svg => Ok(RenderedOutput::Text(svg::render(receipt))),
         AnalysisFormat::Mermaid => Ok(RenderedOutput::Text(mermaid::render(receipt))),
-        AnalysisFormat::Obj => Ok(RenderedOutput::Text(render_obj(receipt)?)),
-        AnalysisFormat::Midi => Ok(RenderedOutput::Binary(render_midi(receipt)?)),
+        AnalysisFormat::Obj => Ok(RenderedOutput::Text(fun_outputs::render_obj(receipt)?)),
+        AnalysisFormat::Midi => Ok(RenderedOutput::Binary(fun_outputs::render_midi(receipt)?)),
         AnalysisFormat::Tree => Ok(RenderedOutput::Text(tree::render(receipt))),
         AnalysisFormat::Html => Ok(RenderedOutput::Text(render_html(receipt))),
     }
@@ -63,92 +64,6 @@ pub fn render(receipt: &AnalysisReceipt, format: AnalysisFormat) -> Result<Rende
 
 fn render_md(receipt: &AnalysisReceipt) -> String {
     markdown::render_md(receipt)
-}
-
-// --- fun enabled impls ---
-#[cfg(feature = "fun")]
-fn render_obj_fun(receipt: &AnalysisReceipt) -> Result<String> {
-    if let Some(derived) = &receipt.derived {
-        let buildings: Vec<crate::fun::ObjBuilding> = derived
-            .top
-            .largest_lines
-            .iter()
-            .enumerate()
-            .map(|(idx, row)| {
-                let x = (idx % 5) as f32 * 2.0;
-                let y = (idx / 5) as f32 * 2.0;
-                let h = (row.lines as f32 / 10.0).max(0.5);
-                crate::fun::ObjBuilding {
-                    name: row.path.clone(),
-                    x,
-                    y,
-                    w: 1.5,
-                    d: 1.5,
-                    h,
-                }
-            })
-            .collect();
-        return Ok(crate::fun::render_obj(&buildings));
-    }
-    Ok("# tokmd code city\n".to_string())
-}
-
-#[cfg(feature = "fun")]
-fn render_midi_fun(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
-    let mut notes = Vec::new();
-    if let Some(derived) = &receipt.derived {
-        for (idx, row) in derived.top.largest_lines.iter().enumerate() {
-            let key = 60u8 + (row.depth as u8 % 12);
-            let velocity = (40 + (row.lines.min(127) as u8 / 2)).min(120);
-            let start = (idx as u32) * 240;
-            notes.push(crate::fun::MidiNote {
-                key,
-                velocity,
-                start,
-                duration: 180,
-                channel: 0,
-            });
-        }
-    }
-    crate::fun::render_midi(&notes, 120)
-}
-
-// --- fun disabled impls (errors) ---
-#[cfg(not(feature = "fun"))]
-fn render_obj_disabled(_receipt: &AnalysisReceipt) -> Result<String> {
-    anyhow::bail!(
-        "OBJ format requires the `fun` feature: tokmd-format = {{ version = \"1.9\", features = [\"fun\"] }}"
-    )
-}
-
-#[cfg(not(feature = "fun"))]
-fn render_midi_disabled(_receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
-    anyhow::bail!(
-        "MIDI format requires the `fun` feature: tokmd-format = {{ version = \"1.9\", features = [\"fun\"] }}"
-    )
-}
-
-// --- stable API names used by the rest of the code ---
-fn render_obj(receipt: &AnalysisReceipt) -> Result<String> {
-    #[cfg(feature = "fun")]
-    {
-        render_obj_fun(receipt)
-    }
-    #[cfg(not(feature = "fun"))]
-    {
-        render_obj_disabled(receipt)
-    }
-}
-
-fn render_midi(receipt: &AnalysisReceipt) -> Result<Vec<u8>> {
-    #[cfg(feature = "fun")]
-    {
-        render_midi_fun(receipt)
-    }
-    #[cfg(not(feature = "fun"))]
-    {
-        render_midi_disabled(receipt)
-    }
 }
 
 fn render_html(receipt: &AnalysisReceipt) -> String {
@@ -515,7 +430,7 @@ mod tests {
     #[test]
     fn test_render_obj_no_fun() {
         let receipt = minimal_receipt();
-        let result = render_obj(&receipt);
+        let result = fun_outputs::render_obj(&receipt);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("fun"));
     }
@@ -525,7 +440,7 @@ mod tests {
     #[test]
     fn test_render_midi_no_fun() {
         let receipt = minimal_receipt();
-        let result = render_midi(&receipt);
+        let result = fun_outputs::render_midi(&receipt);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("fun"));
     }
@@ -653,7 +568,8 @@ mod tests {
             },
         ];
         receipt.derived = Some(derived);
-        let result = render_obj(&receipt).expect("render_obj should succeed with fun feature");
+        let result =
+            fun_outputs::render_obj(&receipt).expect("render_obj should succeed with fun feature");
 
         // Parse the OBJ output into objects with their vertices
         // Each object starts with "o <name>" followed by 8 vertices
@@ -867,7 +783,7 @@ mod tests {
         ];
         receipt.derived = Some(derived);
 
-        let result = render_midi(&receipt).unwrap();
+        let result = fun_outputs::render_midi(&receipt).unwrap();
 
         // Parse with midly
         let smf = Smf::parse(&result).expect("should parse as valid MIDI");
@@ -969,7 +885,7 @@ mod tests {
         use midly::Smf;
 
         let receipt = minimal_receipt();
-        let result = render_midi(&receipt).unwrap();
+        let result = fun_outputs::render_midi(&receipt).unwrap();
 
         // Should produce a valid MIDI (not empty, parseable)
         assert!(!result.is_empty(), "MIDI output should not be empty");
@@ -988,7 +904,7 @@ mod tests {
     #[test]
     fn test_render_obj_no_derived() {
         let receipt = minimal_receipt();
-        let result = render_obj(&receipt).expect("render_obj should succeed");
+        let result = fun_outputs::render_obj(&receipt).expect("render_obj should succeed");
 
         // Should return fallback string when no derived data
         assert_eq!(result, "# tokmd code city\n");
