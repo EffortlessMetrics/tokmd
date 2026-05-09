@@ -178,6 +178,81 @@ fn test_cockpit_accepts_valid_proof_observation_input_without_receipt_change() {
 }
 
 #[test]
+fn test_cockpit_review_packet_includes_imported_proof_evidence() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let proof_json =
+        PROOF_RUN_OBSERVATION_JSON.replace("\"head\": \"abc123\"", "\"head\": \"HEAD\"");
+    std::fs::write(dir.path().join("proof-run-observation.json"), proof_json).unwrap();
+    let baseline_packet_dir = dir.path().join(".tokmd").join("review-baseline");
+    let packet_dir = dir.path().join(".tokmd").join("review");
+
+    let mut baseline_cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    baseline_cmd
+        .current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--review-packet-dir")
+        .arg(&baseline_packet_dir)
+        .assert()
+        .success();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--proof-observation")
+        .arg("proof-run-observation.json")
+        .arg("--review-packet-dir")
+        .arg(&packet_dir)
+        .assert()
+        .success();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
+            .expect("valid evidence JSON");
+    let baseline_evidence: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(baseline_packet_dir.join("evidence.json")).unwrap(),
+    )
+    .expect("valid baseline evidence JSON");
+    assert!(
+        baseline_evidence.get("proof").is_none(),
+        "proof evidence should stay absent when no proof artifacts are provided"
+    );
+    assert_validates_against_schema(
+        REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        &evidence,
+        "review packet evidence with proof",
+    );
+
+    let proof = evidence["proof"].as_array().expect("proof evidence array");
+    assert_eq!(proof.len(), 1);
+    assert_eq!(proof[0]["kind"], "proof_run_observation");
+    assert_eq!(proof[0]["source"], "proof-run-observation.json");
+    assert_eq!(proof[0]["source_schema"], "tokmd.proof_run_observation.v1");
+    assert_eq!(proof[0]["profile"], "fast");
+    assert_eq!(proof[0]["scope"], "tokmd_cockpit");
+    assert_eq!(proof[0]["command"], "cargo test -p tokmd-cockpit");
+    assert_eq!(proof[0]["required"], true);
+    assert_eq!(proof[0]["advisory"], false);
+    assert_eq!(proof[0]["execution_status"], "executed_passed");
+    assert_eq!(proof[0]["availability"], "available");
+    assert_eq!(proof[0]["commit_match"], "exact");
+    assert_eq!(proof[0]["refs"][0], "proof-run-observation.json#/scopes/0");
+    assert_eq!(
+        evidence["overall_status"], baseline_evidence["overall_status"],
+        "imported proof evidence must not promote or change cockpit verdicts"
+    );
+}
+
+#[test]
 fn test_cockpit_rejects_unknown_proof_evidence_schema() {
     let Some(dir) = basic_cockpit_repo() else {
         return;

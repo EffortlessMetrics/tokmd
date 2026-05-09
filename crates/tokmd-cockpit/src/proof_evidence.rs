@@ -1,8 +1,9 @@
 //! Deserializable proof-control-plane evidence artifacts.
 //!
-//! Cockpit does not import these artifacts into review packets yet. This module
-//! locks the accepted input shapes so future packet wiring can classify proof
-//! evidence without duplicating the `xtask` JSON contracts.
+//! Cockpit imports these artifacts into review packet evidence when callers
+//! explicitly provide them. This module locks the accepted input shapes so
+//! packet wiring can classify proof evidence without duplicating the `xtask`
+//! JSON contracts.
 
 #![allow(dead_code)]
 
@@ -26,6 +27,17 @@ pub enum ProofEvidenceKind {
     CoverageReceipt,
 }
 
+impl ProofEvidenceKind {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::ProofRunSummary => "proof_run_summary",
+            Self::ProofRunObservation => "proof_run_observation",
+            Self::ProofExecutorObservation => "proof_executor_observation",
+            Self::CoverageReceipt => "coverage_receipt",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ProofEvidenceAvailability {
     Available,
@@ -36,6 +48,19 @@ pub(crate) enum ProofEvidenceAvailability {
     Unavailable,
 }
 
+impl ProofEvidenceAvailability {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Available => "available",
+            Self::Missing => "missing",
+            Self::Skipped => "skipped",
+            Self::Stale => "stale",
+            Self::Degraded => "degraded",
+            Self::Unavailable => "unavailable",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ProofExecutionStatus {
     Planned,
@@ -43,6 +68,18 @@ pub(crate) enum ProofExecutionStatus {
     ExecutedFailed,
     NotExecuted,
     DryRun,
+}
+
+impl ProofExecutionStatus {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Planned => "planned",
+            Self::ExecutedPassed => "executed_passed",
+            Self::ExecutedFailed => "executed_failed",
+            Self::NotExecuted => "not_executed",
+            Self::DryRun => "dry_run",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -67,6 +104,18 @@ pub enum ProofEvidenceArtifact {
     ProofRunObservation(ProofRunObservationInput),
     ProofExecutorObservation(ProofExecutorObservationInput),
     CoverageReceipt(CoverageReceiptInput),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProofEvidenceInput {
+    pub source_path: PathBuf,
+    pub artifact: ProofEvidenceArtifact,
+}
+
+impl ProofEvidenceInput {
+    pub fn kind(&self) -> ProofEvidenceKind {
+        self.artifact.kind()
+    }
 }
 
 impl ProofEvidenceArtifact {
@@ -109,6 +158,36 @@ impl ProofEvidenceArtifact {
 
 pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {
     parse_proof_evidence_json(raw).map(|artifact| artifact.kind())
+}
+
+pub fn parse_proof_evidence_input(
+    raw: &str,
+    source_path: impl Into<PathBuf>,
+) -> Result<ProofEvidenceInput> {
+    let artifact = parse_proof_evidence_json(raw)?;
+
+    Ok(ProofEvidenceInput {
+        source_path: source_path.into(),
+        artifact,
+    })
+}
+
+pub(crate) fn normalize_proof_evidence_inputs(
+    inputs: &[ProofEvidenceInput],
+    cockpit_base: Option<&str>,
+    cockpit_head: Option<&str>,
+) -> Vec<NormalizedProofEvidence> {
+    inputs
+        .iter()
+        .flat_map(|input| {
+            normalize_proof_evidence(
+                &input.artifact,
+                input.source_path.clone(),
+                cockpit_base,
+                cockpit_head,
+            )
+        })
+        .collect()
 }
 
 pub(crate) fn normalize_proof_evidence(

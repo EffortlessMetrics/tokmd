@@ -40,7 +40,7 @@ pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_di
 pub use gates::compute_determinism_gate;
 #[cfg(feature = "git")]
 use gates::compute_evidence;
-pub use proof_evidence::ProofEvidenceKind;
+pub use proof_evidence::{ProofEvidenceInput, ProofEvidenceKind};
 pub use review_plan::generate_review_plan;
 #[cfg(all(test, feature = "git"))]
 use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
@@ -57,6 +57,14 @@ pub const COMPLEXITY_THRESHOLD: u32 = 15;
 /// proof evidence inputs without changing review packet output semantics.
 pub fn proof_evidence_kind(raw: &str) -> Result<ProofEvidenceKind> {
     proof_evidence::proof_evidence_kind(raw)
+}
+
+/// Parse a proof-control-plane evidence artifact with its source path.
+pub fn parse_proof_evidence_input(
+    raw: &str,
+    source_path: impl Into<std::path::PathBuf>,
+) -> Result<ProofEvidenceInput> {
+    proof_evidence::parse_proof_evidence_input(raw, source_path)
 }
 
 /// File stat from git diff --numstat.

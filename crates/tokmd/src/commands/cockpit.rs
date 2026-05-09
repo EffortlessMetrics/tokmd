@@ -38,7 +38,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
-        validate_proof_evidence_inputs(&args)?;
+        let proof_evidence_inputs = load_proof_evidence_inputs(&args)?;
 
         let range_mode = match args.diff_range {
             cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
@@ -102,7 +102,11 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             tokmd_cockpit::render::write_artifacts(artifacts_dir, &receipt)?;
         }
         if let Some(review_packet_dir) = &args.review_packet_dir {
-            tokmd_cockpit::render::write_review_packet(review_packet_dir, &receipt)?;
+            tokmd_cockpit::render::write_review_packet_with_proof_evidence(
+                review_packet_dir,
+                &receipt,
+                &proof_evidence_inputs,
+            )?;
         }
 
         if let Some(output_path) = &args.output {
@@ -119,7 +123,9 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 }
 
 #[cfg(feature = "git")]
-fn validate_proof_evidence_inputs(args: &cli::CockpitArgs) -> Result<()> {
+fn load_proof_evidence_inputs(
+    args: &cli::CockpitArgs,
+) -> Result<Vec<tokmd_cockpit::ProofEvidenceInput>> {
     let inputs = [
         (
             "--proof-run-summary",
@@ -143,29 +149,31 @@ fn validate_proof_evidence_inputs(args: &cli::CockpitArgs) -> Result<()> {
         ),
     ];
 
+    let mut loaded = Vec::new();
     for (flag, path, expected_kind) in inputs {
         if let Some(path) = path {
-            validate_proof_evidence_input(flag, path, expected_kind)?;
+            loaded.push(load_proof_evidence_input(flag, path, expected_kind)?);
         }
     }
 
-    Ok(())
+    Ok(loaded)
 }
 
 #[cfg(feature = "git")]
-fn validate_proof_evidence_input(
+fn load_proof_evidence_input(
     flag: &str,
     path: &Path,
     expected_kind: tokmd_cockpit::ProofEvidenceKind,
-) -> Result<()> {
+) -> Result<tokmd_cockpit::ProofEvidenceInput> {
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("failed to read {flag} proof evidence at {}", path.display()))?;
-    let actual_kind = tokmd_cockpit::proof_evidence_kind(&raw).with_context(|| {
+    let input = tokmd_cockpit::parse_proof_evidence_input(&raw, path).with_context(|| {
         format!(
             "failed to parse {flag} proof evidence at {}",
             path.display()
         )
     })?;
+    let actual_kind = input.kind();
 
     if actual_kind != expected_kind {
         bail!(
@@ -176,7 +184,7 @@ fn validate_proof_evidence_input(
         );
     }
 
-    Ok(())
+    Ok(input)
 }
 
 #[cfg(test)]

@@ -1,10 +1,9 @@
 # Cockpit Proof Evidence Import Contract
 
 Status: partially implemented. `tokmd cockpit` can validate explicitly supplied
-proof artifacts through validation-only flags, but it does not yet attach
-imported proof evidence to review packet outputs. This document defines the
-contract future implementation should follow when attaching proof-control-plane
-evidence to cockpit review packets.
+proof artifacts and attach normalized imported proof items to
+`evidence.json` when `--review-packet-dir` is used. Review-map/comment proof
+refs and packet-local proof artifact copying remain future work.
 
 ## Purpose
 
@@ -130,7 +129,7 @@ same evidence vocabulary used by the current review packet:
 
 The information should be visible in:
 
-- `evidence.json` gate entries;
+- `evidence.json` gate entries and imported proof entries;
 - `review-map.json` item evidence status and `proof_refs`;
 - `review-map.md` proof lines for review-first items;
 - `comment.md` compact evidence availability text.
@@ -177,8 +176,9 @@ evidence.
 - Add deserializable DTOs for accepted proof artifacts. (done)
 - Validate explicit proof artifact inputs without changing receipt output. (done)
 - Keep absent imports compatible with current cockpit behavior. (done)
-- Normalize required/advisory status before rendering.
-- Classify commit match as exact, partial, stale, or unknown.
+- Normalize required/advisory status before rendering. (done for `evidence.json`)
+- Classify commit match as exact, partial, stale, or unknown. (done for `evidence.json`)
+- Attach imported proof entries to `evidence.json`. (done)
 - Attach proof refs to review-map items without duplicating large artifacts.
 - Keep review packet schemas versioned if output shape changes.
 - Keep proof-control-plane promotion decisions outside cockpit.

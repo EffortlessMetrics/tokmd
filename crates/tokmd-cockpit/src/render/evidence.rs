@@ -2,21 +2,65 @@
 
 use serde_json::{Value, json};
 
+use crate::proof_evidence::{ProofEvidenceInput, normalize_proof_evidence_inputs};
 use crate::{CockpitReceipt, CommitMatch, GateMeta, GateStatus};
 
-pub(super) fn review_packet_evidence(receipt: &CockpitReceipt) -> Value {
+pub(super) fn review_packet_evidence(
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) -> Value {
     let gates: Vec<_> = review_packet_evidence_gate_specs(receipt)
         .into_iter()
         .map(|(id, meta)| evidence_gate(id, meta))
         .collect();
 
-    json!({
+    let mut evidence = json!({
         "schema": "tokmd.review_packet_evidence.v1",
         "overall_status": receipt.evidence.overall_status,
         "base_ref": receipt.base_ref,
         "head_ref": receipt.head_ref,
         "gates": gates,
+    });
+
+    let proof = review_packet_proof_evidence(receipt, proof_inputs);
+    if !proof.is_empty() {
+        evidence["proof"] = Value::Array(proof);
+    }
+
+    evidence
+}
+
+fn review_packet_proof_evidence(
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) -> Vec<Value> {
+    normalize_proof_evidence_inputs(
+        proof_inputs,
+        Some(&receipt.base_ref),
+        Some(&receipt.head_ref),
+    )
+    .into_iter()
+    .map(|item| {
+        json!({
+            "kind": item.kind.as_str(),
+            "source": normalize_path_for_output(&item.source_path),
+            "source_schema": item.source_schema,
+            "profile": item.profile,
+            "scope": item.scope,
+            "command": item.command,
+            "required": item.required,
+            "advisory": item.advisory,
+            "execution_status": item.execution_status.as_str(),
+            "availability": item.availability.as_str(),
+            "commit_match": item.commit_match,
+            "refs": item.artifact_refs,
+        })
     })
+    .collect()
+}
+
+fn normalize_path_for_output(path: &std::path::Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
 }
 
 pub(super) fn review_packet_evidence_summary(receipt: &CockpitReceipt) -> Value {

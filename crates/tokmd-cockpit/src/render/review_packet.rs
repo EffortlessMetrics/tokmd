@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use crate::CockpitReceipt;
+use crate::{CockpitReceipt, ProofEvidenceInput};
 
 use super::comment::render_review_packet_comment_md;
 use super::evidence::review_packet_evidence;
@@ -19,10 +19,21 @@ use super::review_map::{render_review_map_md, review_packet_review_map};
 /// integrations keep their shipped `cockpit.json` / `report.json` /
 /// `comment.md` artifact shape until they opt into packet emission.
 pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
+    write_review_packet_with_proof_evidence(dir, receipt, &[])
+}
+
+/// Write review packet artifacts and include imported proof evidence in
+/// `evidence.json`.
+pub fn write_review_packet_with_proof_evidence(
+    dir: &Path,
+    receipt: &CockpitReceipt,
+    proof_evidence: &[ProofEvidenceInput],
+) -> Result<()> {
     std::fs::create_dir_all(dir)?;
 
     let cockpit_json = render_json(receipt)?;
-    let evidence_json = serde_json::to_string_pretty(&review_packet_evidence(receipt))?;
+    let evidence_json =
+        serde_json::to_string_pretty(&review_packet_evidence(receipt, proof_evidence))?;
     let review_map_json = serde_json::to_string_pretty(&review_packet_review_map(receipt))?;
     let review_map_md = render_review_map_md(receipt);
     let comment_md = render_review_packet_comment_md(receipt);
