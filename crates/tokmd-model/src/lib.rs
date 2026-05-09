@@ -1251,6 +1251,14 @@ mod tests {
             env_interpreter_token(vec!["-S", "-i", "python"].into_iter()),
             Some("python")
         );
+        assert_eq!(
+            env_interpreter_token(vec!["--split-string", "python"].into_iter()),
+            Some("python")
+        );
+        assert_eq!(
+            env_interpreter_token(vec!["--ignore-environment", "python"].into_iter()),
+            Some("python")
+        );
 
         // Skip flags with next argument
         assert_eq!(
