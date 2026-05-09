@@ -25,6 +25,7 @@ mod effort;
 mod entropy;
 pub mod findings;
 mod git;
+mod imports;
 mod license;
 mod topics;
 pub mod util;
@@ -59,6 +60,7 @@ pub use git::{
     CommitIntentReport, CouplingRow, FreshnessReport, GitReport, HotspotRow, ModuleFreshnessRow,
     ModuleIntentRow,
 };
+pub use imports::{ImportEdge, ImportReport};
 pub use license::{LicenseFinding, LicenseReport, LicenseSourceKind};
 pub use topics::{TopicClouds, TopicTerm};
 pub use util::{
@@ -138,23 +140,6 @@ pub struct AnalysisArgsMeta {
 pub struct Archetype {
     pub kind: String,
     pub evidence: Vec<String>,
-}
-
-// -----------------
-// Import graph info
-// -----------------
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportReport {
-    pub granularity: String,
-    pub edges: Vec<ImportEdge>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportEdge {
-    pub from: String,
-    pub to: String,
-    pub count: usize,
 }
 
 // -------------------
