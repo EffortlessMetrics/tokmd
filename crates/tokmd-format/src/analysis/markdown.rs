@@ -30,6 +30,7 @@ mod effort;
 mod entropy;
 mod git;
 mod imports;
+mod inputs;
 mod license;
 mod predictive_churn;
 mod topics;
@@ -44,11 +45,7 @@ pub fn render_md(receipt: &AnalysisReceipt) -> String {
     let _ = writeln!(out, "Preset: `{}`\n", receipt.args.preset);
 
     if !receipt.source.inputs.is_empty() {
-        out.push_str("## Inputs\n\n");
-        for input in &receipt.source.inputs {
-            let _ = writeln!(out, "- `{}`", input);
-        }
-        out.push('\n');
+        inputs::render_inputs(&mut out, &receipt.source.inputs);
     }
 
     if let Some(archetype) = &receipt.archetype {
