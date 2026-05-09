@@ -239,3 +239,37 @@ fn given_project_when_analyze_estimate_then_effort_model_present() {
         .expect("effort drivers should be an array");
     assert!(!drivers.is_empty(), "effort should have drivers");
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 9: Health preset includes TODO tags and complexity
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_health_then_todo_and_complexity_present() {
+    // Given: a project with source files
+    // When: I analyze with `health` preset and JSON format
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "health", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset health");
+
+    // Then: complexity metrics and TODO density are present
+    assert!(
+        output.status.success(),
+        "analyze should succeed: {:?}",
+        output.status
+    );
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("output should be valid JSON");
+
+    assert_eq!(json["mode"], "analysis", "mode should be 'analysis'");
+
+    assert!(
+        json.get("complexity").is_some(),
+        "should have complexity section"
+    );
+    assert!(
+        json["derived"].get("todo").is_some(),
+        "should have derived.todo section"
+    );
+}

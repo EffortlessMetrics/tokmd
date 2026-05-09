@@ -1,0 +1,4 @@
+{"command": "cargo run -p tokmd -- analyze . --preset health --format json > health_output.json && jq keys health_output.json"}
+{"command": "jq '.complexity' health_output.json | head -n 30"}
+{"command": "jq '.derived.todo' health_output.json"}
+{"command": "cargo test -p tokmd --test bdd_analyze_scenarios_w50"}

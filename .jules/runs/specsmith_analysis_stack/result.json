@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement",
+  "patch_type": "tests",
+  "affected_crates": ["tokmd"],
+  "scenario": "bdd_analyze_scenarios_w50"
+}
