@@ -3,11 +3,11 @@
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
 
-use super::ProofEvidenceKind;
 use super::inputs::{
     CoverageReceiptInput, ProofExecutorObservationInput, ProofRunObservationInput,
     ProofRunSummaryInput,
 };
+use super::model::ProofEvidenceKind;
 
 pub(super) const PROOF_RUN_SUMMARY_SCHEMA: &str = "tokmd.proof_run_summary.v1";
 pub(super) const PROOF_RUN_OBSERVATION_SCHEMA: &str = "tokmd.proof_run_observation.v1";

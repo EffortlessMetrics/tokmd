@@ -6,7 +6,7 @@ use tokmd_types::cockpit::CommitMatch;
 
 use super::artifacts::ProofEvidenceArtifact;
 use super::inputs::{CoverageReceiptInput, ProofRunEntryInput};
-use super::{
+use super::model::{
     NormalizedProofEvidence, ProofEvidenceAvailability, ProofEvidenceInput, ProofEvidenceKind,
     ProofExecutionStatus,
 };
