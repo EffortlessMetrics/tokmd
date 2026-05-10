@@ -5,8 +5,7 @@
 //! owner module.
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-
+mod assumptions;
 mod confidence;
 mod delta;
 mod driver;
@@ -14,6 +13,7 @@ mod model;
 mod results;
 mod size;
 
+pub use assumptions::EffortAssumptions;
 pub use confidence::{EffortConfidence, EffortConfidenceLevel};
 pub use delta::{EffortDeltaClassification, EffortDeltaReport};
 pub use driver::{EffortDriver, EffortDriverDirection};
@@ -31,12 +31,6 @@ pub struct EffortEstimateReport {
     pub assumptions: EffortAssumptions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delta: Option<EffortDeltaReport>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffortAssumptions {
-    pub notes: Vec<String>,
-    pub overrides: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
