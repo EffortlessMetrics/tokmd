@@ -1,5 +1,3 @@
-# Friction Item
-
 id: librarian_doctest_git_dependency
 persona: librarian
 style: prover

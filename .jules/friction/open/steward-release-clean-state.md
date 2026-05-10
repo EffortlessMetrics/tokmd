@@ -1,5 +1,3 @@
-# Friction Item
-
 id: steward-release-clean-state
 persona: steward
 style: stabilizer

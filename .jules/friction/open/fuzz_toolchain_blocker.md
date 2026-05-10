@@ -1,5 +1,3 @@
-# Friction Item
-
 id: fuzz_toolchain_blocker
 persona: fuzzer
 style: prover
