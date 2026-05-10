@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "outcome": "PR-ready patch",
+  "patch_files_modified": [
+    "docs/github-action.md",
+    "docs/sensor-report-v1.md",
+    "docs/SCHEMA.md",
+    "docs/design.md",
+    "docs/install.md"
+  ]
+}

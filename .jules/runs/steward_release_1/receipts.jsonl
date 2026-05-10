@@ -1,0 +1,5 @@
+{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed."}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Workspace version: 1.11.0"}
+{"command": "cargo xtask docs --check", "outcome": "Documentation is up to date."}
+{"command": "cargo deny --all-features check", "outcome": "advisories ok, bans ok, licenses ok, sources ok"}
+{"command": "grep -r \"1.10.0\" docs/", "outcome": "Revealed multiple files in docs/ containing version 1.10.0 that need updating to 1.11.0."}
