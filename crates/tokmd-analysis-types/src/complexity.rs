@@ -8,11 +8,13 @@ use serde::{Deserialize, Serialize};
 mod halstead;
 mod histogram;
 mod maintainability;
+mod risk;
 mod technical_debt;
 
 pub use halstead::HalsteadMetrics;
 pub use histogram::ComplexityHistogram;
 pub use maintainability::MaintainabilityIndex;
+pub use risk::ComplexityRisk;
 pub use technical_debt::{TechnicalDebtLevel, TechnicalDebtRatio};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,42 +93,4 @@ pub struct FunctionComplexityDetail {
     /// Number of parameters.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub param_count: Option<usize>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ComplexityRisk {
-    Low,
-    Moderate,
-    High,
-    Critical,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::ComplexityRisk;
-
-    #[test]
-    fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [
-            ComplexityRisk::Low,
-            ComplexityRisk::Moderate,
-            ComplexityRisk::High,
-            ComplexityRisk::Critical,
-        ] {
-            let json = serde_json::to_string(&variant)?;
-            let back: ComplexityRisk = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn complexity_risk_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(
-            serde_json::to_string(&ComplexityRisk::Moderate)?,
-            "\"moderate\""
-        );
-        Ok(())
-    }
 }
