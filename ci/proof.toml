@@ -783,6 +783,7 @@ packages = ["tokmd"]
 proof = [
   "cargo test -p tokmd --test cli_snapshot_golden --verbose",
   "cargo test -p tokmd --test cli_e2e --verbose",
+  "cargo test -p tokmd --test cli_parser_properties --verbose",
   "cargo test -p tokmd --test config_resolution --verbose",
 ]
 mutation = true
