@@ -60,7 +60,7 @@ fixtures:
 | Area | Current file | Approx. lines | Owner direction |
 | --- | --- | ---: | --- |
 | Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=187 | Scoring, nesting, and function-span helpers now live under owner modules; remaining work is mostly test split and aggregation cleanup |
-| Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 678; symbol scanner 382 | Keep report aggregation in `mod.rs`, source scanning in `symbols.rs`, and split large tests only after behavior stays stable |
+| Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 230; symbol scanner 385; symbol tests 449 | Keep report aggregation in `mod.rs`, source scanning and scanner tests under `symbols`, and leave large integration tests under `api_surface/tests` |
 | Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |

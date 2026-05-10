@@ -3,6 +3,9 @@
 //! This module owns heuristic source scanning only. The parent module owns
 //! receipt aggregation and stable report construction.
 
+#[cfg(test)]
+mod tests;
+
 /// Languages supported for API surface analysis.
 pub(super) fn is_api_surface_lang(lang: &str) -> bool {
     matches!(
