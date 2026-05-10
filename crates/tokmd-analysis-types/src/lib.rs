@@ -27,6 +27,7 @@ mod derived;
 mod duplication;
 mod effort;
 mod entropy;
+mod envelope;
 pub mod findings;
 mod fun;
 mod git;
@@ -70,6 +71,10 @@ pub use effort::{
     EffortEstimateReport, EffortModel, EffortResults, EffortSizeBasis, EffortTagSizeRow,
 };
 pub use entropy::{EntropyClass, EntropyFinding, EntropyReport};
+pub use envelope::{
+    Artifact, ENVELOPE_SCHEMA, Envelope, EnvelopeTool, Finding, FindingLocation, FindingSeverity,
+    GateItem, GateResults, GatesEnvelope, SensorReport, ToolMeta, Verdict,
+};
 pub use fun::{EcoLabel, FunReport};
 pub use git::{
     BusFactorRow, CodeAgeBucket, CodeAgeDistributionReport, CommitIntentCounts, CommitIntentKind,
@@ -94,30 +99,6 @@ pub use tokmd_scan::{gini_coefficient, percentile, round_f64, safe_ratio};
 /// v8: Near-dup clusters, selection metadata, max_pairs guardrail, runtime stats.
 /// v9: Added effort estimation report.
 pub const ANALYSIS_SCHEMA_VERSION: u32 = 9;
-
-// =========================
-// Ecosystem Envelope (v1) — re-exported from tokmd-envelope
-// =========================
-
-/// Schema identifier for ecosystem envelope format.
-/// v1: Initial envelope specification for multi-sensor integration.
-pub const ENVELOPE_SCHEMA: &str = tokmd_envelope::SENSOR_REPORT_SCHEMA;
-
-// Re-export all envelope types with backwards-compatible aliases
-pub use tokmd_envelope::Artifact;
-pub use tokmd_envelope::Finding;
-pub use tokmd_envelope::FindingLocation;
-pub use tokmd_envelope::FindingSeverity;
-pub use tokmd_envelope::GateItem;
-pub use tokmd_envelope::GateResults as GatesEnvelope;
-pub use tokmd_envelope::SensorReport as Envelope;
-pub use tokmd_envelope::ToolMeta as EnvelopeTool;
-pub use tokmd_envelope::Verdict;
-
-// Also re-export the canonical names for new code
-pub use tokmd_envelope::GateResults;
-pub use tokmd_envelope::SensorReport;
-pub use tokmd_envelope::ToolMeta;
 
 #[cfg(test)]
 mod tests {

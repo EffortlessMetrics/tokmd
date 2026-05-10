@@ -272,6 +272,7 @@ coverage = true
 name = "analysis_receipt_types"
 kind = "rust"
 paths = [
+  "crates/tokmd-analysis-types/src/envelope.rs",
   "crates/tokmd-analysis-types/src/lib.rs",
   "crates/tokmd-analysis-types/src/findings.rs",
   "crates/tokmd-analysis-types/src/receipt.rs",
