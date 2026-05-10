@@ -5,6 +5,10 @@
 
 use serde::{Deserialize, Serialize};
 
+mod histogram;
+
+pub use histogram::ComplexityHistogram;
+
 /// Halstead software science metrics computed from operator/operand token counts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HalsteadMetrics {
@@ -161,61 +165,9 @@ pub enum ComplexityRisk {
     Critical,
 }
 
-/// Histogram of cyclomatic complexity distribution across files.
-///
-/// Used to visualize the distribution of complexity values in a codebase.
-/// Default bucket boundaries are 0-4, 5-9, 10-14, 15-19, 20-24, 25-29, 30+.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplexityHistogram {
-    /// Bucket boundaries (e.g., [0, 5, 10, 15, 20, 25, 30]).
-    pub buckets: Vec<u32>,
-    /// Count of files in each bucket.
-    pub counts: Vec<u32>,
-    /// Total files analyzed.
-    pub total: u32,
-}
-
-impl ComplexityHistogram {
-    /// Generate an ASCII bar chart visualization of the histogram.
-    ///
-    /// # Arguments
-    /// * `width` - Maximum width of the bars in characters
-    ///
-    /// # Returns
-    /// A multi-line string with labeled bars showing distribution
-    pub fn to_ascii(&self, width: usize) -> String {
-        use std::fmt::Write;
-        let max_count = self.counts.iter().max().copied().unwrap_or(1).max(1);
-        let mut output = String::with_capacity(self.counts.len() * (width + 20));
-        for (i, count) in self.counts.iter().enumerate() {
-            if i < self.buckets.len() - 1 {
-                let _ = write!(
-                    output,
-                    "{:>2}-{:<2} |",
-                    self.buckets[i],
-                    self.buckets[i + 1] - 1
-                );
-            } else {
-                let _ = write!(
-                    output,
-                    "{:>2}+  |",
-                    self.buckets.get(i).copied().unwrap_or(30)
-                );
-            }
-
-            let bar_len = (*count as f64 / max_count as f64 * width as f64) as usize;
-            for _ in 0..bar_len {
-                output.push('\u{2588}');
-            }
-            let _ = writeln!(output, " {}", count);
-        }
-        output
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{ComplexityHistogram, ComplexityRisk, TechnicalDebtLevel};
+    use super::{ComplexityRisk, TechnicalDebtLevel};
 
     #[test]
     fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
@@ -254,28 +206,5 @@ mod tests {
             "\"moderate\""
         );
         Ok(())
-    }
-
-    #[test]
-    fn complexity_histogram_to_ascii_basic() {
-        let h = ComplexityHistogram {
-            buckets: vec![0, 5, 10],
-            counts: vec![10, 5, 2],
-            total: 17,
-        };
-        let ascii = h.to_ascii(20);
-        assert!(!ascii.is_empty());
-        assert_eq!(ascii.lines().count(), 3);
-    }
-
-    #[test]
-    fn complexity_histogram_to_ascii_empty_counts() {
-        let h = ComplexityHistogram {
-            buckets: vec![0, 5],
-            counts: vec![0, 0],
-            total: 0,
-        };
-        let ascii = h.to_ascii(20);
-        assert!(!ascii.is_empty());
     }
 }
