@@ -1,0 +1,2 @@
+{"command": "grep -rn \"Command::new(\\\"git\\\")\" crates/tokmd/src/", "result": "crates/tokmd/src/git_support.rs"}
+{"command": "cargo test -p tokmd git_support", "result": "Tests passed, proving safety of git_cmd wrapper."}
