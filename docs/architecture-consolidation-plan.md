@@ -61,7 +61,7 @@ fixtures:
 | --- | --- | ---: | --- |
 | Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=187 | Scoring, nesting, and function-span helpers now live under owner modules; remaining work is mostly test split and aggregation cleanup |
 | Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 230; symbol scanner 385; symbol tests 449 | Keep report aggregation in `mod.rs`, source scanning and scanner tests under `symbols`, and leave large integration tests under `api_surface/tests` |
-| Context packing | `crates/tokmd/src/context_pack.rs`, `crates/tokmd/src/context_pack/`, and `crates/tokmd/src/commands/context.rs` | `context_pack.rs` 9; selection submodule/tests 1684; render submodule 204; budget parser/tests 200; context command 602 | Budget parsing, file selection, and bundle text rendering now live in owner modules; continue splitting manifest helpers under `tokmd`; keep context/handoff proof scoped |
+| Context packing | `crates/tokmd/src/context_pack.rs`, `crates/tokmd/src/context_pack/`, and `crates/tokmd/src/commands/context.rs` | `context_pack.rs` 11; selection submodule/tests 1896; render submodule 204; manifest submodule 195; budget parser/tests 220; context command 423 | Budget parsing, file selection, bundle text rendering, and context bundle manifest writing now live in owner modules; reassess remaining command orchestration before moving to the next pressure point; keep context/handoff proof scoped |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` and owner DTO modules | `lib.rs` 113; baseline owner 37 + complexity-baseline submodule 256 + complexity-section submodule 37 + determinism submodule 22 + metrics submodule 45 + file-entry submodule 23; envelope owner 24; receipt owner 42; topics owner tests 42; entropy owner tests 58; license owner tests 42; churn owner tests 50; complexity owner tests 51 + file submodule 46 + risk submodule 43 + halstead submodule 30 + maintainability submodule 25 + histogram submodule 79 + technical-debt submodule 42; effort owner 25 + estimate submodule 70 + assumptions submodule 35 + cocomo submodule 48 + model submodule 37 + confidence submodule 45 + delta submodule 56 + driver submodule 43 + size submodule 65 + results submodule 45 | Keep root receipt glue and public re-exports stable while moving remaining DTO ownership into modules |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/summary.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` + `complexity/language.rs` + `complexity/math.rs` + `complexity/tests/unit.rs` | 156 + 301 + 343 + 138 + 78 + 69 + 33 + 35 + 5 + 346 | Keep shared complexity logic in `tokmd-analysis`, split language/source/summary helpers and local unit tests |
@@ -233,6 +233,7 @@ crates/tokmd/src/
     budget.rs
     select.rs
     render.rs
+    manifest.rs
   cli/
     parser/
       mod.rs
@@ -304,8 +305,8 @@ Stop and split the work if a consolidation PR:
 2. Continue production owner-module splits under `tokmd-analysis`, starting
    with API surface symbol scanning and then aggregation/test cleanup where
    useful.
-3. Split `crates/tokmd/src/context_pack.rs` into selection, budgeting,
-   rendering, and manifest helpers under `tokmd`.
+3. Reassess the remaining context command orchestration now that selection,
+   budgeting, rendering, and manifest helpers live under `tokmd`.
 
 Each PR should include the affected proof-plan output in the PR body and should
 leave `publish-surface --verify-publish` green when public exports or
