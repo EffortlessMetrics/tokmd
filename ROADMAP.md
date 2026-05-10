@@ -40,8 +40,7 @@ context for humans, machines, CI, and agents.
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
 | **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
-| **v3.0.0** | 🔭 Long-term | Tree-sitter AST integration (requires significant R&D).      |
-| **v4.0.0** | 🔭 Long-term | Adze AST integration.      |
+| **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
 ---
 
@@ -668,8 +667,8 @@ _Goal: Accurate parsing for precise metrics. This is a significant undertaking r
 
 #### J. Tree-sitter AST Parsing
 
-- Feature-gated AST foundation defined by ADR-0008
-- Rust-first owner module under `tokmd-analysis` before any public parser crate
+- ✅ Feature-gated AST foundation defined by ADR-0008 (Landed behind `ast` feature)
+- ✅ Rust-first owner module under `tokmd-analysis` before any public parser crate
 - Shadow comparison artifacts for heuristic-vs-AST function, import, and control-flow evidence
 - Later language-specific complexity rules only after deterministic shadow evidence
 - Public receipt/schema changes only after schema review and migration policy

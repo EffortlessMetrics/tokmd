@@ -218,7 +218,6 @@ Stable release following `v1.10.0-rc.1` validation.
 ### Added
 
 - Near-duplicate detection enricher (`tokmd-analysis-near-dup`), commit intent classification, and focused microcrate extraction.
-- Planned v4.0.0 milestone for Adze AST integration in roadmap.
 
 ### Fixed
 

@@ -1,0 +1,20 @@
+{
+  "outcome_type": "patch",
+  "title": "cartographer: sync roadmap docs with active tree-sitter shadow foundation 🗺️",
+  "summary": "Updated `ROADMAP.md` and `docs/implementation-plan.md` to reflect that the Tree-sitter AST shadow foundation (Phase 7 / ADR-0008) has begun and landed behind a feature flag (`ast`). Also removed hallucinatory Adze AST integration references.",
+  "target_paths": [
+    "ROADMAP.md",
+    "docs/implementation-plan.md",
+    "CHANGELOG.md"
+  ],
+  "proof_summary": "Verified by grep and reading `crates/tokmd-analysis/Cargo.toml` and `ROADMAP.md` which showed the shadow foundation in-tree but the docs lagging.",
+  "gates_run": [
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout ROADMAP.md docs/implementation-plan.md CHANGELOG.md",
+  "follow_ups": []
+}
