@@ -22,3 +22,32 @@ pub enum EntropyClass {
     Suspicious,
     High,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::EntropyClass;
+
+    #[test]
+    fn entropy_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
+        for variant in [
+            EntropyClass::Low,
+            EntropyClass::Normal,
+            EntropyClass::Suspicious,
+            EntropyClass::High,
+        ] {
+            let json = serde_json::to_string(&variant)?;
+            let back: EntropyClass = serde_json::from_str(&json)?;
+            assert_eq!(back, variant);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn entropy_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
+        assert_eq!(
+            serde_json::to_string(&EntropyClass::Suspicious)?,
+            "\"suspicious\""
+        );
+        Ok(())
+    }
+}

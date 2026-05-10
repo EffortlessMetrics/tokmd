@@ -161,21 +161,6 @@ mod tests {
 
     // ── Enum serde roundtrips ─────────────────────────────────────────
     #[test]
-    fn entropy_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [
-            EntropyClass::Low,
-            EntropyClass::Normal,
-            EntropyClass::Suspicious,
-            EntropyClass::High,
-        ] {
-            let json = serde_json::to_string(&variant)?;
-            let back: EntropyClass = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
     fn trend_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [TrendClass::Rising, TrendClass::Flat, TrendClass::Falling] {
             let json = serde_json::to_string(&variant)?;
@@ -226,15 +211,6 @@ mod tests {
     }
 
     // ── Enum naming conventions ───────────────────────────────────────
-    #[test]
-    fn entropy_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(
-            serde_json::to_string(&EntropyClass::Suspicious)?,
-            "\"suspicious\""
-        );
-        Ok(())
-    }
-
     #[test]
     fn trend_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(serde_json::to_string(&TrendClass::Rising)?, "\"rising\"");
