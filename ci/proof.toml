@@ -665,9 +665,9 @@ paths = [
 ]
 packages = ["tokmd-git", "tokmd-scan", "tokmd"]
 proof = [
-  "cargo test -p tokmd-git git_cmd_removes_repo_shaping_env_overrides --verbose",
-  "cargo test -p tokmd-scan git_cmd_removes_repo_shaping_env_overrides --verbose",
-  "cargo test -p tokmd git_cmd_removes_repo_shaping_env_overrides --verbose",
+  "cargo test -p tokmd-git git_cmd_removes --verbose",
+  "cargo test -p tokmd-scan git_cmd_removes --verbose",
+  "cargo test -p tokmd git_cmd_removes --verbose",
 ]
 mutation = true
 coverage = true
