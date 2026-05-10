@@ -274,6 +274,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-analysis-types/src/lib.rs",
   "crates/tokmd-analysis-types/src/findings.rs",
+  "crates/tokmd-analysis-types/src/receipt.rs",
   "crates/tokmd-analysis-types/src/util.rs",
   "crates/tokmd-analysis-types/tests/**",
   "docs/SCHEMA.md",
