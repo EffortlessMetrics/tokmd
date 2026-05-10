@@ -22,3 +22,24 @@ pub enum TrendClass {
     Flat,
     Falling,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TrendClass;
+
+    #[test]
+    fn trend_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
+        for variant in [TrendClass::Rising, TrendClass::Flat, TrendClass::Falling] {
+            let json = serde_json::to_string(&variant)?;
+            let back: TrendClass = serde_json::from_str(&json)?;
+            assert_eq!(back, variant);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn trend_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
+        assert_eq!(serde_json::to_string(&TrendClass::Rising)?, "\"rising\"");
+        Ok(())
+    }
+}

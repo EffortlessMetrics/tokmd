@@ -161,16 +161,6 @@ mod tests {
 
     // ── Enum serde roundtrips ─────────────────────────────────────────
     #[test]
-    fn trend_class_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [TrendClass::Rising, TrendClass::Flat, TrendClass::Falling] {
-            let json = serde_json::to_string(&variant)?;
-            let back: TrendClass = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
     fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [
             ComplexityRisk::Low,
@@ -201,12 +191,6 @@ mod tests {
     }
 
     // ── Enum naming conventions ───────────────────────────────────────
-    #[test]
-    fn trend_class_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(serde_json::to_string(&TrendClass::Rising)?, "\"rising\"");
-        Ok(())
-    }
-
     #[test]
     fn effort_model_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(EffortModel::Cocomo81Basic.to_string(), "cocomo81-basic");
