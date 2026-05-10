@@ -228,8 +228,11 @@ fn schema_md_context_bundle_version_matches_source() {
 
 #[test]
 fn schema_md_baseline_version_matches_source() {
-    let src = read_const_u32("crates/tokmd-analysis-types/src/baseline.rs", "BASELINE_VERSION")
-        .expect("BASELINE_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-analysis-types/src/baseline.rs",
+        "BASELINE_VERSION",
+    )
+    .expect("BASELINE_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`BASELINE_VERSION`")
         .expect("BASELINE_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -280,8 +283,11 @@ fn baseline_schema_json() -> serde_json::Value {
 #[test]
 fn baseline_schema_json_version_matches_source() {
     let json = baseline_schema_json();
-    let src = read_const_u32("crates/tokmd-analysis-types/src/baseline.rs", "BASELINE_VERSION")
-        .expect("BASELINE_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-analysis-types/src/baseline.rs",
+        "BASELINE_VERSION",
+    )
+    .expect("BASELINE_VERSION not found in source");
     let json_ver = json["properties"]["baseline_version"]["const"]
         .as_u64()
         .expect("baseline_version const must be a number");
