@@ -61,11 +61,11 @@ fixtures:
 | --- | --- | ---: | --- |
 | Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=187 | Scoring, nesting, and function-span helpers now live under owner modules; remaining work is mostly test split and aggregation cleanup |
 | Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 194; symbol dispatcher 56; language scanners <=68; symbol tests 385 | Keep report aggregation in `mod.rs`, source scanning in language owner modules under `symbols`, and leave large integration tests under `api_surface/tests` |
-| Context packing | `crates/tokmd/src/context_pack.rs`, `crates/tokmd/src/context_pack/`, and `crates/tokmd/src/commands/context.rs` | `context_pack.rs` 15; selection submodule/tests 1896; output/log submodule 224; render submodule 204; manifest submodule 195; budget parser/tests 220; context command 218 | Budget parsing, file selection, bundle text rendering, single-output/log writing, and context bundle manifest writing now live in owner modules; reassess CLI parser or model aggregation as the next pressure point; keep context/handoff proof scoped |
+| Context packing | `crates/tokmd/src/context_pack.rs`, `crates/tokmd/src/context_pack/`, and `crates/tokmd/src/commands/context.rs` | `context_pack.rs` 15; selection submodule/tests 1896; output/log submodule 224; render submodule 204; manifest submodule 195; budget parser/tests 220; context command 218 | Budget parsing, file selection, bundle text rendering, single-output/log writing, and context bundle manifest writing now live in owner modules; keep context/handoff proof scoped while CLI parser splits continue |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` and owner DTO modules | `lib.rs` 113; baseline owner 37 + complexity-baseline submodule 256 + complexity-section submodule 37 + determinism submodule 22 + metrics submodule 45 + file-entry submodule 23; envelope owner 24; receipt owner 42; topics owner tests 42; entropy owner tests 58; license owner tests 42; churn owner tests 50; complexity owner tests 51 + file submodule 46 + risk submodule 43 + halstead submodule 30 + maintainability submodule 25 + histogram submodule 79 + technical-debt submodule 42; effort owner 25 + estimate submodule 70 + assumptions submodule 35 + cocomo submodule 48 + model submodule 37 + confidence submodule 45 + delta submodule 56 + driver submodule 43 + size submodule 65 + results submodule 45 | Keep root receipt glue and public re-exports stable while moving remaining DTO ownership into modules |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/summary.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` + `complexity/language.rs` + `complexity/math.rs` + `complexity/tests/unit.rs` | 156 + 301 + 343 + 138 + 78 + 69 + 33 + 35 + 5 + 346 | Keep shared complexity logic in `tokmd-analysis`, split language/source/summary helpers and local unit tests |
-| CLI parser | `crates/tokmd/src/cli/parser.rs` and `crates/tokmd/src/cli/parser/` | `parser.rs` 1327; context/handoff parser owner 208 | Context and handoff argument families now live under `parser/context.rs`; continue command-family splits only when clap snapshots prove behavior is unchanged |
+| CLI parser | `crates/tokmd/src/cli/parser.rs` and `crates/tokmd/src/cli/parser/` | `parser.rs` 1125; analyze parser owner 217; context/handoff parser owner 208 | Context, handoff, and analyze argument families now live under parser owner modules; continue command-family splits only when clap snapshots prove behavior is unchanged |
 | Model aggregation | `crates/tokmd-model/src/lib.rs`, `crates/tokmd-model/src/aggregate.rs`, `crates/tokmd-model/src/rows.rs`, and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 267; aggregation owner/tests 427; row collection owner/tests 411; sorting owner/tests 91 | Report builders, file-row collection, in-memory row detection, and row sorting now live in owner modules; remaining work is child-language behavior only if future evidence shows the seam is still too broad |
 
 ## Batch Order
@@ -306,9 +306,9 @@ Stop and split the work if a consolidation PR:
 2. Continue production owner-module splits under `tokmd-analysis`, starting
    with API surface symbol scanning and then aggregation/test cleanup where
    useful.
-3. Reassess CLI parser or analysis owner modules next; continue model
-   child-language behavior only if future evidence shows the seam is still too
-   broad after the row owner split.
+3. Continue CLI parser command-family splits only when clap snapshots prove
+   behavior is unchanged; continue model child-language behavior only if future
+   evidence shows the seam is still too broad after the row owner split.
 
 Each PR should include the affected proof-plan output in the PR body and should
 leave `publish-surface --verify-publish` green when public exports or
