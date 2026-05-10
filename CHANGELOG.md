@@ -218,8 +218,6 @@ Stable release following `v1.10.0-rc.1` validation.
 ### Added
 
 - Near-duplicate detection enricher (`tokmd-analysis-near-dup`), commit intent classification, and focused microcrate extraction.
-- Planned v4.0.0 milestone for Adze AST integration in roadmap.
-
 ### Fixed
 
 - `cargo xtask publish` now handles HTTP 429 rate-limit responses from crates.io by parsing the `retry-after` timestamp, sleeping until the cooldown expires, and retrying automatically instead of failing hard. This prevents partial releases when publishing many crates in sequence.

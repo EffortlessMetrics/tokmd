@@ -445,9 +445,9 @@ authenticated fetch.
 
 ---
 
-## Phase 7: Tree-sitter Integration (v3.0 — Long-term)
+## Phase 7: Tree-sitter Integration (v3.0 — Shadow Mode Active)
 
-**Goal**: Accurate parsing for precise metrics. This is a significant R&D effort requiring multi-language grammar integration, cross-platform build toolchains, and extensive correctness validation. Intentionally deferred well beyond v2.x.
+**Goal**: Accurate parsing for precise metrics. This is a significant R&D effort requiring multi-language grammar integration, cross-platform build toolchains, and extensive correctness validation. Intentionally deferred well beyond v2.x for full default integration, but foundation shadow work has begun.
 
 ADR-0008 defines the rollout boundary: AST work starts as a feature-gated,
 Rust-first owner module with deterministic shadow comparison artifacts. It must
