@@ -3,9 +3,9 @@
 //! Verifies that the clap parser (`tokmd::cli::Cli`) never panics
 //! when fed arbitrary string arguments.
 
+use clap::Parser;
 use proptest::prelude::*;
 use tokmd::cli::Cli;
-use clap::Parser;
 
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(1000))]
