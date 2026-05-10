@@ -1,46 +1,18 @@
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::cli;
 use anyhow::{Context, Result, bail};
 use blake3::Hasher;
-use tokmd_scan::{add_exclude_pattern, normalize_exclude_pattern};
-
-/// A writer wrapper that counts bytes written.
-struct CountingWriter<W: Write> {
-    inner: W,
-    bytes: u64,
-}
-
-impl<W: Write> CountingWriter<W> {
-    fn new(inner: W) -> Self {
-        Self { inner, bytes: 0 }
-    }
-
-    fn bytes(&self) -> u64 {
-        self.bytes
-    }
-}
-
-impl<W: Write> Write for CountingWriter<W> {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        let n = self.inner.write(buf)?;
-        self.bytes += n as u64;
-        Ok(n)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.inner.flush()
-    }
-}
-use crate::cli;
 use tokmd_model as model;
 use tokmd_scan as scan;
+use tokmd_scan::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
     ContextBundleManifest, ContextExcludedPath, ContextFileRow, ContextLogRecord, ContextReceipt,
-    InclusionPolicy, SCHEMA_VERSION, ToolInfo,
+    SCHEMA_VERSION, ToolInfo,
 };
 
 use crate::context_pack;
@@ -267,9 +239,13 @@ fn write_to_destination(
         cli::ContextOutput::List | cli::ContextOutput::Json => {
             // Build string for list/json (small outputs)
             let content = match args.output_mode {
-                cli::ContextOutput::List => {
-                    format_list_output(selected, budget, used_tokens, utilization, args.strategy)
-                }
+                cli::ContextOutput::List => context_pack::format_list_output(
+                    selected,
+                    budget,
+                    used_tokens,
+                    utilization,
+                    args.strategy,
+                ),
                 cli::ContextOutput::Json => format_json_output(
                     selected,
                     budget,
@@ -324,8 +300,8 @@ fn write_bundle_to_destination(
             }
         })?;
 
-        let mut counter = CountingWriter::new(file);
-        write_bundle_output(&mut counter, selected, args.compress)?;
+        let mut counter = context_pack::CountingWriter::new(file);
+        context_pack::write_bundle_output(&mut counter, selected, args.compress)?;
         counter.flush()?;
 
         let bytes = counter.bytes() as usize;
@@ -334,107 +310,11 @@ fn write_bundle_to_destination(
     } else {
         // Stream to stdout
         let stdout = std::io::stdout();
-        let mut counter = CountingWriter::new(stdout.lock());
-        write_bundle_output(&mut counter, selected, args.compress)?;
+        let mut counter = context_pack::CountingWriter::new(stdout.lock());
+        context_pack::write_bundle_output(&mut counter, selected, args.compress)?;
         counter.flush()?;
         Ok(counter.bytes() as usize)
     }
-}
-
-/// Format list output (markdown table).
-fn format_list_output(
-    selected: &[ContextFileRow],
-    budget: usize,
-    used_tokens: usize,
-    utilization: f64,
-    strategy: cli::ContextStrategy,
-) -> String {
-    let mut out = String::new();
-    out.push_str("# Context Pack\n\n");
-    out.push_str(&format!("Budget: {} tokens\n", budget));
-    out.push_str(&format!(
-        "Used: {} tokens ({:.1}%)\n",
-        used_tokens, utilization
-    ));
-    out.push_str(&format!("Files: {}\n", selected.len()));
-    out.push_str(&format!("Strategy: {:?}\n\n", strategy));
-    out.push_str("|Path|Module|Lang|Tokens|Code|\n");
-    out.push_str("|---|---|---|---:|---:|\n");
-    for file in selected {
-        out.push_str(&format!(
-            "|{}|{}|{}|{}|{}|\n",
-            file.path, file.module, file.lang, file.tokens, file.code
-        ));
-    }
-    out
-}
-
-/// Write bundle output (concatenated file contents) directly to a writer.
-/// Streams file content to avoid loading entire bundle into memory.
-/// Dispatches based on file inclusion policy (Full / HeadTail / Skip).
-fn write_bundle_output<W: Write>(
-    w: &mut W,
-    selected: &[ContextFileRow],
-    compress: bool,
-) -> Result<()> {
-    for file in selected {
-        let path = PathBuf::from(&file.path);
-        if !path.exists() {
-            continue;
-        }
-
-        match file.policy {
-            InclusionPolicy::Full => {
-                writeln!(w, "// === {} ===", file.path)?;
-
-                if compress {
-                    let f = File::open(&path)
-                        .with_context(|| format!("Failed to open file: {}", path.display()))?;
-                    let reader = BufReader::new(f);
-                    for line in reader.lines() {
-                        let line = line
-                            .with_context(|| format!("Failed to read file: {}", path.display()))?;
-                        if !line.trim().is_empty() {
-                            writeln!(w, "{line}")?;
-                        }
-                    }
-                    writeln!(w)?;
-                } else {
-                    let mut f = File::open(&path)
-                        .with_context(|| format!("Failed to open file: {}", path.display()))?;
-                    let mut buf = [0u8; 16 * 1024];
-                    let mut last: Option<u8> = None;
-                    loop {
-                        let n = f.read(&mut buf)?;
-                        if n == 0 {
-                            break;
-                        }
-                        last = Some(buf[n - 1]);
-                        w.write_all(&buf[..n])?;
-                    }
-                    if last != Some(b'\n') {
-                        w.write_all(b"\n")?;
-                    }
-                    w.write_all(b"\n")?;
-                }
-            }
-            InclusionPolicy::HeadTail => {
-                writeln!(w, "// === {} ===", file.path)?;
-                context_pack::write_head_tail(w, &path, file, compress)?;
-                writeln!(w)?;
-            }
-            InclusionPolicy::Summary | InclusionPolicy::Skip => {
-                writeln!(
-                    w,
-                    "// === {} [skipped: {}] ===",
-                    file.path,
-                    file.policy_reason.as_deref().unwrap_or("policy")
-                )?;
-                writeln!(w)?;
-            }
-        }
-    }
-    Ok(())
 }
 
 /// Format JSON receipt output.
@@ -581,8 +461,8 @@ fn write_bundle_directory(
     let bundle_path = dir.join("bundle.txt");
     let bundle_file = File::create(&bundle_path)
         .with_context(|| format!("Failed to create bundle file: {}", bundle_path.display()))?;
-    let mut counter = CountingWriter::new(bundle_file);
-    write_bundle_output(&mut counter, selected, args.compress)?;
+    let mut counter = context_pack::CountingWriter::new(bundle_file);
+    context_pack::write_bundle_output(&mut counter, selected, args.compress)?;
     counter.flush()?;
     let bundle_bytes = counter.bytes() as usize;
     let bundle_hash = hash_file(&bundle_path)?;
