@@ -2,3 +2,6 @@
 {"timestamp": "2026-05-07T20:24:59Z", "command": "wrote decision.md"}
 {"timestamp": "2026-05-07T20:30:39Z", "command": "cargo test -p tokmd-analysis test_density_ratio_in_unit_range"}
 {"timestamp": "2026-05-07T20:30:39Z", "command": "cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range"}
+{"cmd": "cargo test -p tokmd-analysis-types --lib baseline::determinism", "summary": "Tested inline proptest for DeterminismBaseline", "status": "success"}
+{"cmd": "cargo fmt -- --check", "summary": "Formatting check", "status": "success"}
+{"cmd": "cargo clippy -- -D warnings", "summary": "Clippy check", "status": "success"}

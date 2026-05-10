@@ -1,45 +1,45 @@
 ## 💡 Summary
-Added two new property-based tests in `tokmd-analysis` to explicitly lock in the unit range invariant `[0.0, 1.0]` for `test_density.ratio` and `boilerplate.ratio`.
+Added an explicit property test using `proptest` to structurally prove serialization and deserialization invariants for `DeterminismBaseline`.
 
 ## 🎯 Why
-The codebase has `TestDensityReport` and `BoilerplateReport` outputs within the `AnalysisReceipt`. These reports calculate ratios based on code logic and infrastructure lines. By mathematically defining boundaries around these metric values, we strengthen the reliability of our reports across any potential combination of inputs. Missing property tests for these left edge behavior unverified against extreme values surfaced by proptest.
+The `DeterminismBaseline` type plays an important role in proving execution behavior, but lacked local inline property testing. The testing that did exist was limited to hardcoded example inputs in integration suites. This change moves us closer towards comprehensive, parameterised invariant testing by ensuring the model structure can survive `serde` translation robustly under a wide gamut of generated inputs.
 
 ## 🔎 Evidence
-- File path: `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Finding: `test_density` and `boilerplate` metrics lacked property-based test invariants verifying that the final generated output `.ratio` fields are securely bounded between `0.0` and `1.0`.
+Minimal proof:
+- file path: `crates/tokmd-analysis-types/src/baseline/determinism.rs`
+- observed behavior / finding: No inline proptests for the structure existed despite adjacent baseline structures having them.
+- command receipt demonstrating it: `cargo test -p tokmd-analysis-types --lib baseline::determinism` executes the new deterministic test successfully over arbitrarily generated configurations.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Add property tests asserting the unit-range boundary invariants of `test_density` and `boilerplate` against the arbitrary `FileRow` generation corpus.
-- Fits this repo and shard as it strictly reinforces model guarantees.
-- Structure: high, guarantees expected output schema constraints.
-- Velocity: medium, low runtime impact, high stability.
-- Governance: matches the 'property' gate expectations for invariant testing.
+- what it is: Add a `tests` module inside `crates/tokmd-analysis-types/src/baseline/determinism.rs` that imports `proptest` and verifies `DeterminismBaseline` correctly round-trips via `serde_json` for a variety of pseudo-random configurations.
+- why it fits this repo and shard: Co-locating structural invariances closely aligns with how models are structured across analysis surfaces in the workspace.
+- trade-offs: Structure / Velocity / Governance: Highly targeted proof-patch improving local correctness guarantees (Velocity + Structure + Governance positive).
 
 ### Option B
-Manually exhaust all possible `lines`, `code`, `infra` and `test` combinations with targeted edge case unit tests.
-- High manual toil, does not fully lock the invariant against combinations proptest might surface later.
+- what it is: Rely on integration level tests inside `tests/analysis_types_depth_w61.rs`.
+- when to choose it instead: If the constraints were dependent on orchestration outside the DTO boundaries.
+- trade-offs: Less locally visible; integration tests shouldn't handle what unit structural property tests can.
 
 ## ✅ Decision
-Chosen Option A. Generating arbitrary file rows and evaluating `derive_report` is the highest-signal proof that the derived model does not break fundamental unit range mathematical constraints.
+Selected **Option A** to guarantee structure roundtripping works across generated fuzzable ranges via standard `proptest!` macro.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs`
-  - Added `test_density_ratio_in_unit_range`
-  - Added `boilerplate_ratio_in_unit_range`
+- `crates/tokmd-analysis-types/src/baseline/determinism.rs`: Included inline `tests` module testing serde.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis test_density_ratio_in_unit_range
-cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range
+{"cmd": "cargo test -p tokmd-analysis-types --lib baseline::determinism", "summary": "Tested inline proptest for DeterminismBaseline", "status": "success"}
+{"cmd": "cargo fmt -- --check", "summary": "Formatting check", "status": "success"}
+{"cmd": "cargo clippy -- -D warnings", "summary": "Clippy check", "status": "success"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Internal tests only
-- Blast radius: `tokmd-analysis` tests
-- Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis`
+- Change shape: Added tests.
+- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): Testing surface exclusively.
+- Risk class + why: Lowest risk. No production behaviour changed.
+- Rollback: `git checkout crates/tokmd-analysis-types/src/baseline/determinism.rs`
+- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
@@ -49,4 +49,4 @@ cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range
 - `.jules/runs/invariant_model_analysis/pr_body.md`
 
 ## 🔜 Follow-ups
-None
+None.

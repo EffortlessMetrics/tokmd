@@ -1,5 +1,19 @@
 {
-  "status": "success",
-  "patch_type": "proof-improvement",
-  "message": "Added property tests asserting unit-range bounds for test_density and boilerplate metrics."
+  "outcome": "proof_patch",
+  "title": "invariant: add proptest for DeterminismBaseline roundtripping 🔬",
+  "summary": "Added an explicit property test to structurally prove serialization and deserialization invariants for `DeterminismBaseline`.",
+  "target_paths": [
+    "crates/tokmd-analysis-types/src/baseline/determinism.rs"
+  ],
+  "proof_summary": "Introduced an inline `proptest!` macro explicitly checking deterministic roundtrips over serde boundaries for arbitrary DeterminismBaseline instantiations.",
+  "gates_run": [
+    "property",
+    "targeted cargo test",
+    "cargo fmt",
+    "cargo clippy"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd-analysis-types/src/baseline/determinism.rs",
+  "follow_ups": []
 }
