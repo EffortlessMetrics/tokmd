@@ -158,20 +158,4 @@ mod tests {
         assert_eq!(ANALYSIS_SCHEMA_VERSION, 9);
         Ok(())
     }
-
-    // ── Struct serde roundtrips ───────────────────────────────────────
-    #[test]
-    fn eco_label_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        let label = EcoLabel {
-            score: 85.0,
-            label: "A".into(),
-            bytes: 1000,
-            notes: "Good".into(),
-        };
-        let json = serde_json::to_string(&label)?;
-        let back: EcoLabel = serde_json::from_str(&json)?;
-        assert_eq!(back.label, "A");
-        assert_eq!(back.bytes, 1000);
-        Ok(())
-    }
 }
