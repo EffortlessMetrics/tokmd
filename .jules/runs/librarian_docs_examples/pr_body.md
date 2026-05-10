@@ -1,44 +1,58 @@
 ## 💡 Summary
-Updated the `Global Arguments` section in `docs/reference-cli.md` to include `--format`, `--top`, `--files`, and `--children`, matching the output of `tokmd --help` without subcommands.
+Updated the `docs_schema_w72` and `docs_w43` xtask tests to look for the `BASELINE_VERSION` constant in its new location. The constant was recently moved from `crates/tokmd-analysis-types/src/lib.rs` to `baseline.rs`, which broke the string-matching test scanner.
 
 ## 🎯 Why
-The factual documentation in `docs/reference-cli.md` was drifting away from the actual CLI outputs. Specifically, the "Global Arguments" section missing several flags such as `--format`, `--top`, `--files`, and `--children`, which are globally available when running `tokmd --help` directly without an explicit subcommand.
+The `cargo test -p xtask` gate was failing because the test utilities (`read_const_u32` and `read_schema_constant`) parse Rust source files as raw text to find schema constants. When `BASELINE_VERSION` was moved out of `lib.rs` into the `baseline` module, the tests could no longer find it, breaking the factual drift guardrails that ensure our `SCHEMA.md` and `baseline.schema.json` stay in sync with the code.
 
 ## 🔎 Evidence
-Minimal proof:
-- `docs/reference-cli.md`
-- Running `tokmd --help` outputs four extra flags (`--format`, `--top`, `--files`, `--children`) that were missing from the "Global Arguments" documentation table.
+- `xtask/tests/docs_schema_w72.rs`
+- `xtask/tests/docs_w43.rs`
+- Running `cargo test -p xtask` resulted in:
+  ```text
+  thread 'schema_md_baseline_version_matches_source' panicked at xtask/tests/docs_schema_w72.rs:232:10:
+  BASELINE_VERSION not found in source
+  ```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add the missing flags (`--format`, `--top`, `--files`, and `--children`) into the `docs/reference-cli.md` "Global Arguments" table.
-- Fixes factual docs drift aligning perfectly with the Librarian persona's mission.
-- Trade-offs: Structure / Velocity / Governance: Extremely low risk, high governance alignment. No runtime risk since only documentation is changed.
+- Update the hardcoded path in the tests to read from `crates/tokmd-analysis-types/src/baseline.rs` instead of `lib.rs`.
+- Why it fits: It is the most direct and honest fix for the test failure without introducing unnecessary complexity.
+- Trade-offs:
+  - Structure: Low impact, just updating hardcoded paths.
+  - Velocity: Fast.
+  - Governance: Restores the ability of the gate checks to catch factual drift.
 
 ### Option B
-- Add `baseline` or `gate` CLI command tests in `xtask` instead of fixing docs.
-- Choose this if the primary goal is adding new test coverage rather than addressing missing factual documentation.
-- Trade-offs: Higher risk of introducing test flakiness or brittleness without necessarily improving factual documentation.
+- Update the test utilities to parse Rust syntax (e.g. using `syn`) or resolve module re-exports.
+- When to choose it: If constants are frequently moved into deeply nested submodules and maintaining hardcoded paths causes significant friction.
+- Trade-offs: Significant scope bloat, slows down xtask compile times, and is overkill for the small number of constants we track.
 
 ## ✅ Decision
-Option A. It directly addresses a known drift gap where `xtask docs --check` cannot help, fulfilling the Librarian persona's mission precisely by fixing a missing factual coverage on common usage in reference drift.
+Option A. It restores the broken governance gate with the simplest, most aligned fix possible.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Added `--format`, `--top`, `--files`, and `--children` into the Global Arguments table.
+- `xtask/tests/docs_schema_w72.rs`: Updated path to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
+- `xtask/tests/docs_w43.rs`: Updated path to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo run -- --help", "status": "success", "summary": "Discovered that --format, --top, --files, and --children are globally available when running without subcommand", "artifacts": []}
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "investigation", "cwd": "/app", "cmd": "cat docs/reference-cli.md", "status": "success", "summary": "Found that Global Arguments section in reference docs was missing these arguments", "artifacts": []}
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "fix", "cwd": "/app", "cmd": "sed", "status": "success", "summary": "Updated docs/reference-cli.md to include the missing arguments in the Global Arguments table", "artifacts": ["docs/reference-cli.md"]}
+$ cargo test -p xtask --test docs_schema_w72
+test baseline_schema_json_version_matches_source ... ok
+test schema_md_baseline_version_matches_source ... ok
+
+$ cargo test -p xtask --test docs_w43
+test schema_md_baseline_version_matches_source ... ok
+
+$ cargo test -p xtask
+test result: ok. 208 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update.
-- Blast radius: Only `docs/reference-cli.md` is changed. No APIs, logic, concurrency, schemas, or dependencies were affected.
-- Risk class: None. Documentation change only.
-- Rollback: `git checkout -- docs/reference-cli.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Change shape: Test fix
+- Blast radius: Internal testing/governance only.
+- Risk class: Low, test-only.
+- Rollback: Revert the PR.
+- Gates run: `cargo test -p xtask`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`

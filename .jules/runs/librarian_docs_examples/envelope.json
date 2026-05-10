@@ -1,6 +1,6 @@
 {
   "prompt_id": "librarian_docs_examples",
-  "persona": "librarian",
+  "persona": "Librarian 📚",
   "style": "Builder",
   "primary_shard": "tooling-governance",
   "allowed_paths": [
@@ -15,5 +15,8 @@
     ".cargo/**"
   ],
   "gate_profile": "docs-executable",
-  "allowed_outcomes": ["pr_patch", "learning_pr"]
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
 }

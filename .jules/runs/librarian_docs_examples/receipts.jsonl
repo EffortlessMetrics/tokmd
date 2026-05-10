@@ -1,3 +1,6 @@
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo run -- --help", "status": "success", "summary": "Discovered that --format, --top, --files, and --children are globally available when running without subcommand", "artifacts": []}
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "investigation", "cwd": "/app", "cmd": "cat docs/reference-cli.md", "status": "success", "summary": "Found that Global Arguments section in reference docs was missing these arguments", "artifacts": []}
-{"ts_utc": "2026-05-07T11:31:39Z", "phase": "fix", "cwd": "/app", "cmd": "sed", "status": "success", "summary": "Updated docs/reference-cli.md to include the missing arguments in the Global Arguments table", "artifacts": ["docs/reference-cli.md"]}
+{"command": "cargo test -p xtask", "status": "failed", "notes": "Two test failures in docs_schema_w72.rs and docs_w43.rs due to BASELINE_VERSION not found in crates/tokmd-analysis-types/src/lib.rs"}
+{"command": "sed -i 's|crates/tokmd-analysis-types/src/lib.rs|crates/tokmd-analysis-types/src/baseline.rs|g' xtask/tests/docs_schema_w72.rs", "status": "success"}
+{"command": "cargo test -p xtask --test docs_schema_w72", "status": "success"}
+{"command": "sed -i 's|crates/tokmd-analysis-types/src/lib.rs|crates/tokmd-analysis-types/src/baseline.rs|g' xtask/tests/docs_w43.rs", "status": "success"}
+{"command": "cargo test -p xtask --test docs_w43", "status": "success"}
+{"command": "cargo test -p xtask", "status": "success", "notes": "All 208+ tests passed"}
