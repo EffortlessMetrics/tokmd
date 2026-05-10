@@ -159,37 +159,6 @@ mod tests {
         Ok(())
     }
 
-    // ── Enum serde roundtrips ─────────────────────────────────────────
-    #[test]
-    fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [
-            ComplexityRisk::Low,
-            ComplexityRisk::Moderate,
-            ComplexityRisk::High,
-            ComplexityRisk::Critical,
-        ] {
-            let json = serde_json::to_string(&variant)?;
-            let back: ComplexityRisk = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn technical_debt_level_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [
-            TechnicalDebtLevel::Low,
-            TechnicalDebtLevel::Moderate,
-            TechnicalDebtLevel::High,
-            TechnicalDebtLevel::Critical,
-        ] {
-            let json = serde_json::to_string(&variant)?;
-            let back: TechnicalDebtLevel = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
     // ── Enum naming conventions ───────────────────────────────────────
     #[test]
     fn effort_model_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>> {
@@ -215,15 +184,6 @@ mod tests {
         assert_eq!(EffortDeltaClassification::Medium.to_string(), "medium");
         assert_eq!(EffortDeltaClassification::High.to_string(), "high");
         assert_eq!(EffortDeltaClassification::Critical.to_string(), "critical");
-        Ok(())
-    }
-
-    #[test]
-    fn complexity_risk_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(
-            serde_json::to_string(&ComplexityRisk::Moderate)?,
-            "\"moderate\""
-        );
         Ok(())
     }
 
@@ -255,33 +215,6 @@ mod tests {
         let back: TopicTerm = serde_json::from_str(&json)?;
         assert_eq!(back.term, "async");
         assert_eq!(back.tf, 10);
-        Ok(())
-    }
-
-    // ── ComplexityHistogram ───────────────────────────────────────────
-    #[test]
-    fn complexity_histogram_to_ascii_basic() -> Result<(), Box<dyn std::error::Error>> {
-        let h = ComplexityHistogram {
-            buckets: vec![0, 5, 10],
-            counts: vec![10, 5, 2],
-            total: 17,
-        };
-        let ascii = h.to_ascii(20);
-        assert!(!ascii.is_empty());
-        // Should have 3 lines (one per bucket)
-        assert_eq!(ascii.lines().count(), 3);
-        Ok(())
-    }
-
-    #[test]
-    fn complexity_histogram_to_ascii_empty_counts() -> Result<(), Box<dyn std::error::Error>> {
-        let h = ComplexityHistogram {
-            buckets: vec![0, 5],
-            counts: vec![0, 0],
-            total: 0,
-        };
-        let ascii = h.to_ascii(20);
-        assert!(!ascii.is_empty());
         Ok(())
     }
 }

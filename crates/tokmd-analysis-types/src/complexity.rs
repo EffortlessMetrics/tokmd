@@ -212,3 +212,70 @@ impl ComplexityHistogram {
         output
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{ComplexityHistogram, ComplexityRisk, TechnicalDebtLevel};
+
+    #[test]
+    fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
+        for variant in [
+            ComplexityRisk::Low,
+            ComplexityRisk::Moderate,
+            ComplexityRisk::High,
+            ComplexityRisk::Critical,
+        ] {
+            let json = serde_json::to_string(&variant)?;
+            let back: ComplexityRisk = serde_json::from_str(&json)?;
+            assert_eq!(back, variant);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn technical_debt_level_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
+        for variant in [
+            TechnicalDebtLevel::Low,
+            TechnicalDebtLevel::Moderate,
+            TechnicalDebtLevel::High,
+            TechnicalDebtLevel::Critical,
+        ] {
+            let json = serde_json::to_string(&variant)?;
+            let back: TechnicalDebtLevel = serde_json::from_str(&json)?;
+            assert_eq!(back, variant);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn complexity_risk_uses_snake_case() -> Result<(), Box<dyn std::error::Error>> {
+        assert_eq!(
+            serde_json::to_string(&ComplexityRisk::Moderate)?,
+            "\"moderate\""
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn complexity_histogram_to_ascii_basic() {
+        let h = ComplexityHistogram {
+            buckets: vec![0, 5, 10],
+            counts: vec![10, 5, 2],
+            total: 17,
+        };
+        let ascii = h.to_ascii(20);
+        assert!(!ascii.is_empty());
+        assert_eq!(ascii.lines().count(), 3);
+    }
+
+    #[test]
+    fn complexity_histogram_to_ascii_empty_counts() {
+        let h = ComplexityHistogram {
+            buckets: vec![0, 5],
+            counts: vec![0, 0],
+            total: 0,
+        };
+        let ascii = h.to_ascii(20);
+        assert!(!ascii.is_empty());
+    }
+}
