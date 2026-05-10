@@ -159,34 +159,6 @@ mod tests {
         Ok(())
     }
 
-    // ── Enum naming conventions ───────────────────────────────────────
-    #[test]
-    fn effort_model_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(EffortModel::Cocomo81Basic.to_string(), "cocomo81-basic");
-        assert_eq!(EffortModel::Cocomo2Early.to_string(), "cocomo2-early");
-        assert_eq!(EffortModel::Ensemble.to_string(), "ensemble");
-        Ok(())
-    }
-
-    #[test]
-    fn effort_confidence_level_display_strings_are_stable() -> Result<(), Box<dyn std::error::Error>>
-    {
-        assert_eq!(EffortConfidenceLevel::Low.to_string(), "low");
-        assert_eq!(EffortConfidenceLevel::Medium.to_string(), "medium");
-        assert_eq!(EffortConfidenceLevel::High.to_string(), "high");
-        Ok(())
-    }
-
-    #[test]
-    fn effort_delta_classification_display_strings_are_stable()
-    -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(EffortDeltaClassification::Low.to_string(), "low");
-        assert_eq!(EffortDeltaClassification::Medium.to_string(), "medium");
-        assert_eq!(EffortDeltaClassification::High.to_string(), "high");
-        assert_eq!(EffortDeltaClassification::Critical.to_string(), "critical");
-        Ok(())
-    }
-
     // ── Struct serde roundtrips ───────────────────────────────────────
     #[test]
     fn eco_label_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {

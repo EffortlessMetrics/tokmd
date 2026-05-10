@@ -172,3 +172,30 @@ pub struct CocomoReport {
     pub c: f64,
     pub d: f64,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{EffortConfidenceLevel, EffortDeltaClassification, EffortModel};
+
+    #[test]
+    fn effort_model_display_strings_are_stable() {
+        assert_eq!(EffortModel::Cocomo81Basic.to_string(), "cocomo81-basic");
+        assert_eq!(EffortModel::Cocomo2Early.to_string(), "cocomo2-early");
+        assert_eq!(EffortModel::Ensemble.to_string(), "ensemble");
+    }
+
+    #[test]
+    fn effort_confidence_level_display_strings_are_stable() {
+        assert_eq!(EffortConfidenceLevel::Low.to_string(), "low");
+        assert_eq!(EffortConfidenceLevel::Medium.to_string(), "medium");
+        assert_eq!(EffortConfidenceLevel::High.to_string(), "high");
+    }
+
+    #[test]
+    fn effort_delta_classification_display_strings_are_stable() {
+        assert_eq!(EffortDeltaClassification::Low.to_string(), "low");
+        assert_eq!(EffortDeltaClassification::Medium.to_string(), "medium");
+        assert_eq!(EffortDeltaClassification::High.to_string(), "high");
+        assert_eq!(EffortDeltaClassification::Critical.to_string(), "critical");
+    }
+}
