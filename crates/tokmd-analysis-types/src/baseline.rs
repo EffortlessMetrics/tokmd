@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::AnalysisReceipt;
 
+mod determinism;
+
+pub use determinism::DeterminismBaseline;
+
 /// Schema version for baseline files.
 /// v1: Initial baseline format with complexity and determinism tracking.
 pub const BASELINE_VERSION: u32 = 1;
@@ -234,24 +238,6 @@ pub struct FileBaselineEntry {
     pub function_count: u32,
     /// BLAKE3 hash of file content for change detection.
     pub content_hash: Option<String>,
-}
-
-/// Build determinism baseline for reproducibility verification.
-///
-/// Tracks hashes of build artifacts and source inputs to detect
-/// non-deterministic builds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeterminismBaseline {
-    /// Schema version for forward compatibility.
-    pub baseline_version: u32,
-    /// ISO 8601 timestamp when this baseline was generated.
-    pub generated_at: String,
-    /// Hash of the final build artifact.
-    pub build_hash: String,
-    /// Hash of all source files combined.
-    pub source_hash: String,
-    /// Hash of Cargo.lock if present (Rust projects).
-    pub cargo_lock_hash: Option<String>,
 }
 
 /// Helper to convert milliseconds timestamp to RFC 3339 / ISO 8601 string.
