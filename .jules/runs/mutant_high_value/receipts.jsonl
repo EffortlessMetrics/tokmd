@@ -1,0 +1,4 @@
+{"command": "mkdir -p .jules/runs/mutant_high_value && write envelope.json", "status": "success"}
+{"command": "Write decision.md", "status": "success"}
+{"command": "Write result.json", "status": "success"}
+{"command": "Write pr_body.md", "status": "success"}
