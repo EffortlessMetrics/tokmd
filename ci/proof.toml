@@ -944,10 +944,12 @@ paths = [
   "docs/design.md",
   "docs/evidencebus-integration.md",
   "docs/implementation-plan.md",
+  "docs/install.md",
   "docs/adr/**",
   "docs/audits/**",
   "docs/progress-events.md",
   "docs/requirements.md",
+  "docs/sensor-report-v1.md",
   "docs/specification.md",
 ]
 proof = ["cargo xtask docs --check"]
