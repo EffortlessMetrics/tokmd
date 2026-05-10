@@ -6,12 +6,13 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use std::fmt;
 
 mod confidence;
+mod delta;
 mod model;
 
 pub use confidence::{EffortConfidence, EffortConfidenceLevel};
+pub use delta::{EffortDeltaClassification, EffortDeltaReport};
 pub use model::EffortModel;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,42 +87,6 @@ pub struct EffortAssumptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffortDeltaReport {
-    pub base: String,
-    pub head: String,
-    pub files_changed: usize,
-    pub modules_changed: usize,
-    pub langs_changed: usize,
-    pub hotspot_files_touched: usize,
-    pub coupled_neighbors_touched: usize,
-    pub blast_radius: f64,
-    pub classification: EffortDeltaClassification,
-    pub effort_pm_low: f64,
-    pub effort_pm_est: f64,
-    pub effort_pm_high: f64,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EffortDeltaClassification {
-    Low,
-    Medium,
-    High,
-    Critical,
-}
-
-impl fmt::Display for EffortDeltaClassification {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Low => f.write_str("low"),
-            Self::Medium => f.write_str("medium"),
-            Self::High => f.write_str("high"),
-            Self::Critical => f.write_str("critical"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CocomoReport {
     pub mode: String,
     pub kloc: f64,
@@ -132,17 +97,4 @@ pub struct CocomoReport {
     pub b: f64,
     pub c: f64,
     pub d: f64,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::EffortDeltaClassification;
-
-    #[test]
-    fn effort_delta_classification_display_strings_are_stable() {
-        assert_eq!(EffortDeltaClassification::Low.to_string(), "low");
-        assert_eq!(EffortDeltaClassification::Medium.to_string(), "medium");
-        assert_eq!(EffortDeltaClassification::High.to_string(), "high");
-        assert_eq!(EffortDeltaClassification::Critical.to_string(), "critical");
-    }
 }
