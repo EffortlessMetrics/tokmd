@@ -18,6 +18,14 @@ expression: redacted
     "lang": "Rust",
     "lines_eq_sum": true,
     "module": "<root>",
+    "path": "crates/tokmd-model/src/aggregate.rs"
+  },
+  {
+    "code_gt_zero": true,
+    "kind": "Parent",
+    "lang": "Rust",
+    "lines_eq_sum": true,
+    "module": "<root>",
     "path": "crates/tokmd-model/src/module_key/mod.rs"
   },
   {

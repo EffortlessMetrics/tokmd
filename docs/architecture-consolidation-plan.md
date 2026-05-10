@@ -66,7 +66,7 @@ fixtures:
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/summary.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` + `complexity/language.rs` + `complexity/math.rs` + `complexity/tests/unit.rs` | 156 + 301 + 343 + 138 + 78 + 69 + 33 + 35 + 5 + 346 | Keep shared complexity logic in `tokmd-analysis`, split language/source/summary helpers and local unit tests |
 | CLI parser | `crates/tokmd/src/cli/parser.rs` | 1276 | Split command argument families while preserving clap output |
-| Model aggregation | `crates/tokmd-model/src/lib.rs` and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 1224; sorting owner/tests 107 | Row sorting now lives in an owner module; remaining work is aggregation/report builders and child-language behavior under `tokmd-model` |
+| Model aggregation | `crates/tokmd-model/src/lib.rs`, `crates/tokmd-model/src/aggregate.rs`, and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 758; aggregation owner/tests 478; sorting owner/tests 108 | Report builders and row sorting now live in owner modules; remaining work is row collection and child-language behavior under `tokmd-model` |
 
 ## Batch Order
 
@@ -306,8 +306,8 @@ Stop and split the work if a consolidation PR:
 2. Continue production owner-module splits under `tokmd-analysis`, starting
    with API surface symbol scanning and then aggregation/test cleanup where
    useful.
-3. Continue model aggregation with aggregation/report builders or child-language
-   behavior only after the sorting owner split is validated.
+3. Continue model aggregation with row collection or child-language behavior only
+   after the aggregation owner split is validated.
 
 Each PR should include the affected proof-plan output in the PR body and should
 leave `publish-surface --verify-publish` green when public exports or

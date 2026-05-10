@@ -633,6 +633,7 @@ coverage = true
 name = "model_scan_path_normalization"
 kind = "rust"
 paths = [
+  "crates/tokmd-model/src/aggregate.rs",
   "crates/tokmd-model/src/lib.rs",
   "crates/tokmd-model/src/module_key/**",
   "crates/tokmd-model/src/sorting.rs",

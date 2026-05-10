@@ -5,9 +5,9 @@ expression: redacted
 ---
 [
   {
-    "code_gt_zero": false,
-    "kind": "Child",
-    "lang": "Markdown",
+    "code_gt_zero": true,
+    "kind": "Parent",
+    "lang": "Rust",
     "lines_eq_sum": true,
     "module": "<root>",
     "path": "crates/tokmd-model/src/lib.rs"
@@ -18,15 +18,7 @@ expression: redacted
     "lang": "Rust",
     "lines_eq_sum": true,
     "module": "<root>",
-    "path": "crates/tokmd-model/src/lib.rs"
-  },
-  {
-    "code_gt_zero": false,
-    "kind": "Child",
-    "lang": "Markdown",
-    "lines_eq_sum": true,
-    "module": "<root>",
-    "path": "crates/tokmd-model/src/module_key/mod.rs"
+    "path": "crates/tokmd-model/src/aggregate.rs"
   },
   {
     "code_gt_zero": true,
@@ -37,17 +29,41 @@ expression: redacted
     "path": "crates/tokmd-model/src/module_key/mod.rs"
   },
   {
-    "code_gt_zero": false,
-    "kind": "Child",
-    "lang": "Markdown",
+    "code_gt_zero": true,
+    "kind": "Parent",
+    "lang": "Rust",
     "lines_eq_sum": true,
     "module": "<root>",
     "path": "crates/tokmd-model/src/sorting.rs"
   },
   {
-    "code_gt_zero": true,
-    "kind": "Parent",
-    "lang": "Rust",
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
+    "lines_eq_sum": true,
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/aggregate.rs"
+  },
+  {
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
+    "lines_eq_sum": true,
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/lib.rs"
+  },
+  {
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
+    "lines_eq_sum": true,
+    "module": "<root>",
+    "path": "crates/tokmd-model/src/module_key/mod.rs"
+  },
+  {
+    "code_gt_zero": false,
+    "kind": "Child",
+    "lang": "Markdown",
     "lines_eq_sum": true,
     "module": "<root>",
     "path": "crates/tokmd-model/src/sorting.rs"
