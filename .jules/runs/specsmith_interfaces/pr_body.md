@@ -1,43 +1,46 @@
 ## 💡 Summary
-Added integration test coverage for `resolve_lang_with_config` in `tokmd` config resolution.
+Expanded the property tests in `crates/tokmd/tests/cli_parser_properties.rs` to include all currently defined CLI subcommands.
 
 ## 🎯 Why
-There was a gap in BDD/integration testing for the `lang` command's configuration resolution logic. While `module` and `export` commands had `_with_config` integration tests, `resolve_lang_with_config` was missing. As configuration precedence (CLI vs TOML vs JSON Profile) is a critical interface behavior, locking it down with an explicit test improves confidence and prevents edge-case drift.
+The previous property test for the CLI parser (`cli_parser_never_panics_on_subcommand_with_arbitrary_args`) only checked a subset of subcommands (like `lang`, `module`, and `export`). This left commands such as `run`, `gate`, `tools`, `context`, `completions`, and others unchecked against edge-case regression and panics when fed arbitrary string arguments. Locking in deterministic, non-panicking parsing for the full CLI surface reduces uncertainty.
 
 ## 🔎 Evidence
-Missing integration test for `resolve_lang_with_config` in `crates/tokmd/tests/config_resolution.rs`.
-Running `cargo test -p tokmd --test config_resolution` confirms `test_resolve_lang_with_config` now successfully executes and validates CLI vs TOML `ViewProfile` precedence.
+- `crates/tokmd/tests/cli_parser_properties.rs` had a `prop_oneof!` list missing several commands that exist in `crates/tokmd/src/cli/parser.rs`.
+- Running `cargo test -p tokmd --test cli_parser_properties` with the added commands succeeds, proving the invariant holds for all tested inputs on the full interface surface.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Add `test_resolve_lang_with_config` integration test.
-- why it fits this repo and shard: Directly addresses the priority to add missing BDD/integration coverage for critical paths in the `interfaces` shard (covering config and CLI).
-- trade-offs: Structure is solid, velocity is fast, and governance impact is positive by locking down determinism.
+- Add all missing subcommands to the `prop_oneof!` generator in the existing property test.
+- Fits this repo and shard because it directly bolsters edge-case polish and regression coverage for CLI interfaces.
+- Trade-offs: Structure is preserved; velocity is slightly reduced by more property cases; governance is improved by hardening the CLI against panics.
 
 ### Option B
-- what it is: Add a unit test for profile resolution map lookups.
-- when to choose it instead: If profile mapping had complex branching.
-- trade-offs: `resolve_profile` map lookups are trivial compared to the deep merging performed by `resolve_lang_with_config`.
+- Wait for bug reports or write targeted unit tests for individual parser failures.
+- When to choose: When property testing is unavailable or too slow.
+- Trade-offs: Misses the opportunity to lock in parser invariance broadly across the entire CLI surface.
 
 ## ✅ Decision
-Chosen Option A. Reconciling `CliLangArgs`, `ViewProfile`, and defaults via `resolve_lang_with_config` is an essential logic path that deserved explicit integration coverage.
+Chosen Option A. It maximizes testing coverage over CLI interfaces and provides high-signal invariant guarantees for all commands, aligning with the Specsmith persona.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/tests/config_resolution.rs`: Added `test_resolve_lang_with_config` test.
+- `crates/tokmd/tests/cli_parser_properties.rs`: Added missing subcommands (`run`, `check-ignore`, `tools`, `gate`, `baseline`, `badge`, `init`, `completions`, `sensor`) to the `cli_parser_never_panics_on_subcommand_with_arbitrary_args` property test.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd --test config_resolution
-test test_resolve_lang_with_config ... ok
-13 passed; 0 failed
+cargo test -p tokmd --test cli_parser_properties
+running 2 tests
+test cli_parser_never_panics_on_arbitrary_args ... ok
+test cli_parser_never_panics_on_subcommand_with_arbitrary_args ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.21s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Proof-improvement patch
-- Blast radius: `tests/` boundary only
-- Risk class + why: Lowest risk. Test suite addition only. No runtime logic change.
-- Rollback: Revert the test commit.
-- Gates run: `cargo test -p tokmd --test config_resolution`
+- Change shape: Test/Proof improvement
+- Blast radius: Internal (tests only)
+- Risk class: Low (no production code changed)
+- Rollback: Revert the test file
+- Gates run: `cargo test -p tokmd --test cli_parser_properties`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_interfaces/envelope.json`

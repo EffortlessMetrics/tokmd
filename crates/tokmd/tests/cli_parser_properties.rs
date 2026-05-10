@@ -31,6 +31,15 @@ proptest! {
             Just("cockpit"),
             Just("context"),
             Just("handoff"),
+            Just("run"),
+            Just("check-ignore"),
+            Just("tools"),
+            Just("gate"),
+            Just("baseline"),
+            Just("badge"),
+            Just("init"),
+            Just("completions"),
+            Just("sensor"),
         ],
         args in prop::collection::vec("\\PC{0,30}", 0..20)
     ) {

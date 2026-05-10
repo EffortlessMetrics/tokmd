@@ -1,5 +1,8 @@
 {
   "status": "success",
-  "outcome": "proof-improvement patch",
-  "message": "Added integration coverage for resolve_lang_with_config"
+  "patch_applied": true,
+  "learning_pr": false,
+  "target_type": "property-test",
+  "affected_files": ["crates/tokmd/tests/cli_parser_properties.rs"],
+  "summary": "Expanded CLI property tests to cover all defined subcommands to verify parser never panics on arbitrary inputs."
 }

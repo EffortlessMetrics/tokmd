@@ -1,18 +1,19 @@
-## Options Considered
+# Decision
 
-### Option A: Add integration test for `resolve_lang_with_config` (Recommended)
-- **What it is**: Implement `test_resolve_lang_with_config` in `crates/tokmd/tests/config_resolution.rs`.
-- **Why it fits this repo and shard**: The `interfaces` shard explicitly covers `crates/tokmd-config` and `crates/tokmd/src/config.rs`. Adding missing BDD/integration coverage for this critical path addresses the highest ranked target ("1) missing BDD/integration coverage for an important path") for the Specsmith persona.
+## Option A (recommended)
+- **What it is**: Update the property test `cli_parser_never_panics_on_subcommand_with_arbitrary_args` in `crates/tokmd/tests/cli_parser_properties.rs` to include all currently supported subcommands defined in `tokmd::cli::parser::Commands`.
+- **Why it fits this repo and shard**: The assignment specifically requests improving scenario coverage and regression testing within the `interfaces` shard (CLI interfaces). The existing CLI parser property test covers a limited subset of subcommands (only `lang`, `module`, `export`, `diff`, `version`, `analyze`, `cockpit`, `context`, `handoff`). It misses important commands like `run`, `check-ignore`, `tools`, `gate`, `baseline`, `badge`, `init`, `completions`, and `sensor`. By including all defined subcommands, we harden input handling across the complete CLI surface and ensure invariant preservation without parser panics.
 - **Trade-offs**:
-  - Structure: High. Ensures that CLI overrides of `lang` command settings correctly take precedence over TOML and JSON configurations.
-  - Velocity: High. A straightforward addition that plugs a direct gap in `tokmd`'s testing matrix.
-  - Governance: High. Locks in determinism for how configuration sources are prioritized.
+  - *Structure*: Increases test coverage of edge cases without altering production code structures.
+  - *Velocity*: Slightly increases test execution time for this specific property test, but execution time is already fast (< 4s).
+  - *Governance*: Secures the fuzzing and property boundaries against regressions.
 
-### Option B: Add unit test for `resolve_profile`
-- **What it is**: Implement tests around profile lookup (`resolve_profile` in `crates/tokmd/src/config.rs`).
-- **When to choose it instead**: If profile resolution had complex fallback logic.
+## Option B
+- **What it is**: Identify a specific edge case in the parsing logic for one of the missing commands and write a targeted unit test instead.
+- **Why it fits this repo and shard**: While targeted tests are good, they do not guarantee that the CLI parser won't panic on other unexpected arbitrary inputs across all subcommands.
 - **Trade-offs**:
-  - `resolve_profile` is a simpler map lookup logic, less critical than the tiered `resolve_*_with_config` mechanisms that reconcile CLI, JSON profile, and TOML.
+  - Misses the opportunity to leverage property-based testing to verify broad invariance.
+  - Fails to comprehensively lock down the invariant (parser never panics on arbitrary string arguments) across the entire CLI surface.
 
-## ✅ Decision
-Option A. `resolve_lang_with_config` is the key function defining precedence for the `lang` command. While `export` and `module` have their `_with_config` variants tested, `lang` does not. We'll add this test to ensure complete and robust coverage across all command configuration resolvers.
+## Decision
+I have chosen **Option A**. Updating the property test provides high-signal coverage and strictly follows the "Specsmith" mission of improving regression coverage and edge-case polish in the CLI interfaces, expanding deterministic input hardening (no panics) across all currently defined subcommands.
