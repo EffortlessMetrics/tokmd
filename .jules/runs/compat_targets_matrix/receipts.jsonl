@@ -1,0 +1,16 @@
+cargo check -p tokmd-wasm
+cargo check -p tokmd-python
+cargo check -p tokmd-node
+cargo test -p tokmd-wasm
+cargo test -p tokmd-python
+cargo test -p tokmd-node
+cargo check -p tokmd-wasm --no-default-features
+cargo check -p tokmd-python --no-default-features
+cargo check -p tokmd-node --no-default-features
+cargo test -p tokmd-wasm --no-default-features
+cargo test -p tokmd-python --no-default-features
+cargo test -p tokmd-node --no-default-features
+cargo check -p tokmd-wasm --target wasm32-unknown-unknown
+cargo build -p tokmd-wasm --target wasm32-unknown-unknown --no-default-features
+wasm-pack test --node crates/tokmd-wasm
+wasm-pack test --node crates/tokmd-wasm --features analysis

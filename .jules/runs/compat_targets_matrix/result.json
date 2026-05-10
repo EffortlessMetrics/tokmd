@@ -1,0 +1,5 @@
+{
+  "outcome": "learning_pr",
+  "reason": "Thoroughly tested Wasm, Python, and Node targets across all feature profiles and architectures. Found no matrix-breaking interactions, MSRV drifts, or determinism regressions. Will not hallucinate a fake patch.",
+  "receipts_count": 8
+}
