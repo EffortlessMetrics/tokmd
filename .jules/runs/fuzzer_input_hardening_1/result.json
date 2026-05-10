@@ -1,0 +1,16 @@
+{
+  "outcome_type": "proof_patch",
+  "title": "fuzzer: add deterministic proptest coverage for CLI parser 🌪️",
+  "summary": "Adds property-based tests to exhaustively verify that the `tokmd` CLI parser (`clap::Parser::try_parse_from`) never panics on arbitrary string arguments, providing deterministic input hardening.",
+  "target_paths": [
+    "crates/tokmd/tests/cli_parser_properties.rs"
+  ],
+  "proof_summary": "Created `cli_parser_properties.rs` and ran `cargo test -p tokmd --test cli_parser_properties` verifying 1000 arbitrary input combinations.",
+  "gates_run": [
+    "cargo test -p tokmd --test cli_parser_properties"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Delete `crates/tokmd/tests/cli_parser_properties.rs`.",
+  "follow_ups": []
+}
