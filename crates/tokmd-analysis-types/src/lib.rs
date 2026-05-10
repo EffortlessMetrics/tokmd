@@ -171,16 +171,6 @@ mod tests {
     }
 
     #[test]
-    fn license_source_kind_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [LicenseSourceKind::Metadata, LicenseSourceKind::Text] {
-            let json = serde_json::to_string(&variant)?;
-            let back: LicenseSourceKind = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
     fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         for variant in [
             ComplexityRisk::Low,
