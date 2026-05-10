@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome": "pr_patch",
+  "summary": "Aligned `crates/tokmd/schemas/handoff.schema.json` with the canonical source in `docs/handoff.schema.json` to fix schema drift."
+}

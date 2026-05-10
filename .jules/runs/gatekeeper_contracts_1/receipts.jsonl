@@ -1,0 +1,3 @@
+{"command": "diff -u crates/tokmd/schemas/handoff.schema.json docs/handoff.schema.json", "output": "drift detected"}
+{"command": "cp docs/handoff.schema.json crates/tokmd/schemas/handoff.schema.json", "output": ""}
+{"command": "cargo test -p xtask", "output": "test result: ok. 28 passed; 0 failed"}
