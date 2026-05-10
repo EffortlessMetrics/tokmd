@@ -790,6 +790,7 @@ kind = "rust"
 paths = [
   "crates/tokmd/src/context_pack.rs",
   "crates/tokmd/src/context_pack/**",
+  "crates/tokmd/src/cli/parser/context.rs",
   "crates/tokmd/src/commands/context.rs",
   "crates/tokmd/src/commands/handoff.rs",
   "crates/tokmd/tests/context*.rs",
