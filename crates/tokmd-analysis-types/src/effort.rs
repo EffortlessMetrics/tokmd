@@ -9,10 +9,12 @@ use std::collections::BTreeMap;
 
 mod confidence;
 mod delta;
+mod driver;
 mod model;
 
 pub use confidence::{EffortConfidence, EffortConfidenceLevel};
 pub use delta::{EffortDeltaClassification, EffortDeltaReport};
+pub use driver::{EffortDriver, EffortDriverDirection};
 pub use model::EffortModel;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,23 +63,6 @@ pub struct EffortResults {
     pub schedule_months_p80: f64,
     pub staff_low: f64,
     pub staff_p80: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffortDriver {
-    pub key: String,
-    pub label: String,
-    pub weight: f64,
-    pub direction: EffortDriverDirection,
-    pub evidence: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EffortDriverDirection {
-    Raises,
-    Lowers,
-    Neutral,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
