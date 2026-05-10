@@ -22,8 +22,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub mod module_key;
+mod sorting;
 
 use crate::module_key::module_key_from_normalized;
+use crate::sorting::{sort_file_rows, sort_lang_rows, sort_module_rows};
 use tokei::{CodeStats, Config, LanguageType, Languages};
 use tokmd_types::{
     ChildIncludeMode, ChildrenMode, ExportData, FileKind, FileRow, LangReport, LangRow,
@@ -644,18 +646,6 @@ pub fn create_export_data_from_rows(
     }
 }
 
-fn sort_lang_rows(rows: &mut [LangRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
-}
-
-fn sort_module_rows(rows: &mut [ModuleRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
-}
-
-fn sort_file_rows(rows: &mut [FileRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
-}
-
 /// Collect per-file contributions, optionally including embedded language reports.
 ///
 /// This returns one row per (path, lang, kind), aggregated if tokei produced multiple
@@ -1146,90 +1136,6 @@ mod tests {
         assert_eq!(metrics_from_byte_len(12), (12, 3));
         assert_eq!(metrics_from_byte_len(15), (15, 3));
         assert_eq!(metrics_from_bytes(b"hello world!"), (12, 3));
-    }
-
-    fn test_lang_row(lang: &str, code: usize) -> LangRow {
-        LangRow {
-            lang: lang.to_string(),
-            code,
-            lines: code + 20,
-            files: 2,
-            bytes: code * 4,
-            tokens: code,
-            avg_lines: avg(code + 20, 2),
-        }
-    }
-
-    fn test_module_row(module: &str, code: usize) -> ModuleRow {
-        ModuleRow {
-            module: module.to_string(),
-            code,
-            lines: code + 20,
-            files: 2,
-            bytes: code * 4,
-            tokens: code,
-            avg_lines: avg(code + 20, 2),
-        }
-    }
-
-    fn test_file_row(path: &str, code: usize) -> FileRow {
-        FileRow {
-            path: path.to_string(),
-            module: "src".to_string(),
-            lang: "Rust".to_string(),
-            kind: FileKind::Parent,
-            code,
-            comments: 10,
-            blanks: 5,
-            lines: code + 15,
-            bytes: code * 4,
-            tokens: code,
-        }
-    }
-
-    #[test]
-    fn sort_lang_rows_orders_code_desc_then_name() {
-        let mut rows = vec![
-            test_lang_row("Zeta", 100),
-            test_lang_row("Rust", 300),
-            test_lang_row("Alpha", 100),
-        ];
-
-        sort_lang_rows(&mut rows);
-
-        assert_eq!(rows[0].lang, "Rust");
-        assert_eq!(rows[1].lang, "Alpha");
-        assert_eq!(rows[2].lang, "Zeta");
-    }
-
-    #[test]
-    fn sort_module_rows_orders_code_desc_then_module() {
-        let mut rows = vec![
-            test_module_row("src/zeta", 100),
-            test_module_row("src/core", 300),
-            test_module_row("src/alpha", 100),
-        ];
-
-        sort_module_rows(&mut rows);
-
-        assert_eq!(rows[0].module, "src/core");
-        assert_eq!(rows[1].module, "src/alpha");
-        assert_eq!(rows[2].module, "src/zeta");
-    }
-
-    #[test]
-    fn sort_file_rows_orders_code_desc_then_path() {
-        let mut rows = vec![
-            test_file_row("src/zeta.rs", 100),
-            test_file_row("src/core.rs", 300),
-            test_file_row("src/alpha.rs", 100),
-        ];
-
-        sort_file_rows(&mut rows);
-
-        assert_eq!(rows[0].path, "src/core.rs");
-        assert_eq!(rows[1].path, "src/alpha.rs");
-        assert_eq!(rows[2].path, "src/zeta.rs");
     }
 
     #[test]
