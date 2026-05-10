@@ -8,9 +8,11 @@ use serde::{Deserialize, Serialize};
 use crate::AnalysisReceipt;
 
 mod determinism;
+mod file_entry;
 mod metrics;
 
 pub use determinism::DeterminismBaseline;
+pub use file_entry::FileBaselineEntry;
 pub use metrics::BaselineMetrics;
 
 /// Schema version for baseline files.
@@ -179,25 +181,6 @@ pub struct BaselineComplexitySection {
     pub max_nesting_depth: Option<usize>,
     /// Number of high-risk files.
     pub high_risk_files: usize,
-}
-
-/// Per-file baseline entry for granular complexity tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileBaselineEntry {
-    /// Normalized file path (forward slashes).
-    pub path: String,
-    /// Lines of code in this file.
-    pub code_lines: u64,
-    /// Cyclomatic complexity for this file.
-    pub cyclomatic: u32,
-    /// Cognitive complexity for this file.
-    pub cognitive: u32,
-    /// Maximum nesting depth in this file.
-    pub max_nesting: u32,
-    /// Number of functions in this file.
-    pub function_count: u32,
-    /// BLAKE3 hash of file content for change detection.
-    pub content_hash: Option<String>,
 }
 
 /// Helper to convert milliseconds timestamp to RFC 3339 / ISO 8601 string.
