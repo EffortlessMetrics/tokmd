@@ -11,12 +11,14 @@ mod confidence;
 mod delta;
 mod driver;
 mod model;
+mod results;
 mod size;
 
 pub use confidence::{EffortConfidence, EffortConfidenceLevel};
 pub use delta::{EffortDeltaClassification, EffortDeltaReport};
 pub use driver::{EffortDriver, EffortDriverDirection};
 pub use model::EffortModel;
+pub use results::EffortResults;
 pub use size::{EffortSizeBasis, EffortTagSizeRow};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,19 +31,6 @@ pub struct EffortEstimateReport {
     pub assumptions: EffortAssumptions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delta: Option<EffortDeltaReport>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffortResults {
-    pub effort_pm_p50: f64,
-    pub schedule_months_p50: f64,
-    pub staff_p50: f64,
-    pub effort_pm_low: f64,
-    pub effort_pm_p80: f64,
-    pub schedule_months_low: f64,
-    pub schedule_months_p80: f64,
-    pub staff_low: f64,
-    pub staff_p80: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
