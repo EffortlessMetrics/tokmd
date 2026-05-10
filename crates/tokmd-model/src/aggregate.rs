@@ -69,8 +69,6 @@ pub fn create_lang_report_from_rows(
                         .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                     entry.0.code += row.code;
                     entry.0.lines += row.lines;
-                    entry.0.bytes += row.bytes;
-                    entry.0.tokens += row.tokens;
                     entry.1.insert(row.path.as_str());
                 }
             }
@@ -95,8 +93,6 @@ pub fn create_lang_report_from_rows(
                     .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
                 entry.0.code += row.code;
                 entry.0.lines += row.lines;
-                entry.0.bytes += row.bytes;
-                entry.0.tokens += row.tokens;
                 entry.1.insert(row.path.as_str());
             }
         }

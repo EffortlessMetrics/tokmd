@@ -1,5 +1,0 @@
-{
-  "status": "success",
-  "outcome": "proof-improvement patch",
-  "details": "Added missing bytes and tokens metric accumulations for Child file kinds in aggregate report building, caught by cargo-mutants. Wrote targeted deterministic tests covering this behavior."
-}
