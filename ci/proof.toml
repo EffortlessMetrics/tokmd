@@ -325,6 +325,7 @@ coverage = true
 name = "analysis_types_baseline"
 kind = "rust"
 paths = [
+  "crates/tokmd-analysis-types/src/baseline/**",
   "crates/tokmd-analysis-types/src/baseline.rs",
   "docs/baseline.schema.json",
 ]
