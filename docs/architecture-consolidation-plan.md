@@ -61,8 +61,8 @@ fixtures:
 | --- | --- | ---: | --- |
 | Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=187 | Scoring, nesting, and function-span helpers now live under owner modules; remaining work is mostly test split and aggregation cleanup |
 | Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 230; symbol scanner 385; symbol tests 449 | Keep report aggregation in `mod.rs`, source scanning and scanner tests under `symbols`, and leave large integration tests under `api_surface/tests` |
-| Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
-| Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
+| Context packing | `crates/tokmd/src/context_pack.rs` | 2195 total; production 653 | Split selection, budgeting, rendering, and manifest helpers under `tokmd`; keep context/handoff proof scoped |
+| Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 337 | Continue DTO-family splits only where root receipt glue is still doing ownership work |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/summary.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` + `complexity/language.rs` + `complexity/math.rs` + `complexity/tests/unit.rs` | 156 + 301 + 343 + 138 + 78 + 69 + 33 + 35 + 5 + 346 | Keep shared complexity logic in `tokmd-analysis`, split language/source/summary helpers and local unit tests |
 | CLI parser | `crates/tokmd/src/cli/parser.rs` | 1276 | Split command argument families while preserving clap output |
@@ -250,8 +250,8 @@ cargo test -p tokmd --test context_handoff_deep --verbose
 cargo xtask docs --check
 ```
 
-Relevant proof scopes: `tokmd_cli`, `tokmd_pipeline_integration`, and any
-future context/handoff-specific scope if the affected plan becomes too broad.
+Relevant proof scopes: `tokmd_cli`, `tokmd_context_handoff`, and
+`tokmd_pipeline_integration`.
 
 ### Batch F: Model and Scan Internals
 

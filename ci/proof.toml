@@ -773,6 +773,30 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_context_handoff"
+kind = "rust"
+paths = [
+  "crates/tokmd/src/context_pack.rs",
+  "crates/tokmd/src/context_pack/**",
+  "crates/tokmd/src/commands/context.rs",
+  "crates/tokmd/src/commands/handoff.rs",
+  "crates/tokmd/tests/context*.rs",
+  "crates/tokmd/tests/deep_context_handoff_w51.rs",
+  "crates/tokmd/tests/handoff_*.rs",
+  "docs/handoff.schema.json",
+  "docs/handoff-schema.md",
+]
+packages = ["tokmd"]
+proof = [
+  "cargo test -p tokmd context_pack --verbose",
+  "cargo test -p tokmd --test context_e2e --verbose",
+  "cargo test -p tokmd --test context_handoff_deep --verbose",
+  "cargo test -p tokmd --test handoff_integration --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "tokmd_pipeline_integration"
 kind = "rust"
 paths = [
