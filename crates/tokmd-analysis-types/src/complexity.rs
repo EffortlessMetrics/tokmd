@@ -6,8 +6,10 @@
 use serde::{Deserialize, Serialize};
 
 mod histogram;
+mod technical_debt;
 
 pub use histogram::ComplexityHistogram;
+pub use technical_debt::{TechnicalDebtLevel, TechnicalDebtRatio};
 
 /// Halstead software science metrics computed from operator/operand token counts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,28 +56,6 @@ pub struct MaintainabilityIndex {
     pub avg_halstead_volume: Option<f64>,
     /// Letter grade: "A" (>=85), "B" (65-84), "C" (<65).
     pub grade: String,
-}
-
-/// Complexity-to-size ratio heuristic for technical debt estimation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TechnicalDebtRatio {
-    /// Complexity points per KLOC (higher means denser debt).
-    pub ratio: f64,
-    /// Aggregate complexity points used in the ratio.
-    pub complexity_points: usize,
-    /// KLOC basis used in the ratio denominator.
-    pub code_kloc: f64,
-    /// Bucketed interpretation of debt ratio.
-    pub level: TechnicalDebtLevel,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TechnicalDebtLevel {
-    Low,
-    Moderate,
-    High,
-    Critical,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -167,7 +147,7 @@ pub enum ComplexityRisk {
 
 #[cfg(test)]
 mod tests {
-    use super::{ComplexityRisk, TechnicalDebtLevel};
+    use super::ComplexityRisk;
 
     #[test]
     fn complexity_risk_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
@@ -179,21 +159,6 @@ mod tests {
         ] {
             let json = serde_json::to_string(&variant)?;
             let back: ComplexityRisk = serde_json::from_str(&json)?;
-            assert_eq!(back, variant);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn technical_debt_level_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        for variant in [
-            TechnicalDebtLevel::Low,
-            TechnicalDebtLevel::Moderate,
-            TechnicalDebtLevel::High,
-            TechnicalDebtLevel::Critical,
-        ] {
-            let json = serde_json::to_string(&variant)?;
-            let back: TechnicalDebtLevel = serde_json::from_str(&json)?;
             assert_eq!(back, variant);
         }
         Ok(())
