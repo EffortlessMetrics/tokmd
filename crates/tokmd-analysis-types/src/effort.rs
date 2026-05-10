@@ -4,13 +4,14 @@
 //! `tokmd_analysis_types::...` contract while keeping the DTO family in an
 //! owner module.
 
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
-use serde::{Deserialize, Serialize};
-
+mod confidence;
 mod model;
 
+pub use confidence::{EffortConfidence, EffortConfidenceLevel};
 pub use model::EffortModel;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,32 +60,6 @@ pub struct EffortResults {
     pub schedule_months_p80: f64,
     pub staff_low: f64,
     pub staff_p80: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffortConfidence {
-    pub level: EffortConfidenceLevel,
-    pub reasons: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data_coverage_pct: Option<f64>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EffortConfidenceLevel {
-    Low,
-    Medium,
-    High,
-}
-
-impl fmt::Display for EffortConfidenceLevel {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Low => f.write_str("low"),
-            Self::Medium => f.write_str("medium"),
-            Self::High => f.write_str("high"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -161,14 +136,7 @@ pub struct CocomoReport {
 
 #[cfg(test)]
 mod tests {
-    use super::{EffortConfidenceLevel, EffortDeltaClassification};
-
-    #[test]
-    fn effort_confidence_level_display_strings_are_stable() {
-        assert_eq!(EffortConfidenceLevel::Low.to_string(), "low");
-        assert_eq!(EffortConfidenceLevel::Medium.to_string(), "medium");
-        assert_eq!(EffortConfidenceLevel::High.to_string(), "high");
-    }
+    use super::EffortDeltaClassification;
 
     #[test]
     fn effort_delta_classification_display_strings_are_stable() {
