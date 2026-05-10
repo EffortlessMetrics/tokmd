@@ -1,3 +1,8 @@
+//! Shared analysis-type helpers.
+//!
+//! These helpers support receipt normalization and lightweight testable
+//! calculations without adding orchestration or rendering behavior.
+
 use std::path::{Path, PathBuf};
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};

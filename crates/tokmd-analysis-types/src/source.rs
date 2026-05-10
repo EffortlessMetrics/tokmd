@@ -1,3 +1,8 @@
+//! Analysis source metadata receipt DTOs.
+//!
+//! This module owns the source snapshot embedded in analysis receipts. Public
+//! consumers should keep using the crate-root `AnalysisSource` re-export.
+
 use serde::{Deserialize, Serialize};
 
 /// Source metadata recorded in an analysis receipt.

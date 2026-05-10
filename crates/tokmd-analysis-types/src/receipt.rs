@@ -1,3 +1,8 @@
+//! Top-level analysis receipt DTO.
+//!
+//! This module owns the serde-stable analysis receipt envelope. Public
+//! consumers should keep using the crate-root `AnalysisReceipt` re-export.
+
 use serde::{Deserialize, Serialize};
 use tokmd_types::{ScanStatus, ToolInfo};
 

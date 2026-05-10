@@ -1,3 +1,9 @@
+//! Analysis argument metadata receipt DTOs.
+//!
+//! This module owns the serde-stable command-argument snapshot stored in
+//! analysis receipts. Public consumers should keep using the crate-root
+//! re-export.
+
 use serde::{Deserialize, Serialize};
 
 /// Command argument metadata recorded in an analysis receipt.

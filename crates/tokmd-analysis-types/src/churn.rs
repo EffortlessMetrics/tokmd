@@ -1,3 +1,8 @@
+//! Predictive churn receipt DTOs.
+//!
+//! These contract types remain re-exported from the crate root to preserve
+//! existing `tokmd_analysis_types::...` names.
+
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};

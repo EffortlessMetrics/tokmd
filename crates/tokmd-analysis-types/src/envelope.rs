@@ -1,3 +1,8 @@
+//! Ecosystem envelope aliases for analysis consumers.
+//!
+//! This module keeps the backwards-compatible analysis-types aliases while
+//! delegating the canonical packet contract to `tokmd-envelope`.
+
 /// Schema identifier for ecosystem envelope format.
 /// v1: Initial envelope specification for multi-sensor integration.
 pub const ENVELOPE_SCHEMA: &str = tokmd_envelope::SENSOR_REPORT_SCHEMA;
