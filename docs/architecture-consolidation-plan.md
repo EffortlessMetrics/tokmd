@@ -59,7 +59,8 @@ fixtures:
 
 | Area | Current file | Approx. lines | Owner direction |
 | --- | --- | ---: | --- |
-| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=318 | Continue splitting scoring, nesting, aggregation, and tests under `content::complexity` |
+| Content complexity | `crates/tokmd-analysis/src/content/complexity.rs` and `crates/tokmd-analysis/src/content/complexity/` | `tests/unit.rs` 1451; production owner modules <=187 | Scoring, nesting, and function-span helpers now live under owner modules; remaining work is mostly test split and aggregation cleanup |
+| Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 678; symbol scanner 382 | Keep report aggregation in `mod.rs`, source scanning in `symbols.rs`, and split large tests only after behavior stays stable |
 | Context packing | `crates/tokmd/src/context_pack.rs` | 1950 | Split selection, budgeting, rendering, and manifest helpers under `tokmd` |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` | 1702 | Split receipt DTO families while preserving re-exports |
 | Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs` | 1500 each | Split workflow facade, FFI envelope handling, and mode dispatch without changing `run_json` |
@@ -300,8 +301,9 @@ Stop and split the work if a consolidation PR:
 
 1. Split `tokmd-analysis-types/src/lib.rs` into DTO-family modules while
    preserving re-exports.
-2. Split `tokmd-analysis/src/content/complexity.rs` into parser, scoring,
-   aggregation, and tests under `content::complexity`.
+2. Continue production owner-module splits under `tokmd-analysis`, starting
+   with API surface symbol scanning and then aggregation/test cleanup where
+   useful.
 3. Split `crates/tokmd/src/context_pack.rs` into selection, budgeting,
    rendering, and manifest helpers under `tokmd`.
 
