@@ -5,6 +5,7 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
+| `compat-wasm-pack-args` | compat | builder | bindings-targets | open | `wasm-pack test` argument placement is easy to get wrong when future runs need to pass Cargo feature flags or profile flags through to wasm test builds. |
 | `fuzz_toolchain_blocker` | fuzzer | prover | interfaces | open | `cargo fuzz` is not a reliable local gate in the current agent environments. Repeated runs hit either missing nightly-toolchain support in sandboxed Linux environments or sanitizer/LLVM link failures on Windows/MSVC before the target starts. |
 | `librarian_doctest_git_dependency` | librarian | prover | core-pipeline | open | The `cockpit_workflow` public API doctest is marked as `no_run` and skipping validation because it implicitly requires an active Git repository to execute (it fails with `not inside a git repository` when executed normally). |
 | `steward-release-clean-state` | steward | stabilizer | tooling-governance | open | A prompt (`steward_release`) requested finding release/governance improvements (e.g. publish-plan drift, changelog mismatch), but all checks pass cleanly. |
