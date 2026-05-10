@@ -174,19 +174,4 @@ mod tests {
         assert_eq!(back.bytes, 1000);
         Ok(())
     }
-
-    #[test]
-    fn topic_term_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
-        let term = TopicTerm {
-            term: "async".into(),
-            score: 0.95,
-            tf: 10,
-            df: 3,
-        };
-        let json = serde_json::to_string(&term)?;
-        let back: TopicTerm = serde_json::from_str(&json)?;
-        assert_eq!(back.term, "async");
-        assert_eq!(back.tf, 10);
-        Ok(())
-    }
 }

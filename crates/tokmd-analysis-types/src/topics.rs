@@ -15,3 +15,23 @@ pub struct TopicTerm {
     pub tf: u32,
     pub df: u32,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TopicTerm;
+
+    #[test]
+    fn topic_term_serde_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
+        let term = TopicTerm {
+            term: "async".into(),
+            score: 0.95,
+            tf: 10,
+            df: 3,
+        };
+        let json = serde_json::to_string(&term)?;
+        let back: TopicTerm = serde_json::from_str(&json)?;
+        assert_eq!(back.term, "async");
+        assert_eq!(back.tf, 10);
+        Ok(())
+    }
+}
