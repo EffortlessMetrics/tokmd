@@ -9,6 +9,10 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+mod model;
+
+pub use model::EffortModel;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EffortEstimateReport {
     pub model: EffortModel,
@@ -42,24 +46,6 @@ pub struct EffortTagSizeRow {
     pub lines: usize,
     pub authored_lines: usize,
     pub pct_of_total: f64,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum EffortModel {
-    Cocomo81Basic,
-    Cocomo2Early,
-    Ensemble,
-}
-
-impl fmt::Display for EffortModel {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Cocomo81Basic => f.write_str("cocomo81-basic"),
-            Self::Cocomo2Early => f.write_str("cocomo2-early"),
-            Self::Ensemble => f.write_str("ensemble"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,14 +161,7 @@ pub struct CocomoReport {
 
 #[cfg(test)]
 mod tests {
-    use super::{EffortConfidenceLevel, EffortDeltaClassification, EffortModel};
-
-    #[test]
-    fn effort_model_display_strings_are_stable() {
-        assert_eq!(EffortModel::Cocomo81Basic.to_string(), "cocomo81-basic");
-        assert_eq!(EffortModel::Cocomo2Early.to_string(), "cocomo2-early");
-        assert_eq!(EffortModel::Ensemble.to_string(), "ensemble");
-    }
+    use super::{EffortConfidenceLevel, EffortDeltaClassification};
 
     #[test]
     fn effort_confidence_level_display_strings_are_stable() {

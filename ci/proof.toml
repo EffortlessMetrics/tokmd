@@ -394,7 +394,10 @@ coverage = true
 [[scope]]
 name = "analysis_types_effort"
 kind = "rust"
-paths = ["crates/tokmd-analysis-types/src/effort.rs"]
+paths = [
+  "crates/tokmd-analysis-types/src/effort.rs",
+  "crates/tokmd-analysis-types/src/effort/**",
+]
 packages = ["tokmd-analysis-types"]
 proof = ["cargo test -p tokmd-analysis-types effort --verbose"]
 mutation = true
