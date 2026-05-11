@@ -63,7 +63,7 @@ fixtures:
 | Analysis API surface | `crates/tokmd-analysis/src/api_surface/mod.rs` and `crates/tokmd-analysis/src/api_surface/` | `mod.rs` 13; report owner 227; symbol dispatcher 56; language scanners <=68; symbol tests 385 | Keep `mod.rs` as a thin coordinator, report aggregation in `report.rs`, source scanning in language owner modules under `symbols`, and leave large integration tests under `api_surface/tests` |
 | Context packing | `crates/tokmd/src/context_pack.rs`, `crates/tokmd/src/context_pack/`, and `crates/tokmd/src/commands/context.rs` | `context_pack.rs` 15; selection submodule/tests 1896; output/log submodule 224; render submodule 204; manifest submodule 195; budget parser/tests 220; context command 218 | Budget parsing, file selection, bundle text rendering, single-output/log writing, and context bundle manifest writing now live in owner modules; keep context/handoff proof scoped while CLI parser splits continue |
 | Analysis DTO contracts | `crates/tokmd-analysis-types/src/lib.rs` and owner DTO modules | `lib.rs` 113; baseline owner 37 + complexity-baseline submodule 256 + complexity-section submodule 37 + determinism submodule 22 + metrics submodule 45 + file-entry submodule 23; envelope owner 24; receipt owner 42; topics owner tests 42; entropy owner tests 58; license owner tests 42; churn owner tests 50; complexity owner tests 51 + file submodule 46 + risk submodule 43 + halstead submodule 30 + maintainability submodule 25 + histogram submodule 79 + technical-debt submodule 42; effort owner 25 + estimate submodule 70 + assumptions submodule 35 + cocomo submodule 48 + model submodule 37 + confidence submodule 45 + delta submodule 56 + driver submodule 43 + size submodule 65 + results submodule 45 | Keep root receipt glue and public re-exports stable while moving remaining DTO ownership into modules |
-| Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs`, and `crates/tokmd-core/src/ffi/` | `lib.rs` 1661; `ffi.rs` 1017; mode owner 149; input owner 187; parse owner 257; settings parser owner 150 | In-memory input decoding/path validation, strict JSON parsing, FFI settings construction, and mode dispatch now live under `ffi/`; remaining work is workflow facade and envelope handling without changing `run_json` |
+| Core facade and FFI | `crates/tokmd-core/src/lib.rs`, `crates/tokmd-core/src/ffi.rs`, and `crates/tokmd-core/src/ffi/` | `lib.rs` 1661; `ffi.rs` 1016; envelope owner 15; mode owner 149; input owner 187; parse owner 257; settings parser owner 150 | In-memory input decoding/path validation, strict JSON parsing, FFI settings construction, mode dispatch, and response-envelope conversion now live under `ffi/`; remaining work is workflow facade without changing `run_json` |
 | Analysis complexity | `crates/tokmd-analysis/src/complexity/mod.rs` + `complexity/functions.rs` + `complexity/details.rs` + `complexity/summary.rs` + `complexity/risk.rs` + `complexity/debt.rs` + `complexity/histogram.rs` + `complexity/language.rs` + `complexity/math.rs` + `complexity/tests/unit.rs` | 156 + 301 + 343 + 138 + 78 + 69 + 33 + 35 + 5 + 346 | Keep shared complexity logic in `tokmd-analysis`, split language/source/summary helpers and local unit tests |
 | CLI parser | `crates/tokmd/src/cli/parser.rs` and `crates/tokmd/src/cli/parser/` | `parser.rs` 1022; analyze parser owner 217; context/handoff parser owner 208; cockpit/baseline parser owner 109 | Context, handoff, analyze, cockpit, and baseline argument families now live under parser owner modules; continue command-family splits only when clap snapshots prove behavior is unchanged |
 | Model aggregation | `crates/tokmd-model/src/lib.rs`, `crates/tokmd-model/src/aggregate.rs`, `crates/tokmd-model/src/rows.rs`, and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 267; aggregation owner/tests 427; row collection owner/tests 411; sorting owner/tests 91 | Report builders, file-row collection, in-memory row detection, and row sorting now live in owner modules; remaining work is child-language behavior only if future evidence shows the seam is still too broad |
@@ -208,15 +208,15 @@ crates/tokmd-core/src/
     settings_parse.rs     # mode-specific settings construction
     mod.rs                # final coordinator once ffi.rs is split
     modes.rs              # mode dispatch owner
-    envelope.rs           # future response envelope owner
+    envelope.rs           # response envelope owner
 ```
 
 Current checkpoint: in-memory input decoding/path validation and strict JSON
 field parsing have moved into `ffi/inputs.rs` and `ffi/parse.rs`, and
 mode-specific settings construction has moved into `ffi/settings_parse.rs`.
-Mode dispatch has moved into `ffi/modes.rs`. `ffi.rs` still owns public
-`run_json` and the response-envelope boundary while that public binding
-boundary remains staged.
+Mode dispatch has moved into `ffi/modes.rs`, and response-envelope conversion
+has moved into `ffi/envelope.rs`. `ffi.rs` still owns public `run_json` while
+that public binding boundary remains staged.
 
 Required proof:
 

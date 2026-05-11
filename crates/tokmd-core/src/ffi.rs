@@ -17,12 +17,14 @@
 
 use serde_json::Value;
 
+mod envelope;
 mod inputs;
 mod modes;
 mod parse;
 mod settings_parse;
 
-use crate::error::{ResponseEnvelope, TokmdError};
+use crate::error::TokmdError;
+use envelope::json_response;
 use inputs::parse_in_memory_inputs;
 use modes::run_mode;
 use settings_parse::parse_scan_settings;
@@ -62,10 +64,7 @@ use settings_parse::parse_scan_settings;
 /// assert_eq!(parsed["data"]["mode"], "lang");
 /// ```
 pub fn run_json(mode: &str, args_json: &str) -> String {
-    match run_json_inner(mode, args_json) {
-        Ok(data) => ResponseEnvelope::success(data).to_json(),
-        Err(err) => ResponseEnvelope::error(&err).to_json(),
-    }
+    json_response(run_json_inner(mode, args_json))
 }
 
 fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
