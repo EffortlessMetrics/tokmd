@@ -346,14 +346,16 @@ Stop and split the work if a consolidation PR:
 
 ## First Suggested PRs
 
-1. Continue core facade owner-module splits with the remaining workflow
-   families while preserving the root-level public exports and binding
-   contracts.
-2. Continue production owner-module splits under `tokmd-analysis` only where
+1. Continue production owner-module splits under `tokmd-analysis` only where
    production seams remain broad; avoid splitting tests solely for line count.
+2. Continue context and handoff splits only when fresh evidence shows a broad
+   owner seam; current context packing and handoff intelligence/output owners
+   are already split enough for routine work.
 3. Continue CLI parser command-family splits only when clap snapshots prove
    behavior is unchanged; continue model child-language behavior only if future
    evidence shows the seam is still too broad after the row owner split.
+4. Treat future core facade or FFI work as binding-contract work, not routine
+   owner-module cleanup, unless a concrete helper seam appears.
 
 Each PR should include the affected proof-plan output in the PR body and should
 leave `publish-surface --verify-publish` green when public exports or
