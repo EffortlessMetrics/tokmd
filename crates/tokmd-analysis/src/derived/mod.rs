@@ -3,8 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use tokmd_analysis_types::{
     BoilerplateReport, CocomoReport, ContextWindowReport, DerivedReport, DerivedTotals,
     FileStatRow, LangPurityReport, LangPurityRow, MaxFileReport, MaxFileRow, NestingReport,
-    NestingRow, PolyglotReport, RateReport, RateRow, RatioReport, RatioRow, ReadingTimeReport,
-    TestDensityReport, TopOffenders,
+    NestingRow, PolyglotReport, ReadingTimeReport, TestDensityReport, TopOffenders,
 };
 use tokmd_analysis_types::{empty_file_row, is_infra_lang, is_test_path, path_depth};
 use tokmd_format::render_analysis_tree;
@@ -15,8 +14,10 @@ use crate::cocomo81_core::{COCOMO81_COEFFICIENTS, cocomo81_effort_pm};
 
 mod distribution;
 mod integrity;
+mod ratios;
 use distribution::{build_distribution_report, build_histogram};
 use integrity::build_integrity_report;
+use ratios::{build_doc_density_report, build_verbosity_report, build_whitespace_report};
 
 const LINES_PER_MINUTE: usize = 20;
 const TOP_N: usize = 10;
@@ -49,37 +50,13 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         totals.tokens += row.tokens;
     }
 
-    let doc_density = build_ratio_report(
-        "total",
-        totals.comments,
-        totals.code + totals.comments,
-        group_ratio(&parents, |r| r.lang.as_str(), |r| (r.comments, r.code)),
-        group_ratio(&parents, |r| r.module.as_str(), |r| (r.comments, r.code)),
-    );
+    let doc_density =
+        build_doc_density_report(&parents, totals.comments, totals.code + totals.comments);
 
-    let whitespace = build_ratio_report(
-        "total",
-        totals.blanks,
-        totals.code + totals.comments,
-        group_ratio(
-            &parents,
-            |r| r.lang.as_str(),
-            |r| (r.blanks, r.code + r.comments),
-        ),
-        group_ratio(
-            &parents,
-            |r| r.module.as_str(),
-            |r| (r.blanks, r.code + r.comments),
-        ),
-    );
+    let whitespace =
+        build_whitespace_report(&parents, totals.blanks, totals.code + totals.comments);
 
-    let verbosity = build_rate_report(
-        "total",
-        totals.bytes,
-        totals.lines,
-        group_rate(&parents, |r| r.lang.as_str(), |r| (r.bytes, r.lines)),
-        group_rate(&parents, |r| r.module.as_str(), |r| (r.bytes, r.lines)),
-    );
+    let verbosity = build_verbosity_report(&parents, totals.bytes, totals.lines);
 
     let file_stats = build_file_stats(&parents);
 
@@ -163,124 +140,6 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
         todo: None,
         integrity,
     }
-}
-
-fn build_ratio_report(
-    total_key: &str,
-    total_numer: usize,
-    total_denom: usize,
-    by_lang: BTreeMap<String, (usize, usize)>,
-    by_module: BTreeMap<String, (usize, usize)>,
-) -> RatioReport {
-    RatioReport {
-        total: RatioRow {
-            key: total_key.to_string(),
-            numerator: total_numer,
-            denominator: total_denom,
-            ratio: safe_ratio(total_numer, total_denom),
-        },
-        by_lang: build_ratio_rows(by_lang),
-        by_module: build_ratio_rows(by_module),
-    }
-}
-
-fn build_rate_report(
-    total_key: &str,
-    total_numer: usize,
-    total_denom: usize,
-    by_lang: BTreeMap<String, (usize, usize)>,
-    by_module: BTreeMap<String, (usize, usize)>,
-) -> RateReport {
-    RateReport {
-        total: RateRow {
-            key: total_key.to_string(),
-            numerator: total_numer,
-            denominator: total_denom,
-            rate: safe_ratio(total_numer, total_denom),
-        },
-        by_lang: build_rate_rows(by_lang),
-        by_module: build_rate_rows(by_module),
-    }
-}
-
-fn build_ratio_rows(map: BTreeMap<String, (usize, usize)>) -> Vec<RatioRow> {
-    let mut rows: Vec<RatioRow> = map
-        .into_iter()
-        .map(|(key, (numer, denom))| RatioRow {
-            key,
-            numerator: numer,
-            denominator: denom,
-            ratio: safe_ratio(numer, denom),
-        })
-        .collect();
-
-    rows.sort_by(|a, b| {
-        b.ratio
-            .partial_cmp(&a.ratio)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.key.cmp(&b.key))
-    });
-    rows
-}
-
-fn build_rate_rows(map: BTreeMap<String, (usize, usize)>) -> Vec<RateRow> {
-    let mut rows: Vec<RateRow> = map
-        .into_iter()
-        .map(|(key, (numer, denom))| RateRow {
-            key,
-            numerator: numer,
-            denominator: denom,
-            rate: safe_ratio(numer, denom),
-        })
-        .collect();
-
-    rows.sort_by(|a, b| {
-        b.rate
-            .partial_cmp(&a.rate)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.key.cmp(&b.key))
-    });
-    rows
-}
-
-fn group_ratio<'a, FKey, FVals>(
-    rows: &'a [&'a FileRow],
-    key_fn: FKey,
-    vals_fn: FVals,
-) -> BTreeMap<String, (usize, usize)>
-where
-    FKey: Fn(&'a FileRow) -> &'a str,
-    FVals: Fn(&'a FileRow) -> (usize, usize),
-{
-    let mut map: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
-    for row in rows {
-        let key = key_fn(row);
-        let (numer, denom_part) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom_part;
-    }
-    map.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
-}
-
-fn group_rate<'a, FKey, FVals>(
-    rows: &'a [&'a FileRow],
-    key_fn: FKey,
-    vals_fn: FVals,
-) -> BTreeMap<String, (usize, usize)>
-where
-    FKey: Fn(&'a FileRow) -> &'a str,
-    FVals: Fn(&'a FileRow) -> (usize, usize),
-{
-    let mut map: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
-    for row in rows {
-        let key = key_fn(row);
-        let (numer, denom) = vals_fn(row);
-        let entry = map.entry(key).or_insert((0, 0));
-        entry.0 += numer;
-        entry.1 += denom;
-    }
-    map.into_iter().map(|(k, v)| (k.to_string(), v)).collect()
 }
 
 fn build_file_stats(rows: &[&FileRow]) -> Vec<FileStatRow> {
