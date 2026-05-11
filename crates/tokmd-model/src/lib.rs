@@ -95,39 +95,16 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     if let Some(prefix) = strip_prefix {
         let p_cow = prefix.to_string_lossy();
         // Strip leading ./ from prefix so it can match normalized paths
-        let p_cow_stripped: Cow<str> = if let Some(stripped) = p_cow.strip_prefix("./") {
-            Cow::Borrowed(stripped)
-        } else {
-            p_cow
-        };
+        let p_source = p_cow.as_ref();
+        let mut p_slice = p_source.strip_prefix("./").unwrap_or(p_source);
+        let normalized_prefix;
+        if p_slice.contains('\\') {
+            normalized_prefix = p_slice.replace('\\', "/");
+            p_slice = &normalized_prefix;
+        }
 
-        let needs_replace = p_cow_stripped.contains('\\');
-        let needs_slash = !p_cow_stripped.ends_with('/');
-
-        if !needs_replace && !needs_slash {
-            // Fast path: prefix is already clean and ends with slash
-            if slice.starts_with(p_cow_stripped.as_ref()) {
-                slice = &slice[p_cow_stripped.len()..];
-            }
-        } else {
-            // Slow path: avoid string allocation if not replacing
-            let pfx: Cow<str> = if needs_replace {
-                let mut pfx = p_cow_stripped.replace('\\', "/");
-                if needs_slash {
-                    pfx.push('/');
-                }
-                Cow::Owned(pfx)
-            } else if needs_slash {
-                let mut pfx = p_cow_stripped.into_owned();
-                pfx.push('/');
-                Cow::Owned(pfx)
-            } else {
-                p_cow_stripped.clone()
-            };
-
-            if slice.starts_with(pfx.as_ref()) {
-                slice = &slice[pfx.len()..];
-            }
+        if let Some(stripped) = strip_path_prefix(slice, p_slice) {
+            slice = stripped;
         }
     }
 
@@ -143,6 +120,15 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
         s.into_owned()
     } else {
         slice.to_string()
+    }
+}
+
+fn strip_path_prefix<'a>(path: &'a str, prefix: &str) -> Option<&'a str> {
+    if prefix.ends_with('/') {
+        path.strip_prefix(prefix)
+    } else {
+        path.strip_prefix(prefix)
+            .and_then(|stripped| stripped.strip_prefix('/'))
     }
 }
 
