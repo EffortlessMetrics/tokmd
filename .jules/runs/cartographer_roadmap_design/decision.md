@@ -1,28 +1,26 @@
-# Decision
+# Cartographer Decision
 
-## What was inspected
+## Target identification
+The shard is `tooling-governance` with allowed paths including `ROADMAP.md`, `docs/**`, `Cargo.toml`.
+Currently `Cargo.toml` is at version `1.11.0` and the last two releases (1.10.0 and 1.11.0) have been marked complete in `ROADMAP.md` and `CHANGELOG.md`.
 
-I broadly explored the `tooling-governance` shard, specifically looking at `docs/architecture.md`, `ROADMAP.md`, `docs/implementation-plan.md`, `docs/design.md`, `docs/specification.md`, and compared them against `crates/tokmd/Cargo.toml` and other truth sources. The goal was to find factual drift between shipped reality and roadmap/design/requirements docs.
+In `docs/architecture.md`, the `## WASM & Browser Runner` section refers to `v1.9.0` as the current state in its non-goals section: `Non-goals for v1.9.0: No browser-side git-history churn/hotspot metrics or other heavy host tooling. No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy.`
+However, we just completed `v1.11.0` which focuses on "Browser Runtime Polish". The architecture doc's references to `v1.9.0` constraints and non-goals are outdated and misleading.
 
-During this investigation, I noticed a discrepancy in `docs/architecture.md` regarding the `fun` feature flag. The documentation listed `fun = ["tokmd-analysis/fun", "tokmd-format/fun"]`, but the actual `crates/tokmd/Cargo.toml` implements `fun = ["tokmd-analysis/fun", "tokmd-core/fun"]`.
+In `docs/NOW.md`, the `LATER (roadmap)` section says: `- **Browser runner**: zipball ingestion remains later; in-browser receipt generation shipped in \`1.9.0\`.`. Since we are at v1.11.0, this is historically accurate but phrased as if it just shipped, and we can just frame it generically or reflect that we are much further along. Better to just say "in-browser analysis has shipped".
 
-I also checked for larger discrepancies like `tokmd serve` vs `tokmd tools`, but the docs correctly labeled `serve` as a Phase 6 future goal, and `tools` as a shipped capability. Overall, the documentation is well-aligned with the v1.10.0 release.
+## Options Considered
 
-## Options considered
+### Option A: Update `docs/architecture.md` and `docs/NOW.md` to reflect `v1.11.0` state and current non-goals
+- **What it is**: Update references to `v1.9.0` non-goals in `docs/architecture.md` to reflect the current ongoing state, and update `docs/NOW.md` to remove stale "shipped in 1.9.0" context, orienting instead to the active v1.12.0 architecture consolidation focus.
+- **Why it fits**: The architecture document describes the current shape of the WASM/Browser Runner. Keeping non-goals scoped to `v1.9.0` when the repo is at `1.11.0` (with 1.11.0 having shipped browser polish) makes the architecture doc read as outdated. `docs/NOW.md` also references the v1.9.0 browser runner instead of the v1.12.0 active work.
+- **Trade-offs**: Corrects drift without being overly broad. Velocity is fast. Structure is improved.
 
-### Option A (recommended)
-- **What it is:** Update `docs/architecture.md` to fix the factual drift in the `fun` feature flag.
-- **Why it fits this repo and this shard:** It resolves a small but real factual drift between the architecture documentation and the shipped workspace features.
-- **Trade-offs:**
-  - *Structure:* Corrects documentation to align with code.
-  - *Velocity:* Quick and low-risk change.
-  - *Governance:* Preserves the accuracy of the architecture doc.
-
-### Option B
-- **What it is:** Do not change the docs and only create a learning PR documenting that the current state of the design/roadmap docs is perfectly aligned with the codebase for the v1.10.0 release.
-- **When to choose it instead:** When absolutely no factual drift can be found, or when fixing the drift would violate the boundaries of the shard or the assignment.
-- **Trade-offs:** Misses the opportunity to fix a small real factual error.
+### Option B: Rewrite the entire `docs/architecture.md`
+- **What it is**: Redo the entire WASM section to focus solely on architecture, removing any milestone/versioning mentions.
+- **Why it fits**: Avoids future version drift.
+- **Trade-offs**: Higher risk of removing important historical context or current-state context.
 
 ## Decision
+**Option A**. It's precise, targets actual drift where docs lag behind the completed `v1.11.0` and active `v1.12.0` roadmap states, and fixes misleading references to older versions in structural/architecture files.
 
-**Option A**, because there was a clear, small factual drift regarding the `fun` feature flag in `docs/architecture.md` versus `crates/tokmd/Cargo.toml`. Fixing it directly improves the quality of the architecture documentation.

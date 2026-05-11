@@ -1,45 +1,46 @@
 ## 💡 Summary
-Fixed a small factual drift in `docs/architecture.md` where the `fun` feature flag was incorrectly documented as mapping to `tokmd-format/fun`. It has been updated to correctly map to `tokmd-core/fun`, matching the shipped reality in `crates/tokmd/Cargo.toml`.
+Updated `docs/NOW.md` and `docs/architecture.md` to reflect the shipped state of the v1.11.0 browser runner polish. Stale references to `v1.9.0` non-goals were removed or updated to correctly represent current constraints without version drift.
 
 ## 🎯 Why
-The `docs/architecture.md` file serves as a reference for the workspace's feature flags. Stale or incorrect feature flag documentation can mislead contributors trying to understand the dependency boundaries.
+With the completion of v1.11.0 ("Browser Runtime Polish") and active focus on v1.12.0 ("Cockpit & Architecture Consolidation"), the `architecture.md` references to "Non-goals for v1.9.0" read as outdated history rather than the current truth of the system's browser boundaries. `NOW.md` also incorrectly framed in-browser capabilities using historical `1.9.0` phrasing.
 
 ## 🔎 Evidence
-- `docs/architecture.md` (prior to fix)
-- `crates/tokmd/Cargo.toml`
-- Checked `crates/tokmd/Cargo.toml` and found: `fun = ["tokmd-analysis/fun", "tokmd-core/fun"]`
-- Checked `docs/architecture.md` and found the stale mapping: `fun = ["tokmd-analysis/fun", "tokmd-format/fun"]`
+- `docs/architecture.md` explicitly listed `### Non-goals for v1.9.0`.
+- `docs/NOW.md` stated `in-browser receipt generation shipped in 1.9.0` while actively in the `LATER` section, which creates confusing version timelines.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update `docs/architecture.md` to match the actual implementation in `crates/tokmd/Cargo.toml`.
-- Fits the `tooling-governance` shard by maintaining workspace documentation alignment.
-- Trade-offs: Structure is improved, Velocity impact is negligible, Governance is maintained.
+- Update references to `v1.9.0` non-goals in `docs/architecture.md` to reflect the current ongoing state, and update `docs/NOW.md` to remove stale "shipped in 1.9.0" context, orienting instead to the active v1.12.0 architecture consolidation focus.
+- Why it fits: The architecture document describes the current shape of the WASM/Browser Runner. Keeping non-goals scoped to `v1.9.0` when the repo is at `1.11.0` makes the architecture doc read as outdated. `docs/NOW.md` also referenced the v1.9.0 browser runner instead of the broader completed state.
+- Trade-offs: Corrects drift without being overly broad. Velocity is fast. Structure is improved.
 
 ### Option B
-- Ignore the drift and create a learning PR documenting that the docs are otherwise well-aligned with the v1.10.0 release.
-- Choose this if no actionable drift could be found.
-- Trade-offs: Misses fixing a real, easily fixable factual error.
+- Redo the entire WASM section to focus solely on architecture, removing any milestone/versioning mentions entirely.
+- When to choose: If the entire browser runner strategy changed dramatically.
+- Trade-offs: Higher risk of removing important historical or structural context.
 
 ## ✅ Decision
-Option A, because it directly resolves a small but real factual drift between the architecture documentation and the shipped workspace features.
+Option A. It's precise, targets actual drift where docs lag behind the completed `v1.11.0` and active `v1.12.0` roadmap states, and fixes misleading references to older versions in structural/architecture files.
 
 ## 🧱 Changes made (SRP)
-- `docs/architecture.md`: Updated `fun` feature flag mapping from `tokmd-format/fun` to `tokmd-core/fun`.
+- `docs/architecture.md`: Renamed `### Non-goals for v1.9.0` to `### Current browser non-goals`.
+- `docs/NOW.md`: Updated roadmap reference from `shipped in 1.9.0` to `has shipped`.
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat crates/tokmd/Cargo.toml | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected Cargo.toml features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "investigation", "cwd": ".", "cmd": "cat docs/architecture.md | grep -A 10 \"\\[features\\]\"", "status": "success", "summary": "Inspected architecture.md features", "artifacts": []}
-{"ts_utc": "2026-05-07T11:13:54Z", "phase": "execution", "cwd": ".", "cmd": "git diff docs/architecture.md", "status": "success", "summary": "Verified drift fix", "artifacts": ["docs/architecture.md"]}
+$ cargo xtask docs --check
+Documentation is up to date.
+
+$ cargo fmt -- --check && cargo clippy -- -D warnings
+Finished `dev` profile [unoptimized + debuginfo] target(s) in 38.34s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation patch
-- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): Docs only. No code or schema impact.
-- Risk class + why: Low. Just a documentation typo fix.
-- Rollback: `git checkout -- docs/architecture.md`
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo test -p xtask`
+- Change shape: Docs update
+- Blast radius: Docs only
+- Risk class: Zero risk.
+- Rollback: git revert
+- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`

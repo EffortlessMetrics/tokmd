@@ -16,6 +16,6 @@
 
 ## LATER (roadmap)
 
-- **Browser runner**: zipball ingestion remains later; in-browser receipt generation shipped in `1.9.0`.
+- **Browser runner**: zipball ingestion remains later; in-browser analysis has shipped.
 - **MCP/server mode**: streaming analysis, plugin system, and server surfaces.
 - **AST depth**: higher-resolution syntax/AST integration on a later horizon.
