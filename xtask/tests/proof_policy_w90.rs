@@ -136,6 +136,28 @@ fn proof_policy_includes_current_product_scopes() {
     assert!(no_panic_proof.contains("cargo xtask check-no-panic-family"));
     assert!(no_panic_proof.contains("cargo test -p xtask no_panic --verbose"));
 
+    let proof_control_plane = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("proof_control_plane"))
+        .expect("proof_control_plane scope should exist");
+    let proof_control_paths = proof_control_plane["paths"]
+        .as_array()
+        .expect("proof_control_plane should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let proof_control_proof = proof_control_plane["proof"]
+        .as_array()
+        .expect("proof_control_plane should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(proof_control_paths.contains(".github/workflows/mutants.yml"));
+    assert!(proof_control_paths.contains(".github/workflows/nix-full.yml"));
+    assert!(proof_control_paths.contains(".github/workflows/nix-macos.yml"));
+    assert!(proof_control_proof.contains("cargo xtask ci-lane-whitelist"));
+
     let dependency_graph = scopes
         .iter()
         .find(|scope| scope["name"].as_str() == Some("workspace_dependency_graph"))
@@ -196,6 +218,39 @@ fn proof_policy_includes_current_product_scopes() {
 
     assert!(tokmd_cli_paths.contains("crates/tokmd/tests/cli_*.rs"));
     assert!(tokmd_cli_paths.contains("crates/tokmd/tests/error_handling_w70.rs"));
+
+    let ci_economics_docs = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("ci_economics_docs"))
+        .expect("ci_economics_docs scope should exist");
+    let ci_economics_paths = ci_economics_docs["paths"]
+        .as_array()
+        .expect("ci_economics_docs should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(ci_economics_paths.contains(".github/workflows/sync-labels.yml"));
+
+    let release_metadata = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("release_metadata"))
+        .expect("release_metadata scope should exist");
+    let release_paths = release_metadata["paths"]
+        .as_array()
+        .expect("release_metadata should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let release_proof = release_metadata["proof"]
+        .as_array()
+        .expect("release_metadata should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(release_paths.contains(".github/workflows/release.yml"));
+    assert!(release_proof.contains("cargo xtask publish-surface --json --verify-publish"));
 }
 
 #[test]

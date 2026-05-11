@@ -100,6 +100,9 @@ kind = "rust"
 paths = [
   ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
+  ".github/workflows/mutants.yml",
+  ".github/workflows/nix-full.yml",
+  ".github/workflows/nix-macos.yml",
   ".github/workflows/no-panic-policy.yml",
   ".github/workflows/pr-plan.yml",
   ".github/workflows/proof-observation-collection.yml",
@@ -148,6 +151,7 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask proof-policy --check",
+  "cargo xtask ci-lane-whitelist",
   "cargo test -p xtask proof_policy --verbose",
   "cargo test -p xtask affected --verbose",
   "cargo test -p xtask ci_actuals --verbose",
@@ -1009,6 +1013,7 @@ name = "ci_economics_docs"
 kind = "non_rust"
 paths = [
   ".github/pull_request_template.md",
+  ".github/workflows/sync-labels.yml",
   "docs/POLICY_ALLOWLISTS.md",
   "docs/RIPR_EVIDENCE_POLICY.md",
   "docs/ci/**",
@@ -1085,13 +1090,15 @@ coverage = false
 name = "release_metadata"
 kind = "non_rust"
 paths = [
+  ".github/workflows/release.yml",
   "CHANGELOG.md",
 ]
 proof = [
   "cargo xtask version-consistency",
+  "cargo xtask publish-surface --json --verify-publish",
   "cargo xtask docs --check",
 ]
-reason = "CHANGELOG is a release artifact updated with every version bump; proof routes to version-consistency and docs checks."
+reason = "CHANGELOG and release workflow changes are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
 mutation = false
 coverage = false
 
