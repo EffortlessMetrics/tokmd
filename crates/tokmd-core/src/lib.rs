@@ -69,16 +69,16 @@ mod workflows;
 pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
 pub use workflows::{
-    export_workflow, export_workflow_from_inputs, lang_workflow, lang_workflow_from_inputs,
-    module_workflow, module_workflow_from_inputs,
+    diff_workflow, export_workflow, export_workflow_from_inputs, lang_workflow,
+    lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
 };
 
-use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
+use settings::{ExportSettings, LangSettings, ModuleSettings, ScanSettings};
 use tokmd_format::scan_args;
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ChildIncludeMode, DiffReceipt, ExportArgsMeta, ExportData, ExportReceipt, FileRow,
-    LangArgsMeta, LangReceipt, LangReport, ModuleArgsMeta, ModuleReceipt, ModuleReport, RedactMode,
+    ChildIncludeMode, ExportArgsMeta, ExportData, ExportReceipt, FileRow, LangArgsMeta,
+    LangReceipt, LangReport, ModuleArgsMeta, ModuleReceipt, ModuleReport, RedactMode,
     SCHEMA_VERSION, ScanStatus, ToolInfo,
 };
 
@@ -99,49 +99,6 @@ fn now_ms() -> u128 {
 // =============================================================================
 // Settings-based workflows (new API for bindings)
 // =============================================================================
-
-/// Runs the diff workflow comparing two receipts or paths.
-///
-/// # Arguments
-///
-/// * `settings` - Diff settings (from, to references)
-///
-/// # Returns
-///
-/// A `DiffReceipt` showing changes between the two states.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{diff_workflow, settings::DiffSettings};
-///
-/// let settings = DiffSettings {
-///     from: ".".to_string(), // compare current dir to itself as a quick test
-///     to: ".".to_string(),
-///     ..Default::default()
-/// };
-///
-/// let receipt = diff_workflow(&settings).expect("Diff failed");
-/// assert!(receipt.totals.delta_code == 0); // delta is zero
-/// ```
-pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
-    // Load or scan the "from" state
-    let from_report = load_lang_report(&settings.from)?;
-
-    // Load or scan the "to" state
-    let to_report = load_lang_report(&settings.to)?;
-
-    // Compute diff
-    let rows = tokmd_format::compute_diff_rows(&from_report, &to_report);
-    let totals = tokmd_format::compute_diff_totals(&rows);
-
-    Ok(tokmd_format::create_diff_receipt(
-        &settings.from,
-        &settings.to,
-        rows,
-        totals,
-    ))
-}
 
 /// Analyze workflow (requires `analysis` feature).
 ///
