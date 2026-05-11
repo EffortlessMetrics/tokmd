@@ -164,7 +164,11 @@ coverage = false
 [[scope]]
 name = "tokmd_core_ffi"
 kind = "rust"
-paths = ["crates/tokmd-core/src/ffi.rs", "crates/tokmd-core/tests/**"]
+paths = [
+  "crates/tokmd-core/src/ffi.rs",
+  "crates/tokmd-core/src/ffi/**",
+  "crates/tokmd-core/tests/**",
+]
 packages = ["tokmd-core"]
 proof = [
   "cargo test -p tokmd-core ffi",
