@@ -78,7 +78,11 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         per_module.insert(module.to_string(), rows);
 
         for (term, tf) in tf_map {
-            *overall_tf.entry(term.clone()).or_insert(0) += *tf;
+            if let Some(val) = overall_tf.get_mut(term) {
+                *val += *tf;
+            } else {
+                overall_tf.insert(term.clone(), *tf);
+            }
         }
     }
 
@@ -123,7 +127,7 @@ fn weight_for_row(row: &FileRow) -> u32 {
 
 fn tokenize_path(path: &str, stopwords: &BTreeSet<String>) -> Vec<String> {
     let mut out = Vec::new();
-    for part in path.replace('\\', "/").split('/') {
+    for part in path.split(|c| c == '/' || c == '\\') {
         if part.is_empty() {
             continue;
         }

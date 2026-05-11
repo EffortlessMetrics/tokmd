@@ -1,0 +1,16 @@
+{
+  "outcome_type": "patch",
+  "title": "bolt: remove unnecessary allocations in analysis topics ⚡",
+  "summary": "Reduced hot-path string allocations in the topic extraction pipeline by removing unconditional clones when populating the overall terms map and by splitting paths directly rather than calling replace first.",
+  "target_paths": [
+    "crates/tokmd-analysis/src/topics/mod.rs"
+  ],
+  "proof_summary": "Tests pass, structure avoids duplicate allocations per file path and term.",
+  "gates_run": [
+    "cargo test -p tokmd-analysis"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "revert git commit",
+  "follow_ups": []
+}

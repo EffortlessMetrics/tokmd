@@ -1,0 +1,5 @@
+{"timestamp": "2024-05-11T23:00:00Z", "command": "rustc test_topics_perf.rs -O && ./test_topics_perf", "output": "With clone: 45.075647ms\\nWithout clone if existing: 81.349601ms"}
+{"timestamp": "2024-05-11T23:01:00Z", "command": "rustc test_clone.rs -O && ./test_clone", "output": "With clone: 72.943079ms\\nWithout clone: 107.483633ms"}
+{"timestamp": "2024-05-11T23:02:00Z", "command": "rustc test_hashmap_perf.rs -O && ./test_hashmap_perf", "output": "BTreeMap (unique): 184.262654ms\\nHashMap (unique): 136.424503ms"}
+{"timestamp": "2024-05-11T23:03:00Z", "command": "rustc test_split.rs && ./test_split", "output": "parts1: [\"crates\", \"foo\", \"bar\", \"baz.rs\"]\\nparts2: [\"crates\", \"foo\", \"bar\", \"baz.rs\"]"}
+{"timestamp": "2024-05-11T23:04:00Z", "command": "cargo test -p tokmd-analysis", "output": "test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s"}
