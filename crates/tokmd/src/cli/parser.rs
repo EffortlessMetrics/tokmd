@@ -25,6 +25,7 @@ mod cockpit;
 mod context;
 mod diff;
 mod gate;
+mod sensor;
 
 pub use analysis::{
     AnalysisPreset, CliAnalyzeArgs, EffortLayer, EffortModelKind, ImportGranularity, NearDupScope,
@@ -35,6 +36,7 @@ pub use context::{
 };
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
+pub use sensor::{SensorArgs, SensorFormat};
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -648,39 +650,6 @@ pub struct ToolsArgs {
     pub pretty: bool,
 }
 
-#[derive(Args, Debug, Clone, Serialize, Deserialize)]
-pub struct SensorArgs {
-    /// Base reference to compare from (default: main).
-    #[arg(long, default_value = "main")]
-    pub base: String,
-
-    /// Head reference to compare to (default: HEAD).
-    #[arg(long, default_value = "HEAD")]
-    pub head: String,
-
-    /// Output file for the sensor report.
-    #[arg(
-        long,
-        value_name = "PATH",
-        default_value = "artifacts/tokmd/report.json"
-    )]
-    pub output: std::path::PathBuf,
-
-    /// Output format.
-    #[arg(long, value_enum, default_value_t = SensorFormat::Json)]
-    pub format: SensorFormat,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum SensorFormat {
-    /// JSON sensor report.
-    #[default]
-    Json,
-    /// Markdown summary.
-    Md,
-}
-
 // =============================================================================
 // TOML Configuration File Structures (re-exported from tokmd-settings)
 // =============================================================================
@@ -813,11 +782,6 @@ mod tests {
     #[test]
     fn handoff_preset_default_is_risk() {
         assert_eq!(HandoffPreset::default(), HandoffPreset::Risk);
-    }
-
-    #[test]
-    fn sensor_format_default_is_json() {
-        assert_eq!(SensorFormat::default(), SensorFormat::Json);
     }
 
     #[test]
