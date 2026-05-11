@@ -22,19 +22,25 @@ worker and repo-load progress, retry/rate-limit guidance, authenticated fetch
 UX, loaded-bundle capability filtering, and local browser file input are all
 implemented.
 
-The active product lane is cockpit review-packet hardening. Improve cockpit as
-the PR-review evidence surface before adding any separate `tokmd review`
-command. After the review packet/action surface is stable, move into the
-architecture-consolidation program.
+The cockpit review-packet lane is stable for explicit proof imports: review
+packets can preserve imported proof artifacts, surface proof evidence in
+`evidence.json`, `review-map.md`, and `comment.md`, and verify packet-local
+hashes without promoting proof gates. Keep `tokmd cockpit` as the PR-review
+evidence surface before adding any separate `tokmd review` command.
+
+The active implementation lane is architecture consolidation. Continue
+owner-module batches only where they preserve product behavior and proof-scope
+granularity; avoid carving already-stable modules just because files exist.
 
 ## Next Work Packets
 
 1. Keep collecting routine proof observations under the current advisory shape;
    do not promote gates or Codecov defaults.
-2. Finish small cockpit review-packet and Action-hosting gaps as they appear.
+2. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+   shows a product, verifier, or hosted-comment issue.
 3. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-4. Start architecture consolidation in batches, preserving `ci/proof.toml`
+4. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
 5. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
@@ -180,6 +186,10 @@ architecture-consolidation program.
   execution, availability, freshness, command, and proof-reference lines.
   Packet-local `comment.md` now includes compact proof evidence totals for
   required/advisory proof and freshness without listing raw command output.
+- Cockpit `review-map.md` now also renders a packet-level imported-proof
+  overview, so coverage receipts or other proof artifacts that apply at packet
+  scope remain visible to reviewers even when they do not directly match a
+  changed review-map item.
 - Architecture consolidation now has a current-state batch plan in
   `docs/architecture-consolidation-plan.md`, grounded in the live
   publish-surface verifier, large-file inventory, and `ci/proof.toml` scopes.
