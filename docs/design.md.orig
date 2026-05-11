@@ -96,7 +96,6 @@ Separate versions per receipt family:
 - Handoff manifests: `HANDOFF_SCHEMA_VERSION = 5`
 - Context receipts: `CONTEXT_SCHEMA_VERSION = 4`
 - Context bundles: `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`
-- Tool schemas: `TOOL_SCHEMA_VERSION = 1`
 - Sensor reports: semantic schema id `sensor.report.v1`
 
 Evolution rules:
