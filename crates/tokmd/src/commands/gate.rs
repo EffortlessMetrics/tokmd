@@ -6,15 +6,14 @@ use serde::Serialize;
 use std::path::Path;
 use tokmd_analysis as analysis;
 use tokmd_analysis_types as analysis_types;
-use tokmd_gate::{
-    GateResult, PolicyConfig, PolicyRule, RatchetConfig, RatchetGateResult, RatchetRule, RuleLevel,
-    RuleOperator, evaluate_policy, evaluate_ratchet_policy,
-};
+use tokmd_gate::{GateResult, RatchetGateResult, evaluate_policy, evaluate_ratchet_policy};
 
 use crate::analysis_utils;
 use crate::config::ResolvedConfig;
 use crate::export_bundle;
 
+#[path = "gate/policy.rs"]
+mod policy;
 #[path = "gate/render.rs"]
 mod render;
 
@@ -46,14 +45,14 @@ pub(crate) fn handle(
     let receipt = load_or_compute_receipt(&args, global)?;
 
     // Load policy from file, CLI args, or config (may be None if only ratchet is used)
-    let policy = load_policy(&args, resolved).ok();
+    let policy = policy::load_policy(&args, resolved).ok();
 
     // Load baseline if provided
-    let baseline = load_baseline(&args, resolved)?;
+    let baseline = policy::load_baseline(&args, resolved)?;
 
     // Load ratchet config if baseline provided
     let ratchet_config = if baseline.is_some() {
-        load_ratchet_config(&args, resolved)?
+        policy::load_ratchet_config(&args, resolved)?
     } else {
         None
     };
@@ -135,172 +134,6 @@ fn combine_results(
         ratchet,
         total_errors,
         total_warnings,
-    }
-}
-
-/// Load policy from file or config.
-fn load_policy(args: &cli::CliGateArgs, resolved: &ResolvedConfig) -> Result<PolicyConfig> {
-    // 1. CLI --policy flag takes precedence
-    if let Some(policy_path) = &args.policy {
-        return PolicyConfig::from_file(policy_path)
-            .with_context(|| format!("Failed to load policy from {}", policy_path.display()));
-    }
-
-    // 2. Check tokmd.toml [gate] section for inline rules or policy path
-    if let Some(toml) = resolved.toml {
-        let gate_config = &toml.gate;
-
-        // Check for policy path in config
-        if let Some(policy_path) = &gate_config.policy {
-            let path = std::path::PathBuf::from(policy_path);
-            return PolicyConfig::from_file(&path)
-                .with_context(|| format!("Failed to load policy from {}", path.display()));
-        }
-
-        // Check for inline rules
-        if let Some(rules) = &gate_config.rules
-            && !rules.is_empty()
-        {
-            let policy_rules: Vec<PolicyRule> = rules
-                .iter()
-                .map(convert_gate_rule)
-                .collect::<Result<Vec<_>>>()?;
-
-            return Ok(PolicyConfig {
-                rules: policy_rules,
-                fail_fast: gate_config.fail_fast.unwrap_or(false),
-                allow_missing: false,
-            });
-        }
-    }
-
-    // No policy found
-    bail!("No policy specified")
-}
-
-/// Load baseline receipt for ratchet comparison.
-fn load_baseline(
-    args: &cli::CliGateArgs,
-    resolved: &ResolvedConfig,
-) -> Result<Option<serde_json::Value>> {
-    // 1. CLI --baseline flag takes precedence
-    if let Some(baseline_path) = &args.baseline {
-        let content = std::fs::read_to_string(baseline_path)
-            .with_context(|| format!("Failed to read baseline from {}", baseline_path.display()))?;
-        let value: serde_json::Value = serde_json::from_str(&content).with_context(|| {
-            format!(
-                "Failed to parse baseline JSON from {}",
-                baseline_path.display()
-            )
-        })?;
-        return Ok(Some(value));
-    }
-
-    // 2. Check tokmd.toml [gate.baseline]
-    if let Some(toml) = resolved.toml
-        && let Some(baseline_path) = &toml.gate.baseline
-    {
-        let path = std::path::PathBuf::from(baseline_path);
-        let content = std::fs::read_to_string(&path)
-            .with_context(|| format!("Failed to read baseline from {}", path.display()))?;
-        let value: serde_json::Value = serde_json::from_str(&content)
-            .with_context(|| format!("Failed to parse baseline JSON from {}", path.display()))?;
-        return Ok(Some(value));
-    }
-
-    // No baseline specified
-    Ok(None)
-}
-
-/// Load ratchet config from file or TOML config.
-fn load_ratchet_config(
-    args: &cli::CliGateArgs,
-    resolved: &ResolvedConfig,
-) -> Result<Option<RatchetConfig>> {
-    // 1. CLI --ratchet-config flag takes precedence
-    if let Some(ratchet_path) = &args.ratchet_config {
-        let config = RatchetConfig::from_file(ratchet_path).with_context(|| {
-            format!(
-                "Failed to load ratchet config from {}",
-                ratchet_path.display()
-            )
-        })?;
-        return Ok(Some(config));
-    }
-
-    // 2. Check tokmd.toml [[gate.ratchet]] for inline rules
-    if let Some(toml) = resolved.toml {
-        let gate_config = &toml.gate;
-
-        if let Some(rules) = &gate_config.ratchet
-            && !rules.is_empty()
-        {
-            let ratchet_rules: Vec<RatchetRule> = rules.iter().map(convert_ratchet_rule).collect();
-
-            return Ok(Some(RatchetConfig {
-                rules: ratchet_rules,
-                fail_fast: gate_config.fail_fast.unwrap_or(false),
-                allow_missing_baseline: gate_config.allow_missing_baseline.unwrap_or(false),
-                allow_missing_current: gate_config.allow_missing_current.unwrap_or(false),
-            }));
-        }
-    }
-
-    // No ratchet config found
-    Ok(None)
-}
-
-/// Convert a config RatchetRuleConfig to a gate RatchetRule.
-fn convert_ratchet_rule(rule: &cli::RatchetRuleConfig) -> RatchetRule {
-    RatchetRule {
-        pointer: rule.pointer.clone(),
-        max_increase_pct: rule.max_increase_pct,
-        max_value: rule.max_value,
-        level: parse_level(rule.level.as_deref()),
-        description: rule.description.clone(),
-    }
-}
-
-/// Convert a config GateRule to a gate PolicyRule.
-fn convert_gate_rule(rule: &cli::GateRule) -> Result<PolicyRule> {
-    let op = parse_operator(&rule.op)?;
-
-    Ok(PolicyRule {
-        name: rule.name.clone(),
-        pointer: rule.pointer.clone(),
-        op,
-        value: rule.value.clone(),
-        values: rule.values.clone(),
-        negate: rule.negate,
-        level: parse_level(rule.level.as_deref()),
-        message: rule.message.clone(),
-    })
-}
-
-/// Parse operator string to RuleOperator enum.
-fn parse_operator(op: &str) -> Result<RuleOperator> {
-    match op.to_lowercase().as_str() {
-        "gt" | ">" => Ok(RuleOperator::Gt),
-        "gte" | ">=" => Ok(RuleOperator::Gte),
-        "lt" | "<" => Ok(RuleOperator::Lt),
-        "lte" | "<=" => Ok(RuleOperator::Lte),
-        "eq" | "==" | "=" => Ok(RuleOperator::Eq),
-        "ne" | "!=" => Ok(RuleOperator::Ne),
-        "in" => Ok(RuleOperator::In),
-        "contains" => Ok(RuleOperator::Contains),
-        "exists" => Ok(RuleOperator::Exists),
-        _ => bail!(
-            "Unknown operator: {}. Valid operators: gt, gte, lt, lte, eq, ne, in, contains, exists",
-            op
-        ),
-    }
-}
-
-/// Parse level string to RuleLevel enum.
-fn parse_level(level: Option<&str>) -> RuleLevel {
-    match level.map(|s| s.to_lowercase()).as_deref() {
-        Some("warn") | Some("warning") => RuleLevel::Warn,
-        _ => RuleLevel::Error,
     }
 }
 
