@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 mod analysis;
 mod badge;
 mod cockpit;
+mod completions;
 mod context;
 mod diff;
 mod gate;
@@ -34,6 +35,7 @@ pub use analysis::{
 };
 pub use badge::{BadgeArgs, BadgeMetric};
 pub use cockpit::{BaselineArgs, CockpitArgs, CockpitFormat, DiffRangeMode};
+pub use completions::{CompletionsArgs, Shell};
 pub use context::{
     CliContextArgs, ContextOutput, ContextStrategy, HandoffArgs, HandoffPreset, ValueMetric,
 };
@@ -426,23 +428,6 @@ pub struct RunArgs {
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
     #[arg(long, value_enum)]
     pub redact: Option<RedactMode>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct CompletionsArgs {
-    /// Shell to generate completions for.
-    #[arg(value_enum)]
-    pub shell: Shell,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Shell {
-    Bash,
-    Elvish,
-    Fish,
-    Powershell,
-    Zsh,
 }
 
 #[derive(Args, Debug, Clone, Default)]
