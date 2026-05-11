@@ -11,6 +11,7 @@ mod comment;
 mod evidence;
 mod manifest;
 mod markdown;
+mod proof_summary;
 mod review_map;
 mod review_map_proof;
 mod review_packet;

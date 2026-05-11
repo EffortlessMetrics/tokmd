@@ -9,6 +9,7 @@ use super::evidence::{
     evidence_availability_optional, evidence_counts, review_packet_evidence_capabilities,
     review_packet_evidence_gate_specs, review_packet_evidence_summary,
 };
+use super::proof_summary::proof_evidence_summary;
 use super::review_map_proof::{
     ReviewMapProofRef, review_map_item_proof, review_map_proof_refs, write_proof_block,
 };
@@ -189,6 +190,7 @@ pub(super) fn render_review_map_md(
         evidence.missing,
     );
     let _ = writeln!(s);
+    write_proof_overview(&mut s, receipt, proof_inputs);
 
     if receipt.review_plan.is_empty() {
         let _ = writeln!(s, "No prioritized files were identified.");
@@ -245,6 +247,47 @@ pub(super) fn render_review_map_md(
     }
 
     s
+}
+
+fn write_proof_overview(
+    s: &mut String,
+    receipt: &CockpitReceipt,
+    proof_inputs: &[ProofEvidenceInput],
+) {
+    use std::fmt::Write;
+
+    let counts = proof_evidence_summary(receipt, proof_inputs);
+    if counts.total == 0 {
+        return;
+    }
+
+    let _ = writeln!(s, "Proof evidence overview:");
+    let _ = writeln!(
+        s,
+        "- Required proof: {} passed, {} failed, {} missing",
+        counts.required_passed, counts.required_failed, counts.required_missing,
+    );
+    let _ = writeln!(
+        s,
+        "- Advisory proof: {} available, {} missing",
+        counts.advisory_available, counts.advisory_missing,
+    );
+    let _ = writeln!(
+        s,
+        "- Freshness: {} exact, {} partial, {} stale, {} unknown",
+        counts.exact, counts.partial, counts.stale, counts.unknown,
+    );
+    if counts.not_run > 0 {
+        let _ = writeln!(s, "- Not run: {}", counts.not_run);
+    }
+    if counts.degraded > 0 || counts.skipped > 0 || counts.unavailable > 0 {
+        let _ = writeln!(
+            s,
+            "- Other proof state: {} degraded, {} skipped, {} unavailable",
+            counts.degraded, counts.skipped, counts.unavailable,
+        );
+    }
+    let _ = writeln!(s);
 }
 
 fn write_evidence_list(s: &mut String, label: &str, gates: &[&str]) {

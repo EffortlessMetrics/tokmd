@@ -898,6 +898,7 @@ fn scenario_write_review_packet_creates_contract_files() {
     );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(!review_map_md.contains("Proof evidence overview"));
     assert!(review_map_md.contains("# Review Map"));
     assert!(review_map_md.contains("Evidence overview: 1 available"));
     assert!(review_map_md.contains("## Review First"));
@@ -1067,6 +1068,10 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("Proof evidence overview:"));
+    assert!(review_map_md.contains("- Required proof: 1 passed, 0 failed, 0 missing"));
+    assert!(review_map_md.contains("- Advisory proof: 0 available, 0 missing"));
+    assert!(review_map_md.contains("- Freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
     assert_eq!(
         review_map_md.matches("   Proof:").count(),
         1,
@@ -1084,6 +1089,69 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
     assert!(comment_md.contains("Required proof: 1 passed, 0 failed, 0 missing"));
     assert!(comment_md.contains("Advisory proof: 0 available, 0 missing"));
     assert!(comment_md.contains("Proof freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
+}
+
+#[test]
+fn scenario_review_map_md_includes_packet_level_proof_overview() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![ReviewItem {
+        path: "crates/tokmd-cockpit/src/render/review_map.rs".to_string(),
+        reason: "Review map rendering changed".to_string(),
+        priority: 1,
+        complexity: Some(2),
+        lines_changed: Some(8),
+    }];
+    let out = dir.path().join("review");
+    let proof = tokmd_cockpit::parse_proof_evidence_input(
+        r#"{
+  "schema": "tokmd.coverage_receipt.v1",
+  "schema_version": 1,
+  "repo": "EffortlessMetrics/tokmd",
+  "lane": "scoped",
+  "flag": "tokmd_cockpit",
+  "workflow": "Coverage",
+  "sha": "feature",
+  "github": {
+    "run_id": "12345",
+    "run_attempt": "1",
+    "event_name": "pull_request",
+    "ref_name": "feature"
+  },
+  "artifacts": [
+    {
+      "path": "target/proof/coverage/tokmd-cockpit.lcov",
+      "kind": "lcov",
+      "bytes": 42,
+      "non_empty": true
+    }
+  ],
+  "status": {
+    "ok": true,
+    "missing": [],
+    "empty": []
+  }
+}"#,
+        "coverage-receipt.json",
+    )
+    .unwrap();
+
+    tokmd_cockpit::render::write_review_packet_with_proof_evidence(&out, &receipt, &[proof])
+        .unwrap();
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("Proof evidence overview:"));
+    assert!(review_map_md.contains("- Required proof: 0 passed, 0 failed, 0 missing"));
+    assert!(review_map_md.contains("- Advisory proof: 1 available, 0 missing"));
+    assert!(review_map_md.contains("- Freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
+    assert!(
+        !review_map_md.contains("   Proof:"),
+        "coverage receipts without direct changed-file matches should stay packet-level"
+    );
+    assert!(
+        review_map_md.contains("Evidence references:"),
+        "review map should still point reviewers to packet evidence refs"
+    );
 }
 
 // ===========================================================================

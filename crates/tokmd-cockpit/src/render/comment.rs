@@ -1,12 +1,10 @@
 //! PR comment rendering for cockpit receipts and review packets.
 
-use crate::proof_evidence::{
-    ProofEvidenceAvailability, ProofEvidenceInput, ProofExecutionStatus,
-    normalize_proof_evidence_inputs,
-};
-use crate::{CockpitReceipt, CommitMatch, GateStatus, RiskLevel};
+use crate::proof_evidence::ProofEvidenceInput;
+use crate::{CockpitReceipt, GateStatus, RiskLevel};
 
 use super::evidence::evidence_counts;
+use super::proof_summary::proof_evidence_summary;
 
 /// Render comment.md for PR comments.
 pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
@@ -176,24 +174,6 @@ pub(super) fn render_review_packet_comment_md(
     s
 }
 
-#[derive(Default)]
-struct ProofCommentCounts {
-    total: usize,
-    required_passed: usize,
-    required_failed: usize,
-    required_missing: usize,
-    advisory_available: usize,
-    advisory_missing: usize,
-    exact: usize,
-    partial: usize,
-    stale: usize,
-    unknown: usize,
-    not_run: usize,
-    degraded: usize,
-    skipped: usize,
-    unavailable: usize,
-}
-
 fn write_proof_evidence_summary(
     s: &mut String,
     receipt: &CockpitReceipt,
@@ -201,7 +181,7 @@ fn write_proof_evidence_summary(
 ) {
     use std::fmt::Write;
 
-    let counts = proof_comment_counts(receipt, proof_inputs);
+    let counts = proof_evidence_summary(receipt, proof_inputs);
     if counts.total == 0 {
         return;
     }
@@ -233,68 +213,4 @@ fn write_proof_evidence_summary(
         );
     }
     let _ = writeln!(s);
-}
-
-fn proof_comment_counts(
-    receipt: &CockpitReceipt,
-    proof_inputs: &[ProofEvidenceInput],
-) -> ProofCommentCounts {
-    let mut counts = ProofCommentCounts::default();
-
-    for item in normalize_proof_evidence_inputs(
-        proof_inputs,
-        Some(&receipt.base_ref),
-        Some(&receipt.head_ref),
-    ) {
-        counts.total += 1;
-
-        match item.commit_match {
-            CommitMatch::Exact => counts.exact += 1,
-            CommitMatch::Partial => counts.partial += 1,
-            CommitMatch::Stale => counts.stale += 1,
-            CommitMatch::Unknown => counts.unknown += 1,
-        }
-
-        match item.availability {
-            ProofEvidenceAvailability::Degraded => counts.degraded += 1,
-            ProofEvidenceAvailability::Skipped => counts.skipped += 1,
-            ProofEvidenceAvailability::Unavailable => counts.unavailable += 1,
-            _ => {}
-        }
-
-        if matches!(
-            item.execution_status,
-            ProofExecutionStatus::Planned | ProofExecutionStatus::NotExecuted
-        ) {
-            counts.not_run += 1;
-        }
-
-        if item.required {
-            if item.execution_status == ProofExecutionStatus::ExecutedPassed
-                && item.availability == ProofEvidenceAvailability::Available
-            {
-                counts.required_passed += 1;
-            } else if item.execution_status == ProofExecutionStatus::ExecutedFailed {
-                counts.required_failed += 1;
-            } else if matches!(
-                item.availability,
-                ProofEvidenceAvailability::Missing | ProofEvidenceAvailability::Unavailable
-            ) {
-                counts.required_missing += 1;
-            }
-        }
-
-        if item.advisory {
-            if item.availability == ProofEvidenceAvailability::Available {
-                counts.advisory_available += 1;
-            } else if matches!(
-                item.availability,
-                ProofEvidenceAvailability::Missing | ProofEvidenceAvailability::Unavailable
-            ) {
-                counts.advisory_missing += 1;
-            }
-        }
-    }
-
-    counts
 }
