@@ -15,14 +15,18 @@ use crate::cli;
 use anyhow::Context;
 use anyhow::{Result, bail};
 #[cfg(feature = "git")]
-use tokmd_envelope::{Artifact, GateItem, GateResults, SensorReport, ToolMeta, Verdict};
+use tokmd_envelope::{Artifact, GateResults, SensorReport, ToolMeta};
 
 #[cfg(feature = "git")]
 mod findings;
 #[cfg(feature = "git")]
+mod gates;
+#[cfg(feature = "git")]
 use findings::{
     emit_complexity_findings, emit_contract_findings, emit_gate_findings, emit_risk_findings,
 };
+#[cfg(feature = "git")]
+use gates::{map_gates, map_verdict};
 
 pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
@@ -167,67 +171,6 @@ fn build_summary(receipt: &super::cockpit::CockpitReceipt, base: &str, head: &st
     )
 }
 
-/// Map cockpit GateStatus → envelope Verdict.
-#[cfg(feature = "git")]
-fn map_verdict(status: super::cockpit::GateStatus) -> Verdict {
-    match status {
-        super::cockpit::GateStatus::Pass => Verdict::Pass,
-        super::cockpit::GateStatus::Warn => Verdict::Warn,
-        super::cockpit::GateStatus::Fail => Verdict::Fail,
-        super::cockpit::GateStatus::Skipped => Verdict::Skip,
-        super::cockpit::GateStatus::Pending => Verdict::Pending,
-    }
-}
-
-/// Map cockpit Evidence → envelope GateResults.
-#[cfg(feature = "git")]
-fn map_gates(evidence: &super::cockpit::Evidence) -> GateResults {
-    let mut items = Vec::new();
-
-    // Mutation gate (always present)
-    items.push(
-        GateItem::new("mutation", map_verdict(evidence.mutation.meta.status))
-            .with_source("computed"),
-    );
-
-    // Optional gates
-    if let Some(ref dc) = evidence.diff_coverage {
-        items.push(
-            GateItem::new("diff_coverage", map_verdict(dc.meta.status))
-                .with_threshold(0.8, dc.coverage_pct)
-                .with_source("computed"),
-        );
-    }
-
-    if let Some(ref c) = evidence.contracts {
-        let mut gate =
-            GateItem::new("contracts", map_verdict(c.meta.status)).with_source("computed");
-        if c.failures > 0 {
-            gate = gate.with_reason(format!("{} sub-gate(s) failed", c.failures));
-        }
-        items.push(gate);
-    }
-
-    if let Some(ref sc) = evidence.supply_chain {
-        items.push(
-            GateItem::new("supply_chain", map_verdict(sc.meta.status)).with_source("computed"),
-        );
-    }
-
-    if let Some(ref det) = evidence.determinism {
-        items.push(
-            GateItem::new("determinism", map_verdict(det.meta.status)).with_source("computed"),
-        );
-    }
-
-    if let Some(ref cx) = evidence.complexity {
-        items
-            .push(GateItem::new("complexity", map_verdict(cx.meta.status)).with_source("computed"));
-    }
-
-    GateResults::new(map_verdict(evidence.overall_status), items)
-}
-
 #[cfg(feature = "git")]
 fn render_sensor_md(report: &SensorReport) -> String {
     use std::fmt::Write;
@@ -277,14 +220,11 @@ fn now_iso8601() -> String {
 #[cfg(feature = "git")]
 mod tests {
     use super::*;
-    use tokmd_envelope::{Finding, FindingSeverity, findings as envelope_findings};
-
-    #[cfg(feature = "git")]
-    use super::super::cockpit::{
-        CommitMatch, ComplexityGate, ContractDiffGate, DeterminismGate, DiffCoverageGate, Evidence,
-        EvidenceSource, GateMeta, GateStatus, MutationGate, MutationSurvivor, Risk, RiskLevel,
-        ScopeCoverage, SupplyChainGate, UncoveredHunk,
+    use tokmd_envelope::{
+        Finding, FindingSeverity, GateItem, GateResults, Verdict, findings as envelope_findings,
     };
+
+    use super::super::cockpit::{Risk, RiskLevel};
 
     #[test]
     fn render_sensor_md_includes_findings_and_gates() {
@@ -319,69 +259,6 @@ mod tests {
         assert!(md.contains("risk.hotspot"));
         assert!(md.contains("### Gates (warn)"));
         assert!(md.contains("mutation"));
-    }
-
-    #[cfg(feature = "git")]
-    #[test]
-    fn map_verdict_covers_all_gate_statuses() {
-        use super::super::cockpit::GateStatus;
-
-        assert_eq!(map_verdict(GateStatus::Pass), Verdict::Pass);
-        assert_eq!(map_verdict(GateStatus::Warn), Verdict::Warn);
-        assert_eq!(map_verdict(GateStatus::Fail), Verdict::Fail);
-        assert_eq!(map_verdict(GateStatus::Skipped), Verdict::Skip);
-        assert_eq!(map_verdict(GateStatus::Pending), Verdict::Pending);
-    }
-
-    #[cfg(feature = "git")]
-    fn sample_scope() -> ScopeCoverage {
-        ScopeCoverage {
-            relevant: vec![],
-            tested: vec![],
-            ratio: 1.0,
-            lines_relevant: None,
-            lines_tested: None,
-        }
-    }
-
-    #[cfg(feature = "git")]
-    fn sample_meta(status: GateStatus) -> GateMeta {
-        GateMeta {
-            status,
-            source: EvidenceSource::RanLocal,
-            commit_match: CommitMatch::Exact,
-            scope: sample_scope(),
-            evidence_commit: None,
-            evidence_generated_at_ms: None,
-        }
-    }
-
-    #[cfg(feature = "git")]
-    fn sample_mutation_gate(status: GateStatus) -> MutationGate {
-        MutationGate {
-            meta: sample_meta(status),
-            survivors: vec![MutationSurvivor {
-                file: "src/lib.rs".to_string(),
-                line: 10,
-                mutation: "replace".to_string(),
-            }],
-            killed: 0,
-            timeout: 0,
-            unviable: 0,
-        }
-    }
-
-    #[cfg(feature = "git")]
-    fn base_evidence() -> Evidence {
-        Evidence {
-            overall_status: GateStatus::Warn,
-            mutation: sample_mutation_gate(GateStatus::Warn),
-            diff_coverage: None,
-            contracts: None,
-            supply_chain: None,
-            determinism: None,
-            complexity: None,
-        }
     }
 
     #[cfg(feature = "git")]
@@ -429,7 +306,7 @@ mod tests {
                 schema_changed: false,
                 breaking_indicators: 0,
             },
-            evidence: base_evidence(),
+            evidence: gates::test_support::base_evidence(),
             review_plan: vec![],
             trend: None,
         };
@@ -440,82 +317,5 @@ mod tests {
         assert!(summary.contains("health 75/100"));
         assert!(summary.contains("risk high"));
         assert!(summary.contains("main..HEAD"));
-    }
-
-    #[cfg(feature = "git")]
-    #[test]
-    fn map_gates_includes_optional_items_and_reasons() {
-        let mut evidence = base_evidence();
-        evidence.diff_coverage = Some(DiffCoverageGate {
-            meta: sample_meta(GateStatus::Fail),
-            lines_added: 10,
-            lines_covered: 5,
-            coverage_pct: 0.5,
-            uncovered_hunks: vec![UncoveredHunk {
-                file: "src/lib.rs".to_string(),
-                start_line: 1,
-                end_line: 3,
-            }],
-        });
-        evidence.contracts = Some(ContractDiffGate {
-            meta: sample_meta(GateStatus::Warn),
-            semver: None,
-            cli: None,
-            schema: None,
-            failures: 2,
-        });
-        evidence.supply_chain = Some(SupplyChainGate {
-            meta: sample_meta(GateStatus::Pass),
-            vulnerabilities: vec![],
-            denied: vec![],
-            advisory_db_version: None,
-        });
-        evidence.determinism = Some(DeterminismGate {
-            meta: sample_meta(GateStatus::Warn),
-            expected_hash: Some("abc".to_string()),
-            actual_hash: Some("def".to_string()),
-            algo: "blake3".to_string(),
-            differences: vec!["target/app".to_string()],
-        });
-        evidence.complexity = Some(ComplexityGate {
-            meta: sample_meta(GateStatus::Fail),
-            files_analyzed: 1,
-            high_complexity_files: vec![],
-            avg_cyclomatic: 4.0,
-            max_cyclomatic: 12,
-            threshold_exceeded: true,
-        });
-
-        let gates = map_gates(&evidence);
-        let ids: std::collections::BTreeSet<_> =
-            gates.items.iter().map(|g| g.id.as_str()).collect();
-        for id in [
-            "mutation",
-            "diff_coverage",
-            "contracts",
-            "supply_chain",
-            "determinism",
-            "complexity",
-        ] {
-            assert!(ids.contains(id), "missing gate {id}");
-        }
-
-        let diff_gate = gates
-            .items
-            .iter()
-            .find(|g| g.id == "diff_coverage")
-            .expect("diff_coverage gate should exist in GateResults");
-        assert_eq!(diff_gate.threshold, Some(0.8));
-        assert_eq!(diff_gate.actual, Some(0.5));
-
-        let contracts_gate = gates
-            .items
-            .iter()
-            .find(|g| g.id == "contracts")
-            .expect("contracts gate should exist in GateResults");
-        assert_eq!(
-            contracts_gate.reason.as_deref(),
-            Some("2 sub-gate(s) failed")
-        );
     }
 }
