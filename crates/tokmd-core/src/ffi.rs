@@ -19,25 +19,19 @@ use serde_json::Value;
 
 mod inputs;
 mod parse;
+mod settings_parse;
 
 #[cfg(feature = "analysis")]
 use crate::analyze_workflow_from_inputs;
 use crate::error::{ResponseEnvelope, TokmdError};
-use crate::settings::{
-    AnalyzeSettings, ChildIncludeMode, ChildrenMode, ConfigMode, DiffSettings, ExportFormat,
-    ExportSettings, LangSettings, ModuleSettings, RedactMode, ScanSettings,
-};
 use crate::{
     export_workflow, export_workflow_from_inputs, lang_workflow, lang_workflow_from_inputs,
     module_workflow, module_workflow_from_inputs,
 };
 use inputs::parse_in_memory_inputs;
-use parse::{
-    parse_analyze_preset, parse_bool, parse_child_include_mode, parse_children_mode,
-    parse_config_mode, parse_effort_layer, parse_effort_model, parse_export_format,
-    parse_import_granularity, parse_optional_bool, parse_optional_redact_mode,
-    parse_optional_string, parse_optional_u64, parse_optional_usize, parse_redact_mode,
-    parse_required_string, parse_string, parse_string_array, parse_usize, scan_arg_object,
+use settings_parse::{
+    parse_diff_settings, parse_export_settings, parse_lang_settings, parse_module_settings,
+    parse_scan_settings,
 };
 
 /// Run a tokmd operation with JSON arguments, returning JSON output.
@@ -126,7 +120,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         "analyze" => {
             #[cfg(feature = "analysis")]
             {
-                let settings = parse_analyze_settings(&args)?;
+                let settings = settings_parse::parse_analyze_settings(&args)?;
                 let receipt = if let Some(inputs) = inputs.as_deref() {
                     analyze_workflow_from_inputs(inputs, &scan.options, &settings)?
                 } else {
@@ -144,7 +138,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
         "cockpit" => {
             #[cfg(feature = "cockpit")]
             {
-                let settings = parse_cockpit_settings(&args)?;
+                let settings = settings_parse::parse_cockpit_settings(&args)?;
                 let receipt = crate::cockpit_workflow(&settings)?;
                 Ok(serde_json::to_value(receipt)?)
             }
@@ -179,146 +173,6 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     }
 }
 
-// ============================================================================
-// Settings parsers
-// ============================================================================
-
-fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = scan_arg_object(args);
-
-    Ok(ScanSettings {
-        paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
-        options: crate::settings::ScanOptions {
-            excluded: parse_string_array(obj, "excluded", vec![])?,
-            config: parse_config_mode(obj, ConfigMode::Auto)?,
-            hidden: parse_bool(obj, "hidden", false)?,
-            no_ignore: parse_bool(obj, "no_ignore", false)?,
-            no_ignore_parent: parse_bool(obj, "no_ignore_parent", false)?,
-            no_ignore_dot: parse_bool(obj, "no_ignore_dot", false)?,
-            no_ignore_vcs: parse_bool(obj, "no_ignore_vcs", false)?,
-            treat_doc_strings_as_comments: parse_bool(obj, "treat_doc_strings_as_comments", false)?,
-        },
-    })
-}
-
-fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("lang").unwrap_or(args);
-
-    Ok(LangSettings {
-        top: parse_usize(obj, "top", 0)?,
-        files: parse_bool(obj, "files", false)?,
-        children: parse_children_mode(obj, ChildrenMode::Collapse)?,
-        redact: parse_optional_redact_mode(obj)?,
-    })
-}
-
-fn parse_module_settings(args: &Value) -> Result<ModuleSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("module").unwrap_or(args);
-
-    Ok(ModuleSettings {
-        top: parse_usize(obj, "top", 0)?,
-        module_roots: parse_string_array(
-            obj,
-            "module_roots",
-            vec!["crates".to_string(), "packages".to_string()],
-        )?,
-        module_depth: parse_usize(obj, "module_depth", 2)?,
-        children: parse_child_include_mode(obj, ChildIncludeMode::Separate)?,
-        redact: parse_optional_redact_mode(obj)?,
-    })
-}
-
-fn parse_export_settings(args: &Value) -> Result<ExportSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("export").unwrap_or(args);
-
-    Ok(ExportSettings {
-        format: parse_export_format(obj, ExportFormat::Jsonl)?,
-        module_roots: parse_string_array(
-            obj,
-            "module_roots",
-            vec!["crates".to_string(), "packages".to_string()],
-        )?,
-        module_depth: parse_usize(obj, "module_depth", 2)?,
-        children: parse_child_include_mode(obj, ChildIncludeMode::Separate)?,
-        min_code: parse_usize(obj, "min_code", 0)?,
-        max_rows: parse_usize(obj, "max_rows", 0)?,
-        redact: parse_redact_mode(obj, RedactMode::None)?,
-        meta: parse_bool(obj, "meta", true)?,
-        strip_prefix: parse_optional_string(obj, "strip_prefix")?,
-    })
-}
-
-#[allow(dead_code)]
-fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("analyze").unwrap_or(args);
-
-    let effort_base_ref = parse_optional_string(obj, "effort_base_ref")?;
-    let effort_head_ref = parse_optional_string(obj, "effort_head_ref")?;
-    if (effort_base_ref.is_some() && effort_head_ref.is_none())
-        || (effort_base_ref.is_none() && effort_head_ref.is_some())
-    {
-        return Err(TokmdError::invalid_field(
-            "effort_base_ref/effort_head_ref",
-            "both effort_base_ref and effort_head_ref must be provided together",
-        ));
-    }
-    if let Some(iterations) = parse_optional_usize(obj, "effort_mc_iterations")?
-        && iterations == 0
-    {
-        return Err(TokmdError::invalid_field(
-            "effort_mc_iterations",
-            "must be greater than 0",
-        ));
-    }
-
-    Ok(AnalyzeSettings {
-        preset: parse_analyze_preset(obj, "receipt")?,
-        window: parse_optional_usize(obj, "window")?,
-        git: parse_optional_bool(obj, "git")?,
-        max_files: parse_optional_usize(obj, "max_files")?,
-        max_bytes: parse_optional_u64(obj, "max_bytes")?,
-        max_file_bytes: parse_optional_u64(obj, "max_file_bytes")?,
-        max_commits: parse_optional_usize(obj, "max_commits")?,
-        max_commit_files: parse_optional_usize(obj, "max_commit_files")?,
-        granularity: parse_import_granularity(obj, "module")?,
-        effort_base_ref,
-        effort_head_ref,
-        effort_model: parse_effort_model(obj, "effort_model")?,
-        effort_layer: parse_effort_layer(obj, "effort_layer")?,
-        effort_monte_carlo: parse_optional_bool(obj, "effort_monte_carlo")?,
-        effort_mc_iterations: parse_optional_usize(obj, "effort_mc_iterations")?,
-        effort_mc_seed: parse_optional_u64(obj, "effort_mc_seed")?,
-    })
-}
-
-#[allow(dead_code)]
-fn parse_cockpit_settings(args: &Value) -> Result<crate::settings::CockpitSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("cockpit").unwrap_or(args);
-
-    Ok(crate::settings::CockpitSettings {
-        base: parse_string(obj, "base", "main")?,
-        head: parse_string(obj, "head", "HEAD")?,
-        range_mode: parse_string(obj, "range_mode", "two-dot")?,
-        baseline: parse_optional_string(obj, "baseline")?,
-    })
-}
-
-fn parse_diff_settings(args: &Value) -> Result<DiffSettings, TokmdError> {
-    // Use nested object if present, otherwise use root
-    let obj = args.get("diff").unwrap_or(args);
-
-    let from = parse_required_string(obj, "from")?;
-    let to = parse_required_string(obj, "to")?;
-
-    Ok(DiffSettings { from, to })
-}
-
 /// Get the tokmd version string.
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -331,6 +185,9 @@ pub fn schema_version() -> u32 {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "analysis")]
+    use super::settings_parse::parse_analyze_settings;
+    use super::settings_parse::parse_cockpit_settings;
     use super::*;
 
     #[test]
