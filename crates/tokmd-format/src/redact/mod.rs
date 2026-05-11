@@ -30,10 +30,19 @@ const SAFE_PATH_EXTENSIONS: &[&str] = &[
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
 fn clean_path(s: &str) -> String {
-    let mut normalized = s.replace('\\', "/");
-    // Remove double slashes
-    while normalized.contains("//") {
-        normalized = normalized.replace("//", "/");
+    let mut normalized = String::with_capacity(s.len());
+    let mut last_was_slash = false;
+    for ch in s.chars() {
+        let ch = if ch == '\\' { '/' } else { ch };
+        if ch == '/' {
+            if last_was_slash {
+                continue;
+            }
+            last_was_slash = true;
+        } else {
+            last_was_slash = false;
+        }
+        normalized.push(ch);
     }
     // Strip leading ./
     while let Some(stripped) = normalized.strip_prefix("./") {
@@ -232,12 +241,16 @@ mod tests {
     fn test_short_hash_normalizes_double_slashes() {
         assert_eq!(short_hash("src/lib.rs"), short_hash("src//lib.rs"));
         assert_eq!(short_hash("src/lib.rs"), short_hash("src///lib.rs"));
+        assert_eq!(short_hash("src/lib.rs"), short_hash("src\\\\lib.rs"));
+        assert_eq!(short_hash("src/lib.rs"), short_hash("src\\\\/lib.rs"));
     }
 
     #[test]
     fn test_redact_path_normalizes_double_slashes() {
         assert_eq!(redact_path("src/main.rs"), redact_path("src//main.rs"));
         assert_eq!(redact_path("src/main.rs"), redact_path("src///main.rs"));
+        assert_eq!(redact_path("src/main.rs"), redact_path("src\\\\main.rs"));
+        assert_eq!(redact_path("src/main.rs"), redact_path("src\\\\/main.rs"));
     }
 
     #[test]
