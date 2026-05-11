@@ -23,6 +23,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `librarian_api_doctests` | Librarian | Prover | interfaces | in-progress | 0 | live |
 | `librarian_docs_examples` | Librarian | Builder | tooling-governance | success | 0 | live |
 | `mutant_high_value` | Mutant | Prover | core-pipeline | in-progress | 0 | live |
+| `palette_binding_dx` | palette | prover | bindings-targets | success | 0 | live |
 | `palette_runtime_dx` | palette | builder | interfaces | success | 0 | live |
 | `palette_runtime_dx_interfaces` | Palette 🎨 | Builder | interfaces | in-progress | 0 | live |
 | `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
