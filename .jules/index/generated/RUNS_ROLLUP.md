@@ -21,12 +21,14 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
 | `invariant_model_analysis` | invariant | prover | analysis-stack | success | 0 | live |
 | `librarian_api_doctests` | Librarian | Prover | interfaces | in-progress | 0 | live |
-| `librarian_docs_examples` | Librarian 📚 | Builder | tooling-governance | success | 0 | live |
+| `librarian_docs_examples` | Librarian | Builder | tooling-governance | success | 0 | live |
+| `mutant_high_value` | Mutant | Prover | core-pipeline | in-progress | 0 | live |
+| `palette_runtime_dx` | palette | builder | interfaces | success | 0 | live |
 | `palette_runtime_dx_interfaces` | Palette 🎨 | Builder | interfaces | in-progress | 0 | live |
 | `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
 | `run_perf_cockpit_entry` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
-| `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 4 | live |
+| `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 0 | live |
 | `specsmith_interfaces` | Specsmith | Explorer | interfaces | success | 0 | live |
 | `steward_1` | Steward | Stabilizer | tooling-governance | success | 0 | live |
 | `steward_1778084540` | Steward | Stabilizer | tooling-governance | learning_pr | 4 | live |
