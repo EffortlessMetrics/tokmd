@@ -49,9 +49,6 @@
 
 #![forbid(unsafe_code)]
 
-use std::path::{Path, PathBuf};
-
-use anyhow::Result;
 #[cfg(all(test, feature = "analysis"))]
 use tokmd_analysis as analysis;
 
@@ -80,9 +77,7 @@ pub use workflows::{
 #[cfg(all(test, feature = "analysis"))]
 use workflows::{parse_analysis_preset, parse_effort_request};
 
-use settings::{LangSettings, ScanSettings};
-use tokmd_settings::ScanOptions;
-use tokmd_types::{ChildIncludeMode, FileRow, LangReceipt, LangReport, SCHEMA_VERSION};
+use tokmd_types::SCHEMA_VERSION;
 
 pub(crate) use receipts::{build_export_receipt, build_lang_receipt, build_module_receipt};
 
@@ -139,96 +134,6 @@ pub mod analysis_facade {
 }
 
 // =============================================================================
-// Helper functions
-// =============================================================================
-
-/// Convert ScanSettings to ScanOptions for lower-tier crates.
-fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
-    scan.options.clone()
-}
-
-fn scan_paths_or_current_dir(scan: &ScanSettings) -> Vec<PathBuf> {
-    if scan.paths.is_empty() {
-        vec![PathBuf::from(".")]
-    } else {
-        scan.paths.iter().map(PathBuf::from).collect()
-    }
-}
-
-fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions {
-    let mut effective = scan_opts.clone();
-    // Explicit in-memory inputs are authoritative; they should not depend on
-    // host cwd config discovery or be filtered back out by hidden/exclude rules.
-    effective.config = tokmd_types::ConfigMode::None;
-    effective.hidden = true;
-    effective.excluded.clear();
-    effective
-}
-
-fn collect_pure_in_memory_rows(
-    inputs: &[InMemoryFile],
-    scan_opts: &ScanOptions,
-    module_roots: &[String],
-    module_depth: usize,
-    children: ChildIncludeMode,
-) -> Result<(Vec<PathBuf>, Vec<FileRow>)> {
-    let paths = tokmd_scan::normalize_in_memory_paths(inputs)?;
-    let config = tokmd_scan::config_from_scan_options(scan_opts);
-    let row_inputs: Vec<tokmd_model::InMemoryRowInput<'_>> = paths
-        .iter()
-        .zip(inputs)
-        .map(|(path, input)| {
-            tokmd_model::InMemoryRowInput::new(path.as_path(), input.bytes.as_slice())
-        })
-        .collect();
-    let rows = tokmd_model::collect_in_memory_file_rows(
-        &row_inputs,
-        module_roots,
-        module_depth,
-        children,
-        &config,
-    );
-    Ok((paths, rows))
-}
-
-fn strip_virtual_export_prefix(
-    rows: Vec<FileRow>,
-    strip_prefix: &str,
-    module_roots: &[String],
-    module_depth: usize,
-) -> Vec<FileRow> {
-    rows.into_iter()
-        .map(|mut row| {
-            let normalized =
-                tokmd_model::normalize_path(Path::new(&row.path), Some(Path::new(strip_prefix)));
-            row.path = normalized.clone();
-            row.module = tokmd_model::module_key(&normalized, module_roots, module_depth);
-            row
-        })
-        .collect()
-}
-
-/// Load a LangReport from a file path or scan a directory.
-fn load_lang_report(source: &str) -> Result<LangReport> {
-    let path = std::path::Path::new(source);
-
-    if path.exists() && path.is_file() {
-        // Try to load as a receipt file
-        let content = std::fs::read_to_string(path)?;
-        if let Ok(receipt) = serde_json::from_str::<LangReceipt>(&content) {
-            return Ok(receipt.report);
-        }
-        // Fall through to scanning if not a valid receipt
-    }
-
-    // Scan the path
-    let scan = ScanSettings::for_paths(vec![source.to_string()]);
-    let lang = LangSettings::default();
-    let receipt = lang_workflow(&scan, &lang)?;
-    Ok(receipt.report)
-}
-
-// =============================================================================
 // Re-exports for binding convenience
 // =============================================================================
 
@@ -249,6 +154,7 @@ mod tests {
     use super::*;
     #[cfg(feature = "analysis")]
     use crate::settings::AnalyzeSettings;
+    use crate::settings::ScanSettings;
     #[cfg(feature = "analysis")]
     use std::fs;
     #[cfg(feature = "analysis")]
@@ -270,24 +176,6 @@ mod tests {
     #[test]
     fn version_not_empty() {
         assert!(!version().is_empty());
-    }
-
-    #[test]
-    fn settings_to_scan_options_preserves_values() {
-        let scan = ScanSettings {
-            paths: vec!["src".to_string()],
-            options: ScanOptions {
-                excluded: vec!["target".to_string()],
-                hidden: true,
-                no_ignore: true,
-                ..Default::default()
-            },
-        };
-
-        let opts = settings_to_scan_options(&scan);
-        assert_eq!(opts.excluded, vec!["target"]);
-        assert!(opts.hidden);
-        assert!(opts.no_ignore);
     }
 
     #[test]
@@ -411,7 +299,9 @@ mod tests {
 #[cfg(test)]
 mod mutation_tests {
     use super::*;
+    use std::path::PathBuf;
     use tokmd_settings::ExportSettings;
+    use tokmd_settings::ScanOptions;
     use tokmd_types::ExportData;
     use tokmd_types::RedactMode;
 

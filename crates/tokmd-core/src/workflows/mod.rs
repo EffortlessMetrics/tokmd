@@ -8,6 +8,7 @@ mod diff;
 mod export;
 mod lang;
 mod module;
+mod support;
 
 #[cfg(feature = "analysis")]
 pub use analyze::{
@@ -23,3 +24,8 @@ pub use diff::diff_workflow;
 pub use export::{export_workflow, export_workflow_from_inputs};
 pub use lang::{lang_workflow, lang_workflow_from_inputs};
 pub use module::{module_workflow, module_workflow_from_inputs};
+
+pub(crate) use support::{
+    collect_pure_in_memory_rows, deterministic_in_memory_scan_options, scan_paths_or_current_dir,
+    settings_to_scan_options, strip_virtual_export_prefix,
+};

@@ -1,10 +1,11 @@
 //! Diff workflow facade.
 
 use anyhow::Result;
-use tokmd_types::DiffReceipt;
+use tokmd_types::{DiffReceipt, LangReceipt, LangReport};
 
-use crate::load_lang_report;
-use crate::settings::DiffSettings;
+use crate::settings::{DiffSettings, LangSettings, ScanSettings};
+
+use super::lang::lang_workflow;
 
 /// Runs the diff workflow comparing two receipts or paths.
 ///
@@ -43,4 +44,21 @@ pub fn diff_workflow(settings: &DiffSettings) -> Result<DiffReceipt> {
         rows,
         totals,
     ))
+}
+
+/// Load a language report from a receipt file path or scan a directory.
+fn load_lang_report(source: &str) -> Result<LangReport> {
+    let path = std::path::Path::new(source);
+
+    if path.exists() && path.is_file() {
+        let content = std::fs::read_to_string(path)?;
+        if let Ok(receipt) = serde_json::from_str::<LangReceipt>(&content) {
+            return Ok(receipt.report);
+        }
+    }
+
+    let scan = ScanSettings::for_paths(vec![source.to_string()]);
+    let lang = LangSettings::default();
+    let receipt = lang_workflow(&scan, &lang)?;
+    Ok(receipt.report)
 }

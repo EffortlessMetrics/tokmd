@@ -5,9 +5,11 @@ use tokmd_settings::ScanOptions;
 use tokmd_types::{ChildIncludeMode, LangReceipt};
 
 use crate::settings::{LangSettings, ScanSettings};
-use crate::{
-    InMemoryFile, build_lang_receipt, collect_pure_in_memory_rows,
-    deterministic_in_memory_scan_options, scan_paths_or_current_dir, settings_to_scan_options,
+use crate::{InMemoryFile, build_lang_receipt};
+
+use super::{
+    collect_pure_in_memory_rows, deterministic_in_memory_scan_options, scan_paths_or_current_dir,
+    settings_to_scan_options,
 };
 
 /// Runs the language summary workflow with pure settings types.

@@ -9,9 +9,10 @@ use tokmd_settings::ScanOptions;
 use tokmd_types::{ChildIncludeMode, ExportData, ExportReceipt, FileRow};
 
 use crate::settings::{AnalyzeSettings, ExportSettings, ScanSettings};
-use crate::{
-    InMemoryFile, build_export_receipt, collect_pure_in_memory_rows,
-    deterministic_in_memory_scan_options, error, strip_virtual_export_prefix,
+use crate::{InMemoryFile, build_export_receipt, error};
+
+use super::{
+    collect_pure_in_memory_rows, deterministic_in_memory_scan_options, strip_virtual_export_prefix,
 };
 
 use super::export_workflow;

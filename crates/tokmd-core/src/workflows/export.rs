@@ -7,10 +7,11 @@ use tokmd_settings::ScanOptions;
 use tokmd_types::ExportReceipt;
 
 use crate::settings::{ExportSettings, ScanSettings};
-use crate::{
-    InMemoryFile, build_export_receipt, collect_pure_in_memory_rows,
-    deterministic_in_memory_scan_options, scan_paths_or_current_dir, settings_to_scan_options,
-    strip_virtual_export_prefix,
+use crate::{InMemoryFile, build_export_receipt};
+
+use super::{
+    collect_pure_in_memory_rows, deterministic_in_memory_scan_options, scan_paths_or_current_dir,
+    settings_to_scan_options, strip_virtual_export_prefix,
 };
 
 /// Runs the export workflow with pure settings types.
