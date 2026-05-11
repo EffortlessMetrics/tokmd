@@ -1,4 +1,4 @@
-//! FFI-friendly JSON entrypoint for language bindings.
+//! FFI-friendly JSON entrypoint coordinator for language bindings.
 //!
 //! This module provides a single `run_json` function that accepts
 //! a mode string and JSON arguments, returning a JSON result.
