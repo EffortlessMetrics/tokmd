@@ -74,6 +74,7 @@ Schema families version independently.
 | Context bundles | `CONTEXT_BUNDLE_SCHEMA_VERSION` |
 | Sensor reports | `SENSOR_REPORT_SCHEMA` |
 | Baselines | `BASELINE_VERSION` |
+| Tool schemas | `TOOL_SCHEMA_VERSION` |
 
 Breaking structure or semantic changes MUST bump the affected family version and
 update the matching docs/schema references. Additive optional fields MAY remain
