@@ -29,6 +29,7 @@ mod context;
 mod diff;
 mod gate;
 mod init;
+mod run;
 mod sensor;
 mod tools;
 
@@ -45,6 +46,7 @@ pub use context::{
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
 pub use init::{InitArgs, InitProfile};
+pub use run::RunArgs;
 pub use sensor::{SensorArgs, SensorFormat};
 pub use tools::ToolsArgs;
 
@@ -409,29 +411,6 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct RunArgs {
-    /// Paths to scan.
-    #[arg(value_name = "PATH", default_value = ".")]
-    pub paths: Vec<PathBuf>,
-
-    /// Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible).
-    #[arg(long)]
-    pub output_dir: Option<PathBuf>,
-
-    /// Tag or name for this run.
-    #[arg(long)]
-    pub name: Option<String>,
-
-    /// Also emit analysis receipts using this preset.
-    #[arg(long, value_enum)]
-    pub analysis: Option<AnalysisPreset>,
-
-    /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
-    #[arg(long, value_enum)]
-    pub redact: Option<RedactMode>,
 }
 
 #[derive(Args, Debug, Clone, Default)]
