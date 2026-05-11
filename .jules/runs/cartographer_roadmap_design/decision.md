@@ -23,4 +23,3 @@ In `docs/NOW.md`, the `LATER (roadmap)` section says: `- **Browser runner**: zip
 
 ## Decision
 **Option A**. It's precise, targets actual drift where docs lag behind the completed `v1.11.0` and active `v1.12.0` roadmap states, and fixes misleading references to older versions in structural/architecture files.
-
