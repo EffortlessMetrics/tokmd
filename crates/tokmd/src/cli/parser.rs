@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 
 mod analysis;
 mod badge;
+mod check_ignore;
 mod cockpit;
 mod completions;
 mod context;
@@ -35,6 +36,7 @@ pub use analysis::{
     AnalysisPreset, CliAnalyzeArgs, EffortLayer, EffortModelKind, ImportGranularity, NearDupScope,
 };
 pub use badge::{BadgeArgs, BadgeMetric};
+pub use check_ignore::CliCheckIgnoreArgs;
 pub use cockpit::{BaselineArgs, CockpitArgs, CockpitFormat, DiffRangeMode};
 pub use completions::{CompletionsArgs, Shell};
 pub use context::{
@@ -536,17 +538,6 @@ pub struct CliExportArgs {
     /// Strip this prefix from paths before output (helps when paths are absolute).
     #[arg(long, value_name = "PATH")]
     pub strip_prefix: Option<PathBuf>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct CliCheckIgnoreArgs {
-    /// File path(s) to check.
-    #[arg(value_name = "PATH", required = true)]
-    pub paths: Vec<PathBuf>,
-
-    /// Show verbose output with rule sources.
-    #[arg(long, short = 'v')]
-    pub verbose: bool,
 }
 
 // =============================================================================
