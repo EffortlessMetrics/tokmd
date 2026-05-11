@@ -166,7 +166,9 @@ name = "tokmd_core_ffi"
 kind = "rust"
 paths = [
   "crates/tokmd-core/src/lib.rs",
+  "crates/tokmd-core/src/mutation_tests.rs",
   "crates/tokmd-core/src/receipts.rs",
+  "crates/tokmd-core/src/tests.rs",
   "crates/tokmd-core/src/ffi/mod.rs",
   "crates/tokmd-core/src/ffi/**",
   "crates/tokmd-core/src/workflows/**",
