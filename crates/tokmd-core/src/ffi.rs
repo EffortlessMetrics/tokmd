@@ -18,21 +18,14 @@
 use serde_json::Value;
 
 mod inputs;
+mod modes;
 mod parse;
 mod settings_parse;
 
-#[cfg(feature = "analysis")]
-use crate::analyze_workflow_from_inputs;
 use crate::error::{ResponseEnvelope, TokmdError};
-use crate::{
-    export_workflow, export_workflow_from_inputs, lang_workflow, lang_workflow_from_inputs,
-    module_workflow, module_workflow_from_inputs,
-};
 use inputs::parse_in_memory_inputs;
-use settings_parse::{
-    parse_diff_settings, parse_export_settings, parse_lang_settings, parse_module_settings,
-    parse_scan_settings,
-};
+use modes::run_mode;
+use settings_parse::parse_scan_settings;
 
 /// Run a tokmd operation with JSON arguments, returning JSON output.
 ///
@@ -89,88 +82,7 @@ fn run_json_inner(mode: &str, args_json: &str) -> Result<Value, TokmdError> {
     // Extract scan settings (shared by all modes)
     let scan = parse_scan_settings(&args)?;
 
-    match mode {
-        "lang" => {
-            let settings = parse_lang_settings(&args)?;
-            let receipt = if let Some(inputs) = inputs.as_deref() {
-                lang_workflow_from_inputs(inputs, &scan.options, &settings)?
-            } else {
-                lang_workflow(&scan, &settings)?
-            };
-            Ok(serde_json::to_value(receipt)?)
-        }
-        "module" => {
-            let settings = parse_module_settings(&args)?;
-            let receipt = if let Some(inputs) = inputs.as_deref() {
-                module_workflow_from_inputs(inputs, &scan.options, &settings)?
-            } else {
-                module_workflow(&scan, &settings)?
-            };
-            Ok(serde_json::to_value(receipt)?)
-        }
-        "export" => {
-            let settings = parse_export_settings(&args)?;
-            let receipt = if let Some(inputs) = inputs.as_deref() {
-                export_workflow_from_inputs(inputs, &scan.options, &settings)?
-            } else {
-                export_workflow(&scan, &settings)?
-            };
-            Ok(serde_json::to_value(receipt)?)
-        }
-        "analyze" => {
-            #[cfg(feature = "analysis")]
-            {
-                let settings = settings_parse::parse_analyze_settings(&args)?;
-                let receipt = if let Some(inputs) = inputs.as_deref() {
-                    analyze_workflow_from_inputs(inputs, &scan.options, &settings)?
-                } else {
-                    crate::analyze_workflow(&scan, &settings)?
-                };
-                Ok(serde_json::to_value(receipt)?)
-            }
-            #[cfg(not(feature = "analysis"))]
-            {
-                Err(TokmdError::not_implemented(
-                    "analyze mode requires 'analysis' feature: enable in Cargo.toml or use CLI",
-                ))
-            }
-        }
-        "cockpit" => {
-            #[cfg(feature = "cockpit")]
-            {
-                let settings = settings_parse::parse_cockpit_settings(&args)?;
-                let receipt = crate::cockpit_workflow(&settings)?;
-                Ok(serde_json::to_value(receipt)?)
-            }
-            #[cfg(not(feature = "cockpit"))]
-            {
-                Err(TokmdError::not_implemented(
-                    "cockpit mode requires 'cockpit' feature: enable in Cargo.toml or use CLI",
-                ))
-            }
-        }
-        "diff" => {
-            let settings = parse_diff_settings(&args)?;
-            let receipt = crate::diff_workflow(&settings)?;
-            Ok(serde_json::to_value(receipt)?)
-        }
-        "version" => {
-            #[cfg(feature = "analysis")]
-            let version_info = serde_json::json!({
-                "version": env!("CARGO_PKG_VERSION"),
-                "schema_version": tokmd_types::SCHEMA_VERSION,
-                "analysis_schema_version": tokmd_analysis_types::ANALYSIS_SCHEMA_VERSION,
-            });
-            #[cfg(not(feature = "analysis"))]
-            let version_info = serde_json::json!({
-                "version": env!("CARGO_PKG_VERSION"),
-                "schema_version": tokmd_types::SCHEMA_VERSION,
-                "analysis_schema_version": serde_json::Value::Null,
-            });
-            Ok(version_info)
-        }
-        _ => Err(TokmdError::unknown_mode(mode)),
-    }
+    run_mode(mode, &args, &scan, inputs.as_deref())
 }
 
 /// Get the tokmd version string.
@@ -188,6 +100,9 @@ mod tests {
     #[cfg(feature = "analysis")]
     use super::settings_parse::parse_analyze_settings;
     use super::settings_parse::parse_cockpit_settings;
+    use super::settings_parse::{
+        parse_export_settings, parse_lang_settings, parse_module_settings,
+    };
     use super::*;
 
     #[test]
