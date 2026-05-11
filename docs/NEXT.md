@@ -183,6 +183,10 @@ architecture-consolidation program.
 - Architecture consolidation now has a current-state batch plan in
   `docs/architecture-consolidation-plan.md`, grounded in the live
   publish-surface verifier, large-file inventory, and `ci/proof.toml` scopes.
+- The architecture-consolidation plan now reflects the live context-packing and
+  derived-analysis owner-module state: context selection/render/manifest/output
+  owners are already split, and derived analysis has coherent distribution,
+  integrity, ratio, file-metrics, and language-composition owners.
 - Cockpit's Rust complexity gate now delegates function-scoped source analysis
   to `tokmd-analysis::source_complexity` instead of owning a duplicate parser.
   The `else if` double-count is fixed as a correctness improvement; impact
