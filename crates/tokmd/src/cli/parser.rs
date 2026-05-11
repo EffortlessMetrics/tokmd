@@ -27,6 +27,7 @@ mod completions;
 mod context;
 mod diff;
 mod gate;
+mod init;
 mod sensor;
 mod tools;
 
@@ -41,6 +42,7 @@ pub use context::{
 };
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
+pub use init::{InitArgs, InitProfile};
 pub use sensor::{SensorArgs, SensorFormat};
 pub use tools::ToolsArgs;
 
@@ -534,41 +536,6 @@ pub struct CliExportArgs {
     /// Strip this prefix from paths before output (helps when paths are absolute).
     #[arg(long, value_name = "PATH")]
     pub strip_prefix: Option<PathBuf>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct InitArgs {
-    /// Target directory (defaults to ".").
-    #[arg(long, value_name = "DIR", default_value = ".")]
-    pub dir: PathBuf,
-
-    /// Overwrite an existing `.tokeignore`.
-    #[arg(long)]
-    pub force: bool,
-
-    /// Print the template to stdout instead of writing a file.
-    #[arg(long)]
-    pub print: bool,
-
-    /// Which template profile to use.
-    #[arg(long, value_enum, default_value_t = InitProfile::Default)]
-    pub template: InitProfile,
-
-    /// Skip interactive wizard and use defaults.
-    #[arg(long)]
-    pub non_interactive: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum InitProfile {
-    Default,
-    Rust,
-    Node,
-    Mono,
-    Python,
-    Go,
-    Cpp,
 }
 
 #[derive(Args, Debug, Clone)]
