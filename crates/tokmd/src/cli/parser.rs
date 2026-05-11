@@ -26,6 +26,7 @@ mod context;
 mod diff;
 mod gate;
 mod sensor;
+mod tools;
 
 pub use analysis::{
     AnalysisPreset, CliAnalyzeArgs, EffortLayer, EffortModelKind, ImportGranularity, NearDupScope,
@@ -37,6 +38,7 @@ pub use context::{
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
 pub use sensor::{SensorArgs, SensorFormat};
+pub use tools::ToolsArgs;
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -637,17 +639,6 @@ pub struct CliCheckIgnoreArgs {
     /// Show verbose output with rule sources.
     #[arg(long, short = 'v')]
     pub verbose: bool,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct ToolsArgs {
-    /// Output format for the tool schema.
-    #[arg(long, value_enum, default_value_t = ToolSchemaFormat::Jsonschema)]
-    pub format: ToolSchemaFormat,
-
-    /// Pretty-print JSON output.
-    #[arg(long)]
-    pub pretty: bool,
 }
 
 // =============================================================================
