@@ -29,6 +29,7 @@ mod context;
 mod diff;
 mod gate;
 mod init;
+mod lang;
 mod run;
 mod sensor;
 mod tools;
@@ -46,6 +47,7 @@ pub use context::{
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
 pub use init::{InitArgs, InitProfile};
+pub use lang::CliLangArgs;
 pub use run::RunArgs;
 pub use sensor::{SensorArgs, SensorFormat};
 pub use tools::ToolsArgs;
@@ -411,30 +413,6 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
-}
-
-#[derive(Args, Debug, Clone, Default)]
-pub struct CliLangArgs {
-    /// Paths to scan (directories, files, or globs). Defaults to "."
-    #[arg(value_name = "PATH")]
-    pub paths: Option<Vec<PathBuf>>,
-
-    /// Output format [default: md].
-    #[arg(long, value_enum)]
-    pub format: Option<TableFormat>,
-
-    /// Show only the top N rows (by code lines), plus an "Other" row if needed.
-    /// Use 0 to show all rows.
-    #[arg(long)]
-    pub top: Option<usize>,
-
-    /// Include file counts and average lines per file.
-    #[arg(long)]
-    pub files: bool,
-
-    /// How to handle embedded languages (tokei "children" / blobs) [default: collapse].
-    #[arg(long, value_enum)]
-    pub children: Option<ChildrenMode>,
 }
 
 #[derive(Args, Debug, Clone)]
