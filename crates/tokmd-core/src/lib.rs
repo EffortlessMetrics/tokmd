@@ -68,7 +68,9 @@ pub mod settings;
 mod workflows;
 pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
-pub use workflows::{lang_workflow, lang_workflow_from_inputs};
+pub use workflows::{
+    lang_workflow, lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
+};
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
 use tokmd_format::scan_args;
@@ -96,92 +98,6 @@ fn now_ms() -> u128 {
 // =============================================================================
 // Settings-based workflows (new API for bindings)
 // =============================================================================
-
-/// Runs the module summary workflow with pure settings types.
-///
-/// # Arguments
-///
-/// * `scan` - Scan settings (paths, exclusions, etc.)
-/// * `module` - Module-specific settings (roots, depth, etc.)
-///
-/// # Returns
-///
-/// A `ModuleReceipt` containing the module breakdown.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{module_workflow, settings::{ScanSettings, ModuleSettings}};
-///
-/// let scan = ScanSettings::current_dir();
-/// let module = ModuleSettings {
-///     module_depth: 2,
-///     ..Default::default()
-/// };
-///
-/// let receipt = module_workflow(&scan, &module).expect("Module scan failed");
-/// assert!(receipt.report.rows.len() > 0);
-/// ```
-pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
-    let scan_opts = settings_to_scan_options(scan);
-    let paths = scan_paths_or_current_dir(scan);
-
-    // Scan
-    let languages = tokmd_scan::scan(&paths, &scan_opts)?;
-
-    // Model
-    let report = tokmd_model::create_module_report(
-        &languages,
-        &module.module_roots,
-        module.module_depth,
-        module.children,
-        module.top,
-    );
-
-    Ok(build_module_receipt(&paths, &scan_opts, module, report))
-}
-
-/// Runs the module summary workflow for ordered in-memory inputs.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{
-///     InMemoryFile, module_workflow_from_inputs,
-///     settings::{ModuleSettings, ScanOptions},
-/// };
-///
-/// let inputs = vec![InMemoryFile::new("src/main.rs", b"fn main() {}".to_vec())];
-/// let scan_opts = ScanOptions::default();
-/// let module = ModuleSettings::default();
-///
-/// let receipt =
-///     module_workflow_from_inputs(&inputs, &scan_opts, &module).expect("Module scan failed");
-/// assert_eq!(receipt.report.rows.len(), 1);
-/// ```
-pub fn module_workflow_from_inputs(
-    inputs: &[InMemoryFile],
-    scan_opts: &ScanOptions,
-    module: &ModuleSettings,
-) -> Result<ModuleReceipt> {
-    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    let (paths, rows) = collect_pure_in_memory_rows(
-        inputs,
-        &scan_opts,
-        &module.module_roots,
-        module.module_depth,
-        module.children,
-    )?;
-    let report = tokmd_model::create_module_report_from_rows(
-        &rows,
-        &module.module_roots,
-        module.module_depth,
-        module.children,
-        module.top,
-    );
-
-    Ok(build_module_receipt(&paths, &scan_opts, module, report))
-}
 
 /// Runs the export workflow with pure settings types.
 ///
