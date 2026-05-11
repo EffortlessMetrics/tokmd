@@ -14,10 +14,10 @@
     "cargo test -p tokmd --test '*determinism*'",
     "cargo test -p tokmd-format --test '*snapshot*'"
   ],
-  "friction_items_created": [
-    ".jules/friction/open/gatekeeper_determinism_missing_tests.md"
+  "friction_items_created": [],
+  "persona_notes_created": [
+    ".jules/personas/gatekeeper/notes/determinism-coverage.md"
   ],
-  "persona_notes_created": [],
   "rollback": "Revert this commit.",
   "follow_ups": []
 }

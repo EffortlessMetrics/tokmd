@@ -12,7 +12,7 @@ Minimal proof:
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Submit a learning PR containing a friction item about high determinism coverage.
+- what it is: Submit a learning PR containing a persona note about high determinism coverage.
 - why it fits this repo and shard: The codebase is heavily protected against determinism regressions. We'll land a learning PR to record this finding instead of forcing a fake fix.
 - trade-offs: Structure is preserved without artificially adding duplicative tests. Velocity remains high. Governance learns about the current state.
 
@@ -25,7 +25,7 @@ Minimal proof:
 Chose Option A. The codebase is heavily protected against determinism regressions. We'll land a learning PR to record this finding instead of forcing a fake fix.
 
 ## 🧱 Changes made (SRP)
-- `.jules/friction/open/gatekeeper_determinism_missing_tests.md`
+- `.jules/personas/gatekeeper/notes/determinism-coverage.md`
 - `.jules/runs/gatekeeper_determinism/decision.md`
 - `.jules/runs/gatekeeper_determinism/envelope.json`
 - `.jules/runs/gatekeeper_determinism/pr_body.md`
@@ -34,9 +34,9 @@ Chose Option A. The codebase is heavily protected against determinism regression
 
 ## 🧪 Verification receipts
 ```text
-{"timestamp": "2024-05-10T00:00:00Z", "command": "grep -rn \"determinism\" crates/tokmd-types/tests/ crates/tokmd-model/tests/ crates/tokmd-scan/tests/ crates/tokmd-format/tests/ | wc -l", "output": "113"}
-{"timestamp": "2024-05-10T00:00:01Z", "command": "cargo test -p tokmd --test '*determinism*'", "output": "test result: ok. 29 passed; 0 failed"}
-{"timestamp": "2024-05-10T00:00:02Z", "command": "cargo test -p tokmd-format --test '*snapshot*'", "output": "test result: ok. 35 passed; 0 failed"}
+{"timestamp": "2025-02-12T00:00:00Z", "command": "grep -rn \"determinism\" crates/tokmd-types/tests/ crates/tokmd-model/tests/ crates/tokmd-scan/tests/ crates/tokmd-format/tests/ | wc -l", "output": "113"}
+{"timestamp": "2025-02-12T00:00:01Z", "command": "cargo test -p tokmd --test '*determinism*'", "output": "test result: ok. 29 passed; 0 failed"}
+{"timestamp": "2025-02-12T00:00:02Z", "command": "cargo test -p tokmd-format --test '*snapshot*'", "output": "test result: ok. 35 passed; 0 failed"}
 ```
 
 ## 🧭 Telemetry
@@ -48,7 +48,7 @@ Chose Option A. The codebase is heavily protected against determinism regression
 
 ## 🗂️ .jules artifacts
 Wrote the full per-run packet to `.jules/runs/gatekeeper_determinism/`.
-Added a friction item to `.jules/friction/open/gatekeeper_determinism_missing_tests.md`.
+Added a persona note to `.jules/personas/gatekeeper/notes/determinism-coverage.md`.
 
 ## 🔜 Follow-ups
 None.
