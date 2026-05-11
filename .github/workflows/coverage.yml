@@ -47,7 +47,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'full-ci')
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -113,7 +113,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ steps.codecov-token.outputs.present == 'true' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
