@@ -196,6 +196,7 @@ fn run_json_invalid_children_returns_error_envelope() -> Result<(), Box<dyn std:
             .ok_or_else(|| std::io::Error::other("not a string"))?
             .contains("children")
     );
+    assert_eq!(parsed["error"]["details"], "children");
     Ok(())
 }
 
@@ -211,6 +212,7 @@ fn run_json_invalid_format_returns_error_envelope() -> Result<(), Box<dyn std::e
             .ok_or_else(|| std::io::Error::other("not a string"))?
             .contains("format")
     );
+    assert_eq!(parsed["error"]["details"], "format");
     Ok(())
 }
 
