@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 mod analysis;
 mod cockpit;
 mod context;
+mod diff;
 
 pub use analysis::{
     AnalysisPreset, CliAnalyzeArgs, EffortLayer, EffortModelKind, ImportGranularity, NearDupScope,
@@ -31,6 +32,7 @@ pub use cockpit::{BaselineArgs, CockpitArgs, CockpitFormat, DiffRangeMode};
 pub use context::{
     CliContextArgs, ContextOutput, ContextStrategy, HandoffArgs, HandoffPreset, ValueMetric,
 };
+pub use diff::{ColorMode, DiffArgs, DiffFormat};
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -416,55 +418,6 @@ pub struct RunArgs {
     /// Redact paths (and optionally module names) for safer copy/paste into LLMs.
     #[arg(long, value_enum)]
     pub redact: Option<RedactMode>,
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct DiffArgs {
-    /// Base receipt/run or git ref to compare from.
-    #[arg(long)]
-    pub from: Option<String>,
-
-    /// Target receipt/run or git ref to compare to.
-    #[arg(long)]
-    pub to: Option<String>,
-
-    /// Two refs/paths to compare (positional).
-    #[arg(value_name = "REF", num_args = 2)]
-    pub refs: Vec<String>,
-
-    /// Output format.
-    #[arg(long, value_enum, default_value_t = DiffFormat::Md)]
-    pub format: DiffFormat,
-
-    /// Compact output for narrow terminals (summary table only).
-    #[arg(long)]
-    pub compact: bool,
-
-    /// Color policy for terminal output.
-    #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
-    pub color: ColorMode,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum DiffFormat {
-    /// Markdown table output.
-    #[default]
-    Md,
-    /// JSON receipt with envelope metadata.
-    Json,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "kebab-case")]
-pub enum ColorMode {
-    /// Enable color when stdout is a TTY and color env vars allow it.
-    #[default]
-    Auto,
-    /// Always emit ANSI color.
-    Always,
-    /// Never emit ANSI color.
-    Never,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -882,25 +835,6 @@ mod tests {
     }
 
     // ── Enum serde roundtrips ─────────────────────────────────────────
-    #[test]
-    fn diff_format_default_is_md() {
-        assert_eq!(DiffFormat::default(), DiffFormat::Md);
-    }
-
-    #[test]
-    fn diff_format_serde_roundtrip() {
-        for variant in [DiffFormat::Md, DiffFormat::Json] {
-            let json = serde_json::to_string(&variant).unwrap();
-            let back: DiffFormat = serde_json::from_str(&json).unwrap();
-            assert_eq!(back, variant);
-        }
-    }
-
-    #[test]
-    fn color_mode_default_is_auto() {
-        assert_eq!(ColorMode::default(), ColorMode::Auto);
-    }
-
     #[test]
     fn context_strategy_default_is_greedy() {
         assert_eq!(ContextStrategy::default(), ContextStrategy::Greedy);
