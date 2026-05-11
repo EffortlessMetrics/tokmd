@@ -69,7 +69,8 @@ mod workflows;
 pub use tokmd_scan::InMemoryFile;
 pub use tokmd_types as types;
 pub use workflows::{
-    lang_workflow, lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
+    export_workflow, export_workflow_from_inputs, lang_workflow, lang_workflow_from_inputs,
+    module_workflow, module_workflow_from_inputs,
 };
 
 use settings::{DiffSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings};
@@ -98,101 +99,6 @@ fn now_ms() -> u128 {
 // =============================================================================
 // Settings-based workflows (new API for bindings)
 // =============================================================================
-
-/// Runs the export workflow with pure settings types.
-///
-/// # Arguments
-///
-/// * `scan` - Scan settings (paths, exclusions, etc.)
-/// * `export` - Export-specific settings (format, min_code, etc.)
-///
-/// # Returns
-///
-/// An `ExportReceipt` containing file-level data.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{export_workflow, settings::{ScanSettings, ExportSettings}};
-///
-/// let scan = ScanSettings::current_dir();
-/// let export = ExportSettings::default();
-///
-/// let receipt = export_workflow(&scan, &export).expect("Export scan failed");
-/// assert!(receipt.data.rows.len() > 0);
-/// ```
-pub fn export_workflow(scan: &ScanSettings, export: &ExportSettings) -> Result<ExportReceipt> {
-    let scan_opts = settings_to_scan_options(scan);
-    let paths = scan_paths_or_current_dir(scan);
-    let strip_prefix = export.strip_prefix.as_deref();
-
-    // Scan
-    let languages = tokmd_scan::scan(&paths, &scan_opts)?;
-
-    // Model
-    let data = tokmd_model::create_export_data(
-        &languages,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-        strip_prefix.map(std::path::Path::new),
-        export.min_code,
-        export.max_rows,
-    );
-
-    Ok(build_export_receipt(&paths, &scan_opts, export, data))
-}
-
-/// Runs the file export workflow for ordered in-memory inputs.
-///
-/// # Example
-///
-/// ```rust
-/// use tokmd_core::{
-///     InMemoryFile, export_workflow_from_inputs,
-///     settings::{ExportSettings, ScanOptions},
-/// };
-///
-/// let inputs = vec![InMemoryFile::new("src/main.rs", b"fn main() {}".to_vec())];
-/// let scan_opts = ScanOptions::default();
-/// let export = ExportSettings::default();
-///
-/// let receipt =
-///     export_workflow_from_inputs(&inputs, &scan_opts, &export).expect("Export scan failed");
-/// assert_eq!(receipt.data.rows.len(), 1);
-/// ```
-pub fn export_workflow_from_inputs(
-    inputs: &[InMemoryFile],
-    scan_opts: &ScanOptions,
-    export: &ExportSettings,
-) -> Result<ExportReceipt> {
-    let scan_opts = deterministic_in_memory_scan_options(scan_opts);
-    let (paths, mut rows) = collect_pure_in_memory_rows(
-        inputs,
-        &scan_opts,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-    )?;
-    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
-        rows = strip_virtual_export_prefix(
-            rows,
-            strip_prefix,
-            &export.module_roots,
-            export.module_depth,
-        );
-    }
-    let data = tokmd_model::create_export_data_from_rows(
-        rows,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-        export.min_code,
-        export.max_rows,
-    );
-
-    Ok(build_export_receipt(&paths, &scan_opts, export, data))
-}
 
 /// Runs the diff workflow comparing two receipts or paths.
 ///
