@@ -1,0 +1,4 @@
+{"timestamp": "2026-05-11T09:14:51Z", "command": "mkdir -p .jules/runs/bolt_core_pipeline_refactorer && cat << EOF > ...", "output": ""}
+{"timestamp": "2026-05-11T09:49:47Z", "command": "cat << EOF > .jules/runs/bolt_core_pipeline_refactorer/decision.md ...", "output": ""}
+{"timestamp": "2026-05-11T10:25:00Z", "command": "cat << EOF > .jules/runs/bolt_core_pipeline_refactorer/result.json ...", "output": ""}
+{"timestamp": "2026-05-11T10:27:12Z", "command": "cat << EOF > .jules/runs/bolt_core_pipeline_refactorer/pr_body.md ...", "output": ""}

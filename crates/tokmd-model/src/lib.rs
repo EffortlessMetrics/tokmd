@@ -94,39 +94,33 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
 
     if let Some(prefix) = strip_prefix {
         let p_cow = prefix.to_string_lossy();
-        // Strip leading ./ from prefix so it can match normalized paths
-        let p_cow_stripped: Cow<str> = if let Some(stripped) = p_cow.strip_prefix("./") {
-            Cow::Borrowed(stripped)
-        } else {
-            p_cow
-        };
+        let mut p_slice: &str = &p_cow;
+        if let Some(stripped) = p_slice.strip_prefix("./") {
+            p_slice = stripped;
+        }
 
-        let needs_replace = p_cow_stripped.contains('\\');
-        let needs_slash = !p_cow_stripped.ends_with('/');
-
-        if !needs_replace && !needs_slash {
-            // Fast path: prefix is already clean and ends with slash
-            if slice.starts_with(p_cow_stripped.as_ref()) {
-                slice = &slice[p_cow_stripped.len()..];
+        if !p_slice.contains('\\') {
+            if slice.starts_with(p_slice) {
+                let after = &slice[p_slice.len()..];
+                if p_slice.ends_with('/') {
+                    slice = after;
+                } else if let Some(stripped) = after.strip_prefix('/') {
+                    slice = stripped;
+                } else if after.is_empty() {
+                    slice = after;
+                }
             }
         } else {
-            // Slow path: avoid string allocation if not replacing
-            let pfx: Cow<str> = if needs_replace {
-                let mut pfx = p_cow_stripped.replace('\\', "/");
-                if needs_slash {
-                    pfx.push('/');
+            let pfx_str = p_slice.replace('\\', "/");
+            if slice.starts_with(&pfx_str) {
+                let after = &slice[pfx_str.len()..];
+                if pfx_str.ends_with('/') {
+                    slice = after;
+                } else if let Some(stripped) = after.strip_prefix('/') {
+                    slice = stripped;
+                } else if after.is_empty() {
+                    slice = after;
                 }
-                Cow::Owned(pfx)
-            } else if needs_slash {
-                let mut pfx = p_cow_stripped.into_owned();
-                pfx.push('/');
-                Cow::Owned(pfx)
-            } else {
-                p_cow_stripped.clone()
-            };
-
-            if slice.starts_with(pfx.as_ref()) {
-                slice = &slice[pfx.len()..];
             }
         }
     }

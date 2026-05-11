@@ -1,0 +1,3 @@
+bolt: optimize normalize_path hot-path slice allocations ⚡
+
+Refactors normalize_path inside tokmd-model to prevent temporary string formatting, replacing backslashes, or allocating new Cow Strings when unnecessary. This avoids excessive work inside the scanner model tree builder tight loop, which traverses over every file.
