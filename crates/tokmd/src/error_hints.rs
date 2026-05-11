@@ -207,18 +207,23 @@ fn suggestions(err: &Error) -> Vec<String> {
                 if !bp.contains('/') && !bp.contains('.') && !bp.contains('\\') {
                     push_hint(
                         &mut out,
-                        &format!(
-                            "If `{bp}` was intended as a subcommand, it is not recognized. Use `tokmd --help`."
-                        ),
+                        "Run `tokmd --help` to see a list of available subcommands.",
                     );
+                    return out;
                 }
             } else {
                 push_hint(
                     &mut out,
-                    "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
+                    "Run `tokmd --help` to see a list of available subcommands.",
                 );
+                return out;
             }
         }
+
+        if did_you_mean {
+            return out;
+        }
+
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
             &mut out,
@@ -345,7 +350,7 @@ mod tests {
         assert!(rendered.contains("Error: Unrecognized subcommand 'frobnicate'"));
         assert!(!rendered.contains("Error: Path not found: frobnicate"));
         assert!(!rendered.contains("was intended as a subcommand"));
-        assert!(rendered.contains("Verify the input path exists and is readable."));
+        assert!(rendered.contains("Run `tokmd --help` to see a list of available subcommands."));
     }
 
     #[test]
@@ -360,10 +365,12 @@ mod tests {
     fn suggests_for_missing_path() {
         let err = anyhow!("Path not found: does-not-exist");
         let hints = suggestions(&err);
-        assert!(hints.iter().any(|h| h.contains("input path exists")));
-        assert!(hints.iter().any(|h| {
-            h.contains("If `does-not-exist` was intended as a subcommand, it is not recognized")
-        }));
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("Run `tokmd --help` to see a list of available subcommands."))
+        );
+        assert!(hints.iter().any(|h| { h.contains("Run `tokmd --help`") }));
     }
 
     #[test]
