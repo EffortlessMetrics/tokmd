@@ -167,7 +167,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-core/src/lib.rs",
   "crates/tokmd-core/src/receipts.rs",
-  "crates/tokmd-core/src/ffi.rs",
+  "crates/tokmd-core/src/ffi/mod.rs",
   "crates/tokmd-core/src/ffi/**",
   "crates/tokmd-core/src/workflows/**",
   "crates/tokmd-core/tests/**",

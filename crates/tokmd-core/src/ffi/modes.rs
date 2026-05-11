@@ -1,7 +1,7 @@
 //! FFI mode dispatch for the JSON entrypoint.
 //!
-//! This module owns the binding-facing mode switch while `ffi.rs` keeps the
-//! public `run_json` envelope boundary.
+//! This module owns the binding-facing mode switch while `ffi/mod.rs` keeps
+//! the public `run_json` envelope boundary.
 
 use serde_json::Value;
 
