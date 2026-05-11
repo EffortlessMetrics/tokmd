@@ -813,6 +813,9 @@ coverage = true
 name = "tokmd_context_handoff"
 kind = "rust"
 paths = [
+  "crates/tokmd-types/src/context.rs",
+  "crates/tokmd-types/tests/context*.rs",
+  "crates/tokmd-types/tests/handoff*.rs",
   "crates/tokmd/src/context_pack.rs",
   "crates/tokmd/src/context_pack/**",
   "crates/tokmd/src/cli/parser/context.rs",
@@ -825,8 +828,10 @@ paths = [
   "docs/handoff.schema.json",
   "docs/handoff-schema.md",
 ]
-packages = ["tokmd"]
+packages = ["tokmd-types", "tokmd"]
 proof = [
+  "cargo test -p tokmd-types context --verbose",
+  "cargo test -p tokmd-types handoff --verbose",
   "cargo test -p tokmd context_pack --verbose",
   "cargo test -p tokmd --test context_e2e --verbose",
   "cargo test -p tokmd --test context_handoff_deep --verbose",
@@ -1108,6 +1113,7 @@ kind = "rust"
 paths = [
   "crates/tokmd/schemas/**",
   "crates/tokmd/tests/schema*.rs",
+  "crates/tokmd-types/src/context.rs",
   "crates/tokmd-types/src/lib.rs",
   "crates/tokmd-types/tests/schema*.rs",
   "docs/SCHEMA.md",
