@@ -165,12 +165,15 @@ coverage = false
 name = "tokmd_core_ffi"
 kind = "rust"
 paths = [
+  "crates/tokmd-core/src/lib.rs",
   "crates/tokmd-core/src/ffi.rs",
   "crates/tokmd-core/src/ffi/**",
+  "crates/tokmd-core/src/workflows/**",
   "crates/tokmd-core/tests/**",
 ]
 packages = ["tokmd-core"]
 proof = [
+  "cargo test -p tokmd-core lang_workflow --verbose",
   "cargo test -p tokmd-core ffi",
   "cargo test -p tokmd-core --test ffi_parity_w53",
 ]
