@@ -30,6 +30,7 @@ mod diff;
 mod gate;
 mod init;
 mod lang;
+mod module;
 mod run;
 mod sensor;
 mod tools;
@@ -48,6 +49,7 @@ pub use diff::{ColorMode, DiffArgs, DiffFormat};
 pub use gate::{CliGateArgs, GateFormat};
 pub use init::{InitArgs, InitProfile};
 pub use lang::CliLangArgs;
+pub use module::CliModuleArgs;
 pub use run::RunArgs;
 pub use sensor::{SensorArgs, SensorFormat};
 pub use tools::ToolsArgs;
@@ -413,41 +415,6 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
-}
-
-#[derive(Args, Debug, Clone)]
-pub struct CliModuleArgs {
-    /// Paths to scan (directories, files, or globs). Defaults to "."
-    #[arg(value_name = "PATH")]
-    pub paths: Option<Vec<PathBuf>>,
-
-    /// Output format [default: md].
-    #[arg(long, value_enum)]
-    pub format: Option<TableFormat>,
-
-    /// Show only the top N modules (by code lines), plus an "Other" row if needed.
-    /// Use 0 to show all rows.
-    #[arg(long)]
-    pub top: Option<usize>,
-
-    /// Treat these top-level directories as "module roots" [default: crates,packages].
-    ///
-    /// If a file path starts with one of these roots, the module key will include
-    /// `module_depth` segments. Otherwise, the module key is the top-level directory.
-    #[arg(long, value_delimiter = ',')]
-    pub module_roots: Option<Vec<String>>,
-
-    /// How many path segments to include for module roots [default: 2].
-    ///
-    /// Example:
-    ///   crates/foo/src/lib.rs  (depth=2) => crates/foo
-    ///   crates/foo/src/lib.rs  (depth=1) => crates
-    #[arg(long, visible_alias = "depth")]
-    pub module_depth: Option<usize>,
-
-    /// Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate].
-    #[arg(long, value_enum)]
-    pub children: Option<ChildIncludeMode>,
 }
 
 #[derive(Args, Debug, Clone)]
