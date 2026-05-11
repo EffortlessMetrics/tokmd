@@ -810,6 +810,7 @@ paths = [
   "crates/tokmd/src/cli/parser/context.rs",
   "crates/tokmd/src/commands/context.rs",
   "crates/tokmd/src/commands/handoff.rs",
+  "crates/tokmd/src/commands/handoff/**",
   "crates/tokmd/tests/context*.rs",
   "crates/tokmd/tests/deep_context_handoff_w51.rs",
   "crates/tokmd/tests/handoff_*.rs",
