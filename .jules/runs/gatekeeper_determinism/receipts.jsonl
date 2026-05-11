@@ -1,0 +1,3 @@
+{"timestamp": "2024-05-10T00:00:00Z", "command": "grep -rn \"determinism\" crates/tokmd-types/tests/ crates/tokmd-model/tests/ crates/tokmd-scan/tests/ crates/tokmd-format/tests/ | wc -l", "output": "113"}
+{"timestamp": "2024-05-10T00:00:01Z", "command": "cargo test -p tokmd --test '*determinism*'", "output": "test result: ok. 29 passed; 0 failed"}
+{"timestamp": "2024-05-10T00:00:02Z", "command": "cargo test -p tokmd-format --test '*snapshot*'", "output": "test result: ok. 35 passed; 0 failed"}

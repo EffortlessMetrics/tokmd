@@ -1,0 +1,23 @@
+{
+  "outcome": "learning_pr",
+  "title": "jules: record gatekeeper learning on determinism coverage ✅",
+  "summary": "This is a learning PR documenting that determinism invariants are heavily protected across the core pipeline. No actionable drift was found.",
+  "target_paths": [
+    "crates/tokmd-types/tests/**",
+    "crates/tokmd-model/tests/**",
+    "crates/tokmd-scan/tests/**",
+    "crates/tokmd-format/tests/**"
+  ],
+  "proof_summary": "Determinism proptests and snapshot tests were found to be exhaustive, with over 110 tests containing determinism in the name and passing.",
+  "gates_run": [
+    "cargo test -p xtask",
+    "cargo test -p tokmd --test '*determinism*'",
+    "cargo test -p tokmd-format --test '*snapshot*'"
+  ],
+  "friction_items_created": [
+    ".jules/friction/open/gatekeeper_determinism_missing_tests.md"
+  ],
+  "persona_notes_created": [],
+  "rollback": "Revert this commit.",
+  "follow_ups": []
+}
