@@ -69,6 +69,17 @@ pub use value_enums::{
 /// Use `tokmd [COMMAND] --help` for detailed help.
 ///
 /// Default mode (no subcommand) prints a language summary.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands};
+///
+/// // We use `try_parse_from` to avoid `exit()` in testing when args are invalid or `-h`/`--help` is passed.
+/// let args = Cli::try_parse_from(["tokmd", "lang", "--top", "5"]).expect("valid arguments");
+/// assert!(matches!(args.command, Some(Commands::Lang(_))));
+/// ```
 #[derive(Parser, Debug)]
 #[command(name = "tokmd", version, long_about = None)]
 pub struct Cli {

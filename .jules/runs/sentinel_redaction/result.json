@@ -1,15 +1,6 @@
 {
-  "run_id": "sentinel_redaction",
   "status": "success",
   "outcome": "pr-ready-patch",
-  "affected_files": [
-    "crates/tokmd-format/src/redact/mod.rs",
-    "crates/tokmd-format/tests/test_redaction_leak.rs"
-  ],
-  "gates_run": [
-    "cargo test -p tokmd-format test_redact_path_leak",
-    "cargo test -p tokmd-format redact",
-    "cargo fmt-check",
-    "git diff --check"
-  ]
+  "patch_summary": "Fixed path redaction logic to normalize consecutive slashes to single slashes, preventing deterministic hash differences between identical logical paths.",
+  "tests_added": true
 }

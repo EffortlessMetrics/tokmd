@@ -156,7 +156,7 @@ fn suggestions(err: &Error) -> Vec<String> {
                 if e_str.starts_with("Path not found: ") {
                     let bad_path = e_str.trim_start_matches("Path not found: ").trim();
                     extracted_bad_path = Some(bad_path.to_string());
-                    if !bad_path.contains('/') && !bad_path.contains('.') && !bad_path.is_empty() {
+                    if looks_like_bare_subcommand_token(bad_path) {
                         let known = [
                             "lang",
                             "module",
@@ -204,21 +204,26 @@ fn suggestions(err: &Error) -> Vec<String> {
 
         if !did_you_mean {
             if let Some(bp) = extracted_bad_path {
-                if !bp.contains('/') && !bp.contains('.') && !bp.contains('\\') {
+                if looks_like_bare_subcommand_token(&bp) {
                     push_hint(
                         &mut out,
-                        &format!(
-                            "If `{bp}` was intended as a subcommand, it is not recognized. Use `tokmd --help`."
-                        ),
+                        "Run `tokmd --help` to see a list of available subcommands.",
                     );
+                    return out;
                 }
             } else {
                 push_hint(
                     &mut out,
-                    "If this was meant to be a subcommand, it is not recognized. Use `tokmd --help`.",
+                    "Run `tokmd --help` to see a list of available subcommands.",
                 );
+                return out;
             }
         }
+
+        if did_you_mean {
+            return out;
+        }
+
         push_hint(&mut out, "Verify the input path exists and is readable.");
         push_hint(
             &mut out,
@@ -331,6 +336,8 @@ mod tests {
                 .iter()
                 .any(|h| h.contains("Did you mean the subcommand `analyze`?"))
         );
+        assert!(!hints.iter().any(|h| h.contains("Run `tokmd --help`")));
+        assert!(!hints.iter().any(|h| h.contains("input path exists")));
         assert!(
             !hints
                 .iter()
@@ -345,7 +352,8 @@ mod tests {
         assert!(rendered.contains("Error: Unrecognized subcommand 'frobnicate'"));
         assert!(!rendered.contains("Error: Path not found: frobnicate"));
         assert!(!rendered.contains("was intended as a subcommand"));
-        assert!(rendered.contains("Verify the input path exists and is readable."));
+        assert!(rendered.contains("Run `tokmd --help` to see a list of available subcommands."));
+        assert!(!rendered.contains("Verify the input path exists and is readable."));
     }
 
     #[test]
@@ -358,12 +366,23 @@ mod tests {
 
     #[test]
     fn suggests_for_missing_path() {
-        let err = anyhow!("Path not found: does-not-exist");
+        let err = anyhow!("Path not found: missing/file.rs");
         let hints = suggestions(&err);
         assert!(hints.iter().any(|h| h.contains("input path exists")));
-        assert!(hints.iter().any(|h| {
-            h.contains("If `does-not-exist` was intended as a subcommand, it is not recognized")
-        }));
+        assert!(hints.iter().any(|h| h.contains("absolute path")));
+        assert!(!hints.iter().any(|h| h.contains("Run `tokmd --help`")));
+    }
+
+    #[test]
+    fn suggests_help_for_unrecognized_bare_subcommand() {
+        let err = anyhow!("Path not found: frobnicate");
+        let hints = suggestions(&err);
+        assert!(
+            hints
+                .iter()
+                .any(|h| h.contains("Run `tokmd --help` to see a list of available subcommands."))
+        );
+        assert!(!hints.iter().any(|h| h.contains("input path exists")));
     }
 
     #[test]

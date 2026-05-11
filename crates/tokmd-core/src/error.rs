@@ -268,9 +268,10 @@ impl TokmdError {
 
     /// Create an invalid settings error for a specific field.
     pub fn invalid_field(field: &str, expected: &str) -> Self {
-        Self::new(
+        Self::with_details(
             ErrorCode::InvalidSettings,
             format!("Invalid value for '{}': expected {}", field, expected),
+            field.to_string(),
         )
     }
 
@@ -494,6 +495,7 @@ mod tests {
         assert_eq!(err.code, ErrorCode::InvalidSettings);
         assert!(err.message.contains("children"));
         assert!(err.message.contains("'collapse' or 'separate'"));
+        assert_eq!(err.details, Some("children".to_string()));
     }
 
     #[test]

@@ -1,6 +1,6 @@
 {
   "prompt_id": "librarian_docs_examples",
-  "persona": "Librarian 📚",
+  "persona": "Librarian",
   "style": "Builder",
   "primary_shard": "tooling-governance",
   "allowed_paths": [
@@ -10,9 +10,7 @@
     "ROADMAP.md",
     "CHANGELOG.md",
     "Cargo.toml",
-    "Cargo.lock",
-    "crates/**/Cargo.toml",
-    ".cargo/**"
+    "Cargo.lock"
   ],
   "gate_profile": "docs-executable",
   "allowed_outcomes": [

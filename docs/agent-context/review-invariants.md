@@ -32,6 +32,7 @@ Each receipt family has its own schema version constant:
 | Handoff manifests | `HANDOFF_SCHEMA_VERSION` | `tokmd-types` |
 | Context receipts | `CONTEXT_SCHEMA_VERSION` | `tokmd-types` |
 | Context bundles | `CONTEXT_BUNDLE_SCHEMA_VERSION` | `tokmd-types` |
+| Tool schemas | `TOOL_SCHEMA_VERSION` | `tokmd` |
 
 **Changes to JSON structure require**:
 1. Bump the relevant schema version constant in source code
