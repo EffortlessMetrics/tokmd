@@ -862,6 +862,7 @@ kind = "rust"
 paths = [
   ".github/workflows/cockpit.yml",
   "crates/tokmd-cockpit/**",
+  "crates/tokmd-core/src/workflows/cockpit.rs",
   "crates/tokmd-core/tests/cockpit_workflow.rs",
   "crates/tokmd-types/src/cockpit.rs",
   "crates/tokmd-types/tests/cockpit_tests.rs",
