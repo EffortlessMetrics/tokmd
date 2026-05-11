@@ -852,6 +852,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-gate/**",
   "crates/tokmd/src/commands/gate.rs",
+  "crates/tokmd/src/commands/gate/**",
   "crates/tokmd/tests/gate_integration.rs",
 ]
 packages = ["tokmd-gate", "tokmd"]
