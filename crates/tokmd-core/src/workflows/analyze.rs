@@ -6,19 +6,21 @@ use anyhow::Result;
 use tokmd_analysis as analysis;
 use tokmd_analysis_types::{AnalysisReceipt, AnalysisSource};
 use tokmd_settings::ScanOptions;
-use tokmd_types::{ChildIncludeMode, ExportData, ExportReceipt, FileRow};
+use tokmd_types::{ChildIncludeMode, ExportReceipt};
 
+use crate::InMemoryFile;
 use crate::settings::{AnalyzeSettings, ExportSettings, ScanSettings};
-use crate::{InMemoryFile, build_export_receipt};
 
-use super::{
-    collect_pure_in_memory_rows, deterministic_in_memory_scan_options, strip_virtual_export_prefix,
-};
+use super::deterministic_in_memory_scan_options;
 
 use super::export_workflow;
 
+mod input;
 mod request;
 
+use input::{
+    PreparedAnalysisInput, prepare_materialized_in_memory_export, prepare_rootless_in_memory_export,
+};
 use request::build_analysis_request;
 #[cfg(test)]
 pub(crate) use request::{parse_analysis_preset, parse_effort_request};
@@ -89,46 +91,12 @@ pub fn analyze_workflow_from_inputs(
     let export = ExportSettings::default();
     let scan_opts = deterministic_in_memory_scan_options(scan_opts);
     if supports_rootless_in_memory_analyze_preset(&analyze.preset) {
-        let (paths, rows) = collect_pure_in_memory_rows(
-            inputs,
-            &scan_opts,
-            &export.module_roots,
-            export.module_depth,
-            export.children,
-        )?;
-        let data = tokmd_model::create_export_data_from_rows(
-            rows,
-            &export.module_roots,
-            export.module_depth,
-            export.children,
-            export.min_code,
-            export.max_rows,
-        );
-        let logical_inputs: Vec<String> = paths
-            .iter()
-            .map(|path| tokmd_model::normalize_path(path, None))
-            .collect();
-        let export_receipt = build_export_receipt(&paths, &scan_opts, &export, data);
-
-        return analyze_with_export_receipt(
-            export_receipt,
-            logical_inputs,
-            PathBuf::new(),
-            analyze,
-        );
+        let prepared = prepare_rootless_in_memory_export(inputs, &scan_opts, &export)?;
+        return analyze_prepared_input(prepared, analyze);
     }
 
-    let scan = tokmd_scan::scan_in_memory(inputs, &scan_opts)?;
-    let data = collect_materialized_export_data(&scan, &export);
-    let logical_inputs: Vec<String> = scan
-        .logical_paths()
-        .iter()
-        .map(|path| tokmd_model::normalize_path(path, None))
-        .collect();
-    let root = scan.strip_prefix().to_path_buf();
-    let export_receipt = build_export_receipt(scan.logical_paths(), &scan_opts, &export, data);
-
-    analyze_with_export_receipt(export_receipt, logical_inputs, root, analyze)
+    let prepared = prepare_materialized_in_memory_export(inputs, &scan_opts, &export)?;
+    analyze_prepared_input(prepared, analyze)
 }
 
 #[doc(hidden)]
@@ -165,49 +133,17 @@ fn analyze_with_export_receipt(
     analysis::analyze(ctx, request)
 }
 
-fn collect_materialized_rows(
-    scan: &tokmd_scan::MaterializedScan,
-    module_roots: &[String],
-    module_depth: usize,
-    children: ChildIncludeMode,
-) -> Vec<FileRow> {
-    tokmd_model::collect_file_rows(
-        scan.languages(),
-        module_roots,
-        module_depth,
-        children,
-        Some(scan.strip_prefix()),
-    )
-}
-
-fn collect_materialized_export_data(
-    scan: &tokmd_scan::MaterializedScan,
-    export: &ExportSettings,
-) -> ExportData {
-    let mut rows = collect_materialized_rows(
-        scan,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-    );
-
-    if let Some(strip_prefix) = export.strip_prefix.as_deref() {
-        rows = strip_virtual_export_prefix(
-            rows,
-            strip_prefix,
-            &export.module_roots,
-            export.module_depth,
-        );
-    }
-
-    tokmd_model::create_export_data_from_rows(
-        rows,
-        &export.module_roots,
-        export.module_depth,
-        export.children,
-        export.min_code,
-        export.max_rows,
-    )
+fn analyze_prepared_input(
+    prepared: PreparedAnalysisInput,
+    analyze: &AnalyzeSettings,
+) -> Result<AnalysisReceipt> {
+    let PreparedAnalysisInput {
+        export_receipt,
+        logical_inputs,
+        root,
+        materialized_scan: _materialized_scan,
+    } = prepared;
+    analyze_with_export_receipt(export_receipt, logical_inputs, root, analyze)
 }
 
 fn child_include_mode_to_string(mode: ChildIncludeMode) -> String {
