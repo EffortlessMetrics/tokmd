@@ -788,6 +788,7 @@ paths = [
   "crates/tokmd/src/cli/**",
   "crates/tokmd/src/commands/**",
   "crates/tokmd/src/config.rs",
+  "crates/tokmd/src/config/**",
   "crates/tokmd/src/error_hints.rs",
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/config_resolution.rs",
