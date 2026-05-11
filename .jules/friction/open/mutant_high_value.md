@@ -1,12 +1,12 @@
----
+# Friction Item
+
 id: mutant_high_value
 persona: Mutant
 style: Prover
 shard: core-pipeline
 status: open
----
-# Missed mutant gap was hallucinated
 
+## Problem
 During the assignment `mutant_high_value`, I was prompted to target a high-value core surface and provide mutation-style proof improvements.
 
 However, upon running `cargo mutants -p tokmd-types`, the results showed 25 mutants tested, 21 caught, and 4 unviable. Exactly **0** mutants were missed.
