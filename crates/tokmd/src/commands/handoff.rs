@@ -6,20 +6,17 @@
 //! - `intelligence.json`: Tree + hotspots + complexity + derived
 //! - `code.txt`: Token-budgeted code bundle
 
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::cli;
 use anyhow::{Context, Result, bail};
-use blake3::Hasher;
 use tokmd_model as model;
 use tokmd_scan as scan;
 use tokmd_scan::{add_exclude_pattern, normalize_exclude_pattern};
 use tokmd_types::{
-    ArtifactEntry, ArtifactHash, ExportData, FileKind, HANDOFF_SCHEMA_VERSION, HandoffExcludedPath,
-    HandoffManifest, ToolInfo,
+    FileKind, HANDOFF_SCHEMA_VERSION, HandoffExcludedPath, HandoffManifest, ToolInfo,
 };
 
 use crate::context_pack;
@@ -27,9 +24,11 @@ use crate::progress::Progress;
 
 mod capabilities;
 mod intelligence;
+mod output;
 
 use capabilities::{detect_capabilities, should_compute_git};
 use intelligence::build_intelligence;
+use output::{write_manifest_json, write_payloads};
 
 const DEFAULT_TREE_DEPTH: usize = 4;
 
@@ -145,70 +144,19 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         .unwrap_or_default()
         .as_millis();
 
-    // Write map.jsonl
-    let map_path = args.out_dir.join("map.jsonl");
-    let map_bytes = write_map_jsonl(&map_path, &export)?;
-    let map_hash = hash_file(&map_path)?;
-
-    // Write intelligence.json
-    let intel_path = args.out_dir.join("intelligence.json");
-    let intel_json = serde_json::to_string_pretty(&intelligence)?;
-    fs::write(&intel_path, &intel_json)
-        .with_context(|| format!("Failed to write {}", intel_path.display()))?;
-    let intel_bytes = intel_json.len() as u64;
-    let intel_hash = hash_bytes(intel_json.as_bytes());
-
-    // Write code.txt
-    let code_path = args.out_dir.join("code.txt");
-    let code_bytes = write_code_bundle(&code_path, &selected, args.compress)?;
-    let code_hash = hash_file(&code_path)?;
-
-    // Build artifacts list
-    let artifacts = vec![
-        ArtifactEntry {
-            name: "manifest".to_string(),
-            path: "manifest.json".to_string(),
-            description: "Bundle metadata and capabilities".to_string(),
-            bytes: 0, // Self-referential hash is omitted
-            hash: None,
-        },
-        ArtifactEntry {
-            name: "map".to_string(),
-            path: "map.jsonl".to_string(),
-            description: "Complete file inventory".to_string(),
-            bytes: map_bytes,
-            hash: Some(ArtifactHash {
-                algo: "blake3".to_string(),
-                hash: map_hash,
-            }),
-        },
-        ArtifactEntry {
-            name: "intelligence".to_string(),
-            path: "intelligence.json".to_string(),
-            description: "Tree, hotspots, complexity, and derived metrics".to_string(),
-            bytes: intel_bytes,
-            hash: Some(ArtifactHash {
-                algo: "blake3".to_string(),
-                hash: intel_hash,
-            }),
-        },
-        ArtifactEntry {
-            name: "code".to_string(),
-            path: "code.txt".to_string(),
-            description: "Token-budgeted code bundle".to_string(),
-            bytes: code_bytes,
-            hash: Some(ArtifactHash {
-                algo: "blake3".to_string(),
-                hash: code_hash,
-            }),
-        },
-    ];
+    let payloads = write_payloads(
+        &args.out_dir,
+        &export,
+        &intelligence,
+        &selected,
+        args.compress,
+    )?;
 
     // Compute token estimation and audit
     let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
     let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
     let code_audit =
-        tokmd_types::TokenAudit::from_output(code_bytes as u64, total_file_bytes as u64);
+        tokmd_types::TokenAudit::from_output(payloads.code_bytes, total_file_bytes as u64);
 
     // Write manifest.json
     let manifest = HandoffManifest {
@@ -224,7 +172,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         strategy: format!("{:?}", args.strategy).to_lowercase(),
         rank_by: format!("{:?}", args.rank_by).to_lowercase(),
         capabilities: capabilities.clone(),
-        artifacts,
+        artifacts: payloads.artifacts,
         included_files: selected.clone(),
         excluded_paths: excluded_paths.clone(),
         excluded_patterns: scan_args.excluded.clone(),
@@ -247,19 +195,19 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         code_audit: Some(code_audit),
     };
 
-    let manifest_path = args.out_dir.join("manifest.json");
-    let manifest_json = serde_json::to_string_pretty(&manifest)?;
-    fs::write(&manifest_path, &manifest_json)
-        .with_context(|| format!("Failed to write {}", manifest_path.display()))?;
+    let manifest_bytes = write_manifest_json(&args.out_dir, &manifest)?;
 
     progress.finish_and_clear();
 
     // Print summary
     eprintln!("Wrote handoff bundle to {}", args.out_dir.display());
-    eprintln!("  - manifest.json ({} bytes)", manifest_json.len());
-    eprintln!("  - map.jsonl ({} bytes)", map_bytes);
-    eprintln!("  - intelligence.json ({} bytes)", intel_bytes);
-    eprintln!("  - code.txt ({} bytes)", code_bytes);
+    eprintln!("  - manifest.json ({} bytes)", manifest_bytes);
+    eprintln!("  - map.jsonl ({} bytes)", payloads.map_bytes);
+    eprintln!(
+        "  - intelligence.json ({} bytes)",
+        payloads.intelligence_bytes
+    );
+    eprintln!("  - code.txt ({} bytes)", payloads.code_bytes);
     eprintln!(
         "  - Token usage: {}/{} ({:.1}%)",
         used_tokens, budget, utilization
@@ -271,104 +219,6 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
     );
 
     Ok(())
-}
-
-/// Write file inventory as JSONL.
-fn write_map_jsonl(path: &Path, export: &ExportData) -> Result<u64> {
-    let file =
-        File::create(path).with_context(|| format!("Failed to create {}", path.display()))?;
-    let mut writer = std::io::BufWriter::new(file);
-    let mut bytes: u64 = 0;
-
-    for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let json = serde_json::to_string(row)?;
-        writeln!(writer, "{}", json)?;
-        bytes += json.len() as u64 + 1; // +1 for newline
-    }
-
-    writer.flush()?;
-    Ok(bytes)
-}
-
-/// Write code bundle with file contents, dispatching based on inclusion policy.
-fn write_code_bundle(
-    path: &Path,
-    selected: &[tokmd_types::ContextFileRow],
-    compress: bool,
-) -> Result<u64> {
-    let file =
-        File::create(path).with_context(|| format!("Failed to create {}", path.display()))?;
-    let mut writer = std::io::BufWriter::new(file);
-    let mut bytes: u64 = 0;
-
-    for ctx_file in selected {
-        let file_path = PathBuf::from(&ctx_file.path);
-        if !file_path.exists() {
-            continue;
-        }
-
-        match ctx_file.policy {
-            tokmd_types::InclusionPolicy::Full => {
-                let header = format!("// === {} ===\n", ctx_file.path);
-                writer.write_all(header.as_bytes())?;
-                bytes += header.len() as u64;
-
-                if compress {
-                    let f = File::open(&file_path)
-                        .with_context(|| format!("Failed to open file: {}", file_path.display()))?;
-                    let reader = BufReader::new(f);
-                    for line in reader.lines() {
-                        let line = line.with_context(|| {
-                            format!("Failed to read file: {}", file_path.display())
-                        })?;
-                        if !line.trim().is_empty() {
-                            writeln!(writer, "{}", line)?;
-                            bytes += line.len() as u64 + 1;
-                        }
-                    }
-                    writeln!(writer)?;
-                    bytes += 1;
-                } else {
-                    let content = fs::read_to_string(&file_path)
-                        .with_context(|| format!("Failed to read file: {}", file_path.display()))?;
-                    writer.write_all(content.as_bytes())?;
-                    bytes += content.len() as u64;
-                    if !content.ends_with('\n') {
-                        writeln!(writer)?;
-                        bytes += 1;
-                    }
-                    writeln!(writer)?;
-                    bytes += 1;
-                }
-            }
-            tokmd_types::InclusionPolicy::HeadTail => {
-                let header = format!("// === {} ===\n", ctx_file.path);
-                writer.write_all(header.as_bytes())?;
-                bytes += header.len() as u64;
-
-                // Capture head/tail output to count bytes
-                let mut buf = Vec::new();
-                crate::context_pack::write_head_tail(&mut buf, &file_path, ctx_file, compress)?;
-                writer.write_all(&buf)?;
-                bytes += buf.len() as u64;
-
-                writeln!(writer)?;
-                bytes += 1;
-            }
-            tokmd_types::InclusionPolicy::Summary | tokmd_types::InclusionPolicy::Skip => {
-                let header = format!(
-                    "// === {} [skipped: {}] ===\n\n",
-                    ctx_file.path,
-                    ctx_file.policy_reason.as_deref().unwrap_or("policy")
-                );
-                writer.write_all(header.as_bytes())?;
-                bytes += header.len() as u64;
-            }
-        }
-    }
-
-    writer.flush()?;
-    Ok(bytes)
 }
 
 fn exclude_output_dir(
@@ -386,25 +236,6 @@ fn exclude_output_dir(
     }]
 }
 
-fn hash_bytes(bytes: &[u8]) -> String {
-    blake3::hash(bytes).to_hex().to_string()
-}
-
-fn hash_file(path: &Path) -> Result<String> {
-    let mut file =
-        File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
-    let mut hasher = Hasher::new();
-    let mut buf = [0u8; 8 * 1024];
-    loop {
-        let n = file.read(&mut buf)?;
-        if n == 0 {
-            break;
-        }
-        hasher.update(&buf[..n]);
-    }
-    Ok(hasher.finalize().to_hex().to_string())
-}
-
 /// Round a float to N decimal places.
 fn round_f64(value: f64, decimals: u32) -> f64 {
     let factor = 10_f64.powi(decimals as i32);
@@ -415,7 +246,7 @@ fn round_f64(value: f64, decimals: u32) -> f64 {
 mod tests {
     use super::*;
     use tokmd_scan::normalize_slashes as normalize_path;
-    use tokmd_types::FileRow;
+    use tokmd_types::{ExportData, FileRow};
 
     #[test]
     fn test_normalize_path() {
