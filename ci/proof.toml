@@ -177,6 +177,7 @@ proof = [
   "cargo test -p tokmd-core module_workflow --verbose",
   "cargo test -p tokmd-core export_workflow --verbose",
   "cargo test -p tokmd-core diff_workflow --verbose",
+  "cargo test -p tokmd-core --all-features analyze_workflow --verbose",
   "cargo test -p tokmd-core ffi",
   "cargo test -p tokmd-core --test ffi_parity_w53",
 ]
