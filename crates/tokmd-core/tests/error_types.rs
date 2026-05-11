@@ -154,6 +154,7 @@ mod error_factory_methods {
         assert_eq!(err.code, ErrorCode::InvalidSettings);
         assert!(err.message.contains("format"));
         assert!(err.message.contains("'md' or 'json'"));
+        assert_eq!(err.details, Some("format".to_string()));
     }
 
     #[test]
