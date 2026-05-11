@@ -21,6 +21,7 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 mod analysis;
+mod badge;
 mod cockpit;
 mod context;
 mod diff;
@@ -31,6 +32,7 @@ mod tools;
 pub use analysis::{
     AnalysisPreset, CliAnalyzeArgs, EffortLayer, EffortModelKind, ImportGranularity, NearDupScope,
 };
+pub use badge::{BadgeArgs, BadgeMetric};
 pub use cockpit::{BaselineArgs, CockpitArgs, CockpitFormat, DiffRangeMode};
 pub use context::{
     CliContextArgs, ContextOutput, ContextStrategy, HandoffArgs, HandoffPreset, ValueMetric,
@@ -550,41 +552,6 @@ pub struct CliExportArgs {
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct BadgeArgs {
-    /// Inputs to analyze (run dir, receipt.json, export.jsonl, or paths).
-    #[arg(value_name = "INPUT", default_value = ".")]
-    pub inputs: Vec<PathBuf>,
-
-    /// Metric to render.
-    #[arg(long, value_enum)]
-    pub metric: BadgeMetric,
-
-    /// Optional analysis preset to use for the badge.
-    #[arg(long, value_enum)]
-    pub preset: Option<AnalysisPreset>,
-
-    /// Force-enable git-based metrics.
-    #[arg(long, action = clap::ArgAction::SetTrue, conflicts_with = "no_git")]
-    pub git: bool,
-
-    /// Disable git-based metrics.
-    #[arg(long = "no-git", action = clap::ArgAction::SetTrue, conflicts_with = "git")]
-    pub no_git: bool,
-
-    /// Limit how many commits are scanned for git metrics.
-    #[arg(long)]
-    pub max_commits: Option<usize>,
-
-    /// Limit files per commit when scanning git history.
-    #[arg(long)]
-    pub max_commit_files: Option<usize>,
-
-    /// Output file for the badge (defaults to stdout).
-    #[arg(long, visible_alias = "out")]
-    pub output: Option<PathBuf>,
-}
-
-#[derive(Args, Debug, Clone)]
 pub struct InitArgs {
     /// Target directory (defaults to ".").
     #[arg(long, value_name = "DIR", default_value = ".")]
@@ -605,17 +572,6 @@ pub struct InitArgs {
     /// Skip interactive wizard and use defaults.
     #[arg(long)]
     pub non_interactive: bool,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum BadgeMetric {
-    Lines,
-    Tokens,
-    Bytes,
-    Doc,
-    Blank,
-    Hotspot,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
