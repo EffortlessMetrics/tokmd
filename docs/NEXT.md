@@ -198,6 +198,11 @@ granularity; avoid carving already-stable modules just because files exist.
   derived-analysis owner-module state: context selection/render/manifest/output
   owners are already split, and derived analysis has coherent distribution,
   integrity, ratio, file-metrics, and language-composition owners.
+- `tokmd-types` now has a dedicated context/handoff DTO owner module while
+  keeping root-level public re-exports, schema versions, and serde receipt
+  behavior stable. The `tokmd_context_handoff` and `schema_contracts` proof
+  scopes both route the new owner file to targeted context/handoff and schema
+  checks.
 - Cockpit's Rust complexity gate now delegates function-scoped source analysis
   to `tokmd-analysis::source_complexity` instead of owning a duplicate parser.
   The `else if` double-count is fixed as a correctness improvement; impact
