@@ -1,4 +1,5 @@
-{"command": "cargo test -p tokmd-format test_redact_path_leak", "result": "ok"}
-{"command": "cargo test -p tokmd-format redact", "result": "ok"}
-{"command": "cargo fmt-check", "result": "ok"}
-{"command": "git diff --check", "result": "ok"}
+{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo test -p tokmd-format redact", "output": "test result: ok. 28 passed; 0 failed"}
+{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo test -p tokmd-types determinism", "output": "test result: ok. 1 passed; 0 failed"}
+{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo fmt -- --check", "output": "Completed with no errors"}
+{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo clippy -- -D warnings", "output": "Completed with no errors"}
+{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo build -p tokmd-format -p tokmd-types", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"}

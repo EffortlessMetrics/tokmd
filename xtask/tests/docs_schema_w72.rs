@@ -144,6 +144,15 @@ fn schema_md_mentions_context_bundle_schema_version() {
     );
 }
 
+#[test]
+fn schema_md_mentions_tool_schema_version() {
+    let md = schema_md();
+    assert!(
+        md.contains("`TOOL_SCHEMA_VERSION`"),
+        "docs/SCHEMA.md must mention TOOL_SCHEMA_VERSION"
+    );
+}
+
 // ===========================================================================
 // 2. Schema version constants in code match what docs say
 // ===========================================================================
@@ -238,6 +247,18 @@ fn schema_md_baseline_version_matches_source() {
     assert_eq!(
         src, doc,
         "BASELINE_VERSION: source={src} != SCHEMA.md={doc}"
+    );
+}
+
+#[test]
+fn schema_md_tool_version_matches_source() {
+    let src = read_const_u32("crates/tokmd/src/tool_schema.rs", "TOOL_SCHEMA_VERSION")
+        .expect("TOOL_SCHEMA_VERSION not found in source");
+    let doc = schema_md_version(&schema_md(), "`TOOL_SCHEMA_VERSION`")
+        .expect("TOOL_SCHEMA_VERSION not found in SCHEMA.md");
+    assert_eq!(
+        src, doc,
+        "TOOL_SCHEMA_VERSION: source={src} != SCHEMA.md={doc}"
     );
 }
 

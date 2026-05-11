@@ -29,6 +29,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 | **Envelope** | `"sensor.report.v1"` | `SENSOR_REPORT_SCHEMA` | ecosystem envelope |
 | **Baseline** | 1 | `BASELINE_VERSION` | complexity/determinism baselines |
 | **Handoff** | 5 | `HANDOFF_SCHEMA_VERSION` | `handoff` manifest |
+| **Tool** | 1 | `TOOL_SCHEMA_VERSION` | `tools` definition |
 
 ### Version Changelog
 
@@ -70,6 +71,12 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 |---------|---------|
 | **1** | Initial baseline format with complexity tracking (`ComplexityBaseline`) and determinism verification (`DeterminismBaseline`) |
 
+#### Tool Schema (`TOOL_SCHEMA_VERSION`)
+
+| Version | Changes |
+|---------|---------|
+| **1** | Initial LLM tool definition schemas (OpenAI, Anthropic, JSON Schema) |
+
 #### Context Receipts (`CONTEXT_SCHEMA_VERSION`)
 
 | Version | Changes |
@@ -93,6 +100,7 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
 - **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
+- **Tool**: `crates/tokmd/src/tool_schema.rs` - `pub const TOOL_SCHEMA_VERSION: u32 = 1;`
 - **Context**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_SCHEMA_VERSION: u32 = 4;`
 - **Context Bundle**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;`
 
