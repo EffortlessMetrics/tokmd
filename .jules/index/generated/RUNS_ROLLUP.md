@@ -20,7 +20,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `fuzzer_input_hardening_1` | Fuzzer 🌪️ | Prover | interfaces | in-progress | 1 | live |
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
 | `invariant_model_analysis` | invariant | prover | analysis-stack | success | 0 | live |
-| `librarian_api_doctests` | Librarian | Prover | interfaces | in-progress | 0 | live |
+| `librarian_api_doctests` | Librarian | Prover | interfaces | success | 0 | live |
 | `librarian_docs_examples` | Librarian | Builder | tooling-governance | success | 0 | live |
 | `mutant_high_value` | Mutant | Prover | core-pipeline | in-progress | 0 | live |
 | `palette_binding_dx` | palette | prover | bindings-targets | success | 0 | live |
