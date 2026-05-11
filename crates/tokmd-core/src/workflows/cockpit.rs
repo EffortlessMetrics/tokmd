@@ -19,8 +19,26 @@ use crate::settings::CockpitSettings;
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust
+/// use std::fs;
+/// use std::process::Command;
 /// use tokmd_core::{cockpit_workflow, settings::CockpitSettings};
+///
+/// // Setup a temporary git repository for the test
+/// let temp = tempfile::tempdir().expect("tempdir");
+/// let dir = temp.path();
+/// Command::new("git").arg("init").current_dir(dir).output().expect("git init");
+/// Command::new("git").args(["config", "user.email", "test@example.com"]).current_dir(dir).output().expect("git config");
+/// Command::new("git").args(["config", "user.name", "Test User"]).current_dir(dir).output().expect("git config");
+/// fs::write(dir.join("main.rs"), "fn main() {}").expect("write");
+/// Command::new("git").args(["add", "main.rs"]).current_dir(dir).output().expect("git add");
+/// Command::new("git").args(["commit", "-m", "Initial commit"]).current_dir(dir).output().expect("git commit");
+/// fs::write(dir.join("main.rs"), "fn main() { println!(\"Hello\"); }").expect("write");
+/// Command::new("git").args(["commit", "-am", "Second commit"]).current_dir(dir).output().expect("git commit");
+///
+/// // Run from within the temporary git repository
+/// let original_dir = std::env::current_dir().expect("current dir");
+/// std::env::set_current_dir(dir).expect("cd");
 ///
 /// let settings = CockpitSettings {
 ///     base: "HEAD~1".to_string(),
@@ -31,6 +49,8 @@ use crate::settings::CockpitSettings;
 ///
 /// let receipt = cockpit_workflow(&settings).expect("Cockpit scan failed");
 /// assert!(!receipt.review_plan.is_empty());
+///
+/// std::env::set_current_dir(original_dir).expect("cd back");
 /// ```
 pub fn cockpit_workflow(
     settings: &CockpitSettings,

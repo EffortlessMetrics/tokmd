@@ -1,41 +1,50 @@
 ## 💡 Summary
-This is a learning PR. Made the `analysis_facade` doctest in `tokmd-core` executable to prevent silent drift, and recorded a friction item detailing why `cockpit_workflow` cannot easily be made executable without complex Git mocking.
+Converted `no_run` doctests in core workflows to executable tests and added missing CLI parsing examples. This improves executable test coverage across public APIs to prevent silent drift.
 
 ## 🎯 Why
-Several doctests in `tokmd-core` (like `cockpit_workflow` and `analysis_facade`) were marked with `no_run` which skips validation, potentially hiding compilation and runtime drift. This violates the `docs-executable` gate profile expectation. While `analysis_facade` was straightforward to fix, `cockpit_workflow` fails during `cargo test` because it implicitly relies on being executed inside an active Git repository.
+The `interfaces` shard has a `docs-executable` gate profile requiring that examples actually compile and run where possible. The `cockpit_workflow` had a `no_run` example that wasn't verifying the API contract, and the main `Cli` parser lacked an example demonstrating safe parsing (via `try_parse_from`).
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/lib.rs` had `rust,no_run` applied to multiple facade and workflow routines.
-- Running `cockpit_workflow` in a test environment without a properly initialized Git repository causes it to error with "not inside a git repository", leading to a test failure if `no_run` is removed.
+- `crates/tokmd-core/src/workflows/cockpit.rs` contained `/// ```rust,no_run`.
+- `crates/tokmd/src/cli/parser.rs` lacked a struct-level doctest.
+- `cargo test -p tokmd --doc` and `cargo test -p tokmd-core --doc` successfully executed the new doctests.
 
 ## 🧭 Options considered
-### Option A
-- Wrap the `cockpit_workflow` assertion in an `if let Ok(receipt) = ...` block to swallow the Git error.
-- Trade-offs: This is an anti-pattern. If the workflow fails due to missing Git context in CI, the test silently passes without executing the assertions, which is functionally no better than `no_run`.
+### Option A (recommended)
+- what it is: Update the existing `no_run` doctest in `cockpit_workflow` to use a temporary git repository via `tempfile` and `std::process::Command`, and add a `try_parse_from` test to `Cli`.
+- why it fits this repo and shard: Directly satisfies the `docs-executable` gate profile.
+- trade-offs: Structure is preserved. Velocity is slightly impacted by `git init` during doctest execution. Governance is improved through deterministic proof.
 
-### Option B (recommended)
-- Fix what can be cleanly executed (`analysis_facade`) and document the `cockpit_workflow` Git dependency issue as a friction item so that a proper mocking or temporary directory fixture solution can be implemented later.
-- Fits the `interfaces` shard properly without compromising test integrity.
+### Option B
+- what it is: Mock `tokmd-git` behavior for testing.
+- when to choose it instead: If git isn't available or takes too long.
+- trade-offs: Increases mocking surface area and reduces realism.
 
 ## ✅ Decision
-Selected Option B. We replaced `no_run` instances in `tokmd-core` for `analysis_facade` which has no external dependencies. We documented the `cockpit_workflow` issue as friction to avoid swallowing errors in tests.
+Option A. Leveraging a real temporary git repository provides concrete proof of the workflow's correctness without mocking.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-core/src/lib.rs`: Removed `no_run` from `analysis_facade`.
+- `crates/tokmd-core/src/workflows/cockpit.rs`: Replaced `no_run` doctest with an executable git-based setup.
+- `crates/tokmd/src/cli/parser.rs`: Added an executable doctest to `Cli` demonstrating `try_parse_from`.
 
 ## 🧪 Verification receipts
 ```text
-{"command": "cargo test -p tokmd-core --doc", "outcome": "Success (9 passed)"}
-{"command": "cargo fmt-check", "outcome": "Success"}
-{"command": "git diff --check", "outcome": "Success"}
+cargo test -p tokmd --doc
+test result: ok. 12 passed; 0 failed
+
+cargo test -p tokmd-core --doc --all-features
+test result: ok. 14 passed; 0 failed
+
+cargo fmt -- --check && cargo clippy -- -D warnings
+Finished `dev` profile
 ```
 
 ## 🧭 Telemetry
-- Change shape: Proof improvement and Learning.
-- Blast radius: API docs. Zero production logic altered.
-- Risk class: Low risk. Proof improvement.
-- Rollback: Safe to revert.
-- Gates run: `cargo test -p tokmd-core --doc`, `cargo fmt-check`, `git diff --check`.
+- Change shape: Test/docs improvement.
+- Blast radius: Docs / tests only.
+- Risk class: Low.
+- Rollback: Revert PR.
+- Gates run: `cargo test --doc`, `cargo fmt`, `cargo clippy`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -43,7 +52,6 @@ Selected Option B. We replaced `no_run` instances in `tokmd-core` for `analysis_
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
-- `.jules/friction/open/librarian_doctest_git_dependency.md`
 
 ## 🔜 Follow-ups
-- See friction item regarding `cockpit_workflow` needing a robust way to mock Git state in doctests.
+None.
