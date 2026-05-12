@@ -713,6 +713,7 @@ paths = [
   "crates/tokmd-model/src/sorting.rs",
   "crates/tokmd-model/tests/**",
   "crates/tokmd-scan/src/ignore_patterns.rs",
+  "crates/tokmd-scan/src/in_memory.rs",
   "crates/tokmd-scan/src/lib.rs",
   "crates/tokmd-scan/src/path/**",
   "crates/tokmd-scan/src/roots.rs",
