@@ -2,42 +2,18 @@
 
 use std::path::PathBuf;
 
-use clap::ValueEnum;
 use tokmd_settings::Profile;
 
 use crate::cli;
 
 use super::ResolvedConfig;
 
-fn parse_table_format(value: Option<&str>) -> Option<tokmd_types::TableFormat> {
-    value
-        .and_then(|s| cli::TableFormat::from_str(s, true).ok())
-        .map(Into::into)
-}
+mod parse;
 
-fn parse_children_mode(value: Option<&str>) -> Option<tokmd_types::ChildrenMode> {
-    value
-        .and_then(|s| cli::ChildrenMode::from_str(s, true).ok())
-        .map(Into::into)
-}
-
-fn parse_child_include_mode(value: Option<&str>) -> Option<tokmd_types::ChildIncludeMode> {
-    value
-        .and_then(|s| cli::ChildIncludeMode::from_str(s, true).ok())
-        .map(Into::into)
-}
-
-fn parse_export_format(value: Option<&str>) -> Option<tokmd_types::ExportFormat> {
-    value
-        .and_then(|s| cli::ExportFormat::from_str(s, true).ok())
-        .map(Into::into)
-}
-
-fn parse_redact_mode(value: Option<&str>) -> Option<tokmd_types::RedactMode> {
-    value
-        .and_then(|s| cli::RedactMode::from_str(s, true).ok())
-        .map(Into::into)
-}
+use parse::{
+    parse_child_include_mode, parse_children_mode, parse_export_format, parse_redact_mode,
+    parse_table_format,
+};
 
 /// Resolve CLI `lang` arguments combined with a legacy JSON profile.
 ///
