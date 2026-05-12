@@ -34,6 +34,14 @@
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+mod args;
+mod envelope;
+
+use args::build_args;
+use envelope::extract_data_json;
+#[cfg(test)]
+use envelope::{extract_envelope, map_envelope_error};
+
 // Custom exception for tokmd errors.
 //
 // SAFETY: This exception type is registered with the Python interpreter at module
@@ -130,23 +138,6 @@ fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<String> {
     // SAFETY: args_json has been validated, mode is a valid &str, all inputs are safe.
     // The closure captures no mutable state that could race with other threads.
     Ok(py.detach(|| tokmd_core::ffi::run_json(mode, args_json)))
-}
-
-fn map_envelope_error(err: tokmd_envelope::ffi::EnvelopeExtractError) -> PyErr {
-    TokmdError::new_err(err.to_string())
-}
-
-fn extract_data_json(result_json: &str) -> PyResult<String> {
-    tokmd_envelope::ffi::extract_data_json(result_json).map_err(map_envelope_error)
-}
-
-#[cfg(test)]
-fn extract_envelope(py: Python<'_>, envelope: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
-    let json_module = py.import("json")?;
-    let envelope_json: String = json_module.call_method1("dumps", (envelope,))?.extract()?;
-    let data_json = extract_data_json(&envelope_json)?;
-    let data = json_module.call_method1("loads", (data_json,))?;
-    Ok(data.unbind())
 }
 
 /// Run a tokmd operation and return the result as a Python dict.
@@ -598,68 +589,6 @@ fn cockpit(
         args.set_item("baseline", bl)?;
     }
     run(py, "cockpit", &args)
-}
-
-/// Helper to build common arguments dict.
-///
-/// # FFI Safety: Why `PyResult<Bound<'py, PyDict>>`
-///
-/// This function returns `PyResult` instead of a raw `Bound` because every
-/// `PyDict::set_item()` call can fail if the Python interpreter raises an
-/// exception (e.g., `__hash__` or `__eq__` failure on custom types).
-///
-/// # Why `?` Instead of `.expect()`
-///
-/// **NEVER use `.expect()` in production FFI code.** A panic would:
-/// - Abort the entire Python interpreter process
-/// - Destroy all Python objects and state
-/// - Provide no useful error information to the Python caller
-///
-/// The `?` operator converts any PyO3 error to a `PyErr`, which becomes a
-/// proper Python exception that can be caught and handled.
-///
-/// # Invariant: Host Process Safety
-///
-/// Every `?` in this function is a safety boundary:
-/// - `set_item("paths", ...)?` - Ensures paths list is valid
-/// - `set_item("top", ...)?` - Ensures top value is hashable
-/// - etc.
-///
-/// If any set_item fails, we return `Err` immediately, preserving the
-/// Python interpreter's consistency.
-fn build_args<'py>(
-    py: Python<'py>,
-    paths: Option<Vec<String>>,
-    top: usize,
-    excluded: Option<Vec<String>>,
-    hidden: bool,
-) -> PyResult<Bound<'py, PyDict>> {
-    let args = PyDict::new(py);
-
-    // NOTE: Using `?` after each set_item. If the Python interpreter is
-    // in an exceptional state (rare but possible), these operations can
-    // fail. We propagate rather than panic.
-    if let Some(p) = paths {
-        args.set_item("paths", p)?;
-    } else {
-        args.set_item("paths", vec!["."])?;
-    }
-
-    if top > 0 {
-        args.set_item("top", top)?;
-    }
-
-    if let Some(ex) = excluded
-        && !ex.is_empty()
-    {
-        args.set_item("excluded", ex)?;
-    }
-
-    if hidden {
-        args.set_item("hidden", hidden)?;
-    }
-
-    Ok(args)
 }
 
 /// The tokmd Python module.
