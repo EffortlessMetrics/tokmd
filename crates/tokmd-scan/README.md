@@ -18,6 +18,7 @@ Raw scanning and config translation should live behind one boundary instead of l
 - `scan_in_memory` writes logical inputs into a temporary root and keeps the logical paths alive for downstream model code.
 - `config_from_scan_options` maps `ScanOptions` into `tokei::Config`.
 - `src/roots.rs`, `src/path/`, and their tests are the canonical reference for root validation and caller-facing report path rebasing.
+- `src/walk/git.rs` owns git-backed listing, subprocess environment scrubbing, and tracked-file path bounding for repository walks.
 - `src/lib.rs` remains the public scan facade and ignore-handling reference.
 
 ## Go deeper
@@ -25,4 +26,5 @@ Raw scanning and config translation should live behind one boundary instead of l
 - How-to: [Troubleshooting](../../docs/troubleshooting.md)
 - Reference: [src/lib.rs](src/lib.rs)
 - Reference: [src/roots.rs](src/roots.rs)
+- Reference: [src/walk/git.rs](src/walk/git.rs)
 - Explanation: [Architecture](../../docs/architecture.md)

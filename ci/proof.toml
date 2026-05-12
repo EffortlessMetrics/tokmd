@@ -699,6 +699,7 @@ name = "git_subprocess_boundary"
 kind = "rust"
 paths = [
   "crates/tokmd-git/src/lib.rs",
+  "crates/tokmd-scan/src/walk/git.rs",
   "crates/tokmd-scan/src/walk/mod.rs",
   "crates/tokmd/src/git_support.rs",
 ]
