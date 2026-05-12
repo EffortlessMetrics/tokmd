@@ -289,6 +289,8 @@ fn wrappers_scan_small_repo() {
             Some("none"),
             None,
             false,
+            true,
+            None,
         )
         .expect("export should succeed");
         let export_dict = export_result.cast_bound::<PyDict>(py).expect("export dict");
@@ -367,6 +369,8 @@ fn wrappers_scan_small_repo_defaults() {
             None,
             None,
             false,
+            true,
+            None,
         )
         .expect("export should succeed");
         let export_dict = export_result.cast_bound::<PyDict>(py).expect("export dict");
@@ -411,6 +415,40 @@ fn wrappers_scan_small_repo_defaults() {
                 .extract::<String>()
                 .unwrap(),
             "analysis"
+        );
+    });
+}
+
+#[test]
+fn export_forwards_strip_prefix_option() {
+    with_py(|py| {
+        let repo = make_repo("fn main() { println!(\"hi\"); }\n");
+        let path = repo.path().to_string_lossy().to_string();
+
+        let export_result = export(
+            py,
+            Some(vec![path.clone()]),
+            Some("json"),
+            0,
+            0,
+            None,
+            2,
+            Some("separate"),
+            Some("none"),
+            None,
+            false,
+            false,
+            Some(&path),
+        )
+        .expect("export should succeed");
+        let export_dict = export_result.cast_bound::<PyDict>(py).expect("export dict");
+        let args = export_dict.get_item("args").unwrap().unwrap();
+        assert_eq!(
+            args.get_item("strip_prefix")
+                .unwrap()
+                .extract::<String>()
+                .unwrap(),
+            path
         );
     });
 }
@@ -785,6 +823,8 @@ fn red_test_python_ffi_all_wrappers_return_pyresult() {
             None,
             None,
             false,
+            true,
+            None,
         );
 
         // analyze() - should return PyResult

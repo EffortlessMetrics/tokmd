@@ -64,6 +64,10 @@ export interface ExportOptions {
   min_code?: number;
   /** Maximum rows to return (0 = unlimited) */
   max_rows?: number;
+  /** Include a meta record in JSON/JSONL output (default: true) */
+  meta?: boolean;
+  /** Strip this prefix from output paths */
+  strip_prefix?: string;
   /** How to handle embedded languages ("collapse" or "separate") */
   children?: "collapse" | "separate";
   /** Redaction mode ("none", "paths", "all") */

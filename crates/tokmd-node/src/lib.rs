@@ -177,6 +177,8 @@ pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 /// @param options.format - Output format ("jsonl", "json", "csv", "cyclonedx")
 /// @param options.min_code - Minimum lines of code to include (default: 0)
 /// @param options.max_rows - Maximum rows to return (0 = unlimited)
+/// @param options.meta - Include a meta record in JSON/JSONL output (default: true)
+/// @param options.strip_prefix - Strip this prefix from output paths (optional)
 /// @returns Promise resolving to export receipt
 ///
 /// @example
@@ -370,6 +372,25 @@ mod tests {
                 .as_array()
                 .map(|r| !r.is_empty())
                 .unwrap_or(false)
+        );
+    }
+
+    #[test]
+    fn export_accepts_meta_and_strip_prefix_options() {
+        let repo = make_repo("fn main() { println!(\"hi\"); }\n");
+        let path = repo.path().to_string_lossy().to_string();
+
+        let export_result = block_on(export_fn(Some(json!({
+            "paths": [path.clone()],
+            "format": "json",
+            "meta": false,
+            "strip_prefix": path.clone(),
+        }))))
+        .expect("export should succeed");
+
+        assert_eq!(
+            export_result["args"]["strip_prefix"].as_str().unwrap_or(""),
+            path
         );
     }
 

@@ -196,3 +196,9 @@ class TestExportOptions:
 
         result = tokmd.export(paths=["src"], max_rows=10)
         assert result["args"]["max_rows"] == 10
+
+    def test_meta_and_strip_prefix_are_accepted(self):
+        import tokmd
+
+        result = tokmd.export(paths=["src"], meta=False, strip_prefix="src")
+        assert result["args"]["strip_prefix"] == "src"
