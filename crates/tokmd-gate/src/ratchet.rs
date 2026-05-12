@@ -1,5 +1,6 @@
 //! Ratchet rule evaluation logic.
 
+use crate::numeric::value_to_f64;
 use crate::pointer::resolve_pointer;
 use crate::types::{RatchetConfig, RatchetGateResult, RatchetResult, RatchetRule, RuleLevel};
 use serde_json::Value;
@@ -325,15 +326,6 @@ pub fn evaluate_ratchet_policy(
     }
 
     RatchetGateResult::from_results(ratchet_results)
-}
-
-/// Convert a JSON value to f64 for numeric comparison.
-fn value_to_f64(v: &Value) -> Option<f64> {
-    match v {
-        Value::Number(n) => n.as_f64(),
-        Value::String(s) => s.parse().ok(),
-        _ => None,
-    }
 }
 
 #[cfg(test)]

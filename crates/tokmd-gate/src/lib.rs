@@ -28,6 +28,7 @@
 //! ```
 
 mod evaluate;
+mod numeric;
 mod pointer;
 mod ratchet;
 mod types;

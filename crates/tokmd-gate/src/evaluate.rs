@@ -1,5 +1,6 @@
 //! Policy evaluation logic.
 
+use crate::numeric::value_to_f64;
 use crate::pointer::resolve_pointer;
 use crate::types::{GateResult, PolicyConfig, PolicyRule, RuleLevel, RuleOperator, RuleResult};
 use serde_json::Value;
@@ -234,15 +235,6 @@ fn compare_contains(actual: &Value, expected: Option<&Value>) -> Result<bool, &'
             Ok(false)
         }
         _ => Err("contains is only valid for string or array actual values"),
-    }
-}
-
-/// Convert a JSON value to f64 for numeric comparison.
-fn value_to_f64(v: &Value) -> Option<f64> {
-    match v {
-        Value::Number(n) => n.as_f64(),
-        Value::String(s) => s.parse().ok(),
-        _ => None,
     }
 }
 
