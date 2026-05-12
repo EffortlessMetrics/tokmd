@@ -29,6 +29,7 @@ Option A was chosen to investigate the config resolvers. Upon investigation, the
 
 ## 🧪 Verification receipts
 ```text
+cargo xtask docs --check
 cargo test --doc
 ```
 

@@ -7,4 +7,4 @@ Add concrete executable doctests to `tokmd`'s CLI config resolvers (`resolve_lan
 Add doctests to workflow execution modules. This might duplicate the existing integration tests and focus less on public APIs than the configuration layer.
 
 ### Decision
-Option A. The `resolve_*` and `resolve_*_with_config` functions are directly responsible for mapping complex user-facing configurations (CLI args + profile + toml) and currently lack execution coverage in `resolve_export.rs` and `resolve_module.rs`. I will add doctests to these resolver methods.
+Option A was investigated because the `resolve_*` and `resolve_*_with_config` functions directly map complex user-facing configuration (CLI args + profile + toml) into command settings. The current `resolve_export.rs` and `resolve_module.rs` interfaces already have executable doctest coverage, so no code changes or new doctests are required for this shard.
