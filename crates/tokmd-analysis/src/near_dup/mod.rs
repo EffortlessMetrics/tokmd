@@ -9,13 +9,10 @@
 //! 6. Emit pairs exceeding the similarity threshold
 
 use std::collections::BTreeMap;
-use std::io::Read;
 use std::path::Path;
 
 use anyhow::Result;
 use globset::{Glob, GlobSetBuilder};
-use rustc_hash::FxHasher;
-use std::hash::{Hash, Hasher};
 
 use tokmd_analysis_types::{
     NearDupAlgorithm, NearDupPairRow, NearDupParams, NearDupScope, NearDupStats,
@@ -24,7 +21,12 @@ use tokmd_analysis_types::{
 use tokmd_types::{ExportData, FileKind};
 
 mod clusters;
+mod fingerprint;
 use clusters::build_clusters;
+use fingerprint::{K, MAX_POSTINGS, W, read_and_fingerprint};
+
+#[cfg(test)]
+use fingerprint::{tokenize, winnow};
 
 #[cfg(test)]
 #[path = "tests.rs"]
@@ -37,13 +39,6 @@ pub(crate) struct NearDupLimits {
     pub(crate) max_bytes: Option<u64>,
     pub(crate) max_file_bytes: Option<u64>,
 }
-
-/// Default k-gram size (number of tokens per shingle).
-const K: usize = 25;
-/// Winnowing window size.
-const W: usize = 4;
-/// Skip fingerprints appearing in more than this many files (common boilerplate).
-const MAX_POSTINGS: usize = 50;
 
 /// Build a near-duplicate report for the given export data.
 #[allow(clippy::too_many_arguments)]
@@ -279,90 +274,6 @@ fn partition_files(files: &[&tokmd_types::FileRow], scope: NearDupScope) -> Vec<
             map.into_values().collect()
         }
     }
-}
-
-/// Read a file and compute its Winnowing fingerprints.
-fn read_and_fingerprint(path: &Path) -> Result<Vec<u64>> {
-    let mut content = String::new();
-    let mut file = std::fs::File::open(path)?;
-    file.read_to_string(&mut content)?;
-
-    Ok(winnow(&content))
-}
-
-/// Tokenize text by splitting on non-alphanumeric/underscore boundaries.
-fn tokenize(text: &str) -> Vec<&str> {
-    let mut tokens = Vec::new();
-    let bytes = text.as_bytes();
-    let mut start = None;
-
-    for (i, &b) in bytes.iter().enumerate() {
-        let is_token_char = b.is_ascii_alphanumeric() || b == b'_';
-        match (start, is_token_char) {
-            (None, true) => start = Some(i),
-            (Some(s), false) => {
-                tokens.push(&text[s..i]);
-                start = None;
-            }
-            _ => {}
-        }
-    }
-    if let Some(s) = start {
-        tokens.push(&text[s..]);
-    }
-    tokens
-}
-
-/// Hash a k-gram (slice of tokens) using FxHash.
-fn hash_kgram(tokens: &[&str]) -> u64 {
-    let mut hasher = FxHasher::default();
-    for t in tokens {
-        t.hash(&mut hasher);
-    }
-    hasher.finish()
-}
-
-/// Apply the Winnowing algorithm to extract fingerprints from text.
-fn winnow(text: &str) -> Vec<u64> {
-    let tokens = tokenize(text);
-    if tokens.len() < K {
-        return Vec::new();
-    }
-
-    // Build k-gram hashes
-    let kgram_count = tokens.len() - K + 1;
-    let hashes: Vec<u64> = (0..kgram_count)
-        .map(|i| hash_kgram(&tokens[i..i + K]))
-        .collect();
-
-    if hashes.len() < W {
-        // Not enough hashes for winnowing; return all
-        return hashes;
-    }
-
-    // Winnowing: in each window of W hashes, select the minimum
-    let mut fingerprints = Vec::new();
-    let mut prev_min_idx: Option<usize> = None;
-
-    for window_start in 0..=(hashes.len() - W) {
-        let window = &hashes[window_start..window_start + W];
-        // Find rightmost minimum in window
-        let mut min_val = window[0];
-        let mut min_idx = window_start;
-        for (offset, &h) in window.iter().enumerate() {
-            if h <= min_val {
-                min_val = h;
-                min_idx = window_start + offset;
-            }
-        }
-
-        if prev_min_idx != Some(min_idx) {
-            fingerprints.push(min_val);
-            prev_min_idx = Some(min_idx);
-        }
-    }
-
-    fingerprints
 }
 
 fn round4(v: f64) -> f64 {
