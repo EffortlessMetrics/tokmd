@@ -1,8 +1,7 @@
 //! Language summary table rendering.
 //!
 //! This module owns Markdown and TSV rendering for `LangReport`. The parent
-//! summary module keeps command dispatch, JSON receipts, file writing, and
-//! public helper exports.
+//! summary module keeps command dispatch and public helper exports.
 
 use std::fmt::Write as FmtWrite;
 
