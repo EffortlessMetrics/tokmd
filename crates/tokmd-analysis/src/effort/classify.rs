@@ -1,6 +1,6 @@
 //! File classification support for effort size-basis calculations.
 //!
-//! This module owns `.gitattributes` classification, generated/vendored
+//! This module coordinates `.gitattributes` classification, generated/vendored
 //! sentinels, and heuristic path tagging. Size-basis aggregation stays in the
 //! parent module.
 
@@ -8,6 +8,11 @@ use std::path::{Path, PathBuf};
 use std::{fs, io::BufRead, io::BufReader};
 
 use tokmd_types::FileRow;
+
+mod gitattributes;
+
+use gitattributes::matches_path_pattern;
+pub(super) use gitattributes::{GitAttrRule, load_gitattributes};
 
 #[derive(Debug, Clone, Copy)]
 pub(super) enum FileKind {
@@ -39,14 +44,6 @@ impl ClassKind {
             Self::Unknown => 0.0,
         }
     }
-}
-
-#[derive(Debug)]
-pub(super) struct GitAttrRule {
-    kind: ClassKind,
-    pattern: String,
-    #[allow(dead_code)]
-    source: String,
 }
 
 pub(super) fn classify_row(
@@ -117,52 +114,6 @@ pub(super) fn tag_name(kind: &FileKind) -> &str {
         FileKind::Ui => "ui",
         FileKind::Data => "data",
     }
-}
-
-pub(super) fn load_gitattributes(root: &Path) -> Vec<GitAttrRule> {
-    if !has_host_root(root) {
-        return Vec::new();
-    }
-
-    let path = root.join(".gitattributes");
-    let file = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(_) => return Vec::new(),
-    };
-
-    let mut rules = Vec::new();
-    for raw in file.lines() {
-        let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-
-        let mut parts = line.split_whitespace().map(str::trim).collect::<Vec<_>>();
-        if parts.len() < 2 {
-            continue;
-        }
-
-        let pattern = parts.remove(0).to_string();
-        let flags = parts.join(" ");
-
-        let kind = if flags.contains("linguist-generated") {
-            ClassKind::Generated
-        } else if flags.contains("linguist-vendored") {
-            ClassKind::Vendored
-        } else {
-            ClassKind::Unknown
-        };
-
-        if !matches!(kind, ClassKind::Unknown) {
-            rules.push(GitAttrRule {
-                kind,
-                pattern,
-                source: raw.to_string(),
-            });
-        }
-    }
-
-    rules
 }
 
 fn has_host_root(root: &Path) -> bool {
@@ -263,36 +214,4 @@ fn looks_build_path(path: &str) -> bool {
 
 fn looks_infra_path(row: &FileRow) -> bool {
     tokmd_analysis_types::is_infra_lang(&row.lang)
-}
-
-fn matches_path_pattern(path: &str, root: &Path, pattern: &str) -> bool {
-    let path_lower = path.to_lowercase();
-    let pattern_lower = pattern.to_lowercase();
-
-    if pattern_lower.is_empty() {
-        return false;
-    }
-
-    if pattern_lower.starts_with("*") {
-        let suffix = pattern_lower.trim_start_matches('*');
-        if suffix.is_empty() {
-            return false;
-        }
-        return path_lower.ends_with(suffix);
-    }
-
-    if pattern_lower.ends_with("/") {
-        return path_lower.starts_with(&pattern_lower);
-    }
-
-    if path_lower.contains(&pattern_lower) {
-        return true;
-    }
-
-    if !has_host_root(root) {
-        return false;
-    }
-
-    let full = root.join(PathBuf::from(path));
-    full.ends_with(&pattern_lower)
 }
