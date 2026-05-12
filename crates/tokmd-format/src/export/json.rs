@@ -1,7 +1,8 @@
 //! JSON file-level export rendering.
 //!
 //! This module owns the JSON export receipt envelope and bare row-array output.
-//! The parent export module keeps format dispatch and shared row redaction.
+//! The parent export module keeps format dispatch and the public test-helper
+//! facade stable.
 
 use std::io::Write;
 
