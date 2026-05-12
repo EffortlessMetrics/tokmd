@@ -1,5 +1,9 @@
 //! Ratchet rule evaluation logic.
 
+mod change;
+
+use change::percentage_change;
+
 use crate::numeric::value_to_f64;
 use crate::pointer::resolve_pointer;
 use crate::types::{RatchetConfig, RatchetGateResult, RatchetResult, RatchetRule, RuleLevel};
@@ -47,18 +51,7 @@ pub(crate) fn evaluate_ratchet(
     // Extract baseline value (may be None)
     let baseline_value = baseline_resolved.and_then(value_to_f64);
 
-    // Calculate percentage change if baseline exists
-    let change_pct = baseline_value.map(|bv| {
-        if bv == 0.0 {
-            if current_value == 0.0 {
-                0.0
-            } else {
-                f64::INFINITY
-            }
-        } else {
-            ((current_value - bv) / bv) * 100.0
-        }
-    });
+    let change_pct = percentage_change(baseline_value, current_value);
 
     // Check max_value constraint (absolute ceiling)
     if let Some(max_val) = rule.max_value
@@ -190,18 +183,7 @@ pub fn evaluate_ratchet_with_options(
     // Extract baseline value
     let baseline_value = baseline_resolved.and_then(value_to_f64);
 
-    // Calculate percentage change if baseline exists
-    let change_pct = baseline_value.map(|bv| {
-        if bv == 0.0 {
-            if current_value == 0.0 {
-                0.0
-            } else {
-                f64::INFINITY
-            }
-        } else {
-            ((current_value - bv) / bv) * 100.0
-        }
-    });
+    let change_pct = percentage_change(baseline_value, current_value);
 
     // Check max_value constraint (absolute ceiling)
     if let Some(max_val) = rule.max_value
