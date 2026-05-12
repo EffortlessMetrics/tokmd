@@ -15,15 +15,16 @@ use anyhow::Result;
 use globset::{Glob, GlobSetBuilder};
 
 use tokmd_analysis_types::{
-    NearDupAlgorithm, NearDupPairRow, NearDupParams, NearDupScope, NearDupStats,
-    NearDuplicateReport,
+    NearDupAlgorithm, NearDupParams, NearDupScope, NearDupStats, NearDuplicateReport,
 };
 use tokmd_types::{ExportData, FileKind};
 
 mod clusters;
 mod fingerprint;
+mod pairs;
 use clusters::build_clusters;
 use fingerprint::{K, MAX_POSTINGS, W, read_and_fingerprint};
+use pairs::build_pairs;
 
 #[cfg(test)]
 use fingerprint::{tokenize, winnow};
@@ -114,7 +115,6 @@ pub(crate) fn build_near_dup_report(
     // Partition files by scope
     let partitions = partition_files(&files, scope);
 
-    let mut all_pairs: Vec<NearDupPairRow> = Vec::new();
     let mut bytes_processed: u64 = 0;
 
     let fp_start = std::time::Instant::now();
@@ -141,75 +141,10 @@ pub(crate) fn build_near_dup_report(
     }
 
     let fingerprinting_ms = fp_start.elapsed().as_millis() as u64;
-    let pair_start = std::time::Instant::now();
-
     // Phase 2: Pairing
-    for file_fingerprints in &partition_fps {
-        if file_fingerprints.len() < 2 {
-            continue;
-        }
-
-        // Build inverted index: fingerprint -> list of (local_idx) into file_fingerprints
-        let mut inverted: BTreeMap<u64, Vec<usize>> = BTreeMap::new();
-        for (local_idx, (_, fps)) in file_fingerprints.iter().enumerate() {
-            for &fp in fps {
-                inverted.entry(fp).or_default().push(local_idx);
-            }
-        }
-
-        // Count shared fingerprints per pair
-        let mut pair_shared: BTreeMap<(usize, usize), usize> = BTreeMap::new();
-        for posting_list in inverted.values() {
-            if posting_list.len() > MAX_POSTINGS {
-                continue;
-            }
-            for i in 0..posting_list.len() {
-                for j in (i + 1)..posting_list.len() {
-                    let a = posting_list[i];
-                    let b = posting_list[j];
-                    if a == b {
-                        continue; // skip self-pairs
-                    }
-                    let key = if a <= b { (a, b) } else { (b, a) };
-                    *pair_shared.entry(key).or_insert(0) += 1;
-                }
-            }
-        }
-
-        // Compute Jaccard similarity per pair
-        for ((a, b), shared) in pair_shared {
-            let fp_a = file_fingerprints[a].1.len();
-            let fp_b = file_fingerprints[b].1.len();
-            let union = fp_a + fp_b - shared;
-            if union == 0 {
-                continue;
-            }
-            let similarity = shared as f64 / union as f64;
-            if similarity >= threshold {
-                let idx_a = file_fingerprints[a].0;
-                let idx_b = file_fingerprints[b].0;
-                all_pairs.push(NearDupPairRow {
-                    left: files[idx_a].path.clone(),
-                    right: files[idx_b].path.clone(),
-                    similarity: round4(similarity),
-                    shared_fingerprints: shared,
-                    left_fingerprints: fp_a,
-                    right_fingerprints: fp_b,
-                });
-            }
-        }
-    }
-
-    let pairing_ms = pair_start.elapsed().as_millis() as u64;
-
-    // Sort by similarity desc, then by left path, then by right path
-    all_pairs.sort_by(|a, b| {
-        b.similarity
-            .partial_cmp(&a.similarity)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.left.cmp(&b.left))
-            .then_with(|| a.right.cmp(&b.right))
-    });
+    let pairing = build_pairs(&partition_fps, &files, threshold);
+    let mut all_pairs = pairing.pairs;
+    let pairing_ms = pairing.pairing_ms;
 
     // Build clusters from ALL pairs (before truncation)
     let clusters = if all_pairs.is_empty() {
@@ -276,10 +211,6 @@ fn partition_files(files: &[&tokmd_types::FileRow], scope: NearDupScope) -> Vec<
     }
 }
 
-fn round4(v: f64) -> f64 {
-    (v * 10000.0).round() / 10000.0
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -328,58 +259,6 @@ mod tests {
     // ---------------------------------------------------------------
     // Algorithm constants in params
     // ---------------------------------------------------------------
-
-    #[test]
-    fn pair_sort_deterministic_with_right_tiebreak() {
-        let mut pairs = [
-            NearDupPairRow {
-                left: "a.rs".to_string(),
-                right: "c.rs".to_string(),
-                similarity: 0.90,
-                shared_fingerprints: 10,
-                left_fingerprints: 20,
-                right_fingerprints: 20,
-            },
-            NearDupPairRow {
-                left: "a.rs".to_string(),
-                right: "b.rs".to_string(),
-                similarity: 0.90,
-                shared_fingerprints: 10,
-                left_fingerprints: 20,
-                right_fingerprints: 20,
-            },
-        ];
-        pairs.sort_by(|a, b| {
-            b.similarity
-                .partial_cmp(&a.similarity)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.left.cmp(&b.left))
-                .then_with(|| a.right.cmp(&b.right))
-        });
-        // Same similarity, same left => ordered by right
-        assert_eq!(pairs[0].right, "b.rs");
-        assert_eq!(pairs[1].right, "c.rs");
-    }
-
-    #[test]
-    fn self_pair_guard_skips_same_index() {
-        // If a posting list has the same local_idx twice (shouldn't happen
-        // with deduped fingerprints, but belt-and-suspenders), the guard skips it.
-        let posting_list = [0usize, 0, 1];
-        let mut pair_count = 0;
-        for i in 0..posting_list.len() {
-            for j in (i + 1)..posting_list.len() {
-                let a = posting_list[i];
-                let b = posting_list[j];
-                if a == b {
-                    continue;
-                }
-                pair_count += 1;
-            }
-        }
-        // (0,0) at (0,1) => skipped; (0,1) at (0,2) => counted; (0,1) at (1,2) => counted
-        assert_eq!(pair_count, 2);
-    }
 
     #[test]
     fn algorithm_constants_match() {
