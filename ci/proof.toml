@@ -226,6 +226,19 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "tokmd_node_binding"
+kind = "rust"
+paths = [
+  "crates/tokmd-node/src/**",
+  "crates/tokmd-node/index.d.ts",
+  "crates/tokmd-node/npm/index.d.ts",
+]
+packages = ["tokmd-node"]
+proof = ["cargo check -p tokmd-node --all-targets"]
+mutation = false
+coverage = false
+
+[[scope]]
 name = "lint_policy"
 kind = "rust"
 paths = [

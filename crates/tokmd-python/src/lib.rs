@@ -188,6 +188,8 @@ fn module(
 ///     redact: Redaction mode (default: "none")
 ///     excluded: List of glob patterns to exclude (default: [])
 ///     hidden: Include hidden files (default: False)
+///     meta: Include a meta record in JSON/JSONL output (default: True)
+///     strip_prefix: Strip this prefix from output paths (default: None)
 ///
 /// Returns:
 ///     dict: Export receipt with file rows and metadata
@@ -199,7 +201,7 @@ fn module(
 #[cfg_attr(not(test), pyfunction)]
 #[cfg_attr(
     not(test),
-    pyo3(signature = (paths=None, format=None, min_code=0, max_rows=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))
+    pyo3(signature = (paths=None, format=None, min_code=0, max_rows=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false, meta=true, strip_prefix=None))
 )]
 #[allow(clippy::too_many_arguments)]
 fn export(
@@ -214,6 +216,8 @@ fn export(
     redact: Option<&str>,
     excluded: Option<Vec<String>>,
     hidden: bool,
+    meta: bool,
+    strip_prefix: Option<&str>,
 ) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, 0, excluded, hidden)?;
     args.set_item("min_code", min_code)?;
@@ -230,6 +234,10 @@ fn export(
     }
     if let Some(r) = redact {
         args.set_item("redact", r)?;
+    }
+    args.set_item("meta", meta)?;
+    if let Some(prefix) = strip_prefix {
+        args.set_item("strip_prefix", prefix)?;
     }
     run(py, "export", &args)
 }

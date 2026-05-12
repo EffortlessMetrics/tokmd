@@ -26,6 +26,8 @@ export interface ExportOptions {
   format?: 'jsonl' | 'json' | 'csv' | 'cyclonedx'
   min_code?: number
   max_rows?: number
+  meta?: boolean
+  strip_prefix?: string
   module_roots?: string[]
   module_depth?: number
   children?: 'separate' | 'parents-only'
