@@ -276,6 +276,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-analysis/Cargo.toml",
   "crates/tokmd-analysis/src/analysis.rs",
+  "crates/tokmd-analysis/src/analysis/**",
   "crates/tokmd-analysis/src/grid/**",
   "crates/tokmd-analysis/src/lib.rs",
   "crates/tokmd-analysis/tests/capability_reporting_w53.rs",
@@ -289,7 +290,8 @@ paths = [
 ]
 packages = ["tokmd-analysis", "tokmd"]
 proof = [
-  "cargo test -p tokmd-analysis --all-features orchestration --verbose",
+  "cargo test -p tokmd-analysis --all-features --test orchestrator --test orchestration_w54 --test orchestration_w68 --test orchestration_w73 --verbose",
+  "cargo test -p tokmd-analysis --all-features --test orchestration receipt --verbose",
   "cargo test -p tokmd-analysis --all-features feature --verbose",
   "cargo test -p tokmd --test analyze_integration --verbose",
   "cargo test -p tokmd --test bdd_analyze_scenarios_w50 --verbose",
