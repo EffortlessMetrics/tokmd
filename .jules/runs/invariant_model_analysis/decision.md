@@ -1,17 +1,15 @@
-## Target Selection
-Target: `tokmd-analysis` derived property testing.
-Invariant: The `test_density` and `boilerplate` ratio metrics must always be bounded mathematically to the unit range `[0.0, 1.0]`.
+# Decision
 
-### Option A (recommended)
-Add property tests asserting the unit-range boundary invariants of `test_density` and `boilerplate` against the arbitrary `FileRow` generation corpus.
-- Fits this repo and shard as it strictly reinforces model guarantees.
-- Structure: high, guarantees expected output schema constraints.
-- Velocity: medium, low runtime impact, high stability.
-- Governance: matches the 'property' gate expectations for invariant testing.
+## Option A
+Add property tests for the `distribution_median`, `distribution_percentiles`, and `histogram_bucket_bounds` invariants in `crates/tokmd-analysis/src/derived/tests/properties.rs`.
 
-### Option B
-Manually exhaust all possible `lines`, `code`, `infra` and `test` combinations with targeted edge case unit tests.
-- High manual toil, does not fully lock the invariant against combinations proptest might surface later.
+These invariants reflect important facts about the analysis:
+1. `distribution_median_is_correct` - median should accurately reflect the 50th percentile.
+2. `distribution_percentiles_are_correct` - p90 and p99 should accurately reflect the underlying `tokmd_scan::percentile` calculations over sizes.
+3. `histogram_bucket_bounds_are_ordered_and_non_overlapping` - bucket sizes should remain contiguous with `prev.max.unwrap() + 1 == curr.min` allowing no gaps or overlap.
+
+## Option B
+Find an alternative location to add property tests. But the existing `derived::tests::properties` clearly contains a gap because only `distribution_count`, `min_le_max`, `mean_between_min_max` and `gini` were verified, ignoring other critical metrics returned by `build_distribution_report` and `build_histogram`.
 
 ## Decision
-Chosen Option A. Generating arbitrary file rows and evaluating `derive_report` is the highest-signal proof that the derived model does not break fundamental unit range mathematical constraints.
+Choose Option A. I have implemented and verified all three new invariants which reduce uncertainty over these analytical outputs using proptest properties in the analysis crate tests.

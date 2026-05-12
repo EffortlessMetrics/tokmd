@@ -12,8 +12,5 @@
     "docs/**"
   ],
   "gate_profile": "property",
-  "allowed_outcomes": [
-    "proof-improvement patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
 }

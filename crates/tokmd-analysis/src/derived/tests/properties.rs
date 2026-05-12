@@ -146,6 +146,24 @@ proptest! {
     }
 
     #[test]
+    fn distribution_median_is_correct(rows in arb_file_rows()) {
+        let mut sizes: Vec<usize> = rows.iter().map(|r| r.lines).collect();
+        sizes.sort();
+
+        let expected_median = if sizes.is_empty() {
+            0.0
+        } else if sizes.len() % 2 == 1 {
+            sizes[sizes.len() / 2] as f64
+        } else {
+            (sizes[sizes.len() / 2 - 1] as f64 + sizes[sizes.len() / 2] as f64) / 2.0
+        };
+
+        let report = derive_report(&export(rows), None);
+        let d = &report.distribution;
+        prop_assert_eq!(d.median, round_f64(expected_median, 2));
+    }
+
+    #[test]
     fn distribution_mean_between_min_and_max(rows in arb_file_rows()) {
         let report = derive_report(&export(rows), None);
         let d = &report.distribution;
@@ -154,6 +172,16 @@ proptest! {
             "mean ({}) should be in [{}, {}]",
             d.mean, d.min, d.max
         );
+    }
+
+    #[test]
+    fn distribution_percentiles_are_correct(rows in arb_file_rows()) {
+        let mut sizes: Vec<usize> = rows.iter().map(|r| r.lines).collect();
+        sizes.sort();
+
+        let report = derive_report(&export(rows), None);
+        prop_assert_eq!(report.distribution.p90, round_f64(tokmd_scan::percentile(&sizes, 0.90), 2));
+        prop_assert_eq!(report.distribution.p99, round_f64(tokmd_scan::percentile(&sizes, 0.99), 2));
     }
 
     #[test]
@@ -182,6 +210,18 @@ proptest! {
             "histogram pcts should sum to ~1.0, got {}",
             total_pct
         );
+    }
+
+    #[test]
+    fn histogram_bucket_bounds_are_ordered_and_non_overlapping(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        for window in report.histogram.windows(2) {
+            let prev = &window[0];
+            let curr = &window[1];
+            prop_assert!(prev.max.is_some(), "Only the last bucket can have an unbounded max");
+            prop_assert_eq!(prev.max.unwrap() + 1, curr.min, "Buckets must be strictly adjacent");
+            prop_assert!(curr.max.is_none() || curr.max.unwrap() >= curr.min, "Bucket max must be >= min");
+        }
     }
 
     #[test]

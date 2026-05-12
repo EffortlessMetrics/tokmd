@@ -1,45 +1,48 @@
 ## 💡 Summary
-Added two new property-based tests in `tokmd-analysis` to explicitly lock in the unit range invariant `[0.0, 1.0]` for `test_density.ratio` and `boilerplate.ratio`.
+Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
 
 ## 🎯 Why
-The codebase has `TestDensityReport` and `BoilerplateReport` outputs within the `AnalysisReceipt`. These reports calculate ratios based on code logic and infrastructure lines. By mathematically defining boundaries around these metric values, we strengthen the reliability of our reports across any potential combination of inputs. Missing property tests for these left edge behavior unverified against extreme values surfaced by proptest.
+Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
 
 ## 🔎 Evidence
-- File path: `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Finding: `test_density` and `boilerplate` metrics lacked property-based test invariants verifying that the final generated output `.ratio` fields are securely bounded between `0.0` and `1.0`.
+- `crates/tokmd-analysis/src/derived/tests/properties.rs`
+- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
+- Proptest coverage now properly models these bounds and constraints.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Add property tests asserting the unit-range boundary invariants of `test_density` and `boilerplate` against the arbitrary `FileRow` generation corpus.
-- Fits this repo and shard as it strictly reinforces model guarantees.
-- Structure: high, guarantees expected output schema constraints.
-- Velocity: medium, low runtime impact, high stability.
-- Governance: matches the 'property' gate expectations for invariant testing.
+- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
+- Fits the analysis-stack by increasing deterministic guarantees in data generation.
+- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
 
 ### Option B
-Manually exhaust all possible `lines`, `code`, `infra` and `test` combinations with targeted edge case unit tests.
-- High manual toil, does not fully lock the invariant against combinations proptest might surface later.
+- Add deterministic hard-coded unit test values.
+- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
+- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
 
 ## ✅ Decision
-Chosen Option A. Generating arbitrary file rows and evaluating `derive_report` is the highest-signal proof that the derived model does not break fundamental unit range mathematical constraints.
+Chose Option A to enforce invariants across arbitrary file arrays properly.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs`
-  - Added `test_density_ratio_in_unit_range`
-  - Added `boilerplate_ratio_in_unit_range`
+- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis test_density_ratio_in_unit_range
-cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range
+cargo test -p tokmd-analysis --lib derived::tests::properties
+...
+test derived::tests::properties::distribution_median_is_correct ... ok
+test derived::tests::properties::distribution_percentiles_are_correct ... ok
+test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
+...
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Internal tests only
-- Blast radius: `tokmd-analysis` tests
+- Change shape: Test/Proof improvement
+- Blast radius: Internal test surface only
 - Risk class: Low
 - Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis`
+- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
@@ -49,4 +52,4 @@ cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range
 - `.jules/runs/invariant_model_analysis/pr_body.md`
 
 ## 🔜 Follow-ups
-None
+None.

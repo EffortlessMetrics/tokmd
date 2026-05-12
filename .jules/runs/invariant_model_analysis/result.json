@@ -1,5 +1,11 @@
 {
-  "status": "success",
-  "patch_type": "proof-improvement",
-  "message": "Added property tests asserting unit-range bounds for test_density and boilerplate metrics."
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd-analysis/src/derived/tests/properties.rs"
+  ],
+  "invariants_added": [
+    "distribution_median_is_correct",
+    "distribution_percentiles_are_correct",
+    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
+  ]
 }
