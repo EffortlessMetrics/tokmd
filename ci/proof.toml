@@ -727,6 +727,18 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_git_intent_classification"
+kind = "rust"
+paths = ["crates/tokmd-git/src/intent.rs"]
+packages = ["tokmd-git", "tokmd-analysis"]
+proof = [
+  "cargo test -p tokmd-git classify --verbose",
+  "cargo test -p tokmd-analysis --all-features intent --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "format_analysis_rendering"
 kind = "rust"
 paths = [
