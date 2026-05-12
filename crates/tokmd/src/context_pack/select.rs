@@ -1,7 +1,5 @@
 //! File selection algorithms for LLM context packing.
 
-use std::collections::BTreeMap;
-
 use crate::cli::{ContextStrategy, ValueMetric};
 use tokmd_core::context_git::GitScores;
 use tokmd_core::context_policy::{
@@ -16,6 +14,7 @@ use tokmd_types::{
 };
 
 mod pack;
+mod policy;
 
 use pack::to_context_row_with_reason;
 #[cfg(test)]
@@ -216,73 +215,8 @@ pub fn select_files_with_options(
     // Collect candidates back into a Vec<FileRow> (needed by pack functions)
     let candidate_rows: Vec<FileRow> = candidates.into_iter().cloned().collect();
 
-    struct FileContextMeta {
-        classifications: Vec<FileClassification>,
-        policy: InclusionPolicy,
-        policy_reason: Option<String>,
-        original_tokens: usize,
-    }
-
     // Step 2: Classify all candidates and compute file cap
-    let file_cap = compute_file_cap(budget, options);
-    let mut file_meta_map: BTreeMap<String, FileContextMeta> = BTreeMap::new();
-    let mut excluded_by_policy: Vec<PolicyExcludedFile> = Vec::new();
-
-    for row in candidate_rows.iter().filter(|r| r.kind == FileKind::Parent) {
-        let path = normalize_path(&row.path);
-        let classes = classify_file(&path, row.tokens, row.lines, options.dense_threshold);
-        let (policy, reason) = assign_policy(row.tokens, file_cap, &classes);
-
-        file_meta_map.insert(
-            path.clone(),
-            FileContextMeta {
-                classifications: classes.clone(),
-                policy,
-                policy_reason: reason.clone(),
-                original_tokens: row.tokens,
-            },
-        );
-
-        // Skip/Summary → move to excluded_by_policy
-        if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
-            excluded_by_policy.push(PolicyExcludedFile {
-                path,
-                original_tokens: row.tokens,
-                policy,
-                reason: reason.unwrap_or_default(),
-                classifications: classes,
-            });
-        }
-    }
-
-    // Step 3: Build pack candidates (excluding policy-skipped files, adjusting tokens for HeadTail)
-    let excluded_paths: std::collections::BTreeSet<&str> =
-        excluded_by_policy.iter().map(|e| e.path.as_str()).collect();
-
-    let pack_rows: Vec<FileRow> = candidate_rows
-        .iter()
-        .filter(|r| {
-            if r.kind != FileKind::Parent {
-                return true; // Children pass through (filtered by pack fns)
-            }
-            let path = normalize_path(&r.path);
-            !excluded_paths.contains(path.as_str())
-        })
-        .map(|r| {
-            let path = normalize_path(&r.path);
-            if let Some(meta) = file_meta_map.get(&path)
-                && meta.policy == InclusionPolicy::HeadTail
-            {
-                // Clamp tokens for budget accounting
-                let capped = r.tokens.min(file_cap);
-                return FileRow {
-                    tokens: capped,
-                    ..r.clone()
-                };
-            }
-            r.clone()
-        })
-        .collect();
+    let policy_selection = policy::prepare_policy_selection(&candidate_rows, budget, options);
 
     // Step 4: Spine reservation
     let spine_budget = std::cmp::min(
@@ -290,7 +224,8 @@ pub fn select_files_with_options(
         SPINE_BUDGET_CAP,
     );
 
-    let parents: Vec<&FileRow> = pack_rows
+    let parents: Vec<&FileRow> = policy_selection
+        .pack_rows
         .iter()
         .filter(|r| r.kind == FileKind::Parent)
         .collect();
@@ -321,7 +256,8 @@ pub fn select_files_with_options(
 
     // Step 5: Normal selection with remaining budget, excluding spine files
     let remaining_budget = budget.saturating_sub(spine_used);
-    let non_spine_rows: Vec<FileRow> = pack_rows
+    let non_spine_rows: Vec<FileRow> = policy_selection
+        .pack_rows
         .iter()
         .filter(|r| !spine_paths.contains(&r.path.as_str()))
         .cloned()
@@ -354,25 +290,12 @@ pub fn select_files_with_options(
     selected.extend(ranked);
 
     // Step 7: Annotate each selected file with policy, classifications, effective_tokens
-    for file in &mut selected {
-        let path = normalize_path(&file.path);
-        if let Some(meta) = file_meta_map.get(&path) {
-            file.classifications = meta.classifications.clone();
-            file.policy = meta.policy;
-            file.policy_reason = meta.policy_reason.clone();
-            if meta.policy == InclusionPolicy::HeadTail {
-                // effective_tokens is the capped value (file.tokens was already capped)
-                file.effective_tokens = Some(file.tokens);
-                // Restore original tokens so density calculation (tokens/line) is correct
-                file.tokens = meta.original_tokens;
-            }
-        }
-    }
+    policy_selection.annotate_selected(&mut selected);
 
     SelectResult {
         selected,
         smart_excluded,
-        excluded_by_policy,
+        excluded_by_policy: policy_selection.excluded_by_policy,
         rank_by_effective: metric_name.to_string(),
         fallback_reason: resolved.fallback_reason,
     }

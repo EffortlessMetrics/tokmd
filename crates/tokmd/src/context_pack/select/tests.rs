@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::BTreeMap;
 
 fn make_test_row(path: &str, module: &str, lang: &str, tokens: usize, code: usize) -> FileRow {
     FileRow {
