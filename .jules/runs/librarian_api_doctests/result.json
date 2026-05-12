@@ -1,5 +1,1 @@
-{
-  "status": "success",
-  "outcome": "proof-improvement",
-  "summary": "Converted the 'no_run' doctest in 'cockpit_workflow' to an executable test using a temporary git repository, and added an executable doctest to the CLI parser struct demonstrating 'try_parse_from'."
-}
+{"status": "success", "outcome": "learning"}

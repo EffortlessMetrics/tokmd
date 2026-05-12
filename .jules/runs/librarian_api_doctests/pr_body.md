@@ -1,50 +1,43 @@
 ## 💡 Summary
-Converted `no_run` doctests in core workflows to executable tests and added missing CLI parsing examples. This improves executable test coverage across public APIs to prevent silent drift.
+This is a learning PR. I investigated adding executable doctests to the config resolver interfaces (`crates/tokmd/src/config/resolve/`) but found they already have comprehensive, passing doctest coverage.
 
 ## 🎯 Why
-The `interfaces` shard has a `docs-executable` gate profile requiring that examples actually compile and run where possible. The `cockpit_workflow` had a `no_run` example that wasn't verifying the API contract, and the main `Cli` parser lacked an example demonstrating safe parsing (via `try_parse_from`).
+The goal was to improve factual docs quality and executable examples for public interfaces to prevent silent drift.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/workflows/cockpit.rs` contained `/// ```rust,no_run`.
-- `crates/tokmd/src/cli/parser.rs` lacked a struct-level doctest.
-- `cargo test -p tokmd --doc` and `cargo test -p tokmd-core --doc` successfully executed the new doctests.
+- `crates/tokmd/src/config/resolve/export.rs`
+- `crates/tokmd/src/config/resolve/module.rs`
+- `crates/tokmd/src/config/resolve/lang.rs`
+- The `resolve_*` and `resolve_*_with_config` functions all have `/// # Examples` sections containing executable ````rust` doctests.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update the existing `no_run` doctest in `cockpit_workflow` to use a temporary git repository via `tempfile` and `std::process::Command`, and add a `try_parse_from` test to `Cli`.
-- why it fits this repo and shard: Directly satisfies the `docs-executable` gate profile.
-- trade-offs: Structure is preserved. Velocity is slightly impacted by `git init` during doctest execution. Governance is improved through deterministic proof.
+- Add doctests to config resolvers (`resolve_lang`, `resolve_export`, etc.).
+- This fits the shard by directly targeting the core CLI configuration interfaces.
+- Trade-offs: Structure is improved by ensuring public APIs have executable examples. Velocity is unaffected. Governance is improved by preventing silent drift.
 
 ### Option B
-- what it is: Mock `tokmd-git` behavior for testing.
-- when to choose it instead: If git isn't available or takes too long.
-- trade-offs: Increases mocking surface area and reduces realism.
+- Add doctests to `tokmd_core::workflows`.
+- Choose this if the config layer is already fully covered.
+- Trade-offs: Might duplicate existing integration tests, focusing less on public APIs than the configuration layer.
 
 ## ✅ Decision
-Option A. Leveraging a real temporary git repository provides concrete proof of the workflow's correctness without mocking.
+Option A was chosen to investigate the config resolvers. Upon investigation, the config resolvers already have comprehensive doctest coverage. Therefore, this is submitted as a learning PR instead of forcing a fake fix.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-core/src/workflows/cockpit.rs`: Replaced `no_run` doctest with an executable git-based setup.
-- `crates/tokmd/src/cli/parser.rs`: Added an executable doctest to `Cli` demonstrating `try_parse_from`.
+- None. This is a learning PR.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd --doc
-test result: ok. 12 passed; 0 failed
-
-cargo test -p tokmd-core --doc --all-features
-test result: ok. 14 passed; 0 failed
-
-cargo fmt -- --check && cargo clippy -- -D warnings
-Finished `dev` profile
+cargo test --doc
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test/docs improvement.
-- Blast radius: Docs / tests only.
-- Risk class: Low.
-- Rollback: Revert PR.
-- Gates run: `cargo test --doc`, `cargo fmt`, `cargo clippy`.
+- Change shape: learning PR
+- Blast radius: none
+- Risk class: none (learning PR)
+- Rollback: none
+- Gates run: docs-executable (cargo xtask docs --check, cargo test --doc)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -52,6 +45,7 @@ Finished `dev` profile
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
+- `.jules/friction/open/config_resolver_doctests.md`
 
 ## 🔜 Follow-ups
 None.

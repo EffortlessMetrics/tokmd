@@ -1,3 +1,4 @@
-{"timestamp": "2024-05-18T10:00:00Z", "command": "cargo test -p tokmd --doc", "output": "test result: ok. 12 passed; 0 failed"}
-{"timestamp": "2024-05-18T10:00:10Z", "command": "cargo test -p tokmd-core --doc", "output": "test result: ok. 10 passed; 0 failed"}
-{"timestamp": "2024-05-18T10:00:20Z", "command": "cargo fmt -- --check && cargo clippy -- -D warnings", "output": "Finished `dev` profile"}
+{"timestamp": "2026-05-12T21:14:00Z", "command": "cargo xtask docs --check", "output": "Documentation is up to date.\n"}
+{"timestamp": "2026-05-12T21:14:00Z", "command": "cargo test --doc", "output": "test crates/tokmd/src/config/resolve/export.rs - config::resolve::export::resolve_export_with_config (line 92) ... ok\ntest crates/tokmd/src/config/resolve/module.rs - config::resolve::module::resolve_module_with_config (line 76) ... ok\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n"}
+{"timestamp": "2026-05-12T21:18:00Z", "command": "cargo test --doc", "output": "test crates/tokmd/src/config/resolve/export.rs - config::resolve::export::resolve_export_with_config (line 92) ... ok\ntest crates/tokmd/src/config/resolve/module.rs - config::resolve::module::resolve_module_with_config (line 76) ... ok\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n"}
+{"timestamp": "2026-05-12T21:18:00Z", "command": "cargo xtask docs --check", "output": "Documentation is up to date.\n"}
