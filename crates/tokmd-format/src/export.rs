@@ -8,8 +8,8 @@ use serde::Serialize;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow,
-    RedactMode, ScanArgs, ScanStatus, ToolInfo,
+    ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileRow, RedactMode,
+    ScanArgs, ScanStatus, ToolInfo,
 };
 
 use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
@@ -18,8 +18,10 @@ use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
 // Export (datasets)
 // -----------------
 
+mod csv;
 mod cyclonedx;
 
+use csv::write_export_csv;
 use cyclonedx::{write_export_cyclonedx, write_export_cyclonedx_impl};
 
 #[derive(Debug, Clone, Serialize)]
@@ -74,42 +76,6 @@ fn write_export_to<W: Write>(
         ExportFormat::Json => write_export_json(out, export, global, args),
         ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
     }
-}
-
-fn write_export_csv<W: Write>(out: &mut W, export: &ExportData, args: &ExportArgs) -> Result<()> {
-    let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(out);
-    wtr.write_record([
-        "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes", "tokens",
-    ])?;
-
-    for r in redact_rows(&export.rows, args.redact) {
-        let code = r.code.to_string();
-        let comments = r.comments.to_string();
-        let blanks = r.blanks.to_string();
-        let lines = r.lines.to_string();
-        let bytes = r.bytes.to_string();
-        let tokens = r.tokens.to_string();
-        let kind = match r.kind {
-            FileKind::Parent => "parent",
-            FileKind::Child => "child",
-        };
-
-        wtr.write_record([
-            r.path.as_str(),
-            r.module.as_str(),
-            r.lang.as_str(),
-            kind,
-            &code,
-            &comments,
-            &blanks,
-            &lines,
-            &bytes,
-            &tokens,
-        ])?;
-    }
-
-    wtr.flush()?;
-    Ok(())
 }
 
 fn write_export_jsonl<W: Write>(
@@ -359,6 +325,8 @@ pub fn write_export_cyclonedx_with_options<W: Write>(
 mod tests {
     use super::*;
     use proptest::prelude::*;
+    use tokmd_types::FileKind;
+
     fn sample_file_rows() -> Vec<FileRow> {
         vec![
             FileRow {
