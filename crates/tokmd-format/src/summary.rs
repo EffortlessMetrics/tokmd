@@ -1,4 +1,3 @@
-use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
 
@@ -6,15 +5,15 @@ use anyhow::Result;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
-    LangArgs, LangArgsMeta, LangReceipt, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
-    ModuleReport, RedactMode, ScanArgs, ScanStatus, TableFormat, ToolInfo,
+    LangArgs, LangArgsMeta, LangReport, ModuleArgs, ModuleArgsMeta, ModuleReport, RedactMode,
+    ScanArgs, TableFormat,
 };
 
-use crate::{now_ms, redact_module_roots, scan_args, short_hash};
-
+mod json;
 mod lang;
 mod module;
 
+use json::{write_lang_json, write_module_json};
 use lang::{render_lang_md, render_lang_tsv};
 use module::{render_module_md, render_module_tsv};
 
@@ -39,23 +38,7 @@ pub fn write_lang_report_to<W: Write>(
             out.write_all(render_lang_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
-            let receipt = LangReceipt {
-                schema_version: tokmd_types::SCHEMA_VERSION,
-                generated_at_ms: now_ms(),
-                tool: ToolInfo::current(),
-                mode: "lang".to_string(),
-                status: ScanStatus::Complete,
-                warnings: vec![],
-                scan: scan_args(&args.paths, global, None),
-                args: LangArgsMeta {
-                    format: "json".to_string(),
-                    top: report.top,
-                    with_files: report.with_files,
-                    children: report.children,
-                },
-                report: report.clone(),
-            };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            write_lang_json(out, report, global, args)?;
         }
     }
     Ok(())
@@ -91,24 +74,7 @@ pub fn write_module_report_to<W: Write>(
             out.write_all(render_module_tsv(report).as_bytes())?;
         }
         TableFormat::Json => {
-            let receipt = ModuleReceipt {
-                schema_version: tokmd_types::SCHEMA_VERSION,
-                generated_at_ms: now_ms(),
-                tool: ToolInfo::current(),
-                mode: "module".to_string(),
-                status: ScanStatus::Complete,
-                warnings: vec![],
-                scan: scan_args(&args.paths, global, None),
-                args: ModuleArgsMeta {
-                    format: "json".to_string(),
-                    top: report.top,
-                    module_roots: report.module_roots.clone(),
-                    module_depth: report.module_depth,
-                    children: report.children,
-                },
-                report: report.clone(),
-            };
-            writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
+            write_module_json(out, report, global, args)?;
         }
     }
     Ok(())
@@ -142,20 +108,7 @@ pub fn write_lang_json_to_file(
     scan: &ScanArgs,
     args_meta: &LangArgsMeta,
 ) -> Result<()> {
-    let receipt = LangReceipt {
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "lang".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: args_meta.clone(),
-        report: report.clone(),
-    };
-    let file = File::create(path)?;
-    serde_json::to_writer(file, &receipt)?;
-    Ok(())
+    json::write_lang_json_to_file(path, report, scan, args_meta)
 }
 
 /// Write a module report as JSON to a file path.
@@ -170,31 +123,7 @@ pub fn write_module_json_to_file(
     args_meta: &ModuleArgsMeta,
     redact: RedactMode,
 ) -> Result<()> {
-    let mut final_args = args_meta.clone();
-    let mut final_report = report.clone();
-
-    if redact == RedactMode::All {
-        final_args.module_roots = redact_module_roots(&final_args.module_roots, redact);
-        final_report.module_roots = redact_module_roots(&final_report.module_roots, redact);
-        for row in &mut final_report.rows {
-            row.module = short_hash(&row.module);
-        }
-    }
-
-    let receipt = ModuleReceipt {
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "module".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: final_args,
-        report: final_report,
-    };
-    let file = File::create(path)?;
-    serde_json::to_writer(file, &receipt)?;
-    Ok(())
+    json::write_module_json_to_file(path, report, scan, args_meta, redact)
 }
 
 #[cfg(test)]
@@ -202,7 +131,7 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
     use tokmd_settings::ChildrenMode;
-    use tokmd_types::{LangRow, ModuleRow, Totals};
+    use tokmd_types::{LangReceipt, LangRow, ModuleReceipt, ModuleRow, Totals};
 
     fn sample_lang_report(with_files: bool) -> LangReport {
         LangReport {
