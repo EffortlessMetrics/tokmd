@@ -20,7 +20,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use tokei::{Config, Languages};
 
-use crate::path::ValidatedRoot;
+use crate::ignore_patterns::ignored_patterns;
 use crate::roots::{rebase_report_paths, validated_scan_roots};
 use tokmd_settings::ScanOptions;
 use tokmd_types::ConfigMode;
@@ -187,50 +187,6 @@ fn build_config(args: &ScanOptions) -> Config {
     }
 
     cfg
-}
-
-fn ignored_patterns(args: &ScanOptions, roots: &[ValidatedRoot]) -> Vec<String> {
-    let mut patterns = BTreeSet::new();
-
-    for pattern in &args.excluded {
-        patterns.insert(pattern.clone());
-
-        if is_absolute_pattern(pattern) {
-            continue;
-        }
-
-        let relative = normalize_relative_ignore_pattern(pattern);
-        if relative.is_empty() {
-            continue;
-        }
-
-        if !relative.starts_with("**/") {
-            patterns.insert(format!("**/{relative}"));
-        }
-
-        for root in roots {
-            let canonical = normalize_slashes(&root.canonical().to_string_lossy());
-            patterns.insert(format!("{}/{}", canonical.trim_end_matches('/'), relative));
-        }
-    }
-
-    patterns.into_iter().collect()
-}
-
-fn is_absolute_pattern(pattern: &str) -> bool {
-    let path = Path::new(pattern);
-    path.is_absolute()
-        || pattern.starts_with('/')
-        || pattern.starts_with('\\')
-        || pattern.as_bytes().get(1).is_some_and(|byte| *byte == b':')
-}
-
-fn normalize_relative_ignore_pattern(pattern: &str) -> String {
-    let mut normalized = normalize_slashes(pattern);
-    while let Some(rest) = normalized.strip_prefix("./") {
-        normalized = rest.to_string();
-    }
-    normalized.trim_start_matches('/').to_string()
 }
 
 fn normalize_logical_paths(
@@ -591,6 +547,7 @@ mod tests {
 }
 
 pub mod exclude;
+mod ignore_patterns;
 pub mod math;
 pub mod path;
 mod roots;
