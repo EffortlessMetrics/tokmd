@@ -5,12 +5,9 @@ use std::io::{self, BufWriter, Write};
 use anyhow::Result;
 
 use tokmd_settings::ScanOptions;
-use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileRow, RedactMode,
-    ScanStatus, ToolInfo,
-};
+use tokmd_types::{ExportArgs, ExportData, ExportFormat, FileRow, RedactMode};
 
-use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
+use crate::{redact_path, short_hash};
 
 // -----------------
 // Export (datasets)
@@ -18,10 +15,12 @@ use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
 
 mod csv;
 mod cyclonedx;
+mod json;
 mod jsonl;
 
 use csv::write_export_csv;
 use cyclonedx::{write_export_cyclonedx, write_export_cyclonedx_impl};
+use json::write_export_json;
 use jsonl::write_export_jsonl;
 
 pub use jsonl::write_export_jsonl_to_file;
@@ -56,65 +55,6 @@ fn write_export_to<W: Write>(
         ExportFormat::Json => write_export_json(out, export, global, args),
         ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
     }
-}
-
-fn write_export_json<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
-    if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
-        let receipt = ExportReceipt {
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: ToolInfo::current(),
-            mode: "export".to_string(),
-            status: ScanStatus::Complete,
-            warnings: vec![],
-            scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-            data: ExportData {
-                rows: redact_rows(&export.rows, args.redact)
-                    .map(|c| c.into_owned())
-                    .collect(),
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-            },
-        };
-        writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
-    } else {
-        writeln!(
-            out,
-            "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact).collect::<Vec<_>>())?
-        )?;
-    }
-    Ok(())
 }
 
 fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'_, FileRow>> {
