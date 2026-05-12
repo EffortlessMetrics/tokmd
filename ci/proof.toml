@@ -208,6 +208,15 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_settings_contract"
+kind = "rust"
+paths = ["crates/tokmd-settings/**"]
+packages = ["tokmd-settings"]
+proof = ["cargo test -p tokmd-settings --verbose"]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "tokmd_python_binding"
 kind = "rust"
 paths = ["crates/tokmd-python/**"]
