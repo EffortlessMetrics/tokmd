@@ -683,6 +683,25 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_init_tokeignore"
+kind = "rust"
+paths = [
+  "crates/tokmd-scan/src/tokeignore/**",
+  "crates/tokmd/src/commands/init.rs",
+  "crates/tokmd/src/cli/parser/init.rs",
+  "crates/tokmd/tests/cli_init_e2e.rs",
+  "crates/tokmd/tests/init_cli_w76.rs",
+]
+packages = ["tokmd-scan", "tokmd"]
+proof = [
+  "cargo test -p tokmd-scan tokeignore --verbose",
+  "cargo test -p tokmd --test cli_init_e2e --verbose",
+  "cargo test -p tokmd --test init_cli_w76 --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "model_scan_path_normalization"
 kind = "rust"
 paths = [
