@@ -712,6 +712,7 @@ paths = [
   "crates/tokmd-model/src/rows.rs",
   "crates/tokmd-model/src/sorting.rs",
   "crates/tokmd-model/tests/**",
+  "crates/tokmd-scan/src/ignore_patterns.rs",
   "crates/tokmd-scan/src/lib.rs",
   "crates/tokmd-scan/src/path/**",
   "crates/tokmd-scan/src/roots.rs",
@@ -721,6 +722,7 @@ packages = ["tokmd-model", "tokmd-scan"]
 proof = [
   "cargo test -p tokmd-model children --verbose",
   "cargo test -p tokmd-model normalize --verbose",
+  "cargo test -p tokmd-scan ignore --verbose",
   "cargo test -p tokmd-scan normalize --verbose",
 ]
 mutation = true
