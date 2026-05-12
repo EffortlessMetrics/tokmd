@@ -1,15 +1,13 @@
 use std::borrow::Cow;
 use std::fs::File;
 use std::io::{self, BufWriter, Write};
-use std::path::Path;
 
 use anyhow::Result;
-use serde::Serialize;
 
 use tokmd_settings::ScanOptions;
 use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileRow, RedactMode,
-    ScanArgs, ScanStatus, ToolInfo,
+    ScanStatus, ToolInfo,
 };
 
 use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
@@ -20,31 +18,13 @@ use crate::{now_ms, redact_module_roots, redact_path, scan_args, short_hash};
 
 mod csv;
 mod cyclonedx;
+mod jsonl;
 
 use csv::write_export_csv;
 use cyclonedx::{write_export_cyclonedx, write_export_cyclonedx_impl};
+use jsonl::write_export_jsonl;
 
-#[derive(Debug, Clone, Serialize)]
-struct ExportMeta {
-    #[serde(rename = "type")]
-    ty: &'static str,
-    schema_version: u32,
-    generated_at_ms: u128,
-    tool: ToolInfo,
-    mode: String,
-    status: ScanStatus,
-    warnings: Vec<String>,
-    scan: ScanArgs,
-    args: ExportArgsMeta,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct JsonlRow<'a> {
-    #[serde(rename = "type")]
-    ty: &'static str,
-    #[serde(flatten)]
-    row: &'a FileRow,
-}
+pub use jsonl::write_export_jsonl_to_file;
 
 pub fn write_export(export: &ExportData, global: &ScanOptions, args: &ExportArgs) -> Result<()> {
     match &args.output {
@@ -76,60 +56,6 @@ fn write_export_to<W: Write>(
         ExportFormat::Json => write_export_json(out, export, global, args),
         ExportFormat::Cyclonedx => write_export_cyclonedx(out, export, args.redact),
     }
-}
-
-fn write_export_jsonl<W: Write>(
-    out: &mut W,
-    export: &ExportData,
-    global: &ScanOptions,
-    args: &ExportArgs,
-) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
-    if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
-        let meta = ExportMeta {
-            ty: "meta",
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: ToolInfo::current(),
-            mode: "export".to_string(),
-            status: ScanStatus::Complete,
-            warnings: vec![],
-            scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-        };
-        writeln!(out, "{}", serde_json::to_string(&meta)?)?;
-    }
-
-    for row in redact_rows(&export.rows, args.redact) {
-        let wrapper = JsonlRow {
-            ty: "row",
-            row: &row,
-        };
-        writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
-    }
-    Ok(())
 }
 
 fn write_export_json<W: Write>(
@@ -219,48 +145,6 @@ fn redact_rows(rows: &[FileRow], mode: RedactMode) -> impl Iterator<Item = Cow<'
             tokens: r.tokens,
         }),
     })
-}
-
-/// Write export data as JSONL to a file path.
-///
-/// This is a convenience function for the `run` command that accepts
-/// pre-constructed `ScanArgs` and `ExportArgsMeta` rather than requiring
-/// the full `ScanOptions` and `ExportArgs` structs.
-pub fn write_export_jsonl_to_file(
-    path: &Path,
-    export: &ExportData,
-    scan: &ScanArgs,
-    args_meta: &ExportArgsMeta,
-) -> Result<()> {
-    let file = File::create(path)?;
-    let mut out = BufWriter::new(file);
-
-    let mut final_args = args_meta.clone();
-    final_args.module_roots = redact_module_roots(&final_args.module_roots, args_meta.redact);
-
-    let meta = ExportMeta {
-        ty: "meta",
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "export".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: final_args,
-    };
-    writeln!(out, "{}", serde_json::to_string(&meta)?)?;
-
-    for row in redact_rows(&export.rows, args_meta.redact) {
-        let wrapper = JsonlRow {
-            ty: "row",
-            row: &row,
-        };
-        writeln!(out, "{}", serde_json::to_string(&wrapper)?)?;
-    }
-
-    out.flush()?;
-    Ok(())
 }
 
 // =============================================================================
