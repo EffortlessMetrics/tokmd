@@ -713,6 +713,7 @@ kind = "rust"
 paths = [
   "crates/tokmd-git/src/command.rs",
   "crates/tokmd-git/src/lib.rs",
+  "crates/tokmd-git/src/refs.rs",
   "crates/tokmd-scan/src/walk/git.rs",
   "crates/tokmd-scan/src/walk/mod.rs",
   "crates/tokmd/src/git_support.rs",
@@ -734,6 +735,18 @@ packages = ["tokmd-git", "tokmd-analysis"]
 proof = [
   "cargo test -p tokmd-git classify --verbose",
   "cargo test -p tokmd-analysis --all-features intent --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_git_ref_resolution"
+kind = "rust"
+paths = ["crates/tokmd-git/src/refs.rs"]
+packages = ["tokmd-git"]
+proof = [
+  "cargo test -p tokmd-git rev_exists --verbose",
+  "cargo test -p tokmd-git resolve_base_ref --verbose",
 ]
 mutation = true
 coverage = true
