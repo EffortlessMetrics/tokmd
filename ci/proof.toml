@@ -1123,6 +1123,7 @@ paths = [
   "crates/tokmd/tests/schema*.rs",
   "crates/tokmd-types/src/context.rs",
   "crates/tokmd-types/src/diff.rs",
+  "crates/tokmd-types/src/inventory.rs",
   "crates/tokmd-types/src/lib.rs",
   "crates/tokmd-types/tests/schema*.rs",
   "docs/SCHEMA.md",
