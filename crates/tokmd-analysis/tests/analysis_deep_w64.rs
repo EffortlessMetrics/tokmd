@@ -792,6 +792,47 @@ fn bdd_modules_in_breakdown() {
     assert_eq!(d.totals.files, 2);
 }
 
+/// Given a standard codebase containing valid Rust code
+/// When analyzing with Health preset
+/// Then the analysis returns successfully with expected derived metric presence
+#[test]
+fn bdd_health_preset_processes_standard_export() {
+    // Given
+    let export = ExportData {
+        rows: vec![file_row("src/main.rs", "src", "Rust", 50)],
+        module_roots: vec!["src".to_string()],
+        module_depth: 1,
+        children: ChildIncludeMode::Separate,
+    };
+
+    // When
+    let receipt = run_analysis(export, PresetKind::Health);
+
+    // Then
+    assert_eq!(receipt.status, expected_receipt_status());
+    let d = receipt.derived.as_ref().unwrap();
+    assert_eq!(d.totals.files, 1);
+    // Health must produce derived metrics, even if some inputs are unresolvable.
+}
+
+/// Given an empty codebase
+/// When analyzing with Deep preset
+/// Then the analysis returns successfully with zeroed totals and no enricher panics
+#[test]
+fn bdd_deep_preset_handles_empty_repo() {
+    // Given
+    let export = empty_export();
+
+    // When
+    let receipt = run_analysis(export, PresetKind::Deep);
+
+    // Then
+    assert_eq!(receipt.status, expected_receipt_status());
+    let d = receipt.derived.as_ref().unwrap();
+    assert_eq!(d.totals.files, 0);
+    assert_eq!(d.totals.code, 0);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 19. Preset plan: every preset has a valid plan
 // ═══════════════════════════════════════════════════════════════════════════

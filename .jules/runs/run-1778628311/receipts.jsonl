@@ -1,0 +1,4 @@
+{"timestamp": "2026-05-12T23:39:27Z", "command": "cargo build -p tokmd-analysis --verbose", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.23s"}
+{"timestamp": "2026-05-12T23:39:27Z", "command": "CI=true cargo test -p tokmd-analysis --verbose", "output": "test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s"}
+{"timestamp": "2026-05-12T23:39:27Z", "command": "cargo fmt -- --check", "output": "Diff in /app/crates/tokmd-analysis/tests/analysis_deep_w64.rs..."}
+{"timestamp": "2026-05-12T23:39:27Z", "command": "cargo clippy -p tokmd-analysis -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.98s"}
