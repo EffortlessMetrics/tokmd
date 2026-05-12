@@ -177,8 +177,6 @@ pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 /// @param options.format - Output format ("jsonl", "json", "csv", "cyclonedx")
 /// @param options.min_code - Minimum lines of code to include (default: 0)
 /// @param options.max_rows - Maximum rows to return (0 = unlimited)
-/// @param options.meta - Include a meta record in the output (default: true)
-/// @param options.strip_prefix - Strip this prefix from paths (optional)
 /// @returns Promise resolving to export receipt
 ///
 /// @example
