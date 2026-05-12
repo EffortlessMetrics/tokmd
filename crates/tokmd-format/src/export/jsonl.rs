@@ -1,8 +1,8 @@
 //! JSONL file-level export rendering.
 //!
 //! This module owns the JSONL meta envelope, row wrapper, and file writer used
-//! by the `run` command. The parent export module keeps format dispatch and
-//! shared row redaction.
+//! by the `run` command. The parent export module keeps format dispatch and the
+//! public test-helper facade stable.
 
 use std::fs::File;
 use std::io::{BufWriter, Write};

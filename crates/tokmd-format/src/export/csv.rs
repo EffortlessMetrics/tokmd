@@ -1,8 +1,8 @@
 //! CSV file-level export rendering.
 //!
 //! This module owns the CSV header and row serialization for export receipts.
-//! The parent export module keeps dispatch, shared row redaction, and the
-//! public test-helper facade stable.
+//! The parent export module keeps dispatch and the public test-helper facade
+//! stable.
 
 use std::io::Write;
 
