@@ -549,6 +549,7 @@ paths = [
   "crates/tokmd-analysis/src/content/complexity.rs",
   "crates/tokmd-analysis/src/content/complexity/**",
   "crates/tokmd-analysis/src/source_complexity.rs",
+  "crates/tokmd-analysis/src/source_complexity/**",
 ]
 packages = ["tokmd-analysis"]
 proof = ["cargo test -p tokmd-analysis --all-features complexity --verbose"]
