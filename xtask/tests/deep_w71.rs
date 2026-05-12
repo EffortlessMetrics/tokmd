@@ -452,10 +452,16 @@ fn schema_constants_exist_in_source_files() {
             "crates/tokmd-types/src/cockpit.rs",
             "COCKPIT_SCHEMA_VERSION",
         ),
-        ("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION"),
-        ("crates/tokmd-types/src/lib.rs", "HANDOFF_SCHEMA_VERSION"),
         (
-            "crates/tokmd-types/src/lib.rs",
+            "crates/tokmd-types/src/context.rs",
+            "CONTEXT_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/context.rs",
+            "HANDOFF_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/context.rs",
             "CONTEXT_BUNDLE_SCHEMA_VERSION",
         ),
     ];

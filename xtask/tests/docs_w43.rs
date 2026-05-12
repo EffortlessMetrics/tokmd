@@ -249,9 +249,11 @@ fn schema_md_cockpit_version_matches_source() {
 
 #[test]
 fn schema_md_context_version_matches_source() {
-    let source_version =
-        read_schema_constant("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION")
-            .expect("CONTEXT_SCHEMA_VERSION not found in source");
+    let source_version = read_schema_constant(
+        "crates/tokmd-types/src/context.rs",
+        "CONTEXT_SCHEMA_VERSION",
+    )
+    .expect("CONTEXT_SCHEMA_VERSION not found in source");
     let schema_md = std::fs::read_to_string(workspace_root().join("docs/SCHEMA.md")).unwrap();
     let doc_version = extract_schema_md_version(&schema_md, "`CONTEXT_SCHEMA_VERSION`")
         .expect("CONTEXT_SCHEMA_VERSION not found in SCHEMA.md");
@@ -264,7 +266,7 @@ fn schema_md_context_version_matches_source() {
 #[test]
 fn schema_md_context_bundle_version_matches_source() {
     let source_version = read_schema_constant(
-        "crates/tokmd-types/src/lib.rs",
+        "crates/tokmd-types/src/context.rs",
         "CONTEXT_BUNDLE_SCHEMA_VERSION",
     )
     .expect("CONTEXT_BUNDLE_SCHEMA_VERSION not found in source");
@@ -279,9 +281,11 @@ fn schema_md_context_bundle_version_matches_source() {
 
 #[test]
 fn schema_md_handoff_version_matches_source() {
-    let source_version =
-        read_schema_constant("crates/tokmd-types/src/lib.rs", "HANDOFF_SCHEMA_VERSION")
-            .expect("HANDOFF_SCHEMA_VERSION not found in source");
+    let source_version = read_schema_constant(
+        "crates/tokmd-types/src/context.rs",
+        "HANDOFF_SCHEMA_VERSION",
+    )
+    .expect("HANDOFF_SCHEMA_VERSION not found in source");
     let schema_md = std::fs::read_to_string(workspace_root().join("docs/SCHEMA.md")).unwrap();
     let doc_version = extract_schema_md_version(&schema_md, "`HANDOFF_SCHEMA_VERSION`")
         .expect("HANDOFF_SCHEMA_VERSION not found in SCHEMA.md");

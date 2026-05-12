@@ -198,8 +198,11 @@ fn schema_md_cockpit_version_matches_source() {
 
 #[test]
 fn schema_md_handoff_version_matches_source() {
-    let src = read_const_u32("crates/tokmd-types/src/lib.rs", "HANDOFF_SCHEMA_VERSION")
-        .expect("HANDOFF_SCHEMA_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-types/src/context.rs",
+        "HANDOFF_SCHEMA_VERSION",
+    )
+    .expect("HANDOFF_SCHEMA_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`HANDOFF_SCHEMA_VERSION`")
         .expect("HANDOFF_SCHEMA_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -210,8 +213,11 @@ fn schema_md_handoff_version_matches_source() {
 
 #[test]
 fn schema_md_context_version_matches_source() {
-    let src = read_const_u32("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION")
-        .expect("CONTEXT_SCHEMA_VERSION not found in source");
+    let src = read_const_u32(
+        "crates/tokmd-types/src/context.rs",
+        "CONTEXT_SCHEMA_VERSION",
+    )
+    .expect("CONTEXT_SCHEMA_VERSION not found in source");
     let doc = schema_md_version(&schema_md(), "`CONTEXT_SCHEMA_VERSION`")
         .expect("CONTEXT_SCHEMA_VERSION not found in SCHEMA.md");
     assert_eq!(
@@ -223,7 +229,7 @@ fn schema_md_context_version_matches_source() {
 #[test]
 fn schema_md_context_bundle_version_matches_source() {
     let src = read_const_u32(
-        "crates/tokmd-types/src/lib.rs",
+        "crates/tokmd-types/src/context.rs",
         "CONTEXT_BUNDLE_SCHEMA_VERSION",
     )
     .expect("CONTEXT_BUNDLE_SCHEMA_VERSION not found in source");

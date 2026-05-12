@@ -47,17 +47,17 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
         current: 1,
     },
     SchemaVersionLocation {
-        path: "crates/tokmd-types/src/lib.rs",
+        path: "crates/tokmd-types/src/context.rs",
         constant: "CONTEXT_SCHEMA_VERSION",
         current: 4,
     },
     SchemaVersionLocation {
-        path: "crates/tokmd-types/src/lib.rs",
+        path: "crates/tokmd-types/src/context.rs",
         constant: "CONTEXT_BUNDLE_SCHEMA_VERSION",
         current: 2,
     },
     SchemaVersionLocation {
-        path: "crates/tokmd-types/src/lib.rs",
+        path: "crates/tokmd-types/src/context.rs",
         constant: "HANDOFF_SCHEMA_VERSION",
         current: 5,
     },

@@ -766,9 +766,9 @@ pub struct BumpArgs {
     ///   - ANALYSIS_SCHEMA_VERSION (crates/tokmd-analysis-types/src/lib.rs)
     ///   - COCKPIT_SCHEMA_VERSION (crates/tokmd-types/src/cockpit.rs)
     ///   - TOOL_SCHEMA_VERSION (crates/tokmd/src/tool_schema.rs)
-    ///   - CONTEXT_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
-    ///   - CONTEXT_BUNDLE_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
-    ///   - HANDOFF_SCHEMA_VERSION (crates/tokmd-types/src/lib.rs)
+    ///   - CONTEXT_SCHEMA_VERSION (crates/tokmd-types/src/context.rs)
+    ///   - CONTEXT_BUNDLE_SCHEMA_VERSION (crates/tokmd-types/src/context.rs)
+    ///   - HANDOFF_SCHEMA_VERSION (crates/tokmd-types/src/context.rs)
     #[arg(long, value_delimiter = ',')]
     pub schema: Option<Vec<String>>,
 }

@@ -438,14 +438,20 @@ fn schema_version_cockpit_exists() {
 
 #[test]
 fn schema_version_context_exists() {
-    let v = read_schema_constant("crates/tokmd-types/src/lib.rs", "CONTEXT_SCHEMA_VERSION");
+    let v = read_schema_constant(
+        "crates/tokmd-types/src/context.rs",
+        "CONTEXT_SCHEMA_VERSION",
+    );
     assert!(v.is_some(), "CONTEXT_SCHEMA_VERSION must exist");
     assert!(v.unwrap() >= 1);
 }
 
 #[test]
 fn schema_version_handoff_exists() {
-    let v = read_schema_constant("crates/tokmd-types/src/lib.rs", "HANDOFF_SCHEMA_VERSION");
+    let v = read_schema_constant(
+        "crates/tokmd-types/src/context.rs",
+        "HANDOFF_SCHEMA_VERSION",
+    );
     assert!(v.is_some(), "HANDOFF_SCHEMA_VERSION must exist");
     assert!(v.unwrap() >= 1);
 }

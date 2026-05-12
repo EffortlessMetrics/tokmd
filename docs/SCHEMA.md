@@ -99,10 +99,10 @@ tokmd uses **separate schema versions** for different receipt families. Each rec
 - **Cockpit**: `crates/tokmd-types/src/cockpit.rs` - `pub const COCKPIT_SCHEMA_VERSION: u32 = 3;`
 - **Envelope**: `crates/tokmd-envelope/src/lib.rs` - `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";` (back-compat alias `ENVELOPE_SCHEMA` in `tokmd-analysis-types`)
 - **Baseline**: `crates/tokmd-analysis-types/src/lib.rs` - `pub const BASELINE_VERSION: u32 = 1;`
-- **Handoff**: `crates/tokmd-types/src/lib.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
+- **Handoff**: `crates/tokmd-types/src/context.rs` - `pub const HANDOFF_SCHEMA_VERSION: u32 = 5;`
 - **Tool**: `crates/tokmd/src/tool_schema.rs` - `pub const TOOL_SCHEMA_VERSION: u32 = 1;`
-- **Context**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_SCHEMA_VERSION: u32 = 4;`
-- **Context Bundle**: `crates/tokmd-types/src/lib.rs` - `pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;`
+- **Context**: `crates/tokmd-types/src/context.rs` - `pub const CONTEXT_SCHEMA_VERSION: u32 = 4;`
+- **Context Bundle**: `crates/tokmd-types/src/context.rs` - `pub const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = 2;`
 
 ### Canonical vs Backward Compatibility
 
