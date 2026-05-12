@@ -17,10 +17,12 @@ Raw scanning and config translation should live behind one boundary instead of l
 - `scan` wraps `tokei` and returns a `Languages` map for host paths.
 - `scan_in_memory` writes logical inputs into a temporary root and keeps the logical paths alive for downstream model code.
 - `config_from_scan_options` maps `ScanOptions` into `tokei::Config`.
-- `src/lib.rs` and its tests are the canonical reference for path validation and ignore handling.
+- `src/roots.rs`, `src/path/`, and their tests are the canonical reference for root validation and caller-facing report path rebasing.
+- `src/lib.rs` remains the public scan facade and ignore-handling reference.
 
 ## Go deeper
 - Tutorial: [tokmd README](../../README.md)
 - How-to: [Troubleshooting](../../docs/troubleshooting.md)
 - Reference: [src/lib.rs](src/lib.rs)
+- Reference: [src/roots.rs](src/roots.rs)
 - Explanation: [Architecture](../../docs/architecture.md)

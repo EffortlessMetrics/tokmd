@@ -682,6 +682,7 @@ paths = [
   "crates/tokmd-model/tests/**",
   "crates/tokmd-scan/src/lib.rs",
   "crates/tokmd-scan/src/path/**",
+  "crates/tokmd-scan/src/roots.rs",
   "crates/tokmd-scan/tests/**",
 ]
 packages = ["tokmd-model", "tokmd-scan"]
