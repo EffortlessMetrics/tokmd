@@ -71,7 +71,7 @@ fixtures:
 | CLI config resolution | `crates/tokmd/src/config.rs` and `crates/tokmd/src/config/resolve.rs` | `config.rs` 313; resolver owner 456 | Keep config discovery, profile selection, `ConfigContext`, and `ResolvedConfig` in the root config module while lang/module/export CLI-to-receipt argument resolution lives in the resolver owner module. Preserve root re-exports. |
 | Gate command | `crates/tokmd/src/commands/gate.rs` and `crates/tokmd/src/commands/gate/` | `gate.rs` 135; policy owner/tests 215; receipt owner/tests 144; render owner 111 | Gate policy loading, ratchet loading, and config-rule conversion live in the policy owner; receipt loading and compute-then-gate preparation live in the receipt owner; text/JSON result rendering lives in the render owner; the command coordinator keeps flow, evaluation, and result combining. Keep `tokmd_gate` proof scoped to all gate command paths. |
 | Sensor command | `crates/tokmd/src/commands/sensor.rs` and `crates/tokmd/src/commands/sensor/` | `sensor.rs` 157; findings owner/tests 344; gate mapping owner/tests 189; output owner/tests 141 | Sensor finding emission, cockpit-evidence-to-envelope gate mapping, and 3-layer output topology now live in owner modules while the command keeps git resolution, cockpit execution, and envelope assembly. |
-| Model aggregation | `crates/tokmd-model/src/lib.rs`, `crates/tokmd-model/src/aggregate.rs`, `crates/tokmd-model/src/rows.rs`, and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 267; aggregation owner/tests 427; row collection owner/tests 411; sorting owner/tests 91 | Report builders, file-row collection, in-memory row detection, and row sorting now live in owner modules; remaining work is child-language behavior only if future evidence shows the seam is still too broad |
+| Model aggregation | `crates/tokmd-model/src/lib.rs`, `crates/tokmd-model/src/aggregate.rs`, `crates/tokmd-model/src/children.rs`, `crates/tokmd-model/src/rows.rs`, and `crates/tokmd-model/src/sorting.rs` | `lib.rs` 255; aggregation owner/tests 344; child-language owner/tests 160; row collection owner/tests 411; sorting owner/tests 91 | Report builders, file-row collection, child/embedded language aggregation, in-memory row detection, and row sorting now live in owner modules; future model work should start from concrete product or proof evidence rather than splitting for line count |
 
 ## Batch Order
 
@@ -330,8 +330,8 @@ Target modules:
 crates/tokmd-model/src/
   lib.rs
   aggregate.rs
-  rows.rs
   children.rs
+  rows.rs
   sorting.rs
 
 crates/tokmd-scan/src/

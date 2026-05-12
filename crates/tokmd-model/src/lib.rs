@@ -20,6 +20,7 @@ use std::borrow::Cow;
 use std::path::Path;
 
 mod aggregate;
+mod children;
 pub mod module_key;
 mod rows;
 mod sorting;

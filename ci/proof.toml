@@ -663,6 +663,7 @@ name = "model_scan_path_normalization"
 kind = "rust"
 paths = [
   "crates/tokmd-model/src/aggregate.rs",
+  "crates/tokmd-model/src/children.rs",
   "crates/tokmd-model/src/lib.rs",
   "crates/tokmd-model/src/module_key/**",
   "crates/tokmd-model/src/rows.rs",
@@ -674,6 +675,7 @@ paths = [
 ]
 packages = ["tokmd-model", "tokmd-scan"]
 proof = [
+  "cargo test -p tokmd-model children --verbose",
   "cargo test -p tokmd-model normalize --verbose",
   "cargo test -p tokmd-scan normalize --verbose",
 ]

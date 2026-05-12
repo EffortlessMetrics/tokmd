@@ -9,6 +9,7 @@ use tokmd_types::{
     ModuleReport, ModuleRow, Totals,
 };
 
+use crate::children::aggregate_lang_rows;
 use crate::sorting::{sort_file_rows, sort_lang_rows, sort_module_rows};
 use crate::{avg, collect_file_rows, unique_parent_file_count_from_rows};
 
@@ -28,99 +29,7 @@ pub fn create_lang_report_from_rows(
     with_files: bool,
     children: ChildrenMode,
 ) -> LangReport {
-    #[derive(Default)]
-    struct LangAgg {
-        code: usize,
-        lines: usize,
-        bytes: usize,
-        tokens: usize,
-    }
-
-    let parent_lang_by_path: BTreeMap<&str, &str> = file_rows
-        .iter()
-        .filter(|row| row.kind == FileKind::Parent)
-        .map(|row| (row.path.as_str(), row.lang.as_str()))
-        .collect();
-    let mut child_totals_by_path: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
-    for row in file_rows.iter().filter(|row| row.kind == FileKind::Child) {
-        let entry = child_totals_by_path.entry(row.path.as_str()).or_default();
-        entry.0 += row.code;
-        entry.1 += row.lines;
-    }
-
-    let mut by_lang: BTreeMap<(&str, bool), (LangAgg, BTreeSet<&str>)> = BTreeMap::new();
-
-    for row in file_rows {
-        match (children, row.kind) {
-            (ChildrenMode::Collapse, FileKind::Parent) => {
-                let entry = by_lang
-                    .entry((row.lang.as_str(), false))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
-                entry.0.code += row.code;
-                entry.0.lines += row.lines;
-                entry.0.bytes += row.bytes;
-                entry.0.tokens += row.tokens;
-                entry.1.insert(row.path.as_str());
-            }
-            (ChildrenMode::Collapse, FileKind::Child) => {
-                if !parent_lang_by_path.contains_key(row.path.as_str()) {
-                    let entry = by_lang
-                        .entry((row.lang.as_str(), false))
-                        .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
-                    entry.0.code += row.code;
-                    entry.0.lines += row.lines;
-                    entry.0.bytes += row.bytes;
-                    entry.0.tokens += row.tokens;
-                    entry.1.insert(row.path.as_str());
-                }
-            }
-            (ChildrenMode::Separate, FileKind::Parent) => {
-                let (child_code, child_lines) = child_totals_by_path
-                    .get(row.path.as_str())
-                    .copied()
-                    .unwrap_or((0, 0));
-
-                let entry = by_lang
-                    .entry((row.lang.as_str(), false))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
-                entry.0.code += row.code.saturating_sub(child_code);
-                entry.0.lines += row.lines.saturating_sub(child_lines);
-                entry.0.bytes += row.bytes;
-                entry.0.tokens += row.tokens;
-                entry.1.insert(row.path.as_str());
-            }
-            (ChildrenMode::Separate, FileKind::Child) => {
-                let entry = by_lang
-                    .entry((row.lang.as_str(), true))
-                    .or_insert_with(|| (LangAgg::default(), BTreeSet::new()));
-                entry.0.code += row.code;
-                entry.0.lines += row.lines;
-                entry.1.insert(row.path.as_str());
-            }
-        }
-    }
-
-    let mut rows: Vec<LangRow> = Vec::with_capacity(by_lang.len());
-    for ((lang, is_embedded), (agg, files_set)) in by_lang {
-        if agg.code == 0 {
-            continue;
-        }
-        let files = files_set.len();
-        rows.push(LangRow {
-            lang: if is_embedded {
-                format!("{} (embedded)", lang)
-            } else {
-                lang.to_string()
-            },
-            code: agg.code,
-            lines: agg.lines,
-            files,
-            bytes: agg.bytes,
-            tokens: agg.tokens,
-            avg_lines: avg(agg.lines, files),
-        });
-    }
-
+    let mut rows = aggregate_lang_rows(file_rows, children);
     sort_lang_rows(&mut rows);
 
     let total_code: usize = rows.iter().map(|r| r.code).sum();
