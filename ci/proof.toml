@@ -965,6 +965,7 @@ paths = [
   "crates/tokmd-core/src/workflows/cockpit.rs",
   "crates/tokmd-core/tests/cockpit_workflow.rs",
   "crates/tokmd-types/src/cockpit.rs",
+  "crates/tokmd-types/src/cockpit/**",
   "crates/tokmd-types/tests/cockpit_tests.rs",
   "crates/tokmd/src/commands/cockpit.rs",
   "crates/tokmd/schemas/review-map.schema.json",
