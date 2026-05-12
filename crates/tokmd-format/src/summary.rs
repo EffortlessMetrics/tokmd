@@ -1,4 +1,3 @@
-use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
@@ -14,8 +13,10 @@ use tokmd_types::{
 use crate::{now_ms, redact_module_roots, scan_args, short_hash};
 
 mod lang;
+mod module;
 
 use lang::{render_lang_md, render_lang_tsv};
+use module::{render_module_md, render_module_tsv};
 
 // -----------------------
 // Language summary output
@@ -194,55 +195,6 @@ pub fn write_module_json_to_file(
     let file = File::create(path)?;
     serde_json::to_writer(file, &receipt)?;
     Ok(())
-}
-
-fn render_module_md(report: &ModuleReport) -> String {
-    // Heuristic: (rows + 3) * 80 chars per row
-    let mut s = String::with_capacity((report.rows.len() + 3) * 80);
-    s.push_str("|Module|Code|Lines|Files|Bytes|Tokens|Avg|\n");
-    s.push_str("|---|---:|---:|---:|---:|---:|---:|\n");
-    for r in &report.rows {
-        let _ = writeln!(
-            s,
-            "|{}|{}|{}|{}|{}|{}|{}|",
-            r.module, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-        );
-    }
-    let _ = writeln!(
-        s,
-        "|**Total**|{}|{}|{}|{}|{}|{}|",
-        report.total.code,
-        report.total.lines,
-        report.total.files,
-        report.total.bytes,
-        report.total.tokens,
-        report.total.avg_lines
-    );
-    s
-}
-
-fn render_module_tsv(report: &ModuleReport) -> String {
-    // Heuristic: (rows + 2) * 64 chars per row
-    let mut s = String::with_capacity((report.rows.len() + 2) * 64);
-    s.push_str("Module\tCode\tLines\tFiles\tBytes\tTokens\tAvg\n");
-    for r in &report.rows {
-        let _ = writeln!(
-            s,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
-            r.module, r.code, r.lines, r.files, r.bytes, r.tokens, r.avg_lines
-        );
-    }
-    let _ = writeln!(
-        s,
-        "Total\t{}\t{}\t{}\t{}\t{}\t{}",
-        report.total.code,
-        report.total.lines,
-        report.total.files,
-        report.total.bytes,
-        report.total.tokens,
-        report.total.avg_lines
-    );
-    s
 }
 
 #[cfg(test)]
