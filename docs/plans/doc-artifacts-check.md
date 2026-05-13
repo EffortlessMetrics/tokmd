@@ -60,8 +60,9 @@ documentation artifacts defined by `docs/source-of-truth.md` and
 
 5. Consider a JSON receipt.
 
-   Add `--json <path>` only after the text checker has landed and a follow-up
-   consumer needs machine-readable checker evidence.
+   Add `--json <path>` after the text checker has landed and a follow-up
+   consumer needs machine-readable checker evidence. The receipt should stay
+   visibility-only and must not promote proof gates or Codecov defaults.
 
 ## Validation
 
@@ -87,7 +88,8 @@ package, export, public API, or publish-surface files.
 - Stop and add an ADR if the checker changes durable architecture, governance,
   or proof-promotion policy.
 - Stop before wiring CI if the checker creates noisy failures on current docs.
-- Stop before adding JSON output unless a concrete consumer exists.
+- Stop before adding new JSON fields or CI upload unless a concrete consumer
+  exists.
 
 ## Checkpoint History
 
@@ -105,3 +107,7 @@ package, export, public API, or publish-surface files.
 - 2026-05-13: `cargo xtask docs --check` now invokes the doc-artifacts checker
   after generated reference documentation validation, completing the first
   docs-lane wiring without adding a product command or proof-promotion gate.
+- 2026-05-13: `cargo xtask doc-artifacts --check --json <path>` now writes a
+  `tokmd.doc_artifacts_check.v1` receipt with checked counts and errors for CI,
+  review packets, or later evidencebus consumers. Text output remains the
+  default, and the receipt is visibility-only.

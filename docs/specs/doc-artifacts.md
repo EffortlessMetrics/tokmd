@@ -1,7 +1,7 @@
 # Spec: Documentation Artifacts
 
 - Status: draft
-- Schema family, if any: none yet
+- Schema family, if any: `tokmd.doc_artifacts_check.v1`
 - Related ADRs: `docs/adr/0000-adr-process.md`
 - Related proof scopes: `project_truth_docs`, `proof_control_plane`, `jules_workspace`
 
@@ -13,7 +13,7 @@ agent state, and machine-checked policy.
 
 The source-of-truth model in `docs/source-of-truth.md` defines the human-facing
 roles. This spec defines the first machine-checkable contract for those
-artifacts so a future `cargo xtask doc-artifacts --check` command can verify
+artifacts so `cargo xtask doc-artifacts --check` can verify
 shape, links, and routing without judging prose quality.
 
 The checker must be conservative. It should verify that artifacts are present,
@@ -118,32 +118,35 @@ The checker should verify only routing-level facts:
 
 ## Outputs
 
-The initial checker output should be human-readable text and a process exit
-code:
+The default checker output is human-readable text and a process exit code:
 
 - exit `0` when all checked artifacts pass;
 - non-zero exit when any required artifact shape, link, path, or routing rule
   fails.
 
-A later JSON receipt may use:
+The checker may also write an optional JSON receipt:
+
+```bash
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+```
+
+The JSON receipt uses schema `tokmd.doc_artifacts_check.v1`:
 
 ```json
 {
   "schema": "tokmd.doc_artifacts_check.v1",
   "ok": true,
   "checked": {
-    "proposals": 1,
-    "specs": 2,
-    "adrs": 9,
-    "plans": 1,
-    "active_goals": 1,
-    "policy_files": 3
+    "required_docs": 1,
+    "family_files": 11,
+    "active_goals": 1
   },
   "errors": []
 }
 ```
 
-Do not add the JSON receipt until the text checker has proven useful.
+The receipt is visibility-only. It must not promote proof gates, enable default
+Codecov upload, or change product behavior.
 
 ## Compatibility
 
@@ -161,7 +164,7 @@ large documentation migration.
 The implementation PR for `cargo xtask doc-artifacts --check` should run:
 
 ```bash
-cargo xtask doc-artifacts --check
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
 cargo xtask docs --check
 cargo xtask proof-policy --check
 cargo xtask affected --base origin/main --head HEAD --json
@@ -178,8 +181,6 @@ cargo xtask publish-surface --json --verify-publish
 
 ## Open Questions
 
-- Whether the checker should emit a JSON receipt in its first implementation or
-  after one observation PR.
 - Whether `docs/proposals/` should allow accepted proposals to remain in place
   forever or require an explicit link to the follow-on spec, ADR, or plan.
 - Whether the first implementation should enforce every section listed in

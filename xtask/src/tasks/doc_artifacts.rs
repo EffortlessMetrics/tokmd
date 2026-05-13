@@ -3,12 +3,13 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::MetadataCommand;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
 use crate::cli::DocArtifactsArgs;
 
 const README: &str = "README.md";
+const CHECK_SCHEMA: &str = "tokmd.doc_artifacts_check.v1";
 
 #[derive(Debug, Deserialize)]
 struct Policy {
@@ -80,7 +81,12 @@ struct ActiveGoal {
 
 pub fn run(args: DocArtifactsArgs) -> Result<()> {
     let _check = args.check;
-    let summary = check_current_repo(&args.policy)?;
+    let root = workspace_root()?;
+    let report = check(&root, &args.policy)?;
+    if let Some(path) = &args.json {
+        write_receipt(&root, path, &report)?;
+    }
+    let summary = report_result(report)?;
     println!("{summary}");
     Ok(())
 }
@@ -97,6 +103,36 @@ struct CheckReport {
     family_files: usize,
     active_goals: usize,
     errors: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct CheckReceipt {
+    schema: &'static str,
+    ok: bool,
+    checked: CheckedCounts,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct CheckedCounts {
+    required_docs: usize,
+    family_files: usize,
+    active_goals: usize,
+}
+
+impl From<&CheckReport> for CheckReceipt {
+    fn from(report: &CheckReport) -> Self {
+        Self {
+            schema: CHECK_SCHEMA,
+            ok: report.errors.is_empty(),
+            checked: CheckedCounts {
+                required_docs: report.required_docs,
+                family_files: report.family_files,
+                active_goals: report.active_goals,
+            },
+            errors: report.errors.clone(),
+        }
+    }
 }
 
 fn check(root: &Path, policy_path: &Path) -> Result<CheckReport> {
@@ -138,6 +174,22 @@ fn report_result(report: CheckReport) -> Result<String> {
         "doc artifacts ok: {} required doc(s), {} family file(s), {} active goal(s)",
         report.required_docs, report.family_files, report.active_goals
     ))
+}
+
+fn write_receipt(root: &Path, path: &Path, report: &CheckReport) -> Result<()> {
+    let path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        root.join(path)
+    };
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("create doc artifacts receipt dir {}", parent.display()))?;
+    }
+    let receipt = CheckReceipt::from(report);
+    let json = serde_json::to_string_pretty(&receipt).context("serialize doc artifacts receipt")?;
+    fs::write(&path, format!("{json}\n"))
+        .with_context(|| format!("write doc artifacts receipt {}", path.display()))
 }
 
 fn workspace_root() -> Result<PathBuf> {
@@ -447,6 +499,54 @@ mod tests {
     }
 
     #[test]
+    fn json_receipt_reports_success_counts() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+        let output = temp.path().join("target/doc-artifacts-check.json");
+
+        write_receipt(temp.path(), &output, &report).unwrap();
+
+        let receipt = read_json(&output);
+        assert_eq!(receipt["schema"], CHECK_SCHEMA);
+        assert_eq!(receipt["ok"], true);
+        assert_eq!(receipt["checked"]["required_docs"], 1);
+        assert_eq!(receipt["checked"]["family_files"], 4);
+        assert_eq!(receipt["checked"]["active_goals"], 1);
+        assert_eq!(receipt["errors"].as_array().expect("errors array").len(), 0);
+    }
+
+    #[test]
+    fn json_receipt_reports_failure_errors() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        fs::write(
+            temp.path().join(".jules/goals/active.toml"),
+            active_goal("missing.md", "tokmd.jules.active_goal.v1"),
+        )
+        .unwrap();
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+        let output = Path::new("target/doc-artifacts-check.json");
+
+        write_receipt(temp.path(), output, &report).unwrap();
+
+        let receipt = read_json(&temp.path().join(output));
+        assert_eq!(receipt["schema"], CHECK_SCHEMA);
+        assert_eq!(receipt["ok"], false);
+        assert!(
+            receipt["errors"]
+                .as_array()
+                .expect("errors array")
+                .iter()
+                .any(|error| error
+                    .as_str()
+                    .expect("error string")
+                    .contains("points at missing path")),
+            "{receipt:#}"
+        );
+    }
+
+    #[test]
     fn broken_active_goal_link_fails() {
         let temp = tempfile::tempdir().unwrap();
         write_valid_fixture(temp.path());
@@ -610,5 +710,10 @@ proof_promotion = "do_not_promote"
 docs_check = "cargo xtask docs --check"
 "#
         )
+    }
+
+    fn read_json(path: &Path) -> serde_json::Value {
+        let body = fs::read_to_string(path).expect("read json receipt");
+        serde_json::from_str(&body).expect("parse json receipt")
     }
 }

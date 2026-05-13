@@ -109,6 +109,10 @@ pub struct DocArtifactsArgs {
     /// Documentation artifact policy file
     #[arg(long, default_value = "policy/doc-artifacts.toml")]
     pub policy: std::path::PathBuf,
+
+    /// Optional JSON receipt path for the doc-artifacts check result
+    #[arg(long)]
+    pub json: Option<std::path::PathBuf>,
 }
 
 impl Default for DocArtifactsArgs {
@@ -116,6 +120,7 @@ impl Default for DocArtifactsArgs {
         Self {
             check: false,
             policy: std::path::PathBuf::from("policy/doc-artifacts.toml"),
+            json: None,
         }
     }
 }

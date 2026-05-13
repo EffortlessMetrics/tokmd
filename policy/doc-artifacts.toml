@@ -4,7 +4,7 @@ owner = "docs/control-plane"
 status = "draft"
 updated = "2026-05-13"
 
-# Shape policy for a future `cargo xtask doc-artifacts --check` command.
+# Shape policy for `cargo xtask doc-artifacts --check`.
 # The checker should verify routing, links, required sections, and active-agent
 # state. It must not judge prose quality, merge readiness, proof promotion, or
 # Codecov defaults.
@@ -15,7 +15,7 @@ mode = "shape_links_and_routing"
 product_behavior = false
 proof_promotion = false
 codecov_default_upload = false
-json_receipt = "deferred"
+json_receipt = "tokmd.doc_artifacts_check.v1"
 
 [active_goal]
 path = ".jules/goals/active.toml"
