@@ -94,4 +94,5 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
   the first review-packet path visible on the packet contract page without
   adding a new command or changing proof policy.
 - 2026-05-13: Added `docs/start-here.md` and changed README's first-run block
-  to lead with the five user jobs instead of a command inventory.
+  to lead with the five user jobs instead of a command inventory. The new guide
+  is routed through the `user_guides` proof scope.
