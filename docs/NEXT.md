@@ -34,11 +34,13 @@ spine and several small fixes on main; future performance work should continue
 to cite `cargo xtask perf-smoke` receipts or explicitly say it is
 structure-only.
 
-The active documentation-control lane is the source-of-truth stack: proposals
+The source-of-truth stack is installed and in routine maintenance: proposals
 own exploratory rationale, specs own behavior contracts and proof
 requirements, ADRs own durable architecture decisions, plans own sequencing,
 `.jules/goals/active.toml` owns small machine-readable active-agent state, and
-checked policy TOMLs own machine-enforced rules.
+checked policy TOMLs own machine-enforced rules. The completed doc-artifacts
+checker plan is closed out; the current active goal now points at cockpit
+review usefulness.
 
 ## Next Work Packets
 
@@ -52,7 +54,8 @@ checked policy TOMLs own machine-enforced rules.
    scope granularity as implementation microcrates collapse into SRP modules.
 5. Use bounded performance timing receipts before optimizing hot paths.
 6. Keep source-of-truth docs, active goal state, and proof-policy routing
-   aligned as new lanes start.
+   aligned as new lanes start; do not reopen the doc-artifacts checker lane
+   unless the spec changes.
 7. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
 
@@ -178,6 +181,10 @@ checked policy TOMLs own machine-enforced rules.
 - `docs/agent-workflows/source-of-truth.md` now gives maintainers and coding agents an operational checklist for reading `docs/NEXT.md`, `.jules/goals/active.toml`, linked plans/specs/ADRs, policy files, and proof output before changing a lane.
 - `.jules/goals/archive/README.md` now defines how completed, paused, or superseded active goals can be archived as historical snapshots without turning archives into a second active queue.
 - `tokmd cockpit --doc-artifacts-check <path> --review-packet-dir <dir>` now imports the visibility-only `tokmd.doc_artifacts_check.v1` receipt into review packets, copies it to `docs/doc-artifacts-check.json`, records it in `manifest.json` and `evidence.json`, and summarizes it in `review-map.md` / `comment.md` without changing merge behavior, proof promotion, or Codecov defaults.
+- The documentation source-of-truth lane is closed through first enforcement:
+  `docs/plans/doc-artifacts-check.md` is complete, the completed goal is
+  archived in `.jules/goals/archive/2026-05-13-doc-artifacts-check.toml`, and
+  `.jules/goals/active.toml` now points at cockpit review usefulness.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 - The composite Action now adds hosted packet metadata to review-packet PR comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.

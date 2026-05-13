@@ -1,6 +1,6 @@
 # Plan: Documentation Artifact Checker
 
-- Status: active
+- Status: complete
 - Related proposal: none
 - Related spec: `docs/specs/doc-artifacts.md`
 - Related ADR: `docs/adr/0000-adr-process.md`
@@ -10,13 +10,13 @@
 
 Make tokmd's source-of-truth stack checkable without changing product behavior.
 
-The first implementation target is:
+The implemented checker is:
 
 ```bash
 cargo xtask doc-artifacts --check
 ```
 
-That command should verify the shape, links, and routing of source-of-truth
+That command verifies the shape, links, and routing of source-of-truth
 documentation artifacts defined by `docs/source-of-truth.md` and
 `docs/specs/doc-artifacts.md`.
 
@@ -30,6 +30,10 @@ documentation artifacts defined by `docs/source-of-truth.md` and
 - Do not add a new product command; keep this in `xtask`.
 
 ## Work Packets
+
+All work packets in this plan are complete as of 2026-05-13. Future changes that
+extend the contract beyond these packets should open a new plan or update the
+spec before changing behavior.
 
 1. Add the doc-artifact contract.
 
@@ -83,6 +87,21 @@ documentation artifacts defined by `docs/source-of-truth.md` and
    `target/docs/doc-artifacts-check.json` as documentation-control evidence for
    source-of-truth changes. Keep the import explicit and visibility-only: no
    merge verdict, proof promotion, or Codecov behavior changes.
+
+## Closeout
+
+The source-of-truth control surface is now installed through first enforcement:
+the docs model exists, policy owns the machine-checkable shape, `xtask` checks
+that shape, docs CI uploads a visibility-only receipt, affected proof routes
+source-of-truth changes to the checker, and cockpit can explicitly import the
+receipt into review packets.
+
+Deferred follow-up work belongs in new lanes:
+
+- Cockpit may use the doc-artifacts receipt to improve review usefulness.
+- Evidencebus integration may wrap the receipt as part of a broader packet.
+- Future source-of-truth policy changes should update
+  `docs/specs/doc-artifacts.md` before changing checker behavior.
 
 ## Validation
 
@@ -144,3 +163,7 @@ package, export, public API, or publish-surface files.
   receipts as documentation-control evidence, copies them into the packet,
   records them in the manifest and evidence files, and summarizes them in the
   review map and comment without changing merge behavior.
+- 2026-05-13: The plan is complete. The former active goal was archived under
+  `.jules/goals/archive/2026-05-13-doc-artifacts-check.toml`, and
+  `.jules/goals/active.toml` now points at the next cockpit review-usefulness
+  lane.
