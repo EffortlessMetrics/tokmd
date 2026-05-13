@@ -133,6 +133,59 @@ fn proof_run_observations_summary_help_mentions_observation_paths() {
 }
 
 #[test]
+fn proof_run_pr_policy_help_mentions_policy_and_output() {
+    let (stdout, stderr, success) = run_xtask(&["proof-run-pr-policy", "--help"]);
+
+    assert!(
+        success,
+        "proof-run-pr-policy --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--proof-policy-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--github-output"), "stdout: {stdout}");
+}
+
+#[test]
+fn proof_run_pr_policy_writes_github_output_artifact() {
+    let root = workspace_root();
+    let policy = root
+        .join("target")
+        .join("proof-run-pr-policy-w92")
+        .join("proof-policy.json");
+    let output = root
+        .join("target")
+        .join("proof-run-pr-policy-w92")
+        .join("proof-run-pr.outputs");
+    if output.exists() {
+        fs::remove_file(&output).expect("stale proof-run PR output fixture should be removable");
+    }
+
+    let policy_arg = policy.to_string_lossy().to_string();
+    let output_arg = output.to_string_lossy().to_string();
+    let (_, stderr, success) = run_xtask(&["proof-policy", "--json-output", &policy_arg]);
+    assert!(success, "proof-policy fixture failed. stderr: {stderr}");
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-run-pr-policy",
+        "--proof-policy-json",
+        &policy_arg,
+        "--github-output",
+        &output_arg,
+    ]);
+
+    assert!(
+        success,
+        "proof-run-pr-policy failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("proof-run PR policy: wrote GitHub output"),
+        "stdout: {stdout}"
+    );
+
+    let body = fs::read_to_string(output).expect("proof-run PR output should be readable");
+    assert_eq!(body, "profile=fast\nartifact_name=fast-proof-run\n");
+}
+
+#[test]
 fn proof_execution_observation_help_mentions_executor_paths_and_output() {
     let (stdout, stderr, success) = run_xtask(&["proof-execution-observation", "--help"]);
 
@@ -472,8 +525,28 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should not capture proof-policy JSON with shell redirection"
     );
     assert!(
-        ci.contains("proof_run.pr.required must remain false"),
-        "fast proof policy should keep the PR job non-required"
+        ci.contains("cargo xtask proof-run-pr-policy"),
+        "fast proof job should resolve proof-run PR policy through xtask"
+    );
+    assert!(
+        ci.contains("--proof-policy-json target/proof-run/proof-policy.json"),
+        "fast proof policy resolver should read the checked proof-policy JSON"
+    );
+    assert!(
+        ci.contains("--github-output target/proof-run/proof-run-pr.outputs"),
+        "fast proof policy resolver should write a stable GitHub output artifact"
+    );
+    assert!(
+        ci.contains("cat target/proof-run/proof-run-pr.outputs >> \"$GITHUB_OUTPUT\""),
+        "fast proof job should source Rust-resolved outputs"
+    );
+    assert!(
+        !ci.contains("proof_run.pr.required must remain false"),
+        "fast proof policy should not be enforced with inline Python"
+    );
+    assert!(
+        !ci.contains("python - <<'PY' >> \"$GITHUB_OUTPUT\""),
+        "fast proof job should not resolve policy with inline Python"
     );
     assert!(
         ci.contains("cargo xtask proof --profile \"${PROOF_RUN_PROFILE}\" --run-required --allow-ci-required-execution"),
