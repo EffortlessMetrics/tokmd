@@ -76,7 +76,7 @@ pub enum Commands {
     Sccache(SccacheArgs),
     /// Reclaim target/debug space by trimming Windows PDBs and incremental state
     TrimTarget(TrimTargetArgs),
-    /// Emit a small phase-timing receipt for core inventory workflows
+    /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
 }
 
@@ -217,6 +217,30 @@ pub struct PerfSmokeArgs {
     /// Commit SHA recorded in the receipt; defaults to GITHUB_SHA or HEAD.
     #[arg(long)]
     pub sha: Option<String>,
+
+    /// Optional analysis preset to time. Repeat to measure multiple bounded presets.
+    #[arg(long = "analysis-preset", value_delimiter = ',')]
+    pub analysis_presets: Vec<String>,
+
+    /// Maximum files walked for each timed analysis preset.
+    #[arg(long, default_value_t = 500)]
+    pub analysis_max_files: usize,
+
+    /// Maximum total bytes read for each timed analysis preset.
+    #[arg(long, default_value_t = 52_428_800)]
+    pub analysis_max_bytes: u64,
+
+    /// Maximum bytes read from each file for each timed analysis preset.
+    #[arg(long, default_value_t = 1_048_576)]
+    pub analysis_max_file_bytes: u64,
+
+    /// Maximum git commits scanned for each timed analysis preset.
+    #[arg(long, default_value_t = 200)]
+    pub analysis_max_commits: usize,
+
+    /// Maximum files scanned per git commit for each timed analysis preset.
+    #[arg(long, default_value_t = 200)]
+    pub analysis_max_commit_files: usize,
 }
 
 impl Default for PerfSmokeArgs {
@@ -226,6 +250,12 @@ impl Default for PerfSmokeArgs {
             output: std::path::PathBuf::from("target/perf/perf-smoke.json"),
             repo: "tokmd".to_string(),
             sha: None,
+            analysis_presets: Vec::new(),
+            analysis_max_files: 500,
+            analysis_max_bytes: 52_428_800,
+            analysis_max_file_bytes: 1_048_576,
+            analysis_max_commits: 200,
+            analysis_max_commit_files: 200,
         }
     }
 }
