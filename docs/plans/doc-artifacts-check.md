@@ -94,3 +94,7 @@ package, export, public API, or publish-surface files.
 - 2026-05-13: Source-of-truth routing landed in `docs/source-of-truth.md`.
   This plan starts the follow-up path toward a Rust-owned documentation artifact
   checker.
+- 2026-05-13: Draft policy configuration was added in
+  `policy/doc-artifacts.toml` so the future checker can read artifact families,
+  statuses, required sections, and active-goal link rules from a repo policy
+  file instead of hard-coding the source-of-truth contract.
