@@ -206,6 +206,11 @@ review usefulness.
 - Hosted review-packet comments now show verifier status, manifest hash status,
   and compact proof evidence counts while keeping packet-local `comment.md`
   immutable after manifest hashing.
+- Cockpit review maps now order packet items for review-first use by preserving
+  source-of-truth changes first, then missing/stale/degraded evidence,
+  high-complexity items, and contract paths, while keeping
+  `cockpit.json#/review_plan/<index>` refs pointed at the original receipt
+  order.
 - `docs/cockpit-proof-evidence.md` now includes the maintainer-facing local
   workflow for planning proof, optionally executing guarded required proof,
   importing proof artifacts, and verifying the review packet.

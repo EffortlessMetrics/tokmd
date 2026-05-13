@@ -25,11 +25,21 @@ pub(super) fn review_packet_review_map(
     let has_doc_artifacts_evidence = doc_artifacts.is_some() || doc_artifacts_expected(receipt);
     let evidence_refs =
         review_map_evidence_refs(!proof_refs.is_empty(), has_doc_artifacts_evidence);
-    let items: Vec<_> = receipt
-        .review_plan
+    let ordered_items = ordered_review_map_items(receipt);
+    let items: Vec<_> = ordered_items
         .iter()
         .enumerate()
-        .map(|(idx, item)| review_map_item(idx, item, receipt, &proof_refs, doc_artifacts))
+        .map(|(rank, ordered)| {
+            review_map_item(
+                rank + 1,
+                ordered.source_index,
+                ordered.item,
+                receipt,
+                &ordered.evidence,
+                &proof_refs,
+                doc_artifacts,
+            )
+        })
         .collect();
 
     json!({
@@ -48,19 +58,21 @@ pub(super) fn review_packet_review_map(
 }
 
 fn review_map_item(
-    idx: usize,
+    rank: usize,
+    source_index: usize,
     item: &ReviewItem,
     receipt: &CockpitReceipt,
+    evidence: &ReviewMapItemEvidence,
     proof_refs: &[ReviewMapProofRef],
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> Value {
-    let evidence = review_map_item_evidence(item, receipt);
     let proof = review_map_item_proof(item, proof_refs);
     let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, doc_artifacts);
     let reproduce = review_map_item_reproduce(item, receipt);
 
     json!({
-        "rank": idx + 1,
+        "rank": rank,
+        "source_index": source_index,
         "path": &item.path,
         "priority": item.priority,
         "priority_label": review_priority_label(item.priority),
@@ -68,23 +80,121 @@ fn review_map_item(
         "complexity": item.complexity,
         "lines_changed": item.lines_changed,
         "evidence_refs": [
-            format!("cockpit.json#/review_plan/{idx}"),
+            format!("cockpit.json#/review_plan/{source_index}"),
             "evidence.json#/gates",
         ],
         "proof_refs": proof.refs,
         "doc_artifacts_refs": doc_artifacts_refs,
         "evidence": {
             "status": evidence.status(),
-            "present": evidence.present,
-            "missing": evidence.missing,
-            "degraded": evidence.degraded,
-            "stale": evidence.stale,
-            "skipped": evidence.skipped,
-            "unavailable": evidence.unavailable,
+            "present": &evidence.present,
+            "missing": &evidence.missing,
+            "degraded": &evidence.degraded,
+            "stale": &evidence.stale,
+            "skipped": &evidence.skipped,
+            "unavailable": &evidence.unavailable,
             "refs": ["evidence.json#/gates"],
         },
         "reproduce": reproduce,
     })
+}
+
+struct OrderedReviewMapItem<'a> {
+    source_index: usize,
+    item: &'a ReviewItem,
+    evidence: ReviewMapItemEvidence,
+}
+
+fn ordered_review_map_items(receipt: &CockpitReceipt) -> Vec<OrderedReviewMapItem<'_>> {
+    let mut items: Vec<_> = receipt
+        .review_plan
+        .iter()
+        .enumerate()
+        .map(|(source_index, item)| OrderedReviewMapItem {
+            source_index,
+            item,
+            evidence: review_map_item_evidence(item, receipt),
+        })
+        .collect();
+
+    items.sort_by(|a, b| {
+        review_order_bucket(a.item, &a.evidence)
+            .cmp(&review_order_bucket(b.item, &b.evidence))
+            .then_with(|| a.item.priority.cmp(&b.item.priority))
+            .then_with(|| {
+                b.item
+                    .complexity
+                    .unwrap_or(0)
+                    .cmp(&a.item.complexity.unwrap_or(0))
+            })
+            .then_with(|| {
+                b.item
+                    .lines_changed
+                    .unwrap_or(0)
+                    .cmp(&a.item.lines_changed.unwrap_or(0))
+            })
+            .then_with(|| a.item.path.cmp(&b.item.path))
+            .then_with(|| a.source_index.cmp(&b.source_index))
+    });
+
+    items
+}
+
+fn review_order_bucket(item: &ReviewItem, evidence: &ReviewMapItemEvidence) -> u8 {
+    if review_item_is_source_of_truth(item) {
+        0
+    } else if !evidence.missing.is_empty() {
+        1
+    } else if !evidence.stale.is_empty() {
+        2
+    } else if !evidence.degraded.is_empty() {
+        3
+    } else if item.complexity.unwrap_or(0) >= 4 {
+        4
+    } else if review_contract_path(&item.path) {
+        5
+    } else if item.priority <= 1 {
+        6
+    } else if item.priority == 2 {
+        7
+    } else if !evidence.present.is_empty() {
+        8
+    } else if !evidence.skipped.is_empty() {
+        9
+    } else {
+        10
+    }
+}
+
+fn review_contract_path(path: &str) -> bool {
+    schema_review_path(path)
+        || policy_review_path(path)
+        || cli_review_path(path)
+        || api_review_path(path)
+}
+
+fn schema_review_path(path: &str) -> bool {
+    path == "docs/schema.json"
+        || path == "docs/SCHEMA.md"
+        || path.starts_with("docs/") && path.ends_with(".schema.json")
+        || path.starts_with("crates/tokmd/schemas/")
+}
+
+fn policy_review_path(path: &str) -> bool {
+    path == "ci/proof.toml"
+        || path == "codecov.yml"
+        || path.starts_with("policy/")
+        || path.starts_with(".github/workflows/")
+}
+
+fn cli_review_path(path: &str) -> bool {
+    path.starts_with("crates/tokmd/src/commands/")
+        || path.starts_with("crates/tokmd/src/cli/")
+        || path == "crates/tokmd/src/config.rs"
+}
+
+fn api_review_path(path: &str) -> bool {
+    path.ends_with("lib.rs") || path.ends_with("mod.rs")
 }
 
 fn review_map_item_reproduce(item: &ReviewItem, receipt: &CockpitReceipt) -> Vec<String> {
@@ -241,15 +351,17 @@ pub(super) fn render_review_map_md(
     let _ = writeln!(s, "## Review First");
     let _ = writeln!(s);
 
-    for (idx, item) in receipt.review_plan.iter().enumerate() {
-        let evidence = review_map_item_evidence(item, receipt);
+    for (rank, ordered) in ordered_review_map_items(receipt).iter().enumerate() {
+        let item = ordered.item;
+        let source_index = ordered.source_index;
+        let evidence = &ordered.evidence;
         let proof = review_map_item_proof(item, &proof_refs);
         let _ = writeln!(
             s,
             "{}. `{}`
    Priority: {} ({})
    Why it matters: {}",
-            idx + 1,
+            rank + 1,
             item.path,
             item.priority,
             review_priority_label(item.priority),
@@ -272,7 +384,7 @@ pub(super) fn render_review_map_md(
         write_doc_artifacts_block(&mut s, item, doc_artifacts);
         write_proof_block(&mut s, &proof);
         let _ = writeln!(s, "   Evidence references:");
-        let _ = writeln!(s, "   - cockpit.json#/review_plan/{idx}");
+        let _ = writeln!(s, "   - cockpit.json#/review_plan/{source_index}");
         let _ = writeln!(s, "   - evidence.json#/gates");
         let _ = writeln!(s, "   Reproduce:");
         let _ = writeln!(

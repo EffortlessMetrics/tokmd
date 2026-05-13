@@ -930,6 +930,140 @@ fn scenario_write_review_packet_creates_contract_files() {
 }
 
 #[test]
+fn scenario_review_map_orders_review_first_by_evidence_risk() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.evidence.mutation.meta.status = GateStatus::Pass;
+    receipt.evidence.mutation.meta.commit_match = CommitMatch::Exact;
+    receipt.evidence.diff_coverage = Some(DiffCoverageGate {
+        meta: GateMeta {
+            status: GateStatus::Pending,
+            source: EvidenceSource::CiArtifact,
+            commit_match: CommitMatch::Unknown,
+            scope: ScopeCoverage {
+                relevant: vec!["src/missing.rs".to_string()],
+                tested: Vec::new(),
+                ratio: 0.0,
+                lines_relevant: Some(12),
+                lines_tested: Some(0),
+            },
+            evidence_commit: None,
+            evidence_generated_at_ms: None,
+        },
+        lines_added: 12,
+        lines_covered: 0,
+        coverage_pct: 0.0,
+        uncovered_hunks: vec![UncoveredHunk {
+            file: "src/missing.rs".to_string(),
+            start_line: 1,
+            end_line: 12,
+        }],
+    });
+    receipt.review_plan = vec![
+        ReviewItem {
+            path: "src/available.rs".to_string(),
+            reason: "Large changed file".to_string(),
+            priority: 1,
+            complexity: Some(5),
+            lines_changed: Some(400),
+        },
+        ReviewItem {
+            path: "src/missing.rs".to_string(),
+            reason: "Diff coverage evidence is missing".to_string(),
+            priority: 2,
+            complexity: Some(1),
+            lines_changed: Some(12),
+        },
+    ];
+    let out = dir.path().join("review");
+
+    tokmd_cockpit::render::write_review_packet(&out, &receipt).unwrap();
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    assert_eq!(review_map["items"][0]["rank"], 1);
+    assert_eq!(review_map["items"][0]["path"], "src/missing.rs");
+    assert_eq!(review_map["items"][0]["source_index"], 1);
+    assert_eq!(
+        review_map["items"][0]["evidence_refs"][0],
+        "cockpit.json#/review_plan/1"
+    );
+    assert_eq!(review_map["items"][0]["evidence"]["status"], "missing");
+    assert_eq!(review_map["items"][1]["rank"], 2);
+    assert_eq!(review_map["items"][1]["path"], "src/available.rs");
+    assert_eq!(review_map["items"][1]["source_index"], 0);
+    assert_eq!(
+        review_map["items"][1]["evidence_refs"][0],
+        "cockpit.json#/review_plan/0"
+    );
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    let missing_pos = review_map_md
+        .find("1. `src/missing.rs`")
+        .expect("missing-evidence item should be first");
+    let available_pos = review_map_md
+        .find("2. `src/available.rs`")
+        .expect("available-evidence item should be second");
+    assert!(
+        missing_pos < available_pos,
+        "review-map Markdown should order missing evidence before raw size"
+    );
+}
+
+#[test]
+fn scenario_review_map_orders_contract_paths_before_ordinary_low_priority_items() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![
+        ReviewItem {
+            path: "docs/NEXT.md".to_string(),
+            reason: "Program note changed".to_string(),
+            priority: 3,
+            complexity: Some(1),
+            lines_changed: Some(4),
+        },
+        ReviewItem {
+            path: "crates/tokmd/schemas/review-map.schema.json".to_string(),
+            reason: "Review-map schema changed".to_string(),
+            priority: 3,
+            complexity: Some(1),
+            lines_changed: Some(1),
+        },
+    ];
+    let out = dir.path().join("review");
+
+    tokmd_cockpit::render::write_review_packet(&out, &receipt).unwrap();
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    assert_eq!(
+        review_map["items"][0]["path"],
+        "crates/tokmd/schemas/review-map.schema.json"
+    );
+    assert_eq!(review_map["items"][0]["source_index"], 1);
+    assert_eq!(
+        review_map["items"][0]["evidence_refs"][0],
+        "cockpit.json#/review_plan/1"
+    );
+    assert_eq!(review_map["items"][1]["path"], "docs/NEXT.md");
+    assert_eq!(review_map["items"][1]["source_index"], 0);
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    let schema_pos = review_map_md
+        .find("1. `crates/tokmd/schemas/review-map.schema.json`")
+        .expect("schema contract item should be first");
+    let ordinary_pos = review_map_md
+        .find("2. `docs/NEXT.md`")
+        .expect("ordinary low-priority item should be second");
+    assert!(
+        schema_pos < ordinary_pos,
+        "schema contract paths should be reviewed before ordinary low-priority docs"
+    );
+}
+
+#[test]
 fn scenario_write_review_packet_includes_imported_proof_evidence() {
     let dir = tempfile::tempdir().unwrap();
     let mut receipt = minimal_receipt();

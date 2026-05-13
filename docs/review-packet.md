@@ -51,10 +51,12 @@ The review packet directory is:
 ```
 
 `review-map.json` and `review-map.md` are derived from the existing cockpit
-`review_plan`. The plan keeps the existing priority fields, but may boost
-source-of-truth, schema, proof-policy, CLI-contract, and API-surface changes
-ahead of ordinary line-count ordering so reviewers see contract/control-plane
-changes early.
+`review_plan`. The packet keeps the original receipt order in `cockpit.json`,
+but the review map may reorder items for review-first use: source-of-truth
+items stay first, then missing/stale/degraded evidence, high-complexity items,
+contract paths, existing cockpit priority, changed lines, and path. Each item
+keeps evidence refs back to its original `cockpit.json#/review_plan/<index>`
+source.
 
 The `proof/` directory is present only when explicit proof evidence artifacts
 are supplied. Missing optional proof artifacts are represented in evidence
