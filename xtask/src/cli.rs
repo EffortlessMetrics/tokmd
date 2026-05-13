@@ -20,6 +20,8 @@ pub enum Commands {
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
     Docs(DocsArgs),
+    /// Verify source-of-truth documentation artifact shape and links
+    DocArtifacts(DocArtifactsArgs),
     /// Validate the Rust-native proof policy
     ProofPolicy(ProofPolicyArgs),
     /// Discover proof scopes affected by a git diff
@@ -89,6 +91,26 @@ pub struct DocsArgs {
     /// Update documentation blocks in place
     #[arg(long)]
     pub update: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct DocArtifactsArgs {
+    /// Verify source-of-truth documentation artifact shape and links
+    #[arg(long)]
+    pub check: bool,
+
+    /// Documentation artifact policy file
+    #[arg(long, default_value = "policy/doc-artifacts.toml")]
+    pub policy: std::path::PathBuf,
+}
+
+impl Default for DocArtifactsArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            policy: std::path::PathBuf::from("policy/doc-artifacts.toml"),
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone, Default)]

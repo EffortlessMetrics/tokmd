@@ -8,6 +8,7 @@ pub mod ci_plan;
 pub mod clippy_exceptions;
 pub mod cockpit;
 pub mod coverage_receipt;
+pub mod doc_artifacts;
 pub mod docs;
 pub mod file_policy;
 pub mod fixture_blobs_check;

@@ -98,3 +98,7 @@ package, export, public API, or publish-surface files.
   `policy/doc-artifacts.toml` so the future checker can read artifact families,
   statuses, required sections, and active-goal link rules from a repo policy
   file instead of hard-coding the source-of-truth contract.
+- 2026-05-13: `cargo xtask doc-artifacts --check` landed as the first
+  Rust-owned checker for the policy file. It validates the current
+  source-of-truth shape and keeps docs-validation wiring as a separate follow-up
+  so noisy enforcement can be handled deliberately.
