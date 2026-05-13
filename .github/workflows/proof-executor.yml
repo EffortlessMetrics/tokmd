@@ -111,7 +111,7 @@ jobs:
           mkdir -p target/proof
           cargo llvm-cov clean --workspace
 
-          cargo xtask affected --base "origin/${PROOF_BASE_REF}" --head HEAD --json > target/proof/affected.json
+          cargo xtask affected --base "origin/${PROOF_BASE_REF}" --head HEAD --json-output target/proof/affected.json
           affected_status=$?
 
           cargo xtask proof --profile affected --base "origin/${PROOF_BASE_REF}" --head HEAD --executor-mode execute --executor-max-commands "${PROOF_EXECUTOR_MAX_COMMANDS}" --allow-ci-evidence-execution --plan-json target/proof/proof-plan.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json

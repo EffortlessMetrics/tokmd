@@ -184,6 +184,14 @@ fn affected_plan_ci_blocks_on_planner_generation_failures() {
         "affected-plan summary should keep executor command execution disabled"
     );
     assert!(
+        ci.contains("--json-output target/proof/affected.json"),
+        "affected-plan job should write affected.json through xtask instead of shell redirection"
+    );
+    assert!(
+        !ci.contains("--json > target/proof/affected.json"),
+        "affected-plan job should not capture affected.json with shell redirection"
+    );
+    assert!(
         ci.contains(
             "if [ \"${affected_status}\" -ne 0 ]; then\n            exit \"${affected_status}\"\n          fi"
         ),
@@ -345,6 +353,14 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     assert!(
         executor.contains("--plan-json target/proof/proof-plan.json"),
         "executor workflow should write the proof plan as a Rust-owned JSON artifact"
+    );
+    assert!(
+        executor.contains("--json-output target/proof/affected.json"),
+        "executor workflow should write affected.json through xtask instead of shell redirection"
+    );
+    assert!(
+        !executor.contains("--json > target/proof/affected.json"),
+        "executor workflow should not capture affected.json with shell redirection"
     );
     assert!(
         executor.contains("pr.get(\"default_enabled\") is not True"),

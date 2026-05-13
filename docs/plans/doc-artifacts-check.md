@@ -111,7 +111,7 @@ Each implementation PR should run the relevant subset of:
 cargo xtask doc-artifacts --check
 cargo xtask docs --check
 cargo xtask proof-policy --check
-cargo xtask affected --base origin/main --head HEAD --json
+cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected.json
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan
 cargo fmt-check
 git diff --check

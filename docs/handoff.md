@@ -53,6 +53,11 @@ For PR repair or review work in this repository, pair the handoff with cockpit
 and proof receipts:
 
 ```bash
+cargo xtask affected \
+  --base origin/main \
+  --head HEAD \
+  --json-output target/proof/affected.json
+
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan \
   --plan-json target/proof/proof-plan.json
 
@@ -82,6 +87,7 @@ Then give the agent the handoff plus the review evidence:
   commands.
 - `.tokmd/review/evidence.json` for available, missing, stale, degraded,
   skipped, and unavailable evidence.
+- `target/proof/affected.json` for changed files and matched proof scopes.
 - `target/proof/proof-plan.json` for expected proof commands.
 - `target/tokmd/review-packet-check.json` for packet verification.
 
