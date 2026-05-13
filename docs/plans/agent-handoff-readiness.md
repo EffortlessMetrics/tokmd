@@ -1,6 +1,6 @@
 # Plan: Agent Handoff Readiness
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: [Handoff schema](../handoff-schema.md)
 - Related ADR:
@@ -114,3 +114,6 @@ git diff --check
 - 2026-05-13: #2227 added `work-order.md` to handoff bundles as the
   agent-readable work map, kept linked receipts external, and preserved the
   no-merge-verdict/no-proof-promotion boundary.
+- 2026-05-13: #2229 checkpointed the completed handoff-readiness lane in
+  `docs/NEXT.md` and this plan. The completed active goal is archived in
+  `.jules/goals/archive/2026-05-13-agent-handoff-readiness.toml`.
