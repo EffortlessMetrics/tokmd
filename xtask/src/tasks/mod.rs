@@ -16,6 +16,7 @@ pub mod jules_index;
 pub mod lint_fix;
 pub mod lint_policy;
 pub mod no_panic;
+pub mod perf_smoke;
 pub mod proof_artifacts_check;
 pub mod proof_plan;
 pub mod proof_policy;
