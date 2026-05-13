@@ -45,7 +45,9 @@ When a change touches source-of-truth artifacts:
 3. Keep `.jules/goals/active.toml` short, current, and linked to human-readable
    artifacts.
 4. Do not let `.jules/goals/active.toml` become a run log.
-5. Run the documentation artifact checker before opening the PR.
+5. Archive a completed or superseded active goal under `.jules/goals/archive/`
+   only when the machine-readable checkpoint has durable value.
+6. Run the documentation artifact checker before opening the PR.
 
 ## PR Body Checklist
 

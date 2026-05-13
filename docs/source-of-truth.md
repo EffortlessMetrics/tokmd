@@ -128,6 +128,11 @@ Use `.jules/goals/active.toml` to make the current program machine-readable. It
 should be small, current, and linked to durable human docs. It should not become
 a diary.
 
+When a lane completes or is superseded, archive the old active goal under
+`.jules/goals/archive/YYYY-MM-DD-lane-slug.toml` only if the machine-readable
+checkpoint has durable value. Archived goals are historical context; they do not
+replace or compete with the current `active.toml`.
+
 ### Policy
 
 Use `ci/proof.toml` and files under `policy/` for rules that tooling can check.
