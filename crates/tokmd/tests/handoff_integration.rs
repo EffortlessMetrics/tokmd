@@ -24,11 +24,12 @@ fn test_handoff_creates_expected_files() {
         .assert()
         .success();
 
-    // Verify all 4 artifacts exist
+    // Verify core artifacts exist
     assert!(out_dir.join("manifest.json").exists());
     assert!(out_dir.join("map.jsonl").exists());
     assert!(out_dir.join("intelligence.json").exists());
     assert!(out_dir.join("code.txt").exists());
+    assert!(out_dir.join("work-order.md").exists());
 }
 
 #[test]
@@ -65,6 +66,12 @@ fn test_handoff_manifest_valid_json() {
     let map = artifacts.iter().find(|a| a["name"] == "map").unwrap();
     assert!(map["hash"]["algo"] == "blake3");
     assert!(map["hash"]["hash"].is_string());
+    let work_order = artifacts
+        .iter()
+        .find(|a| a["name"] == "work-order")
+        .unwrap();
+    assert_eq!(work_order["path"].as_str(), Some("work-order.md"));
+    assert_eq!(work_order["hash"]["algo"].as_str(), Some("blake3"));
 }
 
 #[test]
@@ -156,6 +163,13 @@ fn test_handoff_links_review_and_proof_artifacts() {
         artifacts
             .iter()
             .any(|entry| entry["path"] == "proof-links.json")
+    );
+
+    let work_order = fs::read_to_string(out_dir.join("work-order.md")).unwrap();
+    assert!(work_order.contains("review-links.json"));
+    assert!(work_order.contains("proof-links.json"));
+    assert!(
+        work_order.contains("Treat linked review and proof receipts as external evidence handles")
     );
 }
 
@@ -267,6 +281,7 @@ fn test_handoff_graceful_no_git() {
     assert!(out_dir.join("map.jsonl").exists());
     assert!(out_dir.join("intelligence.json").exists());
     assert!(out_dir.join("code.txt").exists());
+    assert!(out_dir.join("work-order.md").exists());
 
     // Verify capabilities show git as skipped
     let manifest_content = fs::read_to_string(out_dir.join("manifest.json")).unwrap();

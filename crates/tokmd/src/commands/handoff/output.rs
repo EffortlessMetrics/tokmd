@@ -26,6 +26,19 @@ pub(super) struct HandoffLinkInputs<'a> {
     pub(super) proof_plan: Option<&'a Path>,
 }
 
+pub(super) struct HandoffWorkOrderInputs<'a> {
+    pub(super) inputs: &'a [String],
+    pub(super) budget_tokens: usize,
+    pub(super) used_tokens: usize,
+    pub(super) utilization_pct: f64,
+    pub(super) strategy: &'a str,
+    pub(super) rank_by: &'a str,
+    pub(super) intelligence_preset: &'a str,
+    pub(super) total_files: usize,
+    pub(super) selected: &'a [ContextFileRow],
+    pub(super) links: &'a HandoffLinkInputs<'a>,
+}
+
 pub(super) fn write_payloads(
     out_dir: &Path,
     export: &ExportData,
@@ -125,6 +138,19 @@ pub(super) fn write_link_artifacts(
     Ok(artifacts)
 }
 
+pub(super) fn write_work_order(
+    out_dir: &Path,
+    order: &HandoffWorkOrderInputs<'_>,
+) -> Result<ArtifactEntry> {
+    write_text_artifact(
+        out_dir,
+        "work-order",
+        "work-order.md",
+        "Agent work order and consumption guide",
+        &render_work_order(order),
+    )
+}
+
 pub(super) fn write_manifest_json(out_dir: &Path, manifest: &HandoffManifest) -> Result<usize> {
     let manifest_path = out_dir.join("manifest.json");
     let manifest_json = serde_json::to_string_pretty(manifest)?;
@@ -154,6 +180,136 @@ fn write_json_artifact(
             hash: hash_bytes(json.as_bytes()),
         }),
     })
+}
+
+fn write_text_artifact(
+    out_dir: &Path,
+    name: &str,
+    relative_path: &str,
+    description: &str,
+    content: &str,
+) -> Result<ArtifactEntry> {
+    let path = out_dir.join(relative_path);
+    fs::write(&path, content).with_context(|| format!("Failed to write {}", path.display()))?;
+
+    Ok(ArtifactEntry {
+        name: name.to_string(),
+        path: relative_path.to_string(),
+        description: description.to_string(),
+        bytes: content.len() as u64,
+        hash: Some(ArtifactHash {
+            algo: "blake3".to_string(),
+            hash: hash_bytes(content.as_bytes()),
+        }),
+    })
+}
+
+fn render_work_order(order: &HandoffWorkOrderInputs<'_>) -> String {
+    let mut out = String::new();
+    out.push_str("# Agent Work Order\n\n");
+    out.push_str("This handoff is a deterministic source/context bundle for coding-agent work.\n");
+    out.push_str("Treat linked review and proof receipts as external evidence handles; this file does not verify them.\n\n");
+
+    out.push_str("## Start Here\n\n");
+    let mut steps = vec![
+        "Read `manifest.json` for the authoritative artifact index, token budget, included files, and exclusions.",
+        "Read `work-order.md` for the agent task map and guardrails.",
+        "Read `code.txt` for the bounded source bundle.",
+        "Use `map.jsonl` for full file inventory and path lookup.",
+        "Use `intelligence.json` for repository shape, hotspots, complexity, and derived signals.",
+    ];
+    if order.links.review_packet_dir.is_some() || order.links.review_packet_check.is_some() {
+        steps.push(
+            "Use `review-links.json` for cockpit review packet and verifier receipt pointers.",
+        );
+    }
+    if order.links.affected.is_some() || order.links.proof_plan.is_some() {
+        steps.push("Use `proof-links.json` for affected-proof and proof-plan pointers.");
+    }
+    for (index, step) in steps.iter().enumerate() {
+        out.push_str(&format!("{}. {}\n", index + 1, step));
+    }
+
+    out.push_str("\n## Bundle Summary\n\n");
+    out.push_str(&format!("- Inputs: {}\n", order.inputs.join(", ")));
+    out.push_str(&format!("- Budget tokens: {}\n", order.budget_tokens));
+    out.push_str(&format!("- Used tokens: {}\n", order.used_tokens));
+    out.push_str(&format!("- Utilization: {:.2}%\n", order.utilization_pct));
+    out.push_str(&format!("- Strategy: `{}`\n", order.strategy));
+    out.push_str(&format!("- Rank metric: `{}`\n", order.rank_by));
+    out.push_str(&format!(
+        "- Intelligence preset: `{}`\n",
+        order.intelligence_preset
+    ));
+    out.push_str(&format!("- Bundled files: {}\n", order.selected.len()));
+    out.push_str(&format!("- Total scanned files: {}\n", order.total_files));
+
+    out.push_str("\n## Linked Evidence\n\n");
+    if let Some(path) = order.links.review_packet_dir {
+        out.push_str(&format!(
+            "- Review packet directory: `{}`\n",
+            path_string(path)
+        ));
+    } else {
+        out.push_str("- Review packet directory: not linked\n");
+    }
+    if let Some(path) = order.links.review_packet_check {
+        out.push_str(&format!(
+            "- Review packet verifier receipt: `{}`\n",
+            path_string(path)
+        ));
+    } else {
+        out.push_str("- Review packet verifier receipt: not linked\n");
+    }
+    if let Some(path) = order.links.affected {
+        out.push_str(&format!(
+            "- Affected proof report: `{}`\n",
+            path_string(path)
+        ));
+    } else {
+        out.push_str("- Affected proof report: not linked\n");
+    }
+    if let Some(path) = order.links.proof_plan {
+        out.push_str(&format!("- Proof plan report: `{}`\n", path_string(path)));
+    } else {
+        out.push_str("- Proof plan report: not linked\n");
+    }
+
+    out.push_str("\n## Included Files\n\n");
+    if order.selected.is_empty() {
+        out.push_str("- No files were bundled.\n");
+    } else {
+        for file in order.selected.iter().take(20) {
+            let effective_tokens = file.effective_tokens.unwrap_or(file.tokens);
+            out.push_str(&format!(
+                "- `{}`: {}, policy `{}`, {} effective tokens",
+                file.path,
+                file.lang,
+                policy_label(file.policy),
+                effective_tokens
+            ));
+            if !file.rank_reason.is_empty() {
+                out.push_str(&format!(", reason: {}", file.rank_reason));
+            }
+            out.push('\n');
+        }
+        if order.selected.len() > 20 {
+            out.push_str(&format!(
+                "- ... {} more bundled file(s); see `manifest.json` for the full list.\n",
+                order.selected.len() - 20
+            ));
+        }
+    }
+
+    out.push_str("\n## Agent Guardrails\n\n");
+    out.push_str("- Treat missing, stale, degraded, skipped, or unavailable evidence as work to resolve, not as passing proof.\n");
+    out.push_str("- Run reproduction commands from the linked review map before claiming a repair is proven.\n");
+    out.push_str(
+        "- Keep generated receipts with the work when they explain review or proof state.\n",
+    );
+    out.push_str("- Do not promote advisory proof, enable default Codecov upload, or turn this handoff into a merge verdict.\n");
+
+    out
 }
 
 fn review_links_json(
@@ -226,6 +382,15 @@ fn path_link(name: &str, path: &Path) -> Value {
 
 fn path_string(path: &Path) -> String {
     path.display().to_string().replace('\\', "/")
+}
+
+fn policy_label(policy: InclusionPolicy) -> &'static str {
+    match policy {
+        InclusionPolicy::Full => "full",
+        InclusionPolicy::HeadTail => "head_tail",
+        InclusionPolicy::Summary => "summary",
+        InclusionPolicy::Skip => "skip",
+    }
 }
 
 fn write_map_jsonl(path: &Path, export: &ExportData) -> Result<u64> {

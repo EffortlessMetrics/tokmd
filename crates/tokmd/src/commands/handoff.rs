@@ -28,7 +28,10 @@ mod output;
 
 use capabilities::{detect_capabilities, should_compute_git};
 use intelligence::build_intelligence;
-use output::{HandoffLinkInputs, write_link_artifacts, write_manifest_json, write_payloads};
+use output::{
+    HandoffLinkInputs, HandoffWorkOrderInputs, write_link_artifacts, write_manifest_json,
+    write_payloads, write_work_order,
+};
 
 const DEFAULT_TREE_DEPTH: usize = 4;
 
@@ -151,16 +154,39 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         &selected,
         args.compress,
     )?;
-    let mut link_artifacts = write_link_artifacts(
+    let link_inputs = HandoffLinkInputs {
+        review_packet_dir: args.review_packet_dir.as_deref(),
+        review_packet_check: args.review_packet_check.as_deref(),
+        affected: args.affected.as_deref(),
+        proof_plan: args.proof_plan.as_deref(),
+    };
+    let mut link_artifacts = write_link_artifacts(&args.out_dir, &link_inputs)?;
+    payloads.artifacts.append(&mut link_artifacts);
+    let total_files = export
+        .rows
+        .iter()
+        .filter(|r| r.kind == FileKind::Parent)
+        .count();
+    let input_paths: Vec<String> = paths.iter().map(|p| p.display().to_string()).collect();
+    let strategy = format!("{:?}", args.strategy).to_lowercase();
+    let rank_by = format!("{:?}", args.rank_by).to_lowercase();
+    let intelligence_preset = format!("{:?}", args.preset).to_lowercase();
+    let work_order_artifact = write_work_order(
         &args.out_dir,
-        &HandoffLinkInputs {
-            review_packet_dir: args.review_packet_dir.as_deref(),
-            review_packet_check: args.review_packet_check.as_deref(),
-            affected: args.affected.as_deref(),
-            proof_plan: args.proof_plan.as_deref(),
+        &HandoffWorkOrderInputs {
+            inputs: &input_paths,
+            budget_tokens: budget,
+            used_tokens,
+            utilization_pct: round_f64(utilization, 2),
+            strategy: &strategy,
+            rank_by: &rank_by,
+            intelligence_preset: &intelligence_preset,
+            total_files,
+            selected: &selected,
+            links: &link_inputs,
         },
     )?;
-    payloads.artifacts.append(&mut link_artifacts);
+    payloads.artifacts.push(work_order_artifact);
 
     // Compute token estimation and audit
     let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
@@ -174,26 +200,22 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         generated_at_ms: timestamp,
         tool: ToolInfo::current(),
         mode: "handoff".to_string(),
-        inputs: paths.iter().map(|p| p.display().to_string()).collect(),
+        inputs: input_paths,
         output_dir: args.out_dir.display().to_string(),
         budget_tokens: budget,
         used_tokens,
         utilization_pct: round_f64(utilization, 2),
-        strategy: format!("{:?}", args.strategy).to_lowercase(),
-        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
+        strategy,
+        rank_by,
         capabilities: capabilities.clone(),
         artifacts: payloads.artifacts,
         included_files: selected.clone(),
         excluded_paths: excluded_paths.clone(),
         excluded_patterns: scan_args.excluded.clone(),
         smart_excluded_files,
-        total_files: export
-            .rows
-            .iter()
-            .filter(|r| r.kind == FileKind::Parent)
-            .count(),
+        total_files,
         bundled_files: selected.len(),
-        intelligence_preset: format!("{:?}", args.preset).to_lowercase(),
+        intelligence_preset,
         rank_by_effective: if select_result.fallback_reason.is_some() {
             Some(select_result.rank_by_effective.clone())
         } else {

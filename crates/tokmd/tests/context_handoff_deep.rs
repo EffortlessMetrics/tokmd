@@ -308,6 +308,10 @@ fn handoff_artifacts_have_expected_names() {
         "should have intelligence artifact"
     );
     assert!(names.contains(&"code"), "should have code artifact");
+    assert!(
+        names.contains(&"work-order"),
+        "should have work-order artifact"
+    );
 }
 
 #[test]
@@ -334,7 +338,7 @@ fn handoff_artifact_map_has_blake3_hash() {
 }
 
 #[test]
-fn handoff_produces_all_four_files() {
+fn handoff_produces_expected_files() {
     let dir = tempdir().unwrap();
     let out_dir = dir.path().join("hoff_files");
 
@@ -348,6 +352,7 @@ fn handoff_produces_all_four_files() {
     assert!(out_dir.join("map.jsonl").exists());
     assert!(out_dir.join("intelligence.json").exists());
     assert!(out_dir.join("code.txt").exists());
+    assert!(out_dir.join("work-order.md").exists());
 }
 
 #[test]

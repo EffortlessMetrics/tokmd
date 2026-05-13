@@ -44,10 +44,12 @@ Give the agent these files in order:
 
 1. `.handoff/manifest.json` for the authoritative artifact index, token budget,
    exclusions, and included-file list.
-2. `.handoff/intelligence.json` for tree, hotspot, complexity, and derived
+2. `.handoff/work-order.md` for the agent task map, linked evidence handles,
+   and guardrails.
+3. `.handoff/intelligence.json` for tree, hotspot, complexity, and derived
    signals.
-3. `.handoff/code.txt` for the selected source bundle.
-4. `.handoff/map.jsonl` when the agent needs full inventory or path lookup.
+4. `.handoff/code.txt` for the selected source bundle.
+5. `.handoff/map.jsonl` when the agent needs full inventory or path lookup.
 
 For PR repair or review work in this repository, pair the handoff with cockpit
 and proof receipts:
@@ -86,6 +88,8 @@ tokmd handoff \
 
 Then give the agent the handoff plus the linked review evidence:
 
+- `.handoff/work-order.md` for the ordered agent work map and evidence
+  guardrails.
 - `.tokmd/review/comment.md` for the short review summary.
 - `.tokmd/review/review-map.md` for what to inspect first and reproduction
   commands.
@@ -108,6 +112,7 @@ review packet verifier as the source of packet-integrity evidence.
 ```
 <out-dir>/
 ├── manifest.json      # authoritative index (schema v5)
+├── work-order.md      # agent work map and evidence guardrails
 ├── map.jsonl          # full file inventory (JSONL)
 ├── intelligence.json  # summary signals (payload-only)
 ├── code.txt           # token-budgeted code bundle
@@ -119,9 +124,11 @@ review packet verifier as the source of packet-integrity evidence.
 
 1. **Read `manifest.json` first.**  
    It is the authoritative index, lists artifacts, included files, and exclusions.
-2. **Use `map.jsonl`** for full inventory or downstream tooling.
-3. **Use `intelligence.json`** as a warning label (tree, hotspots, derived).
-4. **Use `code.txt`** as the LLM bundle content.
+2. **Read `work-order.md`** for the agent task map, linked evidence handles,
+   and guardrails.
+3. **Use `map.jsonl`** for full inventory or downstream tooling.
+4. **Use `intelligence.json`** as a warning label (tree, hotspots, derived).
+5. **Use `code.txt`** as the LLM bundle content.
 
 ## Agent Guardrails
 

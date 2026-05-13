@@ -49,6 +49,7 @@ The following fields are required in `manifest.json`:
 Artifacts listed in `manifest.json`:
 
 - `manifest.json` (self)
+- `work-order.md`
 - `map.jsonl`
 - `intelligence.json`
 - `code.txt`
@@ -58,6 +59,9 @@ Artifacts listed in `manifest.json`:
   `--proof-plan`
 
 Artifacts include size and optional hash. Hashing uses **blake3**.
+`work-order.md` is an agent-readable consumption guide generated from the
+manifest inputs, selected files, and optional review/proof link inputs. It does
+not verify external receipts.
 The link artifacts are packet-local JSON files that point at external review or
 proof receipts. They do not copy those external receipts into the handoff and
 do not replace the review-packet verifier.
