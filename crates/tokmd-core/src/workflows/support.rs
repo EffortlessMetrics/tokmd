@@ -10,6 +10,7 @@ use crate::InMemoryFile;
 use crate::settings::ScanSettings;
 
 /// Convert `ScanSettings` to lower-tier scan options.
+#[inline]
 pub(crate) fn settings_to_scan_options(scan: &ScanSettings) -> ScanOptions {
     scan.options.clone()
 }

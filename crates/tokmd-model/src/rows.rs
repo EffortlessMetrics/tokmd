@@ -191,6 +191,7 @@ fn detect_in_memory_language(
         .or_else(|| language_from_in_memory_shebang(bytes))
 }
 
+#[inline]
 fn insert_row<'a>(
     map: &mut BTreeMap<Key<'a>, (String, Agg)>,
     key: Key<'a>,

@@ -14,12 +14,14 @@ use tokmd_types::{
 use crate::settings::{ExportSettings, LangSettings, ModuleSettings};
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+#[inline]
 fn now_ms() -> u128 {
     // Keep wasm receipts from reusing zero as a fake wall-clock sentinel.
     js_sys::Date::now().max(1.0) as u128
 }
 
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+#[inline]
 fn now_ms() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)

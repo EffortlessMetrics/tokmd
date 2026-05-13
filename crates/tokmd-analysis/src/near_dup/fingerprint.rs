@@ -25,6 +25,7 @@ pub(super) fn read_and_fingerprint(path: &Path) -> Result<Vec<u64>> {
 }
 
 /// Tokenize text by splitting on non-alphanumeric/underscore boundaries.
+#[inline]
 pub(super) fn tokenize(text: &str) -> Vec<&str> {
     let mut tokens = Vec::new();
     let bytes = text.as_bytes();
@@ -48,6 +49,7 @@ pub(super) fn tokenize(text: &str) -> Vec<&str> {
 }
 
 /// Hash a k-gram (slice of tokens) using FxHash.
+#[inline]
 fn hash_kgram(tokens: &[&str]) -> u64 {
     let mut hasher = FxHasher::default();
     for t in tokens {
@@ -57,6 +59,7 @@ fn hash_kgram(tokens: &[&str]) -> u64 {
 }
 
 /// Apply the Winnowing algorithm to extract fingerprints from text.
+#[inline]
 pub(super) fn winnow(text: &str) -> Vec<u64> {
     let tokens = tokenize(text);
     if tokens.len() < K {

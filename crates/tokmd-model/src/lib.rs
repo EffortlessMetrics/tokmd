@@ -49,6 +49,7 @@ pub use rows::{
 /// // Rounds to nearest: 7 / 2 = 3.5 → 4
 /// assert_eq!(avg(7, 2), 4);
 /// ```
+#[inline]
 pub fn avg(lines: usize, files: usize) -> usize {
     if files == 0 {
         return 0;
@@ -78,6 +79,7 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// let prefix = Path::new("project");
 /// assert_eq!(normalize_path(&p, Some(&prefix)), "src/lib.rs");
 /// ```
+#[inline]
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     let s_cow = path.to_string_lossy();
     let s: Cow<str> = if s_cow.contains('\\') {
