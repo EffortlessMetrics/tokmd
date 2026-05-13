@@ -6,6 +6,7 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
 | `compat-wasm-pack-args` | compat | builder | bindings-targets | open | `wasm-pack test` argument placement is easy to get wrong when future runs need to pass Cargo feature flags or profile flags through to wasm test builds. |
+| `config_resolver_doctests` | Unknown | Unknown | Unknown | open | While investigating the `crates/tokmd/src/config/resolve/` interfaces (such as `resolve_lang`, `resolve_export`, and `resolve_module`), I discovered that comprehensive and passing executable `rust` doctests are already in place for all `resolve_*` and `resolve_*_with_config` functions. |
 | `fuzz_toolchain_blocker` | fuzzer | prover | interfaces | open | `cargo fuzz` is not a reliable local gate in the current agent environments. Repeated runs hit either missing nightly-toolchain support in sandboxed Linux environments or sanitizer/LLVM link failures on Windows/MSVC before the target starts. |
 | `librarian_doctest_git_dependency` | librarian | prover | core-pipeline | open | The `cockpit_workflow` public API doctest is marked as `no_run` and skipping validation because it implicitly requires an active Git repository to execute (it fails with `not inside a git repository` when executed normally). |
 | `mutant_high_value` | Mutant | Prover | core-pipeline | open | During the assignment `mutant_high_value`, I was prompted to target a high-value core surface and provide mutation-style proof improvements. |
