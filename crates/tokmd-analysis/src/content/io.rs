@@ -5,7 +5,7 @@
 //!
 //! ## What belongs here
 //! * File content reading (head, tail, lines)
-//! * Text detection
+//! * Text detection and byte-level classification
 //! * File integrity hashing (BLAKE3)
 //! * Tag counting (TODOs, FIXMEs)
 //! * Entropy calculation
@@ -22,6 +22,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
+#[path = "io/bytes.rs"]
+mod bytes;
 #[path = "io/tags.rs"]
 mod tags;
 
@@ -99,19 +101,15 @@ pub fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
 }
 
 pub fn is_text_like(bytes: &[u8]) -> bool {
-    if bytes.contains(&0) {
-        return false;
-    }
-    std::str::from_utf8(bytes).is_ok()
+    bytes::is_text_like(bytes)
 }
 
 pub fn hash_bytes(bytes: &[u8]) -> String {
-    blake3::hash(bytes).to_hex().to_string()
+    bytes::hash_bytes(bytes)
 }
 
 pub fn hash_file(path: &Path, max_bytes: usize) -> Result<String> {
-    let bytes = read_head(path, max_bytes)?;
-    Ok(hash_bytes(&bytes))
+    bytes::hash_file(path, max_bytes)
 }
 
 pub fn count_tags(text: &str, tag_names: &[&str]) -> Vec<(String, usize)> {
@@ -123,23 +121,7 @@ pub(crate) fn count_delimited_tags(text: &str, tag_names: &[&str]) -> Vec<(Strin
 }
 
 pub fn entropy_bits_per_byte(bytes: &[u8]) -> f32 {
-    if bytes.is_empty() {
-        return 0.0;
-    }
-    let mut counts = [0u32; 256];
-    for b in bytes {
-        counts[*b as usize] += 1;
-    }
-    let len = bytes.len() as f32;
-    let mut entropy = 0.0f32;
-    for count in counts {
-        if count == 0 {
-            continue;
-        }
-        let p = count as f32 / len;
-        entropy -= p * p.log2();
-    }
-    entropy
+    bytes::entropy_bits_per_byte(bytes)
 }
 
 #[cfg(test)]
@@ -350,73 +332,5 @@ mod tests {
 
         let text = read_text_capped(&path, 9).unwrap();
         assert_eq!(text, "The quick");
-    }
-
-    // ========================
-    // hash_file tests
-    // ========================
-
-    #[test]
-    fn test_hash_file_returns_correct_blake3_hash() {
-        let tmp = tempfile::tempdir().unwrap();
-        let path = tmp.path().join("hash_test.txt");
-        let mut f = File::create(&path).unwrap();
-        f.write_all(b"test content").unwrap();
-
-        let hash = hash_file(&path, 1000).unwrap();
-
-        // Verify it's not empty
-        assert!(!hash.is_empty());
-        // Verify it's 64 hex chars (BLAKE3 output)
-        assert_eq!(hash.len(), 64);
-        // Verify it matches expected BLAKE3 hash
-        let expected = hash_bytes(b"test content");
-        assert_eq!(hash, expected);
-    }
-
-    #[test]
-    fn test_hash_file_deterministic() {
-        let tmp = tempfile::tempdir().unwrap();
-        let path = tmp.path().join("deterministic.txt");
-        let mut f = File::create(&path).unwrap();
-        f.write_all(b"same content every time").unwrap();
-
-        let hash1 = hash_file(&path, 1000).unwrap();
-        let hash2 = hash_file(&path, 1000).unwrap();
-        assert_eq!(hash1, hash2);
-    }
-
-    #[test]
-    fn test_hash_file_different_content_different_hash() {
-        let tmp = tempfile::tempdir().unwrap();
-
-        let path1 = tmp.path().join("file1.txt");
-        let mut f1 = File::create(&path1).unwrap();
-        f1.write_all(b"content A").unwrap();
-
-        let path2 = tmp.path().join("file2.txt");
-        let mut f2 = File::create(&path2).unwrap();
-        f2.write_all(b"content B").unwrap();
-
-        let hash1 = hash_file(&path1, 1000).unwrap();
-        let hash2 = hash_file(&path2, 1000).unwrap();
-        assert_ne!(hash1, hash2);
-    }
-
-    #[test]
-    fn test_hash_file_respects_max_bytes() {
-        let tmp = tempfile::tempdir().unwrap();
-        let path = tmp.path().join("long_file.txt");
-        let mut f = File::create(&path).unwrap();
-        f.write_all(b"abcdefghij").unwrap();
-
-        // Hash only first 5 bytes
-        let hash_limited = hash_file(&path, 5).unwrap();
-        let expected = hash_bytes(b"abcde");
-        assert_eq!(hash_limited, expected);
-
-        // Full hash should be different
-        let hash_full = hash_file(&path, 1000).unwrap();
-        assert_ne!(hash_limited, hash_full);
     }
 }
