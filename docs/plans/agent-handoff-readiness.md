@@ -43,12 +43,20 @@ Give my coding agent the right context and proof expectations.
      CLI reference docs describe the link flags and verifier boundary.
 3. Decide whether a named agent workflow should be CLI syntax, docs-only
    convention, or config-profile convention.
+   - Status: complete through #2227.
+   - Decision: keep the named agent workflow as a docs-owned convention using
+     the existing `tokmd handoff --preset risk --budget 128k --strategy spread`
+     flow plus explicit review/proof link inputs.
    - Constraint: the existing global `--profile` flag already means
      configuration profile, so do not overload it casually.
 4. Consider a compact agent work-order artifact only after link artifacts have
    been used in at least one review workflow.
-   - Candidate: `agent-work-order.json` derived from linked review/proof
-     receipts.
+   - Status: complete through #2227.
+   - Evidence: `work-order.md` is emitted as a packet-local, BLAKE3-hashed
+     handoff artifact listed in `manifest.json`. It summarizes bundle inputs,
+     selected files, linked review/proof evidence handles, and agent guardrails.
+   - Deferred: a machine-readable `agent-work-order.json` remains unnecessary
+     until a downstream tool needs a separate structured work-order contract.
    - Constraint: stale or missing external receipts must stay visible as
      missing/degraded evidence, not passing proof.
 5. Keep source-of-truth state aligned as the lane moves.
@@ -103,3 +111,6 @@ git diff --check
 - 2026-05-13: #2224 added optional handoff link artifacts for cockpit review
   packets, review-packet verifier receipts, affected proof reports, and proof
   plans.
+- 2026-05-13: #2227 added `work-order.md` to handoff bundles as the
+  agent-readable work map, kept linked receipts external, and preserved the
+  no-merge-verdict/no-proof-promotion boundary.

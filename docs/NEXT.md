@@ -228,6 +228,10 @@ surface.
   hashes in `manifest.json`. These artifacts link adjacent review and proof
   receipts for agent workflows; they do not copy or verify the external
   receipts.
+- `tokmd handoff` now emits `work-order.md` as a BLAKE3-hashed handoff
+  artifact. It gives coding agents an ordered consumption map, selected-file
+  summary, linked review/proof evidence handles, and guardrails while leaving
+  external receipt verification to the review-packet and proof verifiers.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and
