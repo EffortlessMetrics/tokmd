@@ -76,9 +76,49 @@ tokmd context --budget 128k --mode bundle --output context.txt
 | summarize a repo | `tokmd`, `module`, `export` | Markdown summary, file receipt |
 | compare states | `diff`, `run` | deterministic diff and receipts |
 | analyze code health | `analyze` | risk, effort, complexity reports |
-| review a PR | `cockpit`, GitHub Action | review report |
+| review a PR | `cockpit --review-packet-dir`, GitHub Action `review-packet` | review map, evidence, comment, packet manifest |
 | gate policy in CI | `gate`, `baseline`, `sensor` | verdicts, ratchets, sensor envelope |
 | pack LLM context | `context`, `handoff` | bounded bundle, handoff directory |
+
+## Review a PR
+
+For local PR review, generate a cockpit review packet instead of reading CI logs
+or raw JSON first:
+
+```bash
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --review-packet-dir .tokmd/review
+```
+
+Start with `.tokmd/review/comment.md`, then use
+`.tokmd/review/review-map.md` for the review order and reproduction commands.
+`.tokmd/review/evidence.json` and `.tokmd/review/manifest.json` carry the
+machine-readable evidence state and hash-indexed packet inventory.
+
+In a tokmd contributor checkout, verify the packet before using it as review
+evidence:
+
+```bash
+cargo xtask review-packet-check --dir .tokmd/review
+```
+
+If a PR changes source-of-truth docs, plans, ADRs, templates, `.jules/goals/**`,
+or doc-artifact policy, generate the docs receipt first and import it:
+
+```bash
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --doc-artifacts-check target/docs/doc-artifacts-check.json \
+  --review-packet-dir .tokmd/review
+```
+
+This makes documentation-control evidence visible in the review packet; it does
+not turn cockpit into a merge verdict or promote advisory proof.
 
 ## GitHub Action
 

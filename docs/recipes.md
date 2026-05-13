@@ -401,42 +401,65 @@ tokmd tools --format jsonschema --pretty > schema.json
 
 **Use case**: Feed the schema to an AI agent so it can analyze repositories autonomously.
 
-## 15b. PR Cockpit Metrics
+## 15b. PR Review Packet
 
-Generate comprehensive PR metrics for code review automation with evidence gates.
+Generate a cockpit review packet for a pull request.
 
-**Goal**: Automate PR review with structured metrics and quality gates.
+**Goal**: Start review from a deterministic packet that says what changed, what
+to inspect first, what evidence exists, what evidence is missing, and which
+commands reproduce evidence claims.
 
 ```bash
-# Generate JSON metrics for CI parsing
-tokmd cockpit
+# Generate the packet for the current branch
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --review-packet-dir .tokmd/review
 
-# Markdown summary for PR description
-tokmd cockpit --format md
-
-# Compact Markdown body for PR comments
-tokmd cockpit --format comment
-
-# Compare specific refs
-tokmd cockpit --base origin/main --head feature-branch --format md
-
-# Generate sections for PR template filling
-tokmd cockpit --format sections --output pr-metrics.txt
+# Verify packet-local paths, schemas, and BLAKE3 hashes
+cargo xtask review-packet-check --dir .tokmd/review
 ```
 
 **What you get**:
-- **Change surface**: Files added/modified/deleted, lines added/removed
-- **Composition**: Production vs test vs config breakdown
-- **Code health**: Complexity, doc coverage, test coverage
-- **Risk assessment**: Hotspots, coupling, freshness
-- **Evidence gates**: Mutation testing, diff coverage, contracts, supply chain
-- **Review plan**: Prioritized list of files to review
+- `.tokmd/review/comment.md`: compact PR-comment-ready summary
+- `.tokmd/review/review-map.md`: what to review first and how to reproduce
+  evidence claims
+- `.tokmd/review/evidence.json`: machine-readable evidence availability,
+  missing evidence, and any imported proof or doc-artifacts evidence
+- `.tokmd/review/manifest.json`: packet artifact inventory with hashes
+- optional `target/tokmd/review-packet-check.json`: verifier receipt when
+  `--json` is passed to `review-packet-check`
+
+If the PR changes source-of-truth docs, plans, ADRs, templates,
+`.jules/goals/**`, or doc-artifact policy, include the doc-artifacts receipt:
+
+```bash
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --doc-artifacts-check target/docs/doc-artifacts-check.json \
+  --review-packet-dir .tokmd/review
+
+cargo xtask review-packet-check \
+  --dir .tokmd/review \
+  --json target/tokmd/review-packet-check.json
+```
+
+This makes documentation-control evidence visible in the review packet. It is
+not a merge verdict and does not promote advisory proof, coverage, or Codecov
+upload into a required gate.
 
 **GitHub Actions integration**:
 ```yaml
 name: PR Cockpit
 on:
   pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   cockpit:
@@ -446,25 +469,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install tokmd
-        run: cargo install tokmd --locked
-
-      - name: Generate cockpit metrics
-        run: |
-          tokmd cockpit --base origin/${{ github.base_ref }} --head HEAD --format comment > cockpit.md
-
-      - name: Post PR comment
-        uses: actions/github-script@v7
+      - uses: EffortlessMetrics/tokmd@v1
         with:
-          script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('cockpit.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+          version: '1.11.0'
+          mode: cockpit
+          base: origin/${{ github.base_ref }}
+          head: HEAD
+          review-packet: 'true'
+          artifact: 'true'
+          comment: 'true'
 ```
 
 ## 15c. One-command PR Artifact Bundle
