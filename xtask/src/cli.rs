@@ -25,6 +25,8 @@ pub enum Commands {
     DocArtifacts(DocArtifactsArgs),
     /// Validate the Rust-native proof policy
     ProofPolicy(ProofPolicyArgs),
+    /// Resolve proof observation collection thresholds from checked policy and overrides
+    ProofObservationThresholds(ProofObservationThresholdsArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
@@ -540,6 +542,49 @@ pub struct ProofPolicyArgs {
     /// Policy file to validate
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofObservationThresholdsArgs {
+    /// Machine-readable proof-policy report to read
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/proof-policy.json"
+    )]
+    pub proof_policy_json: std::path::PathBuf,
+
+    /// Write resolved thresholds as a GitHub Actions env file
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/thresholds.env"
+    )]
+    pub env_output: std::path::PathBuf,
+
+    /// Workflow-dispatch override for the successful proof-executor run window
+    #[arg(long, default_value = "")]
+    pub run_limit: String,
+
+    /// Workflow-dispatch override for the minimum observation artifact count
+    #[arg(long, default_value = "")]
+    pub min_observations: String,
+
+    /// Workflow-dispatch override for the minimum executed advisory command count
+    #[arg(long, default_value = "")]
+    pub min_executed: String,
+
+    /// Workflow-dispatch override for the minimum distinct proof scope count
+    #[arg(long, default_value = "")]
+    pub min_scopes: String,
+
+    /// Workflow-dispatch override for the minimum produced evidence artifact count
+    #[arg(long, default_value = "")]
+    pub min_artifacts: String,
+
+    /// Workflow-dispatch override for the minimum recent passing collector run count
+    #[arg(long, default_value = "")]
+    pub min_passing_collector_runs: String,
 }
 
 #[derive(Args, Debug, Clone)]

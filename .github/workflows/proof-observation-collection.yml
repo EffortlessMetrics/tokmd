@@ -67,36 +67,15 @@ jobs:
           set -euo pipefail
           mkdir -p target/proof-observations
           cargo xtask proof-policy --json-output target/proof-observations/proof-policy.json
-          python - <<'PY'
-          import json
-          import os
-
-          with open("target/proof-observations/proof-policy.json", encoding="utf-8") as handle:
-              promotion = json.load(handle)["executor"]["promotion"]
-
-          rules = [
-              ("RUN_LIMIT", "RUN_LIMIT_INPUT", "run_limit", 1),
-              ("MIN_OBSERVATIONS", "MIN_OBSERVATIONS_INPUT", "min_observations", 0),
-              ("MIN_EXECUTED", "MIN_EXECUTED_INPUT", "min_executed", 0),
-              ("MIN_SCOPES", "MIN_SCOPES_INPUT", "min_scopes", 0),
-              ("MIN_ARTIFACTS", "MIN_ARTIFACTS_INPUT", "min_artifacts", 0),
-              ("MIN_PASSING_COLLECTOR_RUNS", "MIN_PASSING_COLLECTOR_RUNS_INPUT", "min_passing_collector_runs", 0),
-          ]
-
-          with open("target/proof-observations/thresholds.env", "w", encoding="utf-8") as output:
-              for env_name, input_name, policy_name, minimum in rules:
-                  override = os.environ.get(input_name, "").strip()
-                  source = "workflow_dispatch" if override else "ci/proof.toml"
-                  value_text = override or str(promotion[policy_name])
-                  try:
-                      value = int(value_text)
-                  except ValueError as exc:
-                      raise SystemExit(f"{env_name} must be an integer, got {value_text!r}") from exc
-                  if value < minimum:
-                      raise SystemExit(f"{env_name} must be >= {minimum}, got {value}")
-                  print(f"{env_name}={value}", file=output)
-                  print(f"{env_name}_SOURCE={source}", file=output)
-          PY
+          cargo xtask proof-observation-thresholds \
+            --proof-policy-json target/proof-observations/proof-policy.json \
+            --env-output target/proof-observations/thresholds.env \
+            --run-limit "${RUN_LIMIT_INPUT}" \
+            --min-observations "${MIN_OBSERVATIONS_INPUT}" \
+            --min-executed "${MIN_EXECUTED_INPUT}" \
+            --min-scopes "${MIN_SCOPES_INPUT}" \
+            --min-artifacts "${MIN_ARTIFACTS_INPUT}" \
+            --min-passing-collector-runs "${MIN_PASSING_COLLECTOR_RUNS_INPUT}"
           cat target/proof-observations/thresholds.env >> "$GITHUB_ENV"
 
       - name: Download successful proof executor artifacts

@@ -171,6 +171,76 @@ fn proof_execution_observations_summary_help_mentions_observation_paths() {
 }
 
 #[test]
+fn proof_observation_thresholds_help_mentions_policy_and_overrides() {
+    let (stdout, stderr, success) = run_xtask(&["proof-observation-thresholds", "--help"]);
+
+    assert!(
+        success,
+        "proof-observation-thresholds --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--proof-policy-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--env-output"), "stdout: {stdout}");
+    assert!(stdout.contains("--run-limit"), "stdout: {stdout}");
+    assert!(stdout.contains("--min-observations"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("--min-passing-collector-runs"),
+        "stdout: {stdout}"
+    );
+}
+
+#[test]
+fn proof_observation_thresholds_writes_env_artifact() {
+    let root = workspace_root();
+    let policy = root
+        .join("target")
+        .join("proof-thresholds-w92")
+        .join("proof-policy.json");
+    let env = root
+        .join("target")
+        .join("proof-thresholds-w92")
+        .join("thresholds.env");
+    if env.exists() {
+        fs::remove_file(&env).expect("stale thresholds fixture should be removable");
+    }
+
+    let policy_arg = policy.to_string_lossy().to_string();
+    let env_arg = env.to_string_lossy().to_string();
+    let (_, stderr, success) = run_xtask(&["proof-policy", "--json-output", &policy_arg]);
+    assert!(success, "proof-policy fixture failed. stderr: {stderr}");
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-observation-thresholds",
+        "--proof-policy-json",
+        &policy_arg,
+        "--env-output",
+        &env_arg,
+        "--min-executed",
+        "7",
+    ]);
+
+    assert!(
+        success,
+        "proof-observation-thresholds failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("proof observation thresholds: wrote 6 threshold(s)"),
+        "stdout: {stdout}"
+    );
+
+    let env_body = fs::read_to_string(&env).expect("threshold env artifact should be readable");
+    assert!(env_body.contains("RUN_LIMIT=100"), "{env_body}");
+    assert!(
+        env_body.contains("RUN_LIMIT_SOURCE=ci/proof.toml"),
+        "{env_body}"
+    );
+    assert!(env_body.contains("MIN_EXECUTED=7"), "{env_body}");
+    assert!(
+        env_body.contains("MIN_EXECUTED_SOURCE=workflow_dispatch"),
+        "{env_body}"
+    );
+}
+
+#[test]
 fn affected_plan_ci_blocks_on_planner_generation_failures() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -431,8 +501,20 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
         "collector should not capture proof-policy JSON with shell redirection"
     );
     assert!(
-        collector.contains("promotion = json.load(handle)[\"executor\"][\"promotion\"]"),
+        collector.contains("cargo xtask proof-observation-thresholds"),
+        "collector should resolve threshold env values through xtask"
+    );
+    assert!(
+        collector.contains("--proof-policy-json target/proof-observations/proof-policy.json"),
         "collector should read executor promotion thresholds from proof-policy JSON"
+    );
+    assert!(
+        collector.contains("--env-output target/proof-observations/thresholds.env"),
+        "collector should write a stable threshold env artifact"
+    );
+    assert!(
+        !collector.contains("promotion = json.load(handle)[\"executor\"][\"promotion\"]"),
+        "collector should not resolve thresholds with inline Python"
     );
     assert!(
         collector.contains("RUN_LIMIT_INPUT: ${{ github.event.inputs.run_limit || '' }}"),

@@ -18,6 +18,9 @@ fn main() -> Result<()> {
         Some(cli::Commands::Docs(args)) => tasks::docs::run(args),
         Some(cli::Commands::DocArtifacts(args)) => tasks::doc_artifacts::run(args),
         Some(cli::Commands::ProofPolicy(args)) => tasks::proof_policy::run(args),
+        Some(cli::Commands::ProofObservationThresholds(args)) => {
+            tasks::proof_observation_thresholds::run(args)
+        }
         Some(cli::Commands::Affected(args)) => tasks::affected::run(args),
         Some(cli::Commands::Proof(args)) => tasks::proof_plan::run(args),
         Some(cli::Commands::ProofArtifactsCheck(args)) => tasks::proof_artifacts_check::run(args),

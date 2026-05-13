@@ -20,6 +20,7 @@ pub mod lint_policy;
 pub mod no_panic;
 pub mod perf_smoke;
 pub mod proof_artifacts_check;
+pub mod proof_observation_thresholds;
 pub mod proof_plan;
 pub mod proof_policy;
 pub mod publish;
