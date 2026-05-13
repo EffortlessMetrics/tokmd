@@ -1,9 +1,10 @@
 //! PR comment rendering for cockpit receipts and review packets.
 
+use crate::doc_artifacts_evidence::DocArtifactsEvidenceInput;
 use crate::proof_evidence::ProofEvidenceInput;
 use crate::{CockpitReceipt, GateStatus, RiskLevel};
 
-use super::evidence::evidence_counts;
+use super::evidence::{doc_artifacts_expected, evidence_counts};
 use super::proof_summary::proof_evidence_summary;
 
 /// Render comment.md for PR comments.
@@ -161,17 +162,53 @@ pub fn render_comment_md(receipt: &CockpitReceipt) -> String {
 pub(super) fn render_review_packet_comment_md(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> String {
     use std::fmt::Write;
 
     let mut s = render_comment_md(receipt);
     write_proof_evidence_summary(&mut s, receipt, proof_inputs);
+    write_doc_artifacts_summary(&mut s, receipt, doc_artifacts);
     let _ = writeln!(s, "**Review packet artifacts**:");
     let _ = writeln!(s, "- [Evidence gates](evidence.json)");
     let _ = writeln!(s, "- [Review map](review-map.md)");
     let _ = writeln!(s, "- [Full cockpit receipt](cockpit.json)");
     let _ = writeln!(s);
     s
+}
+
+fn write_doc_artifacts_summary(
+    s: &mut String,
+    receipt: &CockpitReceipt,
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) {
+    use std::fmt::Write;
+
+    match doc_artifacts {
+        Some(input) if input.receipt.ok => {
+            let _ = writeln!(
+                s,
+                "**Doc artifacts**: verified ({} required docs, {} family files, {} active goals).",
+                input.receipt.checked.required_docs,
+                input.receipt.checked.family_files,
+                input.receipt.checked.active_goals,
+            );
+            let _ = writeln!(s);
+        }
+        Some(input) => {
+            let _ = writeln!(
+                s,
+                "**Doc artifacts**: degraded ({} error(s)).",
+                input.receipt.errors.len()
+            );
+            let _ = writeln!(s);
+        }
+        None if doc_artifacts_expected(receipt) => {
+            let _ = writeln!(s, "**Doc artifacts**: missing for source-of-truth changes.");
+            let _ = writeln!(s);
+        }
+        None => {}
+    }
 }
 
 fn write_proof_evidence_summary(

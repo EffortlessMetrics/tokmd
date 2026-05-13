@@ -122,6 +122,17 @@ const COVERAGE_RECEIPT_JSON: &str = r#"{
   "status": { "ok": true, "missing": [], "empty": [] }
 }"#;
 
+const DOC_ARTIFACTS_CHECK_JSON: &str = r#"{
+  "schema": "tokmd.doc_artifacts_check.v1",
+  "ok": true,
+  "checked": {
+    "required_docs": 1,
+    "family_files": 11,
+    "active_goals": 1
+  },
+  "errors": []
+}"#;
+
 #[test]
 fn test_cockpit_help() {
     // Given: The cockpit command exists
@@ -139,6 +150,7 @@ fn test_cockpit_help() {
         .stdout(predicate::str::contains("--proof-observation"))
         .stdout(predicate::str::contains("--executor-observation"))
         .stdout(predicate::str::contains("--coverage-receipt"))
+        .stdout(predicate::str::contains("--doc-artifacts-check"))
         .stdout(predicate::str::contains("--output"));
 }
 
@@ -335,6 +347,136 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     assert!(comment_md.contains("Required proof: 1 passed, 0 failed, 0 missing"));
     assert!(comment_md.contains("Advisory proof: 0 available, 0 missing"));
     assert!(comment_md.contains("Proof freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
+}
+
+#[test]
+fn test_cockpit_review_packet_includes_imported_doc_artifacts_evidence() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    std::fs::write(
+        dir.path().join("doc-artifacts-check.json"),
+        DOC_ARTIFACTS_CHECK_JSON,
+    )
+    .unwrap();
+    let packet_dir = dir.path().join(".tokmd").join("review");
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--doc-artifacts-check")
+        .arg("doc-artifacts-check.json")
+        .arg("--review-packet-dir")
+        .arg(&packet_dir)
+        .assert()
+        .success();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
+            .expect("valid evidence JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        &evidence,
+        "review packet evidence with doc artifacts",
+    );
+    assert_eq!(
+        evidence["doc_artifacts"]["source"],
+        "docs/doc-artifacts-check.json"
+    );
+    assert_eq!(
+        evidence["doc_artifacts"]["source_schema"],
+        "tokmd.doc_artifacts_check.v1"
+    );
+    assert_eq!(evidence["doc_artifacts"]["ok"], true);
+    assert_eq!(evidence["doc_artifacts"]["availability"], "available");
+    assert_eq!(evidence["doc_artifacts"]["checked"]["required_docs"], 1);
+    assert_eq!(evidence["doc_artifacts"]["checked"]["family_files"], 11);
+    assert_eq!(evidence["doc_artifacts"]["checked"]["active_goals"], 1);
+
+    let copied_doc_artifacts_path = packet_dir.join("docs").join("doc-artifacts-check.json");
+    assert!(
+        copied_doc_artifacts_path.exists(),
+        "doc-artifacts receipt should be copied into the review packet"
+    );
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("manifest.json")).unwrap())
+            .expect("valid manifest JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_MANIFEST_SCHEMA_JSON,
+        &manifest,
+        "review packet manifest with doc artifacts",
+    );
+    let doc_artifacts_artifact = manifest["artifacts"]
+        .as_array()
+        .expect("manifest artifacts")
+        .iter()
+        .find(|artifact| artifact["path"] == "docs/doc-artifacts-check.json")
+        .expect("doc-artifacts receipt listed in manifest");
+    assert_eq!(doc_artifacts_artifact["id"], "doc-artifacts-check");
+    assert_eq!(
+        doc_artifacts_artifact["schema"],
+        "tokmd.doc_artifacts_check.v1"
+    );
+    let copied_bytes = std::fs::read(&copied_doc_artifacts_path).unwrap();
+    assert_eq!(
+        doc_artifacts_artifact["hash"]["hash"]
+            .as_str()
+            .expect("doc-artifacts hash"),
+        blake3::hash(&copied_bytes).to_hex().as_str(),
+        "manifest hash should match copied doc-artifacts receipt bytes"
+    );
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("review-map.json")).unwrap())
+            .expect("valid review map JSON");
+    assert_validates_against_schema(
+        REVIEW_MAP_SCHEMA_JSON,
+        &review_map,
+        "review map with doc artifacts evidence",
+    );
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .expect("review-map evidence refs")
+            .iter()
+            .any(|reference| reference == "evidence.json#/doc_artifacts"),
+        "review map should expose packet-level doc-artifacts evidence refs"
+    );
+
+    let comment_md = std::fs::read_to_string(packet_dir.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Doc artifacts"));
+    assert!(comment_md.contains("verified"));
+}
+
+#[test]
+fn test_cockpit_rejects_unknown_doc_artifacts_schema() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let doc_artifacts_path = dir.path().join("doc-artifacts-check.json");
+    std::fs::write(&doc_artifacts_path, r#"{ "schema": "tokmd.unknown.v1" }"#).unwrap();
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--doc-artifacts-check")
+        .arg(&doc_artifacts_path)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "failed to parse --doc-artifacts-check evidence",
+        ))
+        .stderr(predicate::str::contains(
+            "unsupported doc artifacts evidence schema",
+        ));
 }
 
 #[test]

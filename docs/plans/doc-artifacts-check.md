@@ -77,12 +77,12 @@ documentation artifacts defined by `docs/source-of-truth.md` and
    to `cargo xtask doc-artifacts --check` so affected-proof output does not
    treat source-of-truth changes as generic docs only.
 
-8. Define review-packet evidence behavior.
+8. Define and wire review-packet evidence behavior.
 
-   Document how a future cockpit review packet should treat
+   Document and implement how cockpit review packets treat
    `target/docs/doc-artifacts-check.json` as documentation-control evidence for
-   source-of-truth changes. Keep this docs-only until cockpit has an explicit
-   import path.
+   source-of-truth changes. Keep the import explicit and visibility-only: no
+   merge verdict, proof promotion, or Codecov behavior changes.
 
 ## Validation
 
@@ -139,6 +139,8 @@ package, export, public API, or publish-surface files.
   `.jules/goals/**`, the doc-artifact policy, and checker implementation files
   through the `doc_artifacts_policy` scope so affected proof includes the
   doc-artifacts checker whenever the source-of-truth stack changes.
-- 2026-05-13: `docs/review-packet.md` now defines the planned packet treatment
-  for `tokmd.doc_artifacts_check.v1` receipts as documentation-control evidence
-  without adding a cockpit import path or changing merge behavior.
+- 2026-05-13: `tokmd cockpit --doc-artifacts-check <path>
+  --review-packet-dir <dir>` now imports `tokmd.doc_artifacts_check.v1`
+  receipts as documentation-control evidence, copies them into the packet,
+  records them in the manifest and evidence files, and summarizes them in the
+  review map and comment without changing merge behavior.

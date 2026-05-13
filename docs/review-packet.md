@@ -140,8 +140,8 @@ packet, see [tokmd and evidencebus integration](evidencebus-integration.md).
 ## Documentation Artifact Evidence
 
 Source-of-truth changes are review evidence too. When a PR changes docs,
-plans, specs, ADRs, templates, `.jules/goals/**`, or doc-artifact policy, a
-future cockpit packet should be able to import the docs checker receipt:
+plans, specs, ADRs, templates, `.jules/goals/**`, or doc-artifact policy,
+cockpit packets can import the docs checker receipt:
 
 ```text
 target/docs/doc-artifacts-check.json
@@ -159,11 +159,11 @@ links, active-goal state, and policy routing checked by the doc-artifacts
 contract were valid at verification time. It does not prove the prose is
 correct or that a PR should merge.
 
-Planned packet treatment:
+Packet treatment:
 
 - `evidence.json` records the receipt schema, source path, `ok` result, checked
   counts, and any checker errors.
-- `review-map.json` links source-of-truth changed files to the imported
+- `review-map.json` links source-of-truth review items to the imported
   doc-artifacts evidence when paths match the checked families or active-goal
   policy.
 - `review-map.md` shows whether documentation-control evidence is available,

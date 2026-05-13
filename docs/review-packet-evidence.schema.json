@@ -17,6 +17,9 @@
     "proof": {
       "type": "array",
       "items": { "$ref": "#/definitions/proofEvidence" }
+    },
+    "doc_artifacts": {
+      "$ref": "#/definitions/docArtifactsEvidence"
     }
   },
   "definitions": {
@@ -121,6 +124,54 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
         }
+      }
+    },
+    "docArtifactsEvidence": {
+      "type": "object",
+      "required": [
+        "source",
+        "source_schema",
+        "ok",
+        "availability",
+        "checked",
+        "errors",
+        "refs"
+      ],
+      "properties": {
+        "source": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "source_schema": {
+          "type": "string",
+          "const": "tokmd.doc_artifacts_check.v1"
+        },
+        "ok": {
+          "anyOf": [{ "type": "boolean" }, { "type": "null" }]
+        },
+        "availability": { "$ref": "#/definitions/availability" },
+        "checked": {
+          "anyOf": [
+            { "$ref": "#/definitions/docArtifactsCheckedCounts" },
+            { "type": "null" }
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "docArtifactsCheckedCounts": {
+      "type": "object",
+      "required": ["required_docs", "family_files", "active_goals"],
+      "properties": {
+        "required_docs": { "type": "integer", "minimum": 0 },
+        "family_files": { "type": "integer", "minimum": 0 },
+        "active_goals": { "type": "integer", "minimum": 0 }
       }
     },
     "scopeCoverage": {

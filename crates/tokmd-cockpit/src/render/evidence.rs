@@ -2,12 +2,17 @@
 
 use serde_json::{Value, json};
 
+use crate::doc_artifacts_evidence::{
+    DOC_ARTIFACTS_CHECK_SCHEMA, DOC_ARTIFACTS_PACKET_PATH, DocArtifactsEvidenceInput,
+    source_of_truth_path,
+};
 use crate::proof_evidence::{ProofEvidenceInput, normalize_proof_evidence_inputs};
-use crate::{CockpitReceipt, CommitMatch, GateMeta, GateStatus};
+use crate::{CockpitReceipt, CommitMatch, GateMeta, GateStatus, ReviewItem};
 
 pub(super) fn review_packet_evidence(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> Value {
     let gates: Vec<_> = review_packet_evidence_gate_specs(receipt)
         .into_iter()
@@ -26,8 +31,53 @@ pub(super) fn review_packet_evidence(
     if !proof.is_empty() {
         evidence["proof"] = Value::Array(proof);
     }
+    if let Some(doc_artifacts) = review_packet_doc_artifacts_evidence(receipt, doc_artifacts) {
+        evidence["doc_artifacts"] = doc_artifacts;
+    }
 
     evidence
+}
+
+pub(super) fn review_packet_doc_artifacts_evidence(
+    receipt: &CockpitReceipt,
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) -> Option<Value> {
+    match doc_artifacts {
+        Some(input) => Some(json!({
+            "source": normalize_path_for_output(&input.source_path),
+            "source_schema": input.receipt.schema,
+            "ok": input.receipt.ok,
+            "availability": input.availability(),
+            "checked": {
+                "required_docs": input.receipt.checked.required_docs,
+                "family_files": input.receipt.checked.family_files,
+                "active_goals": input.receipt.checked.active_goals,
+            },
+            "errors": input.receipt.errors,
+            "refs": [format!("{DOC_ARTIFACTS_PACKET_PATH}")],
+        })),
+        None if doc_artifacts_expected(receipt) => Some(json!({
+            "source": null,
+            "source_schema": DOC_ARTIFACTS_CHECK_SCHEMA,
+            "ok": null,
+            "availability": "missing",
+            "checked": null,
+            "errors": [],
+            "refs": [],
+        })),
+        None => None,
+    }
+}
+
+pub(super) fn doc_artifacts_expected(receipt: &CockpitReceipt) -> bool {
+    receipt
+        .review_plan
+        .iter()
+        .any(review_item_is_source_of_truth)
+}
+
+pub(super) fn review_item_is_source_of_truth(item: &ReviewItem) -> bool {
+    source_of_truth_path(&item.path)
 }
 
 fn review_packet_proof_evidence(

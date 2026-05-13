@@ -39,6 +39,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
         let proof_evidence_inputs = load_proof_evidence_inputs(&args)?;
+        let doc_artifacts_evidence = load_doc_artifacts_evidence_input(&args)?;
 
         let range_mode = match args.diff_range {
             cli::DiffRangeMode::TwoDot => tokmd_git::GitRangeMode::TwoDot,
@@ -102,10 +103,11 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             tokmd_cockpit::render::write_artifacts(artifacts_dir, &receipt)?;
         }
         if let Some(review_packet_dir) = &args.review_packet_dir {
-            tokmd_cockpit::render::write_review_packet_with_proof_evidence(
+            tokmd_cockpit::render::write_review_packet_with_imported_evidence(
                 review_packet_dir,
                 &receipt,
                 &proof_evidence_inputs,
+                doc_artifacts_evidence.as_ref(),
             )?;
         }
 
@@ -120,6 +122,30 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 
         Ok(())
     }
+}
+
+#[cfg(feature = "git")]
+fn load_doc_artifacts_evidence_input(
+    args: &cli::CockpitArgs,
+) -> Result<Option<tokmd_cockpit::DocArtifactsEvidenceInput>> {
+    let Some(path) = args.doc_artifacts_check.as_deref() else {
+        return Ok(None);
+    };
+
+    let raw = std::fs::read_to_string(path).with_context(|| {
+        format!(
+            "failed to read --doc-artifacts-check evidence at {}",
+            path.display()
+        )
+    })?;
+    tokmd_cockpit::parse_doc_artifacts_evidence_input(&raw, path)
+        .with_context(|| {
+            format!(
+                "failed to parse --doc-artifacts-check evidence at {}",
+                path.display()
+            )
+        })
+        .map(Some)
 }
 
 #[cfg(feature = "git")]

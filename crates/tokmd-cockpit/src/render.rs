@@ -22,7 +22,10 @@ pub use artifacts::write_artifacts;
 pub use artifacts::write_sensor_artifacts;
 pub use comment::render_comment_md;
 pub use markdown::render_markdown;
-pub use review_packet::{write_review_packet, write_review_packet_with_proof_evidence};
+pub use review_packet::{
+    write_review_packet, write_review_packet_with_imported_evidence,
+    write_review_packet_with_proof_evidence,
+};
 pub use sections::render_sections;
 
 /// Render receipt as JSON.

@@ -1092,6 +1092,146 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
 }
 
 #[test]
+fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![ReviewItem {
+        path: "docs/specs/doc-artifacts.md".to_string(),
+        reason: "Documentation artifact contract changed".to_string(),
+        priority: 1,
+        complexity: None,
+        lines_changed: Some(24),
+    }];
+    let out = dir.path().join("review");
+    let doc_artifacts = tokmd_cockpit::parse_doc_artifacts_evidence_input(
+        r#"{
+  "schema": "tokmd.doc_artifacts_check.v1",
+  "ok": true,
+  "checked": {
+    "required_docs": 1,
+    "family_files": 11,
+    "active_goals": 1
+  },
+  "errors": []
+}"#,
+        "target/docs/doc-artifacts-check.json",
+    )
+    .unwrap();
+
+    tokmd_cockpit::render::write_review_packet_with_imported_evidence(
+        &out,
+        &receipt,
+        &[],
+        Some(&doc_artifacts),
+    )
+    .unwrap();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    assert_eq!(
+        evidence["doc_artifacts"]["source"],
+        "docs/doc-artifacts-check.json"
+    );
+    assert_eq!(
+        evidence["doc_artifacts"]["source_schema"],
+        "tokmd.doc_artifacts_check.v1"
+    );
+    assert_eq!(evidence["doc_artifacts"]["ok"], true);
+    assert_eq!(evidence["doc_artifacts"]["availability"], "available");
+    assert_eq!(evidence["doc_artifacts"]["checked"]["required_docs"], 1);
+    assert_eq!(evidence["doc_artifacts"]["checked"]["family_files"], 11);
+    assert_eq!(evidence["doc_artifacts"]["checked"]["active_goals"], 1);
+    assert_eq!(
+        evidence["doc_artifacts"]["refs"][0],
+        "docs/doc-artifacts-check.json"
+    );
+
+    let copied_doc_artifacts_path = out.join("docs").join("doc-artifacts-check.json");
+    assert!(
+        copied_doc_artifacts_path.exists(),
+        "doc-artifacts receipt should be copied into the review packet"
+    );
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("manifest.json")).unwrap()).unwrap();
+    let artifacts = manifest["artifacts"]
+        .as_array()
+        .expect("manifest artifacts");
+    assert!(
+        artifacts.iter().any(|artifact| {
+            artifact["id"] == "doc-artifacts-check"
+                && artifact["path"] == "docs/doc-artifacts-check.json"
+                && artifact["schema"] == "tokmd.doc_artifacts_check.v1"
+                && artifact["media_type"] == "application/json"
+        }),
+        "manifest should list copied doc-artifacts receipt"
+    );
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reference| reference == "evidence.json#/doc_artifacts"),
+        "packet-level review-map evidence refs should link to doc-artifacts evidence"
+    );
+    assert_eq!(
+        review_map["items"][0]["doc_artifacts_refs"][0],
+        "evidence.json#/doc_artifacts"
+    );
+    assert_eq!(
+        review_map["items"][0]["doc_artifacts_refs"][1],
+        "docs/doc-artifacts-check.json"
+    );
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("Doc artifacts: verified"));
+    assert!(review_map_md.contains("evidence.json#/doc_artifacts"));
+    assert!(review_map_md.contains("docs/doc-artifacts-check.json"));
+
+    let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Doc artifacts"));
+    assert!(comment_md.contains("verified (1 required docs, 11 family files, 1 active goals)"));
+}
+
+#[test]
+fn scenario_write_review_packet_marks_missing_doc_artifacts_for_source_of_truth_change() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![ReviewItem {
+        path: ".jules/goals/active.toml".to_string(),
+        reason: "Active agent goal changed".to_string(),
+        priority: 1,
+        complexity: None,
+        lines_changed: Some(8),
+    }];
+    let out = dir.path().join("review");
+
+    tokmd_cockpit::render::write_review_packet(&out, &receipt).unwrap();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    assert_eq!(evidence["doc_artifacts"]["availability"], "missing");
+    assert_eq!(
+        evidence["doc_artifacts"]["source_schema"],
+        "tokmd.doc_artifacts_check.v1"
+    );
+    assert!(evidence["doc_artifacts"]["source"].is_null());
+    assert!(evidence["doc_artifacts"]["checked"].is_null());
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("Doc artifacts: missing for source-of-truth changes."));
+    assert!(review_map_md.contains("   Doc artifacts: missing"));
+
+    let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
+    assert!(comment_md.contains("Doc artifacts"));
+    assert!(comment_md.contains("missing for source-of-truth changes"));
+}
+
+#[test]
 fn scenario_review_map_md_includes_packet_level_proof_overview() {
     let dir = tempfile::tempdir().unwrap();
     let mut receipt = minimal_receipt();

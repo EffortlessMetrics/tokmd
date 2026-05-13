@@ -35,7 +35,8 @@ producers.
 | `.tokmd/review/comment.md` | Human summary. Concise packet-local summary suitable for PR comments or bundle previews. |
 | `.tokmd/review/proof/*.json` | Source proof artifacts. Packet-local copies of explicitly imported proof evidence, hash-listed in `manifest.json`. |
 | `target/tokmd/review-packet-check.json` | Verification receipt. Proves the packet manifest, schemas, paths, and hashes were checked after generation. |
-| `target/docs/doc-artifacts-check.json` | Documentation-control evidence. Optional future review-packet input proving source-of-truth artifact shape, links, active-goal state, and policy routing were checked. |
+| `.tokmd/review/docs/doc-artifacts-check.json` | Documentation-control evidence. Packet-local copy of an explicitly imported `tokmd.doc_artifacts_check.v1` receipt proving source-of-truth artifact shape, links, active-goal state, and policy routing were checked. |
+| `target/docs/doc-artifacts-check.json` | Documentation-control checker output. Optional cockpit input copied into the packet when supplied with `--doc-artifacts-check`. |
 
 The verifier receipt is intentionally outside `.tokmd/review/manifest.json`.
 It verifies the final packet rather than being part of the packet it verifies.
@@ -120,7 +121,7 @@ validation path to target.
 - Prototype wrapping in `xtask`, not the public CLI.
 - Preserve packet-local paths and hashes from `manifest.json`.
 - Include `review-packet-check.json` as a verifier evidence item.
-- Include `doc-artifacts-check.json` as documentation-control evidence only
-  after cockpit has a documented packet import path.
+- Include packet-local `docs/doc-artifacts-check.json` as documentation-control
+  evidence when cockpit imported it with `--doc-artifacts-check`.
 - Validate the wrapper with evidencebus before adding user-facing docs beyond
   this contract.

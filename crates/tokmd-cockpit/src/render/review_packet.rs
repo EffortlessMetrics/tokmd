@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Result, bail};
 
+use crate::doc_artifacts_evidence::{DOC_ARTIFACTS_PACKET_PATH, DocArtifactsEvidenceInput};
 use crate::proof_evidence::ProofEvidenceArtifact;
 use crate::{CockpitReceipt, ProofEvidenceInput};
 
@@ -21,7 +22,7 @@ use super::review_map::{render_review_map_md, review_packet_review_map};
 /// integrations keep their shipped `cockpit.json` / `report.json` /
 /// `comment.md` artifact shape until they opt into packet emission.
 pub fn write_review_packet(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
-    write_review_packet_with_proof_evidence(dir, receipt, &[])
+    write_review_packet_with_imported_evidence(dir, receipt, &[], None)
 }
 
 /// Write review packet artifacts and include imported proof evidence in
@@ -31,20 +32,39 @@ pub fn write_review_packet_with_proof_evidence(
     receipt: &CockpitReceipt,
     proof_evidence: &[ProofEvidenceInput],
 ) -> Result<()> {
+    write_review_packet_with_imported_evidence(dir, receipt, proof_evidence, None)
+}
+
+/// Write review packet artifacts and include imported proof and
+/// documentation-control evidence in `evidence.json`.
+pub fn write_review_packet_with_imported_evidence(
+    dir: &Path,
+    receipt: &CockpitReceipt,
+    proof_evidence: &[ProofEvidenceInput],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) -> Result<()> {
     std::fs::create_dir_all(dir)?;
     let proof_artifacts = packet_proof_artifacts(proof_evidence)?;
     let packet_proof_inputs: Vec<_> = proof_artifacts
         .iter()
         .map(|artifact| artifact.input.clone())
         .collect();
+    let doc_artifacts = packet_doc_artifacts_input(doc_artifacts)?;
 
     let cockpit_json = render_json(receipt)?;
-    let evidence_json =
-        serde_json::to_string_pretty(&review_packet_evidence(receipt, &packet_proof_inputs))?;
-    let review_map_json =
-        serde_json::to_string_pretty(&review_packet_review_map(receipt, &packet_proof_inputs))?;
-    let review_map_md = render_review_map_md(receipt, &packet_proof_inputs);
-    let comment_md = render_review_packet_comment_md(receipt, &packet_proof_inputs);
+    let evidence_json = serde_json::to_string_pretty(&review_packet_evidence(
+        receipt,
+        &packet_proof_inputs,
+        doc_artifacts.as_ref(),
+    ))?;
+    let review_map_json = serde_json::to_string_pretty(&review_packet_review_map(
+        receipt,
+        &packet_proof_inputs,
+        doc_artifacts.as_ref(),
+    ))?;
+    let review_map_md = render_review_map_md(receipt, &packet_proof_inputs, doc_artifacts.as_ref());
+    let comment_md =
+        render_review_packet_comment_md(receipt, &packet_proof_inputs, doc_artifacts.as_ref());
 
     std::fs::write(dir.join("cockpit.json"), &cockpit_json)?;
     std::fs::write(dir.join("evidence.json"), &evidence_json)?;
@@ -57,8 +77,17 @@ pub fn write_review_packet_with_proof_evidence(
             std::fs::write(dir.join(&artifact.path), &artifact.content)?;
         }
     }
+    let doc_artifacts_json = doc_artifacts.as_ref().map(doc_artifacts_json).transpose()?;
+    if doc_artifacts.is_some() {
+        if let Some(parent) = Path::new(DOC_ARTIFACTS_PACKET_PATH).parent() {
+            std::fs::create_dir_all(dir.join(parent))?;
+        }
+        if let Some(content) = doc_artifacts_json.as_deref() {
+            std::fs::write(dir.join(DOC_ARTIFACTS_PACKET_PATH), content)?;
+        }
+    }
 
-    let extra_artifacts: Vec<_> = proof_artifacts
+    let mut extra_artifacts: Vec<_> = proof_artifacts
         .iter()
         .map(|artifact| ReviewPacketArtifactContent {
             id: &artifact.id,
@@ -68,6 +97,15 @@ pub fn write_review_packet_with_proof_evidence(
             content: &artifact.content,
         })
         .collect();
+    if let Some(content) = doc_artifacts_json.as_deref() {
+        extra_artifacts.push(ReviewPacketArtifactContent {
+            id: "doc-artifacts-check",
+            path: DOC_ARTIFACTS_PACKET_PATH,
+            schema: "tokmd.doc_artifacts_check.v1",
+            media_type: "application/json",
+            content,
+        });
+    }
     let manifest = review_packet_manifest(
         receipt,
         &cockpit_json,
@@ -83,6 +121,19 @@ pub fn write_review_packet_with_proof_evidence(
     )?;
 
     Ok(())
+}
+
+fn packet_doc_artifacts_input(
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) -> Result<Option<DocArtifactsEvidenceInput>> {
+    doc_artifacts
+        .map(|input| {
+            Ok(DocArtifactsEvidenceInput {
+                source_path: PathBuf::from(DOC_ARTIFACTS_PACKET_PATH),
+                receipt: input.receipt.clone(),
+            })
+        })
+        .transpose()
 }
 
 struct PacketProofArtifact {
@@ -141,4 +192,8 @@ fn proof_artifact_json(input: &ProofEvidenceInput) -> Result<String> {
             Ok(serde_json::to_string_pretty(artifact)?)
         }
     }
+}
+
+fn doc_artifacts_json(input: &DocArtifactsEvidenceInput) -> Result<String> {
+    Ok(serde_json::to_string_pretty(&input.receipt)?)
 }

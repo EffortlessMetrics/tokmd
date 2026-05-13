@@ -159,6 +159,10 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
         },
+        "doc_artifacts_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
         "evidence": { "$ref": "#/definitions/reviewMapItemEvidence" },
         "reproduce": {
           "type": "array",

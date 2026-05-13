@@ -22,6 +22,7 @@ mod composition;
 mod contracts;
 pub mod determinism;
 mod display;
+mod doc_artifacts_evidence;
 mod file_stat;
 #[cfg(feature = "git")]
 mod gates;
@@ -45,6 +46,7 @@ pub use change_surface::get_file_stats;
 pub use composition::compute_composition;
 pub use contracts::detect_contracts;
 pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_direction_label};
+pub use doc_artifacts_evidence::{DocArtifactsEvidenceInput, parse_doc_artifacts_evidence_input};
 pub use file_stat::FileStat;
 #[cfg(feature = "git")]
 pub use gates::compute_determinism_gate;

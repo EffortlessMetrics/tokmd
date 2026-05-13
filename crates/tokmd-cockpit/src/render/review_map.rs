@@ -2,11 +2,13 @@
 
 use serde_json::{Value, json};
 
+use crate::doc_artifacts_evidence::{DOC_ARTIFACTS_PACKET_PATH, DocArtifactsEvidenceInput};
 use crate::proof_evidence::ProofEvidenceInput;
 use crate::{CockpitReceipt, GateMeta, ReviewItem};
 
 use super::evidence::{
-    evidence_availability_optional, evidence_counts, review_packet_evidence_capabilities,
+    doc_artifacts_expected, evidence_availability_optional, evidence_counts,
+    review_item_is_source_of_truth, review_packet_evidence_capabilities,
     review_packet_evidence_gate_specs, review_packet_evidence_summary,
 };
 use super::proof_summary::proof_evidence_summary;
@@ -17,14 +19,17 @@ use super::review_map_proof::{
 pub(super) fn review_packet_review_map(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> Value {
     let proof_refs = review_map_proof_refs(receipt, proof_inputs);
-    let evidence_refs = review_map_evidence_refs(!proof_refs.is_empty());
+    let has_doc_artifacts_evidence = doc_artifacts.is_some() || doc_artifacts_expected(receipt);
+    let evidence_refs =
+        review_map_evidence_refs(!proof_refs.is_empty(), has_doc_artifacts_evidence);
     let items: Vec<_> = receipt
         .review_plan
         .iter()
         .enumerate()
-        .map(|(idx, item)| review_map_item(idx, item, receipt, &proof_refs))
+        .map(|(idx, item)| review_map_item(idx, item, receipt, &proof_refs, doc_artifacts))
         .collect();
 
     json!({
@@ -47,9 +52,11 @@ fn review_map_item(
     item: &ReviewItem,
     receipt: &CockpitReceipt,
     proof_refs: &[ReviewMapProofRef],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> Value {
     let evidence = review_map_item_evidence(item, receipt);
     let proof = review_map_item_proof(item, proof_refs);
+    let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, doc_artifacts);
 
     json!({
         "rank": idx + 1,
@@ -64,6 +71,7 @@ fn review_map_item(
             "evidence.json#/gates",
         ],
         "proof_refs": proof.refs,
+        "doc_artifacts_refs": doc_artifacts_refs,
         "evidence": {
             "status": evidence.status(),
             "present": evidence.present,
@@ -87,12 +95,29 @@ fn review_map_item(
     })
 }
 
-fn review_map_evidence_refs(has_proof: bool) -> Vec<&'static str> {
+fn review_map_evidence_refs(
+    has_proof: bool,
+    has_doc_artifacts_evidence: bool,
+) -> Vec<&'static str> {
     let mut refs = vec!["evidence.json#/gates"];
     if has_proof {
         refs.push("evidence.json#/proof");
     }
+    if has_doc_artifacts_evidence {
+        refs.push("evidence.json#/doc_artifacts");
+    }
     refs
+}
+
+fn review_map_item_doc_artifacts_refs(
+    item: &ReviewItem,
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) -> Vec<&'static str> {
+    if doc_artifacts.is_some() && review_item_is_source_of_truth(item) {
+        vec!["evidence.json#/doc_artifacts", DOC_ARTIFACTS_PACKET_PATH]
+    } else {
+        Vec::new()
+    }
 }
 
 #[derive(Default)]
@@ -167,6 +192,7 @@ fn review_priority_label(priority: u32) -> &'static str {
 pub(super) fn render_review_map_md(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> String {
     use std::fmt::Write;
 
@@ -191,6 +217,7 @@ pub(super) fn render_review_map_md(
     );
     let _ = writeln!(s);
     write_proof_overview(&mut s, receipt, proof_inputs);
+    write_doc_artifacts_overview(&mut s, receipt, doc_artifacts);
 
     if receipt.review_plan.is_empty() {
         let _ = writeln!(s, "No prioritized files were identified.");
@@ -228,6 +255,7 @@ pub(super) fn render_review_map_md(
         write_evidence_list(&mut s, "Evidence stale", &evidence.stale);
         write_evidence_list(&mut s, "Evidence skipped", &evidence.skipped);
         write_evidence_list(&mut s, "Evidence unavailable", &evidence.unavailable);
+        write_doc_artifacts_block(&mut s, item, doc_artifacts);
         write_proof_block(&mut s, &proof);
         let _ = writeln!(s, "   Evidence references:");
         let _ = writeln!(s, "   - cockpit.json#/review_plan/{idx}");
@@ -247,6 +275,71 @@ pub(super) fn render_review_map_md(
     }
 
     s
+}
+
+fn write_doc_artifacts_overview(
+    s: &mut String,
+    receipt: &CockpitReceipt,
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) {
+    use std::fmt::Write;
+
+    match doc_artifacts {
+        Some(input) => {
+            let _ = writeln!(
+                s,
+                "Doc artifacts: {} ({} required docs, {} family files, {} active goals).",
+                if input.receipt.ok {
+                    "verified"
+                } else {
+                    "degraded"
+                },
+                input.receipt.checked.required_docs,
+                input.receipt.checked.family_files,
+                input.receipt.checked.active_goals,
+            );
+            if !input.receipt.errors.is_empty() {
+                let _ = writeln!(s, "- Errors: {}", input.receipt.errors.len());
+            }
+            let _ = writeln!(s);
+        }
+        None if doc_artifacts_expected(receipt) => {
+            let _ = writeln!(s, "Doc artifacts: missing for source-of-truth changes.");
+            let _ = writeln!(s);
+        }
+        None => {}
+    }
+}
+
+fn write_doc_artifacts_block(
+    s: &mut String,
+    item: &ReviewItem,
+    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+) {
+    use std::fmt::Write;
+
+    if !review_item_is_source_of_truth(item) {
+        return;
+    }
+
+    match doc_artifacts {
+        Some(input) => {
+            let _ = writeln!(
+                s,
+                "   Doc artifacts: {}",
+                if input.receipt.ok {
+                    "verified"
+                } else {
+                    "degraded"
+                }
+            );
+            let _ = writeln!(s, "   - evidence.json#/doc_artifacts");
+            let _ = writeln!(s, "   - {DOC_ARTIFACTS_PACKET_PATH}");
+        }
+        None => {
+            let _ = writeln!(s, "   Doc artifacts: missing");
+        }
+    }
 }
 
 fn write_proof_overview(
