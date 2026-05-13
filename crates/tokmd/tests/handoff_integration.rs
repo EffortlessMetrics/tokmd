@@ -68,6 +68,98 @@ fn test_handoff_manifest_valid_json() {
 }
 
 #[test]
+fn test_handoff_links_review_and_proof_artifacts() {
+    let dir = tempdir().unwrap();
+    let out_dir = dir.path().join("handoff_links");
+    let review_dir = dir.path().join("review");
+    let proof_dir = dir.path().join("proof");
+    fs::create_dir_all(&review_dir).unwrap();
+    fs::create_dir_all(&proof_dir).unwrap();
+
+    fs::write(review_dir.join("comment.md"), "summary").unwrap();
+    fs::write(review_dir.join("review-map.md"), "review map").unwrap();
+    fs::write(review_dir.join("review-map.json"), "{}").unwrap();
+    fs::write(review_dir.join("evidence.json"), "{}").unwrap();
+    fs::write(review_dir.join("manifest.json"), "{}").unwrap();
+    fs::write(review_dir.join("cockpit.json"), "{}").unwrap();
+
+    let review_check = proof_dir.join("review-packet-check.json");
+    let affected = proof_dir.join("affected.json");
+    let proof_plan = proof_dir.join("proof-plan.json");
+    fs::write(
+        &review_check,
+        r#"{"schema":"tokmd.review_packet_check.v1"}"#,
+    )
+    .unwrap();
+    fs::write(&affected, r#"{"schema":"tokmd.affected.v1"}"#).unwrap();
+    fs::write(&proof_plan, r#"{"schema":"tokmd.proof_plan.v1"}"#).unwrap();
+
+    let mut cmd = tokmd_cmd();
+    cmd.arg("handoff")
+        .arg("--out-dir")
+        .arg(&out_dir)
+        .arg("--review-packet-dir")
+        .arg(&review_dir)
+        .arg("--review-packet-check")
+        .arg(&review_check)
+        .arg("--affected")
+        .arg(&affected)
+        .arg("--proof-plan")
+        .arg(&proof_plan)
+        .assert()
+        .success();
+
+    let review_links: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(out_dir.join("review-links.json")).unwrap())
+            .unwrap();
+    assert_eq!(
+        review_links["schema"].as_str(),
+        Some("tokmd.handoff_review_links.v1")
+    );
+    assert_eq!(review_links["semantics"]["copied"].as_bool(), Some(false));
+    assert_eq!(
+        review_links["review_packet_check"]["exists"].as_bool(),
+        Some(true)
+    );
+    assert!(
+        review_links["artifacts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|entry| entry["name"] == "review_map_md" && entry["exists"] == true)
+    );
+
+    let proof_links: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(out_dir.join("proof-links.json")).unwrap())
+            .unwrap();
+    assert_eq!(
+        proof_links["schema"].as_str(),
+        Some("tokmd.handoff_proof_links.v1")
+    );
+    assert!(
+        proof_links["artifacts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|entry| entry["name"] == "proof_plan" && entry["exists"] == true)
+    );
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(out_dir.join("manifest.json")).unwrap()).unwrap();
+    let artifacts = manifest["artifacts"].as_array().unwrap();
+    assert!(
+        artifacts
+            .iter()
+            .any(|entry| entry["path"] == "review-links.json")
+    );
+    assert!(
+        artifacts
+            .iter()
+            .any(|entry| entry["path"] == "proof-links.json")
+    );
+}
+
+#[test]
 fn test_handoff_intelligence_valid_json() {
     let dir = tempdir().unwrap();
     let out_dir = dir.path().join("handoff_intel");

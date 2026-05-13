@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use blake3::Hasher;
+use serde_json::{Value, json};
 use tokmd_types::{
     ArtifactEntry, ArtifactHash, ContextFileRow, ExportData, FileKind, HandoffIntelligence,
     HandoffManifest, InclusionPolicy,
@@ -16,6 +17,13 @@ pub(super) struct HandoffPayloads {
     pub(super) intelligence_bytes: u64,
     pub(super) code_bytes: u64,
     pub(super) artifacts: Vec<ArtifactEntry>,
+}
+
+pub(super) struct HandoffLinkInputs<'a> {
+    pub(super) review_packet_dir: Option<&'a Path>,
+    pub(super) review_packet_check: Option<&'a Path>,
+    pub(super) affected: Option<&'a Path>,
+    pub(super) proof_plan: Option<&'a Path>,
 }
 
 pub(super) fn write_payloads(
@@ -88,12 +96,136 @@ pub(super) fn write_payloads(
     })
 }
 
+pub(super) fn write_link_artifacts(
+    out_dir: &Path,
+    links: &HandoffLinkInputs<'_>,
+) -> Result<Vec<ArtifactEntry>> {
+    let mut artifacts = Vec::new();
+
+    if links.review_packet_dir.is_some() || links.review_packet_check.is_some() {
+        artifacts.push(write_json_artifact(
+            out_dir,
+            "review-links",
+            "review-links.json",
+            "Linked cockpit review packet artifacts",
+            &review_links_json(links.review_packet_dir, links.review_packet_check),
+        )?);
+    }
+
+    if links.affected.is_some() || links.proof_plan.is_some() {
+        artifacts.push(write_json_artifact(
+            out_dir,
+            "proof-links",
+            "proof-links.json",
+            "Linked affected-proof and proof-plan artifacts",
+            &proof_links_json(links.affected, links.proof_plan),
+        )?);
+    }
+
+    Ok(artifacts)
+}
+
 pub(super) fn write_manifest_json(out_dir: &Path, manifest: &HandoffManifest) -> Result<usize> {
     let manifest_path = out_dir.join("manifest.json");
     let manifest_json = serde_json::to_string_pretty(manifest)?;
     fs::write(&manifest_path, &manifest_json)
         .with_context(|| format!("Failed to write {}", manifest_path.display()))?;
     Ok(manifest_json.len())
+}
+
+fn write_json_artifact(
+    out_dir: &Path,
+    name: &str,
+    relative_path: &str,
+    description: &str,
+    value: &Value,
+) -> Result<ArtifactEntry> {
+    let path = out_dir.join(relative_path);
+    let json = serde_json::to_string_pretty(value)?;
+    fs::write(&path, &json).with_context(|| format!("Failed to write {}", path.display()))?;
+
+    Ok(ArtifactEntry {
+        name: name.to_string(),
+        path: relative_path.to_string(),
+        description: description.to_string(),
+        bytes: json.len() as u64,
+        hash: Some(ArtifactHash {
+            algo: "blake3".to_string(),
+            hash: hash_bytes(json.as_bytes()),
+        }),
+    })
+}
+
+fn review_links_json(
+    review_packet_dir: Option<&Path>,
+    review_packet_check: Option<&Path>,
+) -> Value {
+    let packet_artifacts = review_packet_dir
+        .map(|dir| {
+            [
+                ("comment", "comment.md"),
+                ("review_map_md", "review-map.md"),
+                ("review_map_json", "review-map.json"),
+                ("evidence", "evidence.json"),
+                ("manifest", "manifest.json"),
+                ("cockpit", "cockpit.json"),
+            ]
+            .into_iter()
+            .map(|(name, relative)| path_link(name, &dir.join(relative)))
+            .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    json!({
+        "schema": "tokmd.handoff_review_links.v1",
+        "review_packet_dir": review_packet_dir.map(path_string),
+        "review_packet_check": review_packet_check.map(|path| path_link("review_packet_check", path)),
+        "artifacts": packet_artifacts,
+        "semantics": {
+            "kind": "external_links",
+            "copied": false,
+            "integrity_source": "cargo xtask review-packet-check"
+        }
+    })
+}
+
+fn proof_links_json(affected: Option<&Path>, proof_plan: Option<&Path>) -> Value {
+    let mut artifacts = Vec::new();
+    if let Some(path) = affected {
+        artifacts.push(path_link("affected", path));
+    }
+    if let Some(path) = proof_plan {
+        artifacts.push(path_link("proof_plan", path));
+    }
+
+    json!({
+        "schema": "tokmd.handoff_proof_links.v1",
+        "artifacts": artifacts,
+        "semantics": {
+            "kind": "external_links",
+            "copied": false,
+            "integrity_source": "linked proof artifacts"
+        }
+    })
+}
+
+fn path_link(name: &str, path: &Path) -> Value {
+    let bytes = path
+        .metadata()
+        .ok()
+        .filter(|metadata| metadata.is_file())
+        .map(|metadata| metadata.len());
+
+    json!({
+        "name": name,
+        "path": path_string(path),
+        "exists": path.exists(),
+        "bytes": bytes,
+    })
+}
+
+fn path_string(path: &Path) -> String {
+    path.display().to_string().replace('\\', "/")
 }
 
 fn write_map_jsonl(path: &Path, export: &ExportData) -> Result<u64> {

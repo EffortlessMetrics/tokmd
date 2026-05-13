@@ -191,6 +191,22 @@ pub struct HandoffArgs {
     /// Hard cap on tokens per file (overrides percentage-based cap).
     #[arg(long)]
     pub max_file_tokens: Option<usize>,
+
+    /// Link an existing cockpit review packet directory from the handoff bundle.
+    #[arg(long)]
+    pub review_packet_dir: Option<PathBuf>,
+
+    /// Link an existing review-packet verifier receipt from the handoff bundle.
+    #[arg(long)]
+    pub review_packet_check: Option<PathBuf>,
+
+    /// Link an existing affected-proof report from the handoff bundle.
+    #[arg(long)]
+    pub affected: Option<PathBuf>,
+
+    /// Link an existing proof-plan report from the handoff bundle.
+    #[arg(long)]
+    pub proof_plan: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

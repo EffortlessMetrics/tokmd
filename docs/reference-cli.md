@@ -1066,6 +1066,18 @@ Options:
       --max-file-tokens <MAX_FILE_TOKENS>
           Hard cap on tokens per file (overrides percentage-based cap)
 
+      --review-packet-dir <REVIEW_PACKET_DIR>
+          Link an existing cockpit review packet directory from the handoff bundle
+
+      --review-packet-check <REVIEW_PACKET_CHECK>
+          Link an existing review-packet verifier receipt from the handoff bundle
+
+      --affected <AFFECTED>
+          Link an existing affected-proof report from the handoff bundle
+
+      --proof-plan <PROOF_PLAN>
+          Link an existing proof-plan report from the handoff bundle
+
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 

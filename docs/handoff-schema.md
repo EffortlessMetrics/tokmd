@@ -52,8 +52,15 @@ Artifacts listed in `manifest.json`:
 - `map.jsonl`
 - `intelligence.json`
 - `code.txt`
+- `review-links.json` when `tokmd handoff` is given `--review-packet-dir` or
+  `--review-packet-check`
+- `proof-links.json` when `tokmd handoff` is given `--affected` or
+  `--proof-plan`
 
 Artifacts include size and optional hash. Hashing uses **blake3**.
+The link artifacts are packet-local JSON files that point at external review or
+proof receipts. They do not copy those external receipts into the handoff and
+do not replace the review-packet verifier.
 
 ## Related Docs
 

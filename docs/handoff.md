@@ -77,10 +77,14 @@ tokmd handoff \
   --preset risk \
   --budget 128k \
   --strategy spread \
+  --review-packet-dir .tokmd/review \
+  --review-packet-check target/tokmd/review-packet-check.json \
+  --affected target/proof/affected.json \
+  --proof-plan target/proof/proof-plan.json \
   --out-dir .handoff
 ```
 
-Then give the agent the handoff plus the review evidence:
+Then give the agent the handoff plus the linked review evidence:
 
 - `.tokmd/review/comment.md` for the short review summary.
 - `.tokmd/review/review-map.md` for what to inspect first and reproduction
@@ -90,10 +94,14 @@ Then give the agent the handoff plus the review evidence:
 - `target/proof/affected.json` for changed files and matched proof scopes.
 - `target/proof/proof-plan.json` for expected proof commands.
 - `target/tokmd/review-packet-check.json` for packet verification.
+- `.handoff/review-links.json` for packet-local pointers to the cockpit review
+  packet and verifier receipt.
+- `.handoff/proof-links.json` for packet-local pointers to affected-proof and
+  proof-plan receipts.
 
-The current `handoff` command does not yet import review-map or proof-plan
-artifacts into `.handoff/` automatically. Keep the directories adjacent and pass
-both to the agent when proof state matters.
+The link artifacts do not copy or verify external receipts. They make the
+handoff bundle point at adjacent review/proof evidence while preserving the
+review packet verifier as the source of packet-integrity evidence.
 
 ## Output Tree
 
@@ -102,7 +110,9 @@ both to the agent when proof state matters.
 ├── manifest.json      # authoritative index (schema v5)
 ├── map.jsonl          # full file inventory (JSONL)
 ├── intelligence.json  # summary signals (payload-only)
-└── code.txt           # token-budgeted code bundle
+├── code.txt           # token-budgeted code bundle
+├── review-links.json  # optional linked cockpit review packet artifacts
+└── proof-links.json   # optional linked affected/proof-plan artifacts
 ```
 
 ## Consumption Pattern
