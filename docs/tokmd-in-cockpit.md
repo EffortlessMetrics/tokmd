@@ -71,6 +71,75 @@ checked by `cargo xtask doc-artifacts --check` were valid. It does not prove
 the prose is correct, decide whether to merge, promote proof gates, or enable
 Codecov uploads.
 
+## Choosing Evidence Inputs
+
+Start with the smallest packet that can answer the review question:
+
+| PR shape | Add these inputs | What the packet can say |
+| --- | --- | --- |
+| Code-only change | `--review-packet-dir` | What changed, what to review first, and which cockpit evidence is available, missing, stale, degraded, skipped, or unavailable. |
+| Source-of-truth docs, plans, ADRs, templates, `.jules/goals/**`, or doc-artifact policy changed | `--doc-artifacts-check target/docs/doc-artifacts-check.json` | Whether the documentation-control checker receipt is present and whether source-of-truth artifact shape, links, active goal state, and policy routing passed. |
+| Required proof was planned or run | `--proof-run-summary`, `--proof-observation` | Which required proof applied to the reviewed change, whether it passed, and whether imported proof freshness matches the cockpit head. |
+| Advisory proof or coverage exists | `--executor-observation`, `--coverage-receipt` | Which advisory evidence exists, which evidence is missing, and which evidence must not be treated as a required gate. |
+
+Do not add evidence inputs just to make the packet look complete. A missing or
+unavailable evidence bucket is better than a stale artifact that looks green.
+`review-map.md` and `review-map.json` carry reproduction commands for evidence
+classes that can be regenerated locally.
+
+## Hosted Action Quickstart
+
+Use the composite Action when reviewers need hosted comments and downloadable
+artifacts:
+
+```yaml
+name: PR Cockpit
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  cockpit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: EffortlessMetrics/tokmd@v1
+        with:
+          version: '1.11.0'
+          mode: cockpit
+          base: origin/${{ github.base_ref }}
+          head: HEAD
+          review-packet: 'true'
+          artifact: 'true'
+          comment: 'true'
+```
+
+With `artifact: 'true'`, the `tokmd-receipts` artifact contains `.tokmd/review/`
+and `target/tokmd/review-packet-check.json`. The hosted PR comment uses a copy
+of `.tokmd/review/comment.md` with workflow-run and artifact links appended;
+the packet-local `comment.md` is not mutated after manifest hashes are written.
+
+## What Verification Means
+
+`cargo xtask review-packet-check` verifies the packet contract:
+
+- manifest artifact paths are packet-local;
+- hosted comment copies are not listed in the manifest;
+- `manifest.json`, `evidence.json`, and `review-map.json` match their schemas;
+- BLAKE3 hashes match the final packet-local artifact contents;
+- optional copied proof and docs evidence artifacts are hash-checked when the
+  manifest lists them.
+
+Verification does not mean the PR is mergeable, the prose is correct, missing
+evidence is acceptable, proof gates were promoted, or Codecov uploads are
+enabled. It means the packet is internally consistent enough to review from.
+
 ## Default Policy
 
 tokmd is **informational by default**. A repo may choose to gate on tokmd output,
