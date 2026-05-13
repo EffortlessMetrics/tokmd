@@ -34,9 +34,13 @@ new product commands or promote advisory proof.
 ## Work Packets
 
 1. Add a cockpit review-packet quickstart.
+   - Status: complete.
    - Show the local commands for generating doc-artifacts evidence when
      available, running `tokmd cockpit`, and checking the review packet.
    - Explain which packet files a reviewer should open first.
+   - Evidence: `docs/review-packet.md` now starts with a reviewer quickstart,
+     while README, tutorial, recipes, and `docs/tokmd-in-cockpit.md` keep the
+     same workflow available from their user-facing entry points.
 2. Simplify README first-run paths around the five user jobs.
    - Keep the command inventory available, but lead with the smallest useful
      commands for inspection, PR review, CI evidence, and agent handoff.
@@ -82,3 +86,6 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
 - 2026-05-13: Created after the agent-handoff readiness lane completed. The
   next product-readiness slice should make existing review, CI, browser, and
   agent workflows easier to start without expanding the control plane.
+- 2026-05-13: Added a reviewer quickstart to `docs/review-packet.md`, keeping
+  the first review-packet path visible on the packet contract page without
+  adding a new command or changing proof policy.
