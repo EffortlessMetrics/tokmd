@@ -8,23 +8,23 @@
 //! 5. Compute Jaccard similarity for candidate pairs
 //! 6. Emit pairs exceeding the similarity threshold
 
-use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::Result;
-use globset::{Glob, GlobSetBuilder};
 
 use tokmd_analysis_types::{
     NearDupAlgorithm, NearDupParams, NearDupScope, NearDupStats, NearDuplicateReport,
 };
-use tokmd_types::{ExportData, FileKind};
+use tokmd_types::ExportData;
 
 mod clusters;
 mod fingerprint;
 mod pairs;
+mod selection;
 use clusters::build_clusters;
 use fingerprint::{K, MAX_POSTINGS, W, read_and_fingerprint};
 use pairs::build_pairs;
+use selection::{SelectedFiles, partition_files, select_files};
 
 #[cfg(test)]
 use fingerprint::{tokenize, winnow};
@@ -53,7 +53,14 @@ pub(crate) fn build_near_dup_report(
     limits: &NearDupLimits,
     exclude_patterns: &[String],
 ) -> Result<NearDuplicateReport> {
-    let max_file_bytes = limits.max_file_bytes.unwrap_or(512_000);
+    let SelectedFiles {
+        files,
+        eligible_files,
+        files_skipped,
+        excluded_by_pattern,
+        max_file_bytes,
+    } = select_files(export, max_files, limits, exclude_patterns)?;
+
     let params = NearDupParams {
         scope,
         threshold,
@@ -67,47 +74,6 @@ pub(crate) fn build_near_dup_report(
             max_postings: MAX_POSTINGS,
         }),
         exclude_patterns: exclude_patterns.to_vec(),
-    };
-
-    // Build glob set for exclusion patterns
-    let glob_set = if exclude_patterns.is_empty() {
-        None
-    } else {
-        let mut builder = GlobSetBuilder::new();
-        for pattern in exclude_patterns {
-            builder.add(Glob::new(pattern)?);
-        }
-        Some(builder.build()?)
-    };
-
-    // Collect eligible parent files
-    let mut files: Vec<&tokmd_types::FileRow> = export
-        .rows
-        .iter()
-        .filter(|r| r.kind == FileKind::Parent)
-        .filter(|r| (r.bytes as u64) <= max_file_bytes)
-        .collect();
-
-    // Apply glob exclusion patterns
-    let excluded_by_pattern = if let Some(ref gs) = glob_set {
-        let before = files.len();
-        files.retain(|r| !gs.is_match(&r.path));
-        before - files.len()
-    } else {
-        0
-    };
-
-    // Sort by code lines desc for determinism
-    files.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
-
-    let eligible_files = files.len();
-
-    let files_skipped = if files.len() > max_files {
-        let skipped = files.len() - max_files;
-        files.truncate(max_files);
-        skipped
-    } else {
-        0
     };
 
     let files_analyzed = files.len();
@@ -186,29 +152,6 @@ pub(crate) fn build_near_dup_report(
         },
         stats,
     })
-}
-
-/// Partition file indices by the specified scope.
-fn partition_files(files: &[&tokmd_types::FileRow], scope: NearDupScope) -> Vec<Vec<usize>> {
-    match scope {
-        NearDupScope::Global => {
-            vec![(0..files.len()).collect()]
-        }
-        NearDupScope::Module => {
-            let mut map: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
-            for (i, row) in files.iter().enumerate() {
-                map.entry(&row.module).or_default().push(i);
-            }
-            map.into_values().collect()
-        }
-        NearDupScope::Lang => {
-            let mut map: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
-            for (i, row) in files.iter().enumerate() {
-                map.entry(&row.lang).or_default().push(i);
-            }
-            map.into_values().collect()
-        }
-    }
 }
 
 #[cfg(test)]
