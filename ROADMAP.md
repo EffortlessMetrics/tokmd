@@ -663,7 +663,7 @@ _Goal: Historical tracking and team insights._
 
 ### v3.0 — Tree-sitter Integration (Long-term)
 
-_Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap._
+_Goal: Accurate parsing for precise metrics. This is a significant undertaking requiring substantial R&D investment and is intentionally deferred well beyond the v2.x roadmap for full default integration, but foundation shadow work has begun._
 
 #### J. Tree-sitter AST Parsing
 
