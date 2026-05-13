@@ -416,7 +416,7 @@ tokmd cockpit \
   --head HEAD \
   --review-packet-dir .tokmd/review
 
-# Verify packet-local paths, schemas, and BLAKE3 hashes
+# In the tokmd checkout or CI, verify packet-local paths, schemas, and BLAKE3 hashes
 cargo xtask review-packet-check --dir .tokmd/review
 ```
 

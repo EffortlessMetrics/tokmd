@@ -24,7 +24,7 @@ additive PR review artifact shape, not a replacement for the shipped
 
 ## Local Review Packet Quickstart
 
-Use this flow when reviewing a branch locally:
+Use this flow when reviewing a branch locally in the tokmd checkout:
 
 ```bash
 tokmd cockpit \

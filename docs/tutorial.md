@@ -345,64 +345,74 @@ This ensures your code quality acts like a ratchet—it can go up, but never dow
 
 ---
 
-## Step 13: Generating PR Metrics with `tokmd cockpit`
+## Step 13: Reviewing a PR with `tokmd cockpit`
 
-**Goal**: Get comprehensive metrics for a pull request to aid code review.
+**Goal**: Generate a review packet that tells you what changed, what to inspect
+first, what evidence exists, and what evidence is missing.
 
-When preparing or reviewing a PR, you want to understand its scope, risk factors, and quality evidence. The `cockpit` command generates a complete metrics dashboard comparing two git references.
+When preparing or reviewing a PR, start with packet artifacts instead of raw CI
+logs. The `cockpit` command compares two git references and writes a stable
+directory for human review and downstream tools.
 
-**Basic usage** (compare current branch against main):
+**Generate a review packet** (compare current branch against main):
 ```bash
-tokmd cockpit
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --review-packet-dir .tokmd/review
 ```
 
-**Specify different base and head**:
+**Specify different refs**:
 ```bash
-tokmd cockpit --base develop --head feature/my-branch
+tokmd cockpit \
+  --base develop \
+  --head feature/my-branch \
+  --review-packet-dir .tokmd/review
 ```
 
-**Output in Markdown for PR descriptions**:
+**What to open first**:
+
+1. `.tokmd/review/comment.md` for the compact summary.
+2. `.tokmd/review/review-map.md` for the review order and reproduction
+   commands.
+3. `.tokmd/review/evidence.json` for exact evidence state.
+4. `.tokmd/review/manifest.json` for packet-local artifact paths and hashes.
+
+In the tokmd checkout or CI, verify the packet before treating it as review
+evidence:
+
 ```bash
-tokmd cockpit --format md --output pr-metrics.md
+cargo xtask review-packet-check --dir .tokmd/review
 ```
 
 **What you get**:
 
-The cockpit receipt includes several sections:
+- **Change surface**: files added, modified, deleted, and net line changes.
+- **Review map**: prioritized files with reasons and reproduction commands.
+- **Evidence state**: available, missing, stale, degraded, skipped, or
+  unavailable evidence.
+- **Proof imports**: optional required/advisory proof artifacts when supplied.
+- **Packet manifest**: hash-indexed artifact inventory for packet verification.
 
-- **Change Surface**: Files added, modified, deleted, and net line changes
-- **Composition**: Breakdown of changes by language and type (production vs. test code)
-- **Code Health**: Comment density, complexity indicators
-- **Risk**: Hotspot analysis, coupling detection
-- **Contracts**: API surface changes (if applicable)
-- **Evidence**: Hard gates with pass/fail status
+**When source-of-truth docs changed**:
 
-**Understanding Evidence Gates**:
+If a PR changes specs, ADRs, plans, templates, `.jules/goals/**`, or
+doc-artifact policy in this repository, generate the documentation-control
+receipt first and import it:
 
-The evidence section provides automated quality checks:
-
-| Gate | Description |
-|------|-------------|
-| `mutation` | Mutation testing results (were tests effective?) |
-| `diff_coverage` | Test coverage for changed lines |
-| `contracts` | Contract/API compatibility verification |
-| `supply_chain` | Dependency security checks |
-| `determinism` | Build reproducibility verification |
-
-Each gate has a status:
-- `pass`: Gate passed
-- `fail`: Gate failed (blocks merge if required)
-- `skipped`: No relevant files changed
-- `pending`: Results not yet available
-
-**Example workflow for CI**:
 ```bash
-# Generate cockpit metrics for the PR
-tokmd cockpit --base $BASE_SHA --head $HEAD_SHA --format json --output cockpit.json
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
 
-# Use in PR template
-tokmd cockpit --format sections >> $GITHUB_STEP_SUMMARY
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --doc-artifacts-check target/docs/doc-artifacts-check.json \
+  --review-packet-dir .tokmd/review
 ```
+
+This makes documentation-control evidence visible in the packet. It is not a
+merge verdict and does not promote advisory proof, coverage, or Codecov upload
+into a required gate.
 
 ---
 
