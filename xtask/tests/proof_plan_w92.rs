@@ -265,8 +265,12 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should advertise advisory status"
     );
     assert!(
-        ci.contains("cargo xtask proof-policy --json > target/proof-run/proof-policy.json"),
+        ci.contains("cargo xtask proof-policy --json-output target/proof-run/proof-policy.json"),
         "fast proof job should resolve checked policy"
+    );
+    assert!(
+        !ci.contains("cargo xtask proof-policy --json > target/proof-run/proof-policy.json"),
+        "fast proof job should not capture proof-policy JSON with shell redirection"
     );
     assert!(
         ci.contains("proof_run.pr.required must remain false"),
@@ -347,8 +351,12 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor workflow should keep the command selection limit Rust-owned and manually tunable"
     );
     assert!(
-        executor.contains("cargo xtask proof-policy --json > target/proof/proof-policy.json"),
+        executor.contains("cargo xtask proof-policy --json-output target/proof/proof-policy.json"),
         "executor workflow should resolve PR defaults from proof policy"
+    );
+    assert!(
+        !executor.contains("cargo xtask proof-policy --json > target/proof/proof-policy.json"),
+        "executor workflow should not capture proof-policy JSON with shell redirection"
     );
     assert!(
         executor.contains("--plan-json target/proof/proof-plan.json"),
@@ -412,9 +420,15 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
     );
     assert!(
         collector.contains(
-            "cargo xtask proof-policy --json > target/proof-observations/proof-policy.json"
+            "cargo xtask proof-policy --json-output target/proof-observations/proof-policy.json"
         ),
         "collector should resolve default thresholds from the checked proof policy"
+    );
+    assert!(
+        !collector.contains(
+            "cargo xtask proof-policy --json > target/proof-observations/proof-policy.json"
+        ),
+        "collector should not capture proof-policy JSON with shell redirection"
     );
     assert!(
         collector.contains("promotion = json.load(handle)[\"executor\"][\"promotion\"]"),

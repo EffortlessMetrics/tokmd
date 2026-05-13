@@ -329,7 +329,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p target/proof-run
-          cargo xtask proof-policy --json > target/proof-run/proof-policy.json
+          cargo xtask proof-policy --json-output target/proof-run/proof-policy.json
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import pathlib

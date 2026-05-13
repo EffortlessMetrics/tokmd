@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p target/proof
-          cargo xtask proof-policy --json > target/proof/proof-policy.json
+          cargo xtask proof-policy --json-output target/proof/proof-policy.json
           python - <<'PY'
           import json
           import os

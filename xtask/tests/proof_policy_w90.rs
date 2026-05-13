@@ -69,6 +69,16 @@ fn proof_policy_check_accepts_repo_policy() {
 }
 
 #[test]
+fn proof_policy_help_mentions_json_output() {
+    let (stdout, stderr, success) = run_xtask(&["proof-policy", "--help"]);
+
+    assert!(success, "proof-policy --help failed. stderr: {stderr}");
+    assert!(stdout.contains("--check"), "stdout: {stdout}");
+    assert!(stdout.contains("--json"), "stdout: {stdout}");
+    assert!(stdout.contains("--json-output"), "stdout: {stdout}");
+}
+
+#[test]
 fn proof_policy_includes_current_product_scopes() {
     let value = repo_policy();
     let scopes = value["scope"]
@@ -405,6 +415,38 @@ fn proof_policy_json_reports_current_schema() {
     assert_eq!(value["proof_run"]["pr"]["profile"], "fast");
     assert_eq!(value["proof_run"]["pr"]["required"], false);
     assert_eq!(value["proof_run"]["pr"]["artifact_name"], "fast-proof-run");
+}
+
+#[test]
+fn proof_policy_json_output_writes_report_artifact() {
+    let root = workspace_root();
+    let path = root
+        .join("target")
+        .join("proof-policy-w90")
+        .join("proof-policy.json");
+    if path.exists() {
+        fs::remove_file(&path).expect("stale proof-policy fixture should be removable");
+    }
+
+    let path_arg = path.to_string_lossy().to_string();
+    let (stdout, stderr, success) =
+        run_xtask(&["proof-policy", "--json", "--json-output", &path_arg]);
+
+    assert!(
+        success,
+        "proof-policy --json-output failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("\"schema\": \"tokmd.proof_policy.v1\""));
+    assert!(path.exists(), "proof-policy artifact should be written");
+
+    let written = fs::read_to_string(&path).expect("proof-policy artifact should be readable");
+    let stdout_json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("stdout proof-policy report should be JSON");
+    let written_json: serde_json::Value =
+        serde_json::from_str(&written).expect("written proof-policy report should be JSON");
+
+    assert_eq!(written_json["schema"], "tokmd.proof_policy.v1");
+    assert_eq!(written_json, stdout_json);
 }
 
 #[test]
