@@ -1,5 +1,6 @@
-{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo test -p tokmd-format redact", "output": "test result: ok. 28 passed; 0 failed"}
-{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo test -p tokmd-types determinism", "output": "test result: ok. 1 passed; 0 failed"}
-{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo fmt -- --check", "output": "Completed with no errors"}
-{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo clippy -- -D warnings", "output": "Completed with no errors"}
-{"timestamp": "2026-05-11T15:00:58Z", "command": "cargo build -p tokmd-format -p tokmd-types", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"}
+{"timestamp": "2026-05-13T01:15:00Z", "command": "cargo test -p tokmd-format --test test_redaction_double_ext", "output": "superseded by Codex restack; tests moved into test_redaction_leak.rs and redact module tests"}
+{"timestamp": "2026-05-13T02:10:00Z", "command": "cargo test -p tokmd-format redact --verbose", "output": "test result: ok"}
+{"timestamp": "2026-05-13T02:11:00Z", "command": "cargo test -p tokmd-format redaction --verbose", "output": "test result: ok"}
+{"timestamp": "2026-05-13T02:11:00Z", "command": "cargo test -p tokmd-format scan_args --verbose", "output": "test result: ok"}
+{"timestamp": "2026-05-13T02:12:00Z", "command": "cargo clippy -p tokmd-format --all-targets -- -D warnings", "output": "finished successfully"}
+{"timestamp": "2026-05-13T02:12:00Z", "command": "cargo xtask proof-policy --check", "output": "Proof policy OK"}

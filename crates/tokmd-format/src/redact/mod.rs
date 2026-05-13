@@ -14,11 +14,7 @@
 //! * General-purpose file hashing (see `tokmd-analysis` content helpers)
 //! * Integrity hashing (see `tokmd-analysis`)
 
-use std::path::Path;
-
 mod extensions;
-
-use extensions::safe_path_extension;
 
 /// Clean a path by normalizing separators and resolving `.` and `./` segments.
 ///
@@ -97,11 +93,13 @@ pub fn short_hash(s: &str) -> String {
     hex
 }
 
-/// Redact a path by hashing it while preserving a safe file extension.
+/// Redact a path by hashing it while preserving a safe file suffix.
 ///
 /// This allows redacted paths to still be recognizable by file type
-/// while hiding the actual path structure. Extensions are only preserved
-/// when they are in a small allowlist of common file types.
+/// while hiding the actual path structure. A known safe compound suffix
+/// such as `.tar.gz` is preserved as a unit; otherwise only the final
+/// extension is preserved when it is in a small allowlist of common file
+/// types.
 ///
 /// Path separators are normalized to forward slashes before hashing
 /// to ensure consistent hashes across operating systems.
@@ -128,21 +126,30 @@ pub fn short_hash(s: &str) -> String {
 /// assert_eq!(bare.len(), 16);
 /// assert!(!bare.contains('.'));
 ///
-/// // Double extensions: only the final extension is preserved
+/// // Known safe compound suffixes are preserved as a unit.
 /// let gz = redact_path("archive.tar.gz");
-/// assert!(gz.ends_with(".gz"));
+/// assert!(gz.ends_with(".tar.gz"));
 /// ```
 pub fn redact_path(path: &str) -> String {
     let cleaned = clean_path(path);
-    let ext = Path::new(&cleaned)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
-    let ext = safe_path_extension(ext).unwrap_or("");
     let mut out = short_hash(&cleaned);
-    if !ext.is_empty() {
-        out.push('.');
-        out.push_str(ext);
+
+    let filename = cleaned.split('/').next_back().unwrap_or(&cleaned);
+    let parts: Vec<&str> = filename.split('.').collect();
+
+    if parts.len() > 1 && !(parts.len() == 2 && parts[0].is_empty()) {
+        let extension_parts = if parts[0].is_empty() {
+            &parts[2..]
+        } else {
+            &parts[1..]
+        };
+
+        if let Some(suffix) = extensions::safe_path_extension_suffix(extension_parts) {
+            for ext in suffix {
+                out.push('.');
+                out.push_str(ext);
+            }
+        }
     }
     out
 }
@@ -195,9 +202,24 @@ mod tests {
 
     #[test]
     fn test_redact_path_double_extension() {
-        // Only preserves final extension
+        // Preserves known safe compound suffixes as a unit.
         let redacted = redact_path("archive.tar.gz");
-        assert!(redacted.ends_with(".gz"));
+        assert!(redacted.ends_with(".tar.gz"));
+    }
+
+    #[test]
+    fn test_redact_path_preserves_only_known_compound_suffixes() {
+        let redacted = redact_path("fixture.json.rs");
+        assert!(redacted.ends_with(".rs"));
+        assert!(!redacted.ends_with(".json.rs"));
+    }
+
+    #[test]
+    fn test_redact_path_drops_unsafe_final_extension() {
+        let redacted = redact_path("secret.rs.bak");
+        assert_eq!(redacted.len(), 16);
+        assert!(!redacted.contains(".rs"));
+        assert!(!redacted.contains(".bak"));
     }
 
     #[test]

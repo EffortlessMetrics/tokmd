@@ -13,5 +13,8 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "security-boundary",
-  "allowed_outcomes": ["pr-ready-patch", "learning-pr"]
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
+  ]
 }

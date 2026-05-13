@@ -1,6 +1,5 @@
 {
   "status": "success",
-  "outcome": "pr-ready-patch",
-  "patch_summary": "Fixed path redaction logic to normalize consecutive slashes to single slashes, preventing deterministic hash differences between identical logical paths.",
-  "tests_added": true
+  "outcome": "PR-ready patch",
+  "codex_restack": "tightened policy to explicit compound suffixes plus final-extension fallback"
 }

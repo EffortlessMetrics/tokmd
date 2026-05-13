@@ -11,3 +11,24 @@ fn test_redact_path_leak() {
         );
     }
 }
+
+#[test]
+fn redaction_preserves_known_compound_archive_suffix() {
+    let redacted = redact_path("archive.tar.gz");
+    assert!(redacted.ends_with(".tar.gz"));
+}
+
+#[test]
+fn redaction_preserves_only_final_extension_for_unknown_safe_chains() {
+    let redacted = redact_path("fixture.json.rs");
+    assert!(redacted.ends_with(".rs"));
+    assert!(!redacted.ends_with(".json.rs"));
+}
+
+#[test]
+fn redaction_drops_suffixes_when_final_extension_is_unsafe() {
+    let redacted = redact_path("secret.rs.bak");
+    assert_eq!(redacted.len(), 16);
+    assert!(!redacted.contains(".rs"));
+    assert!(!redacted.contains(".bak"));
+}
