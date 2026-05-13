@@ -1,5 +1,5 @@
 {
-  "outcome": "pr-patch",
+  "outcome": "learning-pr",
   "chosen_option": "A",
-  "summary": "Moved the Rust source complexity analyzer out of `tokmd-analysis` and into `tokmd-cockpit` where it belongs. This heuristic is only used by the PR metrics cockpit, so this structural refactor resolves a tier boundary issue."
+  "summary": "Attempted to move `source_complexity` to `tokmd-cockpit` to fix a perceived tier boundary violation, but the PR was rejected because a recent architectural decision explicitly designated `tokmd-analysis` as the owner. Created a learning PR to record this friction."
 }

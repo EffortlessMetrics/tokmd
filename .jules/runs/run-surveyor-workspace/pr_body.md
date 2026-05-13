@@ -1,47 +1,40 @@
 ## 💡 Summary
-Moved the `source_complexity` module from `tokmd-analysis` to `tokmd-cockpit`. This heuristic is only used for PR metric complexity gates, so it now lives directly under the cockpit's `gates` module.
+This is a learning PR. Attempted to move `tokmd-analysis::source_complexity` directly into `tokmd-cockpit` to resolve a perceived crate boundary violation. However, this move was rejected as it reverses a recent architectural ownership decision.
 
 ## 🎯 Why
-The `source_complexity` logic was sitting in `tokmd-analysis` but was solely consumed by `tokmd-cockpit::gates::complexity`. According to the architecture guidelines, `tokmd-analysis` orchestrates presets and derived metrics; it should not own internal gate heuristics used exclusively by the cockpit tier. This cleans up the crate boundary and ensures that cockpit logic remains in the cockpit.
+The initial attempt targeted `source_complexity` because it was exclusively consumed by `tokmd-cockpit` gates, appearing as a tier boundary violation. The rejection clarified that `tokmd-analysis` is the intentionally designated owner for function-scoped Rust source complexity, as recorded in recent ADRs/issues (#1785/#999) and docs (`docs/NEXT.md`, `docs/architecture-consolidation-plan.md`). This learning PR records the friction of conflicting signals between immediate code structure and established architectural decisions.
 
 ## 🔎 Evidence
-- `tokmd-analysis/src/source_complexity.rs` was exclusively imported by `tokmd-cockpit/src/gates/complexity.rs`.
-- `cargo test -p tokmd-cockpit -p tokmd-analysis` ran successfully after the refactor.
+- Initial PR rejection comment: "Closing as stale generated work. This reverses the current ownership decision recorded after #1785/#999: cockpit delegates function-scoped Rust source complexity to tokmd-analysis::source_complexity..."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Move `source_complexity` to `tokmd-cockpit/src/gates/`.
-- why it fits this repo and shard: Directly addresses a tier boundary violation. The PR cockpit metrics should own their own heuristics.
-- trade-offs: Structure is improved, no velocity hit, aligns perfectly with the governance tier model.
+- what it is: Produce a learning PR.
+- why it fits this repo and shard: Accurately reflects the outcome of the run without forcing a rejected architectural change. Records the friction for future reference.
+- trade-offs: Structure / Velocity / Governance: Aligns with governance by not fighting an explicit architectural decision. Slower immediate velocity for code change, but improves future context.
 
 ### Option B
-- what it is: Keep it in `tokmd-analysis` and expose it as a derived metric.
-- when to choose it instead: If other workflows needed the raw function-level cyclomatic complexity heuristics.
-- trade-offs: Bloats the analysis crate with gate-specific code that no other consumer uses.
+- what it is: Attempt to find another structural refactor.
+- when to choose it instead: If a clear, uncontentious boundary issue exists that doesn't conflict with recent decisions.
+- trade-offs: Risks hitting another undocumented or recently-decided architectural constraint. Creating a learning PR is safer and honors the prompt's fallback outcome.
 
 ## ✅ Decision
-Option A. The `source_complexity` module was a clear tier boundary violation and is much better situated inside `tokmd-cockpit` where it is actually used. The `SourceAnalyzer` trait was also removed since it was an unused abstraction that only added noise to the gate logic.
+Option A. A learning PR is the appropriate outcome after the initial code patch was rejected due to an established architectural decision. The friction has been recorded.
 
 ## 🧱 Changes made (SRP)
-- Moved `crates/tokmd-analysis/src/source_complexity/mask.rs` to `crates/tokmd-cockpit/src/gates/source_complexity/mask.rs`.
-- Moved `crates/tokmd-analysis/src/source_complexity.rs` to `crates/tokmd-cockpit/src/gates/source_complexity/mod.rs`.
-- Updated `crates/tokmd-cockpit/src/gates.rs` and `crates/tokmd-cockpit/src/gates/complexity.rs` to use the new local module.
-- Removed `pub mod source_complexity;` from `crates/tokmd-analysis/src/lib.rs`.
-- Removed the unused `SourceAnalyzer` trait from the moved module.
+- None. This is a learning PR. The initial patch was reverted.
 
 ## 🧪 Verification receipts
 ```text
-cargo fmt
-cargo test -p tokmd-cockpit -p tokmd-analysis
-cargo clippy -p tokmd-cockpit -p tokmd-analysis -- -D warnings
+# Tests from the original exploratory trace were successful, but the patch was ultimately reverted.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Refactoring
-- Blast radius: `tokmd-analysis`, `tokmd-cockpit`
+- Change shape: Learning PR
+- Blast radius: None
 - Risk class: Low
-- Rollback: Revert the commit.
-- Gates run: `cargo test -p tokmd-cockpit -p tokmd-analysis`, `cargo clippy -p tokmd-cockpit -p tokmd-analysis -- -D warnings`
+- Rollback: N/A
+- Gates run: None for the final learning PR state.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-surveyor-workspace/envelope.json`
@@ -49,6 +42,7 @@ cargo clippy -p tokmd-cockpit -p tokmd-analysis -- -D warnings
 - `.jules/runs/run-surveyor-workspace/receipts.jsonl`
 - `.jules/runs/run-surveyor-workspace/result.json`
 - `.jules/runs/run-surveyor-workspace/pr_body.md`
+- `.jules/friction/open/surveyor_obsolete_architectural_move.md`
 
 ## 🔜 Follow-ups
 None.

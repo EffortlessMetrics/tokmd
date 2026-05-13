@@ -4,6 +4,7 @@
 //! function-scoped Rust complexity for cockpit review gates without pulling in
 //! the full analysis preset pipeline or changing receipt schemas.
 
+#[path = "source_complexity/mask.rs"]
 mod mask;
 
 use mask::RustCodeMask;
@@ -19,6 +20,22 @@ pub struct RustFunctionComplexitySummary {
     pub function_count: usize,
     /// Maximum detected function length in lines.
     pub max_function_length: usize,
+}
+
+/// Testable source analyzer seam for review and gate callers.
+pub trait SourceAnalyzer {
+    /// Analyze function-scoped Rust complexity for one source file.
+    fn analyze_rust(&self, content: &str) -> RustFunctionComplexitySummary;
+}
+
+/// Heuristic Rust analyzer used by cockpit review gates.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct RustAnalyzer;
+
+impl SourceAnalyzer for RustAnalyzer {
+    fn analyze_rust(&self, content: &str) -> RustFunctionComplexitySummary {
+        analyze_rust_function_complexity(content)
+    }
 }
 
 /// Analyze function-scoped cyclomatic complexity of Rust source code.
@@ -145,7 +162,7 @@ fn is_rust_fn_start(trimmed: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::analyze_rust_function_complexity;
+    use super::{RustAnalyzer, SourceAnalyzer, analyze_rust_function_complexity};
 
     #[test]
     fn rust_complexity_counts_else_if_once() {
@@ -222,5 +239,26 @@ fn classify(x: i32) -> i32 {
 
         assert_eq!(analysis.function_count, 1);
         assert_eq!(analysis.max_complexity, 5);
+    }
+
+    #[test]
+    fn rust_analyzer_trait_delegates_to_function_scoped_analysis() {
+        let analyzer = RustAnalyzer;
+        let analysis = analyzer.analyze_rust(
+            r#"
+fn first() {
+    if true {}
+}
+
+fn second() {
+    while false {}
+    for _ in 0..1 {}
+}
+"#,
+        );
+
+        assert_eq!(analysis.function_count, 2);
+        assert_eq!(analysis.total_complexity, 5);
+        assert_eq!(analysis.max_complexity, 3);
     }
 }
