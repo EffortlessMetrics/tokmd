@@ -12,13 +12,13 @@ This file pins how we read ripr findings, when they are advisory, and when
 
 | ripr finding | Severity (default) | Meaning |
 |--------------|--------------------|---------|
-| `exposed` | notice | A meaningful oracle path exists. |
+| `exposed` | info | A meaningful oracle path exists. |
 | `weakly_exposed` | warning | Path exists but discriminator is weak. |
 | `reachable_unrevealed` | warning | Code is reachable but no test would observe a behavior change. |
-| `no_static_path` | notice | Static analyzer could not link the change to any test. |
-| `infection_unknown` | notice | Could not determine whether the mutation would reach a test. |
-| `propagation_unknown` | notice | Could not determine whether infection would propagate to an oracle. |
-| `static_unknown` | notice | Analyzer abstained — usually macros / generated code / cfg gates. |
+| `no_static_path` | note | Static analyzer could not link the change to any test. |
+| `infection_unknown` | note | Could not determine whether the mutation would reach a test. |
+| `propagation_unknown` | note | Could not determine whether infection would propagate to an oracle. |
+| `static_unknown` | note | Analyzer abstained — usually macros / generated code / cfg gates. |
 
 ## Advisory phase (PR 11 → PR 16)
 
@@ -50,13 +50,14 @@ baseline findings.
 
 ## Suppressions
 
-ripr suppressions live in `policy/ripr-suppressions.toml`. Each entry has:
+ripr suppressions live in `policy/ripr-suppressions.toml`. Each entry has one
+suppression family field plus the identifiers required by that family:
 
-- `id` — stable identifier.
-- `path` — file or glob.
-- `selector` — semantic selector (function / fingerprint).
-- `kind` — which finding class is suppressed.
-- `owner`, `reason`, `expires` — same shape as other allowlists.
+- `kind` — suppression family, either `exposure_gap` or `test_efficiency`.
+- `finding_id` — required for `exposure_gap` entries.
+- `test` — required for `test_efficiency` entries.
+- `path` — optional repo-relative file path for `test_efficiency`.
+- `owner`, `reason`, `expires` — reviewed ownership, rationale, and optional expiry.
 
 Don't suppress because a finding is annoying. Suppress because the test
 gap is intentional and explained.

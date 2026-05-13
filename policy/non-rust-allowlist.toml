@@ -209,6 +209,35 @@ classification = "config"
 reason = "Pinned Nix flake inputs."
 covered_by = ["nix flake check --no-build"]
 
+
+[[allow]]
+glob = "badges/*.json"
+kind = "generated_badge_endpoint"
+owner = "release/ci"
+surface = "docs"
+classification = "generated"
+reason = "Generated Shields endpoint JSON for public README badges."
+generated_by = "cargo xtask badges"
+covered_by = ["cargo xtask badges --check"]
+
+[[allow]]
+glob = "badges/README.md"
+kind = "documentation"
+owner = "release/ci"
+surface = "docs"
+classification = "documentation"
+reason = "Documents generated Shields endpoint JSON for public README badges."
+covered_by = ["cargo xtask docs --check"]
+
+[[allow]]
+glob = "scripts/ripr-annotations.py"
+kind = "ci_script"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "Small CI helper scripts used by advisory workflow annotations."
+covered_by = ["cargo xtask ripr-review-comments --check", "ripr advisory workflow"]
+
 # -----------------------------------------------------------------------
 # .github/ tree
 # -----------------------------------------------------------------------

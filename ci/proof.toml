@@ -1068,6 +1068,8 @@ paths = [
   "docs/install.md",
   "docs/adr/**",
   "docs/audits/**",
+  "docs/README.md",
+  "docs/VERIFICATION.md",
   "docs/plans/**",
   "docs/progress-events.md",
   "docs/proposals/**",
@@ -1147,16 +1149,42 @@ coverage = false
 
 [[scope]]
 name = "ripr_policy"
-kind = "non_rust"
+kind = "rust"
 paths = [
+  ".github/workflows/badge-endpoints.yml",
   ".github/workflows/ripr.yml",
   "policy/ripr-suppressions.toml",
   "ripr.toml",
+  "scripts/ripr-annotations.py",
+  "xtask/src/tasks/badges.rs",
+  "xtask/src/tasks/ripr_pr.rs",
 ]
+packages = ["xtask"]
 proof = [
+  "cargo test -p xtask badge --verbose",
+  "cargo test -p xtask ripr --verbose",
+  "cargo xtask check-file-policy",
   "cargo xtask proof-policy --check",
 ]
-reason = "ripr static-mutation analyzer config + suppressions ledger; advisory until PR 16 soft-gate."
+reason = "RIPR config, advisory workflow, wrappers, annotations, and suppression ledger are PR evidence surfaces; they remain advisory and must route through proof and file-policy checks."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "verification_badges"
+kind = "rust"
+paths = [
+  "badges/*.json",
+  "badges/README.md",
+  "xtask/src/tasks/badges.rs",
+]
+packages = ["xtask"]
+proof = [
+  "cargo test -p xtask badge --verbose",
+  "cargo xtask docs --check",
+  "cargo xtask check-file-policy",
+]
+reason = "Committed Shields endpoint JSON and generation helpers are public verification surfaces; detailed evidence remains under target/ or CI artifacts."
 mutation = false
 coverage = false
 

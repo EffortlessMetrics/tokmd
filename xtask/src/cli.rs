@@ -19,6 +19,7 @@ pub enum Commands {
     /// Generate PR cockpit metrics for CI
     Cockpit(CockpitArgs),
     /// Manage documentation and verify examples
+    #[command(alias = "docs-sync")]
     Docs(DocsArgs),
     /// Verify source-of-truth documentation artifact shape and links
     DocArtifacts(DocArtifactsArgs),
@@ -80,6 +81,12 @@ pub enum Commands {
     TrimTarget(TrimTargetArgs),
     /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
+    /// Generate or check committed public Shields badge endpoints
+    Badges(BadgesArgs),
+    /// Generate or check PR-scoped RIPR evidence artifacts
+    RiprPr(RiprPrArgs),
+    /// Generate or check RIPR review guidance artifacts
+    RiprReviewComments(RiprReviewCommentsArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -109,6 +116,58 @@ impl Default for DocArtifactsArgs {
         Self {
             check: false,
             policy: std::path::PathBuf::from("policy/doc-artifacts.toml"),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BadgesArgs {
+    /// Check committed badge endpoints for drift without updating badges/
+    #[arg(long)]
+    pub check: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprPrArgs {
+    /// Verify required PR evidence files instead of regenerating them
+    #[arg(long)]
+    pub check: bool,
+
+    /// Base git revision for diff-aware RIPR evidence
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+}
+
+impl Default for RiprPrArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprReviewCommentsArgs {
+    /// Verify required review guidance files instead of regenerating them
+    #[arg(long)]
+    pub check: bool,
+
+    /// Pull-request base revision
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Pull-request head revision
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+}
+
+impl Default for RiprReviewCommentsArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
         }
     }
 }

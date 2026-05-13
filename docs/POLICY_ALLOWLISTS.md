@@ -13,7 +13,7 @@ invisible. Each allowlist follows the same schema shape: an entry has an
 | `policy/non-rust-allowlist.toml` (PR 05) | Non-Rust file surfaces (YAML, Nix, JSON, etc). | per-entry |
 | `policy/ci-lane-whitelist.toml` (PR 02) | CI lane purpose / cost / trigger receipts. | per-lane |
 | `policy/ci-whitelist-exceptions.toml` (PR 02) | Carve-outs for default-PR expensive lanes during transition. | per-exception |
-| `policy/ripr-suppressions.toml` (PR 11) | ripr advisory suppressions. | per-entry |
+| `policy/ripr-suppressions.toml` (PR 11) | ripr advisory suppressions using RIPR's native manifest schema. | per-entry |
 
 ## Common rules
 
@@ -25,6 +25,9 @@ invisible. Each allowlist follows the same schema shape: an entry has an
   allowed*, not what the lint says.
 - Every entry MUST have either an `expires` date or a `review_after` date.
 - Schema version pinning lives in the file header (`schema_version = ...`).
+
+`policy/ripr-suppressions.toml` follows the native `ripr` suppression manifest
+shape so the installed `ripr` binary can validate and consume it directly.
 
 ## Adding an entry
 

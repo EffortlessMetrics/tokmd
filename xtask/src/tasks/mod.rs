@@ -1,4 +1,5 @@
 pub mod affected;
+pub mod badges;
 pub mod boundaries_check;
 pub mod build_guard;
 pub mod bump;
@@ -24,6 +25,7 @@ pub mod proof_policy;
 pub mod publish;
 pub mod publish_surface;
 pub mod review_packet_check;
+pub mod ripr_pr;
 pub mod sccache;
 pub mod trim_target;
 pub mod version_consistency;

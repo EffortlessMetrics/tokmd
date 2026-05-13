@@ -1,48 +1,37 @@
 # ripr — static "mutation-testing-lite" configuration.
 #
-# ripr does not run mutants. It asks whether a changed behavior appears
-# exposed to a meaningful test discriminator. Severities map to advisory
-# notice / warning levels for the rollout phase; PR 16 may flip narrow
-# cases to soft-block.
+# ripr does not run mutants. It asks whether changed behavior appears exposed to
+# a meaningful test discriminator. The advisory rollout keeps PR evidence
+# diff-scoped and public README badge evidence repo-scoped.
 
 [analysis]
-mode = "diff"
+mode = "draft"
+include_unchanged_tests = true
 
-[report]
+[reports]
 max_related_tests = 8
-include_context = true
 
-[severity]
-exposed = "notice"
+[severity.findings]
+exposed = "info"
 weakly_exposed = "warning"
 reachable_unrevealed = "warning"
-no_static_path = "notice"
-infection_unknown = "notice"
-propagation_unknown = "notice"
-static_unknown = "notice"
+no_static_path = "note"
+infection_unknown = "note"
+propagation_unknown = "note"
+static_unknown = "note"
+
+[severity.seams]
+strongly_gripped = "off"
+weakly_gripped = "warning"
+ungripped = "warning"
+reachable_unrevealed = "warning"
+activation_unknown = "info"
+propagation_unknown = "info"
+observation_unknown = "info"
+discrimination_unknown = "info"
+opaque = "info"
+intentional = "off"
+suppressed = "off"
 
 [suppressions]
 path = "policy/ripr-suppressions.toml"
-
-# Soft-gate phase (PR 16). Off by default until the calibration window
-# has produced enough advisory data; toggle `enabled = true` to opt in
-# once findings are stable. The narrow rule below soft-gates ONLY:
-#   * new reachable_unrevealed or weakly_exposed findings
-#   * touching production Rust (no tests / fuzz)
-#   * with no test changed nearby
-#   * not suppressed in policy/ripr-suppressions.toml
-#   * marked high-confidence by ripr
-#
-# Override labels: ripr-waive (acknowledge a specific finding),
-# full-ci (deep mutation lane will run anyway), ci-budget-ack (PR is
-# otherwise within scope). Baseline findings and static_unknown are
-# never gated.
-
-[soft_gate]
-enabled = false
-require_high_confidence = true
-require_production_rust = true
-require_no_nearby_test_change = true
-gated_kinds = ["reachable_unrevealed", "weakly_exposed"]
-exempt_kinds = ["static_unknown", "no_static_path"]
-override_labels = ["ripr-waive", "full-ci", "ci-budget-ack"]
