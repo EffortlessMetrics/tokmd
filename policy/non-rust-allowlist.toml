@@ -308,6 +308,25 @@ reason = "Documentation is a first-class tokmd product surface."
 covered_by = ["cargo xtask docs --check"]
 
 [[allow]]
+glob = "badges/*.json"
+kind = "generated_badge_endpoint"
+owner = "release/ci"
+surface = "docs"
+classification = "generated"
+reason = "Generated Shields endpoint JSON for public README badges."
+generated_by = "cargo xtask badges"
+covered_by = ["cargo xtask badges --check"]
+
+[[allow]]
+glob = "badges/README.md"
+kind = "documentation"
+owner = "docs"
+surface = "docs"
+classification = "documentation"
+reason = "Documents generated public badge endpoint ownership and regeneration."
+covered_by = ["cargo xtask badges --check"]
+
+[[allow]]
 glob = "docs/capabilities/*.json"
 kind = "capability_contract"
 owner = "product/contracts"
@@ -412,6 +431,15 @@ covered_by = [
   "cargo xtask check-no-panic-family",
   "cargo xtask ci-lane-whitelist",
 ]
+
+[[allow]]
+glob = "scripts/*.py"
+kind = "ci_helper"
+owner = "release/ci"
+surface = "ci"
+classification = "production"
+reason = "Small CI helper scripts for advisory annotations and summaries."
+covered_by = ["python scripts/ripr-annotations.py"]
 
 [[allow]]
 glob = "ci/proof.toml"

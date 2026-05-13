@@ -10,6 +10,8 @@ pub struct XtaskCli {
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
+    /// Generate and verify public Shields badge endpoints
+    Badges(BadgesArgs),
     /// Bump version across the entire workspace
     Bump(BumpArgs),
     /// Publish all crates in dependency order
@@ -42,6 +44,10 @@ pub enum Commands {
     ProofExecutionObservationsSummary(ProofExecutionObservationsSummaryArgs),
     /// Verify cockpit review-packet schemas and artifact hashes
     ReviewPacketCheck(ReviewPacketCheckArgs),
+    /// Produce PR-scoped RIPR repository exposure evidence
+    RiprPr(RiprPrArgs),
+    /// Produce PR-scoped RIPR line-placeable review guidance
+    RiprReviewComments(RiprReviewCommentsArgs),
     /// Verify all release-facing version surfaces are in sync
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
@@ -78,6 +84,63 @@ pub enum Commands {
     TrimTarget(TrimTargetArgs),
     /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BadgesArgs {
+    /// Check committed badge endpoints for drift without updating badges/
+    #[arg(long)]
+    pub check: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprPrArgs {
+    /// Verify required PR evidence artifacts without running ripr
+    #[arg(long)]
+    pub check: bool,
+
+    /// Base git revision for diff-scoped PR evidence
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for diff-scoped PR evidence
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+}
+
+impl Default for RiprPrArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprReviewCommentsArgs {
+    /// Verify required review guidance artifacts without running ripr
+    #[arg(long)]
+    pub check: bool,
+
+    /// Base git revision for diff-scoped review guidance
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for diff-scoped review guidance
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+}
+
+impl Default for RiprReviewCommentsArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone, Default)]

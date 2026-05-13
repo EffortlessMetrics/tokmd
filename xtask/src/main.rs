@@ -12,6 +12,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Some(cli::Commands::Bump(args)) => tasks::bump::run(args),
+        Some(cli::Commands::Badges(args)) => tasks::badges::run(args),
         Some(cli::Commands::Publish(args)) => tasks::publish::run(args),
         Some(cli::Commands::PublishSurface(args)) => tasks::publish_surface::run(args),
         Some(cli::Commands::Cockpit(args)) => tasks::cockpit::run(args),
@@ -39,6 +40,8 @@ fn main() -> Result<()> {
             tasks::proof_artifacts_check::run_observations_summary(args)
         }
         Some(cli::Commands::ReviewPacketCheck(args)) => tasks::review_packet_check::run(args),
+        Some(cli::Commands::RiprPr(args)) => tasks::ripr::run_pr(args),
+        Some(cli::Commands::RiprReviewComments(args)) => tasks::ripr::run_review_comments(args),
         Some(cli::Commands::VersionConsistency(args)) => tasks::version_consistency::run(args),
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
