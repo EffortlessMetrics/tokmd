@@ -306,6 +306,7 @@ paths = [
   "crates/tokmd-analysis/tests/feature_*.rs",
   "crates/tokmd-analysis/tests/orchestration*.rs",
   "crates/tokmd-analysis/tests/orchestrator.rs",
+  "crates/tokmd-analysis/tests/analysis_*.rs",
   "crates/tokmd/src/commands/analyze.rs",
   "crates/tokmd/tests/analyze_integration.rs",
   "crates/tokmd/tests/bdd_analyze_scenarios_w50.rs",
