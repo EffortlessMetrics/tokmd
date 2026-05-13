@@ -1,0 +1,10 @@
+{"timestamp": "2026-05-13T07:35:00Z", "command": "mv crates/tokmd-analysis/src/source_complexity/mask.rs crates/tokmd-cockpit/src/gates/source_complexity/mask.rs", "output": ""}
+{"timestamp": "2026-05-13T07:35:01Z", "command": "mv crates/tokmd-analysis/src/source_complexity.rs crates/tokmd-cockpit/src/gates/source_complexity/mod.rs", "output": ""}
+{"timestamp": "2026-05-13T07:35:02Z", "command": "rmdir crates/tokmd-analysis/src/source_complexity", "output": ""}
+{"timestamp": "2026-05-13T07:35:03Z", "command": "sed -i 's/pub mod source_complexity;//g' crates/tokmd-analysis/src/lib.rs", "output": ""}
+{"timestamp": "2026-05-13T07:35:05Z", "command": "rustc patch_mask.rs && ./patch_mask && rm patch_mask.rs patch_mask", "output": ""}
+{"timestamp": "2026-05-13T07:35:07Z", "command": "rustc patch_analyzer.rs && ./patch_analyzer && rm patch_analyzer.rs patch_analyzer", "output": ""}
+{"timestamp": "2026-05-13T07:35:09Z", "command": "rustc patch_gate.rs && ./patch_gate && rm patch_gate.rs patch_gate", "output": ""}
+{"timestamp": "2026-05-13T07:35:10Z", "command": "cargo fmt", "output": ""}
+{"timestamp": "2026-05-13T07:35:15Z", "command": "cargo test -p tokmd-cockpit -p tokmd-analysis", "output": "test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"}
+{"timestamp": "2026-05-13T07:35:20Z", "command": "cargo clippy -p tokmd-cockpit -p tokmd-analysis -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.00s"}

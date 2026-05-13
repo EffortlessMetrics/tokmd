@@ -1,0 +1,5 @@
+{
+  "outcome": "pr-patch",
+  "chosen_option": "A",
+  "summary": "Moved the Rust source complexity analyzer out of `tokmd-analysis` and into `tokmd-cockpit` where it belongs. This heuristic is only used by the PR metrics cockpit, so this structural refactor resolves a tier boundary issue."
+}

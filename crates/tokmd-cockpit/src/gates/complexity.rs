@@ -1,7 +1,7 @@
 use std::path::Path;
 
+use super::source_complexity::analyze_rust_function_complexity;
 use anyhow::Result;
-use tokmd_analysis::source_complexity::analyze_rust_function_complexity;
 use tokmd_types::cockpit::*;
 
 use super::rust_source::is_relevant_rust_source;

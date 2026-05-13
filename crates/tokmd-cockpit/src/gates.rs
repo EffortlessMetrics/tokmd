@@ -9,6 +9,7 @@ mod determinism_gate;
 mod diff_coverage;
 mod mutation;
 mod rust_source;
+pub mod source_complexity;
 
 use complexity::compute_complexity_gate;
 use contracts::compute_contract_gate;
