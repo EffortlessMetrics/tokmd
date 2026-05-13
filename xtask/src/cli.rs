@@ -548,6 +548,10 @@ pub struct AffectedArgs {
     #[arg(long)]
     pub json: bool,
 
+    /// Write the machine-readable affected-scope report to a JSON artifact
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
+
     /// Policy file to use for scope matching
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,

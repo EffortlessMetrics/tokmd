@@ -31,6 +31,7 @@ fn affected_help_mentions_base_head_and_json() {
     assert!(stdout.contains("--base"), "stdout: {stdout}");
     assert!(stdout.contains("--head"), "stdout: {stdout}");
     assert!(stdout.contains("--json"), "stdout: {stdout}");
+    assert!(stdout.contains("--json-output"), "stdout: {stdout}");
 }
 
 #[test]
@@ -49,6 +50,43 @@ fn affected_json_reports_no_changes_for_same_ref() {
     assert!(value["changed_files"].as_array().unwrap().is_empty());
     assert!(value["scopes"].as_array().unwrap().is_empty());
     assert!(value["unknown_files"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn affected_json_output_writes_report_artifact() {
+    let root = workspace_root();
+    let path = root
+        .join("target")
+        .join("affected-w91")
+        .join("affected.json");
+    if path.exists() {
+        std::fs::remove_file(&path).expect("stale affected fixture should be removable");
+    }
+
+    let path_arg = path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--json",
+        "--json-output",
+        &path_arg,
+    ]);
+
+    assert!(success, "affected --json-output failed. stderr: {stderr}");
+    assert!(stdout.contains("\"schema\": \"tokmd.affected.v1\""));
+    assert!(path.exists(), "affected artifact should be written");
+
+    let written = std::fs::read_to_string(&path).expect("affected artifact should be readable");
+    let stdout_json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("stdout affected report should be JSON");
+    let written_json: serde_json::Value =
+        serde_json::from_str(&written).expect("written affected report should be JSON");
+
+    assert_eq!(written_json["schema"], "tokmd.affected.v1");
+    assert_eq!(written_json, stdout_json);
 }
 
 #[test]

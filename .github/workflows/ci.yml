@@ -252,7 +252,7 @@ jobs:
           set +e
           mkdir -p target/proof
 
-          cargo xtask affected --base "origin/${{ github.base_ref }}" --head HEAD --json > target/proof/affected.json
+          cargo xtask affected --base "origin/${{ github.base_ref }}" --head HEAD --json-output target/proof/affected.json
           affected_status=$?
 
           cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --plan-json target/proof/proof-plan.json --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json

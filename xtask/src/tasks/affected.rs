@@ -6,6 +6,7 @@ use anyhow::{Context, Result, bail};
 use globset::{Glob, GlobSet, GlobSetBuilder};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
 use std::path::Path;
 use std::process::Command;
 
@@ -43,6 +44,10 @@ pub fn run(args: AffectedArgs) -> Result<()> {
     let changed_files = changed_files(&args.base, &args.head)?;
     let report = affected_report(&policy, &args.base, &args.head, changed_files)?;
 
+    if let Some(path) = &args.json_output {
+        write_json_output(path, &report)?;
+    }
+
     if args.json {
         println!("{}", serde_json::to_string_pretty(&report)?);
     } else {
@@ -57,6 +62,16 @@ pub fn run(args: AffectedArgs) -> Result<()> {
             report.unknown_files.len()
         )
     }
+}
+
+fn write_json_output(path: &Path, report: &AffectedReport) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, serde_json::to_string_pretty(report)?)?;
+    Ok(())
 }
 
 pub(crate) fn load_checked_policy(path: &Path) -> Result<ProofPolicy> {

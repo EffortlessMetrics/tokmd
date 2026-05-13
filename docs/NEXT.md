@@ -72,6 +72,7 @@ review usefulness.
 - Dependency-boundary checks now read `ci/proof.toml` while preserving the existing sorted `tokmd-analysis*` manifest scan and `dependencies` / `dev-dependencies` / `build-dependencies` coverage.
 - Fixture-blob checks now read `ci/proof.toml` while preserving the existing crypto extension and marker detection plus the `.claude`, `.jules`, `vendor`, proof-policy source, and checker-source allowlist behavior.
 - `cargo xtask affected --base origin/main --head HEAD --json` now maps changed files to proof scopes from `ci/proof.toml`, reports unknown files, and keeps non-Rust unknown handling policy-driven.
+- `cargo xtask affected --base origin/main --head HEAD --json-output <path>` now writes the same `tokmd.affected.v1` report as a Rust-owned JSON artifact, so CI and handoff workflows do not need shell redirection to capture `affected.json`.
 - `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` now prints a stable proof plan without running commands; `fast`, `release`, and `deep` profiles are plan-only placeholders for the next CI integration slices.
 - `cargo xtask proof --plan --plan-json <path>` now writes the same `tokmd.proof_plan.v1` report as a Rust-owned JSON artifact, so CI and handoff workflows do not need to rely on shell redirection to capture `proof-plan.json`.
 - CI now validates `cargo xtask proof-policy --check` as part of the required aggregate and uploads PR-only affected proof artifacts while keeping existing jobs authoritative.
