@@ -1089,6 +1089,13 @@ coverage = false
 name = "doc_artifacts_policy"
 kind = "non_rust"
 paths = [
+  ".jules/goals/**",
+  "docs/adr/**",
+  "docs/plans/**",
+  "docs/proposals/**",
+  "docs/source-of-truth.md",
+  "docs/specs/**",
+  "docs/templates/**",
   "policy/doc-artifacts.toml",
   "xtask/src/tasks/doc_artifacts.rs",
   "xtask/src/tasks/docs.rs",
@@ -1099,7 +1106,7 @@ proof = [
   "cargo xtask proof-policy --check",
   "cargo test -p xtask doc_artifacts --verbose",
 ]
-reason = "The documentation artifact policy and checker define source-of-truth artifact inputs, shape rules, and link validation without changing product behavior."
+reason = "The documentation artifact policy and checker define source-of-truth artifact inputs, active-goal state, shape rules, and link validation without changing product behavior."
 mutation = false
 coverage = false
 

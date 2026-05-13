@@ -70,6 +70,13 @@ documentation artifacts defined by `docs/source-of-truth.md` and
    upload it as a visibility-only artifact. Keep the existing Docs Check job as
    the validation gate and do not add a product command or proof promotion.
 
+7. Route source-of-truth changes to the checker.
+
+   Ensure `ci/proof.toml` maps proposals, specs, ADRs, plans, templates,
+   `.jules/goals/**`, the doc-artifact policy, and checker implementation files
+   to `cargo xtask doc-artifacts --check` so affected-proof output does not
+   treat source-of-truth changes as generic docs only.
+
 ## Validation
 
 Each implementation PR should run the relevant subset of:
@@ -121,3 +128,7 @@ package, export, public API, or publish-surface files.
   `target/docs/doc-artifacts-check.json`, appends it to the step summary, and
   uploads it as the `doc-artifacts-check` artifact without changing proof
   promotion or Codecov behavior.
+- 2026-05-13: `ci/proof.toml` now routes source-of-truth artifact families,
+  `.jules/goals/**`, the doc-artifact policy, and checker implementation files
+  through the `doc_artifacts_policy` scope so affected proof includes the
+  doc-artifacts checker whenever the source-of-truth stack changes.

@@ -91,6 +91,7 @@ fn proof_policy_includes_current_product_scopes() {
         "analysis_types_effort",
         "analysis_types_source",
         "analysis_types_topics",
+        "doc_artifacts_policy",
         "format_analysis_rendering",
         "format_core_outputs",
         "format_redaction_scan_args",
@@ -157,6 +158,44 @@ fn proof_policy_includes_current_product_scopes() {
     assert!(proof_control_paths.contains(".github/workflows/nix-full.yml"));
     assert!(proof_control_paths.contains(".github/workflows/nix-macos.yml"));
     assert!(proof_control_proof.contains("cargo xtask ci-lane-whitelist"));
+
+    let doc_artifacts_policy = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("doc_artifacts_policy"))
+        .expect("doc_artifacts_policy scope should exist");
+    let doc_artifacts_paths = doc_artifacts_policy["paths"]
+        .as_array()
+        .expect("doc_artifacts_policy should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+    let doc_artifacts_proof = doc_artifacts_policy["proof"]
+        .as_array()
+        .expect("doc_artifacts_policy should expose proof commands")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    for expected in [
+        ".jules/goals/**",
+        "docs/adr/**",
+        "docs/plans/**",
+        "docs/proposals/**",
+        "docs/source-of-truth.md",
+        "docs/specs/**",
+        "docs/templates/**",
+        "policy/doc-artifacts.toml",
+        "xtask/src/tasks/doc_artifacts.rs",
+    ] {
+        assert!(
+            doc_artifacts_paths.contains(expected),
+            "doc_artifacts_policy missing path {expected}"
+        );
+    }
+    assert!(doc_artifacts_proof.contains("cargo xtask doc-artifacts --check"));
+    assert!(doc_artifacts_proof.contains("cargo xtask docs --check"));
+    assert!(doc_artifacts_proof.contains("cargo xtask proof-policy --check"));
+    assert!(doc_artifacts_proof.contains("cargo test -p xtask doc_artifacts --verbose"));
 
     let dependency_graph = scopes
         .iter()
