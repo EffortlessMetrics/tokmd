@@ -26,6 +26,43 @@ idea or problem
 Skipping a step is fine for small changes, but mixing these roles in one
 document makes later work harder to audit.
 
+## How to Use This Model
+
+Start with the smallest artifact that can carry the truth without hiding it.
+For routine code changes, a PR body with validation evidence may be enough. For
+lanes that change behavior, architecture, sequencing, or checked policy, update
+the owning artifact before relying on chat history.
+
+When planning a lane:
+
+1. Read `docs/NEXT.md` for the current operating mode.
+2. Read `.jules/goals/active.toml` for the active machine-readable lane and its
+   linked plan/spec/ADR/policy files.
+3. Create or update a proposal only when the why, alternatives, or open
+   questions need durable review.
+4. Create or update a spec when behavior, artifact shape, compatibility, or
+   proof requirements change.
+5. Create or update an ADR when a durable architecture, governance, packaging,
+   or product-boundary decision changes.
+6. Create or update a plan when PR sequencing, validation commands, dependencies,
+   or stop conditions change.
+7. Update checked TOML policy when a rule becomes machine-checkable.
+
+When executing a lane:
+
+- keep `.jules/goals/active.toml` small and current;
+- follow the linked plan rather than inventing a parallel queue;
+- update specs before relying on new behavior contracts;
+- update ADRs before relying on new durable architecture decisions;
+- put raw run logs in run artifacts only when they are summarized into a durable
+  finding, plan, or PR body;
+- run `cargo xtask doc-artifacts --check` after changing source-of-truth
+  artifacts.
+
+Templates under `docs/templates/` are starting points for new artifacts. They
+are not source-of-truth documents until copied into the owning directory and
+filled with repo-specific content.
+
 ## Artifact Roles
 
 | Artifact | Owns | Does not own |
