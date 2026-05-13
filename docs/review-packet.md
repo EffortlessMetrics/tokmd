@@ -170,6 +170,9 @@ Packet treatment:
   missing, stale, or degraded for source-of-truth changes.
 - `comment.md` may include a compact line such as `Doc artifacts: verified` or
   `Doc artifacts: missing for source-of-truth changes`.
+- Source-of-truth review-map items include the `cargo xtask doc-artifacts
+  --check --json target/docs/doc-artifacts-check.json` command in their
+  reproduction commands, so reviewers can regenerate the imported receipt.
 
 Absent doc-artifacts evidence is `missing` only when source-of-truth paths are
 changed and the packet has enough context to know the receipt was expected.

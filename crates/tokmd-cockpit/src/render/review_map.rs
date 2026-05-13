@@ -57,6 +57,7 @@ fn review_map_item(
     let evidence = review_map_item_evidence(item, receipt);
     let proof = review_map_item_proof(item, proof_refs);
     let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, doc_artifacts);
+    let reproduce = review_map_item_reproduce(item, receipt);
 
     json!({
         "rank": idx + 1,
@@ -82,17 +83,30 @@ fn review_map_item(
             "unavailable": evidence.unavailable,
             "refs": ["evidence.json#/gates"],
         },
-        "reproduce": [
-            format!(
-                "tokmd cockpit --base {} --head {} --format json",
-                receipt.base_ref, receipt.head_ref
-            ),
-            format!(
-                "tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review",
-                receipt.base_ref, receipt.head_ref
-            ),
-        ],
+        "reproduce": reproduce,
     })
+}
+
+fn review_map_item_reproduce(item: &ReviewItem, receipt: &CockpitReceipt) -> Vec<String> {
+    let mut commands = vec![
+        format!(
+            "tokmd cockpit --base {} --head {} --format json",
+            receipt.base_ref, receipt.head_ref
+        ),
+        format!(
+            "tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review",
+            receipt.base_ref, receipt.head_ref
+        ),
+    ];
+
+    if review_item_is_source_of_truth(item) {
+        commands.push(
+            "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
+                .to_string(),
+        );
+    }
+
+    commands
 }
 
 fn review_map_evidence_refs(
@@ -271,6 +285,12 @@ pub(super) fn render_review_map_md(
             "   - `tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review`",
             receipt.base_ref, receipt.head_ref
         );
+        if review_item_is_source_of_truth(item) {
+            let _ = writeln!(
+                s,
+                "   - `cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json`"
+            );
+        }
         let _ = writeln!(s);
     }
 

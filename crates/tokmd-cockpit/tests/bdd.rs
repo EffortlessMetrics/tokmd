@@ -1186,11 +1186,27 @@ fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
         review_map["items"][0]["doc_artifacts_refs"][1],
         "docs/doc-artifacts-check.json"
     );
+    assert!(
+        review_map["items"][0]["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str()
+                == Some(
+                    "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
+                )),
+        "source-of-truth review items should include the docs checker receipt command"
+    );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("Doc artifacts: verified"));
     assert!(review_map_md.contains("evidence.json#/doc_artifacts"));
     assert!(review_map_md.contains("docs/doc-artifacts-check.json"));
+    assert!(
+        review_map_md.contains(
+            "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
+        )
+    );
 
     let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
     assert!(comment_md.contains("Doc artifacts"));
@@ -1225,6 +1241,11 @@ fn scenario_write_review_packet_marks_missing_doc_artifacts_for_source_of_truth_
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("Doc artifacts: missing for source-of-truth changes."));
     assert!(review_map_md.contains("   Doc artifacts: missing"));
+    assert!(
+        review_map_md.contains(
+            "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
+        )
+    );
 
     let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
     assert!(comment_md.contains("Doc artifacts"));
