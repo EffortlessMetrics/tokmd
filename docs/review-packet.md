@@ -14,6 +14,51 @@ missing or degraded, and which files deserve attention first.
 `tokmd review` command should not be introduced unless it becomes a distinct
 orchestrator over this packet instead of duplicating cockpit computation.
 
+## Reviewer Quickstart
+
+For a local PR checkout, start with the review packet and verify its manifest
+before treating it as review evidence:
+
+```bash
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --review-packet-dir .tokmd/review
+
+cargo xtask review-packet-check \
+  --dir .tokmd/review \
+  --json target/tokmd/review-packet-check.json
+```
+
+Open the packet in this order:
+
+1. `.tokmd/review/comment.md` for the compact summary.
+2. `.tokmd/review/review-map.md` for review-first ordering and reproduction
+   commands.
+3. `.tokmd/review/evidence.json` for exact available, missing, stale,
+   degraded, skipped, or unavailable evidence.
+4. `.tokmd/review/manifest.json` for packet-local artifact paths and hashes.
+5. `target/tokmd/review-packet-check.json` for the verifier receipt.
+
+If the PR changes source-of-truth docs, plans, ADRs, templates,
+`.jules/goals/**`, or doc-artifact policy, generate and import the
+documentation-control receipt first:
+
+```bash
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+
+tokmd cockpit \
+  --base origin/main \
+  --head HEAD \
+  --doc-artifacts-check target/docs/doc-artifacts-check.json \
+  --review-packet-dir .tokmd/review
+```
+
+This imports documentation-control evidence into the packet. It is not a merge
+verdict and does not promote advisory proof, coverage, mutation, or Codecov
+upload into a required gate. For proof imports and hosted Action artifacts,
+see [tokmd in Cockpit](tokmd-in-cockpit.md).
+
 ## Existing Cockpit Artifacts
 
 `tokmd cockpit --artifacts-dir <dir>` writes:
