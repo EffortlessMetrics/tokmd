@@ -22,18 +22,13 @@ pub(super) fn review_map_proof_refs(
     let mut proof_index = 0;
 
     for input in proof_inputs {
-        let changed_files = input
-            .artifact
-            .changed_files()
-            .iter()
-            .map(|path| normalize_path_for_match(path))
-            .collect::<BTreeSet<_>>();
         let normalized = normalize_proof_evidence(
             &input.artifact,
             input.source_path.clone(),
             Some(&receipt.base_ref),
             Some(&receipt.head_ref),
         );
+        let changed_files = unambiguous_changed_files(input.artifact.changed_files(), &normalized);
 
         for proof in normalized {
             let mut refs = Vec::with_capacity(1 + proof.artifact_refs.len());
@@ -49,6 +44,25 @@ pub(super) fn review_map_proof_refs(
     }
 
     proof_refs
+}
+
+fn unambiguous_changed_files(
+    changed_files: &[String],
+    normalized: &[NormalizedProofEvidence],
+) -> BTreeSet<String> {
+    let scopes = normalized
+        .iter()
+        .filter_map(|proof| proof.scope.as_deref())
+        .collect::<BTreeSet<_>>();
+
+    if normalized.len() > 1 && scopes.len() > 1 {
+        return BTreeSet::new();
+    }
+
+    changed_files
+        .iter()
+        .map(|path| normalize_path_for_match(path))
+        .collect()
 }
 
 pub(super) struct ReviewMapItemProof {

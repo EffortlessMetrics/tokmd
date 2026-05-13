@@ -215,6 +215,13 @@ The information should be visible in:
 - `review-map.md` item proof lines for review-first direct changed-file matches;
 - `comment.md` compact evidence availability and proof evidence totals.
 
+Item-level proof refs are intentionally conservative. Cockpit may attach proof
+to a review-map item when the imported proof artifact has unambiguous
+changed-file ownership, such as a single normalized proof item or multiple
+entries for one scope. Multi-scope artifacts with only a top-level
+`changed_files` list remain packet-level evidence until a policy-backed scope
+matcher can prove which files belong to which scope.
+
 Review map output should answer a reviewer-facing question:
 
 ```text
