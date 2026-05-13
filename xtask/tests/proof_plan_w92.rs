@@ -241,6 +241,60 @@ fn proof_observation_thresholds_writes_env_artifact() {
 }
 
 #[test]
+fn proof_observation_run_ids_help_mentions_input_and_output() {
+    let (stdout, stderr, success) = run_xtask(&["proof-observation-run-ids", "--help"]);
+
+    assert!(
+        success,
+        "proof-observation-run-ids --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--runs-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--output"), "stdout: {stdout}");
+}
+
+#[test]
+fn proof_observation_run_ids_writes_ids_in_source_order() {
+    let root = workspace_root();
+    let dir = root.join("target").join("proof-run-ids-w92");
+    let runs = dir.join("runs.json");
+    let output = dir.join("run-ids.txt");
+    fs::create_dir_all(&dir).expect("run id fixture dir should be creatable");
+    fs::write(
+        &runs,
+        r#"[
+  {"databaseId":333,"headSha":"c"},
+  {"databaseId":"222","headSha":"b"},
+  {"databaseId":111,"headSha":"a"}
+]"#,
+    )
+    .expect("run-list fixture should be writable");
+    if output.exists() {
+        fs::remove_file(&output).expect("stale run ids fixture should be removable");
+    }
+
+    let runs_arg = runs.to_string_lossy().to_string();
+    let output_arg = output.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-observation-run-ids",
+        "--runs-json",
+        &runs_arg,
+        "--output",
+        &output_arg,
+    ]);
+
+    assert!(
+        success,
+        "proof-observation-run-ids failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("proof observation run ids: wrote 3 id(s)"),
+        "stdout: {stdout}"
+    );
+    let body = fs::read_to_string(output).expect("run ids artifact should be readable");
+    assert_eq!(body, "333\n222\n111\n");
+}
+
+#[test]
 fn affected_plan_ci_blocks_on_planner_generation_failures() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -478,6 +532,22 @@ fn proof_observation_collection_workflow_summarizes_downloaded_executor_runs() {
     assert!(
         collector.contains("gh run download \"${run_id}\" --name proof-executor-artifacts"),
         "collector should download the stable proof executor artifact"
+    );
+    assert!(
+        collector.contains("cargo xtask proof-observation-run-ids"),
+        "collector should derive run-id downloads through xtask"
+    );
+    assert!(
+        collector.contains("--runs-json target/proof-observations/runs.json"),
+        "collector should read the saved source-run window"
+    );
+    assert!(
+        collector.contains("--output target/proof-observations/run-ids.txt"),
+        "collector should write a stable run-id artifact"
+    );
+    assert!(
+        !collector.contains("with open(\"target/proof-observations/runs.json\""),
+        "collector should not parse run ids with inline Python"
     );
     assert!(
         collector

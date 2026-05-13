@@ -84,13 +84,9 @@ jobs:
           mkdir -p target/proof-observations/runs
 
           gh run list --workflow proof-executor.yml --status success --limit "${RUN_LIMIT}" --json databaseId,event,headBranch,headSha,createdAt,url > target/proof-observations/runs.json
-          python - <<'PY' > target/proof-observations/run-ids.txt
-          import json
-
-          with open("target/proof-observations/runs.json", encoding="utf-8") as handle:
-              for run in json.load(handle):
-                  print(run["databaseId"])
-          PY
+          cargo xtask proof-observation-run-ids \
+            --runs-json target/proof-observations/runs.json \
+            --output target/proof-observations/run-ids.txt
 
           if [ ! -s target/proof-observations/run-ids.txt ]; then
             echo "No successful proof executor runs found." > target/proof-observations/download.log

@@ -27,6 +27,8 @@ pub enum Commands {
     ProofPolicy(ProofPolicyArgs),
     /// Resolve proof observation collection thresholds from checked policy and overrides
     ProofObservationThresholds(ProofObservationThresholdsArgs),
+    /// Extract GitHub run ids from a saved workflow run-list JSON artifact
+    ProofObservationRunIds(ProofObservationRunIdsArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
@@ -585,6 +587,25 @@ pub struct ProofObservationThresholdsArgs {
     /// Workflow-dispatch override for the minimum recent passing collector run count
     #[arg(long, default_value = "")]
     pub min_passing_collector_runs: String,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofObservationRunIdsArgs {
+    /// GitHub Actions run-list JSON to read
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/runs.json"
+    )]
+    pub runs_json: std::path::PathBuf,
+
+    /// Write one run id per line for artifact download loops
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/run-ids.txt"
+    )]
+    pub output: std::path::PathBuf,
 }
 
 #[derive(Args, Debug, Clone)]
