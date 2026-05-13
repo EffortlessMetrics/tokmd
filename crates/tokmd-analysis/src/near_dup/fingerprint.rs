@@ -1,7 +1,7 @@
 //! Winnowing fingerprint construction for near-duplicate detection.
 
 use std::hash::{Hash, Hasher};
-use std::io::Read;
+use std::io::{BufReader, Read};
 use std::path::Path;
 
 use anyhow::Result;
@@ -17,8 +17,9 @@ pub(super) const MAX_POSTINGS: usize = 50;
 /// Read a file and compute its Winnowing fingerprints.
 pub(super) fn read_and_fingerprint(path: &Path) -> Result<Vec<u64>> {
     let mut content = String::new();
-    let mut file = std::fs::File::open(path)?;
-    file.read_to_string(&mut content)?;
+    let file = std::fs::File::open(path)?;
+    let mut reader = BufReader::with_capacity(64 * 1024, file);
+    reader.read_to_string(&mut content)?;
 
     Ok(winnow(&content))
 }
