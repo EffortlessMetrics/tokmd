@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -45,7 +46,22 @@ fn check_no_panic_family_advisory_mode_passes() {
 
 #[test]
 fn check_no_panic_family_emits_json_report() {
-    let (stdout, stderr, success) = run_xtask(&["check-no-panic-family", "--json"]);
+    let root = workspace_root();
+    let path = root
+        .join("target")
+        .join("no-panic-w94")
+        .join("no-panic-report.json");
+    if path.exists() {
+        fs::remove_file(&path).expect("stale no-panic report should be removable");
+    }
+
+    let path_arg = path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "check-no-panic-family",
+        "--json",
+        "--json-output",
+        &path_arg,
+    ]);
 
     assert!(
         success,
@@ -62,6 +78,43 @@ fn check_no_panic_family_emits_json_report() {
     assert!(
         stdout.contains("\"unallowlisted_findings\""),
         "json report missing unallowlisted_findings: {stdout}"
+    );
+    assert!(path.exists(), "json-output report should be written");
+
+    let written = fs::read_to_string(&path).expect("json-output report should be readable");
+    let stdout_json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("stdout no-panic report should be JSON");
+    let written_json: serde_json::Value =
+        serde_json::from_str(&written).expect("written no-panic report should be JSON");
+    assert_eq!(written_json, stdout_json);
+}
+
+#[test]
+fn check_no_panic_family_help_mentions_json_output() {
+    let (stdout, stderr, success) = run_xtask(&["check-no-panic-family", "--help"]);
+
+    assert!(
+        success,
+        "check-no-panic-family --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--json"), "stdout: {stdout}");
+    assert!(stdout.contains("--json-output"), "stdout: {stdout}");
+    assert!(stdout.contains("--strict"), "stdout: {stdout}");
+}
+
+#[test]
+fn no_panic_workflow_uses_json_output_artifact() {
+    let root = workspace_root();
+    let workflow = fs::read_to_string(root.join(".github/workflows/no-panic-policy.yml"))
+        .expect("no-panic workflow should be readable");
+
+    assert!(
+        workflow.contains("--json-output target/tokmd/reports/no-panic-report.json"),
+        "workflow should write the no-panic JSON artifact through xtask"
+    );
+    assert!(
+        !workflow.contains("--json \\\n            > target/tokmd/reports/no-panic-report.json"),
+        "workflow should not capture no-panic JSON with shell redirection"
     );
 }
 

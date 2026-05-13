@@ -52,6 +52,10 @@ pub fn run_check(args: NoPanicArgs) -> Result<()> {
 
     let report = evaluate(&findings, &allowlist)?;
 
+    if let Some(path) = &args.json_output {
+        write_json_output(path, &report)?;
+    }
+
     if args.json {
         let json = serde_json::to_string_pretty(&report)?;
         println!("{json}");
@@ -88,6 +92,18 @@ pub fn run_check(args: NoPanicArgs) -> Result<()> {
         bail!("no-panic policy check failed with {count} error(s)");
     }
 
+    Ok(())
+}
+
+fn write_json_output(path: &Path, report: &Report) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("create directory {}", parent.display()))?;
+    }
+    fs::write(path, serde_json::to_string_pretty(report)?)
+        .with_context(|| format!("write {}", path.display()))?;
     Ok(())
 }
 

@@ -134,6 +134,7 @@ column = 17
 ```bash
 cargo xtask check-no-panic-family            # advisory (default)
 cargo xtask check-no-panic-family --strict   # blocking
+cargo xtask check-no-panic-family --json-output target/tokmd/reports/no-panic-report.json
 ```
 
 The gate runs in two modes:
@@ -156,7 +157,9 @@ The flip from advisory to strict is gated on three things, in this order:
 
 The checker is wired into the `no_panic_policy` proof scope in
 `ci/proof.toml` and runs as an advisory job in
-`.github/workflows/no-panic-policy.yml` on every PR.
+`.github/workflows/no-panic-policy.yml` on every PR. The workflow writes the
+uploaded JSON report through `--json-output` so the report path is owned by the
+Rust checker instead of shell stdout redirection.
 
 ## Family taxonomy
 

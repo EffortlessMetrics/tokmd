@@ -494,6 +494,10 @@ pub struct NoPanicArgs {
     #[arg(long)]
     pub json: bool,
 
+    /// Write the machine-readable report to a JSON artifact
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
+
     /// Treat unallowlisted findings as errors (blocking mode).
     ///
     /// Without `--strict`, the checker validates the allowlist schema, expiry,

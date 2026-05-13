@@ -35,8 +35,9 @@ jobs:
         run: |
           set +e
           mkdir -p target/tokmd/reports
-          cargo xtask check-no-panic-family --json \
-            > target/tokmd/reports/no-panic-report.json 2> target/tokmd/reports/no-panic-stderr.txt
+          cargo xtask check-no-panic-family \
+            --json-output target/tokmd/reports/no-panic-report.json \
+            2> target/tokmd/reports/no-panic-stderr.txt
           status=$?
 
           {
