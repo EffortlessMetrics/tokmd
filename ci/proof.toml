@@ -1088,6 +1088,7 @@ kind = "non_rust"
 paths = [
   "policy/doc-artifacts.toml",
   "xtask/src/tasks/doc_artifacts.rs",
+  "xtask/src/tasks/docs.rs",
 ]
 proof = [
   "cargo xtask doc-artifacts --check",

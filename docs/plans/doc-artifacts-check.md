@@ -102,3 +102,6 @@ package, export, public API, or publish-surface files.
   Rust-owned checker for the policy file. It validates the current
   source-of-truth shape and keeps docs-validation wiring as a separate follow-up
   so noisy enforcement can be handled deliberately.
+- 2026-05-13: `cargo xtask docs --check` now invokes the doc-artifacts checker
+  after generated reference documentation validation, completing the first
+  docs-lane wiring without adding a product command or proof-promotion gate.

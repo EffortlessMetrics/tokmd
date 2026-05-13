@@ -1,5 +1,6 @@
-use crate::cli::DocsArgs;
+use crate::{cli::DocsArgs, tasks::doc_artifacts};
 use anyhow::{Context, Result, bail};
+use std::path::Path;
 use std::process::Command;
 
 pub fn run(args: DocsArgs) -> Result<()> {
@@ -92,6 +93,11 @@ pub fn run(args: DocsArgs) -> Result<()> {
         }
     } else {
         println!("Documentation is up to date.");
+    }
+
+    if args.check {
+        let summary = doc_artifacts::check_current_repo(Path::new("policy/doc-artifacts.toml"))?;
+        println!("{summary}");
     }
 
     Ok(())

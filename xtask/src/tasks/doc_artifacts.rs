@@ -80,24 +80,15 @@ struct ActiveGoal {
 
 pub fn run(args: DocArtifactsArgs) -> Result<()> {
     let _check = args.check;
-    let root = workspace_root()?;
-    let report = check(&root, &args.policy)?;
-
-    if !report.errors.is_empty() {
-        for error in &report.errors {
-            eprintln!("doc artifact error: {error}");
-        }
-        bail!(
-            "doc artifact check failed with {} error(s)",
-            report.errors.len()
-        );
-    }
-
-    println!(
-        "doc artifacts ok: {} required doc(s), {} family file(s), {} active goal(s)",
-        report.required_docs, report.family_files, report.active_goals
-    );
+    let summary = check_current_repo(&args.policy)?;
+    println!("{summary}");
     Ok(())
+}
+
+pub fn check_current_repo(policy: &Path) -> Result<String> {
+    let root = workspace_root()?;
+    let report = check(&root, policy)?;
+    report_result(report)
 }
 
 #[derive(Default)]
@@ -130,6 +121,23 @@ fn check(root: &Path, policy_path: &Path) -> Result<CheckReport> {
     }
 
     Ok(report)
+}
+
+fn report_result(report: CheckReport) -> Result<String> {
+    if !report.errors.is_empty() {
+        for error in &report.errors {
+            eprintln!("doc artifact error: {error}");
+        }
+        bail!(
+            "doc artifact check failed with {} error(s)",
+            report.errors.len()
+        );
+    }
+
+    Ok(format!(
+        "doc artifacts ok: {} required doc(s), {} family file(s), {} active goal(s)",
+        report.required_docs, report.family_files, report.active_goals
+    ))
 }
 
 fn workspace_root() -> Result<PathBuf> {
