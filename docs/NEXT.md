@@ -39,8 +39,9 @@ own exploratory rationale, specs own behavior contracts and proof
 requirements, ADRs own durable architecture decisions, plans own sequencing,
 `.jules/goals/active.toml` owns small machine-readable active-agent state, and
 checked policy TOMLs own machine-enforced rules. The completed doc-artifacts
-checker plan is closed out; the current active goal now points at cockpit
-review usefulness.
+checker plan is closed out; the current active goal now points at agent handoff
+readiness after cockpit review-packet usefulness landed its first product
+surface.
 
 ## Next Work Packets
 
@@ -56,7 +57,10 @@ review usefulness.
 6. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-7. Draft AST foundation work only after the review packet and consolidation
+7. Continue agent handoff readiness only in narrow slices that link review and
+   proof receipts without replacing their verifiers or turning handoff into a
+   merge verdict.
+8. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
 
 ## Directional Rules
@@ -218,6 +222,12 @@ review usefulness.
   evidencebus producer inputs, preserving the boundary that tokmd emits code
   evidence while evidencebus validates, inventories, bundles, and exports
   cross-tool evidence.
+- `tokmd handoff` now accepts optional `--review-packet-dir`,
+  `--review-packet-check`, `--affected`, and `--proof-plan` inputs and writes
+  packet-local `review-links.json` / `proof-links.json` artifacts with BLAKE3
+  hashes in `manifest.json`. These artifacts link adjacent review and proof
+  receipts for agent workflows; they do not copy or verify the external
+  receipts.
 - Cockpit `review-map.json` and `review-map.md` now surface packet-level evidence counts and item-level evidence status, so maintainers can see what proof is present or missing while deciding what to review first.
 - Cockpit review packets now keep imported proof artifacts packet-local under
   `.tokmd/review/proof/*.json`, list those artifacts in `manifest.json`, and

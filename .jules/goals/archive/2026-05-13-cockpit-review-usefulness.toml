@@ -1,7 +1,15 @@
 schema = "tokmd.jules.active_goal.v1"
-status = "active"
-program = "agent_handoff_product"
-lane = "context_proof_handoff"
+status = "complete"
+program = "review_packet_product"
+lane = "cockpit_review_usefulness"
+completed = "2026-05-13"
+closeout_plan = "docs/plans/agent-handoff-readiness.md"
+
+completed_prs = [
+  2221,
+  2223,
+  2224,
+]
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -11,9 +19,6 @@ plan_readme = "docs/plans/README.md"
 proposal_readme = "docs/proposals/README.md"
 spec_readme = "docs/specs/README.md"
 adr_readme = "docs/adr/README.md"
-agent_handoff_plan = "docs/plans/agent-handoff-readiness.md"
-handoff_guide = "docs/handoff.md"
-handoff_schema = "docs/handoff-schema.md"
 review_packet_contract = "docs/review-packet.md"
 cockpit_proof_evidence = "docs/cockpit-proof-evidence.md"
 
@@ -22,12 +27,10 @@ proof_promotion = "do_not_promote_without_maintainer_decision"
 codecov_default_upload = "do_not_enable_without_maintainer_decision"
 product_behavior = "preserve_receipt_semantics"
 review_surface = "cockpit_remains_review_evidence_surface"
-handoff_integrity = "link_review_and_proof_receipts_without_replacing_their_verifiers"
 
 [stop_conditions]
 open_pr_queue = "must_be_empty_before_starting_new_lane"
 docs_check = "cargo xtask docs --check"
 proof_policy = "cargo xtask proof-policy --check"
 affected_plan = "cargo xtask affected --base origin/main --head HEAD --json"
-handoff_tests = "cargo test -p tokmd --test handoff_integration --verbose"
-context_handoff_tests = "cargo test -p tokmd --test context_handoff_deep --verbose"
+review_packet_check = "cargo xtask review-packet-check --dir .tokmd/review"
