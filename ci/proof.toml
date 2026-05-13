@@ -145,6 +145,7 @@ paths = [
   "xtask/src/tasks/proof_observation_thresholds.rs",
   "xtask/src/tasks/proof_policy.rs",
   "xtask/src/tasks/proof_plan.rs",
+  "xtask/src/tasks/proof_run_pr_policy.rs",
   "xtask/tests/affected_w91.rs",
   "xtask/tests/ci_actuals_w96.rs",
   "xtask/tests/coverage_receipt_w95.rs",
@@ -176,6 +177,7 @@ proof = [
   "cargo test -p xtask proof_observation_run_ids --verbose",
   "cargo test -p xtask proof_observation_thresholds --verbose",
   "cargo test -p xtask proof_plan --verbose",
+  "cargo test -p xtask proof_run_pr_policy --verbose",
 ]
 mutation = false
 coverage = false

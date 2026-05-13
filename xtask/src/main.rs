@@ -21,6 +21,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::ProofObservationThresholds(args)) => {
             tasks::proof_observation_thresholds::run(args)
         }
+        Some(cli::Commands::ProofRunPrPolicy(args)) => tasks::proof_run_pr_policy::run(args),
         Some(cli::Commands::ProofExecutorPrPolicy(args)) => {
             tasks::proof_executor_pr_policy::run(args)
         }
