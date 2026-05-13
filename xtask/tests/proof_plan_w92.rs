@@ -51,6 +51,7 @@ fn proof_help_mentions_profile_and_plan() {
         "stdout: {stdout}"
     );
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
+    assert!(stdout.contains("--plan-json"), "stdout: {stdout}");
     assert!(stdout.contains("--evidence-json"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
     assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
@@ -203,6 +204,45 @@ fn affected_plan_ci_blocks_on_planner_generation_failures() {
 }
 
 #[test]
+fn proof_plan_json_writes_plan_report_artifact() {
+    let root = workspace_root();
+    let path = root
+        .join("target")
+        .join("proof-plan-w92")
+        .join("proof-plan.json");
+    if path.exists() {
+        fs::remove_file(&path).expect("stale proof-plan fixture should be removable");
+    }
+
+    let path_arg = path.to_string_lossy().to_string();
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof",
+        "--profile",
+        "affected",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD",
+        "--plan",
+        "--plan-json",
+        &path_arg,
+    ]);
+
+    assert!(success, "proof --plan-json failed. stderr: {stderr}");
+    assert!(stdout.contains("\"schema\": \"tokmd.proof_plan.v1\""));
+    assert!(path.exists(), "proof plan artifact should be written");
+
+    let written = fs::read_to_string(&path).expect("proof plan artifact should be readable");
+    let stdout_json: serde_json::Value =
+        serde_json::from_str(&stdout).expect("stdout proof plan should be JSON");
+    let written_json: serde_json::Value =
+        serde_json::from_str(&written).expect("written proof plan should be JSON");
+
+    assert_eq!(written_json["schema"], "tokmd.proof_plan.v1");
+    assert_eq!(written_json, stdout_json);
+}
+
+#[test]
 fn fast_proof_run_ci_job_is_advisory_and_verified() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
@@ -227,6 +267,10 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
     assert!(
         ci.contains("cargo xtask proof --profile \"${PROOF_RUN_PROFILE}\" --run-required --allow-ci-required-execution"),
         "fast proof job should use the policy-selected required proof runner"
+    );
+    assert!(
+        ci.contains("--plan-json target/proof-run/proof-plan.json"),
+        "fast proof job should write the proof plan as a Rust-owned JSON artifact"
     );
     assert!(
         ci.contains("cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json"),
@@ -297,6 +341,10 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     assert!(
         executor.contains("cargo xtask proof-policy --json > target/proof/proof-policy.json"),
         "executor workflow should resolve PR defaults from proof policy"
+    );
+    assert!(
+        executor.contains("--plan-json target/proof/proof-plan.json"),
+        "executor workflow should write the proof plan as a Rust-owned JSON artifact"
     );
     assert!(
         executor.contains("pr.get(\"default_enabled\") is not True"),

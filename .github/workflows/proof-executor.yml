@@ -114,7 +114,7 @@ jobs:
           cargo xtask affected --base "origin/${PROOF_BASE_REF}" --head HEAD --json > target/proof/affected.json
           affected_status=$?
 
-          cargo xtask proof --profile affected --base "origin/${PROOF_BASE_REF}" --head HEAD --executor-mode execute --executor-max-commands "${PROOF_EXECUTOR_MAX_COMMANDS}" --allow-ci-evidence-execution --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
+          cargo xtask proof --profile affected --base "origin/${PROOF_BASE_REF}" --head HEAD --executor-mode execute --executor-max-commands "${PROOF_EXECUTOR_MAX_COMMANDS}" --allow-ci-evidence-execution --plan-json target/proof/proof-plan.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json
           executor_status=$?
 
           if [ -f target/proof/executor-summary.json ] && [ -f target/proof/executor-manifest.json ]; then

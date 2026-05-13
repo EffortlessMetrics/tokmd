@@ -54,7 +54,7 @@ and proof receipts:
 
 ```bash
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan \
-  > target/proof/proof-plan.json
+  --plan-json target/proof/proof-plan.json
 
 cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
 

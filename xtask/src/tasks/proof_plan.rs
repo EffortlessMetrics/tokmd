@@ -265,6 +265,10 @@ pub fn run(args: ProofArgs) -> Result<()> {
     let policy = load_checked_policy(&args.policy)?;
     let report = proof_plan_report(&policy, &args)?;
 
+    if let Some(path) = &args.plan_json {
+        write_plan_json(path, &report)?;
+    }
+
     if args.executor_mode == ProofExecutorMode::Execute {
         let executor_config = proof_executor_config(&policy, args.executor_max_commands)?;
         run_executor_mode(&args, &report, &executor_config)?;
@@ -583,6 +587,12 @@ fn write_markdown_summary(
 ) -> Result<()> {
     ensure_parent_dir(path)?;
     fs::write(path, render_markdown_summary(report, executor_summary))?;
+    Ok(())
+}
+
+fn write_plan_json(path: &Path, report: &ProofPlanReport) -> Result<()> {
+    ensure_parent_dir(path)?;
+    fs::write(path, serde_json::to_string_pretty(report)?)?;
     Ok(())
 }
 

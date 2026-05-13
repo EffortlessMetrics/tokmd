@@ -595,6 +595,10 @@ pub struct ProofArgs {
     #[arg(long, value_name = "PATH")]
     pub summary_md: Option<std::path::PathBuf>,
 
+    /// Write the generated proof plan JSON report to this path
+    #[arg(long, value_name = "PATH")]
+    pub plan_json: Option<std::path::PathBuf>,
+
     /// Write a machine-readable planned evidence summary for the generated proof plan
     #[arg(long, value_name = "PATH")]
     pub evidence_json: Option<std::path::PathBuf>,
