@@ -67,7 +67,7 @@ tokmd context --budget 128k --mode bundle --output context.txt
 | Analysis | Risk, effort, complexity, duplication, git, and API-surface reports |
 | Review reports | Cockpit reports, sensor reports, gate verdicts |
 | Baselines | Ratchet-ready baseline JSON |
-| LLM context | Bounded bundles, redaction, handoff directories |
+| LLM context | Bounded bundles, redaction, [handoff directories](docs/handoff.md) |
 
 ## Choose a Path
 
@@ -219,6 +219,7 @@ The machine-readable capability contract lives in [`docs/capabilities/wasm.json`
 
 - [Install tokmd](docs/install.md) for Cargo, release binaries, Nix, and CI entry points
 - [Recipes](docs/recipes.md) for practical usage patterns
+- [Handoff bundles](docs/handoff.md) for coding-agent context and proof expectations
 - [Troubleshooting](docs/troubleshooting.md) for common problems and fixes
 - [Contributing](CONTRIBUTING.md) for local development and release work
 
