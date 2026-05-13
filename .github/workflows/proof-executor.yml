@@ -69,36 +69,11 @@ jobs:
           set -euo pipefail
           mkdir -p target/proof
           cargo xtask proof-policy --json-output target/proof/proof-policy.json
-          python - <<'PY'
-          import json
-          import os
-          import sys
-
-          with open("target/proof/proof-policy.json", encoding="utf-8") as handle:
-              policy = json.load(handle)
-
-          executor = policy.get("executor") or {}
-          pr = executor.get("pr") or {}
-
-          if pr.get("default_enabled") is not True:
-              sys.exit("[executor.pr].default_enabled must stay true for PR observation runs")
-          if pr.get("required") is not False:
-              sys.exit("[executor.pr].required must stay false; this workflow is non-required")
-          if pr.get("codecov_upload") is not False:
-              sys.exit("[executor.pr].codecov_upload must stay false; Codecov upload is manual-only")
-
-          max_commands = os.environ.get("PROOF_EXECUTOR_MAX_COMMANDS_INPUT", "").strip()
-          if not max_commands:
-              max_commands = str(pr.get("max_commands") or executor.get("max_dry_run_commands") or 1)
-          if not max_commands.isdigit() or int(max_commands) <= 0:
-              sys.exit("proof executor command limit must be a positive integer")
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
-              env.write(f"PROOF_EXECUTOR_MAX_COMMANDS={max_commands}\n")
-              env.write("PROOF_EXECUTOR_PR_DEFAULT_ENABLED=true\n")
-              env.write("PROOF_EXECUTOR_PR_REQUIRED=false\n")
-              env.write("PROOF_EXECUTOR_PR_CODECOV_UPLOAD=false\n")
-          PY
+          cargo xtask proof-executor-pr-policy \
+            --proof-policy-json target/proof/proof-policy.json \
+            --env-output target/proof/proof-executor-pr.env \
+            --max-commands "${PROOF_EXECUTOR_MAX_COMMANDS_INPUT}"
+          cat target/proof/proof-executor-pr.env >> "$GITHUB_ENV"
 
       - name: Fetch base ref
         run: git fetch origin "${PROOF_BASE_REF}":"refs/remotes/origin/${PROOF_BASE_REF}" || true
@@ -170,6 +145,7 @@ jobs:
             echo "| PR required | ${PROOF_EXECUTOR_PR_REQUIRED} |"
             echo "| PR Codecov upload | ${PROOF_EXECUTOR_PR_CODECOV_UPLOAD} |"
             echo "| executor max commands | ${PROOF_EXECUTOR_MAX_COMMANDS} |"
+            echo "| executor max commands source | ${PROOF_EXECUTOR_MAX_COMMANDS_SOURCE} |"
             echo ""
             echo "This is an explicitly non-required PR/manual experiment. It runs only planner-selected non-required coverage commands and does not replace required PR proof jobs."
             echo ""

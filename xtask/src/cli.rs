@@ -27,6 +27,8 @@ pub enum Commands {
     ProofPolicy(ProofPolicyArgs),
     /// Resolve proof observation collection thresholds from checked policy and overrides
     ProofObservationThresholds(ProofObservationThresholdsArgs),
+    /// Resolve proof executor PR policy from checked policy and manual overrides
+    ProofExecutorPrPolicy(ProofExecutorPrPolicyArgs),
     /// Extract GitHub run ids from a saved workflow run-list JSON artifact
     ProofObservationRunIds(ProofObservationRunIdsArgs),
     /// Discover proof scopes affected by a git diff
@@ -587,6 +589,29 @@ pub struct ProofObservationThresholdsArgs {
     /// Workflow-dispatch override for the minimum recent passing collector run count
     #[arg(long, default_value = "")]
     pub min_passing_collector_runs: String,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofExecutorPrPolicyArgs {
+    /// Machine-readable proof-policy report to read
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-policy.json"
+    )]
+    pub proof_policy_json: std::path::PathBuf,
+
+    /// Write resolved PR executor policy as a GitHub Actions env file
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-pr.env"
+    )]
+    pub env_output: std::path::PathBuf,
+
+    /// Workflow-dispatch override for maximum advisory executor commands
+    #[arg(long, default_value = "")]
+    pub max_commands: String,
 }
 
 #[derive(Args, Debug, Clone)]
