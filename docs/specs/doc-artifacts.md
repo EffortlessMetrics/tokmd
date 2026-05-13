@@ -182,5 +182,6 @@ cargo xtask publish-surface --json --verify-publish
   after one observation PR.
 - Whether `docs/proposals/` should allow accepted proposals to remain in place
   forever or require an explicit link to the follow-on spec, ADR, or plan.
-- Whether policy file references should be declared in a new
-  `policy/doc-artifacts.toml` or hard-coded for the first implementation.
+- Whether the first implementation should enforce every section listed in
+  `policy/doc-artifacts.toml` or start with a reporting-only mode for older
+  ADRs and specs that predate this source-of-truth stack.

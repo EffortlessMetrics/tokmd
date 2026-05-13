@@ -1082,6 +1082,20 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "doc_artifacts_policy"
+kind = "non_rust"
+paths = [
+  "policy/doc-artifacts.toml",
+]
+proof = [
+  "cargo xtask docs --check",
+  "cargo xtask proof-policy --check",
+]
+reason = "The documentation artifact policy defines source-of-truth checker inputs and should route to documentation and proof-policy checks until the dedicated doc-artifacts checker exists."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "browser_runner"
 kind = "non_rust"
 paths = ["web/runner/**", "docs/capabilities/wasm.json"]

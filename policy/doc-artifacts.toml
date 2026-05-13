@@ -1,0 +1,121 @@
+schema_version = "0.1"
+policy = "doc-artifacts"
+owner = "docs/control-plane"
+status = "draft"
+updated = "2026-05-13"
+
+# Shape policy for a future `cargo xtask doc-artifacts --check` command.
+# The checker should verify routing, links, required sections, and active-agent
+# state. It must not judge prose quality, merge readiness, proof promotion, or
+# Codecov defaults.
+
+[checker]
+command = "cargo xtask doc-artifacts --check"
+mode = "shape_links_and_routing"
+product_behavior = false
+proof_promotion = false
+codecov_default_upload = false
+json_receipt = "deferred"
+
+[active_goal]
+path = ".jules/goals/active.toml"
+schema = "tokmd.jules.active_goal.v1"
+allowed_statuses = ["active", "paused", "complete", "superseded"]
+required_top_level = ["schema", "status", "program", "lane"]
+required_tables = ["links", "rules", "stop_conditions"]
+required_links = [
+  "source_of_truth",
+  "doc_artifacts_spec",
+  "doc_artifacts_plan",
+  "plan_readme",
+  "proposal_readme",
+  "spec_readme",
+  "adr_readme",
+]
+forbid_absolute_links = true
+require_existing_links = true
+
+[[required_doc]]
+path = "docs/source-of-truth.md"
+purpose = "human routing guide for durable docs, policy, active agent state, and PR evidence"
+required_sections = [
+  "## Goal",
+  "## Artifact Roles",
+  "## Conflict Resolution",
+  "## Lifecycle",
+  "## Review Expectations",
+]
+
+[[family]]
+id = "proposals"
+root = "docs/proposals"
+glob = "docs/proposals/**/*.md"
+readme = "docs/proposals/README.md"
+allow_readme = true
+allowed_statuses = ["draft", "proposed", "accepted", "superseded", "withdrawn"]
+required_sections = [
+  "## Problem",
+  "## Goals",
+  "## Non-goals",
+  "## Options",
+  "## Recommendation",
+  "## Open Questions",
+]
+
+[[family]]
+id = "specs"
+root = "docs/specs"
+glob = "docs/specs/**/*.md"
+readme = "docs/specs/README.md"
+allow_readme = true
+allowed_statuses = ["draft", "active", "superseded", "retired"]
+required_sections = [
+  "## Contract",
+  "## Inputs",
+  "## Outputs",
+  "## Compatibility",
+  "## Proof Requirements",
+]
+draft_may_omit_sections = ["## Proof Requirements"]
+
+[[family]]
+id = "adrs"
+root = "docs/adr"
+glob = "docs/adr/**/*.md"
+readme = "docs/adr/README.md"
+allow_readme = true
+filename_pattern = '\d{4}-[a-z0-9-]+\.md'
+allowed_statuses = ["proposed", "accepted", "superseded", "retired"]
+required_sections = [
+  "## Context",
+  "## Decision",
+  "## Consequences",
+]
+
+[[family]]
+id = "plans"
+root = "docs/plans"
+glob = "docs/plans/**/*.md"
+readme = "docs/plans/README.md"
+allow_readme = true
+allowed_statuses = ["active", "paused", "complete", "superseded"]
+required_sections = [
+  "## Goal",
+  "## Non-goals",
+  "## Work Packets",
+  "## Validation",
+  "## Stop Conditions",
+]
+
+[[policy_file]]
+path = "ci/proof.toml"
+owner = "proof-control-plane"
+covered_by = ["cargo xtask proof-policy --check"]
+
+[[policy_file]]
+path = "policy/doc-artifacts.toml"
+owner = "docs/control-plane"
+covered_by = [
+  "cargo xtask doc-artifacts --check",
+  "cargo xtask docs --check",
+]
