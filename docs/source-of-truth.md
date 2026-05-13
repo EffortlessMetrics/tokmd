@@ -63,6 +63,9 @@ Templates under `docs/templates/` are starting points for new artifacts. They
 are not source-of-truth documents until copied into the owning directory and
 filled with repo-specific content.
 
+For an operational checklist that coding agents can follow before starting or
+changing a lane, see `docs/agent-workflows/source-of-truth.md`.
+
 ## Artifact Roles
 
 | Artifact | Owns | Does not own |

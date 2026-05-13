@@ -100,6 +100,7 @@ fn proof_policy_includes_current_product_scopes() {
         "model_scan_path_normalization",
         "no_panic_policy",
         "project_readme",
+        "project_truth_docs",
         "tokmd_cli",
         "workspace_dependency_graph",
     ] {
@@ -159,6 +160,19 @@ fn proof_policy_includes_current_product_scopes() {
     assert!(proof_control_paths.contains(".github/workflows/nix-macos.yml"));
     assert!(proof_control_proof.contains("cargo xtask ci-lane-whitelist"));
 
+    let project_truth_docs = scopes
+        .iter()
+        .find(|scope| scope["name"].as_str() == Some("project_truth_docs"))
+        .expect("project_truth_docs scope should exist");
+    let project_truth_paths = project_truth_docs["paths"]
+        .as_array()
+        .expect("project_truth_docs should expose path globs")
+        .iter()
+        .filter_map(toml::Value::as_str)
+        .collect::<BTreeSet<_>>();
+
+    assert!(project_truth_paths.contains("docs/agent-workflows/**"));
+
     let doc_artifacts_policy = scopes
         .iter()
         .find(|scope| scope["name"].as_str() == Some("doc_artifacts_policy"))
@@ -179,6 +193,7 @@ fn proof_policy_includes_current_product_scopes() {
     for expected in [
         ".jules/goals/**",
         "docs/adr/**",
+        "docs/agent-workflows/**",
         "docs/plans/**",
         "docs/proposals/**",
         "docs/source-of-truth.md",
