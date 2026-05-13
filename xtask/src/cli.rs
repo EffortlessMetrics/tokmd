@@ -529,6 +529,10 @@ pub struct ProofPolicyArgs {
     #[arg(long)]
     pub json: bool,
 
+    /// Write the machine-readable validation report to a JSON artifact
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
+
     /// Policy file to validate
     #[arg(long, default_value = "ci/proof.toml")]
     pub policy: std::path::PathBuf,

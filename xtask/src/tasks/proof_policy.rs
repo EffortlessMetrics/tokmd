@@ -4,6 +4,7 @@ use crate::proof::policy_ast::{CiExecution, ExecutorPromotionWindow, ProofPolicy
 use crate::proof::validate::{PolicyViolation, validate_policy};
 use anyhow::{Result, bail};
 use serde::Serialize;
+use std::fs;
 use std::path::Path;
 
 #[derive(Debug, Serialize)]
@@ -83,6 +84,10 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
         violations,
     };
 
+    if let Some(path) = &args.json_output {
+        write_json_output(path, &report)?;
+    }
+
     if args.json {
         println!("{}", serde_json::to_string_pretty(&report)?);
     } else {
@@ -97,6 +102,16 @@ pub fn run(args: ProofPolicyArgs) -> Result<()> {
             report.violations.len()
         )
     }
+}
+
+fn write_json_output(path: &Path, report: &ProofPolicyReport) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, serde_json::to_string_pretty(report)?)?;
+    Ok(())
 }
 
 impl ProofRunPolicyReport {
