@@ -1095,13 +1095,22 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
 fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
     let dir = tempfile::tempdir().unwrap();
     let mut receipt = minimal_receipt();
-    receipt.review_plan = vec![ReviewItem {
-        path: "docs/specs/doc-artifacts.md".to_string(),
-        reason: "Documentation artifact contract changed".to_string(),
-        priority: 1,
-        complexity: None,
-        lines_changed: Some(24),
-    }];
+    receipt.review_plan = vec![
+        ReviewItem {
+            path: "docs/specs/doc-artifacts.md".to_string(),
+            reason: "Documentation artifact contract changed".to_string(),
+            priority: 1,
+            complexity: None,
+            lines_changed: Some(24),
+        },
+        ReviewItem {
+            path: "docs/review-packet.md".to_string(),
+            reason: "Review packet contract changed".to_string(),
+            priority: 1,
+            complexity: None,
+            lines_changed: Some(6),
+        },
+    ];
     let out = dir.path().join("review");
     let doc_artifacts = tokmd_cockpit::parse_doc_artifacts_evidence_input(
         r#"{
@@ -1186,6 +1195,14 @@ fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
         review_map["items"][0]["doc_artifacts_refs"][1],
         "docs/doc-artifacts-check.json"
     );
+    assert_eq!(
+        review_map["items"][1]["doc_artifacts_refs"][0], "evidence.json#/doc_artifacts",
+        "active review-packet contract docs should be treated as source-of-truth review items"
+    );
+    assert_eq!(
+        review_map["items"][1]["doc_artifacts_refs"][1],
+        "docs/doc-artifacts-check.json"
+    );
     assert!(
         review_map["items"][0]["reproduce"]
             .as_array()
@@ -1196,6 +1213,17 @@ fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
                     "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
                 )),
         "source-of-truth review items should include the docs checker receipt command"
+    );
+    assert!(
+        review_map["items"][1]["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str()
+                == Some(
+                    "cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json"
+                )),
+        "active review-packet contract docs should include the docs checker receipt command"
     );
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
