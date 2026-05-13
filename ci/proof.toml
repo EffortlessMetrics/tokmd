@@ -1060,6 +1060,7 @@ paths = [
   "tokmd-role.md",
   "docs/PRODUCT.md",
   "docs/NOW.md",
+  "docs/agent-workflows/**",
   "docs/architecture-consolidation-plan.md",
   "docs/architecture.md",
   "docs/design.md",
@@ -1091,6 +1092,7 @@ kind = "non_rust"
 paths = [
   ".jules/goals/**",
   "docs/adr/**",
+  "docs/agent-workflows/**",
   "docs/plans/**",
   "docs/proposals/**",
   "docs/source-of-truth.md",
