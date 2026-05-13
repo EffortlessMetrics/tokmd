@@ -12,6 +12,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Some(cli::Commands::Bump(args)) => tasks::bump::run(args),
+        Some(cli::Commands::Badges(args)) => tasks::badges::run(args),
         Some(cli::Commands::Publish(args)) => tasks::publish::run(args),
         Some(cli::Commands::PublishSurface(args)) => tasks::publish_surface::run(args),
         Some(cli::Commands::Cockpit(args)) => tasks::cockpit::run(args),
@@ -57,6 +58,8 @@ fn main() -> Result<()> {
         Some(cli::Commands::Sccache(args)) => tasks::sccache::run(args),
         Some(cli::Commands::TrimTarget(args)) => tasks::trim_target::run(args),
         Some(cli::Commands::PerfSmoke(args)) => tasks::perf_smoke::run(args),
+        Some(cli::Commands::RiprPr(args)) => tasks::ripr::run_pr(args),
+        Some(cli::Commands::RiprReviewComments(args)) => tasks::ripr::run_review_comments(args),
         None => tasks::publish::run(PublishArgs::default()),
     }
 }

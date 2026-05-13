@@ -1,26 +1,20 @@
-name: ripr (advisory)
+name: RIPR PR Evidence
 
 on:
   pull_request:
     branches: ["main"]
-  push:
-    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
+  checks: write
 
 concurrency:
-  group: ripr-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
-
-env:
-  CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 0
-  RUSTFLAGS: -C debuginfo=0
+  group: ripr-pr-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   ripr:
-    name: ripr (advisory)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,115 +25,63 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' }}
+          cache-on-failure: true
 
-      - name: Fetch base ref
-        if: github.event_name == 'pull_request'
+      - name: Install ripr
+        run: cargo install ripr --locked
+
+      - name: Fetch base branch
+        if: github.base_ref != ''
         run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
-      - name: Identify changed Rust files (production only)
-        id: changed
-        if: github.event_name == 'pull_request'
-        run: |
-          set -euo pipefail
-          mkdir -p target/ripr
-          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
-            | grep -v '/tests/' \
-            | grep -v '_test\.rs$' \
-            | grep -v '^fuzz/' \
-            | grep -v '/fuzz/' \
-            > target/ripr/changed.txt || true
-          COUNT="$(wc -l < target/ripr/changed.txt | tr -d ' ')"
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+      - name: RIPR PR evidence
+        continue-on-error: true
+        run: cargo xtask ripr-pr --base "origin/${{ github.base_ref || 'main' }}" --head HEAD
 
-      - name: Install ripr (best-effort)
-        id: install
-        run: |
-          set +e
-          if cargo install ripr --locked >/dev/null 2>&1; then
-            echo "installed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "installed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::ripr not yet available on crates.io; running advisory placeholder."
-          fi
+      - name: RIPR review guidance
+        continue-on-error: true
+        run: cargo xtask ripr-review-comments --base "origin/${{ github.base_ref || 'main' }}" --head HEAD
 
-      - name: Run ripr or placeholder
-        run: |
-          set -euo pipefail
-          mkdir -p target/ripr
-          if [ "${{ steps.install.outputs.installed }}" = "true" ]; then
-            ripr analyze \
-              --config ripr.toml \
-              --diff-only \
-              --json target/ripr/ripr.json \
-              --sarif target/ripr/ripr.sarif \
-              --markdown target/ripr/ripr.md \
-              || true
-            {
-              echo "## ripr (advisory)"
-              echo ""
-              if [ -f target/ripr/ripr.md ]; then
-                cat target/ripr/ripr.md
-              fi
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            cat <<'EOF' > target/ripr/ripr.md
-          ## ripr (advisory)
+      - name: RIPR PR contract
+        if: always()
+        continue-on-error: true
+        run: cargo xtask ripr-pr --check
 
-          ripr is not yet wired up in this repo. This advisory job is a
-          placeholder so the slot exists in the lane whitelist and the
-          rollout (PR 11) lands. When ripr ships, replace the install
-          step's fallback with the real binary and remove this notice.
-          EOF
-            cat target/ripr/ripr.md >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: RIPR review contract
+        if: always()
+        continue-on-error: true
+        run: cargo xtask ripr-review-comments --check
 
-      - name: Evaluate ripr soft-gate
-        if: github.event_name == 'pull_request'
-        env:
-          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+      - name: RIPR annotations
+        if: always()
+        run: python scripts/ripr-annotations.py
+
+      - name: RIPR summary
+        if: always()
+        shell: bash
         run: |
-          set -euo pipefail
-          # The soft-gate is opt-in via [soft_gate].enabled in ripr.toml.
-          # Until that flag is true, this step only logs the planned
-          # decision so reviewers can see what would have been gated.
-          enabled=$(grep -E '^enabled\s*=\s*true' ripr.toml | head -1 || true)
-          if [ -z "$enabled" ]; then
-            echo "::notice::ripr soft-gate is disabled in ripr.toml. Findings remain advisory."
-            exit 0
-          fi
-          # Override label check.
-          for lbl in "ripr-waive" "full-ci" "ci-budget-ack"; do
-            if echo "$LABELS_JSON" | grep -q "\"name\":\"$lbl\""; then
-              echo "::warning::ripr soft-gate satisfied by override label '$lbl'."
-              exit 0
+          {
+            echo "## RIPR Review Guidance"
+            echo
+            if [ -f target/ripr/review/comments.md ]; then
+              cat target/ripr/review/comments.md
+            else
+              echo "No RIPR review guidance produced."
             fi
-          done
-          # If a real ripr report exists, look for high-confidence
-          # reachable_unrevealed / weakly_exposed entries that are not
-          # suppressed. The placeholder run produces no JSON, so this
-          # remains a no-op until ripr is wired up.
-          if [ ! -s target/ripr/ripr.json ]; then
-            echo "::notice::ripr soft-gate enabled but no JSON report; nothing to gate."
-            exit 0
-          fi
-          high=$(jq '[.findings[]?
-            | select(.kind == "reachable_unrevealed" or .kind == "weakly_exposed")
-            | select(.confidence == "high")
-            | select(.suppressed != true)
-            | select(.test_changed_nearby != true)] | length' \
-            target/ripr/ripr.json)
-          if [ "${high:-0}" -gt 0 ]; then
-            echo "::error::ripr soft-gate: ${high} high-confidence finding(s); apply 'ripr-waive' to acknowledge."
-            exit 1
-          fi
-          echo "ripr soft-gate clean."
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload ripr report
+      - name: Upload RIPR PR evidence
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ripr-report
-          path: target/ripr/
-          if-no-files-found: ignore
-          retention-days: 14
+          name: ripr-pr
+          path: target/ripr/pr
+          if-no-files-found: warn
+
+      - name: Upload RIPR review guidance
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ripr-review
+          path: target/ripr/review
+          if-no-files-found: warn

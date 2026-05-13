@@ -12,6 +12,8 @@ pub struct XtaskCli {
 pub enum Commands {
     /// Bump version across the entire workspace
     Bump(BumpArgs),
+    /// Generate public Shields endpoint JSON badges
+    Badges(BadgesArgs),
     /// Publish all crates in dependency order
     Publish(PublishArgs),
     /// Audit the publish surface and optional package/publish dry-run closure checks
@@ -78,6 +80,67 @@ pub enum Commands {
     TrimTarget(TrimTargetArgs),
     /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
+    /// Produce PR-scoped RIPR repository exposure evidence
+    RiprPr(RiprPrArgs),
+    /// Produce RIPR review guidance artifacts
+    RiprReviewComments(RiprReviewCommentsArgs),
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BadgesArgs {
+    /// Check committed badge endpoints for drift without updating badges/
+    #[arg(long)]
+    pub check: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprPrArgs {
+    /// Check the PR evidence output contract without regenerating artifacts
+    #[arg(long)]
+    pub check: bool,
+
+    /// Base git revision for PR-scoped evidence
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for PR-scoped evidence
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+}
+
+impl Default for RiprPrArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprReviewCommentsArgs {
+    /// Check the review-comments output contract without regenerating artifacts
+    #[arg(long)]
+    pub check: bool,
+
+    /// Base git revision for diff-scoped review guidance
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for diff-scoped review guidance
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+}
+
+impl Default for RiprReviewCommentsArgs {
+    fn default() -> Self {
+        Self {
+            check: false,
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone, Default)]
