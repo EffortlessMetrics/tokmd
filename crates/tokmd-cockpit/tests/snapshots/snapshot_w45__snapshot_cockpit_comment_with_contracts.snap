@@ -22,4 +22,6 @@ expression: comment
 - [ ] Confirm breaking changes are documented
 
 **Priority review items**:
-- crates/tokmd/src/commands/new_cmd.rs (100 lines changed)
+- docs/schema.json (schema contract changed; 30 lines changed)
+- crates/tokmd/src/commands/new_cmd.rs (CLI contract changed; 100 lines changed)
+- src/lib.rs (API surface changed; 15 lines changed)

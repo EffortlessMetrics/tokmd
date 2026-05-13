@@ -60,7 +60,7 @@ expression: md
 ### Review Plan
 
 - **src/lib.rs** (priority: 2)
-  - Reason: 130 lines changed
+  - Reason: API surface changed; 130 lines changed
   - Complexity: 3
   - Lines changed: 130
 - **tests/integration_test.rs** (priority: 2)
