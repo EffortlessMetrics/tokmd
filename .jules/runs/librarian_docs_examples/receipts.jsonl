@@ -1,9 +1,4 @@
-{"command": "cargo test -p xtask", "status": "failed", "notes": "Two test failures in docs_schema_w72.rs and docs_w43.rs due to BASELINE_VERSION not found in crates/tokmd-analysis-types/src/lib.rs"}
-{"command": "sed -i 's|crates/tokmd-analysis-types/src/lib.rs|crates/tokmd-analysis-types/src/baseline.rs|g' xtask/tests/docs_schema_w72.rs", "status": "success"}
-{"command": "cargo test -p xtask --test docs_schema_w72", "status": "success"}
-{"command": "sed -i 's|crates/tokmd-analysis-types/src/lib.rs|crates/tokmd-analysis-types/src/baseline.rs|g' xtask/tests/docs_w43.rs", "status": "success"}
-{"command": "cargo test -p xtask --test docs_w43", "status": "success"}
-{"command": "cargo test -p xtask", "status": "success", "notes": "All 208+ tests passed"}
-{"timestamp": "2024-05-11T14:15:00Z", "command": "grep -rn \"TOOL_SCHEMA_VERSION\" crates/tokmd/ || true", "output": "crates/tokmd/src/tool_schema.rs:28:pub const TOOL_SCHEMA_VERSION: u32 = 1;\ncrates/tokmd/src/tool_schema.rs:106:        schema_version: TOOL_SCHEMA_VERSION,"}
-{"timestamp": "2024-05-11T14:15:01Z", "command": "grep -rn \"SCHEMA_VERSION\" xtask/src/ || true", "output": "xtask/src/cli.rs:768:    ///   - TOOL_SCHEMA_VERSION (crates/tokmd/src/tool_schema.rs)\nxtask/src/tasks/bump.rs:46:        constant: \"TOOL_SCHEMA_VERSION\","}
-{"timestamp": "2024-05-11T14:15:02Z", "command": "cargo xtask docs --check", "output": "Documentation is up to date.\n     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running `target/debug/xtask docs --check`"}
+{"timestamp": "2026-05-13T11:35:00Z", "command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"timestamp": "2026-05-13T11:36:00Z", "command": "cargo test --doc", "output": "all doctests passed"}
+{"timestamp": "2026-05-13T11:37:00Z", "command": "cargo build --workspace", "output": "Finished `dev` profile"}
+{"timestamp": "2026-05-13T11:38:00Z", "command": "cargo run -- --version", "output": "tokmd 1.11.0"}

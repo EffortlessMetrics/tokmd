@@ -1,49 +1,43 @@
 ## 💡 Summary
-Updated `docs/SCHEMA.md`, `docs/design.md`, `docs/architecture.md`, `docs/agent-context/review-invariants.md`, and `docs/specification.md` to properly document the new `TOOL_SCHEMA_VERSION`.
+Fixed version drift in the README.md GitHub Action example snippet. It now correctly points to the `1.11.0` release.
 
 ## 🎯 Why
-The `TOOL_SCHEMA_VERSION` constant was added in `crates/tokmd/src/tool_schema.rs` and integrated into `xtask bump`, but it was never formally documented in the project's markdown references and invariants alongside other receipt/schema versions, creating a gap in governance and version consistency.
+The `README.md` file had an outdated GitHub Action example using `version: '1.10.0'`, whereas the current repo version and other documentation (like `docs/github-action.md` and `Cargo.toml`) use `1.11.0`.
 
 ## 🔎 Evidence
-- `xtask/src/cli.rs` and `xtask/src/tasks/bump.rs` explicitly parse `TOOL_SCHEMA_VERSION` next to `SCHEMA_VERSION`, `ANALYSIS_SCHEMA_VERSION`, etc.
-- `crates/tokmd/src/tool_schema.rs` defines `pub const TOOL_SCHEMA_VERSION: u32 = 1;`.
-- The `docs/SCHEMA.md` and related design files do not mention it.
+- File: `README.md`
+- Finding: The GitHub action example specified `version: '1.10.0'`.
+- Command run: `cargo xtask docs --check` verified docs and `cargo test --doc` passed.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add `TOOL_SCHEMA_VERSION` into `docs/SCHEMA.md`'s version history, `docs/design.md`, `docs/architecture.md`, `docs/agent-context/review-invariants.md`, and `docs/specification.md`.
-- Maintains a cohesive set of governance and design documentation.
-- Trade-offs: Minor documentation churn, but strongly aligns Structure and Governance.
+- what it is: Update the version in `README.md` to `1.11.0`.
+- why it fits this repo and shard: It falls under the `tooling-governance` shard and specifically fixes example drift.
+- trade-offs: Structure / Velocity / Governance: Low risk, maintains structural consistency across docs.
 
 ### Option B
-- Leave `TOOL_SCHEMA_VERSION` out of the documentation and consider it a purely internal constant.
-- Suitable if it was not meant for the public schema registry.
-- Trade-offs: Weakens the Schema Version Invariant and leaves `xtask bump` tools out of sync with the documentation.
+- what it is: Update the missing `cargo xtask check-docs` command.
+- when to choose it instead: If the docs were genuinely broken regarding command names.
+- trade-offs: Does not directly address the more obvious version drift.
 
 ## ✅ Decision
-Option A. `TOOL_SCHEMA_VERSION` acts identically to the other exported schema constants and is expected to follow the Schema Version Invariant.
+Option A was chosen because it's a clear, concrete fix to factual example drift.
 
 ## 🧱 Changes made (SRP)
-- Added `TOOL_SCHEMA_VERSION` tracking to `docs/SCHEMA.md`.
-- Added `TOOL_SCHEMA_VERSION` reference to `docs/design.md`.
-- Added `TOOL_SCHEMA_VERSION` reference to `docs/architecture.md`.
-- Added `TOOL_SCHEMA_VERSION` reference to `docs/agent-context/review-invariants.md`.
-- Added `TOOL_SCHEMA_VERSION` reference to `docs/specification.md`.
+- `README.md`: Updated `version: '1.10.0'` to `version: '1.11.0'` in the GitHub Action block.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --check
+cargo xtask docs --check
 Documentation is up to date.
-     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s
-     Running `target/debug/xtask docs --check`
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs/Reference Fix
-- Blast radius: `docs/` schema, design, and invariants surfaces
-- Risk class: Low (documentation only)
-- Rollback: Revert the PR
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Change shape: Docs update
+- Blast radius: docs
+- Risk class + why: Low, only updates a markdown file snippet.
+- Rollback: Revert the commit.
+- Gates run: `cargo xtask docs --check`, `cargo test --doc`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`

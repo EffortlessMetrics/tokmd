@@ -87,7 +87,7 @@ Use the root composite Action when you want `tokmd` receipts, PR summaries, arti
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.10.0'
+    version: '1.11.0'
     paths: .
 ```
 

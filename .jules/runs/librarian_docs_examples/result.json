@@ -1,17 +1,12 @@
 {
-  "status": "success",
+  "run_id": "librarian_docs_examples",
+  "success": true,
   "outcome": "PR-ready patch",
-  "primary_shard": "tooling-governance",
-  "files_changed": [
-    "docs/SCHEMA.md",
-    "docs/design.md",
-    "docs/architecture.md",
-    "docs/agent-context/review-invariants.md",
-    "docs/specification.md",
-    ".jules/runs/librarian_docs_examples/envelope.json",
-    ".jules/runs/librarian_docs_examples/decision.md",
-    ".jules/runs/librarian_docs_examples/receipts.jsonl",
-    ".jules/runs/librarian_docs_examples/pr_body.md",
-    ".jules/runs/librarian_docs_examples/result.json"
+  "artifacts": [
+    "envelope.json",
+    "decision.md",
+    "receipts.jsonl",
+    "result.json",
+    "pr_body.md"
   ]
 }
