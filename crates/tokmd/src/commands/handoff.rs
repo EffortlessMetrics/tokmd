@@ -28,7 +28,7 @@ mod output;
 
 use capabilities::{detect_capabilities, should_compute_git};
 use intelligence::build_intelligence;
-use output::{write_manifest_json, write_payloads};
+use output::{HandoffLinkInputs, write_link_artifacts, write_manifest_json, write_payloads};
 
 const DEFAULT_TREE_DEPTH: usize = 4;
 
@@ -144,13 +144,23 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         .unwrap_or_default()
         .as_millis();
 
-    let payloads = write_payloads(
+    let mut payloads = write_payloads(
         &args.out_dir,
         &export,
         &intelligence,
         &selected,
         args.compress,
     )?;
+    let mut link_artifacts = write_link_artifacts(
+        &args.out_dir,
+        &HandoffLinkInputs {
+            review_packet_dir: args.review_packet_dir.as_deref(),
+            review_packet_check: args.review_packet_check.as_deref(),
+            affected: args.affected.as_deref(),
+            proof_plan: args.proof_plan.as_deref(),
+        },
+    )?;
+    payloads.artifacts.append(&mut link_artifacts);
 
     // Compute token estimation and audit
     let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
