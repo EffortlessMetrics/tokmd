@@ -137,6 +137,45 @@ required proof, imports proof artifacts, and verifies the packet, see the
 For the planned stack boundary where evidencebus carries a verified tokmd
 packet, see [tokmd and evidencebus integration](evidencebus-integration.md).
 
+## Documentation Artifact Evidence
+
+Source-of-truth changes are review evidence too. When a PR changes docs,
+plans, specs, ADRs, templates, `.jules/goals/**`, or doc-artifact policy, a
+future cockpit packet should be able to import the docs checker receipt:
+
+```text
+target/docs/doc-artifacts-check.json
+```
+
+That receipt uses schema `tokmd.doc_artifacts_check.v1` and is produced by:
+
+```bash
+cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+```
+
+The review packet should treat this as documentation-control evidence, not as a
+merge verdict. A successful receipt means the source-of-truth artifact shape,
+links, active-goal state, and policy routing checked by the doc-artifacts
+contract were valid at verification time. It does not prove the prose is
+correct or that a PR should merge.
+
+Planned packet treatment:
+
+- `evidence.json` records the receipt schema, source path, `ok` result, checked
+  counts, and any checker errors.
+- `review-map.json` links source-of-truth changed files to the imported
+  doc-artifacts evidence when paths match the checked families or active-goal
+  policy.
+- `review-map.md` shows whether documentation-control evidence is available,
+  missing, stale, or degraded for source-of-truth changes.
+- `comment.md` may include a compact line such as `Doc artifacts: verified` or
+  `Doc artifacts: missing for source-of-truth changes`.
+
+Absent doc-artifacts evidence is `missing` only when source-of-truth paths are
+changed and the packet has enough context to know the receipt was expected.
+Otherwise it is `unavailable` or omitted. Cockpit must not promote docs
+evidence into a required gate by itself.
+
 ## Manifest Requirements
 
 `manifest.json` should use schema `tokmd.review_packet_manifest.v1` and include:
@@ -253,5 +292,7 @@ that uses this packet.
   unknown-commit evidence explicitly, and list packet-local proof artifact
   copies in `manifest.json`.
 - Local proof-aware review workflow is documented with packet verification.
+- Planned doc-artifact evidence import behavior is documented before cockpit
+  implementation.
 - Evidencebus packet mapping is documented without adding a tokmd CLI command
   or evidencebus runtime dependency.
