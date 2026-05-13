@@ -42,8 +42,12 @@ new product commands or promote advisory proof.
      while README, tutorial, recipes, and `docs/tokmd-in-cockpit.md` keep the
      same workflow available from their user-facing entry points.
 2. Simplify README first-run paths around the five user jobs.
+   - Status: complete.
    - Keep the command inventory available, but lead with the smallest useful
      commands for inspection, PR review, CI evidence, and agent handoff.
+   - Evidence: README now leads with the five user jobs, and
+     `docs/start-here.md` provides the job-oriented bridge into tutorial,
+     review-packet, Action, handoff, and browser/native docs.
 3. Refresh tutorial and recipes around job-to-be-done flows.
    - Prefer short workflows that produce a visible receipt before explaining
      the underlying proof or schema machinery.
@@ -89,3 +93,5 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
 - 2026-05-13: Added a reviewer quickstart to `docs/review-packet.md`, keeping
   the first review-packet path visible on the packet contract page without
   adding a new command or changing proof policy.
+- 2026-05-13: Added `docs/start-here.md` and changed README's first-run block
+  to lead with the five user jobs instead of a command inventory.

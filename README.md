@@ -39,24 +39,27 @@ tokmd --version
 
 See [Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
 
-## First Run
+## Start With One Job
 
 ```bash
-# Summarize the current repo
+# Tell me what this repo is
 tokmd --format md --top 8
 
-# Save deterministic run artifacts
+# Tell me what changed
+tokmd diff origin/main HEAD
+
+# Help me review this PR
+tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review
+
+# Give CI stable evidence and gates
 tokmd run --analysis receipt --output-dir .runs/current
+tokmd gate --receipt .runs/current/receipt.json --policy tokmd-gate.toml
 
-# Compare two states
-tokmd diff main HEAD
-
-# Analyze risk
-tokmd analyze --preset risk --format md
-
-# Pack code for an LLM budget
-tokmd context --budget 128k --mode bundle --output context.txt
+# Give my coding agent context and proof expectations
+tokmd handoff --preset risk --budget 128k --strategy spread --out-dir .handoff
 ```
+
+For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
 
 ## What tokmd Produces
 
