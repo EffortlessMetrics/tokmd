@@ -241,6 +241,81 @@ fn proof_observation_thresholds_writes_env_artifact() {
 }
 
 #[test]
+fn proof_executor_pr_policy_help_mentions_policy_env_and_override() {
+    let (stdout, stderr, success) = run_xtask(&["proof-executor-pr-policy", "--help"]);
+
+    assert!(
+        success,
+        "proof-executor-pr-policy --help failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("--proof-policy-json"), "stdout: {stdout}");
+    assert!(stdout.contains("--env-output"), "stdout: {stdout}");
+    assert!(stdout.contains("--max-commands"), "stdout: {stdout}");
+}
+
+#[test]
+fn proof_executor_pr_policy_writes_env_artifact() {
+    let root = workspace_root();
+    let policy = root
+        .join("target")
+        .join("proof-executor-pr-policy-w92")
+        .join("proof-policy.json");
+    let env = root
+        .join("target")
+        .join("proof-executor-pr-policy-w92")
+        .join("proof-executor-pr.env");
+    if env.exists() {
+        fs::remove_file(&env).expect("stale executor PR policy fixture should be removable");
+    }
+
+    let policy_arg = policy.to_string_lossy().to_string();
+    let env_arg = env.to_string_lossy().to_string();
+    let (_, stderr, success) = run_xtask(&["proof-policy", "--json-output", &policy_arg]);
+    assert!(success, "proof-policy fixture failed. stderr: {stderr}");
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-executor-pr-policy",
+        "--proof-policy-json",
+        &policy_arg,
+        "--env-output",
+        &env_arg,
+        "--max-commands",
+        "5",
+    ]);
+
+    assert!(
+        success,
+        "proof-executor-pr-policy failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("proof executor PR policy: wrote executor PR env"),
+        "stdout: {stdout}"
+    );
+
+    let env_body = fs::read_to_string(&env).expect("executor PR env artifact should be readable");
+    assert!(
+        env_body.contains("PROOF_EXECUTOR_MAX_COMMANDS=5"),
+        "{env_body}"
+    );
+    assert!(
+        env_body.contains("PROOF_EXECUTOR_MAX_COMMANDS_SOURCE=workflow_dispatch"),
+        "{env_body}"
+    );
+    assert!(
+        env_body.contains("PROOF_EXECUTOR_PR_DEFAULT_ENABLED=true"),
+        "{env_body}"
+    );
+    assert!(
+        env_body.contains("PROOF_EXECUTOR_PR_REQUIRED=false"),
+        "{env_body}"
+    );
+    assert!(
+        env_body.contains("PROOF_EXECUTOR_PR_CODECOV_UPLOAD=false"),
+        "{env_body}"
+    );
+}
+
+#[test]
 fn proof_observation_run_ids_help_mentions_input_and_output() {
     let (stdout, stderr, success) = run_xtask(&["proof-observation-run-ids", "--help"]);
 
@@ -483,6 +558,30 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor workflow should not capture proof-policy JSON with shell redirection"
     );
     assert!(
+        executor.contains("cargo xtask proof-executor-pr-policy"),
+        "executor workflow should resolve PR policy through xtask"
+    );
+    assert!(
+        executor.contains("--proof-policy-json target/proof/proof-policy.json"),
+        "executor PR policy resolver should read the checked proof-policy JSON"
+    );
+    assert!(
+        executor.contains("--env-output target/proof/proof-executor-pr.env"),
+        "executor PR policy resolver should write a stable env artifact"
+    );
+    assert!(
+        executor.contains("--max-commands \"${PROOF_EXECUTOR_MAX_COMMANDS_INPUT}\""),
+        "executor PR policy resolver should keep the manual command override explicit"
+    );
+    assert!(
+        executor.contains("cat target/proof/proof-executor-pr.env >> \"$GITHUB_ENV\""),
+        "executor workflow should source Rust-resolved env output"
+    );
+    assert!(
+        executor.contains("executor max commands source"),
+        "executor summary should show whether max commands came from policy or manual dispatch"
+    );
+    assert!(
         executor.contains("--plan-json target/proof/proof-plan.json"),
         "executor workflow should write the proof plan as a Rust-owned JSON artifact"
     );
@@ -495,8 +594,12 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor workflow should not capture affected.json with shell redirection"
     );
     assert!(
-        executor.contains("pr.get(\"default_enabled\") is not True"),
-        "executor workflow should require policy-backed default PR observation"
+        !executor.contains("pr.get(\"default_enabled\") is not True"),
+        "executor workflow should not enforce PR policy with inline Python"
+    );
+    assert!(
+        !executor.contains("python - <<'PY'"),
+        "executor workflow should not resolve PR policy with inline Python"
     );
     assert!(
         executor.contains("PROOF_EXECUTOR_MAX_COMMANDS_INPUT"),
