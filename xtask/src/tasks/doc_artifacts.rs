@@ -299,8 +299,13 @@ fn validate_active_goal(root: &Path, policy: &ActiveGoalPolicy, errors: &mut Vec
         }
     }
     for link in &policy.required_links {
-        let Some(link_value) = goal.links.get(link).and_then(toml::Value::as_str) else {
+        if !goal.links.contains_key(link) {
             errors.push(format!("{}: missing [links].{link}", policy.path));
+        }
+    }
+    for (link, value) in &goal.links {
+        let Some(link_value) = value.as_str() else {
+            errors.push(format!("{}: [links].{link} must be a string", policy.path));
             continue;
         };
         validate_active_goal_link(root, &policy.path, link, link_value, policy, errors);
@@ -563,6 +568,28 @@ mod tests {
                 .errors
                 .iter()
                 .any(|error| error.contains("points at missing path")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn extra_active_goal_links_are_validated() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        let goal = active_goal("docs/source-of-truth.md", "tokmd.jules.active_goal.v1").replace(
+            "adr_readme = \"docs/adr/README.md\"",
+            "adr_readme = \"docs/adr/README.md\"\nreview_packet_contract = \"missing.md\"",
+        );
+        fs::write(temp.path().join(".jules/goals/active.toml"), goal).unwrap();
+
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+
+        assert!(
+            report.errors.iter().any(|error| {
+                error.contains("[links].review_packet_contract")
+                    && error.contains("points at missing path")
+            }),
             "{:?}",
             report.errors
         );

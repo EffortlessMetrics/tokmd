@@ -65,6 +65,8 @@ pub fn parse_doc_artifacts_evidence_input(
 
 pub(crate) fn source_of_truth_path(path: &str) -> bool {
     path == "docs/source-of-truth.md"
+        || path == "docs/review-packet.md"
+        || path == "docs/cockpit-proof-evidence.md"
         || path == "policy/doc-artifacts.toml"
         || path.starts_with("docs/proposals/")
         || path.starts_with("docs/specs/")
@@ -118,6 +120,8 @@ mod tests {
     #[test]
     fn recognizes_source_of_truth_paths() {
         assert!(source_of_truth_path("docs/source-of-truth.md"));
+        assert!(source_of_truth_path("docs/review-packet.md"));
+        assert!(source_of_truth_path("docs/cockpit-proof-evidence.md"));
         assert!(source_of_truth_path("docs/specs/doc-artifacts.md"));
         assert!(source_of_truth_path(".jules/goals/active.toml"));
         assert!(source_of_truth_path("policy/doc-artifacts.toml"));
