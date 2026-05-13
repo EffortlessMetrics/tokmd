@@ -1067,13 +1067,17 @@ paths = [
   "docs/install.md",
   "docs/adr/**",
   "docs/audits/**",
+  "docs/plans/**",
   "docs/progress-events.md",
+  "docs/proposals/**",
   "docs/requirements.md",
   "docs/sensor-report-v1.md",
+  "docs/source-of-truth.md",
+  "docs/specs/**",
   "docs/specification.md",
 ]
 proof = ["cargo xtask docs --check"]
-reason = "Top-level architecture, ADR, design, roadmap, requirements, and audit docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
+reason = "Top-level architecture, ADR, design, roadmap, requirements, proposal/spec/plan, and audit docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
 mutation = false
 coverage = false
 

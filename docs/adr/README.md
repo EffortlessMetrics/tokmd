@@ -5,6 +5,9 @@ decisions for tokmd. ADRs explain why a durable decision exists; exact
 behavioral contracts belong in specs such as `docs/specification.md` or
 surface-specific schema documents.
 
+For the broader documentation routing model, see
+[`docs/source-of-truth.md`](../source-of-truth.md).
+
 ## Index
 
 | ADR | Status | Title |

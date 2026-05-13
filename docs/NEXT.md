@@ -29,9 +29,16 @@ hashes without promoting proof gates. Keep `tokmd cockpit` as the PR-review
 evidence surface before adding any separate `tokmd review` command.
 
 Architecture consolidation is paused unless fresh product or proof evidence
-shows a real owner-module problem. The active implementation lane is now
-measurement before optimization: add receipt-grade timing evidence before
-touching the open unbuffered-I/O, clone, or allocation performance issues.
+shows a real owner-module problem. The performance mini-lane has a measurement
+spine and several small fixes on main; future performance work should continue
+to cite `cargo xtask perf-smoke` receipts or explicitly say it is
+structure-only.
+
+The active documentation-control lane is the source-of-truth stack: proposals
+own exploratory rationale, specs own behavior contracts and proof
+requirements, ADRs own durable architecture decisions, plans own sequencing,
+`.jules/goals/active.toml` owns small machine-readable active-agent state, and
+checked policy TOMLs own machine-enforced rules.
 
 ## Next Work Packets
 
@@ -43,8 +50,10 @@ touching the open unbuffered-I/O, clone, or allocation performance issues.
    a separate review orchestrator has a real contract.
 4. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
-5. Add bounded performance timing receipts before optimizing hot paths.
-6. Draft AST foundation work only after the review packet and consolidation
+5. Use bounded performance timing receipts before optimizing hot paths.
+6. Keep source-of-truth docs, active goal state, and proof-policy routing
+   aligned as new lanes start.
+7. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
 
 ## Directional Rules
