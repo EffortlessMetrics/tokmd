@@ -78,10 +78,11 @@ mod tests {
     }
 
     #[test]
-    fn badge_svg_width_scales_with_text() {
+    fn badge_svg_width_scales_with_text() -> Result<(), String> {
         let short_svg = badge_svg("a", "1");
         let long_svg = badge_svg("averylonglabel", "averylongvalue");
-        assert!(extract_svg_width(&long_svg) > extract_svg_width(&short_svg));
+        assert!(extract_svg_width(&long_svg)? > extract_svg_width(&short_svg)?);
+        Ok(())
     }
 
     #[test]
@@ -95,9 +96,23 @@ mod tests {
         assert!(!svg.contains(value));
     }
 
-    fn extract_svg_width(svg: &str) -> i32 {
-        let start = svg.find("width=\"").expect("width attr") + 7;
-        let end = svg[start..].find('"').expect("width close") + start;
-        svg[start..end].parse().expect("numeric width")
+    #[test]
+    fn extract_svg_width_reports_malformed_svg() {
+        assert!(extract_svg_width("<svg></svg>").is_err());
+        assert!(extract_svg_width("<svg width=\"abc\"></svg>").is_err());
+    }
+
+    fn extract_svg_width(svg: &str) -> Result<i32, String> {
+        let start = svg
+            .find("width=\"")
+            .ok_or_else(|| "missing SVG width attribute".to_string())?
+            + 7;
+        let end = svg[start..]
+            .find('"')
+            .map(|offset| offset + start)
+            .ok_or_else(|| "unterminated SVG width attribute".to_string())?;
+        svg[start..end]
+            .parse()
+            .map_err(|error| format!("invalid SVG width `{}`: {error}", &svg[start..end]))
     }
 }
