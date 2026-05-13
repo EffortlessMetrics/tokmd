@@ -313,12 +313,13 @@ pub(crate) fn build_import_report(
 }
 
 fn hash_file_full(path: &Path) -> Result<String> {
-    use std::io::Read;
-    let mut file = std::fs::File::open(path)?;
+    use std::io::{BufReader, Read};
+    let file = std::fs::File::open(path)?;
+    let mut reader = BufReader::with_capacity(64 * 1024, file);
     let mut hasher = blake3::Hasher::new();
     let mut buf = [0u8; 8192];
     loop {
-        let read = file.read(&mut buf)?;
+        let read = reader.read(&mut buf)?;
         if read == 0 {
             break;
         }
