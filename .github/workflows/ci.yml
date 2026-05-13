@@ -557,9 +557,44 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Check documentation drift
-        run: cargo xtask docs --check
+        run: |
+          set +e
+          mkdir -p target/docs
+
+          cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
+          doc_artifacts_status=$?
+
+          cargo xtask docs --check
+          docs_status=$?
+
+          if [ -f target/docs/doc-artifacts-check.json ]; then
+            {
+              echo "## Documentation Artifact Check"
+              echo ""
+              echo '```json'
+              cat target/docs/doc-artifacts-check.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "${doc_artifacts_status}" -ne 0 ]; then
+            exit "${doc_artifacts_status}"
+          fi
+
+          if [ "${docs_status}" -ne 0 ]; then
+            exit "${docs_status}"
+          fi
+
+          exit 0
         env:
           CI: true
+      - name: Upload doc artifact check receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: doc-artifacts-check
+          path: target/docs/doc-artifacts-check.json
+          if-no-files-found: warn
 
   nix-pr:
     name: Nix PR Package Gate

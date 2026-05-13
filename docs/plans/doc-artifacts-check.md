@@ -64,6 +64,12 @@ documentation artifacts defined by `docs/source-of-truth.md` and
    consumer needs machine-readable checker evidence. The receipt should stay
    visibility-only and must not promote proof gates or Codecov defaults.
 
+6. Upload the JSON receipt from docs CI.
+
+   Have the Docs Check job write `target/docs/doc-artifacts-check.json` and
+   upload it as a visibility-only artifact. Keep the existing Docs Check job as
+   the validation gate and do not add a product command or proof promotion.
+
 ## Validation
 
 Each implementation PR should run the relevant subset of:
@@ -111,3 +117,7 @@ package, export, public API, or publish-surface files.
   `tokmd.doc_artifacts_check.v1` receipt with checked counts and errors for CI,
   review packets, or later evidencebus consumers. Text output remains the
   default, and the receipt is visibility-only.
+- 2026-05-13: The CI Docs Check job now writes
+  `target/docs/doc-artifacts-check.json`, appends it to the step summary, and
+  uploads it as the `doc-artifacts-check` artifact without changing proof
+  promotion or Codecov behavior.
