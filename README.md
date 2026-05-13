@@ -120,6 +120,9 @@ tokmd cockpit \
 This makes documentation-control evidence visible in the review packet; it does
 not turn cockpit into a merge verdict or promote advisory proof.
 
+For proof imports, hosted Action artifacts, and what packet verification does
+and does not mean, see [tokmd in Cockpit](docs/tokmd-in-cockpit.md).
+
 ## GitHub Action
 
 Use the root composite Action when you want `tokmd` receipts, PR summaries, artifacts, or gates in CI.
