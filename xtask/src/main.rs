@@ -56,6 +56,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::LintFix(args)) => tasks::lint_fix::run(args),
         Some(cli::Commands::Sccache(args)) => tasks::sccache::run(args),
         Some(cli::Commands::TrimTarget(args)) => tasks::trim_target::run(args),
+        Some(cli::Commands::PerfSmoke(args)) => tasks::perf_smoke::run(args),
         None => tasks::publish::run(PublishArgs::default()),
     }
 }

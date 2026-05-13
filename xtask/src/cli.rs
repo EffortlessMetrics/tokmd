@@ -76,6 +76,8 @@ pub enum Commands {
     Sccache(SccacheArgs),
     /// Reclaim target/debug space by trimming Windows PDBs and incremental state
     TrimTarget(TrimTargetArgs),
+    /// Emit a small phase-timing receipt for core inventory workflows
+    PerfSmoke(PerfSmokeArgs),
 }
 
 #[derive(Args, Debug, Clone, Default)]
@@ -192,6 +194,37 @@ impl Default for CiActualsArgs {
             output: std::path::PathBuf::from("target/ci/ci-actuals.json"),
             repo: "tokmd".to_string(),
             workflow: "CI".to_string(),
+            sha: None,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct PerfSmokeArgs {
+    /// Repository or directory to measure. The emitted receipt records counts,
+    /// not the raw path.
+    #[arg(long, default_value = ".")]
+    pub target_repo: std::path::PathBuf,
+
+    /// Output path for the performance smoke receipt.
+    #[arg(long, default_value = "target/perf/perf-smoke.json")]
+    pub output: std::path::PathBuf,
+
+    /// Repository identifier recorded in the receipt.
+    #[arg(long, default_value = "tokmd")]
+    pub repo: String,
+
+    /// Commit SHA recorded in the receipt; defaults to GITHUB_SHA or HEAD.
+    #[arg(long)]
+    pub sha: Option<String>,
+}
+
+impl Default for PerfSmokeArgs {
+    fn default() -> Self {
+        Self {
+            target_repo: std::path::PathBuf::from("."),
+            output: std::path::PathBuf::from("target/perf/perf-smoke.json"),
+            repo: "tokmd".to_string(),
             sha: None,
         }
     }

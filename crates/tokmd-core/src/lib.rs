@@ -66,13 +66,14 @@ pub use tokmd_types as types;
 pub use workflows::cockpit_workflow;
 #[cfg(all(test, feature = "cockpit"))]
 use workflows::parse_cockpit_range_mode;
+pub use workflows::{
+    TimedWorkflow, WorkflowTiming, diff_workflow, export_workflow, export_workflow_from_inputs,
+    lang_workflow, lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
+    timed_export_workflow, timed_lang_workflow, timed_module_workflow,
+};
 #[cfg(feature = "analysis")]
 pub use workflows::{
     analyze_workflow, analyze_workflow_from_inputs, supports_rootless_in_memory_analyze_preset,
-};
-pub use workflows::{
-    diff_workflow, export_workflow, export_workflow_from_inputs, lang_workflow,
-    lang_workflow_from_inputs, module_workflow, module_workflow_from_inputs,
 };
 #[cfg(all(test, feature = "analysis"))]
 use workflows::{parse_analysis_preset, parse_effort_request};

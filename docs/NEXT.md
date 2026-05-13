@@ -28,9 +28,10 @@ packets can preserve imported proof artifacts, surface proof evidence in
 hashes without promoting proof gates. Keep `tokmd cockpit` as the PR-review
 evidence surface before adding any separate `tokmd review` command.
 
-The active implementation lane is architecture consolidation. Continue
-owner-module batches only where they preserve product behavior and proof-scope
-granularity; avoid carving already-stable modules just because files exist.
+Architecture consolidation is paused unless fresh product or proof evidence
+shows a real owner-module problem. The active implementation lane is now
+measurement before optimization: add receipt-grade timing evidence before
+touching the open unbuffered-I/O, clone, or allocation performance issues.
 
 ## Next Work Packets
 
@@ -42,7 +43,8 @@ granularity; avoid carving already-stable modules just because files exist.
    a separate review orchestrator has a real contract.
 4. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
-5. Draft AST foundation work only after the review packet and consolidation
+5. Add bounded performance timing receipts before optimizing hot paths.
+6. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
 
 ## Directional Rules
@@ -157,6 +159,7 @@ granularity; avoid carving already-stable modules just because files exist.
 - Manual proof-observation collector run `25515026895` on `main` passed on 2026-05-07 after #1748 merged. The workflow resolved `run_limit = 100`, `min_observations = 1`, `min_executed = 4`, `min_scopes = 4`, `min_artifacts = 4`, and `min_passing_collector_runs = 1` from `ci/proof.toml`; the collection recorded 80 observations, 16 selected/executed/passed coverage commands, 16 artifacts, and 7 distinct scopes: `analysis_complexity`, `analysis_content_assets`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_cockpit`, `tokmd_core_ffi`, and `tokmd_gate`. The `proof-executor-promotion-readiness.json` receipt reported schema `tokmd.proof_executor_promotion_readiness.v1`, `ok = true`, and 1 recent passing collector run from `25512575044`.
 - Manual proof-observation collector run `25516861742` on `main` passed on 2026-05-07 after #1750 merged. The collection recorded 82 observations, 16 selected/executed/passed coverage commands, 16 artifacts, and 7 distinct scopes: `analysis_complexity`, `analysis_content_assets`, `format_redaction_scan_args`, `tokmd_cli`, `tokmd_cockpit`, `tokmd_core_ffi`, and `tokmd_gate`. The new source-run window accounting reported `expected_runs = 99`, `observed_runs = 82`, `missing_runs = 17`, and `unmatched_observations = 0`, proving the collector can distinguish successful executor runs that lacked downloadable observation artifacts from observations outside the saved run window.
 - Proof-control-plane status: routine PR observations continue under the two-command default. There is no active promotion slice for a required gate, default Codecov upload, or larger command-limit default.
+- `cargo xtask perf-smoke --target-repo <path> --output target/perf/perf-smoke.json` now emits `tokmd.perf_smoke.v1`, an opt-in measurement receipt for core `lang`, `module`, and `export` workflows. The receipt records scan/model/receipt/total phase timings plus row and language counts while redacting raw target paths, giving performance issues a measurement baseline before optimization work.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 - The composite Action now adds hosted packet metadata to review-packet PR comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.
