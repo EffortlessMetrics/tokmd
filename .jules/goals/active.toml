@@ -5,6 +5,8 @@ lane = "documentation_control_surface"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
+doc_artifacts_spec = "docs/specs/doc-artifacts.md"
+doc_artifacts_plan = "docs/plans/doc-artifacts-check.md"
 plan_readme = "docs/plans/README.md"
 proposal_readme = "docs/proposals/README.md"
 spec_readme = "docs/specs/README.md"
