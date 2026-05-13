@@ -1092,6 +1092,115 @@ fn scenario_write_review_packet_includes_imported_proof_evidence() {
 }
 
 #[test]
+fn scenario_write_review_packet_keeps_ambiguous_multiscope_proof_packet_level() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut receipt = minimal_receipt();
+    receipt.review_plan = vec![
+        ReviewItem {
+            path: "crates/tokmd-cockpit/src/lib.rs".to_string(),
+            reason: "Cockpit review code changed".to_string(),
+            priority: 1,
+            complexity: Some(3),
+            lines_changed: Some(12),
+        },
+        ReviewItem {
+            path: "crates/tokmd/src/commands/cockpit.rs".to_string(),
+            reason: "CLI cockpit command changed".to_string(),
+            priority: 1,
+            complexity: Some(2),
+            lines_changed: Some(8),
+        },
+    ];
+    let out = dir.path().join("review");
+    let proof = tokmd_cockpit::parse_proof_evidence_input(
+        r#"{
+  "schema": "tokmd.proof_run_observation.v1",
+  "status": "passed",
+  "execution_status": "executed",
+  "profile": "fast",
+  "base": "main",
+  "head": "feature",
+  "ok": true,
+  "execution_guard": {
+    "enabled": true,
+    "ci": true,
+    "reason": "required proof-run summary verified"
+  },
+  "counts": {
+    "commands_total": 2,
+    "required_planned": 2,
+    "advisory_skipped": 0,
+    "executed": 2,
+    "passed": 2,
+    "failed": 0
+  },
+  "scopes": [
+    {
+      "name": "tokmd_cockpit",
+      "kind": "test",
+      "command": "cargo test -p tokmd-cockpit",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "name": "tokmd_cli",
+      "kind": "test",
+      "command": "cargo test -p tokmd --test cockpit_integration",
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "changed_files": [
+    "crates/tokmd-cockpit/src/lib.rs",
+    "crates/tokmd/src/commands/cockpit.rs"
+  ],
+  "unknown_files": []
+}"#,
+        "proof-run-observation.json",
+    )
+    .unwrap();
+
+    tokmd_cockpit::render::write_review_packet_with_proof_evidence(&out, &receipt, &[proof])
+        .unwrap();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    let proof = evidence["proof"].as_array().expect("proof evidence array");
+    assert_eq!(proof.len(), 2);
+
+    let review_map: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("review-map.json")).unwrap())
+            .unwrap();
+    let items = review_map["items"].as_array().expect("review-map items");
+    assert_eq!(items.len(), 2);
+    assert!(
+        review_map["evidence"]["refs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|reference| reference == "evidence.json#/proof"),
+        "multi-scope proof should stay visible at packet level"
+    );
+    assert!(
+        items[0]["proof_refs"].as_array().unwrap().is_empty(),
+        "ambiguous top-level changed_files must not attach all scopes to the cockpit item"
+    );
+    assert!(
+        items[1]["proof_refs"].as_array().unwrap().is_empty(),
+        "ambiguous top-level changed_files must not attach all scopes to the CLI item"
+    );
+
+    let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains("Proof evidence overview:"));
+    assert!(review_map_md.contains("- Required proof: 2 passed, 0 failed, 0 missing"));
+    assert_eq!(
+        review_map_md.matches("   Proof:").count(),
+        0,
+        "ambiguous multi-scope proof should not render item-level proof blocks"
+    );
+}
+
+#[test]
 fn scenario_write_review_packet_includes_imported_doc_artifacts_evidence() {
     let dir = tempfile::tempdir().unwrap();
     let mut receipt = minimal_receipt();
