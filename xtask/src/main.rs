@@ -57,6 +57,9 @@ fn main() -> Result<()> {
         Some(cli::Commands::Sccache(args)) => tasks::sccache::run(args),
         Some(cli::Commands::TrimTarget(args)) => tasks::trim_target::run(args),
         Some(cli::Commands::PerfSmoke(args)) => tasks::perf_smoke::run(args),
+        Some(cli::Commands::Badges(args)) => tasks::badges::run(args),
+        Some(cli::Commands::RiprPr(args)) => tasks::ripr::run_pr(args),
+        Some(cli::Commands::RiprReviewComments(args)) => tasks::ripr::run_review_comments(args),
         None => tasks::publish::run(PublishArgs::default()),
     }
 }

@@ -213,6 +213,16 @@ covered_by = ["nix flake check --no-build"]
 # .github/ tree
 # -----------------------------------------------------------------------
 
+
+[[allow]]
+glob = "scripts/*.py"
+kind = "ci_helper"
+owner = "release/ci"
+surface = "ci"
+classification = "config"
+reason = "Small CI helper scripts for advisory workflow annotations."
+covered_by = ["python scripts/ripr-annotations.py"]
+
 [[allow]]
 glob = ".github/workflows/*.yml"
 kind = "ci_declarative"
@@ -297,6 +307,17 @@ covered_by = []
 # -----------------------------------------------------------------------
 # Documentation surfaces
 # -----------------------------------------------------------------------
+
+[[allow]]
+glob = "badges/*.json"
+kind = "generated_badge_endpoint"
+owner = "release/ci"
+surface = "docs"
+classification = "generated"
+reason = "Generated Shields endpoint JSON for public README badges."
+generated_by = "cargo xtask badges"
+covered_by = ["cargo xtask badges --check"]
+
 
 [[allow]]
 glob = "docs/**"

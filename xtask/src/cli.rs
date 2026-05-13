@@ -78,6 +78,69 @@ pub enum Commands {
     TrimTarget(TrimTargetArgs),
     /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
+    /// Generate and verify public Shields badge endpoint JSON
+    Badges(BadgesArgs),
+    /// Produce PR-scoped RIPR exposure evidence
+    RiprPr(RiprPrArgs),
+    /// Produce PR-scoped RIPR review guidance comments
+    RiprReviewComments(RiprReviewCommentsArgs),
+}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BadgesArgs {
+    /// Verify committed badge endpoints are current without updating badges/
+    #[arg(long)]
+    pub check: bool,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprPrArgs {
+    /// Base git revision for PR-scoped RIPR evidence
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for PR-scoped RIPR evidence
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Verify the required target/ripr/pr artifacts without running ripr
+    #[arg(long)]
+    pub check: bool,
+}
+
+impl Default for RiprPrArgs {
+    fn default() -> Self {
+        Self {
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            check: false,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprReviewCommentsArgs {
+    /// Base git revision for PR-scoped RIPR review guidance
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision for PR-scoped RIPR review guidance
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Verify the required target/ripr/review artifacts without running ripr
+    #[arg(long)]
+    pub check: bool,
+}
+
+impl Default for RiprReviewCommentsArgs {
+    fn default() -> Self {
+        Self {
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            check: false,
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone, Default)]
