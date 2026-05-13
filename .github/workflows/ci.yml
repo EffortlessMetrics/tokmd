@@ -255,7 +255,7 @@ jobs:
           cargo xtask affected --base "origin/${{ github.base_ref }}" --head HEAD --json > target/proof/affected.json
           affected_status=$?
 
-          cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-plan.json
+          cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --plan-json target/proof/proof-plan.json --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json
           proof_plan_status=$?
 
           cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-artifacts-check.txt 2>&1
@@ -362,7 +362,7 @@ jobs:
           set +e
           mkdir -p target/proof-run
 
-          cargo xtask proof --profile "${PROOF_RUN_PROFILE}" --run-required --allow-ci-required-execution --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-plan.json
+          cargo xtask proof --profile "${PROOF_RUN_PROFILE}" --run-required --allow-ci-required-execution --plan-json target/proof-run/proof-plan.json --proof-run-summary target/proof-run/proof-run-summary.json
           proof_run_status=$?
 
           cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-run-artifacts-check.txt 2>&1

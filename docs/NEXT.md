@@ -73,6 +73,7 @@ review usefulness.
 - Fixture-blob checks now read `ci/proof.toml` while preserving the existing crypto extension and marker detection plus the `.claude`, `.jules`, `vendor`, proof-policy source, and checker-source allowlist behavior.
 - `cargo xtask affected --base origin/main --head HEAD --json` now maps changed files to proof scopes from `ci/proof.toml`, reports unknown files, and keeps non-Rust unknown handling policy-driven.
 - `cargo xtask proof --profile affected --base origin/main --head HEAD --plan` now prints a stable proof plan without running commands; `fast`, `release`, and `deep` profiles are plan-only placeholders for the next CI integration slices.
+- `cargo xtask proof --plan --plan-json <path>` now writes the same `tokmd.proof_plan.v1` report as a Rust-owned JSON artifact, so CI and handoff workflows do not need to rely on shell redirection to capture `proof-plan.json`.
 - CI now validates `cargo xtask proof-policy --check` as part of the required aggregate and uploads PR-only affected proof artifacts while keeping existing jobs authoritative.
 - The proof scope registry now covers first-class product/control-plane surfaces for CLI, gate, cockpit, WASM, browser runner, the composite GitHub Action, schema contracts, and the proof control plane.
 - Release, mutation, Nix validation, and label-sync workflows now have explicit proof-scope routing so Dependabot or workflow-only action updates do not fail affected planning as unknown files before they reach their relevant release, policy, or documentation proof.
