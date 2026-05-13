@@ -19,14 +19,14 @@ pub(crate) fn build_predictive_churn_report(
         row_map.insert(normalize_path(&row.path, repo_root), row);
     }
 
-    let mut series: BTreeMap<String, BTreeMap<i64, i64>> = BTreeMap::new();
+    let mut series: BTreeMap<&str, BTreeMap<i64, i64>> = BTreeMap::new();
     for commit in commits {
         let week = commit.timestamp / SECONDS_PER_WEEK;
-        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut seen: BTreeSet<&str> = BTreeSet::new();
         for file in &commit.files {
             let key = normalize_git_path(file);
             if let Some(row) = row_map.get(&key) {
-                seen.insert(row.module.clone());
+                seen.insert(row.module.as_str());
             }
         }
         for module in seen {
@@ -41,7 +41,7 @@ pub(crate) fn build_predictive_churn_report(
         let recent_change = recent_delta(&points);
         let classification = classify_trend(slope);
         per_module.insert(
-            module,
+            module.to_string(),
             ChurnTrend {
                 slope,
                 r2,

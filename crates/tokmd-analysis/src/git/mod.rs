@@ -22,14 +22,14 @@ pub(crate) fn build_git_report(
     export: &ExportData,
     commits: &[tokmd_git::GitCommit],
 ) -> Result<GitReport> {
-    let mut row_map: BTreeMap<String, (&FileRow, String)> = BTreeMap::new();
+    let mut row_map: BTreeMap<String, (&FileRow, &str)> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let key = normalize_path(&row.path, repo_root);
-        row_map.insert(key, (row, row.module.clone()));
+        row_map.insert(key, (row, row.module.as_str()));
     }
 
     let mut commit_counts: BTreeMap<String, usize> = BTreeMap::new();
-    let mut authors_by_module: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut authors_by_module: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     let mut last_change: BTreeMap<String, i64> = BTreeMap::new();
     let mut max_ts = 0i64;
 
@@ -37,23 +37,13 @@ pub(crate) fn build_git_report(
         max_ts = max_ts.max(commit.timestamp);
         for file in &commit.files {
             let key = normalize_git_path(file);
-            if let Some((row, module)) = row_map.get(&key) {
-                if let Some(val) = commit_counts.get_mut(&key) {
-                    *val += 1;
-                } else {
-                    commit_counts.insert(key.clone(), 1);
-                }
-                if let Some(val) = authors_by_module.get_mut(module) {
-                    val.insert(commit.author.clone());
-                } else {
-                    let mut set = BTreeSet::new();
-                    set.insert(commit.author.clone());
-                    authors_by_module.insert(module.clone(), set);
-                }
-                if !last_change.contains_key(&key) {
-                    last_change.insert(key.clone(), commit.timestamp);
-                }
-                let _ = row;
+            if let Some(&(_row, module)) = row_map.get(&key) {
+                *commit_counts.entry(key.clone()).or_insert(0) += 1;
+                authors_by_module
+                    .entry(module)
+                    .or_default()
+                    .insert(commit.author.as_str());
+                last_change.entry(key).or_insert(commit.timestamp);
             }
         }
     }
@@ -61,7 +51,7 @@ pub(crate) fn build_git_report(
     let mut hotspots: Vec<HotspotRow> = commit_counts
         .iter()
         .filter_map(|(path, commits)| {
-            let (row, _) = row_map.get(path)?;
+            let &(row, _) = row_map.get(path)?;
             Some(HotspotRow {
                 path: path.clone(),
                 commits: *commits,
@@ -75,7 +65,7 @@ pub(crate) fn build_git_report(
     let mut bus_factor: Vec<BusFactorRow> = authors_by_module
         .into_iter()
         .map(|(module, authors)| BusFactorRow {
-            module,
+            module: module.to_string(),
             authors: authors.len(),
         })
         .collect();
@@ -105,7 +95,7 @@ pub(crate) fn build_git_report(
 
 fn build_coupling(
     commits: &[tokmd_git::GitCommit],
-    row_map: &BTreeMap<String, (&FileRow, String)>,
+    row_map: &BTreeMap<String, (&FileRow, &str)>,
 ) -> Vec<CouplingRow> {
     let mut pairs: BTreeMap<(&str, &str), usize> = BTreeMap::new();
     let mut touches: BTreeMap<&str, usize> = BTreeMap::new();
@@ -115,8 +105,8 @@ fn build_coupling(
         let mut modules: BTreeSet<&str> = BTreeSet::new();
         for file in &commit.files {
             let key = normalize_git_path(file);
-            if let Some((_row, module)) = row_map.get(&key) {
-                modules.insert(module.as_str());
+            if let Some(&(_row, module)) = row_map.get(&key) {
+                modules.insert(module);
             }
         }
         // Only count commits where at least one file maps to a module
@@ -179,10 +169,10 @@ fn build_coupling(
 
 fn build_intent_report(
     commits: &[tokmd_git::GitCommit],
-    row_map: &BTreeMap<String, (&FileRow, String)>,
+    row_map: &BTreeMap<String, (&FileRow, &str)>,
 ) -> CommitIntentReport {
     let mut overall = CommitIntentCounts::default();
-    let mut by_module_counts: BTreeMap<String, CommitIntentCounts> = BTreeMap::new();
+    let mut by_module_counts: BTreeMap<&str, CommitIntentCounts> = BTreeMap::new();
 
     for commit in commits {
         let kind = tokmd_git::classify_intent(&commit.subject);
@@ -192,15 +182,12 @@ fn build_intent_report(
         let mut modules: BTreeSet<&str> = BTreeSet::new();
         for file in &commit.files {
             let key = normalize_git_path(file);
-            if let Some((_row, module)) = row_map.get(&key) {
-                modules.insert(module.as_str());
+            if let Some(&(_row, module)) = row_map.get(&key) {
+                modules.insert(module);
             }
         }
         for module in modules {
-            by_module_counts
-                .entry(module.to_string())
-                .or_default()
-                .increment(kind);
+            by_module_counts.entry(module).or_default().increment(kind);
         }
     }
 
@@ -221,7 +208,10 @@ fn build_intent_report(
 
     let mut by_module: Vec<ModuleIntentRow> = by_module_counts
         .into_iter()
-        .map(|(module, counts)| ModuleIntentRow { module, counts })
+        .map(|(module, counts)| ModuleIntentRow {
+            module: module.to_string(),
+            counts,
+        })
         .collect();
     by_module.sort_by(|a, b| a.module.cmp(&b.module));
 

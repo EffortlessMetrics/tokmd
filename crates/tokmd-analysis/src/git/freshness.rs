@@ -16,17 +16,17 @@ const REFRESH_TREND_EPSILON: f64 = 0.10;
 
 pub(super) fn build_freshness_report(
     last_change: &BTreeMap<String, i64>,
-    row_map: &BTreeMap<String, (&FileRow, String)>,
+    row_map: &BTreeMap<String, (&FileRow, &str)>,
     reference_ts: i64,
 ) -> FreshnessReport {
     let threshold_days = 365usize;
     let mut stale_files = 0usize;
     let mut total_files = 0usize;
-    let mut by_module: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
 
     for (path, ts) in last_change {
-        let (_, module) = match row_map.get(path) {
-            Some(v) => v,
+        let module = match row_map.get(path) {
+            Some((_, module)) => *module,
             None => continue,
         };
         let days = if reference_ts > *ts {
@@ -38,11 +38,7 @@ pub(super) fn build_freshness_report(
         if days > threshold_days {
             stale_files += 1;
         }
-        if let Some(list) = by_module.get_mut(module) {
-            list.push(days);
-        } else {
-            by_module.insert(module.clone(), vec![days]);
-        }
+        by_module.entry(module).or_default().push(days);
     }
 
     let stale_pct = if total_files == 0 {
@@ -71,7 +67,7 @@ pub(super) fn build_freshness_report(
             round_f64(stale as f64 / days.len() as f64, 4)
         };
         module_rows.push(ModuleFreshnessRow {
-            module,
+            module: module.to_string(),
             avg_days: avg,
             p90_days: p90,
             stale_pct: pct,
