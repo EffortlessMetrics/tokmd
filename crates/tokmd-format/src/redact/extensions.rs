@@ -11,15 +11,15 @@ const SAFE_PATH_EXTENSIONS: &[&str] = &[
 
 const SAFE_PATH_EXTENSION_SUFFIXES: &[&[&str]] = &[&["tar", "gz"]];
 
-pub(super) fn safe_path_extension(ext: &str) -> Option<&str> {
+pub(super) fn safe_path_extension(ext: &str) -> Option<&'static str> {
     let lower = ext.to_ascii_lowercase();
     SAFE_PATH_EXTENSIONS
         .binary_search(&lower.as_str())
         .ok()
-        .map(|_| ext)
+        .map(|idx| SAFE_PATH_EXTENSIONS[idx])
 }
 
-pub(super) fn safe_path_extension_suffix<'a>(parts: &'a [&'a str]) -> Option<Vec<&'a str>> {
+pub(super) fn safe_path_extension_suffix<'a>(parts: &'a [&'a str]) -> Option<Vec<&'static str>> {
     for suffix in SAFE_PATH_EXTENSION_SUFFIXES {
         let suffix_len = suffix.len();
         if parts.len() < suffix_len {
@@ -32,7 +32,7 @@ pub(super) fn safe_path_extension_suffix<'a>(parts: &'a [&'a str]) -> Option<Vec
             .zip(*suffix)
             .all(|(actual, expected)| actual.eq_ignore_ascii_case(expected))
         {
-            return Some(candidate.to_vec());
+            return Some(suffix.to_vec());
         }
     }
 

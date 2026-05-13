@@ -32,3 +32,8 @@ fn redaction_drops_suffixes_when_final_extension_is_unsafe() {
     assert!(!redacted.contains(".rs"));
     assert!(!redacted.contains(".bak"));
 }
+#[test]
+fn case_sensitive_extension_leak() {
+    let p1 = tokmd_format::redact::redact_path("file.JSON");
+    assert!(!p1.ends_with(".JSON"));
+}
