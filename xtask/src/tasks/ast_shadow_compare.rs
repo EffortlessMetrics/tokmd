@@ -28,6 +28,10 @@ fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
     let artifacts = build_shadow_artifacts(&shadow_inputs).context("build AST shadow artifacts")?;
     let paths = write_shadow_artifacts(&args.out, &artifacts)
         .with_context(|| format!("write AST shadow artifacts to {}", args.out.display()))?;
+    if let Some(summary_path) = &args.summary_md {
+        write_summary_md(summary_path, &args, &paths, &artifacts.diff, root)
+            .with_context(|| format!("write AST shadow summary to {}", summary_path.display()))?;
+    }
 
     let ast_files = artifacts
         .ast
@@ -49,8 +53,177 @@ fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
     println!("  heuristic: {}", paths.heuristic.display());
     println!("  ast: {}", paths.ast.display());
     println!("  diff: {}", paths.diff.display());
+    if let Some(summary_path) = &args.summary_md {
+        println!("  summary: {}", summary_path.display());
+    }
 
     Ok(())
+}
+
+fn write_summary_md(
+    summary_path: &Path,
+    args: &AstShadowCompareArgs,
+    paths: &tokmd_analysis::ast::ShadowArtifactPaths,
+    diff: &serde_json::Value,
+    root: &Path,
+) -> Result<()> {
+    let summary = render_summary_md(args, paths, diff, root)?;
+
+    if let Some(parent) = summary_path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("create summary parent {}", parent.display()))?;
+    }
+
+    fs::write(summary_path, summary)
+        .with_context(|| format!("write summary {}", summary_path.display()))
+}
+
+fn render_summary_md(
+    args: &AstShadowCompareArgs,
+    paths: &tokmd_analysis::ast::ShadowArtifactPaths,
+    diff: &serde_json::Value,
+    root: &Path,
+) -> Result<String> {
+    let summary = diff
+        .get("summary")
+        .and_then(serde_json::Value::as_object)
+        .context("diff artifact is missing summary object")?;
+    let files = diff
+        .get("files")
+        .and_then(serde_json::Value::as_array)
+        .context("diff artifact is missing files array")?;
+
+    let mut markdown = String::new();
+    markdown.push_str("# AST Shadow Comparison\n\n");
+    markdown.push_str("Developer-facing heuristic-vs-AST comparison evidence. ");
+    markdown.push_str("This is not a merge verdict, proof promotion, or public receipt.\n\n");
+
+    markdown.push_str("## Summary\n\n");
+    push_count_line(&mut markdown, "Files compared", summary, "files")?;
+    push_count_line(&mut markdown, "Matched landmarks", summary, "matched")?;
+    push_count_line(
+        &mut markdown,
+        "Heuristic-only landmarks",
+        summary,
+        "heuristic_only",
+    )?;
+    push_count_line(&mut markdown, "AST-only landmarks", summary, "ast_only")?;
+    push_count_line(
+        &mut markdown,
+        "Parse-degraded files",
+        summary,
+        "parse_degraded",
+    )?;
+    push_count_line(&mut markdown, "Unsupported files", summary, "unsupported")?;
+
+    markdown.push_str("\n## Artifacts\n\n");
+    markdown.push_str(&format!(
+        "- heuristic: `{}`\n",
+        summary_display_path(&paths.heuristic, root)?
+    ));
+    markdown.push_str(&format!(
+        "- ast: `{}`\n",
+        summary_display_path(&paths.ast, root)?
+    ));
+    markdown.push_str(&format!(
+        "- diff: `{}`\n",
+        summary_display_path(&paths.diff, root)?
+    ));
+
+    markdown.push_str("\n## Files\n\n");
+    for file in files {
+        let path = string_field(file, "path")?;
+        let status = string_field(file, "status")?;
+        let matches = array_len(file, "matches")?;
+        let heuristic_only = array_len(file, "heuristic_only")?;
+        let ast_only = array_len(file, "ast_only")?;
+        let parse_degraded = bool_field(file, "parse_degraded")?;
+        let unsupported = bool_field(file, "unsupported")?;
+
+        markdown.push_str(&format!("- `{path}`\n"));
+        markdown.push_str(&format!("  - status: `{status}`\n"));
+        markdown.push_str(&format!("  - matched landmarks: {matches}\n"));
+        markdown.push_str(&format!("  - heuristic-only landmarks: {heuristic_only}\n"));
+        markdown.push_str(&format!("  - AST-only landmarks: {ast_only}\n"));
+        markdown.push_str(&format!("  - parse degraded: {parse_degraded}\n"));
+        markdown.push_str(&format!("  - unsupported: {unsupported}\n"));
+    }
+
+    markdown.push_str("\n## Reproduce\n\n");
+    markdown.push_str("```bash\n");
+    markdown.push_str("cargo xtask ast-shadow-compare");
+    for path in &args.paths {
+        markdown.push_str(" \\\n  --path ");
+        markdown.push_str(&summary_display_path(path, root)?);
+    }
+    markdown.push_str(" \\\n  --out ");
+    markdown.push_str(&summary_display_path(&args.out, root)?);
+    if let Some(summary_md) = &args.summary_md {
+        markdown.push_str(" \\\n  --summary-md ");
+        markdown.push_str(&summary_display_path(summary_md, root)?);
+    }
+    markdown.push_str("\n```\n");
+
+    Ok(markdown)
+}
+
+fn push_count_line(
+    markdown: &mut String,
+    label: &str,
+    summary: &serde_json::Map<String, serde_json::Value>,
+    key: &str,
+) -> Result<()> {
+    let count = summary
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .with_context(|| format!("diff summary is missing numeric field `{key}`"))?;
+    markdown.push_str(&format!("- {label}: {count}\n"));
+    Ok(())
+}
+
+fn string_field<'a>(value: &'a serde_json::Value, field: &str) -> Result<&'a str> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_str)
+        .with_context(|| format!("diff file entry is missing string field `{field}`"))
+}
+
+fn bool_field(value: &serde_json::Value, field: &str) -> Result<bool> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_bool)
+        .with_context(|| format!("diff file entry is missing bool field `{field}`"))
+}
+
+fn array_len(value: &serde_json::Value, field: &str) -> Result<usize> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_array)
+        .map(Vec::len)
+        .with_context(|| format!("diff file entry is missing array field `{field}`"))
+}
+
+fn normalize_display_path(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
+
+fn summary_display_path(path: &Path, root: &Path) -> Result<String> {
+    let display_path = if path.is_absolute() {
+        path.strip_prefix(root)
+            .with_context(|| {
+                format!(
+                    "AST shadow summary paths must stay under the repo root: {}",
+                    path.display()
+                )
+            })?
+            .to_path_buf()
+    } else {
+        path.to_path_buf()
+    };
+    Ok(normalize_display_path(&display_path))
 }
 
 #[derive(Debug)]
@@ -351,6 +524,7 @@ pub fn compute(value: usize) -> usize {
         let args = AstShadowCompareArgs {
             paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
             out: out.clone(),
+            summary_md: None,
         };
 
         run_with_root(args.clone(), root.path())?;
@@ -364,6 +538,59 @@ pub fn compute(value: usize) -> usize {
         assert!(out.join("diff.json").exists());
         assert!(first.contains("\"schema\": \"tokmd.ast_shadow.v1\""));
         assert!(!first.contains(root.path().to_string_lossy().as_ref()));
+        Ok(())
+    }
+
+    #[test]
+    fn runner_writes_markdown_summary_when_requested() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture_dir = root.path().join("fixtures/ast-shadow/rust");
+        fs::create_dir_all(&fixture_dir)?;
+        fs::write(
+            fixture_dir.join("basic.rs"),
+            "use std::fs;\n\npub fn compute(value: usize) -> usize {\n    if value > 0 {\n        value\n    } else {\n        0\n    }\n}\n",
+        )?;
+        let out = root.path().join("target/tokmd-ast-shadow");
+        let summary_md = root.path().join("target/tokmd-ast-shadow/summary.md");
+        let args = AstShadowCompareArgs {
+            paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            out,
+            summary_md: Some(summary_md.clone()),
+        };
+
+        run_with_root(args, root.path())?;
+        let summary = fs::read_to_string(summary_md)?;
+
+        assert!(summary.contains("# AST Shadow Comparison"));
+        assert!(summary.contains("- Files compared: 1"));
+        assert!(summary.contains("- `fixtures/ast-shadow/rust/basic.rs`"));
+        assert!(summary.contains("cargo xtask ast-shadow-compare"));
+        assert!(summary.contains("--summary-md"));
+        assert!(!summary.contains(&normalize_display_path(root.path())));
+        Ok(())
+    }
+
+    #[test]
+    fn summary_rejects_paths_outside_repo_root() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        let fixture_dir = root.path().join("fixtures/ast-shadow/rust");
+        fs::create_dir_all(&fixture_dir)?;
+        fs::write(
+            fixture_dir.join("basic.rs"),
+            "use std::fs;\n\npub fn compute() {}\n",
+        )?;
+        let args = AstShadowCompareArgs {
+            paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            out: root.path().join("target/tokmd-ast-shadow"),
+            summary_md: Some(outside.path().join("summary.md")),
+        };
+
+        let error = run_with_root(args, root.path())
+            .expect_err("summary paths outside the repo should fail");
+
+        assert!(error.to_string().contains("AST shadow summary"));
+        assert!(!outside.path().join("summary.md").exists());
         Ok(())
     }
 }

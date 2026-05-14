@@ -61,6 +61,8 @@ equivalence, call graphs, type resolution, or complexity replacement.
    - Keep `diff.json` human- and agent-readable enough for early evidence
      collection by adding aggregate counts before wiring the artifacts into
      cockpit, handoff, evidencebus, or public receipts.
+   - Add an optional Markdown summary output for maintainer review of aggregate
+     counts, per-file status, artifact paths, and the reproduction command.
    - Use runner output to decide whether function, import, or control-flow
      landmarks are accurate enough for a later public schema proposal.
 6. Verify the generated artifact set.
@@ -93,7 +95,7 @@ For the later runner implementation slice, add:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --out target/tokmd-ast-shadow --path <fixture-rust-path>
+cargo xtask ast-shadow-compare --out target/tokmd-ast-shadow --summary-md target/tokmd-ast-shadow/summary.md --path <fixture-rust-path>
 cargo xtask ast-shadow-check --path <fixture-rust-path> --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
 cargo xtask publish-surface --json --verify-publish
 ```
@@ -133,3 +135,7 @@ cargo xtask publish-surface --json --verify-publish
   validates the generated shadow artifact set and can emit a
   `tokmd.ast_shadow_check.v1` receipt without changing default product
   behavior.
+- 2026-05-14: Added optional Markdown summary output for the comparison runner.
+  `--summary-md` renders aggregate counts, per-file status, artifact paths, and
+  the reproduction command without changing the JSON artifact contract or any
+  public `tokmd` output.

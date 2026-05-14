@@ -14,6 +14,7 @@ pub fn run(args: AstShadowCheckArgs) -> Result<()> {
         ast_shadow_compare::run(AstShadowCompareArgs {
             paths: args.paths.clone(),
             out: args.dir.clone(),
+            summary_md: None,
         })?;
     }
 

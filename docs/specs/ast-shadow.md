@@ -51,6 +51,7 @@ target/tokmd-ast-shadow/
   heuristic.json
   ast.json
   diff.json
+  summary.md         # optional human summary
   check.json          # optional verifier receipt
 ```
 
@@ -75,6 +76,20 @@ comparison without scanning every file entry.
 
 All three artifacts must avoid timestamps, absolute paths, environment-specific
 temporary directories, and nondeterministic ordering.
+
+The comparison runner may also write an optional `summary.md`:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --path fixtures/ast-shadow/rust/basic.rs \
+  --out target/tokmd-ast-shadow \
+  --summary-md target/tokmd-ast-shadow/summary.md
+```
+
+The Markdown summary is a human review layer over `diff.json`. It should include
+aggregate counts, per-file comparison status, artifact paths, and a reproduction
+command. It must not add pass/fail language, merge verdicts, proof-promotion
+claims, or public receipt semantics.
 
 The verifier is developer-facing xtask tooling:
 
@@ -150,7 +165,7 @@ names should run:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --path fixtures/ast-shadow/rust/basic.rs --out target/tokmd-ast-shadow
+cargo xtask ast-shadow-compare --path fixtures/ast-shadow/rust/basic.rs --out target/tokmd-ast-shadow --summary-md target/tokmd-ast-shadow/summary.md
 cargo xtask ast-shadow-check --path fixtures/ast-shadow/rust/basic.rs --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
 cargo xtask proof-policy --check
 cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected-ast-shadow.json

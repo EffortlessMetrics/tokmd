@@ -110,6 +110,10 @@ pub struct AstShadowCompareArgs {
     /// Output directory for heuristic.json, ast.json, and diff.json.
     #[arg(long, default_value = "target/tokmd-ast-shadow")]
     pub out: std::path::PathBuf,
+
+    /// Optional Markdown summary path for human review of comparison counts.
+    #[arg(long)]
+    pub summary_md: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]

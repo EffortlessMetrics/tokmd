@@ -88,6 +88,16 @@ each section.
 | `review-links.json` | `.handoff/review-links.json` | `tokmd handoff --review-packet-dir/--review-packet-check` | Packet-local pointers to external cockpit review packet artifacts and verifier receipt. | It does not copy or verify the external review packet. | Open linked `review-packet-check.json` before trusting the review packet. |
 | `proof-links.json` | `.handoff/proof-links.json` | `tokmd handoff --affected/--proof-plan` | Packet-local pointers to external affected-proof and proof-plan receipts. | It does not run proof or make planned proof pass. | Open linked `affected.json` and `proof-plan.json`; run required proof when needed. |
 
+## AST Shadow Evidence
+
+| Artifact | Usual path | Writer | Means | Does not mean | Verify or inspect |
+| --- | --- | --- | --- | --- | --- |
+| `heuristic.json` | `target/tokmd-ast-shadow/heuristic.json` | `cargo xtask ast-shadow-compare` | Developer-facing view of the heuristic Rust landmarks selected for AST comparison. | It is not a public `tokmd` receipt or default analysis output. | Pair with `ast.json` and `diff.json`; verify with `cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow`. |
+| `ast.json` | `target/tokmd-ast-shadow/ast.json` | `cargo xtask ast-shadow-compare` | Feature-gated AST-backed Rust landmarks for the same explicit file selection. | It does not claim browser/WASM AST support or replace heuristic defaults. | Inspect parser status and parse-degraded files before drawing conclusions. |
+| `diff.json` | `target/tokmd-ast-shadow/diff.json` | `cargo xtask ast-shadow-compare` | Deterministic comparison of heuristic and AST landmarks, including matched, heuristic-only, AST-only, parse-degraded, and unsupported counts. | It is not a merge verdict or proof-promotion signal. | Read `summary.md` first if present; verify summary counts with `ast-shadow-check`. |
+| `summary.md` | `target/tokmd-ast-shadow/summary.md` | `cargo xtask ast-shadow-compare --summary-md <path>` | Human review layer over `diff.json` with aggregate counts, per-file status, artifact paths, and reproduction command. | It is not machine authority; use JSON artifacts for tooling. | Re-run the command shown in the summary and then run `ast-shadow-check`. |
+| `check.json` | `target/tokmd-ast-shadow/check.json` | `cargo xtask ast-shadow-check --json <path>` | Verifier receipt for the AST shadow artifact set: required files, schema/kind, sorted relative paths, timestamp-free content, and matching summary counts. | It does not make AST evidence public product behavior. | Regenerate after any artifact change and keep it with the compared artifact set. |
+
 ## Browser Artifacts
 
 | Artifact | Usual path | Writer | Means | Does not mean | Verify or inspect |
