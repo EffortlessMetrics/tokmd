@@ -43,7 +43,10 @@ checker plan is closed out. Agent handoff readiness has also closed through
 linked review/proof artifacts and `work-order.md`. The first product-readiness
 user-path pass is complete: README, Start Here, review-packet docs, tutorial,
 recipes, browser guidance, and handoff guidance now start from user jobs instead
-of control-plane internals.
+of control-plane internals. The artifact glossary lane is complete as a
+follow-on compression pass, giving users one dictionary for review packets,
+proof receipts, handoff bundles, documentation-control receipts, and browser
+artifacts.
 
 ## Next Work Packets
 

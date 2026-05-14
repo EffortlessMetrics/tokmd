@@ -1,7 +1,7 @@
 schema = "tokmd.jules.active_goal.v1"
 status = "complete"
 program = "product_readiness"
-lane = "user_path_simplification"
+lane = "artifact_glossary"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -12,6 +12,8 @@ proposal_readme = "docs/proposals/README.md"
 spec_readme = "docs/specs/README.md"
 adr_readme = "docs/adr/README.md"
 product_readiness_plan = "docs/plans/product-readiness.md"
+artifact_glossary_plan = "docs/plans/artifact-glossary.md"
+artifact_glossary = "docs/artifacts.md"
 handoff_guide = "docs/handoff.md"
 handoff_schema = "docs/handoff-schema.md"
 review_packet_contract = "docs/review-packet.md"

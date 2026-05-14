@@ -72,6 +72,9 @@ For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
 | Baselines | Ratchet-ready baseline JSON |
 | LLM context | Bounded bundles, redaction, [handoff directories](docs/handoff.md) |
 
+For the receipt and packet names you will see in these workflows, use the
+[artifact glossary](docs/artifacts.md).
+
 ## Choose a Path
 
 | If you need to... | Start with... | Typical output |
