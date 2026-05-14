@@ -26,7 +26,9 @@ pub struct RustLandmark {
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum RustLandmarkKind {
+    ControlFlow,
     Function,
+    Import,
 }
 
 #[derive(Debug)]
@@ -79,19 +81,27 @@ pub fn parse_rust_landmarks(source: &str) -> Result<RustAstShadow, RustAstError>
 }
 
 fn collect_landmarks(node: Node<'_>, source: &[u8], landmarks: &mut Vec<RustLandmark>) {
-    if node.kind() == "function_item"
-        && let Some(name) = function_name(node, source)
-    {
-        let start = node.start_position();
-        let end = node.end_position();
-        landmarks.push(RustLandmark {
-            kind: RustLandmarkKind::Function,
-            name,
-            start_byte: node.start_byte(),
-            end_byte: node.end_byte(),
-            start_line: start.row + 1,
-            end_line: end.row + 1,
-        });
+    match node.kind() {
+        "function_item" => {
+            if let Some(name) = function_name(node, source) {
+                push_landmark(node, RustLandmarkKind::Function, name, landmarks);
+            }
+        }
+        "use_declaration" => {
+            if let Some(name) = use_declaration_name(node, source) {
+                push_landmark(node, RustLandmarkKind::Import, name, landmarks);
+            }
+        }
+        kind => {
+            if let Some(name) = control_flow_name(kind) {
+                push_landmark(
+                    node,
+                    RustLandmarkKind::ControlFlow,
+                    name.to_owned(),
+                    landmarks,
+                );
+            }
+        }
     }
 
     let mut cursor = node.walk();
@@ -104,6 +114,51 @@ fn function_name(node: Node<'_>, source: &[u8]) -> Option<String> {
     node.child_by_field_name("name")
         .and_then(|name| name.utf8_text(source).ok())
         .map(str::to_owned)
+}
+
+fn use_declaration_name(node: Node<'_>, source: &[u8]) -> Option<String> {
+    normalized_node_text(node, source).map(|text| {
+        text.strip_prefix("use ")
+            .unwrap_or(&text)
+            .trim_end_matches(';')
+            .trim()
+            .to_owned()
+    })
+}
+
+fn normalized_node_text(node: Node<'_>, source: &[u8]) -> Option<String> {
+    node.utf8_text(source)
+        .ok()
+        .map(|text| text.split_whitespace().collect::<Vec<_>>().join(" "))
+}
+
+fn control_flow_name(kind: &str) -> Option<&'static str> {
+    match kind {
+        "if_expression" => Some("if"),
+        "match_expression" => Some("match"),
+        "for_expression" => Some("for"),
+        "while_expression" => Some("while"),
+        "loop_expression" => Some("loop"),
+        _ => None,
+    }
+}
+
+fn push_landmark(
+    node: Node<'_>,
+    kind: RustLandmarkKind,
+    name: String,
+    landmarks: &mut Vec<RustLandmark>,
+) {
+    let start = node.start_position();
+    let end = node.end_position();
+    landmarks.push(RustLandmark {
+        kind,
+        name,
+        start_byte: node.start_byte(),
+        end_byte: node.end_byte(),
+        start_line: start.row + 1,
+        end_line: end.row + 1,
+    });
 }
 
 #[cfg(test)]
@@ -165,5 +220,51 @@ async fn compute() {}
         assert_eq!(shadow.landmarks.len(), 1);
         assert_eq!(shadow.landmarks[0].start_line, 3);
         assert_eq!(shadow.landmarks[0].end_line, 4);
+    }
+
+    #[test]
+    fn parses_import_and_simple_control_flow_landmarks() {
+        let source = r#"
+use std::{
+    fs,
+    path::Path,
+};
+
+fn compute(value: i32) {
+    if value > 0 {
+        for item in 0..value {
+            while item > 1 {
+                break;
+            }
+        }
+    }
+
+    match value {
+        0 => loop {
+            break;
+        },
+        _ => {}
+    }
+}
+"#;
+
+        let shadow = parse_rust_landmarks(source).expect("Rust source should parse");
+
+        assert_eq!(
+            shadow
+                .landmarks
+                .iter()
+                .map(|landmark| (landmark.kind, landmark.name.as_str()))
+                .collect::<Vec<_>>(),
+            vec![
+                (RustLandmarkKind::Import, "std::{ fs, path::Path, }"),
+                (RustLandmarkKind::Function, "compute"),
+                (RustLandmarkKind::ControlFlow, "if"),
+                (RustLandmarkKind::ControlFlow, "for"),
+                (RustLandmarkKind::ControlFlow, "while"),
+                (RustLandmarkKind::ControlFlow, "match"),
+                (RustLandmarkKind::ControlFlow, "loop"),
+            ]
+        );
     }
 }

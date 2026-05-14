@@ -274,7 +274,9 @@ fn shadow_landmark_from_rust(landmark: &RustLandmark) -> ShadowLandmark {
 
 fn rust_landmark_kind_value(kind: RustLandmarkKind) -> &'static str {
     match kind {
+        RustLandmarkKind::ControlFlow => "control_flow",
         RustLandmarkKind::Function => "function",
+        RustLandmarkKind::Import => "import",
     }
 }
 
