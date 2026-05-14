@@ -55,10 +55,11 @@ Rust shadow parser now records function, import, and simple control-flow
 landmarks behind the existing `ast` feature. The AST shadow lane also has a
 developer-facing synthetic performance receipt example so parser and artifact
 builder timings can be collected before any public behavior change is proposed.
-The active AST follow-on is now the comparison-runner lane: define the first
-developer-facing runner around Rust landmark presence for functions, imports,
-and simple control-flow, keeping it out of default product workflows until
-comparison evidence exists.
+The active AST follow-on is now the comparison-runner lane: the developer-facing
+runner and verifier exist, the first internal-corpus comparison evidence is
+recorded in `docs/plans/ast-shadow-comparison-runner.md`, and AST work must
+stay out of default product workflows until broader comparison evidence
+justifies a public schema or behavior proposal.
 
 ## Next Work Packets
 

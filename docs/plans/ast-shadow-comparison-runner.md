@@ -115,6 +115,56 @@ cargo xtask publish-surface --json --verify-publish
 - Stop if docs imply proof promotion, Codecov upload, merge verdicts, or
   default AST adoption.
 
+## Evidence Notes
+
+### 2026-05-14: Internal AST implementation files
+
+Command:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --path crates/tokmd-analysis/src/ast/rust.rs \
+  --path crates/tokmd-analysis/src/ast/shadow.rs \
+  --out target/tokmd-ast-shadow-real-corpus \
+  --summary-md target/tokmd-ast-shadow-real-corpus/summary.md
+
+cargo xtask ast-shadow-check \
+  --dir target/tokmd-ast-shadow-real-corpus \
+  --json target/tokmd-ast-shadow-real-corpus/check.json
+```
+
+Observed summary:
+
+| Metric | Count |
+| --- | ---: |
+| Files compared | 2 |
+| Matched landmarks | 70 |
+| Heuristic-only landmarks | 33 |
+| AST-only landmarks | 0 |
+| Parse-degraded files | 0 |
+| Unsupported files | 0 |
+
+Per-file summary:
+
+| File | Matched | Heuristic-only | AST-only | Parse degraded |
+| --- | ---: | ---: | ---: | --- |
+| `crates/tokmd-analysis/src/ast/rust.rs` | 26 | 23 | 0 | false |
+| `crates/tokmd-analysis/src/ast/shadow.rs` | 44 | 10 | 0 | false |
+
+Interpretation:
+
+- This is comparison evidence only, not a product behavior change or merge
+  verdict.
+- The selected internal corpus had no parse degradation and no unsupported
+  files.
+- The first signal is heuristic over-reporting, not AST-only discovery: the
+  line heuristic reported extra function/import/control-flow landmarks in test
+  fixture strings and examples that the AST parser did not treat as Rust code.
+- The next decision should use a broader corpus before proposing any public
+  receipt field. Function-boundary precision remains the likely first
+  candidate because false positives from fixture strings are easy to explain
+  and review.
+
 ## Checkpoint History
 
 - 2026-05-14: Started the comparison-runner lane after the synthetic AST shadow
@@ -139,3 +189,8 @@ cargo xtask publish-surface --json --verify-publish
   `--summary-md` renders aggregate counts, per-file status, artifact paths, and
   the reproduction command without changing the JSON artifact contract or any
   public `tokmd` output.
+- 2026-05-14: Collected the first real internal-corpus comparison evidence on
+  `crates/tokmd-analysis/src/ast/rust.rs` and
+  `crates/tokmd-analysis/src/ast/shadow.rs`. The run found 70 matched
+  landmarks, 33 heuristic-only landmarks, zero AST-only landmarks, and no parse
+  degradation.
