@@ -3,6 +3,9 @@
 Use this page when you know the job you want `tokmd` to do, but do not want to
 learn the whole control plane first.
 
+If a workflow gives you an artifact name and you need to know what it means,
+open the [Artifact glossary](artifacts.md).
+
 ## 1. Tell Me What This Repo Is
 
 Start with the smallest useful receipt:
@@ -26,6 +29,7 @@ More detail:
 
 - [Tutorial](tutorial.md) for a first walkthrough.
 - [Recipes](recipes.md) for analysis and export examples.
+- [Artifact glossary](artifacts.md) for receipt and packet names.
 - [Schema](SCHEMA.md) for receipt contracts.
 
 ## 2. Tell Me What Changed
@@ -100,6 +104,7 @@ promoting advisory checks.
 More detail:
 
 - [Review packet contract](review-packet.md).
+- [Artifact glossary](artifacts.md) for packet and verifier names.
 - [tokmd in Cockpit](tokmd-in-cockpit.md).
 - [Proof evidence import contract](cockpit-proof-evidence.md).
 
@@ -138,6 +143,7 @@ maintainer explicitly promotes them.
 More detail:
 
 - [GitHub Action reference](github-action.md).
+- [Artifact glossary](artifacts.md) for proof and coverage receipts.
 - [Coverage guidance](ci/coverage.md).
 - [Proof policy](../ci/proof.toml).
 
@@ -181,6 +187,7 @@ More detail:
 
 - [Handoff bundles](handoff.md).
 - [Handoff schema](handoff-schema.md).
+- [Artifact glossary](artifacts.md) for handoff, review, and proof links.
 - [Agent source-of-truth workflow](agent-workflows/source-of-truth.md).
 
 ## Browser Or No-Install Evaluation
