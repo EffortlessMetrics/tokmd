@@ -59,9 +59,11 @@ The active AST follow-on is now the comparison-runner lane: the developer-facing
 runner and verifier exist, the first internal-corpus comparison evidence is
 recorded in `docs/plans/ast-shadow-comparison-runner.md`, and
 function-boundary precision is the first public-candidate fact family for
-future evidence collection. AST work must stay out of default product workflows
-until broader comparison evidence justifies a public schema or behavior
-proposal.
+future evidence collection. A broader five-file internal Rust corpus has also
+been recorded there, reinforcing the function-boundary priority while keeping
+control-flow evidence shadow-only. AST work must stay out of default product
+workflows until broader comparison evidence justifies a public schema or
+behavior proposal.
 
 ## Next Work Packets
 

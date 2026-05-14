@@ -168,6 +168,70 @@ Interpretation:
   candidate because false positives from fixture strings are easy to explain
   and review.
 
+### 2026-05-14: Broader internal Rust corpus
+
+Command:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --path crates/tokmd-analysis/src/complexity/functions/rust.rs \
+  --path crates/tokmd-analysis/src/imports/parser.rs \
+  --path crates/tokmd-cockpit/src/review_plan.rs \
+  --path crates/tokmd/src/context_pack/select.rs \
+  --path xtask/src/tasks/ast_shadow_compare.rs \
+  --out target/tokmd-ast-shadow-broader-corpus \
+  --summary-md target/tokmd-ast-shadow-broader-corpus/summary.md
+
+cargo xtask ast-shadow-check \
+  --dir target/tokmd-ast-shadow-broader-corpus \
+  --json target/tokmd-ast-shadow-broader-corpus/check.json
+```
+
+Observed summary:
+
+| Metric | Count |
+| --- | ---: |
+| Files compared | 5 |
+| Matched landmarks | 180 |
+| Heuristic-only landmarks | 67 |
+| AST-only landmarks | 30 |
+| Parse-degraded files | 0 |
+| Unsupported files | 0 |
+
+Per-file summary:
+
+| File | Matched | Heuristic-only | AST-only | Parse degraded |
+| --- | ---: | ---: | ---: | --- |
+| `crates/tokmd-analysis/src/complexity/functions/rust.rs` | 18 | 10 | 9 | false |
+| `crates/tokmd-analysis/src/imports/parser.rs` | 56 | 4 | 2 | false |
+| `crates/tokmd-cockpit/src/review_plan.rs` | 27 | 14 | 14 | false |
+| `crates/tokmd/src/context_pack/select.rs` | 24 | 15 | 3 | false |
+| `xtask/src/tasks/ast_shadow_compare.rs` | 55 | 24 | 2 | false |
+
+Mismatch summary by landmark kind:
+
+| Kind | Matches | Heuristic-only | AST-only |
+| --- | ---: | ---: | ---: |
+| `function` | 95 | 6 | 0 |
+| `import` | 20 | 1 | 1 |
+| `control_flow` | 65 | 60 | 29 |
+
+Interpretation:
+
+- This is comparison evidence only, not a product behavior change or merge
+  verdict.
+- The selected broader corpus had no parse degradation and no unsupported
+  files.
+- Function-boundary evidence remains the first public-candidate fact family:
+  the broader run found no AST-only function landmarks, and the six
+  heuristic-only function landmarks came from Rust source text embedded inside
+  tests or examples rather than from parsed Rust items.
+- Control-flow landmarks show more disagreement in both directions and should
+  stay shadow-only until a separate precision target is defined.
+- Broader corpus coverage is still required before proposing any public receipt
+  field, default behavior, browser capability, cockpit signal, or handoff
+  signal.
+
 ## Checkpoint History
 
 - 2026-05-14: Started the comparison-runner lane after the synthetic AST shadow
@@ -204,3 +268,8 @@ Interpretation:
   parser showed no degradation on the selected files. This does not promote AST
   into any public receipt, default workflow, browser claim, cockpit output,
   handoff output, proof gate, or Codecov behavior.
+- 2026-05-14: Collected a broader five-file internal Rust corpus across
+  analysis, cockpit, context packing, and xtask code. The run found 180 matched
+  landmarks, 67 heuristic-only landmarks, 30 AST-only landmarks, and no parse
+  degradation. Function-boundary precision remains the first public-candidate
+  fact family, while control-flow evidence remains shadow-only.
