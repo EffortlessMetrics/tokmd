@@ -132,6 +132,7 @@ pub fn build_shadow_artifacts(
     let mut heuristic_files = Vec::with_capacity(inputs.len());
     let mut ast_files = Vec::with_capacity(inputs.len());
     let mut diff_files = Vec::with_capacity(inputs.len());
+    let mut diff_summary = ShadowDiffSummary::default();
 
     for (path, input) in inputs {
         let mut heuristic_landmarks = input.heuristic_landmarks.to_vec();
@@ -145,6 +146,7 @@ pub fn build_shadow_artifacts(
 
         let diff = compare_landmarks(&heuristic_landmarks, &ast_landmarks);
         let parse_degraded = ast_shadow.has_error;
+        diff_summary.add_file(&diff, parse_degraded, false);
 
         heuristic_files.push(json!({
             "path": path,
@@ -186,6 +188,7 @@ pub fn build_shadow_artifacts(
         diff: json!({
             "schema": AST_SHADOW_SCHEMA_VERSION,
             "kind": "diff",
+            "summary": diff_summary.value(),
             "files": diff_files,
         }),
     })
@@ -286,6 +289,38 @@ struct LandmarkDiff {
     ast_only: Vec<ShadowLandmark>,
 }
 
+#[derive(Default)]
+struct ShadowDiffSummary {
+    files: usize,
+    matched: usize,
+    heuristic_only: usize,
+    ast_only: usize,
+    parse_degraded: usize,
+    unsupported: usize,
+}
+
+impl ShadowDiffSummary {
+    fn add_file(&mut self, diff: &LandmarkDiff, parse_degraded: bool, unsupported: bool) {
+        self.files += 1;
+        self.matched += diff.matches.len();
+        self.heuristic_only += diff.heuristic_only.len();
+        self.ast_only += diff.ast_only.len();
+        self.parse_degraded += usize::from(parse_degraded);
+        self.unsupported += usize::from(unsupported);
+    }
+
+    fn value(&self) -> Value {
+        json!({
+            "files": self.files,
+            "matched": self.matched,
+            "heuristic_only": self.heuristic_only,
+            "ast_only": self.ast_only,
+            "parse_degraded": self.parse_degraded,
+            "unsupported": self.unsupported,
+        })
+    }
+}
+
 fn compare_landmarks(heuristic: &[ShadowLandmark], ast: &[ShadowLandmark]) -> LandmarkDiff {
     let heuristic = heuristic.iter().cloned().collect::<BTreeSet<_>>();
     let ast = ast.iter().cloned().collect::<BTreeSet<_>>();
@@ -361,9 +396,51 @@ mod tests {
             artifacts.diff["files"][0]["ast_only"][0]["name"],
             "ast_only"
         );
+        assert_eq!(artifacts.diff["summary"]["files"], 2);
+        assert_eq!(artifacts.diff["summary"]["matched"], 1);
+        assert_eq!(artifacts.diff["summary"]["heuristic_only"], 0);
+        assert_eq!(artifacts.diff["summary"]["ast_only"], 2);
+        assert_eq!(artifacts.diff["summary"]["parse_degraded"], 0);
+        assert_eq!(artifacts.diff["summary"]["unsupported"], 0);
         assert!(artifacts.heuristic.get("generated_at").is_none());
         assert!(artifacts.ast.get("generated_at").is_none());
         assert!(artifacts.diff.get("generated_at").is_none());
+    }
+
+    #[test]
+    fn diff_summary_counts_match_comparison_entries() {
+        let heuristic = [ShadowLandmark::function("heuristic_only", 1, 1)];
+        let files = [ShadowFileInput {
+            path: "src/lib.rs",
+            language: AstLanguage::Rust,
+            source: "fn ast_only() {}\n",
+            heuristic_landmarks: &heuristic,
+        }];
+
+        let artifacts = build_shadow_artifacts(&files).expect("shadow artifacts should build");
+
+        assert_eq!(artifacts.diff["summary"]["files"], 1);
+        assert_eq!(artifacts.diff["summary"]["matched"], 0);
+        assert_eq!(artifacts.diff["summary"]["heuristic_only"], 1);
+        assert_eq!(artifacts.diff["summary"]["ast_only"], 1);
+        assert_eq!(artifacts.diff["summary"]["parse_degraded"], 0);
+        assert_eq!(artifacts.diff["summary"]["unsupported"], 0);
+        assert_eq!(
+            artifacts.diff["summary"]["heuristic_only"]
+                .as_u64()
+                .unwrap(),
+            artifacts.diff["files"][0]["heuristic_only"]
+                .as_array()
+                .unwrap()
+                .len() as u64
+        );
+        assert_eq!(
+            artifacts.diff["summary"]["ast_only"].as_u64().unwrap(),
+            artifacts.diff["files"][0]["ast_only"]
+                .as_array()
+                .unwrap()
+                .len() as u64
+        );
     }
 
     #[test]
@@ -380,6 +457,7 @@ mod tests {
         assert_eq!(artifacts.ast["files"][0]["has_error"], true);
         assert_eq!(artifacts.diff["files"][0]["status"], "parse_degraded");
         assert_eq!(artifacts.diff["files"][0]["parse_degraded"], true);
+        assert_eq!(artifacts.diff["summary"]["parse_degraded"], 1);
     }
 
     #[test]

@@ -57,7 +57,10 @@ equivalence, call graphs, type resolution, or complexity replacement.
    - Cover a Rust fixture with functions, imports, and simple control flow.
    - Route the runner through the existing `analysis_ast_shadow` proof scope.
 5. Collect comparison evidence without product adoption.
-   - Status: pending.
+   - Status: active.
+   - Keep `diff.json` human- and agent-readable enough for early evidence
+     collection by adding aggregate counts before wiring the artifacts into
+     cockpit, handoff, evidencebus, or public receipts.
    - Use runner output to decide whether function, import, or control-flow
      landmarks are accurate enough for a later public schema proposal.
 
@@ -110,3 +113,7 @@ cargo xtask publish-surface --json --verify-publish
   `heuristic.json`, `ast.json`, and `diff.json` artifacts, and routes the
   runner plus fixture corpus through `analysis_ast_shadow` proof. The slice does
   not add a public `tokmd` CLI command or change default receipt behavior.
+- 2026-05-14: Added `diff.json` summary counts for files, matched landmarks,
+  heuristic-only landmarks, AST-only landmarks, parse-degraded files, and
+  unsupported files. This keeps the shadow artifact useful for evidence
+  collection without turning it into a gate or merge verdict.
