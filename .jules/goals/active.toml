@@ -1,7 +1,7 @@
 schema = "tokmd.jules.active_goal.v1"
 status = "active"
 program = "code_intelligence"
-lane = "proof_observation_decision_readiness"
+lane = "ast_function_boundary_candidate_evidence"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -20,6 +20,7 @@ ast_shadow_artifact_builder_plan = "docs/plans/ast-shadow-artifact-builder.md"
 ast_rust_landmark_coverage_plan = "docs/plans/ast-rust-landmark-coverage.md"
 ast_shadow_performance_plan = "docs/plans/ast-shadow-performance-benchmark.md"
 ast_shadow_comparison_runner_plan = "docs/plans/ast-shadow-comparison-runner.md"
+ast_function_boundary_candidate_plan = "docs/plans/ast-function-boundary-candidate.md"
 ast_foundation_adr = "docs/adr/0008-ast-foundation.md"
 handoff_guide = "docs/handoff.md"
 handoff_schema = "docs/handoff-schema.md"
@@ -39,6 +40,7 @@ handoff_integrity = "link_review_and_proof_receipts_without_replacing_their_veri
 ast_shadow = "developer_facing_shadow_artifacts_only"
 ast_default_behavior = "do_not_change_default_receipts_or_browser_capabilities"
 ast_schema = "public_ast_fields_require_schema_family_review"
+ast_function_boundary_candidate = "evidence_first_no_public_product_behavior"
 proof_observation = "summarize_existing_receipts_before_any_promotion_decision"
 github_actions_boundary = "keep_actions_as_runner_cache_artifact_shell"
 

@@ -118,11 +118,15 @@ Rust source and heuristic landmarks. Its Rust parser records function, import,
 and simple control-flow landmarks, but it is not wired into default CLI,
 receipt, browser, FFI, Python, Node, or CI behavior.
 
-The next active implementation plan is
-`docs/plans/ast-shadow-comparison-runner.md`. It selects Rust landmark presence
-for functions, imports, and simple control-flow as the first comparison target
-and keeps the first runner in developer tooling rather than the public `tokmd`
-CLI while the artifact contract stabilizes.
+The comparison-runner implementation plan,
+`docs/plans/ast-shadow-comparison-runner.md`, is complete through first
+enforcement. The active follow-on plan is
+`docs/plans/ast-function-boundary-candidate.md`. It uses the existing runner,
+verifier, Markdown summary, corpus evidence, mismatch classification, and
+timing receipts to decide whether Rust function-boundary precision is ready for
+a later public candidate proposal. It does not change default `tokmd` CLI
+behavior, public receipts, browser/WASM capability, cockpit output, handoff
+output, proof gates, Codecov defaults, or evidencebus runtime behavior.
 
 `tokmd-analysis` also provides a developer-facing synthetic performance
 example:
