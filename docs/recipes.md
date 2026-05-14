@@ -2,6 +2,17 @@
 
 Examples of how to use `tokmd` in real-world scenarios.
 
+For the shortest job-oriented path, start with [Start Here](start-here.md).
+Use this recipe index when you need a specific variant or CI shape.
+
+| Job | Start with |
+| --- | --- |
+| Tell me what this repo is | [Quick Health Check](#3-quick-health-check-with-analysis), [Finding Heavy Files](#7-finding-heavy-files), [Architecture Visualization](#13-architecture-visualization) |
+| Tell me what changed | [Tracking Repo Growth Over Time](#5-tracking-repo-growth-over-time), [Quick PR Summary](#15-quick-pr-summary) |
+| Help me review this PR | [PR Review Packet](#15b-pr-review-packet), [One-command PR Artifact Bundle](#15c-one-command-pr-artifact-bundle) |
+| Give CI stable evidence and gates | [CI Gate: Policy-Based Quality Gates](#10-ci-gate-policy-based-quality-gates), [GitHub Actions Integration](#18-github-actions-integration), [Baseline Tracking Workflow](#22-baseline-tracking-workflow) |
+| Give my coding agent context and proof expectations | [Packing Code into an LLM Context Window](#1-packing-code-into-an-llm-context-window), [LLM Handoff Bundles](#21-llm-handoff-bundles) |
+
 ## 1. Packing Code into an LLM Context Window
 
 When you need to feed actual code to an LLM (not just metadata), use the `context` command to intelligently select files within a token budget.

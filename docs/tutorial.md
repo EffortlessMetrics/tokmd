@@ -6,6 +6,17 @@ This guide will walk you through using `tokmd` to understand a codebase you've j
 - `tokmd` installed (see below)
 - A git repository to analyze (we'll assume you are in the root of one)
 
+If you already know the job, use the shorter [Start Here](start-here.md) page.
+This tutorial walks through the same product paths in more detail:
+
+| Job | Tutorial path |
+| --- | --- |
+| Tell me what this repo is | Steps 1-3, then Step 6 |
+| Tell me what changed | Step 10 |
+| Help me review this PR | Step 13 |
+| Give CI stable evidence and gates | Step 12, then Step 10 for saved receipts |
+| Give my coding agent context and proof expectations | Step 16, or Step 4 for a plain bundle |
+
 ## Step 0: Installation
 
 First, ensure the tool is installed.

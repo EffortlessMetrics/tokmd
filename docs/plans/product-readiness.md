@@ -49,8 +49,12 @@ new product commands or promote advisory proof.
      `docs/start-here.md` provides the job-oriented bridge into tutorial,
      review-packet, Action, handoff, and browser/native docs.
 3. Refresh tutorial and recipes around job-to-be-done flows.
+   - Status: complete.
    - Prefer short workflows that produce a visible receipt before explaining
      the underlying proof or schema machinery.
+   - Evidence: `docs/tutorial.md` and `docs/recipes.md` now start with
+     job-oriented routing tables that point users to the relevant existing
+     workflow before explaining lower-level commands.
 4. Tighten browser/native capability guidance.
    - Keep browser mode as a no-install artifact generator with explicit
      native-only boundaries.
@@ -96,3 +100,5 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
 - 2026-05-13: Added `docs/start-here.md` and changed README's first-run block
   to lead with the five user jobs instead of a command inventory. The new guide
   is routed through the `user_guides` proof scope.
+- 2026-05-14: Added job-routing tables to tutorial and recipes so the detailed
+  docs now start from user jobs instead of command order alone.
