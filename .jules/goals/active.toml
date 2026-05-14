@@ -1,5 +1,5 @@
 schema = "tokmd.jules.active_goal.v1"
-status = "active"
+status = "complete"
 program = "product_readiness"
 lane = "user_path_simplification"
 

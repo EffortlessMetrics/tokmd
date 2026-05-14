@@ -1,6 +1,6 @@
 # Plan: Product Readiness User Paths
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -63,8 +63,13 @@ new product commands or promote advisory proof.
      modes, input model, downloadable artifact role, and native-only boundaries,
      with links from README, docs index, and Start Here.
 5. Keep handoff docs aligned with the shipped link artifacts and `work-order.md`.
+   - Status: complete.
    - The guide should tell agents how to consume links, not imply handoff
      verifies external receipts.
+   - Evidence: `docs/handoff.md` now distinguishes the self-contained
+     source/context bundle from external review/proof evidence handles, tells
+     agents how to consume `review-links.json` and `proof-links.json`, and keeps
+     verification authority with the review-packet verifier and proof receipts.
 
 ## Validation
 
@@ -109,3 +114,6 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
 - 2026-05-14: Added browser/native guidance that keeps browser mode framed as a
   no-install artifact generator and leaves git-backed review, gates, baselines,
   context, and handoff native-first.
+- 2026-05-14: Completed the first product-readiness pass by clarifying how
+  coding agents should consume handoff link artifacts without treating handoff
+  as a verifier for external review or proof receipts.

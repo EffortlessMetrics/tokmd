@@ -1,9 +1,13 @@
 # Handoff Bundles
 
-`tokmd handoff` creates a **self-contained bundle** for LLM review and
-automation. It is intended to be pasted or uploaded as a stable, deterministic
-artifact when a coding agent needs the right source slice without the whole
-repository.
+`tokmd handoff` creates a **self-contained source/context bundle** for LLM
+review and automation. It is intended to be pasted or uploaded as a stable,
+deterministic artifact when a coding agent needs the right source slice without
+the whole repository.
+
+When you pass review or proof inputs, the bundle also writes link artifacts that
+point at adjacent evidence. Those links are handles, not copied proof. The
+review-packet verifier and proof receipts remain the sources of evidence truth.
 
 Use handoff when the job is:
 
@@ -103,9 +107,34 @@ Then give the agent the handoff plus the linked review evidence:
 - `.handoff/proof-links.json` for packet-local pointers to affected-proof and
   proof-plan receipts.
 
-The link artifacts do not copy or verify external receipts. They make the
-handoff bundle point at adjacent review/proof evidence while preserving the
-review packet verifier as the source of packet-integrity evidence.
+## Consuming Linked Evidence
+
+Use linked evidence as a review map, not as a hidden assertion that the handoff
+has already verified everything:
+
+1. Read `.handoff/review-links.json` and `.handoff/proof-links.json` to find the
+   adjacent receipt paths. If a linked path has `exists: false`, treat that
+   evidence as missing until it is regenerated.
+2. Open `target/tokmd/review-packet-check.json` before trusting a linked review
+   packet. If the verifier receipt is absent, rerun:
+
+   ```bash
+   cargo xtask review-packet-check --dir .tokmd/review --json target/tokmd/review-packet-check.json
+   ```
+
+3. Use `.tokmd/review/review-map.md` for review order and reproduction
+   commands. Missing, stale, degraded, skipped, or unavailable evidence is a
+   task for the agent, not passing proof.
+4. Use `target/proof/affected.json` to see which proof scopes matched the
+   change and `target/proof/proof-plan.json` to see expected commands. A proof
+   plan is planned evidence; it is not an execution result.
+5. Keep the regenerated receipts with the repair so reviewers can follow the
+   same handles from handoff to review packet to proof artifacts.
+
+The link artifacts do not copy, normalize, or verify external receipts. They
+make the handoff bundle point at adjacent review/proof evidence while
+preserving the review-packet verifier and proof artifacts as their own evidence
+sources.
 
 ## Output Tree
 

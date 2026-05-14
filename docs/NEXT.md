@@ -40,8 +40,10 @@ requirements, ADRs own durable architecture decisions, plans own sequencing,
 `.jules/goals/active.toml` owns small machine-readable active-agent state, and
 checked policy TOMLs own machine-enforced rules. The completed doc-artifacts
 checker plan is closed out. Agent handoff readiness has also closed through
-linked review/proof artifacts and `work-order.md`; the current active goal now
-points at product-readiness user paths.
+linked review/proof artifacts and `work-order.md`. The first product-readiness
+user-path pass is complete: README, Start Here, review-packet docs, tutorial,
+recipes, browser guidance, and handoff guidance now start from user jobs instead
+of control-plane internals.
 
 ## Next Work Packets
 
@@ -57,9 +59,9 @@ points at product-readiness user paths.
 6. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-7. Continue product-readiness work by making existing inspection, PR review,
-   CI evidence, browser, and agent workflows easier to start without adding new
-   commands or promoting advisory proof.
+7. Keep product-readiness docs aligned as workflows change, but start any new
+   product lane from a fresh plan rather than extending the completed first-pass
+   user-path cleanup by inertia.
 8. Draft AST foundation work only after the review packet and consolidation
    direction are stable.
 
