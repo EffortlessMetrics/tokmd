@@ -77,6 +77,12 @@ Rust source and heuristic landmarks. Its Rust parser records function, import,
 and simple control-flow landmarks, but it is not wired into default CLI,
 receipt, browser, FFI, Python, Node, or CI behavior.
 
+The next active implementation plan is
+`docs/plans/ast-shadow-comparison-runner.md`. It selects Rust landmark presence
+for functions, imports, and simple control-flow as the first comparison target
+and keeps the first runner in developer tooling rather than the public `tokmd`
+CLI while the artifact contract stabilizes.
+
 `tokmd-analysis` also provides a developer-facing synthetic performance
 example:
 
@@ -131,9 +137,7 @@ publish-surface verification when package/public API boundaries move.
 ## Open Questions
 
 - Which existing heuristic fact family should be the first full
-  heuristic-vs-AST comparison target: function boundaries, imports, or
-  complexity landmarks?
-- Whether the first runner should live in `tokmd-analysis`, `tokmd`, or `xtask`
-  while the artifact remains developer-facing.
+  heuristic-vs-AST comparison target after the initial landmark-presence runner:
+  complexity landmarks, richer imports, or function-boundary precision?
 - What corpus size and performance envelope are required before any AST-derived
   public receipt field is proposed.
