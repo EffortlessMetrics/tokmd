@@ -1052,6 +1052,7 @@ coverage = false
 name = "user_guides"
 kind = "non_rust"
 paths = [
+  "docs/artifacts.md",
   "docs/browser.md",
   "docs/start-here.md",
   "docs/handoff.md",
