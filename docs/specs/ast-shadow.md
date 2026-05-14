@@ -77,6 +77,19 @@ Rust source and heuristic landmarks. Its Rust parser records function, import,
 and simple control-flow landmarks, but it is not wired into default CLI,
 receipt, browser, FFI, Python, Node, or CI behavior.
 
+`tokmd-analysis` also provides a developer-facing synthetic performance
+example:
+
+```bash
+cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- \
+  --out target/perf/ast-shadow-perf.json
+```
+
+It emits `tokmd.ast_shadow_perf.v1` timing evidence for Rust landmark parsing
+and shadow artifact construction. This is benchmark evidence only; it is not a
+public receipt schema, merge verdict, production performance budget, or default
+workflow.
+
 ## Compatibility
 
 AST shadow artifacts are intentionally outside the public receipt contract.
@@ -103,6 +116,7 @@ names should run:
 
 ```bash
 cargo test -p tokmd-analysis --features ast ast --verbose
+cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo xtask proof-policy --check
 cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected-ast-shadow.json
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan --plan-json target/proof/proof-plan-ast-shadow.json --evidence-json target/proof/proof-evidence-ast-shadow.json

@@ -52,7 +52,9 @@ developer-facing `tokmd.ast_shadow.v1` heuristic, AST, and diff artifacts from
 caller-supplied heuristic landmarks plus Rust Tree-sitter landmarks while
 preserving default receipt, browser, proof-promotion, and Codecov behavior. The
 Rust shadow parser now records function, import, and simple control-flow
-landmarks behind the existing `ast` feature.
+landmarks behind the existing `ast` feature. The AST shadow lane also has a
+developer-facing synthetic performance receipt example so parser and artifact
+builder timings can be collected before any public behavior change is proposed.
 
 ## Next Work Packets
 

@@ -487,7 +487,7 @@ schema impact, and runtime capability story.
 - [x] Compare caller-supplied heuristic landmarks and AST evidence without
       changing default receipts
 - [x] Add proof scope coverage for AST shadow parsing
-- [ ] Add performance benchmarks
+- [x] Add performance benchmarks
 - [ ] Decide later whether AST-derived public fields need schema changes
 
 ### Tests

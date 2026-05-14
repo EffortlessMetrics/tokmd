@@ -547,12 +547,16 @@ name = "analysis_ast_shadow"
 kind = "rust"
 paths = [
   "crates/tokmd-analysis/Cargo.toml",
+  "crates/tokmd-analysis/examples/ast_shadow_perf.rs",
   "crates/tokmd-analysis/src/ast/**",
   "docs/adr/0008-ast-foundation.md",
   "docs/specs/ast-shadow.md",
 ]
 packages = ["tokmd-analysis"]
-proof = ["cargo test -p tokmd-analysis --features ast ast --verbose"]
+proof = [
+  "cargo test -p tokmd-analysis --features ast ast --verbose",
+  "cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json",
+]
 mutation = false
 coverage = false
 

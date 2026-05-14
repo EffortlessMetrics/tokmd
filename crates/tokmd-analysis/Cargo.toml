@@ -36,6 +36,11 @@ ast = [
     "dep:tree-sitter-rust",
 ]
 
+[[example]]
+name = "ast_shadow_perf"
+path = "examples/ast_shadow_perf.rs"
+required-features = ["ast"]
+
 [dependencies]
 anyhow.workspace = true
 blake3.workspace = true
