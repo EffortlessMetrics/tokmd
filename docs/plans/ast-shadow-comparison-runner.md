@@ -65,6 +65,9 @@ equivalence, call graphs, type resolution, or complexity replacement.
      counts, per-file status, artifact paths, and the reproduction command.
    - Use runner output to decide whether function, import, or control-flow
      landmarks are accurate enough for a later public schema proposal.
+   - First candidate decision: evaluate function-boundary precision before
+     richer import semantics or control-flow landmarks. This is an evidence
+     collection priority, not product adoption.
 6. Verify the generated artifact set.
    - Status: active.
    - Add `cargo xtask ast-shadow-check` so generated AST shadow artifacts can be
@@ -194,3 +197,10 @@ Interpretation:
   `crates/tokmd-analysis/src/ast/shadow.rs`. The run found 70 matched
   landmarks, 33 heuristic-only landmarks, zero AST-only landmarks, and no parse
   degradation.
+- 2026-05-14: Selected function-boundary precision as the first
+  public-candidate fact family for future AST shadow evidence collection. The
+  decision is based on the first internal-corpus signal: heuristic-only
+  landmarks came from explainable string/example over-reporting, while the AST
+  parser showed no degradation on the selected files. This does not promote AST
+  into any public receipt, default workflow, browser claim, cockpit output,
+  handoff output, proof gate, or Codecov behavior.

@@ -180,8 +180,24 @@ publish-surface verification when package/public API boundaries move.
 
 ## Open Questions
 
-- Which existing heuristic fact family should be the first full
-  heuristic-vs-AST comparison target after the initial landmark-presence runner:
-  complexity landmarks, richer imports, or function-boundary precision?
-- What corpus size and performance envelope are required before any AST-derived
-  public receipt field is proposed.
+The first public-candidate fact family is function-boundary precision.
+
+That does not mean AST-backed function facts are accepted into public receipts.
+It means future evidence collection should evaluate function-boundary precision
+first because the initial internal-corpus comparison showed explainable
+heuristic over-reporting in fixture strings and examples, no parser degradation,
+and no AST-only landmark discovery on the selected files. Function boundaries
+are also easier to review, reproduce, and map to later cockpit or handoff
+signals than richer import semantics or control-flow landmarks.
+
+Open questions before any public schema or default behavior proposal:
+
+- What corpus size and repository mix are enough to judge function-boundary
+  precision across production code, tests, examples, macros, generated files,
+  and degraded parses.
+- What timing envelope is acceptable for function-boundary AST evidence when
+  compared with current heuristic output.
+- Whether the eventual public change is an additive shadow-derived receipt
+  field, a new artifact reference, or no product change.
+- How browser/WASM, bindings, and unsupported languages should report fallback
+  behavior if function-boundary evidence later graduates from shadow mode.
