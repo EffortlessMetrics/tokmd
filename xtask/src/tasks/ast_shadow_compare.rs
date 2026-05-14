@@ -1,5 +1,6 @@
 use crate::cli::AstShadowCompareArgs;
 use anyhow::{Context, Result, bail};
+use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -119,6 +120,19 @@ fn render_summary_md(
     )?;
     push_count_line(&mut markdown, "Unsupported files", summary, "unsupported")?;
 
+    let kind_counts = landmark_kind_counts(files)?;
+    if !kind_counts.is_empty() {
+        markdown.push_str("\n## Landmark Kinds\n\n");
+        markdown.push_str("| Kind | Matched | Heuristic-only | AST-only |\n");
+        markdown.push_str("| --- | ---: | ---: | ---: |\n");
+        for (kind, counts) in kind_counts {
+            markdown.push_str(&format!(
+                "| `{kind}` | {} | {} | {} |\n",
+                counts.matched, counts.heuristic_only, counts.ast_only
+            ));
+        }
+    }
+
     markdown.push_str("\n## Artifacts\n\n");
     markdown.push_str(&format!(
         "- heuristic: `{}`\n",
@@ -168,6 +182,47 @@ fn render_summary_md(
     markdown.push_str("\n```\n");
 
     Ok(markdown)
+}
+
+#[derive(Default)]
+struct LandmarkKindCounts {
+    matched: usize,
+    heuristic_only: usize,
+    ast_only: usize,
+}
+
+fn landmark_kind_counts(
+    files: &[serde_json::Value],
+) -> Result<BTreeMap<String, LandmarkKindCounts>> {
+    let mut counts = BTreeMap::<String, LandmarkKindCounts>::new();
+    for file in files {
+        add_landmark_kind_counts(&mut counts, file, "matches")?;
+        add_landmark_kind_counts(&mut counts, file, "heuristic_only")?;
+        add_landmark_kind_counts(&mut counts, file, "ast_only")?;
+    }
+    Ok(counts)
+}
+
+fn add_landmark_kind_counts(
+    counts: &mut BTreeMap<String, LandmarkKindCounts>,
+    file: &serde_json::Value,
+    field: &str,
+) -> Result<()> {
+    let landmarks = file
+        .get(field)
+        .and_then(serde_json::Value::as_array)
+        .with_context(|| format!("diff file entry is missing array field `{field}`"))?;
+    for landmark in landmarks {
+        let kind = string_field(landmark, "kind")?;
+        let entry = counts.entry(kind.to_owned()).or_default();
+        match field {
+            "matches" => entry.matched += 1,
+            "heuristic_only" => entry.heuristic_only += 1,
+            "ast_only" => entry.ast_only += 1,
+            _ => unreachable!("unexpected landmark diff field"),
+        }
+    }
+    Ok(())
 }
 
 fn push_count_line(
@@ -567,6 +622,58 @@ pub fn compute(value: usize) -> usize {
         assert!(summary.contains("cargo xtask ast-shadow-compare"));
         assert!(summary.contains("--summary-md"));
         assert!(!summary.contains(&normalize_display_path(root.path())));
+        Ok(())
+    }
+
+    #[test]
+    fn summary_includes_landmark_kind_counts() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let paths = tokmd_analysis::ast::ShadowArtifactPaths {
+            heuristic: root.path().join("target/tokmd-ast-shadow/heuristic.json"),
+            ast: root.path().join("target/tokmd-ast-shadow/ast.json"),
+            diff: root.path().join("target/tokmd-ast-shadow/diff.json"),
+        };
+        let args = AstShadowCompareArgs {
+            paths: vec![PathBuf::from("src/lib.rs")],
+            out: PathBuf::from("target/tokmd-ast-shadow"),
+            summary_md: Some(PathBuf::from("target/tokmd-ast-shadow/summary.md")),
+        };
+        let diff = serde_json::json!({
+            "summary": {
+                "files": 1,
+                "matched": 1,
+                "heuristic_only": 2,
+                "ast_only": 1,
+                "parse_degraded": 0,
+                "unsupported": 0
+            },
+            "files": [
+                {
+                    "path": "src/lib.rs",
+                    "status": "compared",
+                    "matches": [
+                        {"kind": "function", "name": "run", "start_line": 1, "end_line": 3}
+                    ],
+                    "heuristic_only": [
+                        {"kind": "control_flow", "name": "if", "start_line": 2, "end_line": 2},
+                        {"kind": "function", "name": "fixture", "start_line": 8, "end_line": 8}
+                    ],
+                    "ast_only": [
+                        {"kind": "import", "name": "std::fs", "start_line": 1, "end_line": 1}
+                    ],
+                    "parse_degraded": false,
+                    "unsupported": false
+                }
+            ]
+        });
+
+        let summary = render_summary_md(&args, &paths, &diff, root.path())?;
+
+        assert!(summary.contains("## Landmark Kinds"));
+        assert!(summary.contains("| Kind | Matched | Heuristic-only | AST-only |"));
+        assert!(summary.contains("| `control_flow` | 0 | 1 | 0 |"));
+        assert!(summary.contains("| `function` | 1 | 1 | 0 |"));
+        assert!(summary.contains("| `import` | 0 | 0 | 1 |"));
         Ok(())
     }
 

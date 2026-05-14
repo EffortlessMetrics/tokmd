@@ -87,9 +87,9 @@ cargo xtask ast-shadow-compare \
 ```
 
 The Markdown summary is a human review layer over `diff.json`. It should include
-aggregate counts, per-file comparison status, artifact paths, and a reproduction
-command. It must not add pass/fail language, merge verdicts, proof-promotion
-claims, or public receipt semantics.
+aggregate counts, mismatch counts by landmark kind, per-file comparison status,
+artifact paths, and a reproduction command. It must not add pass/fail language,
+merge verdicts, proof-promotion claims, or public receipt semantics.
 
 The verifier is developer-facing xtask tooling:
 
