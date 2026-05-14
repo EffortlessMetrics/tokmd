@@ -208,6 +208,9 @@ storing raw tokens in cache keys.
 
 The machine-readable capability contract lives in [`docs/capabilities/wasm.json`](docs/capabilities/wasm.json).
 
+For the user-facing browser workflow and native-only boundaries, see
+[Browser runner](docs/browser.md).
+
 ## What tokmd Is Not
 
 - It is not a formatter, linter, or build system.

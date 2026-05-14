@@ -7,6 +7,8 @@ schemas, and verification policy for `tokmd`.
 
 - [start-here.md](start-here.md) — choose the shortest path for repo
   inspection, PR review, CI evidence, agent handoff, or browser evaluation.
+- [browser.md](browser.md) — no-install browser workflow and native-only
+  boundaries.
 - [VERIFICATION.md](VERIFICATION.md) — README badge meanings, generated endpoints, and PR evidence boundaries.
 - [agent-workflows/source-of-truth.md](agent-workflows/source-of-truth.md) — maintainer and agent workflow for following source-of-truth artifacts.
 - [handoff.md](handoff.md) — coding-agent handoff bundle workflow and guardrails.

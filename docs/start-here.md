@@ -197,5 +197,6 @@ Native filesystem flows, git-history enrichers, `cockpit`, `gate`, `sensor`,
 
 More detail:
 
+- [Browser runner](browser.md).
 - [Browser/WASM contract](architecture.md#wasm--browser-runner).
 - [Browser capability matrix](capabilities/wasm.json).

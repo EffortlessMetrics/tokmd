@@ -56,8 +56,12 @@ new product commands or promote advisory proof.
      job-oriented routing tables that point users to the relevant existing
      workflow before explaining lower-level commands.
 4. Tighten browser/native capability guidance.
+   - Status: complete.
    - Keep browser mode as a no-install artifact generator with explicit
      native-only boundaries.
+   - Evidence: `docs/browser.md` now gives the browser-safe workflow, supported
+     modes, input model, downloadable artifact role, and native-only boundaries,
+     with links from README, docs index, and Start Here.
 5. Keep handoff docs aligned with the shipped link artifacts and `work-order.md`.
    - The guide should tell agents how to consume links, not imply handoff
      verifies external receipts.
@@ -102,3 +106,6 @@ the relevant generator/checker listed by `cargo xtask docs --check`.
   is routed through the `user_guides` proof scope.
 - 2026-05-14: Added job-routing tables to tutorial and recipes so the detailed
   docs now start from user jobs instead of command order alone.
+- 2026-05-14: Added browser/native guidance that keeps browser mode framed as a
+  no-install artifact generator and leaves git-backed review, gates, baselines,
+  context, and handoff native-first.
