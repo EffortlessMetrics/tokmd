@@ -97,4 +97,5 @@ Coverage workflow, Codecov config, and this document are routed through the `pro
 - `.github/workflows/coverage.yml`
 - `codecov.yml`
 - `ci/proof.toml`
+- `docs/ci/proof-observation-artifacts.md`
 - `docs/NEXT.md`

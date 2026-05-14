@@ -46,7 +46,7 @@ What command or artifact reproduces each claim?
 ## Work Packets
 
 1. Inventory the live proof-observation artifacts.
-   - Status: pending.
+   - Status: complete.
    - Document the current Rust-owned receipts and checkers:
      `affected.json`, `proof-plan.json`, `proof-evidence.json`,
      `proof-run-summary.json`, executor summaries/manifests,
@@ -116,3 +116,7 @@ the relevant proof artifact verifier on generated receipts.
   machinery in routine observation mode, but the next proof-control work should
   make observations decision-ready before any promotion or workflow-default
   change is proposed.
+- 2026-05-14: Added the live proof-observation artifact inventory in
+  `docs/ci/proof-observation-artifacts.md`. The inventory records current
+  receipt schemas, writers, verifier commands, decision uses, and remaining
+  summarization gaps while preserving advisory proof status.

@@ -26,6 +26,7 @@ handoff_schema = "docs/handoff-schema.md"
 review_packet_contract = "docs/review-packet.md"
 cockpit_proof_evidence = "docs/cockpit-proof-evidence.md"
 proof_observation_decision_plan = "docs/plans/proof-observation-decision-readiness.md"
+proof_observation_artifacts = "docs/ci/proof-observation-artifacts.md"
 proof_policy = "ci/proof.toml"
 
 [rules]

@@ -111,4 +111,7 @@ each section.
 - [Handoff bundles](handoff.md) for agent bundle consumption.
 - [Proof evidence import contract](cockpit-proof-evidence.md) for cockpit proof inputs.
 - [Coverage guidance](ci/coverage.md) for coverage receipts and Codecov boundaries.
+- [Proof observation artifacts](ci/proof-observation-artifacts.md) for proof
+  observation receipts, collections, readiness receipts, and promotion
+  boundaries.
 - [Evidencebus integration](evidencebus-integration.md) for the stack boundary.
