@@ -51,6 +51,7 @@ target/tokmd-ast-shadow/
   heuristic.json
   ast.json
   diff.json
+  check.json          # optional verifier receipt
 ```
 
 The artifact set uses schema family `tokmd.ast_shadow.v1`.
@@ -74,6 +75,27 @@ comparison without scanning every file entry.
 
 All three artifacts must avoid timestamps, absolute paths, environment-specific
 temporary directories, and nondeterministic ordering.
+
+The verifier is developer-facing xtask tooling:
+
+```bash
+cargo xtask ast-shadow-check \
+  --dir target/tokmd-ast-shadow \
+  --json target/tokmd-ast-shadow/check.json
+```
+
+It emits `tokmd.ast_shadow_check.v1` when requested. The checker verifies that
+the three shadow artifacts exist, use the expected schema and kind, keep
+repo-relative sorted paths, avoid timestamp and environment-specific strings,
+and report summary counts that match the per-file diff entries. The check
+receipt is verifier evidence only; it is not a public `tokmd` receipt, merge
+verdict, proof promotion signal, browser capability claim, or evidencebus
+packet.
+
+For proof commands that need to be self-contained, `ast-shadow-check` may also
+accept the same explicit repo-relative Rust `--path` inputs as the comparison
+runner. In that mode it regenerates the three shadow artifacts into `--dir`
+before validating them.
 
 The first implementation lives in `tokmd-analysis` behind the existing `ast`
 feature. It builds and writes the three artifact JSON files for caller-provided
@@ -127,6 +149,9 @@ names should run:
 ```bash
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
+cargo test -p xtask ast_shadow --verbose
+cargo xtask ast-shadow-compare --path fixtures/ast-shadow/rust/basic.rs --out target/tokmd-ast-shadow
+cargo xtask ast-shadow-check --path fixtures/ast-shadow/rust/basic.rs --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
 cargo xtask proof-policy --check
 cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected-ast-shadow.json
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan --plan-json target/proof/proof-plan-ast-shadow.json --evidence-json target/proof/proof-evidence-ast-shadow.json

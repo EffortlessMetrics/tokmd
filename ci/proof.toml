@@ -556,6 +556,7 @@ paths = [
   "xtask/Cargo.toml",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
+  "xtask/src/tasks/ast_shadow_check.rs",
   "xtask/src/tasks/ast_shadow_compare.rs",
   "xtask/src/tasks/mod.rs",
 ]
@@ -564,7 +565,7 @@ proof = [
   "cargo test -p tokmd-analysis --features ast ast --verbose",
   "cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json",
   "cargo test -p xtask ast_shadow --verbose",
-  "cargo xtask ast-shadow-compare --path fixtures/ast-shadow/rust/basic.rs --out target/tokmd-ast-shadow",
+  "cargo xtask ast-shadow-check --path fixtures/ast-shadow/rust/basic.rs --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json",
 ]
 mutation = false
 coverage = false

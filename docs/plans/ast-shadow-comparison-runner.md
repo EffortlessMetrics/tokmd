@@ -63,6 +63,15 @@ equivalence, call graphs, type resolution, or complexity replacement.
      cockpit, handoff, evidencebus, or public receipts.
    - Use runner output to decide whether function, import, or control-flow
      landmarks are accurate enough for a later public schema proposal.
+6. Verify the generated artifact set.
+   - Status: active.
+   - Add `cargo xtask ast-shadow-check` so generated AST shadow artifacts can be
+     checked for expected schema/kind, relative sorted paths, timestamp-free
+     content, and summary counts that match per-file entries.
+   - Let the check command accept explicit `--path` inputs for proof commands
+     that need to regenerate the comparison before verification.
+   - Emit an optional `tokmd.ast_shadow_check.v1` receipt for downstream review
+     evidence without treating the artifacts as a gate or merge verdict.
 
 ## Validation
 
@@ -85,6 +94,7 @@ cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
 cargo xtask ast-shadow-compare --out target/tokmd-ast-shadow --path <fixture-rust-path>
+cargo xtask ast-shadow-check --path <fixture-rust-path> --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
 cargo xtask publish-surface --json --verify-publish
 ```
 
@@ -97,6 +107,8 @@ cargo xtask publish-surface --json --verify-publish
   runtime dependencies.
 - Stop if comparison artifacts include timestamps, absolute paths, or
   environment-specific temporary directories.
+- Stop if the verifier cannot explain summary count drift from the per-file
+  diff entries.
 - Stop if affected planning reports unknown files.
 - Stop if docs imply proof promotion, Codecov upload, merge verdicts, or
   default AST adoption.
@@ -117,3 +129,7 @@ cargo xtask publish-surface --json --verify-publish
   heuristic-only landmarks, AST-only landmarks, parse-degraded files, and
   unsupported files. This keeps the shadow artifact useful for evidence
   collection without turning it into a gate or merge verdict.
+- 2026-05-14: Added the planned verifier slice. `cargo xtask ast-shadow-check`
+  validates the generated shadow artifact set and can emit a
+  `tokmd.ast_shadow_check.v1` receipt without changing default product
+  behavior.

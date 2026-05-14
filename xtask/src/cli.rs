@@ -91,6 +91,8 @@ pub enum Commands {
     PerfSmoke(PerfSmokeArgs),
     /// Compare heuristic and AST-backed Rust landmarks for explicit files
     AstShadowCompare(AstShadowCompareArgs),
+    /// Verify AST shadow artifact shape and summary counts
+    AstShadowCheck(AstShadowCheckArgs),
     /// Generate or check committed public Shields badge endpoints
     Badges(BadgesArgs),
     /// Generate or check PR-scoped RIPR evidence artifacts
@@ -108,6 +110,21 @@ pub struct AstShadowCompareArgs {
     /// Output directory for heuristic.json, ast.json, and diff.json.
     #[arg(long, default_value = "target/tokmd-ast-shadow")]
     pub out: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct AstShadowCheckArgs {
+    /// Optional repo-relative Rust source path to compare before checking artifacts.
+    #[arg(long = "path")]
+    pub paths: Vec<std::path::PathBuf>,
+
+    /// Directory containing heuristic.json, ast.json, and diff.json.
+    #[arg(long, default_value = "target/tokmd-ast-shadow")]
+    pub dir: std::path::PathBuf,
+
+    /// Optional JSON receipt path for the verifier result.
+    #[arg(long)]
+    pub json: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone, Default)]
