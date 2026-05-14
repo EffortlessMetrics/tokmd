@@ -119,6 +119,7 @@ evidence.
 
 ## Related specs
 
+- `docs/specs/ast-shadow.md`
 - `docs/architecture.md`
 - `docs/publish-surface.md`
 - `docs/adr/0002-crate-vs-module-boundaries.md`

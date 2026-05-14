@@ -46,7 +46,10 @@ recipes, browser guidance, and handoff guidance now start from user jobs instead
 of control-plane internals. The artifact glossary lane is complete as a
 follow-on compression pass, giving users one dictionary for review packets,
 proof receipts, handoff bundles, documentation-control receipts, and browser
-artifacts.
+artifacts. The first AST shadow contract slice is complete as documentation
+groundwork: `docs/specs/ast-shadow.md` defines the developer-facing
+`tokmd.ast_shadow.v1` artifact boundary while preserving default receipt,
+browser, proof-promotion, and Codecov behavior.
 
 ## Next Work Packets
 
