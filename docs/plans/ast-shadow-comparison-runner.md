@@ -1,6 +1,6 @@
 # Plan: AST Shadow Comparison Runner
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/specs/ast-shadow.md`
 - Related ADR: `docs/adr/0008-ast-foundation.md`
@@ -35,29 +35,29 @@ equivalence, call graphs, type resolution, or complexity replacement.
 ## Work Packets
 
 1. Close the source-of-truth gap for the next AST lane.
-   - Status: active.
+   - Status: complete.
    - Archive the completed AST shadow performance benchmark goal.
    - Retarget `.jules/goals/active.toml` to this comparison-runner lane.
    - Keep `docs/NEXT.md` and `docs/specs/ast-shadow.md` aligned with the
      runner boundary.
 2. Add the first runner behind developer tooling.
-   - Status: active.
+   - Status: complete.
    - Prefer `cargo xtask ast-shadow-compare` for the first runner so the public
      `tokmd` CLI stays unchanged while the artifact contract stabilizes.
    - Inputs should be explicit repo-relative Rust source paths and an output
      directory, with no network, GitHub, Codecov, or evidencebus dependency.
 3. Generate the existing artifact set.
-   - Status: active.
+   - Status: complete.
    - Reuse the `tokmd-analysis` AST shadow artifact builder to write
      `heuristic.json`, `ast.json`, and `diff.json`.
    - Avoid timestamps, absolute paths, temporary directories, and
      nondeterministic ordering.
 4. Add a small fixture corpus and focused proof.
-   - Status: active.
+   - Status: complete.
    - Cover a Rust fixture with functions, imports, and simple control flow.
    - Route the runner through the existing `analysis_ast_shadow` proof scope.
 5. Collect comparison evidence without product adoption.
-   - Status: active.
+   - Status: complete.
    - Keep `diff.json` human- and agent-readable enough for early evidence
      collection by adding aggregate counts before wiring the artifacts into
      cockpit, handoff, evidencebus, or public receipts.
@@ -69,7 +69,7 @@ equivalence, call graphs, type resolution, or complexity replacement.
      richer import semantics or control-flow landmarks. This is an evidence
      collection priority, not product adoption.
 6. Verify the generated artifact set.
-   - Status: active.
+   - Status: complete.
    - Add `cargo xtask ast-shadow-check` so generated AST shadow artifacts can be
      checked for expected schema/kind, relative sorted paths, timestamp-free
      content, and summary counts that match per-file entries.
@@ -234,6 +234,14 @@ Interpretation:
 
 ## Checkpoint History
 
+- 2026-05-14: Closed the comparison-runner lane through PRs #2247, #2251,
+  #2252, #2254, #2255, #2256, #2257, #2258, and #2259. The runner, fixture
+  corpus, diff summary counts, verifier, Markdown summary, proof routing, first
+  internal-corpus evidence, broader corpus evidence, and function-boundary
+  candidate decision are all on main. Future AST work should start from a fresh
+  plan for broader corpus collection, optional handoff/cockpit linking, or a
+  public schema proposal; this plan should not keep accumulating routine
+  evidence by inertia.
 - 2026-05-14: Started the comparison-runner lane after the synthetic AST shadow
   performance receipt landed. The lane selects landmark presence for Rust
   functions, imports, and simple control-flow as the first comparison target and
@@ -273,3 +281,8 @@ Interpretation:
   landmarks, 67 heuristic-only landmarks, 30 AST-only landmarks, and no parse
   degradation. Function-boundary precision remains the first public-candidate
   fact family, while control-flow evidence remains shadow-only.
+- 2026-05-14: Added by-kind mismatch counts to the optional Markdown summary so
+  maintainers can see matched, heuristic-only, and AST-only landmark counts by
+  `function`, `import`, and `control_flow` without manually scanning
+  `diff.json`. This did not change the JSON artifact contract or any public
+  `tokmd` output.

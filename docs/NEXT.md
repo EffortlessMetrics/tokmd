@@ -55,15 +55,13 @@ Rust shadow parser now records function, import, and simple control-flow
 landmarks behind the existing `ast` feature. The AST shadow lane also has a
 developer-facing synthetic performance receipt example so parser and artifact
 builder timings can be collected before any public behavior change is proposed.
-The active AST follow-on is now the comparison-runner lane: the developer-facing
-runner and verifier exist, the first internal-corpus comparison evidence is
-recorded in `docs/plans/ast-shadow-comparison-runner.md`, and
-function-boundary precision is the first public-candidate fact family for
-future evidence collection. A broader five-file internal Rust corpus has also
-been recorded there, reinforcing the function-boundary priority while keeping
-control-flow evidence shadow-only. AST work must stay out of default product
-workflows until broader comparison evidence justifies a public schema or
-behavior proposal.
+The AST comparison-runner lane is closed through first enforcement: the
+developer-facing runner, verifier, Markdown summary, proof routing, fixture
+corpus, first internal-corpus evidence, broader five-file corpus evidence, and
+function-boundary candidate decision are recorded in
+`docs/plans/ast-shadow-comparison-runner.md`. AST work must stay out of default
+product workflows until a fresh plan uses broader comparison evidence to justify
+a public schema or behavior proposal. Control-flow evidence remains shadow-only.
 
 ## Next Work Packets
 
