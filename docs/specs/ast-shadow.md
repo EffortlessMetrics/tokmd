@@ -67,6 +67,10 @@ control-flow landmarks, parser status, and recoverable parse-error state.
 `diff.json` should record deterministic comparison results between heuristic
 and AST facts. It should distinguish exact matches, AST-only facts,
 heuristic-only facts, parse-degraded files, and unsupported files.
+It also includes a top-level `summary` object with aggregate counts for files,
+matched landmarks, heuristic-only landmarks, AST-only landmarks,
+parse-degraded files, and unsupported files so maintainers can judge a
+comparison without scanning every file entry.
 
 All three artifacts must avoid timestamps, absolute paths, environment-specific
 temporary directories, and nondeterministic ordering.
