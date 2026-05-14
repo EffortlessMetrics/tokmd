@@ -187,6 +187,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
       with:
         save-if: ${{ github.ref == 'refs/heads/main' }}
+        cache-bin: false
 
     - name: Run tests
       run: cargo test --all-features --verbose
