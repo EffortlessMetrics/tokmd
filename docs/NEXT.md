@@ -63,10 +63,17 @@ function-boundary candidate decision are recorded in
 product workflows until a fresh plan uses broader comparison evidence to justify
 a public schema or behavior proposal. Control-flow evidence remains shadow-only.
 
+The active machine-readable goal now points at proof-observation decision
+readiness. The next proof-control work should inventory and summarize existing
+Rust-owned proof receipts before any maintainer decision about required gates,
+default Codecov upload, executor command limits, cockpit/handoff promotion, or
+workflow defaults. The plan lives in
+`docs/plans/proof-observation-decision-readiness.md`.
+
 ## Next Work Packets
 
-1. Keep collecting routine proof observations under the current advisory shape;
-   do not promote gates or Codecov defaults.
+1. Make routine proof observations decision-ready under the current advisory
+   shape; do not promote gates or Codecov defaults.
 2. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 3. Preserve `tokmd cockpit` as the review evidence implementation surface until

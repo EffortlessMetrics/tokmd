@@ -1,21 +1,7 @@
 schema = "tokmd.jules.active_goal.v1"
-status = "complete"
+status = "active"
 program = "code_intelligence"
-lane = "ast_shadow_comparison_runner"
-completed = "2026-05-14"
-closeout_plan = "docs/plans/ast-shadow-comparison-runner.md"
-
-completed_prs = [
-  2247,
-  2251,
-  2252,
-  2254,
-  2255,
-  2256,
-  2257,
-  2258,
-  2259,
-]
+lane = "proof_observation_decision_readiness"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -39,6 +25,8 @@ handoff_guide = "docs/handoff.md"
 handoff_schema = "docs/handoff-schema.md"
 review_packet_contract = "docs/review-packet.md"
 cockpit_proof_evidence = "docs/cockpit-proof-evidence.md"
+proof_observation_decision_plan = "docs/plans/proof-observation-decision-readiness.md"
+proof_policy = "ci/proof.toml"
 
 [rules]
 proof_promotion = "do_not_promote_without_maintainer_decision"
@@ -49,12 +37,14 @@ handoff_integrity = "link_review_and_proof_receipts_without_replacing_their_veri
 ast_shadow = "developer_facing_shadow_artifacts_only"
 ast_default_behavior = "do_not_change_default_receipts_or_browser_capabilities"
 ast_schema = "public_ast_fields_require_schema_family_review"
+proof_observation = "summarize_existing_receipts_before_any_promotion_decision"
+github_actions_boundary = "keep_actions_as_runner_cache_artifact_shell"
 
 [stop_conditions]
 open_pr_queue = "must_be_empty_before_starting_new_lane"
 docs_check = "cargo xtask docs --check"
 proof_policy = "cargo xtask proof-policy --check"
 affected_plan = "cargo xtask affected --base origin/main --head HEAD --json"
-ast_feature_test = "cargo test -p tokmd-analysis --features ast ast --verbose"
-ast_contract = "shadow_runner_boundary_and_first_comparison_target_are_documented"
-browser_boundary = "do_not_claim_browser_wasm_ast_capability_without capability_and_bundle_evidence"
+proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEAD --plan"
+proof_artifacts = "do_not_treat_advisory_or_planned_evidence_as_passing_proof"
+browser_boundary = "do_not_claim_browser_wasm_ast_capability_without_capability_and_bundle_evidence"
