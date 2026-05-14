@@ -60,8 +60,9 @@ Artifacts listed in `manifest.json`:
 
 Artifacts include size and optional hash. Hashing uses **blake3**.
 `work-order.md` is an agent-readable consumption guide generated from the
-manifest inputs, selected files, and optional review/proof link inputs. It does
-not verify external receipts.
+manifest inputs, selected files, and optional review/proof link inputs. It may
+summarize readable linked receipts for triage, but it does not verify external
+receipts and does not replace their source artifacts.
 The link artifacts are packet-local JSON files that point at external review or
 proof receipts. They do not copy those external receipts into the handoff and
 do not replace the review-packet verifier.

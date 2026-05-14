@@ -85,7 +85,30 @@ fn test_handoff_links_review_and_proof_artifacts() {
 
     fs::write(review_dir.join("comment.md"), "summary").unwrap();
     fs::write(review_dir.join("review-map.md"), "review map").unwrap();
-    fs::write(review_dir.join("review-map.json"), "{}").unwrap();
+    fs::write(
+        review_dir.join("review-map.json"),
+        r#"{
+          "schema":"tokmd.review_map.v1",
+          "item_count":1,
+          "evidence":{
+            "summary":{
+              "available":2,
+              "missing":1,
+              "degraded":0,
+              "stale":0,
+              "skipped":0,
+              "unavailable":1
+            }
+          },
+          "items":[
+            {
+              "path":"docs/handoff.md",
+              "reason":"handoff behavior changed"
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
     fs::write(review_dir.join("evidence.json"), "{}").unwrap();
     fs::write(review_dir.join("manifest.json"), "{}").unwrap();
     fs::write(review_dir.join("cockpit.json"), "{}").unwrap();
@@ -95,11 +118,30 @@ fn test_handoff_links_review_and_proof_artifacts() {
     let proof_plan = proof_dir.join("proof-plan.json");
     fs::write(
         &review_check,
-        r#"{"schema":"tokmd.review_packet_check.v1"}"#,
+        r#"{"schema":"tokmd.review_packet_check.v1","ok":true,"artifact_count":7,"hashes_verified":7}"#,
     )
     .unwrap();
-    fs::write(&affected, r#"{"schema":"tokmd.affected.v1"}"#).unwrap();
-    fs::write(&proof_plan, r#"{"schema":"tokmd.proof_plan.v1"}"#).unwrap();
+    fs::write(
+        &affected,
+        r#"{
+          "schema":"tokmd.affected.v1",
+          "changed_files":["docs/handoff.md"],
+          "scopes":[{"name":"user_guides"}],
+          "unknown_files":[]
+        }"#,
+    )
+    .unwrap();
+    fs::write(
+        &proof_plan,
+        r#"{
+          "schema":"tokmd.proof_plan.v1",
+          "commands":[
+            {"command":"cargo xtask docs --check","required":true},
+            {"command":"cargo xtask proof --profile affected --plan","required":false}
+          ]
+        }"#,
+    )
+    .unwrap();
 
     let mut cmd = tokmd_cmd();
     cmd.arg("handoff")
@@ -171,6 +213,15 @@ fn test_handoff_links_review_and_proof_artifacts() {
     assert!(
         work_order.contains("Treat linked review and proof receipts as external evidence handles")
     );
+    assert!(work_order.contains("## Linked Evidence Summary"));
+    assert!(work_order.contains("Review packet verifier: ok=true"));
+    assert!(work_order.contains("Review map: 1 item(s)"));
+    assert!(work_order.contains("`docs/handoff.md`: handoff behavior changed"));
+    assert!(
+        work_order.contains("Affected proof: 1 changed file(s), 1 scope(s), 0 unknown file(s)")
+    );
+    assert!(work_order.contains("Proof plan: 2 command(s), 1 required, 1 advisory"));
+    assert!(work_order.contains("A proof plan is planned evidence, not execution proof."));
 }
 
 #[test]

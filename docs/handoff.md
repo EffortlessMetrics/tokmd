@@ -48,8 +48,8 @@ Give the agent these files in order:
 
 1. `.handoff/manifest.json` for the authoritative artifact index, token budget,
    exclusions, and included-file list.
-2. `.handoff/work-order.md` for the agent task map, linked evidence handles,
-   and guardrails.
+2. `.handoff/work-order.md` for the agent task map, best-effort linked
+   evidence summary, evidence handles, and guardrails.
 3. `.handoff/intelligence.json` for tree, hotspot, complexity, and derived
    signals.
 4. `.handoff/code.txt` for the selected source bundle.
@@ -92,8 +92,8 @@ tokmd handoff \
 
 Then give the agent the handoff plus the linked review evidence:
 
-- `.handoff/work-order.md` for the ordered agent work map and evidence
-  guardrails.
+- `.handoff/work-order.md` for the ordered agent work map, compact linked
+  evidence summary, and evidence guardrails.
 - `.tokmd/review/comment.md` for the short review summary.
 - `.tokmd/review/review-map.md` for what to inspect first and reproduction
   commands.
@@ -122,13 +122,16 @@ has already verified everything:
    cargo xtask review-packet-check --dir .tokmd/review --json target/tokmd/review-packet-check.json
    ```
 
-3. Use `.tokmd/review/review-map.md` for review order and reproduction
-   commands. Missing, stale, degraded, skipped, or unavailable evidence is a
-   task for the agent, not passing proof.
-4. Use `target/proof/affected.json` to see which proof scopes matched the
+3. Use the `Linked Evidence Summary` section in `.handoff/work-order.md` as a
+   quick triage view of readable review/proof receipts, then open the linked
+   receipts for source-of-truth details. Missing, stale, degraded, skipped, or
+   unavailable evidence is a task for the agent, not passing proof.
+4. Use `.tokmd/review/review-map.md` for review order and reproduction
+   commands.
+5. Use `target/proof/affected.json` to see which proof scopes matched the
    change and `target/proof/proof-plan.json` to see expected commands. A proof
    plan is planned evidence; it is not an execution result.
-5. Keep the regenerated receipts with the repair so reviewers can follow the
+6. Keep the regenerated receipts with the repair so reviewers can follow the
    same handles from handoff to review packet to proof artifacts.
 
 The link artifacts do not copy, normalize, or verify external receipts. They
@@ -153,8 +156,8 @@ sources.
 
 1. **Read `manifest.json` first.**  
    It is the authoritative index, lists artifacts, included files, and exclusions.
-2. **Read `work-order.md`** for the agent task map, linked evidence handles,
-   and guardrails.
+2. **Read `work-order.md`** for the agent task map, best-effort linked
+   evidence summary, evidence handles, and guardrails.
 3. **Use `map.jsonl`** for full inventory or downstream tooling.
 4. **Use `intelligence.json`** as a warning label (tree, hotspots, derived).
 5. **Use `code.txt`** as the LLM bundle content.
