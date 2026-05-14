@@ -55,7 +55,7 @@ What command or artifact reproduces each claim?
    - Identify which receipts are useful for a maintainer decision and which
      still need summarization.
 2. Define the promotion decision packet shape.
-   - Status: pending.
+   - Status: complete.
    - Add a proposal or spec only if the inventory shows a behavior contract is
      needed.
    - Keep the decision packet advisory until maintainers explicitly choose a
@@ -120,3 +120,8 @@ the relevant proof artifact verifier on generated receipts.
   `docs/ci/proof-observation-artifacts.md`. The inventory records current
   receipt schemas, writers, verifier commands, decision uses, and remaining
   summarization gaps while preserving advisory proof status.
+- 2026-05-14: Added the draft decision-packet contract in
+  `docs/specs/proof-observation-decision-packet.md`. The spec defines a future
+  advisory aggregate over existing proof receipts and explicitly keeps proof
+  execution, gate promotion, Codecov defaults, cockpit behavior, and handoff
+  behavior unchanged.

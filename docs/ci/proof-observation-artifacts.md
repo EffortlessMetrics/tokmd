@@ -124,6 +124,11 @@ This inventory does not decide that any proof family is ready to promote. It
 only identifies which artifacts a future proposal, spec, or decision record
 should cite.
 
+The draft aggregate contract lives in
+[`docs/specs/proof-observation-decision-packet.md`](../specs/proof-observation-decision-packet.md).
+It defines a future advisory packet shape for summarizing the artifacts listed
+here without executing proof or changing policy.
+
 Promotion still requires:
 
 - a maintainer decision;

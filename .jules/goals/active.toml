@@ -27,6 +27,7 @@ review_packet_contract = "docs/review-packet.md"
 cockpit_proof_evidence = "docs/cockpit-proof-evidence.md"
 proof_observation_decision_plan = "docs/plans/proof-observation-decision-readiness.md"
 proof_observation_artifacts = "docs/ci/proof-observation-artifacts.md"
+proof_observation_decision_spec = "docs/specs/proof-observation-decision-packet.md"
 proof_policy = "ci/proof.toml"
 
 [rules]
