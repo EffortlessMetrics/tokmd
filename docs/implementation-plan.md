@@ -481,7 +481,7 @@ schema impact, and runtime capability story.
 - [x] Evaluate Tree-sitter Rust grammar availability and dependency footprint for a first shadow slice
 - [x] Add feature-gated `tokmd-analysis::ast` owner module
 - [x] Parse initial Rust function landmarks
-- [ ] Add Rust import and simple control-flow landmarks
+- [x] Add Rust import and simple control-flow landmarks
 - [x] Add feature-gated library helpers that emit deterministic shadow
       artifacts under `target/tokmd-ast-shadow/`
 - [x] Compare caller-supplied heuristic landmarks and AST evidence without

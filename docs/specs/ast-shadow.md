@@ -61,8 +61,8 @@ library builder accepts caller-supplied heuristic landmarks; choosing the
 production heuristic source remains a later runner decision.
 
 `ast.json` should record parser-backed Rust facts selected for comparison,
-including parser capability metadata, normalized paths, landmarks, parser
-status, and recoverable parse-error state.
+including parser capability metadata, normalized paths, function/import/simple
+control-flow landmarks, parser status, and recoverable parse-error state.
 
 `diff.json` should record deterministic comparison results between heuristic
 and AST facts. It should distinguish exact matches, AST-only facts,
@@ -73,7 +73,8 @@ temporary directories, and nondeterministic ordering.
 
 The first implementation lives in `tokmd-analysis` behind the existing `ast`
 feature. It builds and writes the three artifact JSON files for caller-provided
-Rust source and heuristic landmarks, but it is not wired into default CLI,
+Rust source and heuristic landmarks. Its Rust parser records function, import,
+and simple control-flow landmarks, but it is not wired into default CLI,
 receipt, browser, FFI, Python, Node, or CI behavior.
 
 ## Compatibility

@@ -50,7 +50,9 @@ artifacts. The first AST shadow contract slice is complete and the first
 feature-gated `tokmd-analysis` artifact builder exists: it can build and write
 developer-facing `tokmd.ast_shadow.v1` heuristic, AST, and diff artifacts from
 caller-supplied heuristic landmarks plus Rust Tree-sitter landmarks while
-preserving default receipt, browser, proof-promotion, and Codecov behavior.
+preserving default receipt, browser, proof-promotion, and Codecov behavior. The
+Rust shadow parser now records function, import, and simple control-flow
+landmarks behind the existing `ast` feature.
 
 ## Next Work Packets
 
