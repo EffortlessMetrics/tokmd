@@ -56,7 +56,9 @@ target/tokmd-ast-shadow/
 The artifact set uses schema family `tokmd.ast_shadow.v1`.
 
 `heuristic.json` should record the existing heuristic facts selected for
-comparison, including normalized paths and stable identifiers.
+comparison, including normalized paths and stable identifiers. The first
+library builder accepts caller-supplied heuristic landmarks; choosing the
+production heuristic source remains a later runner decision.
 
 `ast.json` should record parser-backed Rust facts selected for comparison,
 including parser capability metadata, normalized paths, landmarks, parser
@@ -68,6 +70,11 @@ heuristic-only facts, parse-degraded files, and unsupported files.
 
 All three artifacts must avoid timestamps, absolute paths, environment-specific
 temporary directories, and nondeterministic ordering.
+
+The first implementation lives in `tokmd-analysis` behind the existing `ast`
+feature. It builds and writes the three artifact JSON files for caller-provided
+Rust source and heuristic landmarks, but it is not wired into default CLI,
+receipt, browser, FFI, Python, Node, or CI behavior.
 
 ## Compatibility
 

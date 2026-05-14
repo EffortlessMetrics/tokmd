@@ -12,7 +12,11 @@ pub use capability::{
     AST_SHADOW_SCHEMA_VERSION, AstCapability, AstLanguage, AstParserStatus, capabilities,
 };
 pub use rust::{RustAstError, RustAstShadow, RustLandmark, RustLandmarkKind, parse_rust_landmarks};
-pub use shadow::{DEFAULT_SHADOW_OUTPUT_DIR, ShadowArtifactSet, default_shadow_artifacts};
+pub use shadow::{
+    DEFAULT_SHADOW_OUTPUT_DIR, ShadowArtifactError, ShadowArtifactPaths, ShadowArtifactSet,
+    ShadowArtifacts, ShadowFileInput, ShadowLandmark, build_shadow_artifacts,
+    default_shadow_artifacts, normalize_shadow_path, write_shadow_artifacts,
+};
 
 #[cfg(test)]
 mod tests {

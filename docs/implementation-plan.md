@@ -482,8 +482,10 @@ schema impact, and runtime capability story.
 - [x] Add feature-gated `tokmd-analysis::ast` owner module
 - [x] Parse initial Rust function landmarks
 - [ ] Add Rust import and simple control-flow landmarks
-- [ ] Emit deterministic shadow artifacts under `target/tokmd-ast-shadow/`
-- [ ] Compare heuristic and AST evidence without changing default receipts
+- [x] Add feature-gated library helpers that emit deterministic shadow
+      artifacts under `target/tokmd-ast-shadow/`
+- [x] Compare caller-supplied heuristic landmarks and AST evidence without
+      changing default receipts
 - [x] Add proof scope coverage for AST shadow parsing
 - [ ] Add performance benchmarks
 - [ ] Decide later whether AST-derived public fields need schema changes
