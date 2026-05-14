@@ -89,12 +89,25 @@ pub enum Commands {
     TrimTarget(TrimTargetArgs),
     /// Emit a small phase-timing receipt for core inventory and optional analysis workflows
     PerfSmoke(PerfSmokeArgs),
+    /// Compare heuristic and AST-backed Rust landmarks for explicit files
+    AstShadowCompare(AstShadowCompareArgs),
     /// Generate or check committed public Shields badge endpoints
     Badges(BadgesArgs),
     /// Generate or check PR-scoped RIPR evidence artifacts
     RiprPr(RiprPrArgs),
     /// Generate or check RIPR review guidance artifacts
     RiprReviewComments(RiprReviewCommentsArgs),
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct AstShadowCompareArgs {
+    /// Repo-relative Rust source path to compare. Repeat for multiple files.
+    #[arg(long = "path", required = true)]
+    pub paths: Vec<std::path::PathBuf>,
+
+    /// Output directory for heuristic.json, ast.json, and diff.json.
+    #[arg(long, default_value = "target/tokmd-ast-shadow")]
+    pub out: std::path::PathBuf,
 }
 
 #[derive(Args, Debug, Clone, Default)]

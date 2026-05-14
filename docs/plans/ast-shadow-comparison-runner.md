@@ -41,19 +41,19 @@ equivalence, call graphs, type resolution, or complexity replacement.
    - Keep `docs/NEXT.md` and `docs/specs/ast-shadow.md` aligned with the
      runner boundary.
 2. Add the first runner behind developer tooling.
-   - Status: pending.
+   - Status: active.
    - Prefer `cargo xtask ast-shadow-compare` for the first runner so the public
      `tokmd` CLI stays unchanged while the artifact contract stabilizes.
    - Inputs should be explicit repo-relative Rust source paths and an output
      directory, with no network, GitHub, Codecov, or evidencebus dependency.
 3. Generate the existing artifact set.
-   - Status: pending.
+   - Status: active.
    - Reuse the `tokmd-analysis` AST shadow artifact builder to write
      `heuristic.json`, `ast.json`, and `diff.json`.
    - Avoid timestamps, absolute paths, temporary directories, and
      nondeterministic ordering.
 4. Add a small fixture corpus and focused proof.
-   - Status: pending.
+   - Status: active.
    - Cover a Rust fixture with functions, imports, and simple control flow.
    - Route the runner through the existing `analysis_ast_shadow` proof scope.
 5. Collect comparison evidence without product adoption.
@@ -105,3 +105,8 @@ cargo xtask publish-surface --json --verify-publish
   functions, imports, and simple control-flow as the first comparison target and
   keeps the first runner in developer tooling rather than the public `tokmd`
   CLI.
+- 2026-05-14: Added the first `cargo xtask ast-shadow-compare` runner slice.
+  It accepts explicit repo-relative Rust paths, writes the existing
+  `heuristic.json`, `ast.json`, and `diff.json` artifacts, and routes the
+  runner plus fixture corpus through `analysis_ast_shadow` proof. The slice does
+  not add a public `tokmd` CLI command or change default receipt behavior.

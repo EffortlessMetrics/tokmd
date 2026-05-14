@@ -1,4 +1,5 @@
 pub mod affected;
+pub mod ast_shadow_compare;
 pub mod badges;
 pub mod boundaries_check;
 pub mod build_guard;

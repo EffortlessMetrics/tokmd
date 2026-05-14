@@ -549,13 +549,22 @@ paths = [
   "crates/tokmd-analysis/Cargo.toml",
   "crates/tokmd-analysis/examples/ast_shadow_perf.rs",
   "crates/tokmd-analysis/src/ast/**",
+  "fixtures/ast-shadow/**",
   "docs/adr/0008-ast-foundation.md",
+  "docs/plans/ast-shadow-comparison-runner.md",
   "docs/specs/ast-shadow.md",
+  "xtask/Cargo.toml",
+  "xtask/src/cli.rs",
+  "xtask/src/main.rs",
+  "xtask/src/tasks/ast_shadow_compare.rs",
+  "xtask/src/tasks/mod.rs",
 ]
-packages = ["tokmd-analysis"]
+packages = ["tokmd-analysis", "xtask"]
 proof = [
   "cargo test -p tokmd-analysis --features ast ast --verbose",
   "cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json",
+  "cargo test -p xtask ast_shadow --verbose",
+  "cargo xtask ast-shadow-compare --path fixtures/ast-shadow/rust/basic.rs --out target/tokmd-ast-shadow",
 ]
 mutation = false
 coverage = false

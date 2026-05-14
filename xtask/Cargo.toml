@@ -25,6 +25,7 @@ proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
 walkdir = "2"
 tokmd-core = { workspace = true, features = ["analysis"] }
+tokmd-analysis = { path = "../crates/tokmd-analysis", version = "1.11.0", default-features = false, features = ["ast"] }
 tokmd-analysis-types.workspace = true
 
 [dev-dependencies]
