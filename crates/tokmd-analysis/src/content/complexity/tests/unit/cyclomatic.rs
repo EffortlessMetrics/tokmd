@@ -358,6 +358,18 @@ function max(a, b) {
 }
 
 #[test]
+fn cc_js_ternary_with_multibyte_chars() {
+    // Regression: byte-vs-char index mismatch in count_ternary_op
+    // used to panic when multi-byte UTF-8 characters preceded a `?`
+    // on the same line.
+    let code = "function pick(x) {\n    return x === \"🎉🎉🎉\" ? \"ok\" : \"no\";\n}\n";
+    let result = estimate_cyclomatic_complexity(code, "javascript");
+    assert_eq!(result.function_count, 1);
+    // 1 base + 1 ternary = 2
+    assert_eq!(result.total_cc, 2);
+}
+
+#[test]
 fn cc_js_logical_operators() {
     let code = r#"
 function check(a, b) {

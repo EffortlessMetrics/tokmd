@@ -133,7 +133,7 @@ fn count_ternary_op(line: &str) -> usize {
             let next = chars.get(i + 1);
             let is_optional_chain = next == Some(&'.');
             let at_end = next.is_none() || matches!(next, Some(';') | Some(')'));
-            let has_colon = line[i..].contains(':');
+            let has_colon = chars[i..].contains(&':');
 
             if !is_optional_chain && !at_end && has_colon {
                 count += 1;
