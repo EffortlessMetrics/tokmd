@@ -1,6 +1,6 @@
 # Plan: CI Risk-Pack Outputs
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -34,20 +34,32 @@ policy/ci-risk-packs.toml
 ## Work Packets
 
 1. Teach `cargo xtask ci-plan` to write GitHub output flags.
-   - Status: in progress.
+   - Status: complete.
    - Add an optional `--github-output <PATH>` flag.
    - Preserve the existing `ci-plan.json` and step-summary behavior.
    - Keep output names compatible with `.github/workflows/ci.yml`.
 2. Replace the inline Bash risk-pack classifier in CI.
-   - Status: in progress.
+   - Status: complete.
    - The detect job should call `cargo xtask ci-plan` and consume its
      GitHub-output file.
    - Preserve existing downstream `needs.detect.outputs.*` names.
 3. Verify policy coverage.
-   - Status: pending.
+   - Status: complete.
    - Ensure `policy/ci-risk-packs.toml` covers paths previously hard-coded in
      the workflow detector.
    - Keep affected planning at zero unknown files.
+
+## Decision
+
+Outcome: **complete; risk-pack output classification is Rust-owned**.
+
+The CI detect job still exposes the same downstream output names, but it now
+delegates path classification to `cargo xtask ci-plan --github-output`. The
+workflow remains a runner/cache/artifact shell: it fetches the base ref,
+invokes xtask, and passes through the generated GitHub output flags.
+
+The slice did not change required checks, advisory proof status, Codecov
+defaults, public `tokmd` CLI behavior, or public receipt schemas.
 
 ## Validation
 
@@ -79,3 +91,8 @@ verify the summary before merging.
   closed with continued observation. The next proof-orchestration gap is the
   CI detect job's inline shell path classifier, which duplicates
   `policy/ci-risk-packs.toml` instead of consuming Rust-owned planner output.
+- 2026-05-15: Closed through PR #2281. `cargo xtask ci-plan` now emits
+  workflow-compatible output flags, `.github/workflows/ci.yml` consumes those
+  flags from the detect job, `policy/ci-risk-packs.toml` covers the previously
+  hard-coded release/Nix path cases, and hosted PR plus post-merge CI checks
+  passed.
