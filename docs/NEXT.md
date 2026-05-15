@@ -127,10 +127,18 @@ publishing facts easier to consume without publishing crates, tagging releases,
 changing release workflow behavior, changing public receipt schemas, or
 promoting advisory proof.
 
+The first publishing evidence contract is now recorded in
+`docs/specs/publishing-evidence.md`. Current publishing evidence uses
+`cargo xtask publish-surface --json --verify-publish` as the first
+machine-readable package-surface artifact and maps version consistency,
+release metadata proof routing, CI lane whitelist entries, CI planning, and the
+release workflow to their existing evidence. A wrapper receipt is deferred
+until a consumer proves the need.
+
 ## Next Work Packets
 
-1. Start with the publishing evidence readiness plan and artifact contract;
-   do not change release behavior before the evidence role is clear.
+1. Add the user-facing publishing evidence guide from the active plan; do not
+   change release behavior before the human workflow is clear.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

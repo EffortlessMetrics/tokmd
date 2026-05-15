@@ -2,7 +2,7 @@
 
 - Status: active
 - Related proposal:
-- Related spec:
+- Related spec: `docs/specs/publishing-evidence.md`
 - Related ADR: `docs/adr/0001-production-package-publishability.md`, `docs/adr/0003-publish-surface-taxonomy.md`, `docs/adr/0005-release-train-and-rc-semantics.md`
 - Related issues:
 
@@ -40,14 +40,15 @@ prove, and which command reproduces it without reading release workflow YAML.
 ## Work Packets
 
 1. Define the publishing evidence artifact contract.
-   - Status: active.
-   - Decide whether existing `publish-surface --json` output is enough for the
-     first artifact, or whether a separate wrapper receipt is needed later.
+   - Status: complete.
+   - Decision: existing `publish-surface --json --verify-publish` output is the
+     first machine-readable publishing evidence artifact. A separate wrapper
+     receipt is deferred until a consumer needs one.
    - Map release metadata, version consistency, publish-surface, CI lane
      whitelist, release workflow, and package closure checks to their current
      evidence.
 2. Add a user-facing publishing evidence guide.
-   - Status: pending.
+   - Status: active.
    - Explain what to run before release work, what artifact to open first, and
      what checks do not prove.
    - Keep this as documentation unless the guide exposes a genuine product gap.
@@ -92,3 +93,7 @@ release workflow, or version docs change.
 - 2026-05-15: Started from the code-intelligence platform audit. The audit
   found publishing facts verified but less user-facing than proof, cockpit, and
   handoff facts.
+- 2026-05-15: Added the publishing evidence spec. It keeps
+  `publish-surface --json --verify-publish` as the first machine-readable
+  artifact, maps current release metadata, CI lane, workflow, and proof-routing
+  evidence, and defers any wrapper receipt until a consumer proves the need.
