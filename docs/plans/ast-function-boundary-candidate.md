@@ -1,6 +1,6 @@
 # Plan: AST Function-Boundary Candidate Evidence
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/specs/ast-shadow.md`
 - Related ADR: `docs/adr/0008-ast-foundation.md`
@@ -85,17 +85,56 @@ artifacts, corpus notes, mismatch classification, and timing evidence.
    - Kept the framework advisory until maintainers explicitly accept a product
      proposal.
 6. Draft a public candidate proposal only if evidence supports it.
-   - Status: pending.
-   - The proposal must identify the affected schema family, fallback behavior,
+   - Status: closed without proposal.
+   - The current evidence does not yet support a public candidate proposal.
+   - A future proposal must identify the affected schema family, fallback behavior,
      browser/WASM reporting, proof ownership, rollback plan, and first product
      surface.
    - A likely first product surface is optional cockpit or handoff evidence,
      not default `analyze`.
 7. Close the lane with a durable decision.
-   - Status: pending.
-   - Record whether function boundaries are ready for a public candidate
-     proposal, need more corpus evidence, or should remain developer-only
-     shadow evidence.
+   - Status: complete.
+   - Recorded that function boundaries need broader corpus evidence before a
+     public candidate proposal.
+
+## Decision
+
+Outcome: **not yet**.
+
+The checked manifest corpus gives useful shadow evidence for Rust
+function-boundary precision, but it is not enough to draft a public candidate
+proposal. The corpus showed 147 matched function landmarks, 20 heuristic-only
+function landmarks, and 0 AST-only function landmarks. The heuristic-only set
+was explainable as embedded fixture/test source strings plus the intentionally
+malformed parse-degraded fixture. That is a good signal that AST can reduce
+heuristic over-reporting, but it is still a narrow signal.
+
+The current evidence clears these criteria:
+
+- repeatable corpus input through `policy/ast-shadow-corpus.toml`;
+- verifier acceptance through `cargo xtask ast-shadow-check --manifest`;
+- explicit parse-degraded handling for the malformed fixture;
+- function-kind counts separated from import and control-flow counts;
+- heuristic-only mismatch classification for the first corpus; and
+- no AST-only function misses observed in the first corpus.
+
+The current evidence does **not** yet clear these criteria:
+
+- broader corpus coverage across more production code, tests, examples,
+  macro-heavy files, generated-ish files, and docs-adjacent Rust snippets;
+- a timing envelope tied to the candidate corpus rather than only synthetic
+  `tokmd.ast_shadow_perf.v1` evidence;
+- a chosen first product surface;
+- an affected public schema family and additive/versioned schema story;
+- fallback behavior for unavailable AST builds, unsupported languages,
+  parser degradation, and browser/WASM; and
+- a rollback plan for any future candidate surface.
+
+No public `tokmd` CLI behavior, default receipts, cockpit output, handoff
+output, browser/WASM capability, proof gate, Codecov default, or evidencebus
+runtime should change from this lane. The next lane should broaden the corpus
+and rerun the same shadow evidence loop before any public candidate proposal is
+drafted.
 
 ## Candidate Evidence Criteria
 
@@ -262,3 +301,7 @@ publish-surface verification.
   evidence, verifier acceptance, mismatch categorization, timing evidence,
   fallback policy, schema-family identification, proof ownership, and rollback
   before any public candidate proposal can claim readiness.
+- 2026-05-14: Closed the candidate-decision lane with outcome `not yet`.
+  Function-boundary AST evidence remains promising but shadow-only until a
+  broader corpus, candidate-corpus timing envelope, fallback policy, schema
+  family, product surface, and rollback story are recorded.

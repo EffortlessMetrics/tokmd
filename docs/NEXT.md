@@ -63,27 +63,27 @@ function-boundary candidate decision are recorded in
 product workflows until a fresh plan uses broader comparison evidence to justify
 a public schema or behavior proposal. Control-flow evidence remains shadow-only.
 
-The active machine-readable goal now points at AST function-boundary candidate
-evidence. The next AST work should use existing shadow artifacts, verifier
-receipts, corpus notes, mismatch classification, and timing evidence to decide
-whether Rust function-boundary precision is ready for a future public candidate
-proposal. This is evidence planning only: no default product workflow, public
-receipt schema, browser/WASM capability, proof gate, Codecov default, cockpit
-output, handoff output, or evidencebus runtime changes are in scope. The plan
-lives in `docs/plans/ast-function-boundary-candidate.md`, and the first
-repo-owned draft corpus manifest lives in `policy/ast-shadow-corpus.toml`.
-`cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml`
-is the developer-facing collection path for that corpus. The first manifest
-corpus mismatch classification is now recorded in the plan; the next AST
-candidate step is to use the new promotion-criteria framework to choose a
-durable outcome: public-candidate proposal, broader corpus evidence, or
-shadow-only deferral. Product integration remains out of scope until that
-decision exists.
+The AST function-boundary candidate-decision lane is closed with outcome
+`not yet`. The first manifest corpus was repeatable and verified, and its
+function-boundary mismatches were classified, but it was too narrow to justify
+a public candidate proposal. AST function-boundary evidence remains
+developer-facing shadow evidence.
+
+The active machine-readable goal now points at AST function-boundary corpus
+expansion. The next AST work should broaden the repo-owned Rust corpus, rerun
+the same `ast-shadow-compare` / `ast-shadow-check` evidence loop, classify
+function-boundary mismatches, and record candidate-corpus timing before any
+public proposal. This is evidence planning only: no default product workflow,
+public receipt schema, browser/WASM capability, proof gate, Codecov default,
+cockpit output, handoff output, or evidencebus runtime changes are in scope.
+The active plan lives in
+`docs/plans/ast-function-boundary-corpus-expansion.md`; the closed candidate
+decision is recorded in `docs/plans/ast-function-boundary-candidate.md`.
 
 ## Next Work Packets
 
-1. Make AST function-boundary candidate evidence repeatable and decision-ready
-   under shadow mode; do not change public product behavior or receipt schemas.
+1. Broaden AST function-boundary corpus evidence under shadow mode; do not
+   change public product behavior or receipt schemas.
 2. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 3. Preserve `tokmd cockpit` as the review evidence implementation surface until
