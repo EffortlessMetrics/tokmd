@@ -151,3 +151,10 @@ the relevant proof artifact verifier on generated receipts.
   observation: the proof-observation decision surface is ready for maintainer
   review, but current evidence does not justify making advisory proof required,
   enabling default Codecov upload, or changing cockpit/handoff behavior.
+- 2026-05-15: Manual proof-observation collector run `25917845086` passed on
+  `main` after the workflow and ADR landed. The uploaded artifact included
+  `proof-observation-decision.json` (`ok = true`, 3 source artifacts, 100
+  advisory observations, 38 selected/executed/passed advisory commands, 11
+  scopes) and `proof-observation-decision-check.json` (`ok = true`, 5 criteria
+  met, 2 missing), confirming the real collector path emits verified aggregate
+  evidence without promotion.

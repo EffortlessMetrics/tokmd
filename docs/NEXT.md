@@ -89,6 +89,17 @@ promotion: advisory fast proof, scoped coverage, mutation, coverage telemetry,
 and Codecov upload remain non-required until a future maintainer decision cites
 fresh verified decision evidence and changes checked policy deliberately.
 
+Manual proof-observation collector run `25917845086` on `main` passed on
+2026-05-15 after ADR-0009 merged. It produced
+`proof-observation-decision.json` with schema
+`tokmd.proof_observation_decision.v1`, `ok = true`, 3 source artifacts, 100
+advisory observations, 38 selected/executed/passed advisory commands, 38
+artifacts, and 11 scopes. Its `proof-observation-decision-check.json` reported
+schema `tokmd.proof_observation_decision_check.v1`, `ok = true`, 5 criteria
+met, and 2 criteria missing (`affected_present` and
+`required_proof_observed`). That confirms the collector can now upload the
+verified aggregate while preserving the advisory boundary.
+
 ## Next Work Packets
 
 1. Choose the next active lane deliberately; do not reopen AST productization
