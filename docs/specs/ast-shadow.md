@@ -172,6 +172,58 @@ shadow evidence into public receipts must:
 - keep browser/WASM capability reporting honest;
 - update proof scopes before public behavior changes.
 
+## Function-Boundary Candidate Promotion Criteria
+
+Function-boundary precision is the first AST-backed fact family eligible for a
+future public-candidate proposal. Eligibility does not mean automatic adoption.
+It means maintainers have enough shadow evidence to decide whether to draft a
+product proposal for one explicit surface.
+
+A function-boundary public-candidate proposal may be drafted only when all of
+the following are true:
+
+- the comparison corpus is repeatable from checked-in repo-relative inputs,
+  currently `policy/ast-shadow-corpus.toml`;
+- `cargo xtask ast-shadow-check` accepts regenerated artifacts for that corpus;
+- every parse-degraded file is explicit, expected, or categorized separately
+  from available AST evidence;
+- unsupported files are explicit and never counted as passing AST evidence;
+- function-kind counts are separated from import and control-flow counts;
+- heuristic-only function landmarks are inspected and categorized as embedded
+  fixture or test-source strings, comment/doc examples, macro-ish patterns,
+  malformed input, parser mismatch, or real heuristic false positives;
+- AST-only function landmarks are inspected and categorized as multi-line
+  signatures, visibility/async/unsafe/extern shapes, nested items, parser
+  recovery cases, or real heuristic misses;
+- the evidence shows a user-visible problem that AST can improve, such as
+  reducing review or handoff noise from heuristic function over-reporting;
+- no unexplained AST regression or parser degradation remains in the candidate
+  corpus;
+- timing evidence is recorded with `tokmd.ast_shadow_perf.v1` or a scoped
+  equivalent before making performance claims;
+- fallback behavior is explicit for builds without the `ast` feature,
+  unsupported languages, parser degradation, and browser/WASM;
+- the affected public schema family is named before implementation starts;
+- the proposed schema impact is additive or explicitly versioned;
+- proof ownership is mapped in `ci/proof.toml`; and
+- rollback is possible by disabling the candidate surface without changing
+  existing heuristic receipts.
+
+The candidate decision must choose one of these outcomes:
+
+- **ready for proposal**: evidence supports drafting a public-candidate
+  proposal for a named surface and schema family;
+- **not yet**: evidence is useful but needs a larger corpus, better
+  classification, timing evidence, or fallback design;
+- **shadow-only**: AST evidence remains developer/review evidence and should
+  not move toward a public surface.
+
+The first manifest-corpus classification clears repeatability,
+artifact-verifier, and mismatch-classification evidence for the initial corpus.
+It does not by itself clear public-candidate promotion, because a future
+proposal still needs the schema family, fallback policy, timing envelope,
+rollback path, and first product surface named explicitly.
+
 ## Proof Requirements
 
 Any PR that changes the AST shadow contract, AST parser code, or shadow artifact

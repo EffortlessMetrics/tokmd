@@ -75,8 +75,10 @@ repo-owned draft corpus manifest lives in `policy/ast-shadow-corpus.toml`.
 `cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml`
 is the developer-facing collection path for that corpus. The first manifest
 corpus mismatch classification is now recorded in the plan; the next AST
-candidate step is promotion-criteria and fallback/schema decision framing, not
-product integration.
+candidate step is to use the new promotion-criteria framework to choose a
+durable outcome: public-candidate proposal, broader corpus evidence, or
+shadow-only deferral. Product integration remains out of scope until that
+decision exists.
 
 ## Next Work Packets
 

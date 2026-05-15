@@ -79,10 +79,10 @@ artifacts, corpus notes, mismatch classification, and timing evidence.
      macro-ish patterns, malformed input, parser recovery, and true heuristic
      misses or false positives.
 5. Define promotion criteria as a spec-level decision framework.
-   - Status: pending.
-   - Use the checked corpus evidence to define what would justify public
+   - Status: complete.
+   - Used the checked corpus evidence to define what would justify public
      candidate work.
-   - Keep the framework advisory until maintainers explicitly accept a product
+   - Kept the framework advisory until maintainers explicitly accept a product
      proposal.
 6. Draft a public candidate proposal only if evidence supports it.
    - Status: pending.
@@ -257,3 +257,8 @@ publish-surface verification.
   the intentional parse-degraded fixture, so function boundaries remain a
   promising public-candidate fact family but are not ready for product
   integration without promotion criteria and fallback/schema analysis.
+- 2026-05-14: Added the spec-level function-boundary promotion criteria to
+  `docs/specs/ast-shadow.md`. The framework requires repeatable corpus
+  evidence, verifier acceptance, mismatch categorization, timing evidence,
+  fallback policy, schema-family identification, proof ownership, and rollback
+  before any public candidate proposal can claim readiness.
