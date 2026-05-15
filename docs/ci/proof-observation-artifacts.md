@@ -22,14 +22,18 @@ For a normal PR or maintainer review, start here:
    ran
 7. `target/proof-observations/proof-executor-promotion-readiness.json`, when a
    maintainer is evaluating promotion readiness
+8. `target/proof-observations/proof-observation-decision.json`, when multiple
+   proof-observation receipts need one advisory decision surface
+9. `target/proof-observations/proof-observation-decision-check.json`, before
+   trusting the aggregate decision packet shape
 
 The important distinction is planned versus executed evidence:
 
 - `proof-plan.json` and `proof-evidence.json` describe selected or planned work.
 - `proof-run-summary.json`, executor summaries with executed counts, and
   observation artifacts describe work that actually ran.
-- Collection and readiness receipts summarize observations; they do not execute
-  proof and do not make advisory evidence required.
+- Collection, readiness, and decision receipts summarize observations; they do
+  not execute proof and do not make advisory evidence required.
 
 ## Artifact Inventory
 
@@ -72,9 +76,13 @@ These artifacts are immediately useful for a maintainer decision:
   evidence across a source-run window.
 - `proof-executor-promotion-readiness.json`, because it applies checked policy
   thresholds to the collected executor observations.
+- `proof-observation-decision.json` plus
+  `proof-observation-decision-check.json`, because they turn the supplied
+  source receipts into one verified advisory summary without replacing the
+  source artifact verifiers.
 
-These artifacts still need summarization before they are comfortable for a
-promotion review:
+These artifacts still need repeated collection and maintainer judgment before
+they are comfortable for a promotion review:
 
 - Multiple source-run windows need a compact trend view. The current collection
   receipt can show one window; a decision packet should make repeated windows

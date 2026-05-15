@@ -68,7 +68,11 @@ What command or artifact reproduces each claim?
      upload coverage, or change workflow gates.
 4. Connect the decision evidence to review surfaces only after a verifier
    exists.
-   - Status: pending; verifier prerequisite complete.
+   - Status: pending; workflow artifact prerequisite complete.
+   - The manual proof-observation collector now emits both
+     `proof-observation-decision.json` and
+     `proof-observation-decision-check.json` from real downloaded executor
+     observation collections.
    - Future cockpit or handoff integration should link verified decision
      receipts as evidence handles, not treat them as merge verdicts.
 5. Close the lane with an explicit decision record.
@@ -137,3 +141,9 @@ the relevant proof artifact verifier on generated receipts.
   schema/mode, source artifact references, count consistency, freshness states,
   policy guardrails, criteria shape, reproduction commands, and embedded
   errors, and still leaves every source artifact under its own verifier.
+- 2026-05-15: Wired the manual proof-observation collector to write
+  `proof-observation-decision.json` and
+  `proof-observation-decision-check.json` after summarizing downloaded
+  executor observations. The workflow still only observes and uploads evidence;
+  it does not promote advisory proof, enable default Codecov upload, or change
+  required gates.
