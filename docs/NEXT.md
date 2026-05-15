@@ -72,6 +72,8 @@ receipt schema, browser/WASM capability, proof gate, Codecov default, cockpit
 output, handoff output, or evidencebus runtime changes are in scope. The plan
 lives in `docs/plans/ast-function-boundary-candidate.md`, and the first
 repo-owned draft corpus manifest lives in `policy/ast-shadow-corpus.toml`.
+`cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml`
+is the developer-facing collection path for that corpus.
 
 ## Next Work Packets
 

@@ -10,9 +10,10 @@ use tokmd_analysis::ast::{AST_SHADOW_SCHEMA_VERSION, default_shadow_artifacts};
 const AST_SHADOW_CHECK_SCHEMA: &str = "tokmd.ast_shadow_check.v1";
 
 pub fn run(args: AstShadowCheckArgs) -> Result<()> {
-    if !args.paths.is_empty() {
+    if !args.paths.is_empty() || args.manifest.is_some() {
         ast_shadow_compare::run(AstShadowCompareArgs {
             paths: args.paths.clone(),
+            manifest: args.manifest.clone(),
             out: args.dir.clone(),
             summary_md: None,
         })?;
@@ -509,6 +510,7 @@ mod tests {
 
         run(AstShadowCheckArgs {
             paths: vec![source],
+            manifest: None,
             dir: out.clone(),
             json: Some(receipt.clone()),
         })?;
@@ -522,6 +524,47 @@ mod tests {
             Some(AST_SHADOW_CHECK_SCHEMA)
         );
         assert_eq!(report["summary"]["files"], json!(1));
+        Ok(())
+    }
+
+    #[test]
+    fn check_can_generate_manifest_artifacts_before_verifying() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let current_dir = std::env::current_dir()?;
+        let scratch_root = current_dir.join("target");
+        fs::create_dir_all(&scratch_root)?;
+        let source_root = tempfile::tempdir_in(scratch_root)?;
+        let source_dir = source_root.path().join("fixtures");
+        fs::create_dir_all(&source_dir)?;
+        fs::write(
+            source_dir.join("input.rs"),
+            "use std::fs;\npub fn fixture() {}\n",
+        )?;
+        let source = source_dir
+            .join("input.rs")
+            .strip_prefix(&current_dir)?
+            .to_path_buf();
+        let manifest = source_root.path().join("ast-shadow-corpus.toml");
+        fs::write(
+            &manifest,
+            format!(
+                "schema = \"tokmd.ast_shadow_corpus.v1\"\nlanguage = \"rust\"\n\n[[file]]\npath = \"{}\"\n",
+                source.to_string_lossy().replace('\\', "/")
+            ),
+        )?;
+        let manifest = manifest.strip_prefix(&current_dir)?.to_path_buf();
+        let out = temp.path().join("ast-shadow");
+
+        run(AstShadowCheckArgs {
+            paths: Vec::new(),
+            manifest: Some(manifest),
+            dir: out.clone(),
+            json: None,
+        })?;
+
+        assert!(out.join("heuristic.json").is_file());
+        assert!(out.join("ast.json").is_file());
+        assert!(out.join("diff.json").is_file());
         Ok(())
     }
 

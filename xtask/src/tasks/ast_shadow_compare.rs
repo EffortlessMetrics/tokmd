@@ -1,5 +1,6 @@
 use crate::cli::AstShadowCompareArgs;
 use anyhow::{Context, Result, bail};
+use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
@@ -9,13 +10,16 @@ use tokmd_analysis::ast::{
     write_shadow_artifacts,
 };
 
+const AST_SHADOW_CORPUS_SCHEMA: &str = "tokmd.ast_shadow_corpus.v1";
+
 pub fn run(args: AstShadowCompareArgs) -> Result<()> {
     let root = std::env::current_dir().context("resolve current directory")?;
     run_with_root(args, &root)
 }
 
 fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
-    let inputs = collect_inputs(&args.paths, root)?;
+    let input_paths = input_paths_from_args(&args, root)?;
+    let inputs = collect_inputs(&input_paths, root)?;
     let shadow_inputs = inputs
         .iter()
         .map(|input| ShadowFileInput {
@@ -169,6 +173,10 @@ fn render_summary_md(
     markdown.push_str("\n## Reproduce\n\n");
     markdown.push_str("```bash\n");
     markdown.push_str("cargo xtask ast-shadow-compare");
+    if let Some(manifest) = &args.manifest {
+        markdown.push_str(" \\\n  --manifest ");
+        markdown.push_str(&summary_display_path(manifest, root)?);
+    }
     for path in &args.paths {
         markdown.push_str(" \\\n  --path ");
         markdown.push_str(&summary_display_path(path, root)?);
@@ -288,6 +296,99 @@ struct RunnerInput {
     heuristic_landmarks: Vec<ShadowLandmark>,
 }
 
+#[derive(Debug, Deserialize)]
+struct AstShadowCorpusManifest {
+    schema: String,
+    language: String,
+    #[serde(default)]
+    rules: AstShadowCorpusRules,
+    #[serde(default)]
+    file: Vec<AstShadowCorpusFile>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct AstShadowCorpusRules {
+    supported_extension: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct AstShadowCorpusFile {
+    path: String,
+}
+
+fn input_paths_from_args(args: &AstShadowCompareArgs, root: &Path) -> Result<Vec<PathBuf>> {
+    if args.paths.is_empty() && args.manifest.is_none() {
+        bail!("AST shadow compare requires at least one --path or --manifest");
+    }
+
+    let mut paths = args.paths.clone();
+    if let Some(manifest) = &args.manifest {
+        paths.extend(read_manifest_paths(manifest, root)?);
+    }
+
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
+fn read_manifest_paths(manifest_path: &Path, root: &Path) -> Result<Vec<PathBuf>> {
+    let manifest_path = validate_repo_relative_toml_path(manifest_path, root)?;
+    let full_path = root.join(&manifest_path);
+    let content = fs::read_to_string(&full_path).with_context(|| {
+        format!(
+            "read AST shadow corpus manifest {}",
+            manifest_path.display()
+        )
+    })?;
+    let manifest: AstShadowCorpusManifest = toml::from_str(&content).with_context(|| {
+        format!(
+            "parse AST shadow corpus manifest {}",
+            manifest_path.display()
+        )
+    })?;
+
+    if manifest.schema != AST_SHADOW_CORPUS_SCHEMA {
+        bail!(
+            "AST shadow corpus manifest schema `{}` does not match `{AST_SHADOW_CORPUS_SCHEMA}`",
+            manifest.schema
+        );
+    }
+    if manifest.language != "rust" {
+        bail!(
+            "AST shadow corpus manifest currently supports only Rust, found `{}`",
+            manifest.language
+        );
+    }
+    if let Some(extension) = &manifest.rules.supported_extension
+        && extension != ".rs"
+    {
+        bail!(
+            "AST shadow corpus manifest currently supports only `.rs` files, found `{extension}`"
+        );
+    }
+    if manifest.file.is_empty() {
+        bail!(
+            "AST shadow corpus manifest contains no [[file]] entries: {}",
+            manifest_path.display()
+        );
+    }
+
+    manifest
+        .file
+        .iter()
+        .map(|entry| {
+            if entry.path.contains('\\') {
+                bail!(
+                    "AST shadow corpus paths must use `/` separators: {}",
+                    entry.path
+                );
+            }
+            validate_repo_relative_rust_path(Path::new(&entry.path), root)
+                .with_context(|| format!("validate AST shadow corpus path {}", entry.path))
+        })
+        .collect()
+}
+
 fn collect_inputs(paths: &[PathBuf], root: &Path) -> Result<Vec<RunnerInput>> {
     let mut inputs = paths
         .iter()
@@ -310,6 +411,50 @@ fn collect_input(path: &Path, root: &Path) -> Result<RunnerInput> {
         source,
         heuristic_landmarks,
     })
+}
+
+fn validate_repo_relative_toml_path(path: &Path, root: &Path) -> Result<PathBuf> {
+    if path.is_absolute() {
+        bail!(
+            "AST shadow corpus manifest path must be repo-relative: {}",
+            path.display()
+        );
+    }
+
+    if path.components().any(|component| {
+        matches!(
+            component,
+            Component::ParentDir | Component::Prefix(_) | Component::RootDir
+        )
+    }) {
+        bail!(
+            "AST shadow corpus manifest path must stay inside the repo: {}",
+            path.display()
+        );
+    }
+
+    if path.extension() != Some(OsStr::new("toml")) {
+        bail!(
+            "AST shadow corpus manifest must be a TOML file: {}",
+            path.display()
+        );
+    }
+
+    let root = root
+        .canonicalize()
+        .with_context(|| format!("canonicalize repo root {}", root.display()))?;
+    let full_path = root.join(path);
+    let canonical = full_path
+        .canonicalize()
+        .with_context(|| format!("canonicalize manifest path {}", path.display()))?;
+    if !canonical.starts_with(&root) {
+        bail!(
+            "AST shadow corpus manifest resolves outside the repo: {}",
+            path.display()
+        );
+    }
+
+    Ok(path.to_path_buf())
 }
 
 fn validate_repo_relative_rust_path(path: &Path, root: &Path) -> Result<PathBuf> {
@@ -524,6 +669,38 @@ mod tests {
     }
 
     #[test]
+    fn requires_path_or_manifest() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let args = AstShadowCompareArgs {
+            paths: Vec::new(),
+            manifest: None,
+            out: PathBuf::from("target/tokmd-ast-shadow"),
+            summary_md: None,
+        };
+
+        let error = input_paths_from_args(&args, root.path())
+            .expect_err("missing path and manifest should fail");
+
+        assert!(error.to_string().contains("--path or --manifest"));
+    }
+
+    #[test]
+    fn rejects_absolute_manifest_paths() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let args = AstShadowCompareArgs {
+            paths: Vec::new(),
+            manifest: Some(root.path().join("policy/ast-shadow-corpus.toml")),
+            out: PathBuf::from("target/tokmd-ast-shadow"),
+            summary_md: None,
+        };
+
+        let error = input_paths_from_args(&args, root.path())
+            .expect_err("absolute manifest path should fail");
+
+        assert!(error.to_string().contains("repo-relative"));
+    }
+
+    #[test]
     fn heuristic_extracts_first_slice_landmarks() {
         let source = r#"
 use std::{
@@ -578,6 +755,7 @@ pub fn compute(value: usize) -> usize {
         let out = root.path().join("target/tokmd-ast-shadow");
         let args = AstShadowCompareArgs {
             paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            manifest: None,
             out: out.clone(),
             summary_md: None,
         };
@@ -609,6 +787,7 @@ pub fn compute(value: usize) -> usize {
         let summary_md = root.path().join("target/tokmd-ast-shadow/summary.md");
         let args = AstShadowCompareArgs {
             paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            manifest: None,
             out,
             summary_md: Some(summary_md.clone()),
         };
@@ -626,6 +805,95 @@ pub fn compute(value: usize) -> usize {
     }
 
     #[test]
+    fn runner_accepts_corpus_manifest() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture_dir = root.path().join("fixtures/ast-shadow/rust");
+        fs::create_dir_all(&fixture_dir)?;
+        fs::write(
+            fixture_dir.join("b.rs"),
+            "use std::path::Path;\npub fn beta() {}\n",
+        )?;
+        fs::write(
+            fixture_dir.join("a.rs"),
+            "use std::fs;\npub fn alpha() {}\n",
+        )?;
+        let policy_dir = root.path().join("policy");
+        fs::create_dir_all(&policy_dir)?;
+        fs::write(
+            policy_dir.join("ast-shadow-corpus.toml"),
+            r#"schema = "tokmd.ast_shadow_corpus.v1"
+language = "rust"
+
+[rules]
+supported_extension = ".rs"
+
+[[file]]
+path = "fixtures/ast-shadow/rust/b.rs"
+
+[[file]]
+path = "fixtures/ast-shadow/rust/a.rs"
+"#,
+        )?;
+
+        let out = root.path().join("target/tokmd-ast-shadow");
+        let summary_md = root.path().join("target/tokmd-ast-shadow/summary.md");
+        let args = AstShadowCompareArgs {
+            paths: Vec::new(),
+            manifest: Some(PathBuf::from("policy/ast-shadow-corpus.toml")),
+            out,
+            summary_md: Some(summary_md.clone()),
+        };
+
+        run_with_root(args, root.path())?;
+        let diff = fs::read_to_string(root.path().join("target/tokmd-ast-shadow/diff.json"))?;
+        let summary = fs::read_to_string(summary_md)?;
+        let first_path = diff
+            .find("\"path\": \"fixtures/ast-shadow/rust/a.rs\"")
+            .context("missing sorted a.rs path")?;
+        let second_path = diff
+            .find("\"path\": \"fixtures/ast-shadow/rust/b.rs\"")
+            .context("missing sorted b.rs path")?;
+
+        assert!(diff.contains("\"files\": 2"));
+        assert!(first_path < second_path);
+        assert!(summary.contains("--manifest policy/ast-shadow-corpus.toml"));
+        assert!(summary.contains("- Files compared: 2"));
+        Ok(())
+    }
+
+    #[test]
+    fn manifest_rejects_parent_paths() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let policy_dir = root.path().join("policy");
+        fs::create_dir_all(&policy_dir)?;
+        fs::write(
+            policy_dir.join("ast-shadow-corpus.toml"),
+            r#"schema = "tokmd.ast_shadow_corpus.v1"
+language = "rust"
+
+[[file]]
+path = "../outside.rs"
+"#,
+        )?;
+        let args = AstShadowCompareArgs {
+            paths: Vec::new(),
+            manifest: Some(PathBuf::from("policy/ast-shadow-corpus.toml")),
+            out: PathBuf::from("target/tokmd-ast-shadow"),
+            summary_md: None,
+        };
+
+        let error = input_paths_from_args(&args, root.path())
+            .expect_err("manifest parent path should fail");
+
+        assert!(
+            error
+                .to_string()
+                .contains("validate AST shadow corpus path")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn summary_includes_landmark_kind_counts() -> Result<()> {
         let root = tempfile::tempdir()?;
         let paths = tokmd_analysis::ast::ShadowArtifactPaths {
@@ -635,6 +903,7 @@ pub fn compute(value: usize) -> usize {
         };
         let args = AstShadowCompareArgs {
             paths: vec![PathBuf::from("src/lib.rs")],
+            manifest: None,
             out: PathBuf::from("target/tokmd-ast-shadow"),
             summary_md: Some(PathBuf::from("target/tokmd-ast-shadow/summary.md")),
         };
@@ -689,6 +958,7 @@ pub fn compute(value: usize) -> usize {
         )?;
         let args = AstShadowCompareArgs {
             paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            manifest: None,
             out: root.path().join("target/tokmd-ast-shadow"),
             summary_md: Some(outside.path().join("summary.md")),
         };

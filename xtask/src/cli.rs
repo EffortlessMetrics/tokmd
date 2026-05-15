@@ -104,8 +104,12 @@ pub enum Commands {
 #[derive(Args, Debug, Clone)]
 pub struct AstShadowCompareArgs {
     /// Repo-relative Rust source path to compare. Repeat for multiple files.
-    #[arg(long = "path", required = true)]
+    #[arg(long = "path")]
     pub paths: Vec<std::path::PathBuf>,
+
+    /// Repo-relative AST shadow corpus manifest to compare.
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
 
     /// Output directory for heuristic.json, ast.json, and diff.json.
     #[arg(long, default_value = "target/tokmd-ast-shadow")]
@@ -121,6 +125,10 @@ pub struct AstShadowCheckArgs {
     /// Optional repo-relative Rust source path to compare before checking artifacts.
     #[arg(long = "path")]
     pub paths: Vec<std::path::PathBuf>,
+
+    /// Optional repo-relative AST shadow corpus manifest to compare before checking artifacts.
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
 
     /// Directory containing heuristic.json, ast.json, and diff.json.
     #[arg(long, default_value = "target/tokmd-ast-shadow")]

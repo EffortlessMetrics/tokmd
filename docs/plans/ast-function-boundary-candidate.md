@@ -62,7 +62,11 @@ artifacts, corpus notes, mismatch classification, and timing evidence.
      implementation code, parser code with fixture-string risk, review-surface
      logic, agent-context selection logic, and the comparison runner.
 3. Let the runner consume the corpus manifest.
-   - Status: pending.
+   - Status: complete.
+   - `cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml`
+     now expands the repo-owned corpus manifest into the same deterministic
+     `heuristic.json`, `ast.json`, `diff.json`, and optional `summary.md`
+     artifacts as explicit `--path` mode.
    - Preserve existing explicit `--path` mode.
    - Keep manifest paths repo-relative, Rust-only, sorted, and rejected when
      absolute or escaping the repository.
@@ -142,8 +146,8 @@ Corpus, runner, or AST-code slices should also run the relevant focused proof:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md --path <repo-relative-rust-path>
-cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
+cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md
+cargo xtask ast-shadow-check --manifest policy/ast-shadow-corpus.toml --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
 ```
 
 If public crate exports, dependencies, browser/WASM capability claims, schemas,
@@ -179,3 +183,6 @@ publish-surface verification.
   `policy/ast-shadow-corpus.toml` and routed it through the
   `analysis_ast_shadow` proof scope. The manifest is repo-owned input for a
   later runner-consumption slice; it does not change public tokmd behavior.
+- 2026-05-14: Extended `cargo xtask ast-shadow-compare` to consume the corpus
+  manifest while preserving explicit `--path` mode. The manifest runner stays
+  developer-facing and keeps AST shadow output out of public tokmd workflows.
