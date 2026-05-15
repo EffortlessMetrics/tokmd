@@ -81,24 +81,35 @@ closed plan lives in `docs/plans/ast-function-boundary-corpus-expansion.md`;
 the earlier candidate decision is recorded in
 `docs/plans/ast-function-boundary-candidate.md`.
 
+The proof-observation decision-readiness lane is active again. The current
+slice adds a Rust-owned `cargo xtask proof-observation-status` aggregate that
+reads explicitly supplied proof receipts and writes a visibility-only
+`tokmd.proof_observation_decision.v1` packet. It summarizes source artifacts,
+required/advisory proof counts, freshness, promotion thresholds,
+criteria-met/missing state, and reproduction commands without executing proof,
+changing required gates, or enabling default Codecov upload.
+
 ## Next Work Packets
 
 1. Choose the next active lane deliberately; do not reopen AST productization
    without a fresh proposal grounded in the shadow evidence.
-2. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+2. Continue proof-observation decision readiness by verifying the new aggregate
+   against real collected observation artifacts before any cockpit/handoff
+   integration or promotion proposal.
+3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
-3. Preserve `tokmd cockpit` as the review evidence implementation surface until
+4. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-4. Continue architecture consolidation in batches, preserving `ci/proof.toml`
+5. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
-5. Use bounded performance timing receipts before optimizing hot paths.
-6. Keep source-of-truth docs, active goal state, and proof-policy routing
+6. Use bounded performance timing receipts before optimizing hot paths.
+7. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-7. Keep product-readiness docs aligned as workflows change, but start any new
+8. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-8. Keep AST foundation work in shadow mode until comparison evidence justifies
+9. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
 
 ## Directional Rules

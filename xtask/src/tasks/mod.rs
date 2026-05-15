@@ -24,6 +24,7 @@ pub mod perf_smoke;
 pub mod proof_artifacts_check;
 pub mod proof_executor_pr_policy;
 pub mod proof_observation_run_ids;
+pub mod proof_observation_status;
 pub mod proof_observation_thresholds;
 pub mod proof_plan;
 pub mod proof_policy;
