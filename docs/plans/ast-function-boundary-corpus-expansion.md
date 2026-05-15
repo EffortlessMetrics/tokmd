@@ -46,7 +46,7 @@ broader explicit Rust corpus
 ## Work Packets
 
 1. Define corpus expansion categories.
-   - Status: pending.
+   - Status: complete.
    - Record the file categories needed for a stronger decision: production
      code, tests, examples, macro-heavy files, generated-ish files,
      docs-adjacent Rust snippets, and parser-degraded fixtures.
@@ -121,3 +121,29 @@ publish-surface verification.
 - 2026-05-14: Started after the AST function-boundary candidate decision closed
   as `not yet`. The next evidence need is broader corpus coverage, not product
   integration.
+
+## Corpus Expansion Categories
+
+The expanded manifest should make each selected Rust file explain why it is in
+the function-boundary evidence set. A future public-candidate decision should
+not rely on a corpus that is accidentally weighted toward parser internals or
+clean fixtures.
+
+| Category | Purpose | Expected signal |
+| --- | --- | --- |
+| `fixture_baseline` | Keep a small known-clean Rust file with ordinary imports, one function, and simple control flow. | Verifies runner, parser, and comparison plumbing without production noise. |
+| `fixture_parse_degraded` | Keep at least one intentionally malformed Rust file. | Proves parse degradation remains explicit and is not counted as available AST proof. |
+| `production_implementation` | Cover ordinary shipped Rust modules outside AST-specific code. | Shows function-boundary behavior on code users actually maintain. |
+| `heuristic_implementation` | Cover the current heuristic extraction code and its tests. | Finds where heuristics over-report or under-report their own edge cases. |
+| `test_corpus` | Cover unit or integration tests with helper functions and assertion-heavy bodies. | Separates real test helper functions from assertion text or embedded snippets. |
+| `fixture_string_risk` | Cover files that embed Rust examples inside strings, raw strings, or docs-adjacent examples. | Measures the known heuristic false-positive class without treating it as production code. |
+| `macro_heavy` | Cover files that use macro invocations, generated implementations, or declarative helper macros. | Identifies macro-shaped function-boundary disagreement before public claims. |
+| `generated_like` | Cover checked-in generated-ish or mechanically repetitive Rust when present. | Checks whether repetition or generated style skews counts or ordering. |
+| `product_adjacent_surface` | Cover review, handoff, cockpit, or context-selection code where function precision might later matter. | Keeps evidence connected to plausible user-visible surfaces without changing them. |
+| `tooling_implementation` | Cover `xtask` runner/checker code that produces or verifies AST shadow evidence. | Proves the developer evidence tooling itself is represented in the corpus. |
+
+Selection should stay explicit and repo-relative. Each manifest entry should
+carry a narrow `reason`, a stable `category`, and an `expected_signal` that can
+be checked after `ast-shadow-compare` and `ast-shadow-check` run. The expanded
+corpus does not need every category in one PR, but the next candidate decision
+should state which categories were present, which were absent, and why.
