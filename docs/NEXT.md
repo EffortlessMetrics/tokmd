@@ -107,27 +107,37 @@ detect job's inline Bash path classifier with Rust-owned
 proof advisory boundaries, and public `ci-plan.json` compatibility. Hosted PR
 checks and post-merge main CI passed.
 
+The active proof-orchestration slice is proof artifact check receipts. The
+goal is to make `proof-artifacts-check`, `proof-execution-artifacts-check`, and
+`proof-run-artifacts-check` optionally write Rust-owned JSON verifier receipts
+so workflows can upload verifier outcomes as artifacts instead of relying only
+on redirected human text. This slice must preserve required-check behavior,
+advisory proof status, Codecov defaults, public `tokmd` CLI behavior, and
+source proof artifact schemas.
+
 ## Next Work Packets
 
-1. Choose the next active lane deliberately; do not reopen AST productization
-   without a fresh proposal grounded in the shadow evidence.
-2. Choose the next proof-orchestration slice deliberately; do not promote
+1. Finish the proof artifact check receipt slice, then close or retarget the
+   active goal deliberately.
+2. Do not reopen AST productization without a fresh proposal grounded in the
+   shadow evidence.
+3. Choose the next proof-orchestration slice deliberately; do not promote
    advisory proof, default Codecov upload, or cockpit/handoff consumption from
    the closed decision-readiness lane.
-3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
-4. Preserve `tokmd cockpit` as the review evidence implementation surface until
+5. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-5. Continue architecture consolidation in batches, preserving `ci/proof.toml`
+6. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
-6. Use bounded performance timing receipts before optimizing hot paths.
-7. Keep source-of-truth docs, active goal state, and proof-policy routing
+7. Use bounded performance timing receipts before optimizing hot paths.
+8. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-8. Keep product-readiness docs aligned as workflows change, but start any new
+9. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-9. Keep AST foundation work in shadow mode until comparison evidence justifies
+10. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
 
 ## Directional Rules

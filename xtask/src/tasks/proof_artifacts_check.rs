@@ -18,6 +18,9 @@ const PROOF_RUN_OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_run_observati
 const OBSERVATION_SCHEMA: &str = "tokmd.proof_executor_observation.v1";
 const OBSERVATION_COLLECTION_SCHEMA: &str = "tokmd.proof_executor_observation_collection.v1";
 const PROMOTION_READINESS_SCHEMA: &str = "tokmd.proof_executor_promotion_readiness.v1";
+const PROOF_ARTIFACTS_CHECK_SCHEMA: &str = "tokmd.proof_artifacts_check.v1";
+const PROOF_EXECUTION_ARTIFACTS_CHECK_SCHEMA: &str = "tokmd.proof_execution_artifacts_check.v1";
+const PROOF_RUN_ARTIFACTS_CHECK_SCHEMA: &str = "tokmd.proof_run_artifacts_check.v1";
 
 const SHARED_FIELDS: &[&str] = &[
     "mode",
@@ -46,44 +49,83 @@ const ENTRY_FIELDS: &[&str] = &[
 ];
 
 pub fn run(args: ProofArtifactsCheckArgs) -> Result<()> {
-    let summary = read_json(&args.executor_summary, "executor summary")?;
-    let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+    let outcome = (|| {
+        let summary = read_json(&args.executor_summary, "executor summary")?;
+        let manifest = read_json(&args.executor_manifest, "executor manifest")?;
 
-    let report = validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)?;
-    println!(
-        "Proof artifacts OK: {} command(s), execution_status {}, guard {}",
-        report.selected, report.execution_status, report.guard_reason
+        validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution)
+    })();
+    let receipt = executor_check_receipt(
+        PROOF_ARTIFACTS_CHECK_SCHEMA,
+        "proof-artifacts-check",
+        &args,
+        &outcome,
     );
-    Ok(())
+    write_check_receipt(args.json_output.as_deref(), &receipt)?;
+
+    match outcome {
+        Ok(report) => {
+            println!(
+                "Proof artifacts OK: {} command(s), execution_status {}, guard {}",
+                report.selected, report.execution_status, report.guard_reason
+            );
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
 }
 
 pub fn run_execution(args: ProofArtifactsCheckArgs) -> Result<()> {
-    let summary = read_json(&args.executor_summary, "executor summary")?;
-    let manifest = read_json(&args.executor_manifest, "executor manifest")?;
-    let artifact_root = artifact_root_for(&args.executor_summary);
+    let outcome = (|| {
+        let summary = read_json(&args.executor_summary, "executor summary")?;
+        let manifest = read_json(&args.executor_manifest, "executor manifest")?;
+        let artifact_root = artifact_root_for(&args.executor_summary);
 
-    let report = validate_executor_artifacts_with_artifact_root(
-        &summary,
-        &manifest,
-        VerificationMode::Execution,
-        Some(&artifact_root),
-    )?;
-    println!(
-        "Proof execution artifacts OK: {} executed command(s), guard {}",
-        report.executed, report.guard_reason
+        validate_executor_artifacts_with_artifact_root(
+            &summary,
+            &manifest,
+            VerificationMode::Execution,
+            Some(&artifact_root),
+        )
+    })();
+    let receipt = executor_check_receipt(
+        PROOF_EXECUTION_ARTIFACTS_CHECK_SCHEMA,
+        "proof-execution-artifacts-check",
+        &args,
+        &outcome,
     );
-    Ok(())
+    write_check_receipt(args.json_output.as_deref(), &receipt)?;
+
+    match outcome {
+        Ok(report) => {
+            println!(
+                "Proof execution artifacts OK: {} executed command(s), guard {}",
+                report.executed, report.guard_reason
+            );
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
 }
 
 pub fn run_proof_run(args: ProofRunArtifactsCheckArgs) -> Result<()> {
-    let summary = read_json(&args.proof_run_summary, "proof run summary")?;
-    let report = validate_proof_run_summary(&summary)?;
+    let outcome = (|| {
+        let summary = read_json(&args.proof_run_summary, "proof run summary")?;
+        validate_proof_run_summary(&summary)
+    })();
+    let receipt = proof_run_check_receipt(&args, &outcome);
+    write_check_receipt(args.json_output.as_deref(), &receipt)?;
 
-    println!(
-        "Proof run artifacts OK: {} executed required command(s), guard {}",
-        report.executed, report.guard_reason
-    );
-    Ok(())
+    match outcome {
+        Ok(report) => {
+            println!(
+                "Proof run artifacts OK: {} executed required command(s), guard {}",
+                report.executed, report.guard_reason
+            );
+            Ok(())
+        }
+        Err(error) => Err(error),
+    }
 }
 
 pub fn run_proof_run_observation(args: ProofRunObservationArgs) -> Result<()> {
@@ -221,6 +263,119 @@ struct ProofArtifactsReport {
 struct ProofRunArtifactsReport {
     executed: usize,
     guard_reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+struct ProofArtifactsCheckReceipt {
+    schema: String,
+    ok: bool,
+    verifier: String,
+    inputs: BTreeMap<String, String>,
+    counts: ProofArtifactsCheckCounts,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    execution_status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guard_reason: Option<String>,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+struct ProofArtifactsCheckCounts {
+    selected: usize,
+    executed: usize,
+}
+
+fn executor_check_receipt(
+    schema: &str,
+    verifier: &str,
+    args: &ProofArtifactsCheckArgs,
+    outcome: &std::result::Result<ProofArtifactsReport, anyhow::Error>,
+) -> ProofArtifactsCheckReceipt {
+    let mut inputs = BTreeMap::new();
+    inputs.insert(
+        "executor_summary".to_string(),
+        args.executor_summary.to_string_lossy().to_string(),
+    );
+    inputs.insert(
+        "executor_manifest".to_string(),
+        args.executor_manifest.to_string_lossy().to_string(),
+    );
+
+    match outcome {
+        Ok(report) => ProofArtifactsCheckReceipt {
+            schema: schema.to_string(),
+            ok: true,
+            verifier: verifier.to_string(),
+            inputs,
+            counts: ProofArtifactsCheckCounts {
+                selected: report.selected,
+                executed: report.executed,
+            },
+            execution_status: Some(report.execution_status.clone()),
+            guard_reason: Some(report.guard_reason.clone()),
+            errors: Vec::new(),
+        },
+        Err(error) => ProofArtifactsCheckReceipt {
+            schema: schema.to_string(),
+            ok: false,
+            verifier: verifier.to_string(),
+            inputs,
+            counts: ProofArtifactsCheckCounts {
+                selected: 0,
+                executed: 0,
+            },
+            execution_status: None,
+            guard_reason: None,
+            errors: vec![error.to_string()],
+        },
+    }
+}
+
+fn proof_run_check_receipt(
+    args: &ProofRunArtifactsCheckArgs,
+    outcome: &std::result::Result<ProofRunArtifactsReport, anyhow::Error>,
+) -> ProofArtifactsCheckReceipt {
+    let mut inputs = BTreeMap::new();
+    inputs.insert(
+        "proof_run_summary".to_string(),
+        args.proof_run_summary.to_string_lossy().to_string(),
+    );
+
+    match outcome {
+        Ok(report) => ProofArtifactsCheckReceipt {
+            schema: PROOF_RUN_ARTIFACTS_CHECK_SCHEMA.to_string(),
+            ok: true,
+            verifier: "proof-run-artifacts-check".to_string(),
+            inputs,
+            counts: ProofArtifactsCheckCounts {
+                selected: report.executed,
+                executed: report.executed,
+            },
+            execution_status: Some("executed".to_string()),
+            guard_reason: Some(report.guard_reason.clone()),
+            errors: Vec::new(),
+        },
+        Err(error) => ProofArtifactsCheckReceipt {
+            schema: PROOF_RUN_ARTIFACTS_CHECK_SCHEMA.to_string(),
+            ok: false,
+            verifier: "proof-run-artifacts-check".to_string(),
+            inputs,
+            counts: ProofArtifactsCheckCounts {
+                selected: 0,
+                executed: 0,
+            },
+            execution_status: None,
+            guard_reason: None,
+            errors: vec![error.to_string()],
+        },
+    }
+}
+
+fn write_check_receipt(path: Option<&Path>, receipt: &ProofArtifactsCheckReceipt) -> Result<()> {
+    if let Some(path) = path {
+        write_text(path, &serde_json::to_string_pretty(receipt)?)?;
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -2651,6 +2806,112 @@ mod tests {
     }
 
     #[test]
+    fn builds_no_execution_check_receipt() {
+        let (summary, manifest) = matching_artifacts();
+        let outcome =
+            validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution);
+        let args = proof_artifacts_args();
+
+        let receipt = executor_check_receipt(
+            PROOF_ARTIFACTS_CHECK_SCHEMA,
+            "proof-artifacts-check",
+            &args,
+            &outcome,
+        );
+
+        assert_eq!(receipt.schema, PROOF_ARTIFACTS_CHECK_SCHEMA);
+        assert!(receipt.ok);
+        assert_eq!(receipt.verifier, "proof-artifacts-check");
+        assert_eq!(receipt.counts.selected, 1);
+        assert_eq!(receipt.counts.executed, 0);
+        assert_eq!(receipt.execution_status.as_deref(), Some("dry_run"));
+        assert_eq!(
+            receipt.guard_reason.as_deref(),
+            Some("local_requires_--allow-local-evidence-execution")
+        );
+        assert!(receipt.errors.is_empty());
+        assert_eq!(
+            receipt.inputs.get("executor_summary").map(String::as_str),
+            Some("target/proof/executor-summary.json")
+        );
+    }
+
+    #[test]
+    fn builds_failure_check_receipt() {
+        let (summary, mut manifest) = matching_artifacts();
+        manifest["selection"]["selected"] = json!(2);
+        let outcome =
+            validate_executor_artifacts(&summary, &manifest, VerificationMode::NoExecution);
+        let args = proof_artifacts_args();
+
+        let receipt = executor_check_receipt(
+            PROOF_ARTIFACTS_CHECK_SCHEMA,
+            "proof-artifacts-check",
+            &args,
+            &outcome,
+        );
+
+        assert!(!receipt.ok);
+        assert_eq!(receipt.counts.selected, 0);
+        assert_eq!(receipt.counts.executed, 0);
+        assert_eq!(receipt.execution_status, None);
+        assert_eq!(receipt.guard_reason, None);
+        assert_eq!(receipt.errors.len(), 1);
+        assert!(receipt.errors[0].contains("selected count"));
+    }
+
+    #[test]
+    fn builds_proof_run_check_receipt() {
+        let summary = proof_run_summary();
+        let outcome = validate_proof_run_summary(&summary);
+        let args = proof_run_artifacts_args();
+
+        let receipt = proof_run_check_receipt(&args, &outcome);
+
+        assert_eq!(receipt.schema, PROOF_RUN_ARTIFACTS_CHECK_SCHEMA);
+        assert!(receipt.ok);
+        assert_eq!(receipt.verifier, "proof-run-artifacts-check");
+        assert_eq!(receipt.counts.selected, 1);
+        assert_eq!(receipt.counts.executed, 1);
+        assert_eq!(
+            receipt.guard_reason.as_deref(),
+            Some("local_explicit_required_opt_in_enabled")
+        );
+        assert!(receipt.errors.is_empty());
+        assert_eq!(
+            receipt.inputs.get("proof_run_summary").map(String::as_str),
+            Some("target/proof/proof-run-summary.json")
+        );
+    }
+
+    #[test]
+    fn writes_check_receipt_json() {
+        let receipt = ProofArtifactsCheckReceipt {
+            schema: PROOF_EXECUTION_ARTIFACTS_CHECK_SCHEMA.to_string(),
+            ok: true,
+            verifier: "proof-execution-artifacts-check".to_string(),
+            inputs: BTreeMap::new(),
+            counts: ProofArtifactsCheckCounts {
+                selected: 1,
+                executed: 1,
+            },
+            execution_status: Some("executed".to_string()),
+            guard_reason: Some("local_explicit_opt_in_enabled".to_string()),
+            errors: Vec::new(),
+        };
+        let path = temp_json_path("proof-artifacts-check-receipt");
+
+        write_check_receipt(Some(&path), &receipt).unwrap();
+
+        let written: Value =
+            serde_json::from_str(&fs::read_to_string(&path).unwrap()).expect("valid receipt JSON");
+        assert_eq!(written["schema"], PROOF_EXECUTION_ARTIFACTS_CHECK_SCHEMA);
+        assert_eq!(written["ok"], true);
+        assert_eq!(written["counts"]["executed"], 1);
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
     fn rejects_selected_count_drift() {
         let (summary, mut manifest) = matching_artifacts();
         manifest["selection"]["selected"] = json!(2);
@@ -3470,6 +3731,26 @@ mod tests {
         let path = std::env::temp_dir().join(format!("{name}-{}-{index}.lcov", std::process::id()));
         fs::write(&path, content).expect("test artifact should be writable");
         path.to_string_lossy().to_string()
+    }
+
+    fn temp_json_path(name: &str) -> PathBuf {
+        let index = TEST_ARTIFACT_COUNTER.fetch_add(1, Ordering::Relaxed);
+        std::env::temp_dir().join(format!("{name}-{}-{index}.json", std::process::id()))
+    }
+
+    fn proof_artifacts_args() -> ProofArtifactsCheckArgs {
+        ProofArtifactsCheckArgs {
+            executor_summary: PathBuf::from("target/proof/executor-summary.json"),
+            executor_manifest: PathBuf::from("target/proof/executor-manifest.json"),
+            json_output: None,
+        }
+    }
+
+    fn proof_run_artifacts_args() -> ProofRunArtifactsCheckArgs {
+        ProofRunArtifactsCheckArgs {
+            proof_run_summary: PathBuf::from("target/proof/proof-run-summary.json"),
+            json_output: None,
+        }
     }
 
     fn sourced(

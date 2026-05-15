@@ -92,32 +92,23 @@ jobs:
           cargo xtask proof --profile affected --base "origin/${PROOF_BASE_REF}" --head HEAD --executor-mode execute --executor-max-commands "${PROOF_EXECUTOR_MAX_COMMANDS}" --allow-ci-evidence-execution --plan-json target/proof/proof-plan.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json
           executor_status=$?
 
-          if [ -f target/proof/executor-summary.json ] && [ -f target/proof/executor-manifest.json ]; then
-            cargo xtask proof-execution-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-execution-artifacts-check.txt 2>&1
-            verifier_status=$?
-            if [ "${verifier_status}" -eq 0 ]; then
-              cargo xtask proof-execution-observation --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --output target/proof/proof-executor-observation.json > target/proof/proof-execution-observation.txt 2>&1
-              observation_status=$?
-              if [ "${observation_status}" -eq 0 ]; then
-                cargo xtask proof-execution-observations-summary --observations-dir target/proof --output target/proof/proof-executor-observation-collection.json --summary-md target/proof/proof-executor-observation-collection.md > target/proof/proof-execution-observations-summary.txt 2>&1
-                collection_status=$?
-              else
-                collection_status=1
-                echo "executor observation did not pass generation" > target/proof/proof-execution-observations-summary.txt
-              fi
+          cargo xtask proof-execution-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --json-output target/proof/proof-execution-artifacts-check.json > target/proof/proof-execution-artifacts-check.txt 2>&1
+          verifier_status=$?
+          if [ "${verifier_status}" -eq 0 ]; then
+            cargo xtask proof-execution-observation --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --output target/proof/proof-executor-observation.json > target/proof/proof-execution-observation.txt 2>&1
+            observation_status=$?
+            if [ "${observation_status}" -eq 0 ]; then
+              cargo xtask proof-execution-observations-summary --observations-dir target/proof --output target/proof/proof-executor-observation-collection.json --summary-md target/proof/proof-executor-observation-collection.md > target/proof/proof-execution-observations-summary.txt 2>&1
+              collection_status=$?
             else
-              observation_status=1
               collection_status=1
-              echo "executor artifacts did not pass verification" > target/proof/proof-execution-observation.txt
-              echo "executor artifacts did not pass verification" > target/proof/proof-execution-observations-summary.txt
+              echo "executor observation did not pass generation" > target/proof/proof-execution-observations-summary.txt
             fi
           else
-            verifier_status=1
             observation_status=1
             collection_status=1
-            echo "executor artifacts were not generated" > target/proof/proof-execution-artifacts-check.txt
-            echo "executor artifacts were not generated" > target/proof/proof-execution-observation.txt
-            echo "executor artifacts were not generated" > target/proof/proof-execution-observations-summary.txt
+            echo "executor artifacts did not pass verification" > target/proof/proof-execution-observation.txt
+            echo "executor artifacts did not pass verification" > target/proof/proof-execution-observations-summary.txt
           fi
 
           {

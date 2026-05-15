@@ -219,7 +219,7 @@ jobs:
           cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --plan-json target/proof/proof-plan.json --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json
           proof_plan_status=$?
 
-          cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json > target/proof/proof-artifacts-check.txt 2>&1
+          cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --json-output target/proof/proof-artifacts-check.json > target/proof/proof-artifacts-check.txt 2>&1
           proof_artifacts_status=$?
 
           {
@@ -306,7 +306,7 @@ jobs:
           cargo xtask proof --profile "${PROOF_RUN_PROFILE}" --run-required --allow-ci-required-execution --plan-json target/proof-run/proof-plan.json --proof-run-summary target/proof-run/proof-run-summary.json
           proof_run_status=$?
 
-          cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json > target/proof-run/proof-run-artifacts-check.txt 2>&1
+          cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json --json-output target/proof-run/proof-run-artifacts-check.json > target/proof-run/proof-run-artifacts-check.txt 2>&1
           proof_run_artifacts_status=$?
 
           cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json > target/proof-run/proof-run-observation.txt 2>&1

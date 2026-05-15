@@ -906,6 +906,10 @@ pub struct ProofArtifactsCheckArgs {
         default_value = "target/proof/executor-manifest.json"
     )]
     pub executor_manifest: std::path::PathBuf,
+
+    /// Optional JSON receipt output path for the verifier result
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -917,6 +921,10 @@ pub struct ProofRunArtifactsCheckArgs {
         default_value = "target/proof/proof-run-summary.json"
     )]
     pub proof_run_summary: std::path::PathBuf,
+
+    /// Optional JSON receipt output path for the verifier result
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
