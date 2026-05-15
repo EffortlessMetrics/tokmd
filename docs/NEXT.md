@@ -116,16 +116,21 @@ Codecov defaults, public `tokmd` CLI behavior, and source proof artifact
 schemas. There is no active proof-orchestration implementation slice; choose
 the next lane deliberately from fresh evidence.
 
-The active lane is now a code-intelligence platform audit. The plan in
-`docs/plans/code-intelligence-platform-audit.md` maps the broad platform
-objective to live artifacts and verifier coverage before any new proof,
-review, architecture, publishing, handoff, browser, or AST implementation work
-starts.
+The code-intelligence platform audit is closed. It mapped the broad platform
+objective to live artifacts and verifier coverage, did not mark the platform
+complete as a single finished program, and selected publishing evidence
+readiness as the next plan-first lane.
+
+The active lane is now publishing evidence readiness. The plan in
+`docs/plans/publishing-evidence-readiness.md` should make release and
+publishing facts easier to consume without publishing crates, tagging releases,
+changing release workflow behavior, changing public receipt schemas, or
+promoting advisory proof.
 
 ## Next Work Packets
 
-1. Finish the code-intelligence platform audit and use it to choose the next
-   lane deliberately; do not continue proof-orchestration cleanup by inertia.
+1. Start with the publishing evidence readiness plan and artifact contract;
+   do not change release behavior before the evidence role is clear.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

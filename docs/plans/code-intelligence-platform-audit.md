@@ -1,6 +1,6 @@
 # Plan: Code Intelligence Platform Audit
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -50,7 +50,7 @@ whether the objective is complete, partially complete, or needs a fresh lane.
    - Use current `origin/main`, open PR state, docs, proof policy, and hosted
      workflow status instead of relying on stale handoff prose.
 3. Identify missing or weakly verified requirements.
-   - Status: active.
+   - Status: complete.
    - Treat uncertainty as not complete.
    - Pick the next lane from the uncovered requirements, not from habit.
 
@@ -92,6 +92,21 @@ The next action should be deliberate lane selection from this audit. Do not
 continue proof-orchestration or architecture cleanup merely because machinery
 exists.
 
+## Decision
+
+Outcome: **complete; next lane selected as publishing evidence readiness**.
+
+The next lane should address the weakest user-facing platform path identified
+by the audit: publishing facts. The current verifier and CI jobs already check
+publish surface, release metadata, and version consistency, but the artifacts
+are less compressed for humans and agents than cockpit review packets,
+proof-control receipts, and handoff bundles.
+
+The selected next lane is `publishing_evidence_readiness`, tracked in
+`docs/plans/publishing-evidence-readiness.md`. It should start by defining the
+artifact contract and user workflow before any behavior, schema, workflow, or
+release automation changes.
+
 ## Validation
 
 ```bash
@@ -121,3 +136,6 @@ Run required affected proof if the affected plan selects it.
 - 2026-05-15: Started after proof artifact check receipts and their closeout
   merged. The open PR queue was empty, main CI for #2284 passed, and Nix Full
   Validation remained a side workflow in progress.
+- 2026-05-15: Closed through PR #2285 plus follow-up lane selection. The audit
+  did not mark the broad platform objective complete; it selected publishing
+  evidence readiness as the next plan-first lane.
