@@ -31,41 +31,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Determine base ref for comparison
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.base_ref }}"
           else
-            # For workflow_dispatch, compare against main
             BASE_REF="main"
           fi
-          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
 
           git fetch origin "$BASE_REF":"refs/remotes/origin/$BASE_REF"
 
-          git diff --name-only "origin/$BASE_REF...HEAD" -- '*.rs' \
-            | grep -v '/tests/' \
-            | grep -v '_test\.rs$' \
-            | grep -v '^fuzz/' \
-            | grep -v '/fuzz/' \
-            > all_changed_files.txt || true
-
-          TOTAL_COUNT="$(wc -l < all_changed_files.txt | tr -d ' ')"
-          echo "total_count=$TOTAL_COUNT" >> "$GITHUB_OUTPUT"
-
-          # Check if scope exceeds limit (don't exit yet, let summary step handle it)
-          if [ "$TOTAL_COUNT" -gt 20 ]; then
-            echo "::error::Too many changed files ($TOTAL_COUNT > 20). Please split your PR into smaller chunks or run crate-scoped mutation testing manually."
-            echo "scope_exceeded=true" >> "$GITHUB_OUTPUT"
-            echo "count=0" >> "$GITHUB_OUTPUT"
-          else
-            echo "scope_exceeded=false" >> "$GITHUB_OUTPUT"
-            cp all_changed_files.txt changed_files.txt
-            echo "count=$TOTAL_COUNT" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          cat changed_files.txt 2>/dev/null >> "$GITHUB_OUTPUT" || true
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          cargo xtask mutation-scope \
+            --base-ref "$BASE_REF" \
+            --base "origin/$BASE_REF" \
+            --head HEAD \
+            --max-files 20 \
+            --all-changed-files all_changed_files.txt \
+            --changed-files changed_files.txt \
+            --json-output target/mutation/mutation-scope.json \
+            --github-output "$GITHUB_OUTPUT"
 
       - name: Run mutation tests on changed files
         id: mutants
@@ -240,7 +222,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mutants-summary
-          path: mutants-summary.json
+          path: |
+            mutants-summary.json
+            target/mutation/mutation-scope.json
           if-no-files-found: warn
           retention-days: 14
 

@@ -113,8 +113,16 @@ The proof artifact check receipt slice is closed. PR #2283 made
 and the workflows now upload those receipts alongside the original proof
 artifacts. The slice preserved required-check behavior, advisory proof status,
 Codecov defaults, public `tokmd` CLI behavior, and source proof artifact
-schemas. There is no active proof-orchestration implementation slice; choose
-the next lane deliberately from fresh evidence.
+schemas. At closeout there was no active proof-orchestration implementation
+slice; the next one should be chosen deliberately from fresh evidence.
+
+The mutation scope selection lane is active. Fresh workflow audit found the
+manual mutation workflow still owns production Rust changed-file selection in
+inline shell while the rest of the proof control plane has moved toward
+Rust-owned planning and receipt generation. The next narrow slice is
+`cargo xtask mutation-scope`: preserve current mutation workflow behavior, keep
+mutation advisory, and move only the changed-file scope selection plus
+workflow-compatible outputs into tested Rust code.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -153,9 +161,11 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Choose the next lane deliberately from fresh evidence; do not continue
-   publishing evidence work unless a consumer proves the current docs-only
-   surface is insufficient.
+1. Finish the active mutation scope selection slice: replace
+   `.github/workflows/mutants.yml` changed-file shell filtering with
+   `cargo xtask mutation-scope`, preserve existing workflow outputs and
+   advisory mutation behavior, and do not rewrite survivor-summary parsing in
+   the same PR.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

@@ -71,6 +71,8 @@ pub enum Commands {
     CoverageReceipt(CoverageReceiptArgs),
     /// Emit a durable receipt for CI job actuals
     CiActuals(CiActualsArgs),
+    /// Select mutation-test scope from a git diff for workflow consumption
+    MutationScope(MutationScopeArgs),
     /// Verify the non-Rust file allowlist (file policy checker)
     CheckFilePolicy(FilePolicyArgs),
     /// Verify the AST-backed Clippy exception ledger
@@ -339,6 +341,56 @@ impl Default for CiActualsArgs {
             repo: "tokmd".to_string(),
             workflow: "CI".to_string(),
             sha: None,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct MutationScopeArgs {
+    /// Human base ref name recorded for workflow summaries
+    #[arg(long, default_value = "main")]
+    pub base_ref: String,
+
+    /// Base git revision used for the three-dot diff
+    #[arg(long, default_value = "origin/main")]
+    pub base: String,
+
+    /// Head git revision used for the three-dot diff
+    #[arg(long, default_value = "HEAD")]
+    pub head: String,
+
+    /// Maximum number of files that may be selected for per-file mutation runs
+    #[arg(long, default_value_t = 20)]
+    pub max_files: usize,
+
+    /// Write all mutation-candidate changed files to this path
+    #[arg(long, default_value = "all_changed_files.txt")]
+    pub all_changed_files: std::path::PathBuf,
+
+    /// Write the selected changed files to this path
+    #[arg(long, default_value = "changed_files.txt")]
+    pub changed_files: std::path::PathBuf,
+
+    /// Optional JSON scope receipt path
+    #[arg(long, value_name = "PATH")]
+    pub json_output: Option<std::path::PathBuf>,
+
+    /// Optional path to GITHUB_OUTPUT for workflow-compatible outputs
+    #[arg(long, value_name = "PATH")]
+    pub github_output: Option<std::path::PathBuf>,
+}
+
+impl Default for MutationScopeArgs {
+    fn default() -> Self {
+        Self {
+            base_ref: "main".to_string(),
+            base: "origin/main".to_string(),
+            head: "HEAD".to_string(),
+            max_files: 20,
+            all_changed_files: std::path::PathBuf::from("all_changed_files.txt"),
+            changed_files: std::path::PathBuf::from("changed_files.txt"),
+            json_output: None,
+            github_output: None,
         }
     }
 }

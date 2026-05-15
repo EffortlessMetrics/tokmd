@@ -19,6 +19,7 @@ pub mod gate;
 pub mod jules_index;
 pub mod lint_fix;
 pub mod lint_policy;
+pub mod mutation_scope;
 pub mod no_panic;
 pub mod perf_smoke;
 pub mod proof_artifacts_check;
