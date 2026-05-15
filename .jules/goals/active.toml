@@ -1,7 +1,7 @@
 schema = "tokmd.jules.active_goal.v1"
-status = "complete"
+status = "active"
 program = "code_intelligence"
-lane = "ast_function_boundary_corpus_expansion"
+lane = "proof_observation_decision_readiness"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -46,6 +46,7 @@ ast_function_boundary_candidate = "evidence_first_no_public_product_behavior"
 ast_function_boundary_corpus_expansion = "broaden_shadow_corpus_before_public_candidate_proposal"
 ast_shadow_corpus = "repo_relative_rust_paths_only"
 proof_observation = "summarize_existing_receipts_before_any_promotion_decision"
+proof_observation_decision_packet = "visibility_only_no_policy_or_gate_change"
 github_actions_boundary = "keep_actions_as_runner_cache_artifact_shell"
 
 [stop_conditions]
@@ -56,9 +57,3 @@ affected_plan = "cargo xtask affected --base origin/main --head HEAD --json"
 proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEAD --plan"
 proof_artifacts = "do_not_treat_advisory_or_planned_evidence_as_passing_proof"
 browser_boundary = "do_not_claim_browser_wasm_ast_capability_without_capability_and_bundle_evidence"
-
-[completion]
-completed_on = "2026-05-15"
-closeout_plan = "docs/plans/ast-function-boundary-corpus-expansion.md"
-outcome = "not_yet_shadow_only"
-evidence = "broader corpus timing and mismatch classification show embedded-source over-reporting reduction but no AST-only function discoveries"

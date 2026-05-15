@@ -62,8 +62,8 @@ source references. The packet should not require network access, GitHub API
 access, hidden workflow state, timestamps, absolute local paths, or downloaded
 artifact directories that are not named by the caller.
 
-The future implementation may start as developer tooling under `cargo xtask`.
-The current candidate command shape is:
+The first implementation is developer tooling under `cargo xtask`. It accepts
+explicit source artifacts instead of discovering hidden workflow state:
 
 ```bash
 cargo xtask proof-observation-status \
@@ -77,12 +77,10 @@ cargo xtask proof-observation-status \
   --json target/proof-observations/proof-observation-decision.json
 ```
 
-That command is not implemented by this spec.
-
 ## Outputs
 
-If implemented, the JSON packet should use schema
-`tokmd.proof_observation_decision.v1` and remain visibility-only.
+The JSON packet uses schema `tokmd.proof_observation_decision.v1` and remains
+visibility-only.
 
 The packet should include:
 

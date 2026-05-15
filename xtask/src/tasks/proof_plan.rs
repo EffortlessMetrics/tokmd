@@ -5,7 +5,6 @@ use crate::tasks::affected::{
 };
 use anyhow::{Context, Result, bail};
 use serde::Serialize;
-use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -571,13 +570,22 @@ fn command_for_scope(scope: &AffectedScope, kind: &str, command_text: &str) -> P
 }
 
 fn dedupe_commands(commands: Vec<ProofPlanCommand>) -> Vec<ProofPlanCommand> {
-    let mut commands = commands
-        .into_iter()
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    commands.sort_by(compare_commands);
-    commands
+    let mut seen = BTreeSet::new();
+    let mut deduped = Vec::new();
+
+    for command in commands {
+        let key = (
+            command.scope.clone(),
+            command.kind.clone(),
+            command.required,
+            command.command.clone(),
+        );
+        if seen.insert(key) {
+            deduped.push(command);
+        }
+    }
+
+    deduped
 }
 
 fn write_markdown_summary(
@@ -1364,24 +1372,6 @@ fn escape_md(value: &str) -> String {
     value.replace('|', "\\|").replace('\n', " ")
 }
 
-fn compare_commands(left: &ProofPlanCommand, right: &ProofPlanCommand) -> Ordering {
-    left.scope
-        .cmp(&right.scope)
-        .then_with(|| kind_rank(&left.kind).cmp(&kind_rank(&right.kind)))
-        .then_with(|| left.kind.cmp(&right.kind))
-        .then_with(|| left.command.cmp(&right.command))
-}
-
-fn kind_rank(kind: &str) -> u8 {
-    match kind {
-        "proof" => 0,
-        "coverage" => 1,
-        "mutation" => 2,
-        "fuzz" => 3,
-        _ => 4,
-    }
-}
-
 fn coverage_command_tool(policy: &ProofPolicy) -> &str {
     match policy.tools.coverage.as_deref() {
         Some("cargo-llvm-cov") | None => "cargo llvm-cov",
@@ -1483,6 +1473,36 @@ mod tests {
             true,
             &crate::proof::policy_ast::CiExecution::ExplicitOptIn,
         )
+    }
+
+    #[test]
+    fn dedupe_preserves_first_policy_order() {
+        let commands = vec![
+            ProofPlanCommand {
+                scope: "analysis_ast_shadow".to_string(),
+                kind: "proof".to_string(),
+                required: true,
+                command: "cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow".to_string(),
+            },
+            ProofPlanCommand {
+                scope: "analysis_ast_shadow".to_string(),
+                kind: "proof".to_string(),
+                required: true,
+                command: "cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow".to_string(),
+            },
+            ProofPlanCommand {
+                scope: "analysis_ast_shadow".to_string(),
+                kind: "proof".to_string(),
+                required: true,
+                command: "cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow".to_string(),
+            },
+        ];
+
+        let deduped = dedupe_commands(commands);
+
+        assert_eq!(deduped.len(), 2);
+        assert!(deduped[0].command.contains("ast-shadow-compare"));
+        assert!(deduped[1].command.contains("ast-shadow-check"));
     }
 
     #[test]

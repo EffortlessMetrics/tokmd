@@ -33,6 +33,8 @@ pub enum Commands {
     ProofExecutorPrPolicy(ProofExecutorPrPolicyArgs),
     /// Extract GitHub run ids from a saved workflow run-list JSON artifact
     ProofObservationRunIds(ProofObservationRunIdsArgs),
+    /// Aggregate existing proof receipts into an advisory decision-status packet
+    ProofObservationStatus(ProofObservationStatusArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
@@ -698,6 +700,69 @@ pub struct ProofObservationRunIdsArgs {
         default_value = "target/proof-observations/run-ids.txt"
     )]
     pub output: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofObservationStatusArgs {
+    /// Affected-scope artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub affected: Option<std::path::PathBuf>,
+
+    /// Checked proof-policy artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_policy: Option<std::path::PathBuf>,
+
+    /// Proof-plan artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_plan: Option<std::path::PathBuf>,
+
+    /// Planned proof-evidence artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_evidence: Option<std::path::PathBuf>,
+
+    /// Required proof-run summary artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_run_summary: Option<std::path::PathBuf>,
+
+    /// Required proof-run observation artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_run_observation: Option<std::path::PathBuf>,
+
+    /// Required proof-run observation collection artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub proof_run_observation_collection: Option<std::path::PathBuf>,
+
+    /// Advisory executor summary artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub executor_summary: Option<std::path::PathBuf>,
+
+    /// Advisory executor manifest artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub executor_manifest: Option<std::path::PathBuf>,
+
+    /// Advisory executor observation artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub executor_observation: Option<std::path::PathBuf>,
+
+    /// Advisory executor observation collection artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub executor_observation_collection: Option<std::path::PathBuf>,
+
+    /// Executor promotion-readiness artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub promotion_readiness: Option<std::path::PathBuf>,
+
+    /// Coverage receipt artifact to include
+    #[arg(long, value_name = "PATH")]
+    pub coverage_receipt: Option<std::path::PathBuf>,
+
+    /// Write the advisory decision-status packet to this path
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/proof-observation-decision.json"
+    )]
+    pub json: std::path::PathBuf,
 }
 
 #[derive(Args, Debug, Clone)]

@@ -61,9 +61,9 @@ What command or artifact reproduces each claim?
    - Keep the decision packet advisory until maintainers explicitly choose a
      promotion.
 3. Add a Rust-owned summary only if the inventory justifies it.
-   - Status: pending.
-   - Candidate shape:
-     `cargo xtask proof-observation-status --observations-dir <dir> --json <path>`.
+   - Status: complete.
+   - First shape:
+     `cargo xtask proof-observation-status --proof-policy <path> --proof-plan <path> --json <path>`.
    - The summary should aggregate existing receipts; it must not execute proof,
      upload coverage, or change workflow gates.
 4. Connect the decision evidence to review surfaces only after a verifier
@@ -125,3 +125,9 @@ the relevant proof artifact verifier on generated receipts.
   advisory aggregate over existing proof receipts and explicitly keeps proof
   execution, gate promotion, Codecov defaults, cockpit behavior, and handoff
   behavior unchanged.
+- 2026-05-15: Added `cargo xtask proof-observation-status`, an explicit-input
+  Rust-owned aggregate that writes visibility-only
+  `tokmd.proof_observation_decision.v1` JSON. The first implementation reads
+  named proof artifacts, summarizes required/advisory proof state, policy
+  guardrails, freshness, thresholds, criteria met/missing, and reproduction
+  commands without executing proof or changing gates.

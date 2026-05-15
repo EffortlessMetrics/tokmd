@@ -200,7 +200,7 @@ fn affected_scope(scope: &Scope, matches: BTreeSet<String>) -> AffectedScope {
         reason: match_reason(&matches),
         matched_files: matches.into_iter().collect(),
         packages: sorted(scope.packages.clone()),
-        proof: sorted(scope.proof.clone()),
+        proof: dedupe_preserve_order(scope.proof.clone()),
         mutation: scope.mutation,
         coverage: scope.coverage,
     }
@@ -226,6 +226,19 @@ fn sorted(mut values: Vec<String>) -> Vec<String> {
     values.sort();
     values.dedup();
     values
+}
+
+fn dedupe_preserve_order(values: Vec<String>) -> Vec<String> {
+    let mut seen = BTreeSet::new();
+    let mut deduped = Vec::new();
+
+    for value in values {
+        if seen.insert(value.clone()) {
+            deduped.push(value);
+        }
+    }
+
+    deduped
 }
 
 fn normalize_path(path: impl AsRef<str>) -> String {
@@ -398,6 +411,38 @@ reason = "tokmd-config is retired."
         assert_eq!(
             report.scopes[0].proof,
             vec!["cargo deny --all-features check"]
+        );
+    }
+
+    #[test]
+    fn proof_commands_preserve_policy_order() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[[scope]]
+name = "ordered"
+kind = "rust"
+paths = ["src/**"]
+proof = [
+  "cargo xtask generate-artifact",
+  "cargo xtask check-artifact",
+  "cargo xtask generate-artifact",
+]
+mutation = false
+coverage = false
+"#,
+        )
+        .expect("policy should parse");
+        let report = affected_report(&policy, "base", "head", vec!["src/lib.rs".to_string()])
+            .expect("report");
+
+        assert_eq!(
+            report.scopes[0].proof,
+            vec![
+                "cargo xtask generate-artifact",
+                "cargo xtask check-artifact"
+            ]
         );
     }
 
