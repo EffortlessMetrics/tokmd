@@ -12,6 +12,8 @@ schemas, and verification policy for `tokmd`.
 - [VERIFICATION.md](VERIFICATION.md) — README badge meanings, generated endpoints, and PR evidence boundaries.
 - [agent-workflows/source-of-truth.md](agent-workflows/source-of-truth.md) — maintainer and agent workflow for following source-of-truth artifacts.
 - [handoff.md](handoff.md) — coding-agent handoff bundle workflow and guardrails.
+- [publishing-evidence.md](publishing-evidence.md) — release-facing package
+  surface, metadata, and CI ownership evidence before release mutation.
 - [reference-cli.md](reference-cli.md) — generated CLI flag reference.
 - [SCHEMA.md](SCHEMA.md) — receipt format documentation.
 - [architecture.md](architecture.md) — crate hierarchy and data flow.

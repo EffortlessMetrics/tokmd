@@ -135,10 +135,15 @@ release metadata proof routing, CI lane whitelist entries, CI planning, and the
 release workflow to their existing evidence. A wrapper receipt is deferred
 until a consumer proves the need.
 
+The user-facing publishing evidence guide now lives in
+`docs/publishing-evidence.md`. It gives maintainers and agents the current
+command order, artifact reading order, meanings, non-meanings, and explicit
+release-mutation boundary before any behavior change.
+
 ## Next Work Packets
 
-1. Add the user-facing publishing evidence guide from the active plan; do not
-   change release behavior before the human workflow is clear.
+1. Add artifact-glossary entries for release-facing evidence from the active
+   plan; do not change release behavior while tightening terminology.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

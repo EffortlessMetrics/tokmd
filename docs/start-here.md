@@ -144,6 +144,8 @@ More detail:
 
 - [GitHub Action reference](github-action.md).
 - [Artifact glossary](artifacts.md) for proof and coverage receipts.
+- [Publishing evidence](publishing-evidence.md) for release-facing package
+  surface and metadata checks.
 - [Coverage guidance](ci/coverage.md).
 - [Proof policy](../ci/proof.toml).
 

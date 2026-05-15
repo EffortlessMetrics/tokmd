@@ -48,12 +48,12 @@ prove, and which command reproduces it without reading release workflow YAML.
      whitelist, release workflow, and package closure checks to their current
      evidence.
 2. Add a user-facing publishing evidence guide.
-   - Status: active.
+   - Status: complete.
    - Explain what to run before release work, what artifact to open first, and
      what checks do not prove.
    - Keep this as documentation unless the guide exposes a genuine product gap.
 3. Add artifact-glossary entries for release-facing evidence.
-   - Status: pending.
+   - Status: active.
    - Include `publish-surface` JSON output, version consistency output, release
      metadata scope, and release workflow artifacts if they are current.
 4. Decide whether a Rust-owned publishing evidence receipt is needed.
@@ -97,3 +97,6 @@ release workflow, or version docs change.
   `publish-surface --json --verify-publish` as the first machine-readable
   artifact, maps current release metadata, CI lane, workflow, and proof-routing
   evidence, and defers any wrapper receipt until a consumer proves the need.
+- 2026-05-15: Added the user-facing publishing evidence guide. It gives
+  maintainers and agents the command order, artifact reading order, meanings,
+  non-meanings, and release-mutation boundary before any behavior change.
