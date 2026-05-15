@@ -1,6 +1,6 @@
 # Plan: Proof Artifact Check Receipts
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/ci/proof-observation-artifacts.md`
 - Related ADR: `docs/adr/0009-proof-observation-decision.md`
@@ -53,6 +53,21 @@ JSON receipts alongside the existing source artifacts.
    - Update artifact docs so users know these receipts verify only the named
      proof artifact family and do not promote proof.
 
+## Decision
+
+Outcome: **complete; proof artifact verifier outcomes are receipt-grade**.
+
+PR #2283 added optional `--json-output` receipts to the planned executor,
+executed executor, and required proof-run artifact verifiers. The GitHub
+workflows now upload those verifier receipts alongside the existing source
+proof artifacts while preserving human log output and the original source
+artifact contracts.
+
+The slice did not change required-check behavior, advisory proof status,
+Codecov defaults, public `tokmd` CLI behavior, public receipt schemas, or
+source proof artifact schemas. The verifier receipts are evidence about named
+artifact families; they are not merge verdicts.
+
 ## Validation
 
 ```bash
@@ -86,3 +101,6 @@ Run required affected proof if the affected plan selects it.
   planned executor, executed executor, and required proof-run artifact
   verifiers. Workflows now upload those receipts with existing proof artifacts
   while preserving human log capture and proof advisory boundaries.
+- 2026-05-15: Closed through PR #2283. Hosted PR checks and post-merge main CI
+  passed; the remaining Nix Full Validation side workflow was still running
+  independently of the required CI aggregate at closeout time.

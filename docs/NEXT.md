@@ -107,18 +107,19 @@ detect job's inline Bash path classifier with Rust-owned
 proof advisory boundaries, and public `ci-plan.json` compatibility. Hosted PR
 checks and post-merge main CI passed.
 
-The active proof-orchestration slice is proof artifact check receipts. The
-goal is to make `proof-artifacts-check`, `proof-execution-artifacts-check`, and
-`proof-run-artifacts-check` optionally write Rust-owned JSON verifier receipts
-so workflows can upload verifier outcomes as artifacts instead of relying only
-on redirected human text. This slice must preserve required-check behavior,
-advisory proof status, Codecov defaults, public `tokmd` CLI behavior, and
-source proof artifact schemas.
+The proof artifact check receipt slice is closed. PR #2283 made
+`proof-artifacts-check`, `proof-execution-artifacts-check`, and
+`proof-run-artifacts-check` optionally write Rust-owned JSON verifier receipts,
+and the workflows now upload those receipts alongside the original proof
+artifacts. The slice preserved required-check behavior, advisory proof status,
+Codecov defaults, public `tokmd` CLI behavior, and source proof artifact
+schemas. There is no active proof-orchestration implementation slice; choose
+the next lane deliberately from fresh evidence.
 
 ## Next Work Packets
 
-1. Finish the proof artifact check receipt slice, then close or retarget the
-   active goal deliberately.
+1. Choose the next lane deliberately now that proof artifact check receipts are
+   closed; do not continue proof-orchestration cleanup by inertia.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote
