@@ -120,16 +120,16 @@ The mutation scope selection lane is closed. PR #2292 added Rust-owned
 `cargo xtask mutation-scope`, wired the manual mutation workflow to consume
 workflow-compatible outputs from xtask, uploaded `mutation-scope.json` beside
 the existing mutation summary, and preserved advisory mutation behavior. The
-workflow still owns mutation execution and survivor-summary parsing; move those
-only from a fresh plan with a concrete consumer or maintenance problem.
+scope-selection closeout explicitly left survivor-summary parsing for a fresh
+plan rather than broadening that slice.
 
-The mutation summary parsing lane is active. Fresh workflow audit found
-`.github/workflows/mutants.yml` still owns `mutants-summary.json` generation
-and survivor parsing through inline Bash/JQ even though scope selection is now
-Rust-owned. The narrow slice should add `cargo xtask mutation-summary`, preserve
-the existing `mutants-summary.json` shape plus `status` / `survivor_count`
-workflow outputs, and leave mutation execution orchestration, advisory status,
-Codecov behavior, public `tokmd` CLI behavior, and receipt schemas unchanged.
+The mutation summary parsing lane is closed through PR #2294. The manual
+mutation workflow now uses `cargo xtask mutation-summary` to produce the
+existing `mutants-summary.json` shape plus `status` / `survivor_count` workflow
+outputs. Mutation execution orchestration remains workflow-owned unless a
+future plan identifies a concrete consumer or maintenance problem. Mutation
+testing remains advisory; Codecov behavior, public `tokmd` CLI behavior, and
+receipt schemas are unchanged.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -168,10 +168,9 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Finish the active mutation summary parsing lane, then choose the next lane
-   deliberately from fresh evidence. Do not continue mutation workflow
-   Rustification into execution orchestration unless a concrete consumer or
-   maintenance problem proves that is the next gap.
+1. Choose the next lane deliberately from fresh evidence. Do not continue
+   mutation workflow Rustification into execution orchestration unless a
+   concrete consumer or maintenance problem proves that is the next gap.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote
