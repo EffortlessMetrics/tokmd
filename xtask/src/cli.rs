@@ -73,6 +73,8 @@ pub enum Commands {
     CiActuals(CiActualsArgs),
     /// Select mutation-test scope from a git diff for workflow consumption
     MutationScope(MutationScopeArgs),
+    /// Summarize cargo-mutants outputs for workflow consumption
+    MutationSummary(MutationSummaryArgs),
     /// Verify the non-Rust file allowlist (file policy checker)
     CheckFilePolicy(FilePolicyArgs),
     /// Verify the AST-backed Clippy exception ledger
@@ -393,6 +395,45 @@ impl Default for MutationScopeArgs {
             github_output: None,
         }
     }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct MutationSummaryArgs {
+    /// Commit SHA recorded in mutants-summary.json
+    #[arg(long)]
+    pub commit: String,
+
+    /// Human base ref name recorded in mutants-summary.json
+    #[arg(long, default_value = "main")]
+    pub base_ref: String,
+
+    /// Whether mutation scope selection exceeded the configured file limit
+    #[arg(long, default_value_t = false, action = clap::ArgAction::Set)]
+    pub scope_exceeded: bool,
+
+    /// Whether cargo-mutants execution reached the workflow output marker
+    #[arg(long, default_value_t = false, action = clap::ArgAction::Set)]
+    pub mutants_ran: bool,
+
+    /// File containing all production Rust mutation candidates
+    #[arg(long, default_value = "all_changed_files.txt")]
+    pub all_changed_files: std::path::PathBuf,
+
+    /// File containing selected production Rust mutation candidates
+    #[arg(long, default_value = "changed_files.txt")]
+    pub changed_files: std::path::PathBuf,
+
+    /// Directory containing copied mutants.out directories
+    #[arg(long, default_value = "mutants-all")]
+    pub mutants_dir: std::path::PathBuf,
+
+    /// Write workflow-compatible mutants-summary.json to this path
+    #[arg(long, default_value = "mutants-summary.json")]
+    pub json_output: std::path::PathBuf,
+
+    /// Optional GitHub Actions output file for status and survivor_count
+    #[arg(long, value_name = "PATH")]
+    pub github_output: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]

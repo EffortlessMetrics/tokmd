@@ -66,6 +66,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::CoverageReceipt(args)) => tasks::coverage_receipt::run(args),
         Some(cli::Commands::CiActuals(args)) => tasks::ci_actuals::run(args),
         Some(cli::Commands::MutationScope(args)) => tasks::mutation_scope::run(args),
+        Some(cli::Commands::MutationSummary(args)) => tasks::mutation_summary::run(args),
         Some(cli::Commands::CheckFilePolicy(args)) => tasks::file_policy::run(args),
         Some(cli::Commands::CheckClippyExceptions(args)) => tasks::clippy_exceptions::run(args),
         Some(cli::Commands::CiLaneWhitelist(args)) => tasks::ci_lane_whitelist::run(args),
