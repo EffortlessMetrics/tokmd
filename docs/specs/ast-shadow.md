@@ -54,6 +54,7 @@ target/tokmd-ast-shadow/
   ast.json
   diff.json
   summary.md         # optional human summary
+  timing.json        # optional scoped comparison timing receipt
   check.json          # optional verifier receipt
 ```
 
@@ -95,13 +96,33 @@ corpus manifest instead of listing every file on the command line:
 cargo xtask ast-shadow-compare \
   --manifest policy/ast-shadow-corpus.toml \
   --out target/tokmd-ast-shadow \
-  --summary-md target/tokmd-ast-shadow/summary.md
+  --summary-md target/tokmd-ast-shadow/summary.md \
+  --timing-json target/tokmd-ast-shadow/timing.json
 ```
 
 The Markdown summary is a human review layer over `diff.json`. It should include
 aggregate counts, mismatch counts by landmark kind, per-file comparison status,
 artifact paths, and a reproduction command. It must not add pass/fail language,
 merge verdicts, proof-promotion claims, or public receipt semantics.
+
+The optional comparison timing receipt is developer-facing xtask evidence:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --manifest policy/ast-shadow-corpus.toml \
+  --out target/tokmd-ast-shadow \
+  --summary-md target/tokmd-ast-shadow/summary.md \
+  --timing-json target/tokmd-ast-shadow/timing.json
+```
+
+It emits `tokmd.ast_shadow_compare_timing.v1` for the explicit corpus selected
+by `--path` or `--manifest`. The receipt records repo-relative artifact paths,
+input-file and source-byte counts, diff summary counts, and bounded phase
+durations for path selection, input collection, artifact construction, artifact
+writing, summary writing, and total comparison runtime. It must not include
+timestamps, absolute paths, temporary directories, environment variables,
+pass/fail product language, merge verdicts, proof-promotion claims, or public
+receipt semantics.
 
 The verifier is developer-facing xtask tooling:
 
@@ -233,8 +254,8 @@ names should run:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow --summary-md target/tokmd-ast-shadow/summary.md
-cargo xtask ast-shadow-check --manifest policy/ast-shadow-corpus.toml --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
+cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow --summary-md target/tokmd-ast-shadow/summary.md --timing-json target/tokmd-ast-shadow/timing.json
+cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow --json target/tokmd-ast-shadow/check.json
 cargo xtask proof-policy --check
 cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected-ast-shadow.json
 cargo xtask proof --profile affected --base origin/main --head HEAD --plan --plan-json target/proof/proof-plan-ast-shadow.json --evidence-json target/proof/proof-evidence-ast-shadow.json

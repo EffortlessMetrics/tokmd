@@ -16,6 +16,7 @@ pub fn run(args: AstShadowCheckArgs) -> Result<()> {
             manifest: args.manifest.clone(),
             out: args.dir.clone(),
             summary_md: None,
+            timing_json: None,
         })?;
     }
 

@@ -249,8 +249,8 @@ Corpus, runner, or AST-code slices should also run the relevant focused proof:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md
-cargo xtask ast-shadow-check --manifest policy/ast-shadow-corpus.toml --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
+cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md --timing-json target/tokmd-ast-shadow-corpus/timing.json
+cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
 ```
 
 If public crate exports, dependencies, browser/WASM capability claims, schemas,

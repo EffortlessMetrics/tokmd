@@ -1,16 +1,18 @@
 use crate::cli::AstShadowCompareArgs;
 use anyhow::{Context, Result, bail};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
+use std::time::Instant;
 use tokmd_analysis::ast::{
     AstLanguage, ShadowFileInput, ShadowLandmark, build_shadow_artifacts, normalize_shadow_path,
     write_shadow_artifacts,
 };
 
 const AST_SHADOW_CORPUS_SCHEMA: &str = "tokmd.ast_shadow_corpus.v1";
+const AST_SHADOW_COMPARE_TIMING_SCHEMA: &str = "tokmd.ast_shadow_compare_timing.v1";
 
 pub fn run(args: AstShadowCompareArgs) -> Result<()> {
     let root = std::env::current_dir().context("resolve current directory")?;
@@ -18,8 +20,15 @@ pub fn run(args: AstShadowCompareArgs) -> Result<()> {
 }
 
 fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
+    let total_start = Instant::now();
+
+    let path_selection_start = Instant::now();
     let input_paths = input_paths_from_args(&args, root)?;
+    let path_selection_us = path_selection_start.elapsed().as_micros();
+
+    let input_collection_start = Instant::now();
     let inputs = collect_inputs(&input_paths, root)?;
+    let input_collection_us = input_collection_start.elapsed().as_micros();
     let shadow_inputs = inputs
         .iter()
         .map(|input| ShadowFileInput {
@@ -30,12 +39,46 @@ fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
         })
         .collect::<Vec<_>>();
 
+    let artifact_build_start = Instant::now();
     let artifacts = build_shadow_artifacts(&shadow_inputs).context("build AST shadow artifacts")?;
+    let artifact_build_us = artifact_build_start.elapsed().as_micros();
+
+    let artifact_write_start = Instant::now();
     let paths = write_shadow_artifacts(&args.out, &artifacts)
         .with_context(|| format!("write AST shadow artifacts to {}", args.out.display()))?;
+    let artifact_write_us = artifact_write_start.elapsed().as_micros();
+
+    let summary_write_start = Instant::now();
     if let Some(summary_path) = &args.summary_md {
         write_summary_md(summary_path, &args, &paths, &artifacts.diff, root)
             .with_context(|| format!("write AST shadow summary to {}", summary_path.display()))?;
+    }
+    let summary_write_us = summary_write_start.elapsed().as_micros();
+
+    if let Some(timing_path) = &args.timing_json {
+        let timings = CompareTimingPhases {
+            path_selection_us,
+            input_collection_us,
+            artifact_build_us,
+            artifact_write_us,
+            summary_write_us,
+            total_us: total_start.elapsed().as_micros(),
+        };
+        write_timing_json(
+            timing_path,
+            &args,
+            &paths,
+            &artifacts.diff,
+            &inputs,
+            timings,
+            root,
+        )
+        .with_context(|| {
+            format!(
+                "write AST shadow timing receipt to {}",
+                timing_path.display()
+            )
+        })?;
     }
 
     let ast_files = artifacts
@@ -61,6 +104,9 @@ fn run_with_root(args: AstShadowCompareArgs, root: &Path) -> Result<()> {
     if let Some(summary_path) = &args.summary_md {
         println!("  summary: {}", summary_path.display());
     }
+    if let Some(timing_path) = &args.timing_json {
+        println!("  timing: {}", timing_path.display());
+    }
 
     Ok(())
 }
@@ -84,6 +130,174 @@ fn write_summary_md(
 
     fs::write(summary_path, summary)
         .with_context(|| format!("write summary {}", summary_path.display()))
+}
+
+#[derive(Debug, Clone, Copy)]
+struct CompareTimingPhases {
+    path_selection_us: u128,
+    input_collection_us: u128,
+    artifact_build_us: u128,
+    artifact_write_us: u128,
+    summary_write_us: u128,
+    total_us: u128,
+}
+
+#[derive(Debug, Serialize)]
+struct AstShadowCompareTimingReceipt {
+    schema: &'static str,
+    schema_version: u32,
+    command: &'static str,
+    language: &'static str,
+    corpus: TimingCorpus,
+    counts: TimingCounts,
+    timings: TimingReceiptPhases,
+    artifacts: TimingArtifacts,
+    status: TimingStatus,
+}
+
+#[derive(Debug, Serialize)]
+struct TimingCorpus {
+    manifest: Option<String>,
+    explicit_paths: usize,
+    input_files: usize,
+    source_bytes: usize,
+}
+
+#[derive(Debug, Clone, Copy, Serialize)]
+struct TimingCounts {
+    files: u64,
+    matched: u64,
+    heuristic_only: u64,
+    ast_only: u64,
+    parse_degraded: u64,
+    unsupported: u64,
+}
+
+#[derive(Debug, Serialize)]
+struct TimingReceiptPhases {
+    path_selection: TimingPhase,
+    input_collection: TimingPhase,
+    artifact_build: TimingPhase,
+    artifact_write: TimingPhase,
+    summary_write: TimingPhase,
+    total: TimingPhase,
+}
+
+#[derive(Debug, Serialize)]
+struct TimingPhase {
+    operation: &'static str,
+    duration_ms: u128,
+    duration_us: u128,
+}
+
+#[derive(Debug, Serialize)]
+struct TimingArtifacts {
+    heuristic: String,
+    ast: String,
+    diff: String,
+    summary_md: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct TimingStatus {
+    ok: bool,
+    parse_degraded_files: u64,
+    unsupported_files: u64,
+}
+
+fn write_timing_json(
+    timing_path: &Path,
+    args: &AstShadowCompareArgs,
+    paths: &tokmd_analysis::ast::ShadowArtifactPaths,
+    diff: &serde_json::Value,
+    inputs: &[RunnerInput],
+    timings: CompareTimingPhases,
+    root: &Path,
+) -> Result<()> {
+    let counts = diff_summary_counts(diff)?;
+    let receipt = AstShadowCompareTimingReceipt {
+        schema: AST_SHADOW_COMPARE_TIMING_SCHEMA,
+        schema_version: 1,
+        command: "cargo xtask ast-shadow-compare",
+        language: "rust",
+        corpus: TimingCorpus {
+            manifest: args
+                .manifest
+                .as_deref()
+                .map(|path| summary_display_path(path, root))
+                .transpose()?,
+            explicit_paths: args.paths.len(),
+            input_files: inputs.len(),
+            source_bytes: inputs.iter().map(|input| input.source.len()).sum(),
+        },
+        counts,
+        timings: TimingReceiptPhases {
+            path_selection: timing_phase("select_input_paths", timings.path_selection_us),
+            input_collection: timing_phase("collect_inputs", timings.input_collection_us),
+            artifact_build: timing_phase("build_shadow_artifacts", timings.artifact_build_us),
+            artifact_write: timing_phase("write_shadow_artifacts", timings.artifact_write_us),
+            summary_write: timing_phase("write_summary_md", timings.summary_write_us),
+            total: timing_phase("ast_shadow_compare", timings.total_us),
+        },
+        artifacts: TimingArtifacts {
+            heuristic: summary_display_path(&paths.heuristic, root)?,
+            ast: summary_display_path(&paths.ast, root)?,
+            diff: summary_display_path(&paths.diff, root)?,
+            summary_md: args
+                .summary_md
+                .as_deref()
+                .map(|path| summary_display_path(path, root))
+                .transpose()?,
+        },
+        status: TimingStatus {
+            ok: true,
+            parse_degraded_files: counts.parse_degraded,
+            unsupported_files: counts.unsupported,
+        },
+    };
+
+    if let Some(parent) = timing_path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    {
+        fs::create_dir_all(parent)
+            .with_context(|| format!("create timing receipt parent {}", parent.display()))?;
+    }
+
+    let json = serde_json::to_string_pretty(&receipt)
+        .context("serialize AST shadow comparison timing receipt")?;
+    fs::write(timing_path, format!("{json}\n"))
+        .with_context(|| format!("write timing receipt {}", timing_path.display()))
+}
+
+fn timing_phase(operation: &'static str, duration_us: u128) -> TimingPhase {
+    TimingPhase {
+        operation,
+        duration_ms: duration_us / 1_000,
+        duration_us,
+    }
+}
+
+fn diff_summary_counts(diff: &serde_json::Value) -> Result<TimingCounts> {
+    let summary = diff
+        .get("summary")
+        .and_then(serde_json::Value::as_object)
+        .context("diff artifact is missing summary object")?;
+    Ok(TimingCounts {
+        files: summary_count(summary, "files")?,
+        matched: summary_count(summary, "matched")?,
+        heuristic_only: summary_count(summary, "heuristic_only")?,
+        ast_only: summary_count(summary, "ast_only")?,
+        parse_degraded: summary_count(summary, "parse_degraded")?,
+        unsupported: summary_count(summary, "unsupported")?,
+    })
+}
+
+fn summary_count(summary: &serde_json::Map<String, serde_json::Value>, key: &str) -> Result<u64> {
+    summary
+        .get(key)
+        .and_then(serde_json::Value::as_u64)
+        .with_context(|| format!("diff summary is missing numeric field `{key}`"))
 }
 
 fn render_summary_md(
@@ -186,6 +400,10 @@ fn render_summary_md(
     if let Some(summary_md) = &args.summary_md {
         markdown.push_str(" \\\n  --summary-md ");
         markdown.push_str(&summary_display_path(summary_md, root)?);
+    }
+    if let Some(timing_json) = &args.timing_json {
+        markdown.push_str(" \\\n  --timing-json ");
+        markdown.push_str(&summary_display_path(timing_json, root)?);
     }
     markdown.push_str("\n```\n");
 
@@ -676,6 +894,7 @@ mod tests {
             manifest: None,
             out: PathBuf::from("target/tokmd-ast-shadow"),
             summary_md: None,
+            timing_json: None,
         };
 
         let error = input_paths_from_args(&args, root.path())
@@ -692,6 +911,7 @@ mod tests {
             manifest: Some(root.path().join("policy/ast-shadow-corpus.toml")),
             out: PathBuf::from("target/tokmd-ast-shadow"),
             summary_md: None,
+            timing_json: None,
         };
 
         let error = input_paths_from_args(&args, root.path())
@@ -758,6 +978,7 @@ pub fn compute(value: usize) -> usize {
             manifest: None,
             out: out.clone(),
             summary_md: None,
+            timing_json: None,
         };
 
         run_with_root(args.clone(), root.path())?;
@@ -790,6 +1011,7 @@ pub fn compute(value: usize) -> usize {
             manifest: None,
             out,
             summary_md: Some(summary_md.clone()),
+            timing_json: None,
         };
 
         run_with_root(args, root.path())?;
@@ -801,6 +1023,49 @@ pub fn compute(value: usize) -> usize {
         assert!(summary.contains("cargo xtask ast-shadow-compare"));
         assert!(summary.contains("--summary-md"));
         assert!(!summary.contains(&normalize_display_path(root.path())));
+        Ok(())
+    }
+
+    #[test]
+    fn runner_writes_timing_receipt_when_requested() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture_dir = root.path().join("fixtures/ast-shadow/rust");
+        fs::create_dir_all(&fixture_dir)?;
+        fs::write(
+            fixture_dir.join("basic.rs"),
+            "use std::fs;\n\npub fn compute(value: usize) -> usize {\n    value\n}\n",
+        )?;
+        let out = root.path().join("target/tokmd-ast-shadow");
+        let summary_md = root.path().join("target/tokmd-ast-shadow/summary.md");
+        let timing_json = root.path().join("target/tokmd-ast-shadow/timing.json");
+        let args = AstShadowCompareArgs {
+            paths: vec![PathBuf::from("fixtures/ast-shadow/rust/basic.rs")],
+            manifest: None,
+            out,
+            summary_md: Some(summary_md.clone()),
+            timing_json: Some(timing_json.clone()),
+        };
+
+        run_with_root(args, root.path())?;
+        let timing = fs::read_to_string(&timing_json)?;
+        let value: serde_json::Value = serde_json::from_str(&timing)?;
+        let summary = fs::read_to_string(summary_md)?;
+
+        assert_eq!(value["schema"], "tokmd.ast_shadow_compare_timing.v1");
+        assert_eq!(value["schema_version"], 1);
+        assert_eq!(value["command"], "cargo xtask ast-shadow-compare");
+        assert_eq!(value["language"], "rust");
+        assert_eq!(value["corpus"]["explicit_paths"], 1);
+        assert_eq!(value["corpus"]["input_files"], 1);
+        assert_eq!(value["counts"]["files"], 1);
+        assert_eq!(
+            value["artifacts"]["diff"],
+            "target/tokmd-ast-shadow/diff.json"
+        );
+        assert_eq!(value["status"]["ok"], true);
+        assert!(value["timings"]["total"]["duration_us"].as_u64().is_some());
+        assert!(summary.contains("--timing-json target/tokmd-ast-shadow/timing.json"));
+        assert!(!timing.contains(root.path().to_string_lossy().as_ref()));
         Ok(())
     }
 
@@ -842,6 +1107,7 @@ path = "fixtures/ast-shadow/rust/a.rs"
             manifest: Some(PathBuf::from("policy/ast-shadow-corpus.toml")),
             out,
             summary_md: Some(summary_md.clone()),
+            timing_json: None,
         };
 
         run_with_root(args, root.path())?;
@@ -880,6 +1146,7 @@ path = "../outside.rs"
             manifest: Some(PathBuf::from("policy/ast-shadow-corpus.toml")),
             out: PathBuf::from("target/tokmd-ast-shadow"),
             summary_md: None,
+            timing_json: None,
         };
 
         let error = input_paths_from_args(&args, root.path())
@@ -906,6 +1173,7 @@ path = "../outside.rs"
             manifest: None,
             out: PathBuf::from("target/tokmd-ast-shadow"),
             summary_md: Some(PathBuf::from("target/tokmd-ast-shadow/summary.md")),
+            timing_json: None,
         };
         let diff = serde_json::json!({
             "summary": {
@@ -961,6 +1229,7 @@ path = "../outside.rs"
             manifest: None,
             out: root.path().join("target/tokmd-ast-shadow"),
             summary_md: Some(outside.path().join("summary.md")),
+            timing_json: None,
         };
 
         let error = run_with_root(args, root.path())

@@ -60,9 +60,12 @@ broader explicit Rust corpus
    - Run `ast-shadow-compare` and `ast-shadow-check` over the expanded manifest.
    - Record counts by landmark kind and function-boundary mismatch class.
 4. Add candidate-corpus timing evidence.
-   - Status: pending.
-   - Use existing `tokmd.ast_shadow_perf.v1` evidence or add a scoped timing
-     receipt for the expanded explicit corpus before making performance claims.
+   - Status: complete.
+   - Added an opt-in `cargo xtask ast-shadow-compare --timing-json <PATH>`
+     receipt for the expanded explicit corpus.
+   - Kept the receipt developer-facing and outside public `tokmd` CLI,
+     default outputs, public receipts, browser/WASM capability, and proof
+     promotion.
 5. Reclassify function-boundary mismatches.
    - Status: pending.
    - Categorize heuristic-only and AST-only function landmarks using the
@@ -92,8 +95,8 @@ Corpus, runner, or AST-code slices should also run the relevant focused proof:
 cargo test -p tokmd-analysis --features ast ast --verbose
 cargo run -p tokmd-analysis --features ast --example ast_shadow_perf -- --iterations 2 --files 2 --functions-per-file 3 --out target/perf/ast-shadow-perf.json
 cargo test -p xtask ast_shadow --verbose
-cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md
-cargo xtask ast-shadow-check --manifest policy/ast-shadow-corpus.toml --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
+cargo xtask ast-shadow-compare --manifest policy/ast-shadow-corpus.toml --out target/tokmd-ast-shadow-corpus --summary-md target/tokmd-ast-shadow-corpus/summary.md --timing-json target/tokmd-ast-shadow-corpus/timing.json
+cargo xtask ast-shadow-check --dir target/tokmd-ast-shadow-corpus --json target/tokmd-ast-shadow-corpus/check.json
 ```
 
 If public crate exports, dependencies, browser/WASM capability claims, schemas,
@@ -127,6 +130,9 @@ publish-surface verification.
 - 2026-05-14: Collected verified expanded-corpus evidence from the 14-file
   manifest. Function landmarks had 225 matches, 24 heuristic-only entries,
   and 0 AST-only entries; one parser-degraded fixture remained explicit.
+- 2026-05-15: Added scoped candidate-corpus timing evidence via
+  `tokmd.ast_shadow_compare_timing.v1`. The timing receipt covers the explicit
+  manifest corpus and remains developer-facing shadow evidence only.
 
 ## Corpus Expansion Categories
 
@@ -218,3 +224,52 @@ Interpretation:
   than available AST proof.
 - Control-flow remains noisier than function boundaries and stays out of this
   candidate decision.
+
+## Candidate-Corpus Timing Evidence
+
+The scoped timing slice used the same expanded manifest and wrote a
+developer-facing timing receipt:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --manifest policy/ast-shadow-corpus.toml \
+  --out target/tokmd-ast-shadow-corpus \
+  --summary-md target/tokmd-ast-shadow-corpus/summary.md \
+  --timing-json target/tokmd-ast-shadow-corpus/timing.json
+
+cargo xtask ast-shadow-check \
+  --dir target/tokmd-ast-shadow-corpus \
+  --json target/tokmd-ast-shadow-corpus/check.json
+```
+
+Receipt summary:
+
+| Field | Value |
+| --- | ---: |
+| Schema | `tokmd.ast_shadow_compare_timing.v1` |
+| Input files | 14 |
+| Source bytes | 194799 |
+| Matched landmarks | 453 |
+| Heuristic-only landmarks | 210 |
+| AST-only landmarks | 32 |
+| Parse-degraded files | 1 |
+| Unsupported files | 0 |
+| Total comparison runtime | 116 ms |
+
+Phase timings from the same local receipt:
+
+| Phase | Duration |
+| --- | ---: |
+| Path selection | 2 ms |
+| Input collection | 25 ms |
+| Artifact build | 80 ms |
+| Artifact write | 6 ms |
+| Summary write | 0 ms |
+
+The timing receipt records no timestamps, absolute paths, temporary
+directories, or public product verdicts. It is suitable for candidate-corpus
+evidence and proof routing, not a production performance budget. Duration
+values are local observations and are expected to vary by machine, cache state,
+and run. Counts differ from the first expanded manifest run because this slice
+added timing-receipt code to `xtask/src/tasks/ast_shadow_compare.rs`, which is
+itself part of the repo-owned corpus.

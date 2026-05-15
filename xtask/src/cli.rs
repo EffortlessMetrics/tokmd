@@ -118,6 +118,10 @@ pub struct AstShadowCompareArgs {
     /// Optional Markdown summary path for human review of comparison counts.
     #[arg(long)]
     pub summary_md: Option<std::path::PathBuf>,
+
+    /// Optional JSON timing receipt path for the explicit comparison run.
+    #[arg(long)]
+    pub timing_json: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
