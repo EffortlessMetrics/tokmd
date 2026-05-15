@@ -1,6 +1,6 @@
 # Plan: Publishing Evidence Readiness
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/specs/publishing-evidence.md`
 - Related ADR: `docs/adr/0001-production-package-publishability.md`, `docs/adr/0003-publish-surface-taxonomy.md`, `docs/adr/0005-release-train-and-rc-semantics.md`
@@ -57,9 +57,12 @@ prove, and which command reproduces it without reading release workflow YAML.
    - Include `publish-surface` JSON output, version consistency output, release
      metadata scope, and release workflow artifacts if they are current.
 4. Decide whether a Rust-owned publishing evidence receipt is needed.
-   - Status: active.
-   - If needed, write a proposal/spec before implementation.
-   - If not needed, close the lane with docs-only guidance and proof routing.
+   - Status: complete.
+   - Decision: no new wrapper receipt is needed yet.
+   - Close the lane as docs-only guidance plus existing proof routing. Reopen
+     only if a concrete consumer cannot use the current publish-surface,
+     version-consistency, CI lane, release workflow, and affected-proof
+     evidence set.
 
 ## Validation
 
@@ -104,3 +107,10 @@ release workflow, or version docs change.
   publish-surface JSON, version consistency output, `release_metadata` proof
   scope routing, CI release lane policy, and intentional release workflow
   artifacts.
+- 2026-05-15: Closed the lane. The current evidence set is useful without a
+  wrapper receipt: `publish-surface --json --verify-publish` owns package
+  surface and closure facts, version consistency owns metadata alignment,
+  affected/proof planning owns release-file routing, CI lane policy owns
+  release-check obligations, and release workflow artifacts remain the
+  intentional mutation evidence. A new receipt should start from a fresh
+  proposal naming the consumer and gap.

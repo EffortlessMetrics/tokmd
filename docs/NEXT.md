@@ -121,11 +121,11 @@ objective to live artifacts and verifier coverage, did not mark the platform
 complete as a single finished program, and selected publishing evidence
 readiness as the next plan-first lane.
 
-The active lane is now publishing evidence readiness. The plan in
-`docs/plans/publishing-evidence-readiness.md` should make release and
-publishing facts easier to consume without publishing crates, tagging releases,
-changing release workflow behavior, changing public receipt schemas, or
-promoting advisory proof.
+The publishing evidence readiness lane is closed. The plan in
+`docs/plans/publishing-evidence-readiness.md` made release and publishing facts
+easier to consume without publishing crates, tagging releases, changing release
+workflow behavior, changing public receipt schemas, or promoting advisory
+proof.
 
 The first publishing evidence contract is now recorded in
 `docs/specs/publishing-evidence.md`. Current publishing evidence uses
@@ -145,10 +145,17 @@ publish-surface JSON, version consistency output, `release_metadata` proof
 scope routing, CI release lane policy, and intentional release workflow
 artifacts.
 
+The closeout decision is docs-only: no Rust-owned publishing evidence wrapper
+receipt is needed yet. Existing artifacts remain authoritative for their
+domains. Reopen publishing evidence only from a fresh proposal naming a
+consumer and a gap that the current publish-surface, version-consistency, CI
+lane, release workflow, and affected-proof evidence cannot cover.
+
 ## Next Work Packets
 
-1. Decide whether the publishing evidence lane needs a Rust-owned wrapper
-   receipt or should close as docs-only guidance plus existing proof routing.
+1. Choose the next lane deliberately from fresh evidence; do not continue
+   publishing evidence work unless a consumer proves the current docs-only
+   surface is insufficient.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

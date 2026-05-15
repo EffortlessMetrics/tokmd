@@ -2,6 +2,7 @@ schema = "tokmd.jules.active_goal.v1"
 status = "complete"
 program = "code_intelligence"
 lane = "publishing_evidence_readiness"
+outcome = "docs_only_guidance_existing_evidence"
 
 [links]
 source_of_truth = "docs/source-of-truth.md"
@@ -14,7 +15,6 @@ adr_readme = "docs/adr/README.md"
 plan = "docs/plans/publishing-evidence-readiness.md"
 publishing_evidence_spec = "docs/specs/publishing-evidence.md"
 publishing_evidence_guide = "docs/publishing-evidence.md"
-proof_observation_artifacts = "docs/ci/proof-observation-artifacts.md"
 artifact_glossary = "docs/artifacts.md"
 proof_policy = "ci/proof.toml"
 next_program = "docs/NEXT.md"
@@ -43,3 +43,8 @@ proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEA
 publish_surface = "cargo xtask publish-surface --json --verify-publish"
 fmt = "cargo fmt-check"
 diff_hygiene = "git diff --check"
+
+[decision]
+summary = "No Rust-owned wrapper receipt is needed yet."
+reason = "The spec, guide, artifact glossary, existing publish-surface JSON, version-consistency command, affected proof routing, CI lane policy, and release workflow artifacts give maintainers enough publishing evidence without changing release behavior or schemas."
+reopen_when = "A concrete consumer cannot use the current docs-only surface and names the missing artifact contract."
