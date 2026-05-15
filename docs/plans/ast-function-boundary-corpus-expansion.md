@@ -56,7 +56,7 @@ broader explicit Rust corpus
    - Keep file reasons and expected signals specific.
    - Preserve absolute-path and path-escape rejection.
 3. Collect verified expanded-corpus evidence.
-   - Status: pending.
+   - Status: complete.
    - Run `ast-shadow-compare` and `ast-shadow-check` over the expanded manifest.
    - Record counts by landmark kind and function-boundary mismatch class.
 4. Add candidate-corpus timing evidence.
@@ -124,6 +124,9 @@ publish-surface verification.
 - 2026-05-14: Defined the corpus category taxonomy and extended
   `policy/ast-shadow-corpus.toml` with production, test, macro-heavy,
   generated-like, product-adjacent, shadow-implementation, and tooling entries.
+- 2026-05-14: Collected verified expanded-corpus evidence from the 14-file
+  manifest. Function landmarks had 225 matches, 24 heuristic-only entries,
+  and 0 AST-only entries; one parser-degraded fixture remained explicit.
 
 ## Corpus Expansion Categories
 
@@ -151,3 +154,67 @@ carry a narrow `reason`, a stable `category`, and an `expected_signal` that can
 be checked after `ast-shadow-compare` and `ast-shadow-check` run. The expanded
 corpus does not need every category in one PR, but the next candidate decision
 should state which categories were present, which were absent, and why.
+
+## Expanded Manifest Evidence
+
+The first expanded manifest run used:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --manifest policy/ast-shadow-corpus.toml \
+  --out target/tokmd-ast-shadow-corpus \
+  --summary-md target/tokmd-ast-shadow-corpus/summary.md
+
+cargo xtask ast-shadow-check \
+  --manifest policy/ast-shadow-corpus.toml \
+  --dir target/tokmd-ast-shadow-corpus \
+  --json target/tokmd-ast-shadow-corpus/check.json
+```
+
+Verifier summary:
+
+| Metric | Count |
+| --- | ---: |
+| Files | 14 |
+| Matched landmarks | 443 |
+| Heuristic-only landmarks | 208 |
+| AST-only landmarks | 32 |
+| Parse-degraded files | 1 |
+| Unsupported files | 0 |
+
+Landmark-kind summary:
+
+| Kind | Matched | Heuristic-only | AST-only |
+| --- | ---: | ---: | ---: |
+| `control_flow` | 154 | 182 | 31 |
+| `function` | 225 | 24 | 0 |
+| `import` | 64 | 2 | 1 |
+
+Function-boundary file summary:
+
+| Path | Matched | Heuristic-only | AST-only | Parse degraded |
+| --- | ---: | ---: | ---: | --- |
+| `crates/tokmd-analysis/src/ast/rust.rs` | 13 | 5 | 0 | no |
+| `crates/tokmd-analysis/src/ast/shadow.rs` | 27 | 6 | 0 | no |
+| `crates/tokmd-analysis/src/complexity/functions/rust.rs` | 2 | 0 | 0 | no |
+| `crates/tokmd-analysis/src/imports/parser.rs` | 35 | 2 | 0 | no |
+| `crates/tokmd-cockpit/src/review_plan.rs` | 20 | 0 | 0 | no |
+| `crates/tokmd-model/src/rows.rs` | 19 | 0 | 0 | no |
+| `crates/tokmd/src/context_pack/select.rs` | 9 | 0 | 0 | no |
+| `crates/tokmd/tests/data/large.rs` | 1 | 0 | 0 | no |
+| `crates/tokmd/tests/handoff_integration.rs` | 17 | 2 | 0 | no |
+| `fixtures/ast-shadow/rust/basic.rs` | 1 | 0 | 0 | no |
+| `fixtures/ast-shadow/rust/parse-degraded.rs` | 1 | 1 | 0 | yes |
+| `xtask/src/cli.rs` | 11 | 0 | 0 | no |
+| `xtask/src/tasks/ast_shadow_check.rs` | 30 | 2 | 0 | no |
+| `xtask/src/tasks/ast_shadow_compare.rs` | 39 | 6 | 0 | no |
+
+Interpretation:
+
+- Function-boundary AST-only misses remain at zero in the expanded corpus.
+- Heuristic-only function entries remain real evidence to classify, not proof
+  of readiness.
+- The intentionally degraded fixture still appears as degraded evidence rather
+  than available AST proof.
+- Control-flow remains noisier than function boundaries and stays out of this
+  candidate decision.
