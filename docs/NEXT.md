@@ -81,20 +81,21 @@ closed plan lives in `docs/plans/ast-function-boundary-corpus-expansion.md`;
 the earlier candidate decision is recorded in
 `docs/plans/ast-function-boundary-candidate.md`.
 
-The proof-observation decision-readiness lane is active again. It now has a
-Rust-owned `cargo xtask proof-observation-status` aggregate plus
-`cargo xtask proof-observation-status-check` verifier. The manual observation
-collector writes both receipts from downloaded executor observation collections,
-so maintainers can review one verified advisory decision packet without
-executing proof, changing required gates, or enabling default Codecov upload.
+The proof-observation decision-readiness lane is closed. It now has a
+Rust-owned `cargo xtask proof-observation-status` aggregate,
+`cargo xtask proof-observation-status-check` verifier, manual collector upload
+path, and ADR-0009 decision record. The outcome is continued observation, not
+promotion: advisory fast proof, scoped coverage, mutation, coverage telemetry,
+and Codecov upload remain non-required until a future maintainer decision cites
+fresh verified decision evidence and changes checked policy deliberately.
 
 ## Next Work Packets
 
 1. Choose the next active lane deliberately; do not reopen AST productization
    without a fresh proposal grounded in the shadow evidence.
-2. Continue proof-observation decision readiness by verifying the new aggregate
-   and its check receipt from real collected observation artifacts before any
-   cockpit/handoff integration or promotion proposal.
+2. Choose the next proof-orchestration slice deliberately; do not promote
+   advisory proof, default Codecov upload, or cockpit/handoff consumption from
+   the closed decision-readiness lane.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 4. Preserve `tokmd cockpit` as the review evidence implementation surface until

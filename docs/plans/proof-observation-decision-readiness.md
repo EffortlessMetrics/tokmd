@@ -1,9 +1,9 @@
 # Plan: Proof Observation Decision Readiness
 
-- Status: active
+- Status: complete
 - Related proposal:
-- Related spec:
-- Related ADR:
+- Related spec: `docs/specs/proof-observation-decision-packet.md`
+- Related ADR: `docs/adr/0009-proof-observation-promotion-boundary.md`
 - Related issues:
 
 ## Goal
@@ -68,7 +68,7 @@ What command or artifact reproduces each claim?
      upload coverage, or change workflow gates.
 4. Connect the decision evidence to review surfaces only after a verifier
    exists.
-   - Status: pending; workflow artifact prerequisite complete.
+   - Status: deferred; workflow artifact prerequisite complete.
    - The manual proof-observation collector now emits both
      `proof-observation-decision.json` and
      `proof-observation-decision-check.json` from real downloaded executor
@@ -76,11 +76,11 @@ What command or artifact reproduces each claim?
    - Future cockpit or handoff integration should link verified decision
      receipts as evidence handles, not treat them as merge verdicts.
 5. Close the lane with an explicit decision record.
-   - Status: pending.
-   - Record whether the evidence supports promotion, continued observation, or
-     rollback/simplification.
-   - If promotion is not justified, preserve the advisory state and document
-     the missing evidence.
+   - Status: complete.
+   - ADR-0009 records the outcome: continued observation, not promotion.
+   - Advisory evidence remains visible, but fast proof, scoped coverage,
+     mutation, Codecov upload, cockpit, and handoff behavior remain unchanged
+     until a future proposal cites fresh verified decision evidence.
 
 ## Validation
 
@@ -147,3 +147,7 @@ the relevant proof artifact verifier on generated receipts.
   executor observations. The workflow still only observes and uploads evidence;
   it does not promote advisory proof, enable default Codecov upload, or change
   required gates.
+- 2026-05-15: Closed the lane with ADR-0009. The decision is continued
+  observation: the proof-observation decision surface is ready for maintainer
+  review, but current evidence does not justify making advisory proof required,
+  enabling default Codecov upload, or changing cockpit/handoff behavior.

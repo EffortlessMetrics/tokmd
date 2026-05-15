@@ -1,5 +1,5 @@
 schema = "tokmd.jules.active_goal.v1"
-status = "active"
+status = "complete"
 program = "code_intelligence"
 lane = "proof_observation_decision_readiness"
 
@@ -31,6 +31,7 @@ cockpit_proof_evidence = "docs/cockpit-proof-evidence.md"
 proof_observation_decision_plan = "docs/plans/proof-observation-decision-readiness.md"
 proof_observation_artifacts = "docs/ci/proof-observation-artifacts.md"
 proof_observation_decision_spec = "docs/specs/proof-observation-decision-packet.md"
+proof_observation_decision_adr = "docs/adr/0009-proof-observation-promotion-boundary.md"
 proof_policy = "ci/proof.toml"
 
 [rules]
@@ -57,3 +58,10 @@ affected_plan = "cargo xtask affected --base origin/main --head HEAD --json"
 proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEAD --plan"
 proof_artifacts = "do_not_treat_advisory_or_planned_evidence_as_passing_proof"
 browser_boundary = "do_not_claim_browser_wasm_ast_capability_without_capability_and_bundle_evidence"
+
+[completion]
+completed_on = "2026-05-15"
+closeout_plan = "docs/plans/proof-observation-decision-readiness.md"
+decision_record = "docs/adr/0009-proof-observation-promotion-boundary.md"
+outcome = "continued_observation_no_promotion"
+evidence = "status/check receipts and manual collector upload path exist; ADR-0009 keeps advisory proof non-required until a future maintainer decision cites fresh verified evidence"
