@@ -71,12 +71,13 @@ developer-facing shadow evidence.
 
 The active machine-readable goal now points at AST function-boundary corpus
 expansion. The next AST work should broaden the repo-owned Rust corpus, rerun
-the same `ast-shadow-compare` / `ast-shadow-check` evidence loop, classify
-function-boundary mismatches, and use scoped candidate-corpus timing before any
-public proposal. This is evidence planning only: no default product workflow,
-public receipt schema, browser/WASM capability, proof gate, Codecov default,
-cockpit output, handoff output, or evidencebus runtime changes are in scope.
-The active plan lives in
+the same `ast-shadow-compare` / `ast-shadow-check` evidence loop, keep
+candidate-corpus timing scoped, and use the expanded mismatch classification to
+revisit the function-boundary candidate decision before any public proposal.
+This is evidence planning only: no default product workflow, public receipt
+schema, browser/WASM capability, proof gate, Codecov default, cockpit output,
+handoff output, or evidencebus runtime changes are in scope. The active plan
+lives in
 `docs/plans/ast-function-boundary-corpus-expansion.md`; the closed candidate
 decision is recorded in `docs/plans/ast-function-boundary-candidate.md`.
 

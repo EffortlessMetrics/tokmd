@@ -67,7 +67,7 @@ broader explicit Rust corpus
      default outputs, public receipts, browser/WASM capability, and proof
      promotion.
 5. Reclassify function-boundary mismatches.
-   - Status: pending.
+   - Status: complete.
    - Categorize heuristic-only and AST-only function landmarks using the
      buckets from `docs/specs/ast-shadow.md`.
 6. Revisit the candidate decision.
@@ -133,6 +133,11 @@ publish-surface verification.
 - 2026-05-15: Added scoped candidate-corpus timing evidence via
   `tokmd.ast_shadow_compare_timing.v1`. The timing receipt covers the explicit
   manifest corpus and remains developer-facing shadow evidence only.
+- 2026-05-15: Reclassified expanded-corpus function-boundary mismatches after
+  the timing slice. The corpus now reports 230 matched function landmarks, 25
+  heuristic-only function landmarks, and 0 AST-only function landmarks. The
+  heuristic-only rows remain explainable as embedded Rust source strings in
+  tests/tooling plus the intentional parse-degraded fixture.
 
 ## Corpus Expansion Categories
 
@@ -273,3 +278,77 @@ values are local observations and are expected to vary by machine, cache state,
 and run. Counts differ from the first expanded manifest run because this slice
 added timing-receipt code to `xtask/src/tasks/ast_shadow_compare.rs`, which is
 itself part of the repo-owned corpus.
+
+## Expanded Function-Boundary Reclassification
+
+The reclassification used the same checked-in manifest and the same verified
+artifact set:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --manifest policy/ast-shadow-corpus.toml \
+  --out target/tokmd-ast-shadow-corpus \
+  --summary-md target/tokmd-ast-shadow-corpus/summary.md \
+  --timing-json target/tokmd-ast-shadow-corpus/timing.json
+
+cargo xtask ast-shadow-check \
+  --dir target/tokmd-ast-shadow-corpus \
+  --json target/tokmd-ast-shadow-corpus/check.json
+```
+
+Function-boundary evidence:
+
+| Measure | Count |
+| --- | ---: |
+| Matched function landmarks | 230 |
+| Heuristic-only function landmarks | 25 |
+| AST-only function landmarks | 0 |
+| Parse-degraded files | 1 |
+| Unsupported files | 0 |
+
+Heuristic-only classification:
+
+| Bucket | Count | Files |
+| --- | ---: | --- |
+| Embedded test, fixture, or generated source string | 24 | `crates/tokmd-analysis/src/ast/rust.rs`, `crates/tokmd-analysis/src/ast/shadow.rs`, `crates/tokmd-analysis/src/imports/parser.rs`, `crates/tokmd/tests/handoff_integration.rs`, `xtask/src/tasks/ast_shadow_check.rs`, `xtask/src/tasks/ast_shadow_compare.rs` |
+| Malformed parse-degraded fixture | 1 | `fixtures/ast-shadow/rust/parse-degraded.rs` |
+| Comment or documentation example false positive | 0 | None observed |
+| Macro-ish pattern mismatch | 0 | None observed |
+| Parser recovery mismatch in non-fixture code | 0 | None observed |
+| Real heuristic false positive outside embedded source text | 0 | None observed |
+
+AST-only classification:
+
+| Bucket | Count | Files |
+| --- | ---: | --- |
+| Multi-line signature missed by heuristic | 0 | None observed |
+| Visibility, async, unsafe, or extern shape missed by heuristic | 0 | None observed |
+| Nested item missed by heuristic | 0 | None observed |
+| Parser recovery case | 0 | None observed |
+| Real heuristic miss | 0 | None observed |
+
+Representative heuristic-only examples:
+
+| Path | Lines | Name | Classification |
+| --- | ---: | --- | --- |
+| `crates/tokmd-analysis/src/ast/rust.rs` | 171, 174, 177, 205, 233-248 | `top_level`, `method`, `compute`, `ok` | Embedded parser test source strings |
+| `crates/tokmd-analysis/src/ast/shadow.rs` | 372, 378, 416, 451, 469, 501 | `zed`, `top_level`, `ast_only`, `ok` | Embedded shadow-artifact test source strings |
+| `crates/tokmd-analysis/src/imports/parser.rs` | 225, 234 | `main` | Import-parser fixture strings |
+| `crates/tokmd/tests/handoff_integration.rs` | 256, 260 | `main`, `skip` | Temporary handoff fixture files written from string literals |
+| `xtask/src/tasks/ast_shadow_check.rs` | 506, 542 | `fixture` | Verifier test fixture source strings |
+| `xtask/src/tasks/ast_shadow_compare.rs` | 931-948, 973, 1005, 1036, 1079, 1083, 1225 | `compute`, `beta`, `alpha` | Runner test fixture source strings and manifest-order fixtures |
+| `fixtures/ast-shadow/rust/parse-degraded.rs` | 3 | `broken` | Intentional malformed parse-degraded fixture |
+
+Interpretation:
+
+- The expanded corpus still shows zero AST-only function discoveries, so this
+  slice does not prove AST improves function recall.
+- The heuristic-only function set is concentrated in embedded source strings
+  and the intentional degraded fixture, so AST remains useful as evidence
+  against heuristic over-reporting.
+- No real production-code heuristic false positives, macro-ish mismatches,
+  comments/docs examples, or non-fixture parser recovery mismatches were
+  observed in this corpus.
+- The next decision should revisit whether the broader corpus, timing receipt,
+  and mismatch classification justify a public-candidate proposal, another
+  corpus expansion, or continued shadow-only deferral.
