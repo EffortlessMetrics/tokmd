@@ -1,6 +1,6 @@
 # Plan: Mutation Scope Selection
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -36,7 +36,7 @@ whether mutation is advisory, required, or product-visible.
 ## Work Packets
 
 1. Add Rust-owned mutation scope selection.
-   - Status: active.
+   - Status: complete.
    - Add `cargo xtask mutation-scope`.
    - Preserve the current production Rust file filters from
      `.github/workflows/mutants.yml`.
@@ -44,13 +44,38 @@ whether mutation is advisory, required, or product-visible.
      `count`, and `files` outputs.
    - Write deterministic `tokmd.mutation_scope.v1` JSON when requested.
 2. Wire the manual mutation workflow.
-   - Status: active.
+   - Status: complete.
    - Keep `cargo-mutants` execution behavior unchanged.
    - Upload `mutation-scope.json` beside the existing mutation summary.
 3. Checkpoint the remaining mutation workflow shell.
-   - Status: pending.
-   - Decide from fresh evidence whether survivor-summary parsing should move
-     into `xtask` later.
+   - Status: complete.
+   - Decision: survivor-summary parsing stays in the workflow for now; move it
+     only from a fresh plan with a concrete consumer or maintenance problem.
+
+## Decision
+
+Outcome: **complete; mutation changed-file selection is Rust-owned**.
+
+PR #2292 added `cargo xtask mutation-scope`, preserving the manual mutation
+workflow's existing selection contract:
+
+```text
+base_ref
+total_count
+scope_exceeded
+count
+files
+```
+
+The workflow still runs `cargo-mutants` the same way and still generates the
+existing `mutants-summary.json`; it now asks `xtask` to select production Rust
+candidate files and to write `target/mutation/mutation-scope.json` for review
+evidence. The JSON scope receipt is a workflow artifact, not a public `tokmd`
+receipt schema.
+
+The slice did not promote mutation testing, change Codecov behavior, change
+public `tokmd` CLI behavior, replace `cargo xtask proof --plan` mutation
+planning, or make mutation scope output a cockpit, handoff, or merge verdict.
 
 ## Validation
 
@@ -84,3 +109,6 @@ Run required affected proof if the affected plan selects it.
   selection in Bash even though proof planning already records mutation as
   advisory evidence. The first slice makes selection Rust-owned and leaves
   mutation execution plus summary parsing unchanged.
+- 2026-05-15: Closed through PR #2292. Hosted PR checks passed, post-merge
+  required CI passed, and the main mutation workflow accepted the new
+  `mutation-scope.json` artifact while preserving advisory mutation behavior.

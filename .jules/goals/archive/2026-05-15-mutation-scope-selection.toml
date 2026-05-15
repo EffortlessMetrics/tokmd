@@ -19,6 +19,7 @@ mutation_workflow = ".github/workflows/mutants.yml"
 xtask_cli = "xtask/src/cli.rs"
 xtask_main = "xtask/src/main.rs"
 mutation_scope_task = "xtask/src/tasks/mutation_scope.rs"
+artifact_glossary = "docs/artifacts.md"
 
 [rules]
 github_actions_boundary = "keep_actions_as_runner_cache_artifact_shell"
@@ -37,3 +38,8 @@ affected_plan = "cargo xtask affected --base origin/main --head HEAD --json-outp
 proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEAD --plan --plan-json target/proof/proof-plan-mutation-scope-selection.json --evidence-json target/proof/proof-evidence-mutation-scope-selection.json"
 fmt = "cargo fmt-check"
 diff_hygiene = "git diff --check"
+
+[decision]
+summary = "Mutation changed-file selection is now Rust-owned."
+reason = "PR #2292 added cargo xtask mutation-scope, wired the manual mutation workflow to consume workflow-compatible outputs from xtask, uploaded mutation-scope.json with the existing mutation summary, and preserved advisory mutation behavior."
+reopen_when = "A concrete workflow or consumer needs survivor-summary parsing, mutation execution orchestration, or cockpit/handoff consumption moved into Rust-owned evidence; start that as a fresh plan."

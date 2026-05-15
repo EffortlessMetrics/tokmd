@@ -116,13 +116,12 @@ Codecov defaults, public `tokmd` CLI behavior, and source proof artifact
 schemas. At closeout there was no active proof-orchestration implementation
 slice; the next one should be chosen deliberately from fresh evidence.
 
-The mutation scope selection lane is active. Fresh workflow audit found the
-manual mutation workflow still owns production Rust changed-file selection in
-inline shell while the rest of the proof control plane has moved toward
-Rust-owned planning and receipt generation. The next narrow slice is
-`cargo xtask mutation-scope`: preserve current mutation workflow behavior, keep
-mutation advisory, and move only the changed-file scope selection plus
-workflow-compatible outputs into tested Rust code.
+The mutation scope selection lane is closed. PR #2292 added Rust-owned
+`cargo xtask mutation-scope`, wired the manual mutation workflow to consume
+workflow-compatible outputs from xtask, uploaded `mutation-scope.json` beside
+the existing mutation summary, and preserved advisory mutation behavior. The
+workflow still owns mutation execution and survivor-summary parsing; move those
+only from a fresh plan with a concrete consumer or maintenance problem.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -161,11 +160,10 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Finish the active mutation scope selection slice: replace
-   `.github/workflows/mutants.yml` changed-file shell filtering with
-   `cargo xtask mutation-scope`, preserve existing workflow outputs and
-   advisory mutation behavior, and do not rewrite survivor-summary parsing in
-   the same PR.
+1. Choose the next lane deliberately from fresh evidence; do not continue
+   mutation workflow Rustification unless survivor-summary parsing, mutation
+   execution orchestration, or artifact consumption proves to be the next
+   concrete gap.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote
