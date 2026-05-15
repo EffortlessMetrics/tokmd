@@ -71,11 +71,11 @@ artifacts, corpus notes, mismatch classification, and timing evidence.
    - Keep manifest paths repo-relative, Rust-only, sorted, and rejected when
      absolute or escaping the repository.
 4. Collect and classify function-boundary mismatch evidence.
-   - Status: pending.
-   - Run `ast-shadow-compare` and `ast-shadow-check` over the manifest corpus.
-   - Categorize heuristic-only function discoveries separately from AST-only
+   - Status: complete.
+   - Ran `ast-shadow-compare` and `ast-shadow-check` over the manifest corpus.
+   - Categorized heuristic-only function discoveries separately from AST-only
      discoveries.
-   - Distinguish fixture-string false positives from comments/docs examples,
+   - Distinguished fixture-string false positives from comments/docs examples,
      macro-ish patterns, malformed input, parser recovery, and true heuristic
      misses or false positives.
 5. Define promotion criteria as a spec-level decision framework.
@@ -125,6 +125,70 @@ lane needs evidence for all of the following:
   builds, and browser/WASM.
 - Any later public schema impact is additive or explicitly versioned, and the
   affected schema family is named before implementation starts.
+
+## Manifest Corpus Evidence
+
+The first repeatable manifest-corpus comparison was collected with:
+
+```bash
+cargo xtask ast-shadow-compare \
+  --manifest policy/ast-shadow-corpus.toml \
+  --out target/tokmd-ast-shadow-corpus \
+  --summary-md target/tokmd-ast-shadow-corpus/summary.md
+cargo xtask ast-shadow-check \
+  --manifest policy/ast-shadow-corpus.toml \
+  --dir target/tokmd-ast-shadow-corpus \
+  --json target/tokmd-ast-shadow-corpus/check.json
+```
+
+The verifier accepted the generated artifacts with:
+
+| Measure | Count |
+| --- | ---: |
+| Files | 9 |
+| Matched landmarks | 286 |
+| Heuristic-only landmarks | 106 |
+| AST-only landmarks | 31 |
+| Parse-degraded files | 1 |
+| Unsupported files | 0 |
+
+Function landmarks were the narrow candidate signal inside the broader
+landmark comparison:
+
+| Function-boundary measure | Count |
+| --- | ---: |
+| Matched function landmarks | 147 |
+| Heuristic-only function landmarks | 20 |
+| AST-only function landmarks | 0 |
+
+The observed heuristic-only function landmarks were:
+
+| Bucket | Count | Files |
+| --- | ---: | --- |
+| Fixture or test-source string false positive | 19 | `crates/tokmd-analysis/src/ast/rust.rs`, `crates/tokmd-analysis/src/ast/shadow.rs`, `crates/tokmd-analysis/src/imports/parser.rs`, `xtask/src/tasks/ast_shadow_compare.rs` |
+| Malformed parse-degraded fixture | 1 | `fixtures/ast-shadow/rust/parse-degraded.rs` |
+| Comment or documentation example false positive | 0 | None observed |
+| Macro-ish pattern mismatch | 0 | None observed |
+| Parser recovery mismatch in non-fixture code | 0 | None observed |
+| Real heuristic false positive outside embedded source text | 0 | None observed |
+
+The observed AST-only function landmarks were:
+
+| Bucket | Count | Files |
+| --- | ---: | --- |
+| Multi-line signature missed by heuristic | 0 | None observed |
+| Visibility, async, unsafe, or extern shape missed by heuristic | 0 | None observed |
+| Nested item missed by heuristic | 0 | None observed |
+| Parser recovery case | 0 | None observed |
+| Real heuristic miss | 0 | None observed |
+
+This is useful shadow evidence, not a product decision. The manifest corpus
+shows where the AST view avoids heuristic over-reporting from embedded Rust
+source strings in tests and keeps malformed input visible through parse
+degradation. It does not yet prove that public receipt fields should change,
+because the corpus produced no AST-only function discoveries and still needs
+promotion criteria, timing evidence review, fallback policy, and schema impact
+analysis before any public candidate proposal.
 
 ## Validation
 
@@ -186,3 +250,10 @@ publish-surface verification.
 - 2026-05-14: Extended `cargo xtask ast-shadow-compare` to consume the corpus
   manifest while preserving explicit `--path` mode. The manifest runner stays
   developer-facing and keeps AST shadow output out of public tokmd workflows.
+- 2026-05-14: Classified the first manifest-corpus function-boundary mismatch
+  evidence. The checked corpus produced 147 matched function landmarks, 20
+  heuristic-only function landmarks, and 0 AST-only function landmarks. The
+  heuristic-only set was explained by embedded fixture/test source strings plus
+  the intentional parse-degraded fixture, so function boundaries remain a
+  promising public-candidate fact family but are not ready for product
+  integration without promotion criteria and fallback/schema analysis.
