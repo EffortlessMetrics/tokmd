@@ -1,7 +1,8 @@
 # Spec: Proof Observation Decision Packet
 
 - Status: draft
-- Schema family, if any: proposed `tokmd.proof_observation_decision.v1`
+- Schema family, if any: `tokmd.proof_observation_decision.v1`;
+  verifier receipt `tokmd.proof_observation_decision_check.v1`
 - Related ADRs:
 - Related proof scopes: `proof_control_plane`, `project_truth_docs`
 
@@ -75,6 +76,10 @@ cargo xtask proof-observation-status \
   --executor-observation-collection target/proof-observations/proof-executor-observation-collection.json \
   --promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json \
   --json target/proof-observations/proof-observation-decision.json
+
+cargo xtask proof-observation-status-check \
+  --decision target/proof-observations/proof-observation-decision.json \
+  --json target/proof-observations/proof-observation-decision-check.json
 ```
 
 ## Outputs
@@ -116,6 +121,14 @@ The packet should avoid:
 The packet may optionally have a Markdown companion for humans, but JSON should
 remain the machine authority.
 
+The verifier receipt uses schema
+`tokmd.proof_observation_decision_check.v1`. It verifies only the aggregate
+packet: schema and mode, source artifact references, policy guardrails, count
+consistency, freshness state, criteria shape, reproduction commands, and empty
+embedded errors. It does not replace source artifact verifiers such as
+`proof-run-artifacts-check`, `proof-execution-artifacts-check`, or
+`proof-policy --check`.
+
 ## Compatibility
 
 The decision packet must not change existing artifact schemas or product
@@ -134,7 +147,8 @@ keep using the source artifacts directly.
 The first implementation should stay in `xtask`. It must not add a public
 `tokmd review` command, change `tokmd cockpit`, change `tokmd handoff`, enable
 default Codecov upload, or make advisory evidence required. Cockpit or handoff
-integration may come later only after a verifier exists for the packet.
+integration may come later only when the decision packet and its verifier
+receipt are supplied as explicit evidence handles.
 
 ## Proof Requirements
 
@@ -161,9 +175,14 @@ focused `xtask` tests covering:
 - deterministic output across repeated runs;
 - no mutation of source artifacts.
 
-If the command writes a verifier receipt, the PR should validate that verifier
-against both success and failure fixtures before any cockpit or handoff
-consumer is added.
+The verifier should also cover both success and failure fixtures:
+
+- valid packet writes deterministic `tokmd.proof_observation_decision_check.v1`;
+- true required-gate or default-Codecov fields are rejected as incompatible
+  with observation-only mode;
+- absolute or escaping source artifact paths are rejected;
+- count drift, duplicate criteria, non-`cargo xtask` reproduction commands, or
+  non-empty embedded errors are rejected.
 
 ## Open Questions
 
@@ -177,5 +196,5 @@ consumer is added.
 - Whether coverage receipts should be packet-level evidence only or linked to
   specific proof scopes when executor observations include matching artifact
   paths.
-- What verifier receipt should exist before cockpit or handoff consumes the
-  decision packet.
+- Whether cockpit or handoff should consume the verifier receipt directly or
+  only link it as a packet-local evidence handle.

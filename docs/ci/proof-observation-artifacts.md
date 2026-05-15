@@ -49,6 +49,7 @@ The important distinction is planned versus executed evidence:
 | `proof-executor-observation-collection.json` | `tokmd.proof_executor_observation_collection.v1` | `target/proof-observations/proof-executor-observation-collection.json` | `cargo xtask proof-execution-observations-summary --observations-dir <dir> --output <path>` | Summarizes downloaded executor observations by family, scope, source-run window, and missing/unmatched artifacts. | Use with saved `runs.json`; it is collection evidence, not a gate. |
 | `proof-executor-promotion-readiness.json` | `tokmd.proof_executor_promotion_readiness.v1` | `target/proof-observations/proof-executor-promotion-readiness.json` | `cargo xtask proof-execution-observations-summary --promotion-readiness <path>` | Compares collected executor observations against policy-backed promotion thresholds. | Read as readiness evidence only; promotion still requires a maintainer decision and policy/workflow change. |
 | `proof-observation-decision.json` | `tokmd.proof_observation_decision.v1` | `target/proof-observations/proof-observation-decision.json` | `cargo xtask proof-observation-status --json <path>` | Advisory aggregate over supplied proof artifacts: source artifacts, required/advisory proof counts, freshness, thresholds, criteria met/missing, and reproduction commands. | It does not execute proof, promote gates, upload Codecov, or replace the source artifact verifiers. |
+| `proof-observation-decision-check.json` | `tokmd.proof_observation_decision_check.v1` | `target/proof-observations/proof-observation-decision-check.json` | `cargo xtask proof-observation-status-check --decision <path> --json <path>` | Verifies the advisory decision packet shape, policy guardrails, source artifact references, count consistency, criteria shape, and reproduction commands. | It verifies only the aggregate packet. Source artifacts still need their own verifiers before a promotion decision. |
 | `coverage-receipt.json` | `tokmd.coverage_receipt.v1` | `target/coverage/coverage-receipt.json` | `cargo xtask coverage-receipt` | Inventories coverage artifacts and byte counts for coverage telemetry. | Pair with coverage workflow logs and executor observations; byte counts do not prove coverage quality. |
 | `thresholds.env` | shell env | `target/proof-observations/thresholds.env` | `cargo xtask proof-observation-thresholds --proof-policy-json <path> --env-output <path>` | Resolves collector thresholds from checked policy plus optional manual overrides. | It is workflow glue, not evidence by itself. |
 | `run-ids.txt` | text | `target/proof-observations/run-ids.txt` | `cargo xtask proof-observation-run-ids --runs-json <path> --output <path>` | Turns a saved GitHub run-list window into deterministic download ids for the collector. | Verify the source `runs.json`; external `gh run list` remains the GitHub Actions boundary. |
@@ -131,6 +132,10 @@ cargo xtask proof-observation-status \
   --executor-observation-collection target/proof-observations/proof-executor-observation-collection.json \
   --promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json \
   --json target/proof-observations/proof-observation-decision.json
+
+cargo xtask proof-observation-status-check \
+  --decision target/proof-observations/proof-observation-decision.json \
+  --json target/proof-observations/proof-observation-decision-check.json
 ```
 
 ## What This Does Not Decide

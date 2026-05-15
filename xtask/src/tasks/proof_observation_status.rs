@@ -6,9 +6,10 @@ use anyhow::{Context, Result, bail};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::cli::ProofObservationStatusArgs;
+use crate::cli::{ProofObservationStatusArgs, ProofObservationStatusCheckArgs};
 
 const DECISION_SCHEMA: &str = "tokmd.proof_observation_decision.v1";
+const DECISION_CHECK_SCHEMA: &str = "tokmd.proof_observation_decision_check.v1";
 const MODE: &str = "observation_only";
 
 pub fn run(args: ProofObservationStatusArgs) -> Result<()> {
@@ -19,6 +20,22 @@ pub fn run(args: ProofObservationStatusArgs) -> Result<()> {
         "proof observation status: wrote {} source artifact(s) to {}",
         packet.source_artifacts.len(),
         args.json.display()
+    );
+    Ok(())
+}
+
+pub fn run_check(args: ProofObservationStatusCheckArgs) -> Result<()> {
+    let value = read_json_file(&args.decision, "proof observation decision packet")?;
+    let report = validate_decision_packet(&value, &args.decision)?;
+    if let Some(path) = &args.json {
+        write_check_receipt(path, &report)?;
+    }
+
+    println!(
+        "Proof observation decision OK: {} source artifact(s), {} criteria checked in `{}`",
+        report.source_artifacts,
+        report.criteria.total(),
+        args.decision.display()
     );
     Ok(())
 }
@@ -73,6 +90,25 @@ enum SourceKind {
 }
 
 impl SourceKind {
+    fn from_label(label: &str) -> Option<Self> {
+        Some(match label {
+            "affected" => Self::Affected,
+            "proof_policy" => Self::ProofPolicy,
+            "proof_plan" => Self::ProofPlan,
+            "proof_evidence" => Self::ProofEvidence,
+            "proof_run_summary" => Self::ProofRunSummary,
+            "proof_run_observation" => Self::ProofRunObservation,
+            "proof_run_observation_collection" => Self::ProofRunObservationCollection,
+            "executor_summary" => Self::ExecutorSummary,
+            "executor_manifest" => Self::ExecutorManifest,
+            "executor_observation" => Self::ExecutorObservation,
+            "executor_observation_collection" => Self::ExecutorObservationCollection,
+            "promotion_readiness" => Self::PromotionReadiness,
+            "coverage_receipt" => Self::CoverageReceipt,
+            _ => return None,
+        })
+    }
+
     const fn label(self) -> &'static str {
         match self {
             Self::Affected => "affected",
@@ -175,6 +211,36 @@ struct ThresholdSummary {
 struct DecisionCriterion {
     id: &'static str,
     detail: String,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct ProofObservationDecisionCheckReport {
+    schema: &'static str,
+    ok: bool,
+    checked_artifacts: usize,
+    decision: VerifiedDecisionArtifact,
+    source_artifacts: usize,
+    criteria: CriteriaCheckCounts,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct VerifiedDecisionArtifact {
+    path: String,
+    schema: String,
+    mode: String,
+}
+
+#[derive(Debug, Default, Serialize, PartialEq, Eq)]
+struct CriteriaCheckCounts {
+    met: usize,
+    missing: usize,
+}
+
+impl CriteriaCheckCounts {
+    const fn total(&self) -> usize {
+        self.met + self.missing
+    }
 }
 
 fn build_packet(args: &ProofObservationStatusArgs) -> Result<ProofObservationDecisionPacket> {
@@ -331,6 +397,402 @@ fn write_packet(path: &Path, packet: &ProofObservationDecisionPacket) -> Result<
     let json =
         serde_json::to_string_pretty(packet).context("serialize proof observation status")?;
     fs::write(path, format!("{json}\n")).with_context(|| format!("write {}", path.display()))
+}
+
+fn write_check_receipt(path: &Path, report: &ProofObservationDecisionCheckReport) -> Result<()> {
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+
+    let json = serde_json::to_string_pretty(report)
+        .context("serialize proof observation decision check receipt")?;
+    fs::write(path, format!("{json}\n")).with_context(|| format!("write {}", path.display()))
+}
+
+fn read_json_file(path: &Path, label: &str) -> Result<Value> {
+    let raw = fs::read_to_string(path).with_context(|| format!("read {label}"))?;
+    serde_json::from_str(&raw).with_context(|| format!("parse {label}"))
+}
+
+fn validate_decision_packet(
+    value: &Value,
+    path: &Path,
+) -> Result<ProofObservationDecisionCheckReport> {
+    let mut errors = Vec::new();
+
+    let schema = require_string_field(value, "schema", &mut errors).unwrap_or_default();
+    if schema != DECISION_SCHEMA {
+        errors.push(format!(
+            "schema `{schema}` does not match `{DECISION_SCHEMA}`"
+        ));
+    }
+
+    match value.get("ok").and_then(Value::as_bool) {
+        Some(true) => {}
+        Some(false) => errors.push("ok is false".to_string()),
+        None => errors.push("missing bool field `ok`".to_string()),
+    }
+
+    let mode = require_string_field(value, "mode", &mut errors).unwrap_or_default();
+    if mode != MODE {
+        errors.push(format!("mode `{mode}` does not match `{MODE}`"));
+    }
+
+    let source_artifacts = validate_source_artifacts(value, &mut errors);
+    validate_policy_guardrails(value, &mut errors);
+    validate_count_group(
+        value,
+        "required_proof",
+        &["planned", "executed", "passed", "failed", "observations"],
+        &mut errors,
+    );
+    validate_count_group(
+        value,
+        "advisory_proof",
+        &[
+            "planned",
+            "selected",
+            "executed",
+            "passed",
+            "failed",
+            "skipped",
+            "artifacts",
+            "observations",
+        ],
+        &mut errors,
+    );
+    validate_freshness(value, &mut errors);
+    validate_thresholds(value, &mut errors);
+    let criteria = validate_criteria(value, &mut errors);
+    validate_reproduce(value, &mut errors);
+    validate_embedded_errors(value, &mut errors);
+    validate_no_environment_leakage(value, &mut errors);
+
+    if !errors.is_empty() {
+        bail!(
+            "proof observation decision check failed:\n- {}",
+            errors.join("\n- ")
+        );
+    }
+
+    Ok(ProofObservationDecisionCheckReport {
+        schema: DECISION_CHECK_SCHEMA,
+        ok: true,
+        checked_artifacts: 1,
+        decision: VerifiedDecisionArtifact {
+            path: repo_relative_path(path)?,
+            schema,
+            mode,
+        },
+        source_artifacts,
+        criteria,
+        errors,
+    })
+}
+
+fn require_string_field(value: &Value, field: &str, errors: &mut Vec<String>) -> Option<String> {
+    match value.get(field).and_then(Value::as_str) {
+        Some(value) if !value.is_empty() => Some(value.to_owned()),
+        Some(_) => {
+            errors.push(format!("field `{field}` must not be empty"));
+            None
+        }
+        None => {
+            errors.push(format!("missing string field `{field}`"));
+            None
+        }
+    }
+}
+
+fn validate_source_artifacts(value: &Value, errors: &mut Vec<String>) -> usize {
+    let Some(artifacts) = value.get("source_artifacts").and_then(Value::as_array) else {
+        errors.push("missing array field `source_artifacts`".to_string());
+        return 0;
+    };
+    if artifacts.is_empty() {
+        errors.push("source_artifacts must not be empty".to_string());
+    }
+
+    let mut seen = BTreeSet::new();
+    for (index, artifact) in artifacts.iter().enumerate() {
+        let Some(kind) = artifact.get("kind").and_then(Value::as_str) else {
+            errors.push(format!(
+                "source_artifacts[{index}] is missing string field `kind`"
+            ));
+            continue;
+        };
+        if !seen.insert(kind.to_string()) {
+            errors.push(format!("source_artifacts contains duplicate kind `{kind}`"));
+        }
+
+        let Some(kind) = SourceKind::from_label(kind) else {
+            errors.push(format!("source_artifacts[{index}] kind is unknown"));
+            continue;
+        };
+
+        match artifact.get("schema") {
+            Some(Value::String(schema)) if schema == kind.expected_schema() => {}
+            Some(Value::String(schema)) => errors.push(format!(
+                "source_artifacts[{index}] schema `{schema}` does not match `{}`",
+                kind.expected_schema()
+            )),
+            Some(Value::Null) => errors.push(format!(
+                "source_artifacts[{index}] schema must be `{}`",
+                kind.expected_schema()
+            )),
+            _ => errors.push(format!(
+                "source_artifacts[{index}] is missing string field `schema`"
+            )),
+        }
+
+        match artifact.get("path").and_then(Value::as_str) {
+            Some(path) => validate_repo_relative_string(
+                path,
+                &format!("source_artifacts[{index}].path"),
+                errors,
+            ),
+            None => errors.push(format!(
+                "source_artifacts[{index}] is missing string field `path`"
+            )),
+        }
+    }
+
+    artifacts.len()
+}
+
+fn validate_policy_guardrails(value: &Value, errors: &mut Vec<String>) {
+    let Some(policy) = value.get("policy_state").and_then(Value::as_object) else {
+        errors.push("missing object field `policy_state`".to_string());
+        return;
+    };
+
+    for field in [
+        "executor_pr_required",
+        "executor_pr_codecov_upload",
+        "promotion_required_gate",
+        "promotion_default_codecov_upload",
+        "proof_run_pr_required",
+    ] {
+        match policy.get(field) {
+            Some(Value::Bool(false) | Value::Null) | None => {}
+            Some(Value::Bool(true)) => errors.push(format!(
+                "policy_state.{field} is true; decision packets must remain observation-only"
+            )),
+            Some(_) => errors.push(format!(
+                "policy_state.{field} must be a bool or null when present"
+            )),
+        }
+    }
+}
+
+fn validate_count_group(value: &Value, group: &str, fields: &[&str], errors: &mut Vec<String>) {
+    let Some(object) = value.get(group).and_then(Value::as_object) else {
+        errors.push(format!("missing object field `{group}`"));
+        return;
+    };
+
+    for field in fields {
+        match object.get(*field).and_then(Value::as_u64) {
+            Some(_) => {}
+            None => errors.push(format!("{group}.{field} must be an unsigned integer")),
+        }
+    }
+
+    let executed = object.get("executed").and_then(Value::as_u64).unwrap_or(0);
+    let passed = object.get("passed").and_then(Value::as_u64).unwrap_or(0);
+    let failed = object.get("failed").and_then(Value::as_u64).unwrap_or(0);
+    if passed.saturating_add(failed) > executed {
+        errors.push(format!(
+            "{group}.passed + {group}.failed cannot exceed {group}.executed"
+        ));
+    }
+}
+
+fn validate_freshness(value: &Value, errors: &mut Vec<String>) {
+    let Some(freshness) = value.get("freshness").and_then(Value::as_object) else {
+        errors.push("missing object field `freshness`".to_string());
+        return;
+    };
+
+    match freshness.get("commit_match").and_then(Value::as_str) {
+        Some("exact" | "partial" | "stale" | "unknown") => {}
+        Some(other) => errors.push(format!("freshness.commit_match `{other}` is unknown")),
+        None => errors.push("freshness.commit_match must be a string".to_string()),
+    }
+
+    let Some(sources) = freshness.get("sources").and_then(Value::as_array) else {
+        errors.push("freshness.sources must be an array".to_string());
+        return;
+    };
+    for (index, source) in sources.iter().enumerate() {
+        match source.get("kind").and_then(Value::as_str) {
+            Some(kind) if SourceKind::from_label(kind).is_some() => {}
+            Some(kind) => errors.push(format!(
+                "freshness.sources[{index}] kind `{kind}` is unknown"
+            )),
+            None => errors.push(format!(
+                "freshness.sources[{index}] is missing string field `kind`"
+            )),
+        }
+        match source.get("path").and_then(Value::as_str) {
+            Some(path) => validate_repo_relative_string(
+                path,
+                &format!("freshness.sources[{index}].path"),
+                errors,
+            ),
+            None => errors.push(format!(
+                "freshness.sources[{index}] is missing string field `path`"
+            )),
+        }
+    }
+}
+
+fn validate_thresholds(value: &Value, errors: &mut Vec<String>) {
+    let Some(thresholds) = value.get("thresholds").and_then(Value::as_object) else {
+        errors.push("missing object field `thresholds`".to_string());
+        return;
+    };
+    for field in [
+        "min_observations",
+        "min_executed",
+        "min_scopes",
+        "min_artifacts",
+        "min_passing_collector_runs",
+        "observations",
+        "executed",
+        "scopes",
+        "artifacts",
+        "passing_collector_runs",
+    ] {
+        match thresholds.get(field) {
+            Some(Value::Number(number)) if number.as_u64().is_some() => {}
+            Some(Value::Null) | None => {}
+            Some(_) => errors.push(format!(
+                "thresholds.{field} must be an unsigned integer or null"
+            )),
+        }
+    }
+}
+
+fn validate_criteria(value: &Value, errors: &mut Vec<String>) -> CriteriaCheckCounts {
+    let mut ids = BTreeSet::new();
+    CriteriaCheckCounts {
+        met: validate_criteria_array(value, "criteria_met", &mut ids, errors),
+        missing: validate_criteria_array(value, "criteria_missing", &mut ids, errors),
+    }
+}
+
+fn validate_criteria_array(
+    value: &Value,
+    field: &str,
+    ids: &mut BTreeSet<String>,
+    errors: &mut Vec<String>,
+) -> usize {
+    let Some(criteria) = value.get(field).and_then(Value::as_array) else {
+        errors.push(format!("missing array field `{field}`"));
+        return 0;
+    };
+    for (index, criterion) in criteria.iter().enumerate() {
+        let Some(id) = criterion.get("id").and_then(Value::as_str) else {
+            errors.push(format!("{field}[{index}] is missing string field `id`"));
+            continue;
+        };
+        if id.is_empty() {
+            errors.push(format!("{field}[{index}].id must not be empty"));
+        }
+        if !ids.insert(id.to_owned()) {
+            errors.push(format!("decision criterion `{id}` appears more than once"));
+        }
+        match criterion.get("detail").and_then(Value::as_str) {
+            Some(detail) if !detail.is_empty() => {}
+            Some(_) => errors.push(format!("{field}[{index}].detail must not be empty")),
+            None => errors.push(format!("{field}[{index}] is missing string field `detail`")),
+        }
+    }
+    criteria.len()
+}
+
+fn validate_reproduce(value: &Value, errors: &mut Vec<String>) {
+    let Some(commands) = value.get("reproduce").and_then(Value::as_array) else {
+        errors.push("missing array field `reproduce`".to_string());
+        return;
+    };
+    if commands.is_empty() {
+        errors.push("reproduce must include at least one command".to_string());
+    }
+    let mut seen = BTreeSet::new();
+    for (index, command) in commands.iter().enumerate() {
+        let Some(command) = command.as_str() else {
+            errors.push(format!("reproduce[{index}] must be a string"));
+            continue;
+        };
+        if command.is_empty() {
+            errors.push(format!("reproduce[{index}] must not be empty"));
+        }
+        if !command.starts_with("cargo xtask ") {
+            errors.push(format!("reproduce[{index}] must be a cargo xtask command"));
+        }
+        if !seen.insert(command.to_owned()) {
+            errors.push(format!("duplicate reproduce command `{command}`"));
+        }
+        validate_command_has_no_absolute_path(command, &format!("reproduce[{index}]"), errors);
+    }
+}
+
+fn validate_embedded_errors(value: &Value, errors: &mut Vec<String>) {
+    let Some(packet_errors) = value.get("errors").and_then(Value::as_array) else {
+        errors.push("missing array field `errors`".to_string());
+        return;
+    };
+    if !packet_errors.is_empty() {
+        errors.push("packet errors must be empty for a valid decision packet".to_string());
+    }
+}
+
+fn validate_no_environment_leakage(value: &Value, errors: &mut Vec<String>) {
+    fn walk(value: &Value, path: &str, errors: &mut Vec<String>) {
+        match value {
+            Value::String(text) => {
+                if text.contains("\\Users\\") || text.contains("\\AppData\\") {
+                    errors.push(format!("{path} contains local environment path text"));
+                }
+            }
+            Value::Array(items) => {
+                for (index, item) in items.iter().enumerate() {
+                    walk(item, &format!("{path}[{index}]"), errors);
+                }
+            }
+            Value::Object(object) => {
+                for (key, item) in object {
+                    walk(item, &format!("{path}.{key}"), errors);
+                }
+            }
+            Value::Null | Value::Bool(_) | Value::Number(_) => {}
+        }
+    }
+
+    walk(value, "$", errors);
+}
+
+fn validate_repo_relative_string(path: &str, label: &str, errors: &mut Vec<String>) {
+    match repo_relative_path(Path::new(path)) {
+        Ok(normalized) if normalized == path => {}
+        Ok(normalized) => errors.push(format!(
+            "{label} must use normalized repo-relative slashes: `{path}` should be `{normalized}`"
+        )),
+        Err(error) => errors.push(format!("{label} is not repo-relative: {error}")),
+    }
+}
+
+fn validate_command_has_no_absolute_path(command: &str, label: &str, errors: &mut Vec<String>) {
+    for token in command.split_whitespace() {
+        let trimmed = token.trim_matches('`').trim_matches('"').trim_matches('\'');
+        if Path::new(trimmed).is_absolute() || trimmed.contains(":\\") {
+            errors.push(format!("{label} contains absolute path `{trimmed}`"));
+        }
+    }
 }
 
 fn policy_state(docs: &[SourceDocument]) -> PolicyState {
@@ -840,7 +1302,7 @@ fn value_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::cli::ProofObservationStatusArgs;
+    use crate::cli::{ProofObservationStatusArgs, ProofObservationStatusCheckArgs};
     use serde_json::json;
     use std::path::PathBuf;
 
@@ -1054,5 +1516,218 @@ mod tests {
             err.contains("must have schema `tokmd.proof_policy.v1`"),
             "{err}"
         );
+    }
+
+    #[test]
+    fn check_validates_decision_packet_and_writes_receipt_deterministically() {
+        let root = test_root("check-valid");
+        write_json(
+            &root.join("proof-policy.json"),
+            json!({
+                "schema": "tokmd.proof_policy.v1",
+                "executor": {
+                    "pr": {"required": false, "codecov_upload": false},
+                    "promotion": {
+                        "required_gate": false,
+                        "default_codecov_upload": false
+                    }
+                },
+                "proof_run": {"pr": {"required": false}}
+            }),
+        );
+        write_json(
+            &root.join("affected.json"),
+            json!({"schema": "tokmd.affected.v1", "unknown_files": []}),
+        );
+
+        let decision = root.join("proof-observation-decision.json");
+        let mut test_args = args(decision.clone());
+        test_args.proof_policy = Some(root.join("proof-policy.json"));
+        test_args.affected = Some(root.join("affected.json"));
+        let packet = build_packet(&test_args).unwrap();
+        write_packet(&decision, &packet).unwrap();
+
+        let first_receipt = root.join("check-1.json");
+        run_check(ProofObservationStatusCheckArgs {
+            decision: decision.clone(),
+            json: Some(first_receipt.clone()),
+        })
+        .unwrap();
+        let first = fs::read_to_string(&first_receipt).unwrap();
+        let receipt: Value = serde_json::from_str(&first).unwrap();
+        assert_eq!(
+            receipt.get("schema").and_then(Value::as_str),
+            Some(DECISION_CHECK_SCHEMA)
+        );
+        assert_eq!(
+            receipt
+                .get("source_artifacts")
+                .and_then(Value::as_u64)
+                .unwrap(),
+            2
+        );
+
+        let second_receipt = root.join("check-2.json");
+        run_check(ProofObservationStatusCheckArgs {
+            decision,
+            json: Some(second_receipt.clone()),
+        })
+        .unwrap();
+        let second = fs::read_to_string(second_receipt).unwrap();
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn check_rejects_promoted_policy_state() {
+        let mut packet = json!({
+            "schema": DECISION_SCHEMA,
+            "ok": true,
+            "mode": MODE,
+            "source_artifacts": [
+                {
+                    "kind": "proof_policy",
+                    "path": "target/proof/proof-policy.json",
+                    "schema": "tokmd.proof_policy.v1"
+                }
+            ],
+            "policy_state": {
+                "proof_policy_present": true,
+                "executor_pr_required": false,
+                "executor_pr_codecov_upload": false,
+                "promotion_required_gate": false,
+                "promotion_default_codecov_upload": false,
+                "proof_run_pr_required": false
+            },
+            "required_proof": {
+                "planned": 0,
+                "executed": 0,
+                "passed": 0,
+                "failed": 0,
+                "observations": 0
+            },
+            "advisory_proof": {
+                "planned": 0,
+                "selected": 0,
+                "executed": 0,
+                "passed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "artifacts": 0,
+                "observations": 0
+            },
+            "freshness": {
+                "commit_match": "unknown",
+                "base": null,
+                "head": null,
+                "sources": []
+            },
+            "thresholds": {
+                "min_observations": null,
+                "min_executed": null,
+                "min_scopes": null,
+                "min_artifacts": null,
+                "min_passing_collector_runs": null,
+                "observations": null,
+                "executed": null,
+                "scopes": null,
+                "artifacts": null,
+                "passing_collector_runs": null
+            },
+            "criteria_met": [],
+            "criteria_missing": [
+                {"id": "promotion_readiness_missing", "detail": "missing"}
+            ],
+            "reproduce": [
+                "cargo xtask proof-policy --json-output target/proof/proof-policy.json"
+            ],
+            "errors": []
+        });
+        packet["policy_state"]["promotion_required_gate"] = json!(true);
+
+        let err = validate_decision_packet(
+            &packet,
+            Path::new("target/proof-observations/proof-observation-decision.json"),
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(
+            err.contains("policy_state.promotion_required_gate is true"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn check_rejects_absolute_source_artifact_path() {
+        let packet = json!({
+            "schema": DECISION_SCHEMA,
+            "ok": true,
+            "mode": MODE,
+            "source_artifacts": [
+                {
+                    "kind": "proof_policy",
+                    "path": if cfg!(windows) { "C:/tmp/proof-policy.json" } else { "/tmp/proof-policy.json" },
+                    "schema": "tokmd.proof_policy.v1"
+                }
+            ],
+            "policy_state": {
+                "proof_policy_present": true,
+                "executor_pr_required": false,
+                "executor_pr_codecov_upload": false,
+                "promotion_required_gate": false,
+                "promotion_default_codecov_upload": false,
+                "proof_run_pr_required": false
+            },
+            "required_proof": {
+                "planned": 0,
+                "executed": 0,
+                "passed": 0,
+                "failed": 0,
+                "observations": 0
+            },
+            "advisory_proof": {
+                "planned": 0,
+                "selected": 0,
+                "executed": 0,
+                "passed": 0,
+                "failed": 0,
+                "skipped": 0,
+                "artifacts": 0,
+                "observations": 0
+            },
+            "freshness": {
+                "commit_match": "unknown",
+                "base": null,
+                "head": null,
+                "sources": []
+            },
+            "thresholds": {
+                "min_observations": null,
+                "min_executed": null,
+                "min_scopes": null,
+                "min_artifacts": null,
+                "min_passing_collector_runs": null,
+                "observations": null,
+                "executed": null,
+                "scopes": null,
+                "artifacts": null,
+                "passing_collector_runs": null
+            },
+            "criteria_met": [],
+            "criteria_missing": [
+                {"id": "promotion_readiness_missing", "detail": "missing"}
+            ],
+            "reproduce": [
+                "cargo xtask proof-policy --json-output target/proof/proof-policy.json"
+            ],
+            "errors": []
+        });
+
+        let err = validate_decision_packet(
+            &packet,
+            Path::new("target/proof-observations/proof-observation-decision.json"),
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(err.contains("source_artifacts[0].path"), "{err}");
     }
 }

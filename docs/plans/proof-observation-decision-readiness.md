@@ -68,7 +68,7 @@ What command or artifact reproduces each claim?
      upload coverage, or change workflow gates.
 4. Connect the decision evidence to review surfaces only after a verifier
    exists.
-   - Status: pending.
+   - Status: pending; verifier prerequisite complete.
    - Future cockpit or handoff integration should link verified decision
      receipts as evidence handles, not treat them as merge verdicts.
 5. Close the lane with an explicit decision record.
@@ -131,3 +131,9 @@ the relevant proof artifact verifier on generated receipts.
   named proof artifacts, summarizes required/advisory proof state, policy
   guardrails, freshness, thresholds, criteria met/missing, and reproduction
   commands without executing proof or changing gates.
+- 2026-05-15: Added `cargo xtask proof-observation-status-check`, a
+  Rust-owned verifier for the advisory decision packet. The verifier writes
+  optional `tokmd.proof_observation_decision_check.v1` JSON, checks
+  schema/mode, source artifact references, count consistency, freshness states,
+  policy guardrails, criteria shape, reproduction commands, and embedded
+  errors, and still leaves every source artifact under its own verifier.

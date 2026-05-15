@@ -87,15 +87,18 @@ reads explicitly supplied proof receipts and writes a visibility-only
 `tokmd.proof_observation_decision.v1` packet. It summarizes source artifacts,
 required/advisory proof counts, freshness, promotion thresholds,
 criteria-met/missing state, and reproduction commands without executing proof,
-changing required gates, or enabling default Codecov upload.
+changing required gates, or enabling default Codecov upload. The follow-on
+slice adds `cargo xtask proof-observation-status-check`, a verifier for that
+aggregate packet, before any cockpit or handoff consumer links the decision
+evidence.
 
 ## Next Work Packets
 
 1. Choose the next active lane deliberately; do not reopen AST productization
    without a fresh proposal grounded in the shadow evidence.
 2. Continue proof-observation decision readiness by verifying the new aggregate
-   against real collected observation artifacts before any cockpit/handoff
-   integration or promotion proposal.
+   and its check receipt against real collected observation artifacts before
+   any cockpit/handoff integration or promotion proposal.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 4. Preserve `tokmd cockpit` as the review evidence implementation surface until

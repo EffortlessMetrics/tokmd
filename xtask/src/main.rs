@@ -31,6 +31,9 @@ fn main() -> Result<()> {
         Some(cli::Commands::ProofObservationStatus(args)) => {
             tasks::proof_observation_status::run(args)
         }
+        Some(cli::Commands::ProofObservationStatusCheck(args)) => {
+            tasks::proof_observation_status::run_check(args)
+        }
         Some(cli::Commands::Affected(args)) => tasks::affected::run(args),
         Some(cli::Commands::Proof(args)) => tasks::proof_plan::run(args),
         Some(cli::Commands::ProofArtifactsCheck(args)) => tasks::proof_artifacts_check::run(args),

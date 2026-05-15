@@ -35,6 +35,8 @@ pub enum Commands {
     ProofObservationRunIds(ProofObservationRunIdsArgs),
     /// Aggregate existing proof receipts into an advisory decision-status packet
     ProofObservationStatus(ProofObservationStatusArgs),
+    /// Verify an advisory proof-observation decision-status packet
+    ProofObservationStatusCheck(ProofObservationStatusCheckArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
@@ -763,6 +765,21 @@ pub struct ProofObservationStatusArgs {
         default_value = "target/proof-observations/proof-observation-decision.json"
     )]
     pub json: std::path::PathBuf,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofObservationStatusCheckArgs {
+    /// Proof-observation decision-status packet to verify
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-observations/proof-observation-decision.json"
+    )]
+    pub decision: std::path::PathBuf,
+
+    /// Optional JSON receipt path for the verifier result
+    #[arg(long, value_name = "PATH")]
+    pub json: Option<std::path::PathBuf>,
 }
 
 #[derive(Args, Debug, Clone)]
