@@ -1,6 +1,6 @@
 # Plan: AST Function-Boundary Corpus Expansion
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/specs/ast-shadow.md`
 - Related ADR: `docs/adr/0008-ast-foundation.md`
@@ -71,9 +71,44 @@ broader explicit Rust corpus
    - Categorize heuristic-only and AST-only function landmarks using the
      buckets from `docs/specs/ast-shadow.md`.
 6. Revisit the candidate decision.
-   - Status: pending.
-   - Choose one outcome: ready for public-candidate proposal, not yet, or
-     shadow-only deferral.
+   - Status: complete.
+   - Chose outcome: not yet, continued shadow-only deferral.
+
+## Decision
+
+Outcome: **not yet; keep function-boundary AST evidence shadow-only**.
+
+The expanded corpus strengthens the AST shadow signal but still does not justify
+a public candidate proposal. The current evidence shows:
+
+- 14 explicit repo-relative Rust files in the checked-in corpus manifest;
+- verified `heuristic.json`, `ast.json`, and `diff.json` artifacts;
+- a scoped `tokmd.ast_shadow_compare_timing.v1` receipt for the same corpus;
+- 230 matched function landmarks;
+- 25 heuristic-only function landmarks;
+- 0 AST-only function landmarks;
+- 1 intentional parse-degraded fixture; and
+- 0 unsupported files.
+
+That is useful evidence that AST avoids heuristic over-reporting from embedded
+Rust source strings in tests, parser fixtures, handoff fixtures, and xtask
+runner/checker fixtures. It is not yet evidence that users need a public
+AST-backed function-boundary surface:
+
+- the corpus still found no AST-only function discoveries;
+- no production-code heuristic false positives were observed outside embedded
+  source text;
+- the strongest signal is noise reduction, not new user-visible recall;
+- the affected public schema family, product surface, fallback behavior,
+  browser/WASM reporting, proof ownership, and rollback story are still
+  deliberately unset; and
+- control-flow and import evidence remain out of scope for this decision.
+
+The next AST product step should not be implementation. It should be a fresh
+proposal only if maintainers decide that reducing embedded-source
+function-boundary over-reporting is a user-facing problem worth solving in a
+specific surface such as cockpit or handoff. Until then, AST function-boundary
+evidence remains developer-facing shadow evidence.
 
 ## Validation
 
@@ -138,6 +173,10 @@ publish-surface verification.
   heuristic-only function landmarks, and 0 AST-only function landmarks. The
   heuristic-only rows remain explainable as embedded Rust source strings in
   tests/tooling plus the intentional parse-degraded fixture.
+- 2026-05-15: Closed the corpus-expansion lane with outcome `not yet`. The
+  broader corpus is useful for shadow evidence and heuristic over-reporting
+  analysis, but it does not justify a public function-boundary candidate
+  proposal without a clearer product surface and schema/fallback story.
 
 ## Corpus Expansion Categories
 

@@ -69,22 +69,22 @@ function-boundary mismatches were classified, but it was too narrow to justify
 a public candidate proposal. AST function-boundary evidence remains
 developer-facing shadow evidence.
 
-The active machine-readable goal now points at AST function-boundary corpus
-expansion. The next AST work should broaden the repo-owned Rust corpus, rerun
-the same `ast-shadow-compare` / `ast-shadow-check` evidence loop, keep
-candidate-corpus timing scoped, and use the expanded mismatch classification to
-revisit the function-boundary candidate decision before any public proposal.
-This is evidence planning only: no default product workflow, public receipt
-schema, browser/WASM capability, proof gate, Codecov default, cockpit output,
-handoff output, or evidencebus runtime changes are in scope. The active plan
-lives in
-`docs/plans/ast-function-boundary-corpus-expansion.md`; the closed candidate
-decision is recorded in `docs/plans/ast-function-boundary-candidate.md`.
+The AST function-boundary corpus-expansion lane is closed with outcome
+`not yet`. The broader repo-owned corpus, scoped timing receipt, and expanded
+mismatch classification are useful shadow evidence: they show AST can avoid
+heuristic over-reporting from embedded Rust source strings, but they do not yet
+justify a public function-boundary candidate proposal. There is no active AST
+productization lane. Future AST work should start from a fresh proposal that
+names the product surface, schema family, fallback behavior, browser/WASM
+reporting, proof ownership, and rollback story before implementation. The
+closed plan lives in `docs/plans/ast-function-boundary-corpus-expansion.md`;
+the earlier candidate decision is recorded in
+`docs/plans/ast-function-boundary-candidate.md`.
 
 ## Next Work Packets
 
-1. Broaden AST function-boundary corpus evidence under shadow mode; do not
-   change public product behavior or receipt schemas.
+1. Choose the next active lane deliberately; do not reopen AST productization
+   without a fresh proposal grounded in the shadow evidence.
 2. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 3. Preserve `tokmd cockpit` as the review evidence implementation surface until
