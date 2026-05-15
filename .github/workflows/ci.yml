@@ -47,64 +47,24 @@ jobs:
 
       - id: detect
         name: Compute risk-pack output flags
+        env:
+          LABELS_JSON: ${{ github.event_name == 'pull_request' && toJson(github.event.pull_request.labels) || '[]' }}
         run: |
           set -euo pipefail
+          mkdir -p target/ci
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base_ref="origin/${{ github.base_ref }}"
-            git diff --name-only "${base_ref}...HEAD" > /tmp/changed.txt || true
           else
-            : > /tmp/changed.txt
+            base_ref="HEAD"
           fi
-          set +e
-          have() { grep -E "^$1\$" /tmp/changed.txt >/dev/null; }
-          have_glob() { grep -E "$1" /tmp/changed.txt >/dev/null; }
-
-          if have_glob '^crates/tokmd-wasm/' \
-            || have_glob '^web/runner/' \
-            || have 'docs/capabilities/wasm.json'; then
-            echo "wasm=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "wasm=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if have 'flake.nix' || have 'flake.lock' || have 'Dockerfile'; then
-            echo "nix=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "nix=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if have 'Cargo.toml' || have 'Cargo.lock' || have 'deny.toml' \
-            || have_glob '^crates/.*/Cargo\.toml$'; then
-            echo "release=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "release=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if have_glob '^crates/tokmd-scan/' \
-            || have_glob '^crates/tokmd-io-port/' \
-            || have_glob '^crates/tokmd-git/' \
-            || have_glob '^crates/tokmd/src/git_support\.rs$'; then
-            echo "windows_path=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "windows_path=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if have_glob '^crates/tokmd/' \
-            || have_glob '^crates/tokmd-core/' \
-            || have_glob '^crates/tokmd-format/' \
-            || have_glob '^crates/tokmd-envelope/'; then
-            echo "core_receipts=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "core_receipts=false" >> "$GITHUB_OUTPUT"
-          fi
-
-          if have_glob '^crates/tokmd-analysis/' \
-            || have_glob '^crates/tokmd-analysis-types/' \
-            || have_glob '^crates/tokmd-model/'; then
-            echo "analysis=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "analysis=false" >> "$GITHUB_OUTPUT"
-          fi
+          cargo xtask ci-plan \
+            --base "${base_ref}" \
+            --head HEAD \
+            --labels-json "${LABELS_JSON}" \
+            --lanes policy/ci-lane-whitelist.toml \
+            --risk-packs policy/ci-risk-packs.toml \
+            --json-out target/ci/ci-detect-plan.json \
+            --github-output "$GITHUB_OUTPUT"
 
   msrv:
     name: MSRV Check

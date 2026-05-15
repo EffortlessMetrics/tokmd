@@ -266,6 +266,11 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
             .with_context(|| format!("append {}", summary_path.display()))?;
     }
 
+    if let Some(output_path) = &args.github_output {
+        let body = render_github_outputs(&plan);
+        fs::write(output_path, body).with_context(|| format!("write {}", output_path.display()))?;
+    }
+
     println!(
         "ci-plan: {} risk-packs hit, {} lane(s) selected, estimated {} LEM ({})",
         plan.risk_packs_hit.len(),
@@ -567,6 +572,46 @@ fn render_step_summary(plan: &PlanOutput) -> String {
     out
 }
 
+fn render_github_outputs(plan: &PlanOutput) -> String {
+    let hit = |name: &str| {
+        plan.risk_packs_hit
+            .iter()
+            .any(|pack| pack.name.as_str() == name)
+    };
+    let changed = |path: &str| plan.changed_files.iter().any(|file| file == path);
+    let glob_changed = |prefix: &str, suffix: &str| {
+        plan.changed_files
+            .iter()
+            .any(|file| file.starts_with(prefix) && file.ends_with(suffix))
+    };
+
+    // Keep these names compatible with `.github/workflows/ci.yml` job outputs
+    // while moving the path classification into the Rust-owned planner.
+    let mut outputs = BTreeMap::new();
+    outputs.insert("analysis", hit("analysis"));
+    outputs.insert("core_receipts", hit("core_receipts"));
+    outputs.insert("git_io", hit("git_io"));
+    outputs.insert(
+        "nix",
+        changed("flake.nix") || changed("flake.lock") || changed("Dockerfile"),
+    );
+    outputs.insert(
+        "release",
+        hit("release") || glob_changed("crates/", "/Cargo.toml"),
+    );
+    outputs.insert("wasm", hit("wasm"));
+    outputs.insert("windows_path", hit("git_io"));
+
+    let mut out = String::new();
+    for (key, value) in outputs {
+        out.push_str(key);
+        out.push('=');
+        out.push_str(if value { "true" } else { "false" });
+        out.push('\n');
+    }
+    out
+}
+
 fn workspace_root() -> Result<PathBuf> {
     let metadata = cargo_metadata::MetadataCommand::new()
         .no_deps()
@@ -686,5 +731,51 @@ mod tests {
         assert!(sel.estimated_lem >= 11);
         assert_eq!(sel.estimate_source, "learned-p50");
         assert!(sel.learned_p50_lem.is_some());
+    }
+
+    #[test]
+    fn github_outputs_include_ci_compatibility_flags() {
+        let plan = PlanOutput {
+            schema_version: 1,
+            base: "origin/main".into(),
+            head: "HEAD".into(),
+            labels: Vec::new(),
+            changed_files: vec![
+                "crates/tokmd-git/src/lib.rs".into(),
+                "crates/tokmd-demo/Cargo.toml".into(),
+                "flake.nix".into(),
+            ],
+            risk_packs_hit: vec![
+                RiskPackHit {
+                    name: "git_io".into(),
+                    description: "Git and IO".into(),
+                    matched_files: vec!["crates/tokmd-git/src/lib.rs".into()],
+                },
+                RiskPackHit {
+                    name: "release".into(),
+                    description: "Release".into(),
+                    matched_files: vec!["flake.nix".into()],
+                },
+            ],
+            lanes_selected: Vec::new(),
+            estimated_lem: 0,
+            band: "normal".into(),
+            budget: BudgetView {
+                preferred_default_lem: 25,
+                default_limit_lem: 35,
+                elevated_limit_lem: 75,
+                hard_limit_lem: 125,
+            },
+        };
+
+        let outputs = render_github_outputs(&plan);
+
+        assert!(outputs.contains("analysis=false\n"), "{outputs}");
+        assert!(outputs.contains("core_receipts=false\n"), "{outputs}");
+        assert!(outputs.contains("git_io=true\n"), "{outputs}");
+        assert!(outputs.contains("nix=true\n"), "{outputs}");
+        assert!(outputs.contains("release=true\n"), "{outputs}");
+        assert!(outputs.contains("wasm=false\n"), "{outputs}");
+        assert!(outputs.contains("windows_path=true\n"), "{outputs}");
     }
 }

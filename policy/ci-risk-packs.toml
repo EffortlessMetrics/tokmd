@@ -74,8 +74,10 @@ description = "Release metadata, Nix, publish surface, version consistency."
 paths = [
   "Cargo.toml",
   "Cargo.lock",
+  "crates/*/Cargo.toml",
   "flake.nix",
   "flake.lock",
+  "Dockerfile",
   "deny.toml",
   "docs/install.md",
 ]

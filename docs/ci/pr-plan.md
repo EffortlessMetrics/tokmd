@@ -63,8 +63,11 @@ band.
 - **PR 08 (this PR)** — adds the planner, the workflow, and the schema.
   The plan is **advisory**: existing CI still routes via `affected proof
   plan` and the static workflow.
-- **PR 12** — wires risk-pack routing into the existing workflows so
-  expensive lanes only run when the plan says so.
+- **CI risk-pack outputs** — `cargo xtask ci-plan --github-output <path>`
+  writes workflow-compatible risk-pack booleans for the CI detect job. The
+  workflow keeps existing `needs.detect.outputs.*` names, but path
+  classification now comes from the Rust-owned planner and checked
+  `policy/ci-risk-packs.toml` rather than duplicated shell matching.
 - **PR 14** — adds the soft budget guard that warns above the elevated
   limit and fails above the hard limit.
 - **PR 15** — replaces static `base_lem` with learned p50/p90/p95
@@ -78,4 +81,15 @@ cargo xtask ci-plan \
   --head HEAD \
   --labels-json '[{"name":"full-ci"}]' \
   --json-out target/ci/ci-plan.json
+```
+
+To generate the same output flags consumed by `.github/workflows/ci.yml`:
+
+```bash
+cargo xtask ci-plan \
+  --base "origin/main" \
+  --head HEAD \
+  --labels-json '[{"name":"full-ci"}]' \
+  --json-out target/ci/ci-plan.json \
+  --github-output target/ci/ci-plan.outputs
 ```

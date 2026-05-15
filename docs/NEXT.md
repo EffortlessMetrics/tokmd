@@ -100,10 +100,18 @@ met, and 2 criteria missing (`affected_present` and
 `required_proof_observed`). That confirms the collector can now upload the
 verified aggregate while preserving the advisory boundary.
 
+The active lane is now CI risk-pack output ownership. The goal is narrow:
+replace the CI detect job's inline Bash path classifier with Rust-owned
+`cargo xtask ci-plan --github-output`, while preserving existing
+`needs.detect.outputs.*` names, job selection behavior, required-check status,
+proof advisory boundaries, and public `ci-plan.json` compatibility.
+
 ## Next Work Packets
 
-1. Choose the next active lane deliberately; do not reopen AST productization
-   without a fresh proposal grounded in the shadow evidence.
+1. Finish the CI risk-pack output slice: make `cargo xtask ci-plan` emit
+   workflow-compatible output flags, have the CI detect job consume those flags,
+   and keep `policy/ci-risk-packs.toml` aligned with the paths previously
+   hard-coded in workflow shell.
 2. Choose the next proof-orchestration slice deliberately; do not promote
    advisory proof, default Codecov upload, or cockpit/handoff consumption from
    the closed decision-readiness lane.
