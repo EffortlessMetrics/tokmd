@@ -1,6 +1,6 @@
 # Plan: Mutation Summary Parsing
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -36,7 +36,7 @@ changing whether mutation is advisory, required, or product-visible.
 ## Work Packets
 
 1. Add Rust-owned mutation summary parsing.
-   - Status: active.
+   - Status: complete.
    - Add `cargo xtask mutation-summary`.
    - Preserve the current `mutants-summary.json` fields:
      `schema_version`, `commit`, `base_ref`, `status`, `scope`, `survivors`,
@@ -44,13 +44,42 @@ changing whether mutation is advisory, required, or product-visible.
    - Preserve workflow-compatible `status` and `survivor_count` GitHub outputs.
    - Parse `outcomes.json` when present and text fallbacks when it is missing.
 2. Wire the manual mutation workflow.
-   - Status: active.
+   - Status: complete.
    - Keep `cargo-mutants` execution behavior unchanged.
    - Keep artifact names and upload behavior unchanged.
 3. Checkpoint the remaining mutation workflow shell.
-   - Status: active.
+   - Status: complete.
    - Mutation execution orchestration stays workflow-owned unless a future plan
      identifies a concrete consumer or maintenance problem.
+
+## Decision
+
+Outcome: **complete; mutation summary and survivor parsing are Rust-owned**.
+
+PR #2294 added `cargo xtask mutation-summary`, preserving the manual mutation
+workflow's existing `mutants-summary.json` fields:
+
+```text
+schema_version
+commit
+base_ref
+status
+scope
+survivors
+killed
+timeout
+unviable
+```
+
+The command also preserves the workflow-compatible `status` and
+`survivor_count` GitHub outputs. The workflow still invokes `cargo-mutants` the
+same way and still uploads the same artifact family; it now asks `xtask` to
+parse copied `mutants.out` directories and text fallbacks.
+
+The slice did not promote mutation testing, change Codecov behavior, change
+public `tokmd` CLI behavior, change public receipt schemas, replace
+`cargo xtask proof --plan` mutation planning, or make mutation summary output a
+cockpit, handoff, or merge verdict.
 
 ## Validation
 
@@ -83,3 +112,6 @@ Run required affected proof if the affected plan selects it.
   workflow audit found `.github/workflows/mutants.yml` still owns summary and
   survivor parsing through inline Bash/JQ. This slice moves parsing only and
   leaves mutation execution orchestration unchanged.
+- 2026-05-15: Closed through PR #2294. Hosted PR checks passed, post-merge main
+  CI passed, and the manual mutation workflow now uses
+  `cargo xtask mutation-summary` while preserving advisory mutation behavior.
