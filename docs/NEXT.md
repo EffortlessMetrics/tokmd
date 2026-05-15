@@ -140,10 +140,15 @@ The user-facing publishing evidence guide now lives in
 command order, artifact reading order, meanings, non-meanings, and explicit
 release-mutation boundary before any behavior change.
 
+The artifact glossary now includes release-facing publishing evidence entries:
+publish-surface JSON, version consistency output, `release_metadata` proof
+scope routing, CI release lane policy, and intentional release workflow
+artifacts.
+
 ## Next Work Packets
 
-1. Add artifact-glossary entries for release-facing evidence from the active
-   plan; do not change release behavior while tightening terminology.
+1. Decide whether the publishing evidence lane needs a Rust-owned wrapper
+   receipt or should close as docs-only guidance plus existing proof routing.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote

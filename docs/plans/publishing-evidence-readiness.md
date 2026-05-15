@@ -53,11 +53,11 @@ prove, and which command reproduces it without reading release workflow YAML.
      what checks do not prove.
    - Keep this as documentation unless the guide exposes a genuine product gap.
 3. Add artifact-glossary entries for release-facing evidence.
-   - Status: active.
+   - Status: complete.
    - Include `publish-surface` JSON output, version consistency output, release
      metadata scope, and release workflow artifacts if they are current.
 4. Decide whether a Rust-owned publishing evidence receipt is needed.
-   - Status: pending.
+   - Status: active.
    - If needed, write a proposal/spec before implementation.
    - If not needed, close the lane with docs-only guidance and proof routing.
 
@@ -100,3 +100,7 @@ release workflow, or version docs change.
 - 2026-05-15: Added the user-facing publishing evidence guide. It gives
   maintainers and agents the command order, artifact reading order, meanings,
   non-meanings, and release-mutation boundary before any behavior change.
+- 2026-05-15: Added release-facing artifact glossary entries for
+  publish-surface JSON, version consistency output, `release_metadata` proof
+  scope routing, CI release lane policy, and intentional release workflow
+  artifacts.
