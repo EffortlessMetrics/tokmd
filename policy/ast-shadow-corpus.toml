@@ -25,14 +25,20 @@ expected_signal = "parse_degraded"
 [[file]]
 path = "crates/tokmd-analysis/src/ast/rust.rs"
 reason = "Rust AST parser implementation with parser-facing function shapes"
-category = "parser_implementation"
-expected_signal = "implementation_corpus"
+category = "shadow_implementation"
+expected_signal = "ast_parser_corpus"
 
 [[file]]
 path = "crates/tokmd-analysis/src/ast/shadow.rs"
 reason = "AST shadow artifact builder and comparison logic"
-category = "artifact_builder"
-expected_signal = "implementation_corpus"
+category = "shadow_implementation"
+expected_signal = "artifact_builder_corpus"
+
+[[file]]
+path = "crates/tokmd-model/src/rows.rs"
+reason = "ordinary model production code with helper functions, structs, and in-memory file-row logic"
+category = "production_implementation"
+expected_signal = "production_function_boundaries"
 
 [[file]]
 path = "crates/tokmd-analysis/src/complexity/functions/rust.rs"
@@ -49,17 +55,41 @@ expected_signal = "heuristic_false_positive_risk"
 [[file]]
 path = "crates/tokmd-cockpit/src/review_plan.rs"
 reason = "review surface logic where function-boundary precision may later inform review ordering"
-category = "review_surface"
+category = "product_adjacent_surface"
 expected_signal = "product_adjacent_corpus"
 
 [[file]]
 path = "crates/tokmd/src/context_pack/select.rs"
 reason = "agent context selection logic where function-boundary precision may later inform handoff packets"
-category = "agent_context_surface"
+category = "product_adjacent_surface"
 expected_signal = "product_adjacent_corpus"
 
 [[file]]
 path = "xtask/src/tasks/ast_shadow_compare.rs"
 reason = "developer runner implementation with command parsing and reproduction-command rendering"
-category = "runner_implementation"
+category = "tooling_implementation"
 expected_signal = "tooling_corpus"
+
+[[file]]
+path = "xtask/src/tasks/ast_shadow_check.rs"
+reason = "developer verifier implementation that validates AST shadow artifacts and summary counts"
+category = "tooling_implementation"
+expected_signal = "tooling_corpus"
+
+[[file]]
+path = "xtask/src/cli.rs"
+reason = "derive and command-attribute-heavy developer CLI declarations"
+category = "macro_heavy"
+expected_signal = "attribute_macro_corpus"
+
+[[file]]
+path = "crates/tokmd/tests/handoff_integration.rs"
+reason = "integration-test corpus with helper functions and embedded Rust snippets"
+category = "test_corpus"
+expected_signal = "test_helper_and_fixture_string_mix"
+
+[[file]]
+path = "crates/tokmd/tests/data/large.rs"
+reason = "mechanically repetitive checked-in Rust fixture used by CLI tests"
+category = "generated_like"
+expected_signal = "mechanical_fixture_corpus"

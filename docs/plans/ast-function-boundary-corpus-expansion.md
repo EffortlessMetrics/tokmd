@@ -51,7 +51,7 @@ broader explicit Rust corpus
      code, tests, examples, macro-heavy files, generated-ish files,
      docs-adjacent Rust snippets, and parser-degraded fixtures.
 2. Extend the repo-owned corpus manifest.
-   - Status: pending.
+   - Status: complete.
    - Add explicit repo-relative Rust paths to `policy/ast-shadow-corpus.toml`.
    - Keep file reasons and expected signals specific.
    - Preserve absolute-path and path-escape rejection.
@@ -121,6 +121,9 @@ publish-surface verification.
 - 2026-05-14: Started after the AST function-boundary candidate decision closed
   as `not yet`. The next evidence need is broader corpus coverage, not product
   integration.
+- 2026-05-14: Defined the corpus category taxonomy and extended
+  `policy/ast-shadow-corpus.toml` with production, test, macro-heavy,
+  generated-like, product-adjacent, shadow-implementation, and tooling entries.
 
 ## Corpus Expansion Categories
 
@@ -133,6 +136,7 @@ clean fixtures.
 | --- | --- | --- |
 | `fixture_baseline` | Keep a small known-clean Rust file with ordinary imports, one function, and simple control flow. | Verifies runner, parser, and comparison plumbing without production noise. |
 | `fixture_parse_degraded` | Keep at least one intentionally malformed Rust file. | Proves parse degradation remains explicit and is not counted as available AST proof. |
+| `shadow_implementation` | Cover AST shadow parser, artifact builder, and comparison internals. | Keeps the evidence machinery itself represented without mistaking it for user-facing output. |
 | `production_implementation` | Cover ordinary shipped Rust modules outside AST-specific code. | Shows function-boundary behavior on code users actually maintain. |
 | `heuristic_implementation` | Cover the current heuristic extraction code and its tests. | Finds where heuristics over-report or under-report their own edge cases. |
 | `test_corpus` | Cover unit or integration tests with helper functions and assertion-heavy bodies. | Separates real test helper functions from assertion text or embedded snippets. |
