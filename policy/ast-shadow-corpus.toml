@@ -1,0 +1,65 @@
+schema = "tokmd.ast_shadow_corpus.v1"
+status = "draft"
+fact_family = "function_boundary"
+language = "rust"
+owner = "analysis_ast_shadow"
+
+[rules]
+path_style = "repo_relative"
+supported_extension = ".rs"
+public_behavior = "none"
+proof_scope = "analysis_ast_shadow"
+
+[[file]]
+path = "fixtures/ast-shadow/rust/basic.rs"
+reason = "baseline fixture with imports, one function, and simple control-flow landmarks"
+category = "fixture_baseline"
+expected_signal = "known_clean_parse"
+
+[[file]]
+path = "fixtures/ast-shadow/rust/parse-degraded.rs"
+reason = "fixture that keeps parse degradation explicit in the candidate corpus"
+category = "fixture_parse_degraded"
+expected_signal = "parse_degraded"
+
+[[file]]
+path = "crates/tokmd-analysis/src/ast/rust.rs"
+reason = "Rust AST parser implementation with parser-facing function shapes"
+category = "parser_implementation"
+expected_signal = "implementation_corpus"
+
+[[file]]
+path = "crates/tokmd-analysis/src/ast/shadow.rs"
+reason = "AST shadow artifact builder and comparison logic"
+category = "artifact_builder"
+expected_signal = "implementation_corpus"
+
+[[file]]
+path = "crates/tokmd-analysis/src/complexity/functions/rust.rs"
+reason = "Rust function extraction heuristic with nested and signature-heavy test cases"
+category = "heuristic_implementation"
+expected_signal = "function_boundary_mismatch"
+
+[[file]]
+path = "crates/tokmd-analysis/src/imports/parser.rs"
+reason = "parser code with embedded fixture strings and docs-adjacent Rust examples"
+category = "fixture_string_risk"
+expected_signal = "heuristic_false_positive_risk"
+
+[[file]]
+path = "crates/tokmd-cockpit/src/review_plan.rs"
+reason = "review surface logic where function-boundary precision may later inform review ordering"
+category = "review_surface"
+expected_signal = "product_adjacent_corpus"
+
+[[file]]
+path = "crates/tokmd/src/context_pack/select.rs"
+reason = "agent context selection logic where function-boundary precision may later inform handoff packets"
+category = "agent_context_surface"
+expected_signal = "product_adjacent_corpus"
+
+[[file]]
+path = "xtask/src/tasks/ast_shadow_compare.rs"
+reason = "developer runner implementation with command parsing and reproduction-command rendering"
+category = "runner_implementation"
+expected_signal = "tooling_corpus"

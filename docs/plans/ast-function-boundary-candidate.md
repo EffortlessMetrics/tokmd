@@ -54,12 +54,13 @@ artifacts, corpus notes, mismatch classification, and timing evidence.
      drafted.
    - Keep this first slice docs/control-plane only.
 2. Make the comparison corpus repeatable.
-   - Status: pending.
-   - Add a repo-owned corpus manifest with explicit repo-relative Rust paths
-     and selection reasons.
-   - Include production code, tests, fixtures, example-heavy parser code,
-     macro-ish shapes, generic functions, async/unsafe/extern signatures,
-     multi-line signatures, and docs-adjacent Rust snippets where available.
+   - Status: complete.
+   - Added `policy/ast-shadow-corpus.toml`, a repo-owned draft corpus manifest
+     with explicit repo-relative Rust paths, selection reasons, and expected
+     evidence signals.
+   - The first corpus includes fixtures, AST implementation code, heuristic
+     implementation code, parser code with fixture-string risk, review-surface
+     logic, agent-context selection logic, and the comparison runner.
 3. Let the runner consume the corpus manifest.
    - Status: pending.
    - Preserve existing explicit `--path` mode.
@@ -174,3 +175,7 @@ publish-surface verification.
   through first enforcement. Existing evidence shows function-boundary
   mismatches are the narrowest first candidate; control-flow remains noisier
   and shadow-only.
+- 2026-05-14: Added the draft corpus manifest in
+  `policy/ast-shadow-corpus.toml` and routed it through the
+  `analysis_ast_shadow` proof scope. The manifest is repo-owned input for a
+  later runner-consumption slice; it does not change public tokmd behavior.

@@ -70,7 +70,8 @@ whether Rust function-boundary precision is ready for a future public candidate
 proposal. This is evidence planning only: no default product workflow, public
 receipt schema, browser/WASM capability, proof gate, Codecov default, cockpit
 output, handoff output, or evidencebus runtime changes are in scope. The plan
-lives in `docs/plans/ast-function-boundary-candidate.md`.
+lives in `docs/plans/ast-function-boundary-candidate.md`, and the first
+repo-owned draft corpus manifest lives in `policy/ast-shadow-corpus.toml`.
 
 ## Next Work Packets
 

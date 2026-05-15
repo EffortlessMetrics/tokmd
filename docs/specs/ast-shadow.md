@@ -29,6 +29,8 @@ During shadow mode:
 The first shadow slice may read:
 
 - normalized repository-relative source paths;
+- a repo-owned corpus manifest such as `policy/ast-shadow-corpus.toml` for
+  repeatable evidence collection;
 - Rust source text for files selected by a future shadow runner;
 - heuristic facts already produced by existing analysis modules;
 - AST capability metadata from `tokmd-analysis` when built with
