@@ -81,24 +81,20 @@ closed plan lives in `docs/plans/ast-function-boundary-corpus-expansion.md`;
 the earlier candidate decision is recorded in
 `docs/plans/ast-function-boundary-candidate.md`.
 
-The proof-observation decision-readiness lane is active again. The current
-slice adds a Rust-owned `cargo xtask proof-observation-status` aggregate that
-reads explicitly supplied proof receipts and writes a visibility-only
-`tokmd.proof_observation_decision.v1` packet. It summarizes source artifacts,
-required/advisory proof counts, freshness, promotion thresholds,
-criteria-met/missing state, and reproduction commands without executing proof,
-changing required gates, or enabling default Codecov upload. The follow-on
-slice adds `cargo xtask proof-observation-status-check`, a verifier for that
-aggregate packet, before any cockpit or handoff consumer links the decision
-evidence.
+The proof-observation decision-readiness lane is active again. It now has a
+Rust-owned `cargo xtask proof-observation-status` aggregate plus
+`cargo xtask proof-observation-status-check` verifier. The manual observation
+collector writes both receipts from downloaded executor observation collections,
+so maintainers can review one verified advisory decision packet without
+executing proof, changing required gates, or enabling default Codecov upload.
 
 ## Next Work Packets
 
 1. Choose the next active lane deliberately; do not reopen AST productization
    without a fresh proposal grounded in the shadow evidence.
 2. Continue proof-observation decision readiness by verifying the new aggregate
-   and its check receipt against real collected observation artifacts before
-   any cockpit/handoff integration or promotion proposal.
+   and its check receipt from real collected observation artifacts before any
+   cockpit/handoff integration or promotion proposal.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 4. Preserve `tokmd cockpit` as the review evidence implementation surface until

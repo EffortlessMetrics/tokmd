@@ -130,6 +130,18 @@ jobs:
             --promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json \
             > target/proof-observations/proof-execution-observations-summary.txt
 
+      - name: Aggregate proof observation decision evidence
+        run: |
+          set -euo pipefail
+          cargo xtask proof-observation-status \
+            --proof-policy target/proof-observations/proof-policy.json \
+            --executor-observation-collection target/proof-observations/proof-executor-observation-collection.json \
+            --promotion-readiness target/proof-observations/proof-executor-promotion-readiness.json \
+            --json target/proof-observations/proof-observation-decision.json
+          cargo xtask proof-observation-status-check \
+            --decision target/proof-observations/proof-observation-decision.json \
+            --json target/proof-observations/proof-observation-decision-check.json
+
       - name: Write collection summary
         if: always()
         run: |
@@ -151,6 +163,15 @@ jobs:
               cat target/proof-observations/proof-execution-observations-summary.txt
             elif [ -f target/proof-observations/download.log ]; then
               cat target/proof-observations/download.log
+            fi
+            if [ -f target/proof-observations/proof-observation-decision.json ]; then
+              echo ""
+              echo "### Proof Observation Decision"
+              echo ""
+              echo "- Decision packet: \`target/proof-observations/proof-observation-decision.json\`"
+              if [ -f target/proof-observations/proof-observation-decision-check.json ]; then
+                echo "- Decision check: \`target/proof-observations/proof-observation-decision-check.json\`"
+              fi
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
