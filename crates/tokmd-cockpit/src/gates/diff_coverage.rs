@@ -282,6 +282,8 @@ mod tests {
         git(&["init", "-b", "main"]);
         git(&["config", "user.email", "tokmd@example.com"]);
         git(&["config", "user.name", "tokmd"]);
+        git(&["config", "commit.gpgsign", "false"]);
+        git(&["config", "tag.gpgsign", "false"]);
         git(&["add", "."]);
         git(&["commit", "-m", "base"]);
 

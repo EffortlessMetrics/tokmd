@@ -757,6 +757,10 @@ fn effort_delta_infers_changed_files_modules_and_blast_radius() {
     git(&repo, &["init"]);
     git(&repo, &["config", "user.name", "tokmd-tests"]);
     git(&repo, &["config", "user.email", "tokmd-tests@example.com"]);
+    // Disable commit signing so environments with a global signing config
+    // (e.g. some sandboxes) don't make this fixture unable to record commits.
+    git(&repo, &["config", "commit.gpgsign", "false"]);
+    git(&repo, &["config", "tag.gpgsign", "false"]);
 
     write_file(&repo.join("src/main.rs"), "fn main() {}\n");
     git(&repo, &["add", "."]);
@@ -803,4 +807,81 @@ fn effort_delta_infers_changed_files_modules_and_blast_radius() {
     } else {
         assert!(report.delta.is_none());
     }
+}
+
+#[test]
+fn monte_carlo_request_threads_through_report_assumptions() {
+    // Reaches the `monte_carlo: true` branches in build_effort_report and
+    // assumptions_summary, including the apply_monte_carlo placeholder.
+    let export = make_export(2_000);
+    let derived = make_derived(2_000, 0.05, 1);
+    let root = mk_temp_dir("tokmd-effort-mc");
+    fs::create_dir_all(&root).unwrap();
+    let _guard = TempDirGuard(root.clone());
+
+    let req = EffortRequest {
+        model: EffortModelKind::Cocomo81Basic,
+        layer: EffortLayer::Full,
+        base_ref: None,
+        head_ref: None,
+        monte_carlo: true,
+        mc_iterations: 1_000,
+        mc_seed: Some(7),
+    };
+
+    let report =
+        build_effort_report(&root, &export, &derived, None, None, None, None, &req).unwrap();
+
+    // The Monte Carlo placeholder must keep the report consistent.
+    assert!(report.results.effort_pm_p50 > 0.0);
+    assert!(report.results.effort_pm_p80 >= report.results.effort_pm_p50);
+
+    let mc_note_present = report
+        .assumptions
+        .notes
+        .iter()
+        .any(|note| note.contains("Monte Carlo"));
+    assert!(
+        mc_note_present,
+        "expected Monte Carlo note in assumptions, got {:?}",
+        report.assumptions.notes
+    );
+
+    let mc_override = report.assumptions.overrides.get("monte_carlo");
+    assert!(mc_override.is_some(), "expected monte_carlo override entry");
+    let value = mc_override.unwrap();
+    assert!(value.contains("iterations=1000"));
+    assert!(value.contains("seed=Some(7)"));
+}
+
+#[test]
+fn monte_carlo_with_zero_iterations_returns_base_results() {
+    // mc_iterations=0 short-circuits apply_monte_carlo to clone base.
+    use crate::effort::monte_carlo::apply_monte_carlo;
+    use tokmd_analysis_types::{EffortConfidence, EffortConfidenceLevel, EffortResults};
+
+    let base = EffortResults {
+        effort_pm_p50: 12.5,
+        schedule_months_p50: 6.0,
+        staff_p50: 2.0,
+        effort_pm_low: 9.0,
+        effort_pm_p80: 16.0,
+        schedule_months_low: 4.0,
+        schedule_months_p80: 8.0,
+        staff_low: 1.5,
+        staff_p80: 2.5,
+    };
+    let confidence = EffortConfidence {
+        level: EffortConfidenceLevel::High,
+        reasons: Vec::new(),
+        data_coverage_pct: Some(0.8),
+    };
+    let result = apply_monte_carlo(&base, &[], &confidence, 0.8, 0, None);
+    assert_eq!(result.effort_pm_p50, base.effort_pm_p50);
+    assert_eq!(result.schedule_months_p50, base.schedule_months_p50);
+    assert_eq!(result.staff_p50, base.staff_p50);
+
+    let result_many = apply_monte_carlo(&base, &[], &confidence, 0.8, 100, Some(42));
+    // Current placeholder returns a clone regardless; this pins behavior.
+    assert_eq!(result_many.effort_pm_p50, base.effort_pm_p50);
 }

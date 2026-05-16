@@ -105,3 +105,76 @@ impl ProofEvidenceInput {
         self.artifact.kind()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn proof_evidence_kind_as_str_covers_all_variants() {
+        assert_eq!(
+            ProofEvidenceKind::ProofRunSummary.as_str(),
+            "proof_run_summary"
+        );
+        assert_eq!(
+            ProofEvidenceKind::ProofRunObservation.as_str(),
+            "proof_run_observation"
+        );
+        assert_eq!(
+            ProofEvidenceKind::ProofExecutorObservation.as_str(),
+            "proof_executor_observation"
+        );
+        assert_eq!(
+            ProofEvidenceKind::CoverageReceipt.as_str(),
+            "coverage_receipt"
+        );
+    }
+
+    #[test]
+    fn proof_evidence_kind_packet_file_name_covers_all_variants() {
+        assert_eq!(
+            ProofEvidenceKind::ProofRunSummary.packet_file_name(),
+            "proof-run-summary.json"
+        );
+        assert_eq!(
+            ProofEvidenceKind::ProofRunObservation.packet_file_name(),
+            "proof-run-observation.json"
+        );
+        assert_eq!(
+            ProofEvidenceKind::ProofExecutorObservation.packet_file_name(),
+            "proof-executor-observation.json"
+        );
+        assert_eq!(
+            ProofEvidenceKind::CoverageReceipt.packet_file_name(),
+            "coverage-receipt.json"
+        );
+    }
+
+    #[test]
+    fn proof_evidence_availability_as_str_covers_all_variants() {
+        assert_eq!(ProofEvidenceAvailability::Available.as_str(), "available");
+        assert_eq!(ProofEvidenceAvailability::Missing.as_str(), "missing");
+        assert_eq!(ProofEvidenceAvailability::Skipped.as_str(), "skipped");
+        assert_eq!(ProofEvidenceAvailability::Stale.as_str(), "stale");
+        assert_eq!(ProofEvidenceAvailability::Degraded.as_str(), "degraded");
+        assert_eq!(
+            ProofEvidenceAvailability::Unavailable.as_str(),
+            "unavailable"
+        );
+    }
+
+    #[test]
+    fn proof_execution_status_as_str_covers_all_variants() {
+        assert_eq!(ProofExecutionStatus::Planned.as_str(), "planned");
+        assert_eq!(
+            ProofExecutionStatus::ExecutedPassed.as_str(),
+            "executed_passed"
+        );
+        assert_eq!(
+            ProofExecutionStatus::ExecutedFailed.as_str(),
+            "executed_failed"
+        );
+        assert_eq!(ProofExecutionStatus::NotExecuted.as_str(), "not_executed");
+        assert_eq!(ProofExecutionStatus::DryRun.as_str(), "dry_run");
+    }
+}
