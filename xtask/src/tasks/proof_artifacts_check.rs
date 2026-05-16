@@ -8,7 +8,13 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use walkdir::WalkDir;
+mod io;
+mod json_fields;
+mod observation_paths;
+
+use io::*;
+use json_fields::*;
+use observation_paths::*;
 
 const SUMMARY_SCHEMA: &str = "tokmd.proof_executor_summary.v1";
 const MANIFEST_SCHEMA: &str = "tokmd.proof_executor_manifest.v1";
@@ -734,39 +740,6 @@ struct ScopeAccumulator {
     artifacts: usize,
 }
 
-fn read_json(path: &Path, label: &str) -> Result<Value> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("failed to read {label} artifact `{}`", path.display()))?;
-    serde_json::from_str(&raw)
-        .with_context(|| format!("failed to parse {label} artifact `{}`", path.display()))
-}
-
-fn artifact_root_for(summary_path: &Path) -> PathBuf {
-    summary_path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."))
-        .to_path_buf()
-}
-
-fn write_observation(path: &Path, observation: &ProofExecutionObservation) -> Result<()> {
-    write_text(path, &serde_json::to_string_pretty(observation)?)
-}
-
-fn write_proof_run_observation(path: &Path, observation: &ProofRunObservation) -> Result<()> {
-    write_text(path, &serde_json::to_string_pretty(observation)?)
-}
-
-fn write_text(path: &Path, text: &str) -> Result<()> {
-    if let Some(parent) = path.parent()
-        && !parent.as_os_str().is_empty()
-    {
-        fs::create_dir_all(parent)
-            .with_context(|| format!("failed to create `{}`", parent.display()))?;
-    }
-    fs::write(path, text).with_context(|| format!("failed to write `{}`", path.display()))
-}
-
 fn proof_run_observation(summary: &Value) -> Result<ProofRunObservation> {
     validate_proof_run_summary(summary)?;
     let entries = expect_array(
@@ -1380,93 +1353,6 @@ fn push_threshold_row(out: &mut String, label: &str, required: usize, actual: us
 
 fn md_cell(value: &str) -> String {
     value.replace('|', "\\|")
-}
-
-fn collect_observation_paths(args: &ProofExecutionObservationsSummaryArgs) -> Result<Vec<PathBuf>> {
-    let mut paths = BTreeSet::new();
-
-    if args.observations.is_empty() && args.observation_dirs.is_empty() {
-        paths.insert(PathBuf::from(
-            "target/proof/proof-executor-observation.json",
-        ));
-    }
-
-    paths.extend(args.observations.iter().cloned());
-    for dir in &args.observation_dirs {
-        collect_observation_paths_from_dir(dir, &mut paths)?;
-    }
-
-    if paths.is_empty() {
-        bail!("no proof executor observation artifacts found");
-    }
-
-    Ok(paths.into_iter().collect())
-}
-
-fn collect_observation_paths_from_dir(dir: &Path, paths: &mut BTreeSet<PathBuf>) -> Result<()> {
-    if !dir.is_dir() {
-        bail!(
-            "observation directory `{}` is not a directory",
-            dir.display()
-        );
-    }
-
-    for entry in WalkDir::new(dir) {
-        let entry = entry
-            .with_context(|| format!("failed to scan observation directory `{}`", dir.display()))?;
-        if entry.file_type().is_file()
-            && entry.file_name().to_string_lossy() == "proof-executor-observation.json"
-        {
-            paths.insert(entry.path().to_path_buf());
-        }
-    }
-
-    Ok(())
-}
-
-fn collect_proof_run_observation_paths(
-    args: &ProofRunObservationsSummaryArgs,
-) -> Result<Vec<PathBuf>> {
-    let mut paths = BTreeSet::new();
-
-    if args.observations.is_empty() && args.observation_dirs.is_empty() {
-        paths.insert(PathBuf::from("target/proof-run/proof-run-observation.json"));
-    }
-
-    paths.extend(args.observations.iter().cloned());
-    for dir in &args.observation_dirs {
-        collect_proof_run_observation_paths_from_dir(dir, &mut paths)?;
-    }
-
-    if paths.is_empty() {
-        bail!("no proof run observation artifacts found");
-    }
-
-    Ok(paths.into_iter().collect())
-}
-
-fn collect_proof_run_observation_paths_from_dir(
-    dir: &Path,
-    paths: &mut BTreeSet<PathBuf>,
-) -> Result<()> {
-    if !dir.is_dir() {
-        bail!(
-            "observation directory `{}` is not a directory",
-            dir.display()
-        );
-    }
-
-    for entry in WalkDir::new(dir) {
-        let entry = entry
-            .with_context(|| format!("failed to scan observation directory `{}`", dir.display()))?;
-        if entry.file_type().is_file()
-            && entry.file_name().to_string_lossy() == "proof-run-observation.json"
-        {
-            paths.insert(entry.path().to_path_buf());
-        }
-    }
-
-    Ok(())
 }
 
 fn read_sourced_proof_run_observation(path: &Path) -> Result<SourcedProofRunObservation> {
@@ -2673,109 +2559,6 @@ fn validate_command_entry(index: usize, entry: &Value, command: &Value) -> Resul
         }
     }
     Ok(())
-}
-
-fn expect_schema(value: &Value, expected: &str, label: &str) -> Result<()> {
-    expect_string_value(field(value, "schema", label)?, expected, "schema", label)
-}
-
-fn expect_equal(summary: &Value, manifest: &Value, path: &str) -> Result<()> {
-    let summary_value = field(summary, path, "executor summary")?;
-    let manifest_value = field(manifest, path, "executor manifest")?;
-    if summary_value != manifest_value {
-        bail!(
-            "executor artifact mismatch at `{path}`: summary {} != manifest {}",
-            render_json(summary_value),
-            render_json(manifest_value)
-        );
-    }
-    Ok(())
-}
-
-fn field<'a>(value: &'a Value, path: &str, label: &str) -> Result<&'a Value> {
-    let mut current = value;
-    for segment in path.split('.') {
-        current = current
-            .get(segment)
-            .with_context(|| format!("{label} artifact is missing `{path}`"))?;
-    }
-    Ok(current)
-}
-
-fn expect_array<'a>(value: &'a Value, path: &str, label: &str) -> Result<&'a Vec<Value>> {
-    value
-        .as_array()
-        .with_context(|| format!("{label} `{path}` must be an array"))
-}
-
-fn expect_bool(value: &Value, path: &str, label: &str) -> Result<bool> {
-    value
-        .as_bool()
-        .with_context(|| format!("{label} `{path}` must be a boolean"))
-}
-
-fn expect_bool_value(value: &Value, expected: bool, path: &str, label: &str) -> Result<()> {
-    let actual = expect_bool(value, path, label)?;
-    if actual != expected {
-        bail!("{label} `{path}` must be {expected}, got {actual}");
-    }
-    Ok(())
-}
-
-fn expect_string(value: &Value, path: &str, label: &str) -> Result<String> {
-    value
-        .as_str()
-        .map(ToOwned::to_owned)
-        .with_context(|| format!("{label} `{path}` must be a string"))
-}
-
-fn expect_optional_string(value: &Value, path: &str, label: &str) -> Result<Option<String>> {
-    if value.is_null() {
-        Ok(None)
-    } else {
-        expect_string(value, path, label).map(Some)
-    }
-}
-
-fn expect_string_value(value: &Value, expected: &str, path: &str, label: &str) -> Result<()> {
-    let actual = expect_string(value, path, label)?;
-    if actual != expected {
-        bail!("{label} `{path}` must be `{expected}`, got `{actual}`");
-    }
-    Ok(())
-}
-
-fn expect_string_array(value: &Value, path: &str, label: &str) -> Result<Vec<String>> {
-    let values = expect_array(value, path, label)?;
-    values
-        .iter()
-        .enumerate()
-        .map(|(index, value)| {
-            expect_string(value, &format!("{path}[{index}]"), label)
-                .with_context(|| format!("{label} `{path}` entry {index} must be a string"))
-        })
-        .collect()
-}
-
-fn expect_optional_i64(value: &Value, path: &str, label: &str) -> Result<Option<i64>> {
-    if value.is_null() {
-        return Ok(None);
-    }
-    value
-        .as_i64()
-        .map(Some)
-        .with_context(|| format!("{label} `{path}` must be an integer or null"))
-}
-
-fn expect_usize(value: &Value, path: &str, label: &str) -> Result<usize> {
-    let number = value
-        .as_u64()
-        .with_context(|| format!("{label} `{path}` must be a non-negative integer"))?;
-    usize::try_from(number).with_context(|| format!("{label} `{path}` is too large"))
-}
-
-fn render_json(value: &Value) -> String {
-    serde_json::to_string(value).unwrap_or_else(|_| "<unrenderable>".to_string())
 }
 
 #[cfg(test)]
