@@ -66,6 +66,13 @@ fn get_file_stats_ignores_inherited_git_env_overrides() {
         .status()
         .unwrap();
     assert!(status.success(), "git config user.name failed");
+    // Disable commit signing so host signing config doesn't break the fixture.
+    let _ = git_in(repo.path())
+        .args(["config", "commit.gpgsign", "false"])
+        .status();
+    let _ = git_in(repo.path())
+        .args(["config", "tag.gpgsign", "false"])
+        .status();
 
     std::fs::write(repo.path().join("tracked.txt"), "one\n").unwrap();
     let status = git_in(repo.path()).args(["add", "."]).status().unwrap();
