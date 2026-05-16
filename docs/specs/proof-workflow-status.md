@@ -1,6 +1,6 @@
 # Spec: Proof Workflow Status
 
-- Status: draft
+- Status: active
 - Schema family, if any: `tokmd.proof_workflow_status.v1`;
   verifier receipt `tokmd.proof_workflow_status_check.v1`
 - Related ADRs:
@@ -8,7 +8,7 @@
 
 ## Contract
 
-A proof workflow status packet is a future developer/CI-facing receipt that
+A proof workflow status packet is a developer/CI-facing receipt that
 summarizes status arbitration for existing proof workflows. It consumes
 already-generated proof artifacts and explicit command exit codes, then emits a
 small JSON receipt, optional Markdown summary, and workflow-friendly final exit
@@ -24,7 +24,7 @@ The first consumers are GitHub Actions workflow steps:
 - `.github/workflows/ci.yml` `fast-proof-run`;
 - `.github/workflows/proof-executor.yml` `scoped-coverage-executor`.
 
-The first producer should be `cargo xtask`, not the public `tokmd` CLI. The
+The producer is `cargo xtask`, not the public `tokmd` CLI. The
 workflow remains responsible for runner setup, cache, tool installation,
 artifact upload, and service integration. The Rust-owned packet owns only:
 
@@ -37,7 +37,7 @@ artifact upload, and service integration. The Rust-owned packet owns only:
 
 ## Inputs
 
-The status command should accept explicit inputs. It should not discover hidden
+The status command accepts explicit inputs. It must not discover hidden
 state from the filesystem, workflow environment, GitHub APIs, timestamps, or
 downloaded artifact directories.
 
@@ -133,8 +133,8 @@ consistent. It does not mean proof should be promoted, coverage should upload,
 or a PR should merge.
 
 `recommended_exit_code` mirrors the current workflow shell behavior. For the
-first implementation, any non-zero blocking command status should produce the
-first non-zero status in current workflow priority order. That keeps the
+current implementation, any non-zero blocking command status should produce
+the first non-zero status in current workflow priority order. That keeps the
 workflow behavior compatible while moving arbitration into a testable Rust
 surface.
 
@@ -177,8 +177,8 @@ remain authoritative for their own domains:
 - observations own compact evidence for later aggregation;
 - `ci/proof.toml` owns policy.
 
-The first implementation must preserve current workflow artifact names,
-summary wording, and exit behavior unless the PR explicitly documents a
+The implementation must preserve current workflow artifact names, summary
+wording, and exit behavior unless the PR explicitly documents a
 behavior-compatible rewrite. Consumers must be able to ignore the status packet
 and keep reading the source artifacts.
 
@@ -188,7 +188,7 @@ Codecov upload, and does not make advisory evidence required.
 
 ## Proof Requirements
 
-For this draft spec, validation is documentation-control proof:
+For spec-only changes, validation is documentation-control proof:
 
 ```bash
 cargo xtask doc-artifacts --check
@@ -200,8 +200,8 @@ cargo fmt-check
 git diff --check
 ```
 
-When the Rust command is added, implementation proof should include focused
-`xtask` tests for:
+Implementation proof for the Rust command should include focused `xtask` tests
+for:
 
 - valid fast proof-run packet output;
 - valid scoped coverage executor packet output;
@@ -224,14 +224,14 @@ Workflow integration proof should also cover:
 
 ## Open Questions
 
-- Whether the first command should support both workflow kinds immediately or
-  land fast proof-run first with the enum already reserved.
-- Whether verifier output should land in the same PR as the generator or as a
-  separate slice.
+- Whether future proof workflow kinds should reuse this packet shape or get a
+  separate status family.
+- Whether future verifier fields should include deeper source-artifact
+  cross-checks beyond the current packet-level consistency checks.
 - Whether the env output should include a rendered `status` string in addition
   to `recommended_exit_code`.
-- Whether source artifact schema validation should parse only top-level schema
-  fields in the first implementation or delegate to existing verifiers when
-  their receipts are supplied.
+- Whether future source artifact schema validation should parse deeper than
+  top-level schema fields or delegate to existing verifiers when their receipts
+  are supplied.
 - Whether the Markdown summary should preserve exact current wording or use a
   new compact summary after the first behavior-compatible migration.
