@@ -9,6 +9,9 @@ open the [Artifact glossary](artifacts.md).
 If you need the shortest map from user job to command, artifact, meaning, and
 next action, open [User paths](user-paths.md).
 
+If you need to see the physical output layout before running a workflow, open
+[Sample artifact trees](examples/README.md).
+
 ## 1. Tell Me What This Repo Is
 
 Start with the smallest useful receipt:

@@ -125,6 +125,8 @@ each section.
 
 - [Start Here](start-here.md) for job-based entry points.
 - [User paths](user-paths.md) for command-to-artifact reading order by job.
+- [Sample artifact trees](examples/README.md) for small physical layout
+  walkthroughs.
 - [Review packet contract](review-packet.md) for packet layout and verifier semantics.
 - [Handoff bundles](handoff.md) for agent bundle consumption.
 - [Proof evidence import contract](cockpit-proof-evidence.md) for cockpit proof inputs.

@@ -4,7 +4,8 @@ Use this page when you know the job, but not which `tokmd` artifact to trust
 first. It is a consumption map, not a command reference.
 
 For artifact definitions, use the [Artifact glossary](artifacts.md). For the
-first guided walkthrough, use [Start Here](start-here.md).
+first guided walkthrough, use [Start Here](start-here.md). For small physical
+layouts, use [Sample artifact trees](examples/README.md).
 
 ## At A Glance
 

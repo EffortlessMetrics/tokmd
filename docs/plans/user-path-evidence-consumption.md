@@ -49,13 +49,13 @@ what is the next action?
 ## Work Packets
 
 1. Add the user-path chooser.
-   - Status: in progress.
+   - Status: complete.
    - Add `docs/user-paths.md` as the command-to-artifact map for inspect,
      review, handoff, CI proof, browser, and publishing jobs.
    - Link it from README, Start Here, and the docs index without duplicating
      all command details.
 2. Add small sample artifact trees.
-   - Status: pending.
+   - Status: complete.
    - Add concise examples for review packets, handoff bundles, proof status,
      browser receipts, and publishing evidence.
    - Do not check in large generated dumps.
@@ -114,3 +114,5 @@ tests named by the affected proof plan and the relevant packet verifier.
 - 2026-05-16: Started after the code-intelligence platform audit refresh
   selected no automatic implementation lane. The first packet defines the lane
   and adds the user-path evidence chooser.
+- 2026-05-16: Added small sample artifact trees for review packets, handoff
+  bundles, proof status, browser receipts, and publishing evidence.

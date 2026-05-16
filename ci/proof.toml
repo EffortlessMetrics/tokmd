@@ -1081,6 +1081,7 @@ kind = "non_rust"
 paths = [
   "docs/artifacts.md",
   "docs/browser.md",
+  "docs/examples/**",
   "docs/publishing-evidence.md",
   "docs/start-here.md",
   "docs/handoff.md",
