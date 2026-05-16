@@ -155,8 +155,10 @@ integration.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
-complete as a single finished program, and selected publishing evidence
-readiness as the next plan-first lane.
+complete as a permanently finished program, and has now been refreshed after
+the publishing evidence readiness and proof workflow status packet closeouts.
+The refreshed audit selects no new implementation lane; future work should
+start from a fresh consumer, artifact, workflow, or product gap.
 
 The publishing evidence readiness lane is closed. The plan in
 `docs/plans/publishing-evidence-readiness.md` made release and publishing facts
