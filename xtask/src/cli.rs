@@ -940,6 +940,54 @@ pub struct ProofWorkflowStatusArgs {
     )]
     pub proof_run_observation: std::path::PathBuf,
 
+    /// Affected-scope artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/affected.json"
+    )]
+    pub affected: std::path::PathBuf,
+
+    /// Executor summary artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-summary.json"
+    )]
+    pub executor_summary: std::path::PathBuf,
+
+    /// Executor manifest artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-manifest.json"
+    )]
+    pub executor_manifest: std::path::PathBuf,
+
+    /// Executed proof artifact verifier receipt to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-execution-artifacts-check.json"
+    )]
+    pub proof_execution_artifacts_check: std::path::PathBuf,
+
+    /// Executor observation artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-observation.json"
+    )]
+    pub proof_executor_observation: std::path::PathBuf,
+
+    /// Executor observation collection artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-observation-collection.json"
+    )]
+    pub proof_executor_observation_collection: std::path::PathBuf,
+
     /// Write the workflow status packet to this path
     #[arg(
         long,

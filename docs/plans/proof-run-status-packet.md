@@ -66,7 +66,7 @@ advisory proof, upload Codecov by default, or change required CI gates.
      behavior for failed generated/verifier/observation artifacts.
 4. Extend to scoped coverage executor only after the fast proof-run job is
    stable.
-   - Status: pending.
+   - Status: complete.
    - Preserve PR-visible, non-required status and manual-only Codecov upload.
    - Do not change executor command selection or coverage execution.
 5. Validate policy and affected routing.
@@ -127,3 +127,9 @@ reproduction specifically requires it.
   workflow. The workflow still uploads the same `fast-proof-run` artifact
   directory, preserves the existing fallback exit priority, and leaves scoped
   coverage executor wiring for a later slice.
+- 2026-05-16: Extended the proof workflow status packet to the scoped coverage
+  executor workflow. The executor still uploads the same
+  `proof-executor-artifacts` directory, keeps Codecov upload manual-only,
+  remains outside the required CI aggregate, and preserves the existing
+  affected/executor/verifier/observation/collection exit priority before the
+  additive status packet/check exits.

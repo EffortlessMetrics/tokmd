@@ -49,6 +49,21 @@ fn proof_workflow_status_help_mentions_fast_inputs() {
         stdout.contains("--proof-run-observation"),
         "stdout: {stdout}"
     );
+    assert!(stdout.contains("--affected"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-summary"), "stdout: {stdout}");
+    assert!(stdout.contains("--executor-manifest"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("--proof-execution-artifacts-check"),
+        "stdout: {stdout}"
+    );
+    assert!(
+        stdout.contains("--proof-executor-observation"),
+        "stdout: {stdout}"
+    );
+    assert!(
+        stdout.contains("--proof-executor-observation-collection"),
+        "stdout: {stdout}"
+    );
     assert!(stdout.contains("--summary-md"), "stdout: {stdout}");
     assert!(stdout.contains("--env-output"), "stdout: {stdout}");
 }
@@ -195,6 +210,156 @@ fn proof_workflow_status_preserves_first_nonzero_fast_status_priority() {
 }
 
 #[test]
+fn proof_workflow_status_writes_and_checks_scoped_executor_packet() {
+    let paths = FixturePaths::new("proof-workflow-status-scoped-ok");
+    paths.reset();
+    paths.write_sources();
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-workflow-status",
+        "--workflow-kind",
+        "scoped-coverage-executor",
+        "--status",
+        "affected_status=0",
+        "--status",
+        "executor_status=0",
+        "--status",
+        "verifier_status=0",
+        "--status",
+        "observation_status=0",
+        "--status",
+        "collection_status=0",
+        "--proof-policy",
+        paths.proof_policy_arg(),
+        "--affected",
+        paths.affected_arg(),
+        "--proof-plan",
+        paths.proof_plan_arg(),
+        "--executor-summary",
+        paths.executor_summary_arg(),
+        "--executor-manifest",
+        paths.executor_manifest_arg(),
+        "--proof-execution-artifacts-check",
+        paths.proof_execution_artifacts_check_arg(),
+        "--proof-executor-observation",
+        paths.proof_executor_observation_arg(),
+        "--proof-executor-observation-collection",
+        paths.proof_executor_observation_collection_arg(),
+        "--json",
+        paths.status_arg(),
+        "--summary-md",
+        paths.summary_md_arg(),
+        "--env-output",
+        paths.env_output_arg(),
+    ]);
+
+    assert!(
+        success,
+        "proof-workflow-status failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("recommended_exit_code=0"),
+        "stdout: {stdout}"
+    );
+
+    let packet = read_json(&paths.status);
+    assert_eq!(packet["schema"], "tokmd.proof_workflow_status.v1");
+    assert_eq!(packet["workflow_kind"], "scoped_coverage_executor");
+    assert_eq!(packet["advisory"], true);
+    assert_eq!(packet["required"], false);
+    assert_eq!(packet["policy_guardrails"]["required_gate"], false);
+    assert_eq!(packet["policy_guardrails"]["codecov_default_upload"], false);
+    assert_eq!(packet["recommended_exit_code"], 0);
+    assert_eq!(packet["source_artifacts"].as_array().unwrap().len(), 8);
+    assert_eq!(packet["command_statuses"].as_array().unwrap().len(), 5);
+
+    let markdown = fs::read_to_string(&paths.summary_md).expect("summary should be readable");
+    assert!(
+        markdown.contains("## Scoped Coverage Executor"),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("explicitly non-required PR/manual experiment"),
+        "{markdown}"
+    );
+    assert!(markdown.contains("| proof executor | 0 |"), "{markdown}");
+
+    let env_output = fs::read_to_string(&paths.env_output).expect("env output should be readable");
+    assert_eq!(
+        env_output,
+        "ok=true\nrecommended_exit_code=0\nworkflow_kind=scoped_coverage_executor\n"
+    );
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-workflow-status-check",
+        "--status",
+        paths.status_arg(),
+        "--json",
+        paths.check_arg(),
+    ]);
+
+    assert!(
+        success,
+        "proof-workflow-status-check failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+    let receipt = read_json(&paths.check);
+    assert_eq!(receipt["schema"], "tokmd.proof_workflow_status_check.v1");
+    assert_eq!(receipt["ok"], true);
+    assert_eq!(receipt["source_artifacts"], 8);
+    assert_eq!(receipt["command_statuses"], 5);
+    assert_eq!(receipt["recommended_exit_code"], 0);
+}
+
+#[test]
+fn proof_workflow_status_preserves_first_nonzero_scoped_status_priority() {
+    let paths = FixturePaths::new("proof-workflow-status-scoped-nonzero");
+    paths.reset();
+    paths.write_sources();
+
+    let (stdout, stderr, success) = run_xtask(&[
+        "proof-workflow-status",
+        "--workflow-kind",
+        "scoped-coverage-executor",
+        "--status",
+        "affected_status=0",
+        "--status",
+        "executor_status=0",
+        "--status",
+        "verifier_status=9",
+        "--status",
+        "observation_status=7",
+        "--status",
+        "collection_status=5",
+        "--proof-policy",
+        paths.proof_policy_arg(),
+        "--affected",
+        paths.affected_arg(),
+        "--proof-plan",
+        paths.proof_plan_arg(),
+        "--executor-summary",
+        paths.executor_summary_arg(),
+        "--executor-manifest",
+        paths.executor_manifest_arg(),
+        "--proof-execution-artifacts-check",
+        paths.proof_execution_artifacts_check_arg(),
+        "--proof-executor-observation",
+        paths.proof_executor_observation_arg(),
+        "--proof-executor-observation-collection",
+        paths.proof_executor_observation_collection_arg(),
+        "--json",
+        paths.status_arg(),
+    ]);
+
+    assert!(
+        success,
+        "proof-workflow-status failed. stdout: {stdout}\nstderr: {stderr}"
+    );
+
+    let packet = read_json(&paths.status);
+    assert_eq!(packet["recommended_exit_code"], 9);
+}
+
+#[test]
 fn proof_workflow_status_check_rejects_absolute_source_paths() {
     let paths = FixturePaths::new("proof-workflow-status-bad-path");
     paths.reset();
@@ -251,6 +416,12 @@ struct FixturePaths {
     proof_run_summary: PathBuf,
     proof_run_artifacts_check: PathBuf,
     proof_run_observation: PathBuf,
+    affected: PathBuf,
+    executor_summary: PathBuf,
+    executor_manifest: PathBuf,
+    proof_execution_artifacts_check: PathBuf,
+    proof_executor_observation: PathBuf,
+    proof_executor_observation_collection: PathBuf,
     status: PathBuf,
     summary_md: PathBuf,
     env_output: PathBuf,
@@ -266,6 +437,13 @@ impl FixturePaths {
             proof_run_summary: root.join("proof-run-summary.json"),
             proof_run_artifacts_check: root.join("proof-run-artifacts-check.json"),
             proof_run_observation: root.join("proof-run-observation.json"),
+            affected: root.join("affected.json"),
+            executor_summary: root.join("executor-summary.json"),
+            executor_manifest: root.join("executor-manifest.json"),
+            proof_execution_artifacts_check: root.join("proof-execution-artifacts-check.json"),
+            proof_executor_observation: root.join("proof-executor-observation.json"),
+            proof_executor_observation_collection: root
+                .join("proof-executor-observation-collection.json"),
             status: root.join("proof-workflow-status.json"),
             summary_md: root.join("proof-workflow-status.md"),
             env_output: root.join("proof-workflow-status.env"),
@@ -295,7 +473,7 @@ impl FixturePaths {
                     }
                 },
                 "executor": {
-                    "pr": {"codecov_upload": false},
+                    "pr": {"required": false, "codecov_upload": false},
                     "promotion": {"default_codecov_upload": false}
                 }
             }),
@@ -312,6 +490,30 @@ impl FixturePaths {
         write_json(
             &self.proof_run_observation,
             &json!({"schema": "tokmd.proof_run_observation.v1", "entries": []}),
+        );
+        write_json(
+            &self.affected,
+            &json!({"schema": "tokmd.affected.v1", "unknown_files": []}),
+        );
+        write_json(
+            &self.executor_summary,
+            &json!({"schema": "tokmd.proof_executor_summary.v1", "commands": []}),
+        );
+        write_json(
+            &self.executor_manifest,
+            &json!({"schema": "tokmd.proof_executor_manifest.v1", "commands": []}),
+        );
+        write_json(
+            &self.proof_execution_artifacts_check,
+            &json!({"schema": "tokmd.proof_execution_artifacts_check.v1", "ok": true}),
+        );
+        write_json(
+            &self.proof_executor_observation,
+            &json!({"schema": "tokmd.proof_executor_observation.v1", "entries": []}),
+        );
+        write_json(
+            &self.proof_executor_observation_collection,
+            &json!({"schema": "tokmd.proof_executor_observation_collection.v1", "entries": []}),
         );
     }
 
@@ -333,6 +535,30 @@ impl FixturePaths {
 
     fn proof_run_observation_arg(&self) -> &str {
         rel_str(&self.proof_run_observation)
+    }
+
+    fn affected_arg(&self) -> &str {
+        rel_str(&self.affected)
+    }
+
+    fn executor_summary_arg(&self) -> &str {
+        rel_str(&self.executor_summary)
+    }
+
+    fn executor_manifest_arg(&self) -> &str {
+        rel_str(&self.executor_manifest)
+    }
+
+    fn proof_execution_artifacts_check_arg(&self) -> &str {
+        rel_str(&self.proof_execution_artifacts_check)
+    }
+
+    fn proof_executor_observation_arg(&self) -> &str {
+        rel_str(&self.proof_executor_observation)
+    }
+
+    fn proof_executor_observation_collection_arg(&self) -> &str {
+        rel_str(&self.proof_executor_observation_collection)
     }
 
     fn status_arg(&self) -> &str {

@@ -813,6 +813,116 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
         "executor workflow should write affected.json through xtask instead of shell redirection"
     );
     assert!(
+        executor.contains("cargo xtask proof-workflow-status"),
+        "executor workflow should summarize status arbitration through xtask"
+    );
+    assert!(
+        executor.contains("--workflow-kind scoped-coverage-executor"),
+        "executor workflow should identify the scoped coverage status packet kind"
+    );
+    assert!(
+        executor.contains("--status \"affected_status=${affected_status}\""),
+        "executor workflow should pass affected status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"executor_status=${executor_status}\""),
+        "executor workflow should pass executor status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"verifier_status=${verifier_status}\""),
+        "executor workflow should pass verifier status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"observation_status=${observation_status}\""),
+        "executor workflow should pass observation status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"collection_status=${collection_status}\""),
+        "executor workflow should pass collection status to the status packet"
+    );
+    assert!(
+        executor.contains("--affected target/proof/affected.json"),
+        "executor workflow should pass the affected artifact"
+    );
+    assert!(
+        executor.contains("--executor-summary target/proof/executor-summary.json"),
+        "executor workflow should pass the executor summary"
+    );
+    assert!(
+        executor.contains("--executor-manifest target/proof/executor-manifest.json"),
+        "executor workflow should pass the executor manifest"
+    );
+    assert!(
+        executor.contains(
+            "--proof-execution-artifacts-check target/proof/proof-execution-artifacts-check.json"
+        ),
+        "executor workflow should pass the execution artifact verifier receipt"
+    );
+    assert!(
+        executor
+            .contains("--proof-executor-observation target/proof/proof-executor-observation.json"),
+        "executor workflow should pass the executor observation"
+    );
+    assert!(
+        executor.contains("--proof-executor-observation-collection target/proof/proof-executor-observation-collection.json"),
+        "executor workflow should pass the executor observation collection"
+    );
+    assert!(
+        executor.contains("--json target/proof/proof-workflow-status.json"),
+        "executor workflow should write the workflow status packet"
+    );
+    assert!(
+        executor.contains("--summary-md target/proof/proof-workflow-status.md"),
+        "executor workflow should write a Rust-rendered workflow status summary"
+    );
+    assert!(
+        executor.contains("--env-output target/proof/proof-workflow-status.env"),
+        "executor workflow should write workflow-compatible status output"
+    );
+    assert!(
+        executor.contains("cargo xtask proof-workflow-status-check"),
+        "executor workflow should verify the workflow status packet"
+    );
+    assert!(
+        executor.contains("--json target/proof/proof-workflow-status-check.json"),
+        "executor workflow should write the workflow status verifier receipt"
+    );
+    assert!(
+        executor
+            .contains("proof-workflow-status-check skipped because proof-workflow-status exited"),
+        "executor workflow should skip checker cleanly when status packet generation fails"
+    );
+    let affected_exit = executor
+        .find("if [ \"${affected_status}\" -ne 0 ]; then")
+        .expect("affected_status exit check should remain");
+    let executor_exit = executor
+        .find("if [ \"${executor_status}\" -ne 0 ]; then")
+        .expect("executor_status exit check should remain");
+    let verifier_exit = executor
+        .find("if [ \"${verifier_status}\" -ne 0 ]; then")
+        .expect("verifier_status exit check should remain");
+    let observation_exit = executor
+        .find("if [ \"${observation_status}\" -ne 0 ]; then")
+        .expect("observation_status exit check should remain");
+    let collection_exit = executor
+        .find("if [ \"${collection_status}\" -ne 0 ]; then")
+        .expect("collection_status exit check should remain");
+    let workflow_status_exit = executor
+        .find("if [ \"${proof_workflow_status_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_status exit check should be present");
+    let workflow_status_check_exit = executor
+        .find("if [ \"${proof_workflow_status_check_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_check_status exit check should be present");
+    assert!(
+        affected_exit < executor_exit
+            && executor_exit < verifier_exit
+            && verifier_exit < observation_exit
+            && observation_exit < collection_exit
+            && collection_exit < workflow_status_exit
+            && workflow_status_exit < workflow_status_check_exit,
+        "executor workflow should preserve exit priority: affected, executor, verifier, observation, collection, status packet, status check"
+    );
+    assert!(
         !executor.contains("--json > target/proof/affected.json"),
         "executor workflow should not capture affected.json with shell redirection"
     );

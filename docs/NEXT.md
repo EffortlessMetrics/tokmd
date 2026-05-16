@@ -139,14 +139,14 @@ while preserving the existing `cargo-mutants` execution loop, workflow
 behavior. Draft generated coverage PRs remain parked unless deliberately
 restacked into narrow keeper slices.
 
-The next proof-orchestration slice is proof run status packet. The plan and
-draft spec are in place, and the fast proof-run workflow now writes and
-verifies the developer-facing `tokmd.proof_workflow_status.v1` packet through
+The current proof-orchestration slice is proof run status packet. The plan and
+draft spec are in place, and the fast proof-run and scoped coverage executor
+workflows now write and verify the developer-facing
+`tokmd.proof_workflow_status.v1` packet through
 `cargo xtask proof-workflow-status` /
-`cargo xtask proof-workflow-status-check`. Scoped coverage executor wiring
-remains next, while GitHub Actions stays responsible for runner setup, cache,
-tool installation, artifact upload, GitHub API calls, and Codecov service
-integration.
+`cargo xtask proof-workflow-status-check`. GitHub Actions still owns runner
+setup, cache, tool installation, artifact upload, GitHub API calls, and
+Codecov service integration.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -185,9 +185,9 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Extend `tokmd.proof_workflow_status.v1` to the scoped coverage executor
-   workflow only after preserving its non-required status, manual-only Codecov
-   behavior, artifact names, and current exit priority.
+1. Observe the proof workflow status packet in hosted fast proof-run and scoped
+   coverage executor artifacts before extending it to any other workflow.
+   Preserve advisory/non-required behavior and manual-only Codecov upload.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
