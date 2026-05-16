@@ -1009,6 +1009,10 @@ fn scenario_review_map_orders_review_first_by_evidence_risk() {
         missing_pos < available_pos,
         "review-map Markdown should order missing evidence before raw size"
     );
+    assert!(review_map_md.contains(
+        "Review-first signal: Evidence is missing for this item; repair or acknowledge the missing proof before relying on it."
+    ));
+    assert!(review_map_md.contains("do not treat this packet as a merge verdict"));
 }
 
 #[test]
@@ -1061,6 +1065,9 @@ fn scenario_review_map_orders_contract_paths_before_ordinary_low_priority_items(
         schema_pos < ordinary_pos,
         "schema contract paths should be reviewed before ordinary low-priority docs"
     );
+    assert!(review_map_md.contains(
+        "Review-first signal: Contract or policy path changed; review before ordinary implementation changes."
+    ));
 }
 
 #[test]
@@ -1510,6 +1517,9 @@ fn scenario_write_review_packet_marks_missing_doc_artifacts_for_source_of_truth_
     assert!(evidence["doc_artifacts"]["checked"].is_null());
 
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
+    assert!(review_map_md.contains(
+        "Review-first signal: Source-of-truth artifact changed; review the governing contract before ordinary files."
+    ));
     assert!(review_map_md.contains("Doc artifacts: missing for source-of-truth changes."));
     assert!(review_map_md.contains("   Doc artifacts: missing"));
     assert!(

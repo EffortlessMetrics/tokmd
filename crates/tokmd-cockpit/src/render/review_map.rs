@@ -166,6 +166,32 @@ fn review_order_bucket(item: &ReviewItem, evidence: &ReviewMapItemEvidence) -> u
     }
 }
 
+fn review_order_reason(item: &ReviewItem, evidence: &ReviewMapItemEvidence) -> &'static str {
+    if review_item_is_source_of_truth(item) {
+        "Source-of-truth artifact changed; review the governing contract before ordinary files."
+    } else if !evidence.missing.is_empty() {
+        "Evidence is missing for this item; repair or acknowledge the missing proof before relying on it."
+    } else if !evidence.stale.is_empty() {
+        "Evidence is stale for this item; regenerate it before treating the packet as current."
+    } else if !evidence.degraded.is_empty() {
+        "Evidence is degraded for this item; inspect the degraded receipt before relying on it."
+    } else if item.complexity.unwrap_or(0) >= 4 {
+        "High review complexity; inspect before lower-complexity changes."
+    } else if review_contract_path(&item.path) {
+        "Contract or policy path changed; review before ordinary implementation changes."
+    } else if item.priority <= 1 {
+        "Highest cockpit priority from the source review plan."
+    } else if item.priority == 2 {
+        "Medium cockpit priority from the source review plan."
+    } else if !evidence.present.is_empty() {
+        "Evidence is available; use the attached references to review efficiently."
+    } else if !evidence.skipped.is_empty() {
+        "Evidence was skipped; confirm the skip reason is expected."
+    } else {
+        "Lower-priority source review item; review after higher-risk signals."
+    }
+}
+
 fn review_contract_path(path: &str) -> bool {
     schema_review_path(path)
         || policy_review_path(path)
@@ -327,6 +353,11 @@ pub(super) fn render_review_map_md(
     let _ = writeln!(s, "Base: `{}`", receipt.base_ref);
     let _ = writeln!(s, "Head: `{}`", receipt.head_ref);
     let _ = writeln!(s);
+    let _ = writeln!(
+        s,
+        "Open this as a review work order: inspect items in order, regenerate the listed evidence when it is missing, stale, or degraded, and do not treat this packet as a merge verdict."
+    );
+    let _ = writeln!(s);
 
     let evidence = evidence_counts(receipt);
     let _ = writeln!(
@@ -360,11 +391,13 @@ pub(super) fn render_review_map_md(
             s,
             "{}. `{}`
    Priority: {} ({})
+   Review-first signal: {}
    Why it matters: {}",
             rank + 1,
             item.path,
             item.priority,
             review_priority_label(item.priority),
+            review_order_reason(item, evidence),
             item.reason
         );
 

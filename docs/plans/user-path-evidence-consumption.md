@@ -61,7 +61,7 @@ what is the next action?
    - Do not check in large generated dumps.
 3. Improve cockpit review-map readability when fresh evidence shows the user
    guide is still not enough.
-   - Status: pending.
+   - Status: complete.
    - Keep schema compatibility or version deliberately.
    - Preserve cockpit as evidence, not a merge verdict.
 4. Improve handoff `work-order.md` readability when the current linked-evidence
@@ -119,3 +119,5 @@ tests named by the affected proof plan and the relevant packet verifier.
 - 2026-05-16: Made `work-order.md` more directly actionable with changed
   surfaces, review evidence, proof expectations, missing-evidence, and stop
   condition sections.
+- 2026-05-16: Made `review-map.md` more explicit about review-first signals
+  and the packet's non-verdict boundary.
