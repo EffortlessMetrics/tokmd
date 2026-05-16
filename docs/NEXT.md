@@ -160,6 +160,14 @@ the publishing evidence readiness and proof workflow status packet closeouts.
 The refreshed audit selects no new implementation lane; future work should
 start from a fresh consumer, artifact, workflow, or product gap.
 
+The user-path evidence consumption lane is now active. Its purpose is to make
+existing cockpit, handoff, proof, browser, and publishing evidence consumable
+from user jobs without adding a new public `tokmd review` command, promoting
+proof or Codecov defaults, changing AST product behavior, or treating broad
+generated coverage PRs as lane owners. The first packet adds
+`docs/user-paths.md` and records sequencing in
+`docs/plans/user-path-evidence-consumption.md`.
+
 The publishing evidence readiness lane is closed. The plan in
 `docs/plans/publishing-evidence-readiness.md` made release and publishing facts
 easier to consume without publishing crates, tagging releases, changing release
@@ -212,6 +220,9 @@ lane, release workflow, and affected-proof evidence cannot cover.
    user-path cleanup by inertia.
 9. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
+10. For the active user-path evidence consumption lane, prefer docs and small
+    output-readability improvements that map commands to artifacts, meanings,
+    advisory boundaries, missing evidence, and next actions.
 
 ## Directional Rules
 

@@ -60,6 +60,7 @@ tokmd handoff --preset risk --budget 128k --strategy spread --out-dir .handoff
 ```
 
 For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
+For the command-to-artifact reading order, use [User paths](docs/user-paths.md).
 
 ## What tokmd Produces
 
@@ -73,7 +74,8 @@ For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
 | LLM context | Bounded bundles, redaction, [handoff directories](docs/handoff.md) |
 
 For the receipt and packet names you will see in these workflows, use the
-[artifact glossary](docs/artifacts.md).
+[artifact glossary](docs/artifacts.md). For which artifact to open first for a
+specific job, use [User paths](docs/user-paths.md).
 
 ## Choose a Path
 

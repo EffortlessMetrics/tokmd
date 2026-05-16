@@ -1087,6 +1087,7 @@ paths = [
   "docs/recipes.md",
   "docs/tutorial.md",
   "docs/troubleshooting.md",
+  "docs/user-paths.md",
 ]
 proof = ["cargo xtask docs --check"]
 reason = "User-facing tutorial, recipe, and troubleshooting docs should route to documentation checks instead of appearing as unknown files."
