@@ -1,6 +1,6 @@
 # Plan: User Path Evidence Consumption
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -71,19 +71,36 @@ what is the next action?
      external receipts.
 5. Add a proof evidence reading-order guide if the user-path chooser and
    artifact glossary are not enough for CI owners.
-   - Status: pending.
-   - Keep required proof, advisory proof, scoped coverage, mutation, coverage,
-     and promotion-readiness boundaries explicit.
+   - Status: complete.
+   - Fulfilled by `docs/ci/proof-observation-artifacts.md`,
+     `docs/user-paths.md`, `docs/artifacts.md`, and `docs/workflows.md`.
+   - These docs keep required proof, advisory proof, scoped coverage, mutation,
+     coverage, and promotion-readiness boundaries explicit.
 6. Add copy-ready workflow sequences when the path chooser still leaves users
    assembling commands from multiple pages.
    - Status: complete.
    - Compose existing `tokmd` and `xtask` commands; do not add new CLI
      behavior.
 7. Close or split #2299.
-   - Status: pending.
-   - Keep #2299 parked unless a slice is restacked on current `main`, has zero
-     unknown affected files, and drops placeholder-pinning or misleading test
-     names.
+   - Status: complete.
+   - #2299 was mined into narrow keeper slices and closed as superseded:
+     #2337, #2338, #2339, #2340, and #2341.
+   - Any remaining coverage work must be restacked from current `main`, name one
+     owner surface, report zero unknown affected files, and avoid broad
+     generated residue.
+
+## Closeout Decision
+
+The lane is complete. The repo now has a job-to-artifact map, small physical
+artifact trees, copy-ready workflows, a more actionable handoff work order,
+clearer cockpit review-map priority wording, proof evidence reading order, a
+browser trial path, publishing evidence guidance, and a clean disposition for
+the broad generated coverage PR.
+
+No new product command, proof promotion, Codecov default, AST product behavior,
+evidencebus runtime, or release mutation was added. Future product-readiness
+work should start from a fresh consumer or artifact gap instead of extending
+this lane by inertia.
 
 ## Validation
 
@@ -129,3 +146,8 @@ tests named by the affected proof plan and the relevant packet verifier.
 - 2026-05-16: Added copy-ready workflows for inspection, PR review, proof
   planning, proof observation summaries, agent handoff, browser-to-native
   review, and publishing evidence.
+- 2026-05-16: Closed #2299 as superseded after mining keeper slices into
+  #2337, #2338, #2339, #2340, and #2341.
+- 2026-05-16: Closed the lane. The remaining work is not more control-plane
+  compression; the next lane should start only from a fresh user, artifact, or
+  workflow gap.
