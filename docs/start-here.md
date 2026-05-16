@@ -6,6 +6,9 @@ learn the whole control plane first.
 If a workflow gives you an artifact name and you need to know what it means,
 open the [Artifact glossary](artifacts.md).
 
+If you need the shortest map from user job to command, artifact, meaning, and
+next action, open [User paths](user-paths.md).
+
 ## 1. Tell Me What This Repo Is
 
 Start with the smallest useful receipt:
