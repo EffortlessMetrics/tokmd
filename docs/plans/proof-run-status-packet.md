@@ -70,7 +70,7 @@ advisory proof, upload Codecov by default, or change required CI gates.
    - Preserve PR-visible, non-required status and manual-only Codecov upload.
    - Do not change executor command selection or coverage execution.
 5. Validate policy and affected routing.
-   - Status: pending.
+   - Status: complete.
    - Ensure workflow, `xtask`, docs, and policy changes route through existing
      proof-control scopes with zero unknown files.
 
@@ -133,3 +133,17 @@ reproduction specifically requires it.
   remains outside the required CI aggregate, and preserves the existing
   affected/executor/verifier/observation/collection exit priority before the
   additive status packet/check exits.
+- 2026-05-16: Observed the packet in hosted artifacts for both wired
+  workflows. CI run `25954863938` uploaded `fast-proof-run` with
+  `tokmd.proof_workflow_status.v1` (`workflow_kind = fast_proof_run`, 5 source
+  artifacts, 3 command statuses, `recommended_exit_code = 0`) and
+  `tokmd.proof_workflow_status_check.v1` (`ok = true`). Proof Executor
+  Experiment run `25954863931` uploaded `proof-executor-artifacts` with
+  `tokmd.proof_workflow_status.v1`
+  (`workflow_kind = scoped_coverage_executor`, 8 source artifacts, 5 command
+  statuses, `recommended_exit_code = 0`) and
+  `tokmd.proof_workflow_status_check.v1` (`ok = true`). Downloaded copies of
+  both status packets also passed
+  `cargo xtask proof-workflow-status-check`, confirming hosted fast proof-run
+  and scoped coverage executor artifacts carry verifiable status evidence while
+  preserving advisory/non-required behavior and manual-only Codecov upload.

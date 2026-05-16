@@ -144,9 +144,14 @@ draft spec are in place, and the fast proof-run and scoped coverage executor
 workflows now write and verify the developer-facing
 `tokmd.proof_workflow_status.v1` packet through
 `cargo xtask proof-workflow-status` /
-`cargo xtask proof-workflow-status-check`. GitHub Actions still owns runner
-setup, cache, tool installation, artifact upload, GitHub API calls, and
-Codecov service integration.
+`cargo xtask proof-workflow-status-check`. Hosted fast proof-run artifact
+`fast-proof-run` from CI run `25954863938` and hosted scoped coverage artifact
+`proof-executor-artifacts` from Proof Executor Experiment run `25954863931`
+both carried verifiable `tokmd.proof_workflow_status.v1` packets and
+`tokmd.proof_workflow_status_check.v1` receipts with `ok = true` and
+`recommended_exit_code = 0`. GitHub Actions still owns runner setup, cache,
+tool installation, artifact upload, GitHub API calls, and Codecov service
+integration.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -185,9 +190,10 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Observe the proof workflow status packet in hosted fast proof-run and scoped
-   coverage executor artifacts before extending it to any other workflow.
-   Preserve advisory/non-required behavior and manual-only Codecov upload.
+1. Treat the proof workflow status packet lane as observed for hosted
+   fast proof-run and scoped coverage executor artifacts. Do not extend it to
+   any other workflow without fresh evidence of a real status-arbitration gap;
+   preserve advisory/non-required behavior and manual-only Codecov upload.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
