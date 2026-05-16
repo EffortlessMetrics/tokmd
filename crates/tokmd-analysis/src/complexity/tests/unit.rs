@@ -387,3 +387,161 @@ def nested():
     // Should start at @nested_decorator
     assert!(lines[start2].trim().starts_with("@nested_decorator"));
 }
+
+#[test]
+fn test_detect_fn_go_basic() {
+    let code = r#"
+package main
+
+func main() {
+    println("hello")
+}
+
+func add(a int, b int) int {
+    return a + b
+}
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_go(&lines);
+    let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+    assert_eq!(names, vec!["main", "add"]);
+}
+
+#[test]
+fn test_detect_fn_go_with_receiver() {
+    let code = r#"
+type T struct{}
+
+func (t *T) Method() string {
+    return "method"
+}
+
+func (T) ValueMethod() int {
+    return 0
+}
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_go(&lines);
+    let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+    assert_eq!(names, vec!["Method", "ValueMethod"]);
+}
+
+#[test]
+fn test_detect_fn_go_unknown_name() {
+    // Malformed: func keyword with no identifier; brace-end search still skips it.
+    let code = "func\n";
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_go(&lines);
+    assert!(spans.is_empty(), "no brace, no span");
+}
+
+#[test]
+fn test_detect_fn_go_open_brace_only_advances() {
+    // Function header with no matching close brace should be skipped without
+    // advancing into an infinite loop.
+    let code = r#"
+func incomplete() {
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_go(&lines);
+    assert!(spans.is_empty());
+}
+
+#[test]
+fn test_detect_fn_js_basic() {
+    let code = r#"
+function foo() {
+    return 1;
+}
+
+async function bar() {
+    return 2;
+}
+
+export function baz() {
+    return 3;
+}
+
+export async function qux() {
+    return 4;
+}
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_js(&lines);
+    let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+    assert_eq!(names, vec!["foo", "bar", "baz", "qux"]);
+}
+
+#[test]
+fn test_detect_fn_js_arrow_with_brace() {
+    let code = r#"
+const greet = (name) => {
+    return "hi " + name;
+};
+
+const noop = () => {};
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_js(&lines);
+    // Both arrow functions should be detected; names come from text before '('.
+    assert_eq!(spans.len(), 2);
+}
+
+#[test]
+fn test_detect_fn_js_skips_line_comment() {
+    let code = r#"
+// function commentedOut() { return 1; }
+function real() {
+    return 1;
+}
+"#;
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_js(&lines);
+    let names: Vec<&str> = spans.iter().map(|(_, _, n)| n.as_str()).collect();
+    assert_eq!(names, vec!["real"]);
+}
+
+#[test]
+fn test_detect_fn_js_anonymous_fallback() {
+    // `(...) => { ... }` with no identifier before `(` is anonymous.
+    let code = "((x) => {\n  return x;\n})(1);\n";
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_js(&lines);
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].2, "<anonymous>");
+}
+
+#[test]
+fn test_detect_fn_js_dollar_underscore_names() {
+    let code = "function $foo_bar() {\n  return 1;\n}\n";
+    let lines: Vec<&str> = code.lines().collect();
+    let spans = detect_fn_spans_js(&lines);
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].2, "$foo_bar");
+}
+
+#[test]
+fn test_extract_function_details_dispatches_languages() {
+    use super::details::extract_function_details;
+
+    // Each language should produce at least one detail entry, exercising the
+    // language-specific dispatcher in extract_function_details.
+    let rust_code = "pub fn foo() -> i32 {\n  if true { 1 } else { 2 }\n}\n";
+    assert!(!extract_function_details("rust", rust_code).is_empty());
+
+    let js_code = "function foo() {\n  return 1;\n}\n";
+    assert!(!extract_function_details("javascript", js_code).is_empty());
+    assert!(!extract_function_details("typescript", js_code).is_empty());
+
+    let py_code = "def foo():\n    return 1\n";
+    assert!(!extract_function_details("python", py_code).is_empty());
+
+    let go_code = "func main() {\n  println(\"hi\")\n}\n";
+    assert!(!extract_function_details("go", go_code).is_empty());
+
+    let c_code = "int main() {\n  return 0;\n}\n";
+    assert!(!extract_function_details("c", c_code).is_empty());
+
+    // Unknown language returns no details (matches the `_ => Vec::new()` arm).
+    assert!(extract_function_details("brainfuck", "+++.\n").is_empty());
+}

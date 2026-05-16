@@ -24,7 +24,10 @@ mod summary;
 use debt::{average_parent_loc, compute_technical_debt_ratio};
 use details::extract_function_details;
 #[cfg(test)]
-use details::{detect_fn_spans_c_style, detect_fn_spans_python, detect_fn_spans_rust};
+use details::{
+    detect_fn_spans_c_style, detect_fn_spans_go, detect_fn_spans_js, detect_fn_spans_python,
+    detect_fn_spans_rust,
+};
 use functions::count_functions;
 #[cfg(test)]
 use functions::{count_python_functions, count_rust_functions, is_rust_fn_start};
