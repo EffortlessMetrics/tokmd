@@ -169,3 +169,50 @@ fn classify_blast(blast_radius: f64) -> EffortDeltaClassification {
         EffortDeltaClassification::Critical
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classify_blast_boundaries() {
+        // Each bucket boundary is exclusive on the high end of the lower band.
+        assert_eq!(classify_blast(0.0), EffortDeltaClassification::Low);
+        assert_eq!(classify_blast(9.999), EffortDeltaClassification::Low);
+        assert_eq!(classify_blast(10.0), EffortDeltaClassification::Medium);
+        assert_eq!(classify_blast(19.999), EffortDeltaClassification::Medium);
+        assert_eq!(classify_blast(20.0), EffortDeltaClassification::High);
+        assert_eq!(classify_blast(34.999), EffortDeltaClassification::High);
+        assert_eq!(classify_blast(35.0), EffortDeltaClassification::Critical);
+        assert_eq!(classify_blast(100.0), EffortDeltaClassification::Critical);
+    }
+
+    #[test]
+    fn build_delta_requires_base_and_head() {
+        let export = ExportData {
+            rows: Vec::new(),
+            module_roots: Vec::new(),
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let err = build_delta(dir.path(), &export, None, "", "HEAD").unwrap_err();
+        assert!(err.to_string().contains("base_ref and head_ref"));
+        let err = build_delta(dir.path(), &export, None, "HEAD~1", "  ").unwrap_err();
+        assert!(err.to_string().contains("base_ref and head_ref"));
+    }
+
+    #[cfg(not(feature = "git"))]
+    #[test]
+    fn build_delta_without_git_feature_errors() {
+        let export = ExportData {
+            rows: Vec::new(),
+            module_roots: Vec::new(),
+            module_depth: 1,
+            children: tokmd_types::ChildIncludeMode::Separate,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let err = build_delta(dir.path(), &export, None, "HEAD~1", "HEAD").unwrap_err();
+        assert!(err.to_string().contains("tokmd-git feature"));
+    }
+}
