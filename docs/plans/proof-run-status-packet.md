@@ -59,7 +59,7 @@ advisory proof, upload Codecov by default, or change required CI gates.
    - Keep execution in the existing workflows; the command should summarize
      and arbitrate status only.
 3. Wire one workflow first.
-   - Status: pending.
+   - Status: complete.
    - Start with the fast proof-run job in `.github/workflows/ci.yml` because it
      has fewer status inputs than the scoped coverage executor.
    - Preserve artifact names, advisory wording, and the current fail-fast
@@ -122,3 +122,8 @@ reproduction specifically requires it.
   source artifact paths and command exit statuses, writes JSON/Markdown/env
   outputs, preserves current fast proof-run exit priority, and leaves workflow
   wiring for the next slice.
+- 2026-05-16: Wired the fast proof-run job to write and verify
+  `proof-workflow-status.json` while keeping proof execution in the existing
+  workflow. The workflow still uploads the same `fast-proof-run` artifact
+  directory, preserves the existing fallback exit priority, and leaves scoped
+  coverage executor wiring for a later slice.

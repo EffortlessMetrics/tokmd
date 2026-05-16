@@ -565,6 +565,88 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should emit a compact proof-run observation"
     );
     assert!(
+        ci.contains("cargo xtask proof-workflow-status"),
+        "fast proof job should summarize status arbitration through xtask"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_status=${proof_run_status}\""),
+        "fast proof job should pass proof run status to the status packet"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_artifacts_status=${proof_run_artifacts_status}\""),
+        "fast proof job should pass artifact verifier status to the status packet"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_observation_status=${proof_run_observation_status}\""),
+        "fast proof job should pass observation status to the status packet"
+    );
+    assert!(
+        ci.contains("--proof-policy target/proof-run/proof-policy.json"),
+        "fast proof job should pass the proof policy artifact"
+    );
+    assert!(
+        ci.contains("--proof-plan target/proof-run/proof-plan.json"),
+        "fast proof job should pass the proof plan artifact"
+    );
+    assert!(
+        ci.contains("--proof-run-summary target/proof-run/proof-run-summary.json"),
+        "fast proof job should pass the proof-run summary artifact"
+    );
+    assert!(
+        ci.contains("--proof-run-artifacts-check target/proof-run/proof-run-artifacts-check.json"),
+        "fast proof job should pass the proof-run verifier receipt"
+    );
+    assert!(
+        ci.contains("--proof-run-observation target/proof-run/proof-run-observation.json"),
+        "fast proof job should pass the proof-run observation artifact"
+    );
+    assert!(
+        ci.contains("--json target/proof-run/proof-workflow-status.json"),
+        "fast proof job should write the workflow status packet"
+    );
+    assert!(
+        ci.contains("--summary-md target/proof-run/proof-workflow-status.md"),
+        "fast proof job should write a Rust-rendered workflow summary"
+    );
+    assert!(
+        ci.contains("--env-output target/proof-run/proof-workflow-status.env"),
+        "fast proof job should write workflow-compatible status outputs"
+    );
+    assert!(
+        ci.contains("cargo xtask proof-workflow-status-check"),
+        "fast proof job should verify the workflow status packet"
+    );
+    assert!(
+        ci.contains("--json target/proof-run/proof-workflow-status-check.json"),
+        "fast proof job should write the workflow status verifier receipt"
+    );
+    assert!(
+        ci.contains("proof-workflow-status-check skipped because proof-workflow-status exited"),
+        "fast proof job should skip checker cleanly when status packet generation fails"
+    );
+    let proof_run_exit = ci
+        .find("if [ \"${proof_run_status}\" -ne 0 ]; then")
+        .expect("proof_run_status exit check should remain");
+    let proof_run_artifacts_exit = ci
+        .find("if [ \"${proof_run_artifacts_status}\" -ne 0 ]; then")
+        .expect("proof_run_artifacts_status exit check should remain");
+    let proof_run_observation_exit = ci
+        .find("if [ \"${proof_run_observation_status}\" -ne 0 ]; then")
+        .expect("proof_run_observation_status exit check should remain");
+    let proof_workflow_status_exit = ci
+        .find("if [ \"${proof_workflow_status_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_status exit check should be present");
+    let proof_workflow_status_check_exit = ci
+        .find("if [ \"${proof_workflow_status_check_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_check_status exit check should be present");
+    assert!(
+        proof_run_exit < proof_run_artifacts_exit
+            && proof_run_artifacts_exit < proof_run_observation_exit
+            && proof_run_observation_exit < proof_workflow_status_exit
+            && proof_workflow_status_exit < proof_workflow_status_check_exit,
+        "fast proof job should preserve exit priority: proof run, artifacts, observation, status packet, status check"
+    );
+    assert!(
         ci.contains("Fast proof-run artifact generation is advisory"),
         "fast proof job summary should state advisory status"
     );

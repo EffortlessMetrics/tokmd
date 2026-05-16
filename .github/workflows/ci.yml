@@ -312,6 +312,31 @@ jobs:
           cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json > target/proof-run/proof-run-observation.txt 2>&1
           proof_run_observation_status=$?
 
+          cargo xtask proof-workflow-status \
+            --workflow-kind fast-proof-run \
+            --status "proof_run_status=${proof_run_status}" \
+            --status "proof_run_artifacts_status=${proof_run_artifacts_status}" \
+            --status "proof_run_observation_status=${proof_run_observation_status}" \
+            --proof-policy target/proof-run/proof-policy.json \
+            --proof-plan target/proof-run/proof-plan.json \
+            --proof-run-summary target/proof-run/proof-run-summary.json \
+            --proof-run-artifacts-check target/proof-run/proof-run-artifacts-check.json \
+            --proof-run-observation target/proof-run/proof-run-observation.json \
+            --json target/proof-run/proof-workflow-status.json \
+            --summary-md target/proof-run/proof-workflow-status.md \
+            --env-output target/proof-run/proof-workflow-status.env > target/proof-run/proof-workflow-status.txt 2>&1
+          proof_workflow_status_status=$?
+
+          if [ "${proof_workflow_status_status}" -eq 0 ]; then
+            cargo xtask proof-workflow-status-check \
+              --status target/proof-run/proof-workflow-status.json \
+              --json target/proof-run/proof-workflow-status-check.json > target/proof-run/proof-workflow-status-check.txt 2>&1
+            proof_workflow_status_check_status=$?
+          else
+            printf 'proof-workflow-status-check skipped because proof-workflow-status exited %s\n' "${proof_workflow_status_status}" > target/proof-run/proof-workflow-status-check.txt
+            proof_workflow_status_check_status=0
+          fi
+
           {
             echo "proof_run_status=${proof_run_status}"
             echo "proof_run_artifacts_status=${proof_run_artifacts_status}"
@@ -337,6 +362,14 @@ jobs:
               echo ""
               cat target/proof-run/proof-run-observation.txt
             fi
+            if [ -f target/proof-run/proof-workflow-status.txt ]; then
+              echo ""
+              cat target/proof-run/proof-workflow-status.txt
+            fi
+            if [ -f target/proof-run/proof-workflow-status-check.txt ]; then
+              echo ""
+              cat target/proof-run/proof-workflow-status-check.txt
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${proof_run_status}" -ne 0 ]; then
@@ -349,6 +382,14 @@ jobs:
 
           if [ "${proof_run_observation_status}" -ne 0 ]; then
             exit "${proof_run_observation_status}"
+          fi
+
+          if [ "${proof_workflow_status_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_status}"
+          fi
+
+          if [ "${proof_workflow_status_check_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_check_status}"
           fi
 
           exit 0

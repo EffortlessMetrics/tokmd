@@ -140,13 +140,13 @@ behavior. Draft generated coverage PRs remain parked unless deliberately
 restacked into narrow keeper slices.
 
 The next proof-orchestration slice is proof run status packet. The plan and
-draft spec are in place, and the first Rust implementation slice now provides
-developer-facing `cargo xtask proof-workflow-status` /
-`cargo xtask proof-workflow-status-check` support for fast proof-run status
-arbitration. Workflow wiring remains next: move the fast proof-run job in
-`.github/workflows/ci.yml` to consume the Rust-owned packet while keeping
-GitHub Actions responsible for runner setup, cache, tool installation, artifact
-upload, GitHub API calls, and Codecov service integration.
+draft spec are in place, and the fast proof-run workflow now writes and
+verifies the developer-facing `tokmd.proof_workflow_status.v1` packet through
+`cargo xtask proof-workflow-status` /
+`cargo xtask proof-workflow-status-check`. Scoped coverage executor wiring
+remains next, while GitHub Actions stays responsible for runner setup, cache,
+tool installation, artifact upload, GitHub API calls, and Codecov service
+integration.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -185,10 +185,9 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Wire the fast proof-run workflow to the new
-   `tokmd.proof_workflow_status.v1` packet/checker while preserving current
-   proof execution, artifact names, exit priority, advisory/default-off
-   boundaries, and Codecov behavior.
+1. Extend `tokmd.proof_workflow_status.v1` to the scoped coverage executor
+   workflow only after preserving its non-required status, manual-only Codecov
+   behavior, artifact names, and current exit priority.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
