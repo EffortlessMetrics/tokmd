@@ -131,6 +131,13 @@ future plan identifies a concrete consumer or maintenance problem. Mutation
 testing remains advisory; Codecov behavior, public `tokmd` CLI behavior, and
 receipt schemas are unchanged.
 
+The proof-orchestration gap audit is complete. It selected CI mutation scope
+routing as the next narrow implementation slice: the CI mutation job still owns
+an inline changed-file classifier, while the manual mutation workflow already
+uses Rust-owned `cargo xtask mutation-scope`. Draft generated PR #2299 remains
+parked: it is broad coverage/test work, dirty against main, and touches the
+pre-split diff-coverage path.
+
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
 complete as a single finished program, and selected publishing evidence
@@ -168,9 +175,10 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Choose the next lane deliberately from fresh evidence. Do not continue
-   mutation workflow Rustification into execution orchestration unless a
-   concrete consumer or maintenance problem proves that is the next gap.
+1. Complete `docs/plans/ci-mutation-scope-routing.md`: replace only the CI
+   mutation job's inline changed-file classifier with `cargo xtask
+   mutation-scope`, preserving mutation execution, advisory status, Codecov
+   defaults, workflow outputs, and public receipt behavior.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Choose the next proof-orchestration slice deliberately; do not promote
