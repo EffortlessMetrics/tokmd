@@ -2,7 +2,7 @@
 
 - Status: active
 - Related proposal:
-- Related spec:
+- Related spec: `docs/specs/proof-workflow-status.md`
 - Related ADR:
 - Related issues:
 
@@ -44,7 +44,7 @@ advisory proof, upload Codecov by default, or change required CI gates.
 ## Work Packets
 
 1. Define the workflow status packet contract.
-   - Status: pending.
+   - Status: complete.
    - Add a draft spec for a developer/CI-facing `tokmd.proof_workflow_status.v1`
      receipt or record why an existing receipt can cover the same job.
    - The contract should cover input receipt paths, command status values,
@@ -111,3 +111,8 @@ reproduction specifically requires it.
   arbitration as a real Rust-ownership candidate, but larger than the mutation
   classifier cleanup and requiring a fresh packet-shaped plan before behavior
   edits.
+- 2026-05-15: Added the draft `docs/specs/proof-workflow-status.md` contract
+  for `tokmd.proof_workflow_status.v1` and
+  `tokmd.proof_workflow_status_check.v1`. The spec keeps the packet
+  developer/CI-facing, status-arbitration-only, and advisory-boundary
+  preserving.

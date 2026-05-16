@@ -141,11 +141,12 @@ restacked into narrow keeper slices.
 
 The next proof-orchestration slice is plan-first: proof run status packet.
 `docs/plans/proof-run-status-packet.md` defines the next candidate before any
-workflow behavior edits. The target is to move fast proof-run and scoped
-coverage executor status arbitration toward a small Rust-owned status packet
-while keeping GitHub Actions responsible for runner setup, cache, tool
-installation, artifact upload, GitHub API calls, and Codecov service
-integration.
+workflow behavior edits, and `docs/specs/proof-workflow-status.md` now defines
+the draft `tokmd.proof_workflow_status.v1` / verifier contract. The target is
+to move fast proof-run and scoped coverage executor status arbitration toward a
+small Rust-owned status packet while keeping GitHub Actions responsible for
+runner setup, cache, tool installation, artifact upload, GitHub API calls, and
+Codecov service integration.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -184,10 +185,10 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Start `docs/plans/proof-run-status-packet.md` with a contract/spec slice
-   before changing `.github/workflows/ci.yml` or
-   `.github/workflows/proof-executor.yml`; keep status arbitration only and do
-   not execute proof from the summarizer.
+1. Implement the first `tokmd.proof_workflow_status.v1` generator/checker
+   slice from `docs/specs/proof-workflow-status.md`, starting with fast
+   proof-run status arbitration only; keep proof execution in the existing
+   workflow and preserve advisory/default-off boundaries.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
