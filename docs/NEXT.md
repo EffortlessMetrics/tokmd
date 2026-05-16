@@ -139,6 +139,14 @@ while preserving the existing `cargo-mutants` execution loop, workflow
 behavior. Draft generated coverage PRs remain parked unless deliberately
 restacked into narrow keeper slices.
 
+The next proof-orchestration slice is plan-first: proof run status packet.
+`docs/plans/proof-run-status-packet.md` defines the next candidate before any
+workflow behavior edits. The target is to move fast proof-run and scoped
+coverage executor status arbitration toward a small Rust-owned status packet
+while keeping GitHub Actions responsible for runner setup, cache, tool
+installation, artifact upload, GitHub API calls, and Codecov service
+integration.
+
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
 complete as a single finished program, and selected publishing evidence
@@ -176,9 +184,10 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Choose the next proof-orchestration slice deliberately; do not promote
-   advisory proof, default Codecov upload, or cockpit/handoff consumption from
-   the closed decision-readiness lanes.
+1. Start `docs/plans/proof-run-status-packet.md` with a contract/spec slice
+   before changing `.github/workflows/ci.yml` or
+   `.github/workflows/proof-executor.yml`; keep status arbitration only and do
+   not execute proof from the summarizer.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
