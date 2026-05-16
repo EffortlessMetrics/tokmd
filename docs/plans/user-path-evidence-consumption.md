@@ -66,7 +66,7 @@ what is the next action?
    - Preserve cockpit as evidence, not a merge verdict.
 4. Improve handoff `work-order.md` readability when the current linked-evidence
    summary still leaves agent tasks ambiguous.
-   - Status: pending.
+   - Status: complete.
    - Summarize external evidence handles; do not make handoff verify those
      external receipts.
 5. Add a proof evidence reading-order guide if the user-path chooser and
@@ -116,3 +116,6 @@ tests named by the affected proof plan and the relevant packet verifier.
   and adds the user-path evidence chooser.
 - 2026-05-16: Added small sample artifact trees for review packets, handoff
   bundles, proof status, browser receipts, and publishing evidence.
+- 2026-05-16: Made `work-order.md` more directly actionable with changed
+  surfaces, review evidence, proof expectations, missing-evidence, and stop
+  condition sections.

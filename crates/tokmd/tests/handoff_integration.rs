@@ -217,6 +217,16 @@ fn test_handoff_links_review_and_proof_artifacts() {
     assert!(work_order.contains("Review packet verifier: ok=true"));
     assert!(work_order.contains("Review map: 1 item(s)"));
     assert!(work_order.contains("`docs/handoff.md`: handoff behavior changed"));
+    assert!(work_order.contains("## Changed Surfaces"));
+    assert!(work_order.contains("Changed files to inspect first:"));
+    assert!(work_order.contains("## Review Evidence"));
+    assert!(work_order.contains("Review packet verifier: linked and ok."));
+    assert!(work_order.contains("## Proof Expectations"));
+    assert!(work_order.contains("Run expected proof before claiming done:"));
+    assert!(work_order.contains("## Missing / Stale / Degraded Evidence"));
+    assert!(work_order.contains("Review evidence missing: 1"));
+    assert!(work_order.contains("Review evidence unavailable: 1"));
+    assert!(work_order.contains("## Agent Stop Conditions"));
     assert!(
         work_order.contains("Affected proof: 1 changed file(s), 1 scope(s), 0 unknown file(s)")
     );
