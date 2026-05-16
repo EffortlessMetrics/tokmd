@@ -5,7 +5,8 @@ first. It is a consumption map, not a command reference.
 
 For artifact definitions, use the [Artifact glossary](artifacts.md). For the
 first guided walkthrough, use [Start Here](start-here.md). For small physical
-layouts, use [Sample artifact trees](examples/README.md).
+layouts, use [Sample artifact trees](examples/README.md). For copy-ready command
+sequences, use [Copy-Ready Workflows](workflows.md).
 
 ## At A Glance
 

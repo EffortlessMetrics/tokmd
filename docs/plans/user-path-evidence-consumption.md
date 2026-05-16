@@ -74,7 +74,12 @@ what is the next action?
    - Status: pending.
    - Keep required proof, advisory proof, scoped coverage, mutation, coverage,
      and promotion-readiness boundaries explicit.
-6. Close or split #2299.
+6. Add copy-ready workflow sequences when the path chooser still leaves users
+   assembling commands from multiple pages.
+   - Status: complete.
+   - Compose existing `tokmd` and `xtask` commands; do not add new CLI
+     behavior.
+7. Close or split #2299.
    - Status: pending.
    - Keep #2299 parked unless a slice is restacked on current `main`, has zero
      unknown affected files, and drops placeholder-pinning or misleading test
@@ -121,3 +126,6 @@ tests named by the affected proof plan and the relevant packet verifier.
   condition sections.
 - 2026-05-16: Made `review-map.md` more explicit about review-first signals
   and the packet's non-verdict boundary.
+- 2026-05-16: Added copy-ready workflows for inspection, PR review, proof
+  planning, proof observation summaries, agent handoff, browser-to-native
+  review, and publishing evidence.

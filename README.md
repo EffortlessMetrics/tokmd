@@ -75,7 +75,8 @@ For the command-to-artifact reading order, use [User paths](docs/user-paths.md).
 
 For the receipt and packet names you will see in these workflows, use the
 [artifact glossary](docs/artifacts.md). For which artifact to open first for a
-specific job, use [User paths](docs/user-paths.md).
+specific job, use [User paths](docs/user-paths.md). For copy-ready command
+sequences, use [Copy-Ready Workflows](docs/workflows.md).
 
 ## Choose a Path
 

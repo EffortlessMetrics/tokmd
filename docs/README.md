@@ -9,6 +9,9 @@ schemas, and verification policy for `tokmd`.
   inspection, PR review, CI evidence, agent handoff, or browser evaluation.
 - [user-paths.md](user-paths.md) — map each job to the command, primary
   artifact, first file to open, meaning, non-meaning, and next action.
+- [workflows.md](workflows.md) — copy-ready command sequences for inspection,
+  PR review, proof planning, proof observations, agent handoff, browser trial,
+  and publishing evidence.
 - [examples/](examples/README.md) — small artifact-tree walkthroughs for
   review packets, handoff bundles, proof status, browser receipts, and
   publishing evidence.
