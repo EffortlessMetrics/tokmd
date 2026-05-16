@@ -45,5 +45,6 @@ proof_plan = "cargo xtask proof --profile affected --base origin/main --head HEA
 proof_run_tests = "cargo test -p xtask proof_run --verbose"
 proof_artifacts_tests = "cargo test -p xtask proof_artifacts --verbose"
 proof_observation_status_tests = "cargo test -p xtask proof_observation_status --verbose"
+proof_workflow_status_tests = "cargo test -p xtask proof_workflow_status --verbose"
 fmt = "cargo fmt-check"
 diff_hygiene = "git diff --check"

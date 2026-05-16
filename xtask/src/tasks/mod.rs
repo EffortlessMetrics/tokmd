@@ -31,6 +31,7 @@ pub mod proof_observation_thresholds;
 pub mod proof_plan;
 pub mod proof_policy;
 pub mod proof_run_pr_policy;
+pub mod proof_workflow_status;
 pub mod publish;
 pub mod publish_surface;
 pub mod review_packet_check;

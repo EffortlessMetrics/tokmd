@@ -53,7 +53,7 @@ advisory proof, upload Codecov by default, or change required CI gates.
    - The contract must explicitly state that the packet is not a merge verdict
      and does not promote advisory proof.
 2. Add a Rust-owned status summarizer.
-   - Status: pending.
+   - Status: complete.
    - Add an `xtask` command that consumes existing receipt paths and explicit
      command status integers, then writes JSON and Markdown summaries.
    - Keep execution in the existing workflows; the command should summarize
@@ -116,3 +116,9 @@ reproduction specifically requires it.
   `tokmd.proof_workflow_status_check.v1`. The spec keeps the packet
   developer/CI-facing, status-arbitration-only, and advisory-boundary
   preserving.
+- 2026-05-16: Added the first Rust implementation slice for fast proof-run
+  status arbitration through `cargo xtask proof-workflow-status` and
+  `cargo xtask proof-workflow-status-check`. The command consumes explicit
+  source artifact paths and command exit statuses, writes JSON/Markdown/env
+  outputs, preserves current fast proof-run exit priority, and leaves workflow
+  wiring for the next slice.
