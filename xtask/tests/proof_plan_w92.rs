@@ -581,6 +581,74 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
 }
 
 #[test]
+fn ci_mutation_job_uses_rust_owned_mutation_scope_selector() {
+    let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
+        .expect("ci workflow should be readable");
+    let mutation_section = ci
+        .split("  mutation:")
+        .nth(1)
+        .and_then(|section| section.split("  ci-required:").next())
+        .expect("CI workflow should define mutation and required aggregate jobs");
+
+    assert!(
+        mutation_section.contains("cargo xtask mutation-scope"),
+        "CI mutation job should route file selection through xtask"
+    );
+    assert!(
+        mutation_section.contains("--base-ref \"$BASE_REF\""),
+        "CI mutation job should record the human base ref"
+    );
+    assert!(
+        mutation_section.contains("--base \"origin/$BASE_REF\""),
+        "CI mutation job should diff against the fetched base ref"
+    );
+    assert!(
+        mutation_section.contains("--head HEAD"),
+        "CI mutation job should diff against checked-out HEAD"
+    );
+    assert!(
+        mutation_section.contains("--all-changed-files all_changed_files.txt"),
+        "CI mutation job should preserve the all-changed-files evidence path"
+    );
+    assert!(
+        mutation_section.contains("--changed-files changed_files.txt"),
+        "CI mutation job should preserve the changed_files.txt execution input"
+    );
+    assert!(
+        mutation_section.contains("--json-output target/mutation/mutation-scope.json"),
+        "CI mutation job should emit the mutation scope JSON receipt"
+    );
+    assert!(
+        mutation_section.contains("--github-output \"$GITHUB_OUTPUT\""),
+        "CI mutation job should preserve workflow-compatible count/files outputs"
+    );
+    assert!(
+        mutation_section.contains("steps.changed.outputs.count != '0'"),
+        "CI mutation execution should still branch on the Rust-owned count output"
+    );
+    assert!(
+        mutation_section.contains("done < changed_files.txt"),
+        "CI mutation execution should keep consuming changed_files.txt"
+    );
+    assert!(
+        mutation_section.contains("target/mutation/mutation-scope.json"),
+        "CI mutation artifacts should include the mutation scope receipt"
+    );
+    assert!(
+        mutation_section.contains("all_changed_files.txt"),
+        "CI mutation artifacts should include all changed-file evidence"
+    );
+    assert!(
+        !mutation_section.contains("git diff --name-only"),
+        "CI mutation job should not keep the inline git diff classifier"
+    );
+    assert!(
+        !mutation_section.contains("grep -v '/tests/'"),
+        "CI mutation job should not keep duplicate shell filter logic"
+    );
+}
+
+#[test]
 fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     let root = workspace_root();
     let executor = fs::read_to_string(root.join(".github/workflows/proof-executor.yml"))
