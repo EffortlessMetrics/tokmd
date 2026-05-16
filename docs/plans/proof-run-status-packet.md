@@ -1,6 +1,6 @@
 # Plan: Proof Run Status Packet
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec: `docs/specs/proof-workflow-status.md`
 - Related ADR:
@@ -103,6 +103,19 @@ reproduction specifically requires it.
 - Stop if the design would enable default Codecov upload.
 - Stop if affected planning reports unknown files.
 - Stop if generated `target/` artifacts are staged or committed.
+
+## Closeout
+
+- Completed on: 2026-05-16.
+- Outcome: hosted fast proof-run and scoped coverage executor artifacts now
+  carry verifiable `tokmd.proof_workflow_status.v1` packets and
+  `tokmd.proof_workflow_status_check.v1` receipts.
+- Decision: do not extend this packet to another workflow without fresh
+  evidence of a real status-arbitration gap.
+- Boundaries preserved: fast proof-run and scoped coverage remain advisory and
+  non-required, Codecov upload remains manual-only, GitHub Actions still owns
+  runner/cache/tool/artifact/service integration, and the packet remains
+  status/arbitration evidence rather than proof execution or a merge verdict.
 
 ## Checkpoint History
 
