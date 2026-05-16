@@ -838,9 +838,11 @@ paths = [
   "crates/tokmd-format/tests/analysis_format/**",
   "crates/tokmd-format/tests/analysis_html.rs",
   "crates/tokmd-format/tests/analysis_html/**",
+  "crates/tokmd-format/tests/render_derived_markdown.rs",
 ]
 packages = ["tokmd-format"]
 proof = [
+  "cargo test -p tokmd-format --test render_derived_markdown --verbose",
   "cargo test -p tokmd-format --test analysis_format --verbose",
   "cargo test -p tokmd-format --test analysis_html --verbose",
 ]
