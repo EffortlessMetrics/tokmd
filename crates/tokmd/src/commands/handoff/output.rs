@@ -254,10 +254,23 @@ fn render_work_order(
     linked_evidence: &LinkedEvidenceSummary,
 ) -> String {
     let mut out = String::new();
+    push_work_order_header(&mut out);
+    push_start_here_section(&mut out, order.links);
+    push_bundle_summary_section(&mut out, order);
+    push_linked_evidence_section(&mut out, order.links);
+    render_linked_evidence_summary(&mut out, order.links, linked_evidence);
+    push_included_files_section(&mut out, order.selected);
+    push_agent_guardrails_section(&mut out);
+    out
+}
+
+fn push_work_order_header(out: &mut String) {
     out.push_str("# Agent Work Order\n\n");
     out.push_str("This handoff is a deterministic source/context bundle for coding-agent work.\n");
     out.push_str("Treat linked review and proof receipts as external evidence handles; this file does not verify them.\n\n");
+}
 
+fn push_start_here_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
     out.push_str("## Start Here\n\n");
     let mut steps = vec![
         "Read `manifest.json` for the authoritative artifact index, token budget, included files, and exclusions.",
@@ -266,18 +279,20 @@ fn render_work_order(
         "Use `map.jsonl` for full file inventory and path lookup.",
         "Use `intelligence.json` for repository shape, hotspots, complexity, and derived signals.",
     ];
-    if order.links.review_packet_dir.is_some() || order.links.review_packet_check.is_some() {
+    if links.review_packet_dir.is_some() || links.review_packet_check.is_some() {
         steps.push(
             "Use `review-links.json` for cockpit review packet and verifier receipt pointers.",
         );
     }
-    if order.links.affected.is_some() || order.links.proof_plan.is_some() {
+    if links.affected.is_some() || links.proof_plan.is_some() {
         steps.push("Use `proof-links.json` for affected-proof and proof-plan pointers.");
     }
     for (index, step) in steps.iter().enumerate() {
         out.push_str(&format!("{}. {}\n", index + 1, step));
     }
+}
 
+fn push_bundle_summary_section(out: &mut String, order: &HandoffWorkOrderInputs<'_>) {
     out.push_str("\n## Bundle Summary\n\n");
     out.push_str(&format!("- Inputs: {}\n", order.inputs.join(", ")));
     out.push_str(&format!("- Budget tokens: {}\n", order.budget_tokens));
@@ -291,66 +306,56 @@ fn render_work_order(
     ));
     out.push_str(&format!("- Bundled files: {}\n", order.selected.len()));
     out.push_str(&format!("- Total scanned files: {}\n", order.total_files));
+}
 
+fn push_linked_evidence_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
     out.push_str("\n## Linked Evidence\n\n");
-    if let Some(path) = order.links.review_packet_dir {
-        out.push_str(&format!(
-            "- Review packet directory: `{}`\n",
-            path_string(path)
-        ));
-    } else {
-        out.push_str("- Review packet directory: not linked\n");
-    }
-    if let Some(path) = order.links.review_packet_check {
-        out.push_str(&format!(
-            "- Review packet verifier receipt: `{}`\n",
-            path_string(path)
-        ));
-    } else {
-        out.push_str("- Review packet verifier receipt: not linked\n");
-    }
-    if let Some(path) = order.links.affected {
-        out.push_str(&format!(
-            "- Affected proof report: `{}`\n",
-            path_string(path)
-        ));
-    } else {
-        out.push_str("- Affected proof report: not linked\n");
-    }
-    if let Some(path) = order.links.proof_plan {
-        out.push_str(&format!("- Proof plan report: `{}`\n", path_string(path)));
-    } else {
-        out.push_str("- Proof plan report: not linked\n");
-    }
+    push_linked_path_line(out, "Review packet directory", links.review_packet_dir);
+    push_linked_path_line(
+        out,
+        "Review packet verifier receipt",
+        links.review_packet_check,
+    );
+    push_linked_path_line(out, "Affected proof report", links.affected);
+    push_linked_path_line(out, "Proof plan report", links.proof_plan);
+}
 
-    render_linked_evidence_summary(&mut out, order.links, linked_evidence);
+fn push_linked_path_line(out: &mut String, label: &str, path: Option<&Path>) {
+    match path {
+        Some(path) => out.push_str(&format!("- {}: `{}`\n", label, path_string(path))),
+        None => out.push_str(&format!("- {}: not linked\n", label)),
+    }
+}
 
+fn push_included_files_section(out: &mut String, selected: &[ContextFileRow]) {
     out.push_str("\n## Included Files\n\n");
-    if order.selected.is_empty() {
+    if selected.is_empty() {
         out.push_str("- No files were bundled.\n");
-    } else {
-        for file in order.selected.iter().take(20) {
-            let effective_tokens = file.effective_tokens.unwrap_or(file.tokens);
-            out.push_str(&format!(
-                "- `{}`: {}, policy `{}`, {} effective tokens",
-                file.path,
-                file.lang,
-                policy_label(file.policy),
-                effective_tokens
-            ));
-            if !file.rank_reason.is_empty() {
-                out.push_str(&format!(", reason: {}", file.rank_reason));
-            }
-            out.push('\n');
-        }
-        if order.selected.len() > 20 {
-            out.push_str(&format!(
-                "- ... {} more bundled file(s); see `manifest.json` for the full list.\n",
-                order.selected.len() - 20
-            ));
-        }
+        return;
     }
+    for file in selected.iter().take(20) {
+        let effective_tokens = file.effective_tokens.unwrap_or(file.tokens);
+        out.push_str(&format!(
+            "- `{}`: {}, policy `{}`, {} effective tokens",
+            file.path,
+            file.lang,
+            policy_label(file.policy),
+            effective_tokens
+        ));
+        if !file.rank_reason.is_empty() {
+            out.push_str(&format!(", reason: {}", file.rank_reason));
+        }
+        out.push('\n');
+    }
+    if selected.len() > 20 {
+        out.push_str(&format!(
+            "- ... {} more bundled file(s); see `manifest.json` for the full list.\n",
+            selected.len() - 20
+        ));
+    }
+}
 
+fn push_agent_guardrails_section(out: &mut String) {
     out.push_str("\n## Agent Guardrails\n\n");
     out.push_str("- Treat missing, stale, degraded, skipped, or unavailable evidence as work to resolve, not as passing proof.\n");
     out.push_str("- Run reproduction commands from the linked review map before claiming a repair is proven.\n");
@@ -358,8 +363,6 @@ fn render_work_order(
         "- Keep generated receipts with the work when they explain review or proof state.\n",
     );
     out.push_str("- Do not promote advisory proof, enable default Codecov upload, or turn this handoff into a merge verdict.\n");
-
-    out
 }
 
 fn render_linked_evidence_summary(
