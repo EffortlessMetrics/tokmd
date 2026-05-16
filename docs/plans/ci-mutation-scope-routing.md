@@ -1,6 +1,6 @@
 # Plan: CI Mutation Scope Routing
 
-- Status: active
+- Status: complete
 - Related proposal:
 - Related spec:
 - Related ADR:
@@ -41,7 +41,7 @@ existing mutation execution loop.
 ## Work Packets
 
 1. Replace the CI mutation changed-file classifier.
-   - Status: pending.
+   - Status: complete.
    - In `.github/workflows/ci.yml`, update the mutation job's
      `Get changed Rust files` step to call `cargo xtask mutation-scope`.
    - Preserve `steps.changed.outputs.count` and `steps.changed.outputs.files`
@@ -49,13 +49,13 @@ existing mutation execution loop.
    - Preserve `changed_files.txt` as the file consumed by the existing
      `cargo-mutants` loop.
 2. Emit CI mutation scope evidence.
-   - Status: pending.
+   - Status: complete.
    - Write `target/mutation/mutation-scope.json` from the CI mutation job, using
      the same `tokmd.mutation_scope.v1` shape as the manual mutation workflow.
-   - Upload it with the existing mutation artifacts if practical; if upload
-     behavior stays unchanged, document why.
+   - Upload it with the existing mutation artifact bundle alongside
+     `all_changed_files.txt` and `changed_files.txt`.
 3. Validate policy and affected routing.
-   - Status: pending.
+   - Status: complete.
    - Ensure `.github/workflows/ci.yml` still routes through the proof-control
      scope and produces zero unknown files.
    - Keep mutation advisory and Codecov default-off.
@@ -94,3 +94,8 @@ specifically requires it.
   `.github/workflows/ci.yml` still owns a duplicate inline changed-file
   classifier for the label/push mutation job, while the manual mutation
   workflow already uses the Rust-owned `cargo xtask mutation-scope` selector.
+- 2026-05-15: Implemented by replacing the CI mutation job selector with
+  `cargo xtask mutation-scope`, preserving the existing `cargo-mutants`
+  execution loop and workflow `count` / `files` outputs, and uploading
+  `target/mutation/mutation-scope.json` with the existing mutation artifact
+  bundle. Mutation testing remains advisory and Codecov behavior is unchanged.

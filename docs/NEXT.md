@@ -131,12 +131,13 @@ future plan identifies a concrete consumer or maintenance problem. Mutation
 testing remains advisory; Codecov behavior, public `tokmd` CLI behavior, and
 receipt schemas are unchanged.
 
-The proof-orchestration gap audit is complete. It selected CI mutation scope
-routing as the next narrow implementation slice: the CI mutation job still owns
-an inline changed-file classifier, while the manual mutation workflow already
-uses Rust-owned `cargo xtask mutation-scope`. Draft generated PR #2299 remains
-parked: it is broad coverage/test work, dirty against main, and touches the
-pre-split diff-coverage path.
+The proof-orchestration gap audit is complete. The selected CI mutation scope
+routing slice is also complete: the CI mutation job now uses Rust-owned
+`cargo xtask mutation-scope` instead of an inline `git diff | grep` classifier,
+while preserving the existing `cargo-mutants` execution loop, workflow
+`count` / `files` outputs, advisory mutation status, and Codecov default-off
+behavior. Draft generated coverage PRs remain parked unless deliberately
+restacked into narrow keeper slices.
 
 The code-intelligence platform audit is closed. It mapped the broad platform
 objective to live artifacts and verifier coverage, did not mark the platform
@@ -175,29 +176,25 @@ lane, release workflow, and affected-proof evidence cannot cover.
 
 ## Next Work Packets
 
-1. Complete `docs/plans/ci-mutation-scope-routing.md`: replace only the CI
-   mutation job's inline changed-file classifier with `cargo xtask
-   mutation-scope`, preserving mutation execution, advisory status, Codecov
-   defaults, workflow outputs, and public receipt behavior.
+1. Choose the next proof-orchestration slice deliberately; do not promote
+   advisory proof, default Codecov upload, or cockpit/handoff consumption from
+   the closed decision-readiness lanes.
 2. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
-3. Choose the next proof-orchestration slice deliberately; do not promote
-   advisory proof, default Codecov upload, or cockpit/handoff consumption from
-   the closed decision-readiness lane.
-4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
-5. Preserve `tokmd cockpit` as the review evidence implementation surface until
+4. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-6. Continue architecture consolidation in batches, preserving `ci/proof.toml`
+5. Continue architecture consolidation in batches, preserving `ci/proof.toml`
    scope granularity as implementation microcrates collapse into SRP modules.
-7. Use bounded performance timing receipts before optimizing hot paths.
-8. Keep source-of-truth docs, active goal state, and proof-policy routing
+6. Use bounded performance timing receipts before optimizing hot paths.
+7. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-9. Keep product-readiness docs aligned as workflows change, but start any new
+8. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-10. Keep AST foundation work in shadow mode until comparison evidence justifies
+9. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
 
 ## Directional Rules

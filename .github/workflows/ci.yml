@@ -599,21 +599,24 @@ jobs:
         id: changed
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
-          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
-            | grep -v '/tests/' \
-            | grep -v '_test\.rs$' \
-            | grep -v '^fuzz/' \
-            | grep -v '/fuzz/' \
-            > changed_files.txt || true
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="${{ github.base_ref }}"
+          else
+            BASE_REF="main"
+          fi
 
-          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          git fetch origin "$BASE_REF":"refs/remotes/origin/$BASE_REF" || true
 
-          echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          cat changed_files.txt >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          cargo xtask mutation-scope \
+            --base-ref "$BASE_REF" \
+            --base "origin/$BASE_REF" \
+            --head HEAD \
+            --max-files 20 \
+            --all-changed-files all_changed_files.txt \
+            --changed-files changed_files.txt \
+            --json-output target/mutation/mutation-scope.json \
+            --github-output "$GITHUB_OUTPUT"
 
       - name: Mutation Testing
         if: steps.changed.outputs.count != '0'
@@ -646,8 +649,12 @@ jobs:
           echo "✓ All mutations caught or unviable (0 MISSED)"
 
       - name: Skip notice
-        if: steps.changed.outputs.count == '0'
+        if: steps.changed.outputs.count == '0' && steps.changed.outputs.scope_exceeded != 'true'
         run: echo "No production Rust files changed - skipping mutation testing"
+
+      - name: Scope exceeded notice
+        if: steps.changed.outputs.scope_exceeded == 'true'
+        run: echo "Mutation scope exceeded - selected files were cleared. See target/mutation/mutation-scope.json."
 
       - name: Upload mutants report
         if: always()
@@ -655,6 +662,9 @@ jobs:
         with:
           name: mutants-report
           path: |
+            target/mutation/mutation-scope.json
+            all_changed_files.txt
+            changed_files.txt
             mutants.out/
             crates/**/mutants.out/
           if-no-files-found: ignore
