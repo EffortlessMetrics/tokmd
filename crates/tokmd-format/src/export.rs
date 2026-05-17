@@ -14,6 +14,7 @@ mod csv;
 mod cyclonedx;
 mod json;
 mod jsonl;
+mod meta;
 mod redact;
 
 use csv::write_export_csv;

@@ -16,9 +16,12 @@ use tokmd_types::{
     ExportArgs, ExportArgsMeta, ExportData, FileRow, RedactMode, ScanArgs, ScanStatus, ToolInfo,
 };
 
-use crate::{now_ms, redact_module_roots, redact_path, scan_args};
+use crate::{now_ms, scan_args};
 
-use super::redact_rows;
+use super::{
+    meta::{args_meta_from_export, redacted_args_meta},
+    redact_rows,
+};
 
 #[derive(Debug, Clone, Serialize)]
 struct ExportMeta {
@@ -32,6 +35,22 @@ struct ExportMeta {
     warnings: Vec<String>,
     scan: ScanArgs,
     args: ExportArgsMeta,
+}
+
+impl ExportMeta {
+    fn complete(scan: ScanArgs, args: ExportArgsMeta) -> Self {
+        Self {
+            ty: "meta",
+            schema_version: tokmd_types::SCHEMA_VERSION,
+            generated_at_ms: now_ms(),
+            tool: ToolInfo::current(),
+            mode: "export".to_string(),
+            status: ScanStatus::Complete,
+            warnings: vec![],
+            scan,
+            args,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -48,41 +67,11 @@ pub(super) fn write_export_jsonl<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
-        let meta = ExportMeta {
-            ty: "meta",
-            schema_version: tokmd_types::SCHEMA_VERSION,
-            generated_at_ms: now_ms(),
-            tool: ToolInfo::current(),
-            mode: "export".to_string(),
-            status: ScanStatus::Complete,
-            warnings: vec![],
-            scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-        };
+        let meta = ExportMeta::complete(
+            scan_args(&args.paths, global, Some(args.redact)),
+            args_meta_from_export(export, args),
+        );
         writeln!(out, "{}", serde_json::to_string(&meta)?)?;
     }
 
@@ -103,20 +92,7 @@ pub fn write_export_jsonl_to_file(
     let file = File::create(path)?;
     let mut out = BufWriter::new(file);
 
-    let mut final_args = args_meta.clone();
-    final_args.module_roots = redact_module_roots(&final_args.module_roots, args_meta.redact);
-
-    let meta = ExportMeta {
-        ty: "meta",
-        schema_version: tokmd_types::SCHEMA_VERSION,
-        generated_at_ms: now_ms(),
-        tool: ToolInfo::current(),
-        mode: "export".to_string(),
-        status: ScanStatus::Complete,
-        warnings: vec![],
-        scan: scan.clone(),
-        args: final_args,
-    };
+    let meta = ExportMeta::complete(scan.clone(), redacted_args_meta(args_meta));
     writeln!(out, "{}", serde_json::to_string(&meta)?)?;
 
     write_rows(&mut out, export, args_meta.redact)?;

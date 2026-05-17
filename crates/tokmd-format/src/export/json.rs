@@ -9,13 +9,11 @@ use std::io::Write;
 use anyhow::Result;
 
 use tokmd_settings::ScanOptions;
-use tokmd_types::{
-    ExportArgs, ExportArgsMeta, ExportData, ExportReceipt, RedactMode, ScanStatus, ToolInfo,
-};
+use tokmd_types::{ExportArgs, ExportData, ExportReceipt, ScanStatus, ToolInfo};
 
-use crate::{now_ms, redact_module_roots, redact_path, scan_args};
+use crate::{now_ms, scan_args};
 
-use super::redact_rows;
+use super::meta::{args_meta_from_export, redacted_export_data, redacted_rows_for_json};
 
 pub(super) fn write_export_json<W: Write>(
     out: &mut W,
@@ -23,12 +21,7 @@ pub(super) fn write_export_json<W: Write>(
     global: &ScanOptions,
     args: &ExportArgs,
 ) -> Result<()> {
-    let module_roots = redact_module_roots(&export.module_roots, args.redact);
-
     if args.meta {
-        let should_redact = args.redact == RedactMode::Paths || args.redact == RedactMode::All;
-        let strip_prefix_redacted = should_redact && args.strip_prefix.is_some();
-
         let receipt = ExportReceipt {
             schema_version: tokmd_types::SCHEMA_VERSION,
             generated_at_ms: now_ms(),
@@ -37,40 +30,15 @@ pub(super) fn write_export_json<W: Write>(
             status: ScanStatus::Complete,
             warnings: vec![],
             scan: scan_args(&args.paths, global, Some(args.redact)),
-            args: ExportArgsMeta {
-                format: args.format,
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-                min_code: args.min_code,
-                max_rows: args.max_rows,
-                redact: args.redact,
-                strip_prefix: if should_redact {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| redact_path(&p.display().to_string().replace('\\', "/")))
-                } else {
-                    args.strip_prefix
-                        .as_ref()
-                        .map(|p| p.display().to_string().replace('\\', "/"))
-                },
-                strip_prefix_redacted,
-            },
-            data: ExportData {
-                rows: redact_rows(&export.rows, args.redact)
-                    .map(|c| c.into_owned())
-                    .collect(),
-                module_roots: module_roots.clone(),
-                module_depth: export.module_depth,
-                children: export.children,
-            },
+            args: args_meta_from_export(export, args),
+            data: redacted_export_data(export, args.redact),
         };
         writeln!(out, "{}", serde_json::to_string(&receipt)?)?;
     } else {
         writeln!(
             out,
             "{}",
-            serde_json::to_string(&redact_rows(&export.rows, args.redact).collect::<Vec<_>>())?
+            serde_json::to_string(&redacted_rows_for_json(export, args.redact))?
         )?;
     }
     Ok(())
