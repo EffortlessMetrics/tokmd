@@ -37,7 +37,8 @@ cargo install tokmd --locked
 tokmd --version
 ```
 
-See [Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
+See [Install and try tokmd](docs/install-and-try.md) for the first-run path, or
+[Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
 
 ## Start With One Job
 
@@ -59,7 +60,8 @@ tokmd gate --receipt .runs/current/receipt.json --policy tokmd-gate.toml
 tokmd handoff --preset risk --budget 128k --strategy spread --out-dir .handoff
 ```
 
-For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
+For a job-oriented walkthrough, start with [Start Here](docs/start-here.md) or
+[Install and try tokmd](docs/install-and-try.md).
 For the command-to-artifact reading order, use [User paths](docs/user-paths.md).
 
 ## What tokmd Produces

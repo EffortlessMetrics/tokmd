@@ -54,11 +54,12 @@ what is the next action?
 ## Work Packets
 
 1. Add an install-and-try guide.
-   - Status: pending.
-   - Create `docs/install-and-try.md` as the first-run path for Cargo install,
+   - Status: complete.
+   - Added `docs/install-and-try.md` as the first-run path for Cargo install,
      release binaries, Nix, basic repo inspection, risk analysis, cockpit PR
      review, handoff, and browser mode.
-   - Link from README, `docs/README.md`, `docs/start-here.md`, and
+   - Linked from README, `docs/README.md`, `docs/start-here.md`,
+     `docs/install.md`, and
      `docs/user-paths.md` without duplicating all command details.
 2. Add a GitHub Action quickstart.
    - Status: pending.
@@ -170,3 +171,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Started from the parked active-goal state after queue hygiene and
   source-of-truth alignment. The selected fresh gap is adoption and release
   readiness from real user workflows, not new internal control-plane machinery.
+- 2026-05-17: Added the install-and-try guide and linked it from the public
+  entry points. The guide keeps install, inspect, PR review, handoff, browser,
+  CI, and release-facing evidence paths on existing commands and artifacts.

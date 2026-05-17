@@ -7,6 +7,9 @@ schemas, and verification policy for `tokmd`.
 
 - [start-here.md](start-here.md) — choose the shortest path for repo
   inspection, PR review, CI evidence, agent handoff, or browser evaluation.
+- [install-and-try.md](install-and-try.md) — install tokmd, run the first
+  useful commands, and move from local trial to review, handoff, CI, browser,
+  or release-facing evidence.
 - [user-paths.md](user-paths.md) — map each job to the command, primary
   artifact, first file to open, meaning, non-meaning, and next action.
 - [workflows.md](workflows.md) — copy-ready command sequences for inspection,

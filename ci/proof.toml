@@ -1099,6 +1099,7 @@ paths = [
   "docs/artifacts.md",
   "docs/browser.md",
   "docs/examples/**",
+  "docs/install-and-try.md",
   "docs/publishing-evidence.md",
   "docs/start-here.md",
   "docs/handoff.md",

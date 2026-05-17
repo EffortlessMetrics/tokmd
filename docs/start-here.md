@@ -6,6 +6,9 @@ learn the whole control plane first.
 If a workflow gives you an artifact name and you need to know what it means,
 open the [Artifact glossary](artifacts.md).
 
+If you have not installed `tokmd` yet or want the first useful local command,
+open [Install and try tokmd](install-and-try.md).
+
 If you need the shortest map from user job to command, artifact, meaning, and
 next action, open [User paths](user-paths.md).
 
