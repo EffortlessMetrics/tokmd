@@ -1215,7 +1215,6 @@ paths = [
   ".github/workflows/ripr.yml",
   "policy/ripr-suppressions.toml",
   "ripr.toml",
-  "scripts/ripr-annotations.py",
   "xtask/src/tasks/badges.rs",
   "xtask/src/tasks/ripr_pr.rs",
 ]

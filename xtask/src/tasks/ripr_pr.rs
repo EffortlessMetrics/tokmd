@@ -10,7 +10,7 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
 
-use crate::cli::{RiprPrArgs, RiprReviewCommentsArgs};
+use crate::cli::{RiprAnnotationsArgs, RiprPrArgs, RiprReviewCommentsArgs};
 
 const RIPR_PR_DIR: &str = "target/ripr/pr";
 const RIPR_REVIEW_DIR: &str = "target/ripr/review";
@@ -40,6 +40,14 @@ pub fn run_pr(args: RiprPrArgs) -> Result<()> {
     )?;
     check_pr_contract(&out_dir)?;
     println!("ripr-pr: wrote {}", out_dir.display());
+    Ok(())
+}
+
+pub fn run_annotations(args: RiprAnnotationsArgs) -> Result<()> {
+    let workspace_root = workspace_root_path()?;
+    let path = workspace_root.join(args.path);
+    let output = render_github_annotations(&path)?;
+    print!("{output}");
     Ok(())
 }
 
@@ -82,6 +90,91 @@ pub fn run_review_comments(args: RiprReviewCommentsArgs) -> Result<()> {
     check_review_contract(&json_path, &md_path)?;
     println!("ripr-review-comments: wrote {}", out_dir.display());
     Ok(())
+}
+
+fn render_github_annotations(path: &Path) -> Result<String> {
+    if !path.exists() {
+        eprintln!("::warning::No RIPR review comments JSON found; skipping annotations.");
+        return Ok(String::new());
+    }
+
+    let json_body = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let value = match serde_json::from_str::<Value>(&json_body) {
+        Ok(value) => value,
+        Err(error) => {
+            eprintln!(
+                "::warning::{}",
+                escape_command_data(&format!(
+                    "Invalid RIPR review comments JSON in {}: {error}",
+                    path.display()
+                ))
+            );
+            return Ok(String::new());
+        }
+    };
+
+    let mut output = String::new();
+    if let Some(comments) = value.get("comments").and_then(Value::as_array) {
+        for item in comments {
+            let file = item
+                .get("path")
+                .or_else(|| item.get("file"))
+                .and_then(value_to_annotation_field);
+            let line = item.get("line").and_then(value_to_annotation_field);
+            let Some(file) = file else {
+                continue;
+            };
+            let Some(line) = line else {
+                continue;
+            };
+
+            let title = item
+                .get("title")
+                .and_then(value_to_annotation_field)
+                .unwrap_or_else(|| "RIPR".to_string());
+            let body = item
+                .get("body")
+                .or_else(|| item.get("message"))
+                .and_then(value_to_annotation_field)
+                .unwrap_or_default();
+
+            output.push_str("::warning ");
+            output.push_str("file=");
+            output.push_str(&escape_command_property(&file));
+            output.push_str(",line=");
+            output.push_str(&escape_command_property(&line));
+            output.push_str(",title=");
+            output.push_str(&escape_command_property(&title));
+            output.push_str("::");
+            output.push_str(&escape_command_data(&body));
+            output.push('\n');
+        }
+    }
+
+    Ok(output)
+}
+
+fn value_to_annotation_field(value: &Value) -> Option<String> {
+    match value {
+        Value::String(value) => Some(value.clone()),
+        Value::Number(value) => Some(value.to_string()),
+        Value::Bool(value) => Some(value.to_string()),
+        _ => None,
+    }
+}
+
+fn escape_command_property(value: &str) -> String {
+    escape_command_data(value)
+        .replace('=', "%3D")
+        .replace(',', "%2C")
+}
+
+fn escape_command_data(value: &str) -> String {
+    value
+        .replace('%', "%25")
+        .replace('\r', "%0D")
+        .replace('\n', "%0A")
+        .replace(':', "%3A")
 }
 
 fn run_ripr_check_format(
@@ -207,6 +300,62 @@ fn workspace_root_path() -> Result<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn github_annotation_renderer_escapes_properties_and_data() {
+        let temp = tempfile::tempdir().unwrap();
+        let json = temp.path().join("comments.json");
+        fs::write(
+            &json,
+            r#"{
+                "comments": [
+                    {
+                        "path": "src/lib,one.rs",
+                        "line": 7,
+                        "title": "RIPR=a:b",
+                        "body": "first%line\nsecond:line"
+                    },
+                    {
+                        "file": "src/fallback.rs",
+                        "line": "9",
+                        "message": "fallback"
+                    },
+                    {
+                        "path": "src/missing-line.rs",
+                        "body": "skipped"
+                    }
+                ]
+            }"#,
+        )
+        .unwrap();
+
+        let output = render_github_annotations(&json).unwrap();
+
+        assert_eq!(
+            output,
+            "::warning file=src/lib%2Cone.rs,line=7,title=RIPR%3Da%3Ab::first%25line%0Asecond%3Aline\n\
+::warning file=src/fallback.rs,line=9,title=RIPR::fallback\n"
+        );
+    }
+
+    #[test]
+    fn github_annotation_renderer_skips_missing_json() {
+        let temp = tempfile::tempdir().unwrap();
+        let output = render_github_annotations(&temp.path().join("missing.json")).unwrap();
+
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn github_annotation_renderer_treats_invalid_json_as_non_blocking() {
+        let temp = tempfile::tempdir().unwrap();
+        let json = temp.path().join("comments.json");
+        fs::write(&json, "not json").unwrap();
+
+        let output = render_github_annotations(&json).unwrap();
+
+        assert!(output.is_empty());
+    }
 
     #[test]
     fn pr_contract_rejects_missing_output() {
