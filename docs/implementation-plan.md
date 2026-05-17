@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.10.0` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.11.0` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -393,16 +393,25 @@ authenticated fetch.
 
 ---
 
-## Phase 5d: Cockpit Hardening & Architecture Consolidation (Active)
+## Phase 5d: Cockpit Hardening & Architecture Consolidation (v1.11.0) ✅ Complete
 
-**Goal**: Improve cockpit as the PR-review evidence surface before adding a separate review orchestrator, and consolidate implementation microcrates into SRP modules.
+**Goal**: Improve cockpit as the PR-review evidence surface before adding a
+separate review orchestrator, consolidate implementation microcrates into SRP
+modules, and keep proof observations advisory while artifacts mature.
 
 ### Work Items
 
-- [ ] Finish small cockpit review-packet and Action-hosting gaps
-- [ ] Preserve `tokmd cockpit` as the review evidence implementation surface
-- [ ] Consolidate architecture in batches, preserving `ci/proof.toml` scope granularity
-- [ ] Ensure proof-run and scoped coverage observations remain advisory
+- [x] Finish cockpit review-packet and Action-hosting gaps, including packet
+      manifests, review maps, verifier receipts, hosted artifact comments, and
+      optional proof/doc-artifact imports
+- [x] Preserve `tokmd cockpit` as the review evidence implementation surface
+      without adding a separate public `tokmd review` command
+- [x] Consolidate architecture in batches, preserving `ci/proof.toml` scope
+      granularity and owner-module boundaries
+- [x] Ensure proof-run, scoped coverage, mutation, and Codecov observations
+      remain advisory until a separate promotion decision is made
+- [x] Add source-of-truth, user-path, handoff, release-readiness, and AST-shadow
+      planning/evidence surfaces without changing default product behavior
 
 ---
 
