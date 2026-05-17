@@ -5,8 +5,5 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
-| `config_resolver_doctests` | Unknown | Unknown | Unknown | open | While investigating the `crates/tokmd/src/config/resolve/` interfaces (such as `resolve_lang`, `resolve_export`, and `resolve_module`), I discovered that comprehensive and passing executable `rust` doctests are already in place for all `resolve_*` and `resolve_*_with_config` functions. |
 | `fuzz_toolchain_blocker` | fuzzer | prover | interfaces | open | `cargo fuzz` is not a reliable local gate in the current agent environments. Repeated runs hit either missing nightly-toolchain support in sandboxed Linux environments or sanitizer/LLVM link failures on Windows/MSVC before the target starts. |
-| `mutant_high_value` | Mutant | Prover | core-pipeline | open | During the assignment `mutant_high_value`, I was prompted to target a high-value core surface and provide mutation-style proof improvements. |
 | `sentinel_git_command_tests` | Unknown | Unknown | Unknown | open | While these are only test executions, they technically still execute without environment sanitation. This created confusion during threat modeling whether test paths are expected to adhere strictly to the same execution boundary hygiene as operational paths. |
-| `steward-release-clean-state` | steward | stabilizer | tooling-governance | open | A prompt (`steward_release`) requested finding release/governance improvements (e.g. publish-plan drift, changelog mismatch), but all checks pass cleanly. |
