@@ -24,7 +24,7 @@ tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-envelope.workspace = true
 
 [features]
-default = ["extension-module"]
+default = []
 extension-module = ["pyo3/extension-module"]
 
 

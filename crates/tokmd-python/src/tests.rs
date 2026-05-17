@@ -782,8 +782,8 @@ fn red_test_python_ffi_schema_version_returns_valid_number() {
 #[test]
 fn red_test_python_ffi_all_wrappers_return_pyresult() {
     with_py(|py| {
-        let temp_dir = std::env::temp_dir();
-        let temp_path = temp_dir.to_string_lossy().to_string();
+        let repo = make_repo("fn all_wrappers_return_pyresult() {}\n");
+        let temp_path = repo.path().to_string_lossy().to_string();
 
         // lang() - should return PyResult
         let _ = lang(
@@ -851,8 +851,8 @@ fn red_test_python_ffi_all_wrappers_return_pyresult() {
         // diff() - should return PyResult
         let _ = diff(py, Some(&temp_path), Some(&temp_path));
 
-        // cockpit() - should return PyResult
-        let _ = cockpit(py, None, None, None, None);
+        // cockpit() - should return PyResult without scanning the ambient repository.
+        let _ = cockpit(py, Some("__tokmd_missing_base__"), Some("HEAD"), None, None);
     });
 }
 

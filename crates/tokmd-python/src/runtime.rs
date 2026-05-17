@@ -165,6 +165,13 @@ pub(crate) fn run_with_json_module(
     // (e.g., circular reference), it propagates immediately as a Python
     // exception without panicking the Rust code.
     let json_module = json_module?;
+    if let Some(paths) = args.get_item("paths")?
+        && paths.is_none()
+    {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "paths must be a list of strings, not None",
+        ));
+    }
     let args_json: String = json_module.call_method1("dumps", (args,))?.extract()?;
 
     // Run the operation (releasing GIL)
