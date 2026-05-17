@@ -201,30 +201,44 @@ domains. Reopen publishing evidence only from a fresh proposal naming a
 consumer and a gap that the current publish-surface, version-consistency, CI
 lane, release workflow, and affected-proof evidence cannot cover.
 
+The release and distribution readiness lane is now active. Its plan lives in
+`docs/plans/release-distribution-readiness.md` and starts from a fresh adoption
+gap: outside maintainers should be able to install or try tokmd, run it in
+GitHub Actions, review a PR, prepare an agent handoff, and check release-facing
+evidence without learning the internal control plane first. This lane is
+plan-first and docs-first. It must not publish crates, tag releases, create
+GitHub releases, push images, promote proof, enable default Codecov upload,
+productize AST, add `tokmd review`, or add a new receipt before a consumer gap
+proves existing artifacts are insufficient.
+
 ## Next Work Packets
 
 1. Do not extend the closed proof workflow status packet lane to any other
    workflow without fresh evidence of a real status-arbitration gap; preserve
    advisory/non-required behavior and manual-only Codecov upload.
-2. Do not reopen AST productization without a fresh proposal grounded in the
+2. Execute the active release and distribution readiness plan in small
+   user-path packets: install-and-try, GitHub Action quickstart, real smoke
+   transcript, agent handoff prompt, handoff contract test, browser-to-native
+   guide, release evidence quickstart, and receipt-need decision.
+3. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
-3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
-4. Preserve `tokmd cockpit` as the review evidence implementation surface until
+5. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-5. Do not continue architecture consolidation by inertia. If fresh product or
+6. Do not continue architecture consolidation by inertia. If fresh product or
    proof evidence shows a real owner-module problem, preserve `ci/proof.toml`
    scope granularity while changing implementation modules.
-6. Use bounded performance timing receipts before optimizing hot paths.
-7. Keep source-of-truth docs, active goal state, and proof-policy routing
+7. Use bounded performance timing receipts before optimizing hot paths.
+8. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-8. Keep product-readiness docs aligned as workflows change, but start any new
+9. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-9. Keep AST foundation work in shadow mode until comparison evidence justifies
+10. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
-10. Treat the user-path evidence consumption lane as closed. Start the next
+11. Treat the user-path evidence consumption lane as closed. Start the next
     product lane only from a fresh consumer, missing artifact, workflow pain, or
     product gap; do not extend the completed compression pass by inertia.
 
