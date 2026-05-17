@@ -96,6 +96,10 @@ fn options_or_empty(options: Option<serde_json::Value>) -> serde_json::Value {
     options.unwrap_or_else(|| serde_json::json!({}))
 }
 
+async fn run_options(mode: &str, options: Option<serde_json::Value>) -> Result<serde_json::Value> {
+    run(mode.to_string(), options_or_empty(options)).await
+}
+
 #[cfg(test)]
 fn extract_envelope(envelope: serde_json::Value) -> Result<serde_json::Value> {
     tokmd_envelope::ffi::extract_data(envelope).map_err(map_envelope_error)
@@ -141,8 +145,7 @@ pub async fn run(mode: String, args: serde_json::Value) -> Result<serde_json::Va
 /// ```
 #[cfg_attr(not(test), napi(ts_args_type = "options?: LangOptions"))]
 pub async fn lang(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("lang".to_string(), args).await
+    run_options("lang", options).await
 }
 
 /// Scan paths and return a module summary.
@@ -166,8 +169,7 @@ pub async fn lang(options: Option<serde_json::Value>) -> Result<serde_json::Valu
     napi(js_name = "module", ts_args_type = "options?: ModuleOptions")
 )]
 pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("module".to_string(), args).await
+    run_options("module", options).await
 }
 
 /// Scan paths and return file-level export data.
@@ -192,8 +194,7 @@ pub async fn module_fn(options: Option<serde_json::Value>) -> Result<serde_json:
     napi(js_name = "export", ts_args_type = "options?: ExportOptions")
 )]
 pub async fn export_fn(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("export".to_string(), args).await
+    run_options("export", options).await
 }
 
 /// Run analysis on paths and return derived metrics.
@@ -222,8 +223,7 @@ pub async fn export_fn(options: Option<serde_json::Value>) -> Result<serde_json:
 /// ```
 #[cfg_attr(not(test), napi(ts_args_type = "options?: AnalyzeOptions"))]
 pub async fn analyze(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("analyze".to_string(), args).await
+    run_options("analyze", options).await
 }
 
 /// Run cockpit PR metrics analysis.
@@ -243,8 +243,7 @@ pub async fn analyze(options: Option<serde_json::Value>) -> Result<serde_json::V
 /// ```
 #[cfg_attr(not(test), napi(ts_args_type = "options?: CockpitOptions"))]
 pub async fn cockpit(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("cockpit".to_string(), args).await
+    run_options("cockpit", options).await
 }
 
 /// Compare two receipts or paths and return a diff.
@@ -262,8 +261,7 @@ pub async fn cockpit(options: Option<serde_json::Value>) -> Result<serde_json::V
 /// ```
 #[cfg_attr(not(test), napi(ts_args_type = "options?: DiffOptions"))]
 pub async fn diff(options: Option<serde_json::Value>) -> Result<serde_json::Value> {
-    let args = options_or_empty(options);
-    run("diff".to_string(), args).await
+    run_options("diff", options).await
 }
 
 #[cfg(test)]

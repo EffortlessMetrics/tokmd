@@ -45,6 +45,16 @@ use envelope::{extract_envelope, map_envelope_error};
 use runtime::run_with_json_module;
 use runtime::{run, run_json, schema_version, version};
 
+fn set_optional<'py, T>(args: &Bound<'py, PyDict>, key: &str, value: Option<T>) -> PyResult<()>
+where
+    T: pyo3::IntoPyObject<'py>,
+{
+    if let Some(value) = value {
+        args.set_item(key, value)?;
+    }
+    Ok(())
+}
+
 // Custom exception for tokmd errors.
 //
 // SAFETY: This exception type is registered with the Python interpreter at module
@@ -102,12 +112,8 @@ fn lang(
 
     // Add mode-specific options - each `?` is a panic-prevention boundary
     args.set_item("files", files)?;
-    if let Some(c) = children {
-        args.set_item("children", c)?;
-    }
-    if let Some(r) = redact {
-        args.set_item("redact", r)?;
-    }
+    set_optional(&args, "children", children)?;
+    set_optional(&args, "redact", redact)?;
 
     // Execute via unified runner - propagates TokmdError or result
     run(py, "lang", &args)
@@ -158,15 +164,9 @@ fn module(
 ) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, top, excluded, hidden)?;
     args.set_item("module_depth", module_depth)?;
-    if let Some(roots) = module_roots {
-        args.set_item("module_roots", roots)?;
-    }
-    if let Some(c) = children {
-        args.set_item("children", c)?;
-    }
-    if let Some(r) = redact {
-        args.set_item("redact", r)?;
-    }
+    set_optional(&args, "module_roots", module_roots)?;
+    set_optional(&args, "children", children)?;
+    set_optional(&args, "redact", redact)?;
     run(py, "module", &args)
 }
 
@@ -223,22 +223,12 @@ fn export(
     args.set_item("min_code", min_code)?;
     args.set_item("max_rows", max_rows)?;
     args.set_item("module_depth", module_depth)?;
-    if let Some(f) = format {
-        args.set_item("format", f)?;
-    }
-    if let Some(roots) = module_roots {
-        args.set_item("module_roots", roots)?;
-    }
-    if let Some(c) = children {
-        args.set_item("children", c)?;
-    }
-    if let Some(r) = redact {
-        args.set_item("redact", r)?;
-    }
+    set_optional(&args, "format", format)?;
+    set_optional(&args, "module_roots", module_roots)?;
+    set_optional(&args, "children", children)?;
+    set_optional(&args, "redact", redact)?;
     args.set_item("meta", meta)?;
-    if let Some(prefix) = strip_prefix {
-        args.set_item("strip_prefix", prefix)?;
-    }
+    set_optional(&args, "strip_prefix", strip_prefix)?;
     run(py, "export", &args)
 }
 
@@ -302,45 +292,19 @@ fn analyze(
     effort_mc_seed: Option<u64>,
 ) -> PyResult<Py<PyAny>> {
     let args = build_args(py, paths, 0, excluded, hidden)?;
-    if let Some(p) = preset {
-        args.set_item("preset", p)?;
-    }
-    if let Some(w) = window {
-        args.set_item("window", w)?;
-    }
-    if let Some(g) = git {
-        args.set_item("git", g)?;
-    }
-    if let Some(mf) = max_files {
-        args.set_item("max_files", mf)?;
-    }
-    if let Some(mb) = max_bytes {
-        args.set_item("max_bytes", mb)?;
-    }
-    if let Some(mc) = max_commits {
-        args.set_item("max_commits", mc)?;
-    }
-    if let Some(em) = effort_model {
-        args.set_item("effort_model", em)?;
-    }
-    if let Some(el) = effort_layer {
-        args.set_item("effort_layer", el)?;
-    }
-    if let Some(ebr) = effort_base_ref {
-        args.set_item("effort_base_ref", ebr)?;
-    }
-    if let Some(head_ref) = effort_head_ref {
-        args.set_item("effort_head_ref", head_ref)?;
-    }
-    if let Some(emc) = effort_monte_carlo {
-        args.set_item("effort_monte_carlo", emc)?;
-    }
-    if let Some(emci) = effort_mc_iterations {
-        args.set_item("effort_mc_iterations", emci)?;
-    }
-    if let Some(emcs) = effort_mc_seed {
-        args.set_item("effort_mc_seed", emcs)?;
-    }
+    set_optional(&args, "preset", preset)?;
+    set_optional(&args, "window", window)?;
+    set_optional(&args, "git", git)?;
+    set_optional(&args, "max_files", max_files)?;
+    set_optional(&args, "max_bytes", max_bytes)?;
+    set_optional(&args, "max_commits", max_commits)?;
+    set_optional(&args, "effort_model", effort_model)?;
+    set_optional(&args, "effort_layer", effort_layer)?;
+    set_optional(&args, "effort_base_ref", effort_base_ref)?;
+    set_optional(&args, "effort_head_ref", effort_head_ref)?;
+    set_optional(&args, "effort_monte_carlo", effort_monte_carlo)?;
+    set_optional(&args, "effort_mc_iterations", effort_mc_iterations)?;
+    set_optional(&args, "effort_mc_seed", effort_mc_seed)?;
     run(py, "analyze", &args)
 }
 
@@ -365,12 +329,8 @@ fn analyze(
 #[cfg_attr(not(test), pyfunction(signature = (from_path=None, to_path=None)))]
 fn diff(py: Python<'_>, from_path: Option<&str>, to_path: Option<&str>) -> PyResult<Py<PyAny>> {
     let args = PyDict::new(py);
-    if let Some(f) = from_path {
-        args.set_item("from", f)?;
-    }
-    if let Some(t) = to_path {
-        args.set_item("to", t)?;
-    }
+    set_optional(&args, "from", from_path)?;
+    set_optional(&args, "to", to_path)?;
     run(py, "diff", &args)
 }
 
@@ -408,18 +368,10 @@ fn cockpit(
     baseline: Option<&str>,
 ) -> PyResult<Py<PyAny>> {
     let args = PyDict::new(py);
-    if let Some(b) = base {
-        args.set_item("base", b)?;
-    }
-    if let Some(h) = head {
-        args.set_item("head", h)?;
-    }
-    if let Some(rm) = range_mode {
-        args.set_item("range_mode", rm)?;
-    }
-    if let Some(bl) = baseline {
-        args.set_item("baseline", bl)?;
-    }
+    set_optional(&args, "base", base)?;
+    set_optional(&args, "head", head)?;
+    set_optional(&args, "range_mode", range_mode)?;
+    set_optional(&args, "baseline", baseline)?;
     run(py, "cockpit", &args)
 }
 
