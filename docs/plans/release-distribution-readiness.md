@@ -1,7 +1,7 @@
 # Plan: Release And Distribution Readiness
 
 - Status: active
-- Related proposal:
+- Related proposal: `docs/proposals/release-readiness-receipt.md`
 - Related spec: `docs/specs/publishing-evidence.md`
 - Related ADR: `docs/adr/0001-production-package-publishability.md`, `docs/adr/0003-publish-surface-taxonomy.md`, `docs/adr/0005-release-train-and-rc-semantics.md`
 - Related issues:
@@ -106,11 +106,13 @@ what is the next action?
    - Made clear that these are pre-release evidence, not release mutation or
      release approval.
 8. Decide whether a release-readiness wrapper receipt is needed.
-   - Status: pending.
-   - Start with a proposal, not code.
-   - The default answer remains "no wrapper yet" unless the install, Action,
-     smoke-run, or release evidence guides prove that existing artifacts are
-     insufficient for a named consumer.
+   - Status: complete.
+   - Added `docs/proposals/release-readiness-receipt.md` to record the
+     decision point before any new command or receipt.
+   - Recommendation: no wrapper yet. Existing publish-surface,
+     version-consistency, affected, proof-plan, and proof-evidence artifacts
+     are sufficient until a named release, Action, or downstream consumer needs
+     one stable JSON envelope.
 9. Compress the README first-run path after the adoption guides exist.
    - Status: pending.
    - Keep README above the fold focused on install, inspect, review, handoff,
@@ -197,3 +199,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Added the release-readiness quickstart for pre-release package,
   version, affected-proof, and proof-plan evidence without publishing, tagging,
   creating releases, or approving mutation.
+- 2026-05-17: Recorded the release-readiness wrapper receipt proposal and
+  chose "no wrapper yet" until a concrete consumer cannot use the existing
+  release evidence artifacts directly.
