@@ -5,4 +5,3 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
-| `fuzz_toolchain_blocker` | fuzzer | prover | interfaces | open | `cargo fuzz` is not a reliable local gate in the current agent environments. Repeated runs hit either missing nightly-toolchain support in sandboxed Linux environments or sanitizer/LLVM link failures on Windows/MSVC before the target starts. |

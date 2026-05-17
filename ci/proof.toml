@@ -81,6 +81,7 @@ name = "fuzz_harnesses"
 kind = "rust"
 paths = [
   ".github/workflows/fuzz.yml",
+  "docs/testing.md",
   "fuzz/Cargo.toml",
   "fuzz/README.md",
   "fuzz/corpus/**",
@@ -1152,6 +1153,7 @@ paths = [
   "docs/specs/**",
   "docs/specification.md",
   "docs/templates/**",
+  "docs/testing.md",
 ]
 proof = ["cargo xtask docs --check"]
 reason = "Top-level architecture, ADR, design, roadmap, requirements, proposal/spec/plan/template, and audit docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."
