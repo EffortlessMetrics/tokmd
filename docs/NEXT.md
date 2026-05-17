@@ -212,8 +212,9 @@ lane, release workflow, and affected-proof evidence cannot cover.
    shows a product, verifier, or hosted-comment issue.
 4. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-5. Continue architecture consolidation in batches, preserving `ci/proof.toml`
-   scope granularity as implementation microcrates collapse into SRP modules.
+5. Do not continue architecture consolidation by inertia. If fresh product or
+   proof evidence shows a real owner-module problem, preserve `ci/proof.toml`
+   scope granularity while changing implementation modules.
 6. Use bounded performance timing receipts before optimizing hot paths.
 7. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
@@ -359,7 +360,8 @@ lane, release workflow, and affected-proof evidence cannot cover.
 - The documentation source-of-truth lane is closed through first enforcement:
   `docs/plans/doc-artifacts-check.md` is complete, the completed goal is
   archived in `.jules/goals/archive/2026-05-13-doc-artifacts-check.toml`, and
-  `.jules/goals/active.toml` now points at cockpit review usefulness.
+  `.jules/goals/active.toml` then moved on to cockpit review usefulness. The
+  current active-goal state is authoritative in `.jules/goals/active.toml`.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 - The composite Action now adds hosted packet metadata to review-packet PR comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.
