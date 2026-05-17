@@ -8,8 +8,16 @@ use serde_json::Value;
 use crate::error::TokmdError;
 use crate::settings::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
-pub(super) fn scan_arg_object(args: &Value) -> &Value {
-    args.get("scan").unwrap_or(args)
+pub(super) fn scan_arg_object(args: &Value) -> Result<&Value, TokmdError> {
+    nested_arg_object(args, "scan")
+}
+
+pub(super) fn nested_arg_object<'a>(args: &'a Value, field: &str) -> Result<&'a Value, TokmdError> {
+    match args.get(field) {
+        None | Some(Value::Null) => Ok(args),
+        Some(value @ Value::Object(_)) => Ok(value),
+        Some(_) => Err(TokmdError::invalid_field(field, "an object")),
+    }
 }
 
 /// Parse a boolean field strictly: missing/null -> default, non-bool -> error.

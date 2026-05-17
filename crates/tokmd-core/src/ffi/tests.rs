@@ -291,6 +291,48 @@ fn nested_lang_object_invalid_top_returns_error() -> Result<(), Box<dyn std::err
     Ok(())
 }
 
+#[test]
+fn nested_lang_object_valid_values_override_top_level_defaults()
+-> Result<(), Box<dyn std::error::Error>> {
+    let args: Value = serde_json::json!({"lang": {"top": 7, "files": true}});
+    let settings = parse_lang_settings(&args)?;
+    assert_eq!(settings.top, 7);
+    assert!(settings.files);
+    Ok(())
+}
+
+#[test]
+fn nested_mode_object_must_be_an_object() -> Result<(), Box<dyn std::error::Error>> {
+    let result = run_json("lang", r#"{"lang": "not-an-object"}"#);
+    let parsed: Value = serde_json::from_str(&result)?;
+    assert_eq!(parsed["ok"], false);
+    assert_eq!(parsed["error"]["code"], "invalid_settings");
+    assert_eq!(parsed["error"]["details"], "lang");
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .ok_or_else(|| std::io::Error::other("not a string"))?
+            .contains("object")
+    );
+    Ok(())
+}
+
+#[test]
+fn nested_scan_object_must_be_an_object() -> Result<(), Box<dyn std::error::Error>> {
+    let result = run_json("lang", r#"{"scan": []}"#);
+    let parsed: Value = serde_json::from_str(&result)?;
+    assert_eq!(parsed["ok"], false);
+    assert_eq!(parsed["error"]["code"], "invalid_settings");
+    assert_eq!(parsed["error"]["details"], "scan");
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .ok_or_else(|| std::io::Error::other("not a string"))?
+            .contains("object")
+    );
+    Ok(())
+}
+
 // ========================================================================
 // Null handling tests
 // ========================================================================
