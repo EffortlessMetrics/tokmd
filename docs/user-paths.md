@@ -154,6 +154,9 @@ Next action:
 - Treat missing, stale, degraded, or unavailable evidence as a task, not as a
   pass.
 - Verify linked review/proof artifacts with their own checkers.
+- Use the [handoff prompt template](agent-workflows/handoff-prompt.md) when you
+  want a copy-ready instruction block for Codex, Claude, Cursor, or another
+  coding agent.
 
 ## Read CI Proof Evidence
 

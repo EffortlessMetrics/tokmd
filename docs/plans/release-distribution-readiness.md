@@ -77,9 +77,9 @@ what is the next action?
      deferred without committing generated packets, CI logs, or large artifact
      dumps.
 4. Add an agent handoff prompt template.
-   - Status: pending.
-   - Add `docs/agent-workflows/handoff-prompt.md` as a short copy-ready prompt
-     for Codex, Claude, Cursor, or another coding agent consuming
+   - Status: complete.
+   - Added `docs/agent-workflows/handoff-prompt.md` as a short copy-ready
+     prompt for Codex, Claude, Cursor, or another coding agent consuming
      `.handoff/work-order.md`, `.handoff/code.txt`, `review-links.json`, and
      `proof-links.json`.
    - Keep it as a consumer bridge, not a second planning system.
@@ -182,3 +182,5 @@ Run required affected proof if the affected proof plan selects it.
   quickstart PR range. The run verified affected planning, proof planning,
   cockpit review-packet generation, review-packet checking, and handoff
   generation while keeping generated packets out of the repo.
+- 2026-05-17: Added a copy-ready handoff prompt template for coding agents
+  consuming `.handoff/` bundles and linked review/proof evidence.
