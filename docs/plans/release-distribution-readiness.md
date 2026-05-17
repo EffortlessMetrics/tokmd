@@ -84,10 +84,11 @@ what is the next action?
      `proof-links.json`.
    - Keep it as a consumer bridge, not a second planning system.
 5. Add a handoff work-order contract test.
-   - Status: pending.
-   - Cover the user-facing sections that make `.handoff/work-order.md` useful
-     to agents: changed surfaces, review evidence, proof expectations,
-     missing/stale/degraded evidence, and agent stop conditions.
+   - Status: complete.
+   - Strengthened the handoff integration test that covers linked review/proof
+     evidence so it preserves the user-facing section order, review evidence,
+     proof expectations, missing/stale/degraded evidence, stop conditions, and
+     guardrails that make `.handoff/work-order.md` useful to agents.
    - Preserve handoff as a linker and summarizer for external evidence, not a
      verifier for proof or review packets.
 6. Add browser-to-native adoption guidance if current browser docs still leave
@@ -184,3 +185,6 @@ Run required affected proof if the affected proof plan selects it.
   generation while keeping generated packets out of the repo.
 - 2026-05-17: Added a copy-ready handoff prompt template for coding agents
   consuming `.handoff/` bundles and linked review/proof evidence.
+- 2026-05-17: Strengthened handoff work-order integration coverage so the
+  agent-facing linked-evidence sections, stop conditions, and guardrails stay
+  stable through future refactors.
