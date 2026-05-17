@@ -247,6 +247,8 @@ Next action:
 - Move to native `tokmd handoff` when preparing agent context.
 - Check [Browser runner](browser.md) and the capability matrix before relying
   on a browser result.
+- Use [Browser to native](browser-to-native.md) when the trial needs to become
+  review, handoff, or CI evidence.
 
 ## Publish Or Release Safely
 

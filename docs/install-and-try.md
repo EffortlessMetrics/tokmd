@@ -122,7 +122,8 @@ tokmd cockpit \
 ```
 
 See [Browser runner](browser.md) for supported modes and native-only
-boundaries.
+boundaries, or [Browser to native](browser-to-native.md) when a browser trial
+needs to become PR review, handoff, or CI evidence.
 
 ## 6. Use CI Evidence
 
