@@ -20,12 +20,19 @@ pub(super) fn review_packet_review_map(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    review_packet_dir: &str,
 ) -> Value {
     let proof_refs = review_map_proof_refs(receipt, proof_inputs);
     let has_doc_artifacts_evidence = doc_artifacts.is_some() || doc_artifacts_expected(receipt);
     let evidence_refs =
         review_map_evidence_refs(!proof_refs.is_empty(), has_doc_artifacts_evidence);
     let ordered_items = ordered_review_map_items(receipt);
+    let context = ReviewMapRenderContext {
+        receipt,
+        proof_refs: &proof_refs,
+        doc_artifacts,
+        review_packet_dir,
+    };
     let items: Vec<_> = ordered_items
         .iter()
         .enumerate()
@@ -34,10 +41,8 @@ pub(super) fn review_packet_review_map(
                 rank + 1,
                 ordered.source_index,
                 ordered.item,
-                receipt,
                 &ordered.evidence,
-                &proof_refs,
-                doc_artifacts,
+                &context,
             )
         })
         .collect();
@@ -57,18 +62,23 @@ pub(super) fn review_packet_review_map(
     })
 }
 
+struct ReviewMapRenderContext<'a> {
+    receipt: &'a CockpitReceipt,
+    proof_refs: &'a [ReviewMapProofRef],
+    doc_artifacts: Option<&'a DocArtifactsEvidenceInput>,
+    review_packet_dir: &'a str,
+}
+
 fn review_map_item(
     rank: usize,
     source_index: usize,
     item: &ReviewItem,
-    receipt: &CockpitReceipt,
     evidence: &ReviewMapItemEvidence,
-    proof_refs: &[ReviewMapProofRef],
-    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    context: &ReviewMapRenderContext<'_>,
 ) -> Value {
-    let proof = review_map_item_proof(item, proof_refs);
-    let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, doc_artifacts);
-    let reproduce = review_map_item_reproduce(item, receipt);
+    let proof = review_map_item_proof(item, context.proof_refs);
+    let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, context.doc_artifacts);
+    let reproduce = review_map_item_reproduce(item, context.receipt, context.review_packet_dir);
 
     json!({
         "rank": rank,
@@ -223,15 +233,19 @@ fn api_review_path(path: &str) -> bool {
     path.ends_with("lib.rs") || path.ends_with("mod.rs")
 }
 
-fn review_map_item_reproduce(item: &ReviewItem, receipt: &CockpitReceipt) -> Vec<String> {
+fn review_map_item_reproduce(
+    item: &ReviewItem,
+    receipt: &CockpitReceipt,
+    review_packet_dir: &str,
+) -> Vec<String> {
     let mut commands = vec![
         format!(
             "tokmd cockpit --base {} --head {} --format json",
             receipt.base_ref, receipt.head_ref
         ),
         format!(
-            "tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review",
-            receipt.base_ref, receipt.head_ref
+            "tokmd cockpit --base {} --head {} --review-packet-dir {}",
+            receipt.base_ref, receipt.head_ref, review_packet_dir
         ),
     ];
 
@@ -343,6 +357,7 @@ pub(super) fn render_review_map_md(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    review_packet_dir: &str,
 ) -> String {
     use std::fmt::Write;
 
@@ -427,8 +442,8 @@ pub(super) fn render_review_map_md(
         );
         let _ = writeln!(
             s,
-            "   - `tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review`",
-            receipt.base_ref, receipt.head_ref
+            "   - `tokmd cockpit --base {} --head {} --review-packet-dir {}`",
+            receipt.base_ref, receipt.head_ref, review_packet_dir
         );
         if review_item_is_source_of_truth(item) {
             let _ = writeln!(

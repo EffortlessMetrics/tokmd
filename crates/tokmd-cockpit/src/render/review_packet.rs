@@ -44,6 +44,7 @@ pub fn write_review_packet_with_imported_evidence(
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
 ) -> Result<()> {
     std::fs::create_dir_all(dir)?;
+    let review_packet_dir = review_packet_dir_for_reproduction(dir);
     let proof_artifacts = packet_proof_artifacts(proof_evidence)?;
     let packet_proof_inputs: Vec<_> = proof_artifacts
         .iter()
@@ -61,8 +62,14 @@ pub fn write_review_packet_with_imported_evidence(
         receipt,
         &packet_proof_inputs,
         doc_artifacts.as_ref(),
+        &review_packet_dir,
     ))?;
-    let review_map_md = render_review_map_md(receipt, &packet_proof_inputs, doc_artifacts.as_ref());
+    let review_map_md = render_review_map_md(
+        receipt,
+        &packet_proof_inputs,
+        doc_artifacts.as_ref(),
+        &review_packet_dir,
+    );
     let comment_md =
         render_review_packet_comment_md(receipt, &packet_proof_inputs, doc_artifacts.as_ref());
 
@@ -121,6 +128,18 @@ pub fn write_review_packet_with_imported_evidence(
     )?;
 
     Ok(())
+}
+
+fn review_packet_dir_for_reproduction(dir: &Path) -> String {
+    if dir.is_absolute() {
+        return "<REVIEW_PACKET_DIR>".to_string();
+    }
+    let rendered = dir.to_string_lossy().replace('\\', "/");
+    if rendered.is_empty() {
+        ".tokmd/review".to_string()
+    } else {
+        rendered
+    }
 }
 
 fn packet_doc_artifacts_input(

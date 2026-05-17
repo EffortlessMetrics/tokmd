@@ -912,10 +912,9 @@ fn scenario_write_review_packet_creates_contract_files() {
     assert!(review_map_md.contains("evidence.json#/gates"));
     assert!(review_map_md.contains("Reproduce:"));
     assert!(review_map_md.contains("tokmd cockpit --base main --head feature --format json"));
-    assert!(
-        review_map_md
-            .contains("tokmd cockpit --base main --head feature --review-packet-dir .tokmd/review")
-    );
+    assert!(review_map_md.contains(
+        "tokmd cockpit --base main --head feature --review-packet-dir <REVIEW_PACKET_DIR>"
+    ));
 
     let comment_md = std::fs::read_to_string(out.join("comment.md")).unwrap();
     assert!(comment_md.contains("Evidence availability"));
