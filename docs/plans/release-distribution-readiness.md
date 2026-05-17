@@ -69,12 +69,13 @@ what is the next action?
    - Explained required/advisory proof boundaries, no merge verdict, and no
      default Codecov upload.
 3. Record a real user-path smoke run.
-   - Status: pending.
-   - Add `docs/examples/real-user-path-smoke-run.md` after running the current
-     affected/proof-plan, cockpit, review-packet-check, and handoff sequence on
-     a small real PR or branch range.
-   - Record what was clear, what was confusing, and what was fixed or deferred.
-   - Do not commit generated packets, CI logs, or large artifact dumps.
+   - Status: complete.
+   - Added `docs/examples/real-user-path-smoke-run.md` after running
+     affected/proof-plan, cockpit, review-packet-check, and handoff over the
+     real GitHub Action quickstart PR range.
+   - Recorded what was clear, what was confusing, what was fixed, and what was
+     deferred without committing generated packets, CI logs, or large artifact
+     dumps.
 4. Add an agent handoff prompt template.
    - Status: pending.
    - Add `docs/agent-workflows/handoff-prompt.md` as a short copy-ready prompt
@@ -177,3 +178,7 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Added the GitHub Action quickstart and linked it from the public
   docs entry points. The guide shows minimal receipt and PR review-packet
   workflows while keeping the full Action reference separate.
+- 2026-05-17: Recorded a real user-path smoke run over the GitHub Action
+  quickstart PR range. The run verified affected planning, proof planning,
+  cockpit review-packet generation, review-packet checking, and handoff
+  generation while keeping generated packets out of the repo.
