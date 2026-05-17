@@ -781,10 +781,10 @@ fn red_test_python_ffi_schema_version_returns_valid_number() {
 /// CONTRACT: All wrapper functions return PyResult (verified at runtime).
 #[test]
 fn red_test_python_ffi_all_wrappers_return_pyresult() {
-    with_py(|py| {
-        let temp_dir = std::env::temp_dir();
-        let temp_path = temp_dir.to_string_lossy().to_string();
+    let repo = make_repo("fn sample() {}\n");
+    let temp_path = repo.path().to_string_lossy().to_string();
 
+    with_py(|py| {
         // lang() - should return PyResult
         let _ = lang(
             py,

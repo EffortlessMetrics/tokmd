@@ -177,6 +177,15 @@ fn strict_parsing_invalid_string_array() {
 }
 
 #[test]
+fn strict_parsing_null_paths_is_invalid() {
+    let args: Value = serde_json::json!({"paths": null});
+    let err = parse_scan_settings(&args).expect_err("null paths should fail");
+    assert_eq!(err.code, crate::error::ErrorCode::InvalidSettings);
+    assert!(err.message.contains("paths"));
+    assert!(err.message.contains("array"));
+}
+
+#[test]
 fn strict_parsing_invalid_config_mode() {
     let args: Value = serde_json::json!({"config": "invalid"});
     let err = parse_scan_settings(&args).expect_err("should fail");

@@ -24,7 +24,10 @@ tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-envelope.workspace = true
 
 [features]
-default = ["extension-module"]
+# Keep `extension-module` opt-in so `cargo test --workspace --all-targets`
+# links test harnesses against the local Python runtime instead of producing
+# Python-extension-only artifacts with unresolved CPython symbols.
+default = []
 extension-module = ["pyo3/extension-module"]
 
 
