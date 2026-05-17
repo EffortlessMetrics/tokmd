@@ -1,6 +1,6 @@
 # Plan: Release And Distribution Readiness
 
-- Status: active
+- Status: complete
 - Related proposal: `docs/proposals/release-readiness-receipt.md`
 - Related spec: `docs/specs/publishing-evidence.md`
 - Related ADR: `docs/adr/0001-production-package-publishability.md`, `docs/adr/0003-publish-surface-taxonomy.md`, `docs/adr/0005-release-train-and-rc-semantics.md`
@@ -121,11 +121,15 @@ what is the next action?
    - Kept deeper command inventory and control-plane references below the first
      user path instead of making them the first decision surface.
 10. Close the lane.
-    - Status: pending.
-    - Close only when install/try, Action adoption, real smoke evidence, agent
+    - Status: complete.
+    - Closed after install/try, Action adoption, real smoke evidence, agent
       prompt guidance, handoff contract coverage, browser-to-native guidance,
-      release evidence quickstart, and the release-readiness receipt decision
-      are recorded.
+      release evidence quickstart, release-readiness receipt decision, and
+      README first-run compression were recorded.
+    - The completed active goal is archived in
+      `.jules/goals/archive/2026-05-17-release-distribution-readiness.toml`,
+      and `.jules/goals/active.toml` is paused with no selected implementation
+      lane.
 
 ## Validation
 
@@ -207,3 +211,9 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Compressed the README first-run path so outside users see
   install, inspect, review, handoff, CI, browser, and release-readiness entry
   points before deeper command inventory.
+- 2026-05-17: Closed the release and distribution readiness lane. The repo now
+  has the adoption packet needed for install/try, GitHub Action use, PR review,
+  agent handoff, browser-to-native transition, release evidence reading, and a
+  recorded "no wrapper yet" release-readiness receipt decision. Future work
+  should start from a fresh consumer, artifact, workflow, or product gap rather
+  than extending this lane by inertia.

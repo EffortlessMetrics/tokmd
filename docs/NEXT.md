@@ -201,25 +201,31 @@ domains. Reopen publishing evidence only from a fresh proposal naming a
 consumer and a gap that the current publish-surface, version-consistency, CI
 lane, release workflow, and affected-proof evidence cannot cover.
 
-The release and distribution readiness lane is now active. Its plan lives in
-`docs/plans/release-distribution-readiness.md` and starts from a fresh adoption
-gap: outside maintainers should be able to install or try tokmd, run it in
-GitHub Actions, review a PR, prepare an agent handoff, and check release-facing
-evidence without learning the internal control plane first. This lane is
-plan-first and docs-first. It must not publish crates, tag releases, create
-GitHub releases, push images, promote proof, enable default Codecov upload,
-productize AST, add `tokmd review`, or add a new receipt before a consumer gap
-proves existing artifacts are insufficient.
+The release and distribution readiness lane is closed. Its plan lives in
+`docs/plans/release-distribution-readiness.md` and records the adoption packet:
+install-and-try guide, GitHub Action quickstart, real user-path smoke
+transcript, agent handoff prompt, handoff work-order contract coverage,
+browser-to-native guide, release evidence quickstart, README first-run
+compression, and the release-readiness receipt decision. The outcome is no
+wrapper receipt yet: existing publish-surface, version-consistency, affected,
+proof-plan, and proof-evidence artifacts remain sufficient until a named
+consumer proves otherwise.
+
+There is no selected implementation lane. `.jules/goals/active.toml` is paused
+as the current machine-readable state, and new work should start only from a
+fresh consumer, missing artifact, workflow pain, or product gap. Do not reopen
+proof, AST, architecture, user-path, publishing, or release-readiness work by
+inertia.
 
 ## Next Work Packets
 
 1. Do not extend the closed proof workflow status packet lane to any other
    workflow without fresh evidence of a real status-arbitration gap; preserve
    advisory/non-required behavior and manual-only Codecov upload.
-2. Execute the active release and distribution readiness plan in small
-   user-path packets: install-and-try, GitHub Action quickstart, real smoke
-   transcript, agent handoff prompt, handoff contract test, browser-to-native
-   guide, release evidence quickstart, and receipt-need decision.
+2. Treat the release and distribution readiness lane as closed. Reopen
+   adoption or release-readiness work only from a fresh consumer, missing
+   artifact, workflow pain, or product gap; do not add a new wrapper receipt or
+   command unless existing artifacts cannot answer that named consumer.
 3. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
 4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
@@ -241,6 +247,8 @@ proves existing artifacts are insufficient.
 11. Treat the user-path evidence consumption lane as closed. Start the next
     product lane only from a fresh consumer, missing artifact, workflow pain, or
     product gap; do not extend the completed compression pass by inertia.
+12. Keep the active goal paused until a new implementation lane is deliberately
+    selected.
 
 ## Directional Rules
 
