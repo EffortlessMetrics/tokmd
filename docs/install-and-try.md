@@ -162,7 +162,8 @@ crates, create tags, create GitHub releases, move release aliases, or approve
 release mutation.
 
 See [Publishing evidence](publishing-evidence.md) for the release-facing
-reading order.
+reading order or [Release readiness](release-readiness.md) for the shorter
+pre-release evidence quickstart.
 
 ## Where To Go Next
 

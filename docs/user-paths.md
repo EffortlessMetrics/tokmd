@@ -280,6 +280,8 @@ Does not mean:
 
 Next action:
 
+- Use [Release readiness](release-readiness.md) for the short pre-release
+  evidence command sequence.
 - Use [Publishing evidence](publishing-evidence.md) for the release-facing
   reading order.
 - Treat release mutation as a separate explicit decision.

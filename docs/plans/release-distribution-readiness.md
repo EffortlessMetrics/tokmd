@@ -99,10 +99,11 @@ what is the next action?
    - Kept browser mode as a no-install trial lens and native mode as the
      review, proof, and handoff instrument.
 7. Add a release evidence quickstart.
-   - Status: pending.
-   - Compose existing publishing evidence, version consistency, affected proof,
-     and proof-plan commands.
-   - Make clear that these are pre-release evidence, not release mutation or
+   - Status: complete.
+   - Added `docs/release-readiness.md` as a short pre-release evidence
+     quickstart that composes publish-surface, version consistency, affected
+     proof, and proof-plan commands.
+   - Made clear that these are pre-release evidence, not release mutation or
      release approval.
 8. Decide whether a release-readiness wrapper receipt is needed.
    - Status: pending.
@@ -193,3 +194,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Added browser-to-native adoption guidance so browser trials end
   with concrete native review, handoff, and CI evidence next actions without
   implying browser/native parity.
+- 2026-05-17: Added the release-readiness quickstart for pre-release package,
+  version, affected-proof, and proof-plan evidence without publishing, tagging,
+  creating releases, or approving mutation.

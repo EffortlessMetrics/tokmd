@@ -156,3 +156,6 @@ output.
 
 This checks package-surface and version-readiness evidence. It does not publish
 crates, create tags, create GitHub releases, or approve release mutation.
+
+For release-facing files, pair this with affected proof planning as shown in
+[Release readiness](release-readiness.md).

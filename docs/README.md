@@ -31,6 +31,8 @@ schemas, and verification policy for `tokmd`.
 - [handoff.md](handoff.md) — coding-agent handoff bundle workflow and guardrails.
 - [publishing-evidence.md](publishing-evidence.md) — release-facing package
   surface, metadata, and CI ownership evidence before release mutation.
+- [release-readiness.md](release-readiness.md) — quickstart for pre-release
+  evidence checks without publishing, tagging, or creating releases.
 - [reference-cli.md](reference-cli.md) — generated CLI flag reference.
 - [SCHEMA.md](SCHEMA.md) — receipt format documentation.
 - [architecture.md](architecture.md) — crate hierarchy and data flow.
