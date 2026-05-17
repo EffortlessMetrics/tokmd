@@ -1,20 +1,25 @@
 //! Context bundle directory receipt and manifest writing.
 
+use anyhow::{Context, Result, bail};
+use blake3::Hasher;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use anyhow::{Context, Result, bail};
-use blake3::Hasher;
 use tokmd_types::{
-    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
-    ContextBundleManifest, ContextExcludedPath, ContextFileRow, ContextReceipt, ToolInfo,
+    ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, ContextBundleManifest,
+    ContextExcludedPath, ContextFileRow, ToolInfo,
 };
 
 use crate::cli;
 
-use super::{CountingWriter, SelectResult, write_bundle_output};
+use super::{
+    CountingWriter, SelectResult,
+    receipt::{
+        ContextReceiptParams, build_context_receipt, generated_at_ms, lower_debug,
+        rank_by_effective, token_estimation, total_file_bytes,
+    },
+    write_bundle_output,
+};
 
 /// Write bundle to a directory with manifest.
 ///
@@ -50,39 +55,21 @@ pub(crate) fn write_bundle_directory(
             .with_context(|| format!("Failed to create bundle directory: {}", dir.display()))?;
     }
 
-    let now_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis();
-
-    // Compute token estimation from selected file bytes.
-    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
-    let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
+    let now_ms = generated_at_ms();
+    let total_file_bytes = total_file_bytes(selected);
 
     // Write receipt.json.
     let receipt_path = dir.join("receipt.json");
-    let receipt = ContextReceipt {
-        schema_version: CONTEXT_SCHEMA_VERSION,
-        generated_at_ms: now_ms,
-        tool: ToolInfo::current(),
-        mode: "context".to_string(),
-        budget_tokens: budget,
+    let receipt = build_context_receipt(ContextReceiptParams {
+        args,
+        selected,
+        budget,
         used_tokens,
-        utilization_pct: utilization,
-        strategy: format!("{:?}", args.strategy).to_lowercase(),
-        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
-        file_count: selected.len(),
-        files: selected.to_vec(),
-        rank_by_effective: if select_result.fallback_reason.is_some() {
-            Some(select_result.rank_by_effective.clone())
-        } else {
-            None
-        },
-        fallback_reason: select_result.fallback_reason.clone(),
-        excluded_by_policy: select_result.excluded_by_policy.clone(),
-        token_estimation: Some(token_estimation),
+        utilization,
+        select_result,
+        generated_at_ms: now_ms,
         bundle_audit: None,
-    };
+    });
     // Write initial receipt.json (bundle_audit populated after bundle is written).
     let initial_receipt_json = serde_json::to_string_pretty(&receipt)?;
     fs::write(&receipt_path, &initial_receipt_json)
@@ -137,8 +124,7 @@ pub(crate) fn write_bundle_directory(
 
     // Write manifest.json (authoritative index).
     let manifest_path = dir.join("manifest.json");
-    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
-    let bundle_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
+    let bundle_estimation = token_estimation(selected);
     let bundle_audit =
         tokmd_types::TokenAudit::from_output(bundle_bytes as u64, total_file_bytes as u64);
     let manifest = ContextBundleManifest {
@@ -149,19 +135,15 @@ pub(crate) fn write_bundle_directory(
         budget_tokens: budget,
         used_tokens,
         utilization_pct: utilization,
-        strategy: format!("{:?}", args.strategy).to_lowercase(),
-        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
+        strategy: lower_debug(&args.strategy),
+        rank_by: lower_debug(&args.rank_by),
         file_count: selected.len(),
         bundle_bytes,
         artifacts,
         included_files: selected.to_vec(),
         excluded_paths: excluded_paths.to_vec(),
         excluded_patterns: excluded_patterns.to_vec(),
-        rank_by_effective: if select_result.fallback_reason.is_some() {
-            Some(select_result.rank_by_effective.clone())
-        } else {
-            None
-        },
+        rank_by_effective: rank_by_effective(select_result),
         fallback_reason: select_result.fallback_reason.clone(),
         excluded_by_policy: select_result.excluded_by_policy.clone(),
         token_estimation: Some(bundle_estimation),

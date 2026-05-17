@@ -1,19 +1,18 @@
 //! Context command output destination and log writing helpers.
 
+use anyhow::{Context, Result};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-use anyhow::{Context, Result};
-use tokmd_types::{
-    CONTEXT_SCHEMA_VERSION, ContextFileRow, ContextLogRecord, ContextReceipt, SCHEMA_VERSION,
-    ToolInfo,
-};
+use tokmd_types::{ContextFileRow, ContextLogRecord, SCHEMA_VERSION, ToolInfo};
 
 use crate::cli;
 
-use super::{CountingWriter, SelectResult, format_list_output, write_bundle_output};
+use super::{
+    CountingWriter, SelectResult, format_list_output,
+    receipt::{ContextReceiptParams, build_context_receipt, generated_at_ms, lower_debug},
+    write_bundle_output,
+};
 
 /// Determine the output destination string for context logging.
 pub(crate) fn determine_output_destination(args: &cli::CliContextArgs) -> String {
@@ -82,16 +81,13 @@ pub(crate) fn append_context_log_record(
 ) -> Result<()> {
     let log_record = ContextLogRecord {
         schema_version: SCHEMA_VERSION,
-        generated_at_ms: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
+        generated_at_ms: generated_at_ms(),
         tool: ToolInfo::current(),
         budget_tokens: budget,
         used_tokens,
         utilization_pct: utilization,
-        strategy: format!("{:?}", args.strategy).to_lowercase(),
-        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
+        strategy: lower_debug(&args.strategy),
+        rank_by: lower_debug(&args.rank_by),
         file_count,
         total_bytes,
         output_destination,
@@ -151,33 +147,16 @@ fn format_json_output(
     args: &cli::CliContextArgs,
     select_result: &SelectResult,
 ) -> Result<String> {
-    let total_file_bytes: usize = selected.iter().map(|f| f.bytes).sum();
-    let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
-    let receipt = ContextReceipt {
-        schema_version: CONTEXT_SCHEMA_VERSION,
-        generated_at_ms: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
-        tool: ToolInfo::current(),
-        mode: "context".to_string(),
-        budget_tokens: budget,
+    let receipt = build_context_receipt(ContextReceiptParams {
+        args,
+        selected,
+        budget,
         used_tokens,
-        utilization_pct: utilization,
-        strategy: format!("{:?}", args.strategy).to_lowercase(),
-        rank_by: format!("{:?}", args.rank_by).to_lowercase(),
-        file_count: selected.len(),
-        files: selected.to_vec(),
-        rank_by_effective: if select_result.fallback_reason.is_some() {
-            Some(select_result.rank_by_effective.clone())
-        } else {
-            None
-        },
-        fallback_reason: select_result.fallback_reason.clone(),
-        excluded_by_policy: select_result.excluded_by_policy.clone(),
-        token_estimation: Some(token_estimation),
+        utilization,
+        select_result,
+        generated_at_ms: generated_at_ms(),
         bundle_audit: None,
-    };
+    });
     let json = serde_json::to_string_pretty(&receipt)?;
     Ok(format!("{json}\n"))
 }

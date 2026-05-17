@@ -3,6 +3,7 @@
 mod budget;
 mod manifest;
 mod output;
+mod receipt;
 mod render;
 mod select;
 
