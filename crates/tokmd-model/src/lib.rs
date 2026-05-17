@@ -54,8 +54,18 @@ pub fn avg(lines: usize, files: usize) -> usize {
     if files == 0 {
         return 0;
     }
-    // Round to nearest integer.
-    (lines + (files / 2)) / files
+
+    let quotient = lines / files;
+    let remainder = lines % files;
+
+    // Round half up without forming `lines + files / 2`, which can overflow
+    // for very large repositories. The comparison is equivalent to
+    // `remainder * 2 >= files` but avoids overflowing when `files` is large.
+    if remainder >= files - remainder {
+        quotient + 1
+    } else {
+        quotient
+    }
 }
 
 /// Normalize a path for portable output.
@@ -286,5 +296,12 @@ mod tests {
         assert_eq!(avg(9, 3), 3);
         assert_eq!(avg(10, 3), 3);
         assert_eq!(avg(11, 3), 4);
+    }
+
+    #[test]
+    fn avg_handles_maximum_line_counts_without_overflow() {
+        assert_eq!(avg(usize::MAX, 1), usize::MAX);
+        assert_eq!(avg(usize::MAX, 2), usize::MAX / 2 + 1);
+        assert_eq!(avg(usize::MAX - 1, 2), usize::MAX / 2);
     }
 }
