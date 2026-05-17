@@ -82,3 +82,78 @@ pub(super) fn compare_contains(
         _ => Err("contains is only valid for string or array actual values"),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn compare_equal_numeric_int_float_and_string_forms() {
+        assert!(compare_equal(&json!(42), Some(&json!(42.0))).unwrap());
+        assert!(compare_equal(&json!("42"), Some(&json!(42))).unwrap());
+        assert!(!compare_equal(&json!("42.1"), Some(&json!(42))).unwrap());
+    }
+
+    #[test]
+    fn compare_equal_keeps_string_special_values_literal() {
+        assert!(compare_equal(&json!("inf"), Some(&json!("inf"))).unwrap());
+        assert!(!compare_equal(&json!("inf"), Some(&json!("Infinity"))).unwrap());
+    }
+
+    #[test]
+    fn compare_equal_falls_back_to_json_equality_for_containers() {
+        assert!(compare_equal(&json!([1, {"a": true}]), Some(&json!([1, {"a": true}]))).unwrap());
+        assert!(!compare_equal(&json!({"a": 1}), Some(&json!({"a": "1"}))).unwrap());
+    }
+
+    #[test]
+    fn compare_numeric_reports_missing_or_non_numeric_expected() {
+        assert_eq!(
+            compare_numeric(&json!(10), None, |a, b| a <= b),
+            Err("expected value is missing or not numeric")
+        );
+        assert_eq!(
+            compare_numeric(&json!(10), Some(&json!("many")), |a, b| a <= b),
+            Err("expected value is missing or not numeric")
+        );
+    }
+
+    #[test]
+    fn compare_numeric_reports_non_numeric_actual() {
+        assert_eq!(
+            compare_numeric(&json!([10]), Some(&json!(10)), |a, b| a <= b),
+            Err("actual value is not numeric")
+        );
+    }
+
+    #[test]
+    fn compare_in_uses_same_equality_semantics_as_eq() {
+        let values = vec![json!(1), json!("two"), json!({"nested": true})];
+
+        assert!(compare_in(&json!(1.0), Some(&values)).unwrap());
+        assert!(compare_in(&json!({"nested": true}), Some(&values)).unwrap());
+        assert!(!compare_in(&json!("missing"), Some(&values)).unwrap());
+    }
+
+    #[test]
+    fn compare_contains_validates_actual_and_expected_types() {
+        assert_eq!(
+            compare_contains(&json!(123), Some(&json!("2"))),
+            Err("contains is only valid for string or array actual values")
+        );
+        assert_eq!(
+            compare_contains(&json!("abc"), Some(&json!(2))),
+            Err("expected value must be a string for string contains checks")
+        );
+    }
+
+    #[test]
+    fn compare_contains_array_uses_equality_semantics() {
+        let actual = json!(["1", {"lang": "Rust"}, 3]);
+
+        assert!(compare_contains(&actual, Some(&json!(1))).unwrap());
+        assert!(compare_contains(&actual, Some(&json!({"lang": "Rust"}))).unwrap());
+        assert!(!compare_contains(&actual, Some(&json!({"lang": "Go"}))).unwrap());
+    }
+}
