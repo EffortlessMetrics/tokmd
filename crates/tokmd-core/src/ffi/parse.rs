@@ -3,13 +3,57 @@
 //! This module owns primitive field decoding and enum/string validation. The
 //! parent module composes these helpers into mode-specific settings.
 
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use crate::error::TokmdError;
 use crate::settings::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
+const CHILDREN_FIELD: &str = "children";
+const REDACT_FIELD: &str = "redact";
+const CONFIG_FIELD: &str = "config";
+const FORMAT_FIELD: &str = "format";
+
+const EXPECTED_CHILDREN_MODE: &str = "'collapse' or 'separate'";
+const EXPECTED_CHILD_INCLUDE_MODE: &str = "'separate' or 'parents-only'";
+const EXPECTED_REDACT_MODE: &str = "'none', 'paths', or 'all'";
+const EXPECTED_CONFIG_MODE: &str = "'auto' or 'none'";
+const EXPECTED_EXPORT_FORMAT: &str = "'csv', 'jsonl', 'json', or 'cyclonedx'";
+
 pub(super) fn scan_arg_object(args: &Value) -> &Value {
     args.get("scan").unwrap_or(args)
+}
+
+fn parse_deserialized_field<T>(
+    args: &Value,
+    field: &str,
+    default: T,
+    expected: &'static str,
+) -> Result<T, TokmdError>
+where
+    T: DeserializeOwned,
+{
+    match args.get(field) {
+        None => Ok(default),
+        Some(v) => serde_json::from_value::<T>(v.clone())
+            .map_err(|_| TokmdError::invalid_field(field, expected)),
+    }
+}
+
+fn parse_optional_deserialized_field<T>(
+    args: &Value,
+    field: &str,
+    expected: &'static str,
+) -> Result<Option<T>, TokmdError>
+where
+    T: DeserializeOwned,
+{
+    match args.get(field) {
+        None => Ok(None),
+        Some(v) => serde_json::from_value::<T>(v.clone())
+            .map(Some)
+            .map_err(|_| TokmdError::invalid_field(field, expected)),
+    }
 }
 
 /// Parse a boolean field strictly: missing/null -> default, non-bool -> error.
@@ -128,11 +172,7 @@ pub(super) fn parse_children_mode(
     args: &Value,
     default: ChildrenMode,
 ) -> Result<ChildrenMode, TokmdError> {
-    match args.get("children") {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<ChildrenMode>(v.clone())
-            .map_err(|_| TokmdError::invalid_field("children", "'collapse' or 'separate'")),
-    }
+    parse_deserialized_field(args, CHILDREN_FIELD, default, EXPECTED_CHILDREN_MODE)
 }
 
 /// Parse a ChildIncludeMode field strictly.
@@ -140,11 +180,7 @@ pub(super) fn parse_child_include_mode(
     args: &Value,
     default: ChildIncludeMode,
 ) -> Result<ChildIncludeMode, TokmdError> {
-    match args.get("children") {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<ChildIncludeMode>(v.clone())
-            .map_err(|_| TokmdError::invalid_field("children", "'separate' or 'parents-only'")),
-    }
+    parse_deserialized_field(args, CHILDREN_FIELD, default, EXPECTED_CHILD_INCLUDE_MODE)
 }
 
 /// Parse a RedactMode field strictly.
@@ -152,11 +188,7 @@ pub(super) fn parse_redact_mode(
     args: &Value,
     default: RedactMode,
 ) -> Result<RedactMode, TokmdError> {
-    match args.get("redact") {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
-            .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
-    }
+    parse_deserialized_field(args, REDACT_FIELD, default, EXPECTED_REDACT_MODE)
 }
 
 /// Parse an effort model from a string: missing/null -> None, unsupported values -> error.
@@ -196,12 +228,7 @@ pub(super) fn parse_effort_layer(args: &Value, field: &str) -> Result<Option<Str
 
 /// Parse an optional RedactMode field strictly.
 pub(super) fn parse_optional_redact_mode(args: &Value) -> Result<Option<RedactMode>, TokmdError> {
-    match args.get("redact") {
-        None => Ok(None),
-        Some(v) => serde_json::from_value::<RedactMode>(v.clone())
-            .map(Some)
-            .map_err(|_| TokmdError::invalid_field("redact", "'none', 'paths', or 'all'")),
-    }
+    parse_optional_deserialized_field(args, REDACT_FIELD, EXPECTED_REDACT_MODE)
 }
 
 /// Parse a ConfigMode field strictly.
@@ -209,11 +236,7 @@ pub(super) fn parse_config_mode(
     args: &Value,
     default: ConfigMode,
 ) -> Result<ConfigMode, TokmdError> {
-    match args.get("config") {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<ConfigMode>(v.clone())
-            .map_err(|_| TokmdError::invalid_field("config", "'auto' or 'none'")),
-    }
+    parse_deserialized_field(args, CONFIG_FIELD, default, EXPECTED_CONFIG_MODE)
 }
 
 /// Parse an ExportFormat field strictly.
@@ -221,12 +244,7 @@ pub(super) fn parse_export_format(
     args: &Value,
     default: ExportFormat,
 ) -> Result<ExportFormat, TokmdError> {
-    match args.get("format") {
-        None => Ok(default),
-        Some(v) => serde_json::from_value::<ExportFormat>(v.clone()).map_err(|_| {
-            TokmdError::invalid_field("format", "'csv', 'jsonl', 'json', or 'cyclonedx'")
-        }),
-    }
+    parse_deserialized_field(args, FORMAT_FIELD, default, EXPECTED_EXPORT_FORMAT)
 }
 
 /// Parse and validate analyze preset names.

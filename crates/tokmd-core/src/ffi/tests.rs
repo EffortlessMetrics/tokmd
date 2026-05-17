@@ -3,6 +3,7 @@ use super::settings_parse::parse_analyze_settings;
 use super::settings_parse::parse_cockpit_settings;
 use super::settings_parse::{parse_export_settings, parse_lang_settings, parse_module_settings};
 use super::*;
+use crate::settings::{ChildIncludeMode, ChildrenMode, ExportFormat, RedactMode};
 
 #[test]
 fn run_json_version() -> Result<(), Box<dyn std::error::Error>> {
@@ -309,6 +310,29 @@ fn null_paths_uses_default() -> Result<(), Box<dyn std::error::Error>> {
     let args: Value = serde_json::json!({"paths": null});
     let settings = parse_scan_settings(&args)?;
     assert_eq!(settings.paths, vec!["."]);
+    Ok(())
+}
+
+#[test]
+fn enum_defaults_and_errors_are_preserved() -> Result<(), Box<dyn std::error::Error>> {
+    let lang_defaults = parse_lang_settings(&serde_json::json!({}))?;
+    assert_eq!(lang_defaults.children, ChildrenMode::Collapse);
+
+    let module_defaults = parse_module_settings(&serde_json::json!({}))?;
+    assert_eq!(module_defaults.children, ChildIncludeMode::Separate);
+
+    let export_defaults = parse_export_settings(&serde_json::json!({}))?;
+    assert_eq!(export_defaults.format, ExportFormat::Jsonl);
+    assert_eq!(export_defaults.redact, RedactMode::None);
+
+    let err = parse_export_settings(&serde_json::json!({"format": "xml"}))
+        .expect_err("invalid format should fail");
+    assert!(err.message.contains("format"));
+    assert!(
+        err.message
+            .contains("'csv', 'jsonl', 'json', or 'cyclonedx'")
+    );
+
     Ok(())
 }
 
