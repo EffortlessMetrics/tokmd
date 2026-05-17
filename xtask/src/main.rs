@@ -81,6 +81,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::Badges(args)) => tasks::badges::run(args),
         Some(cli::Commands::RiprPr(args)) => tasks::ripr_pr::run_pr(args),
         Some(cli::Commands::RiprReviewComments(args)) => tasks::ripr_pr::run_review_comments(args),
+        Some(cli::Commands::RiprAnnotations(args)) => tasks::ripr_pr::run_annotations(args),
         None => tasks::publish::run(PublishArgs::default()),
     }
 }

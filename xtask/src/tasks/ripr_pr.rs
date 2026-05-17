@@ -10,7 +10,7 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
 
-use crate::cli::{RiprPrArgs, RiprReviewCommentsArgs};
+use crate::cli::{RiprAnnotationsArgs, RiprPrArgs, RiprReviewCommentsArgs};
 
 const RIPR_PR_DIR: &str = "target/ripr/pr";
 const RIPR_REVIEW_DIR: &str = "target/ripr/review";
@@ -82,6 +82,87 @@ pub fn run_review_comments(args: RiprReviewCommentsArgs) -> Result<()> {
     check_review_contract(&json_path, &md_path)?;
     println!("ripr-review-comments: wrote {}", out_dir.display());
     Ok(())
+}
+
+pub fn run_annotations(args: RiprAnnotationsArgs) -> Result<()> {
+    emit_annotations(&args.path)
+}
+
+fn emit_annotations(path: &Path) -> Result<()> {
+    if !path.exists() {
+        eprintln!("::warning::No RIPR review comments JSON found; skipping annotations.");
+        return Ok(());
+    }
+
+    let json_body = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let value = match serde_json::from_str::<Value>(&json_body) {
+        Ok(value) => value,
+        Err(error) => {
+            let warning = format!(
+                "Invalid RIPR review comments JSON in {}: {error}",
+                path.display()
+            );
+            eprintln!("::warning::{}", escape_data(&warning));
+            return Ok(());
+        }
+    };
+
+    let Some(comments) = value.get("comments").and_then(Value::as_array) else {
+        return Ok(());
+    };
+
+    for item in comments {
+        let Some(file) = item
+            .get("path")
+            .or_else(|| item.get("file"))
+            .and_then(annotation_field)
+        else {
+            continue;
+        };
+        let Some(line) = item.get("line").and_then(annotation_field) else {
+            continue;
+        };
+        let title = item
+            .get("title")
+            .and_then(annotation_field)
+            .unwrap_or_else(|| "RIPR".to_string());
+        let body = item
+            .get("body")
+            .or_else(|| item.get("message"))
+            .and_then(annotation_field)
+            .unwrap_or_default();
+
+        println!(
+            "::warning file={},line={},title={}::{}",
+            escape_property(&file),
+            escape_property(&line),
+            escape_property(&title),
+            escape_data(&body)
+        );
+    }
+
+    Ok(())
+}
+
+fn annotation_field(value: &Value) -> Option<String> {
+    match value {
+        Value::String(text) => Some(text.clone()),
+        Value::Number(number) => Some(number.to_string()),
+        Value::Bool(flag) => Some(flag.to_string()),
+        _ => None,
+    }
+}
+
+fn escape_data(value: &str) -> String {
+    value
+        .replace('%', "%25")
+        .replace('\r', "%0D")
+        .replace('\n', "%0A")
+        .replace(':', "%3A")
+}
+
+fn escape_property(value: &str) -> String {
+    escape_data(value).replace('=', "%3D").replace(',', "%2C")
 }
 
 fn run_ripr_check_format(
@@ -246,5 +327,28 @@ mod tests {
         assert!(body.contains("RIPR Review Guidance"));
         assert!(body.contains("Summary-only items: 1"));
         check_review_contract(&json, &md).unwrap();
+    }
+
+    #[test]
+    fn annotation_escaping_matches_github_workflow_command_rules() {
+        assert_eq!(escape_data("a%b\rc\nd:e"), "a%25b%0Dc%0Ad%3Ae");
+        assert_eq!(escape_property("a=b,c"), "a%3Db%2Cc");
+    }
+
+    #[test]
+    fn annotation_field_accepts_scalar_values() {
+        assert_eq!(
+            annotation_field(&Value::String("src/lib.rs".to_string())).as_deref(),
+            Some("src/lib.rs")
+        );
+        assert_eq!(
+            annotation_field(&Value::Number(42.into())).as_deref(),
+            Some("42")
+        );
+        assert_eq!(
+            annotation_field(&Value::Bool(true)).as_deref(),
+            Some("true")
+        );
+        assert!(annotation_field(&Value::Null).is_none());
     }
 }
