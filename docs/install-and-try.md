@@ -26,7 +26,7 @@ Other install paths:
   ```
 
 - Use the GitHub Action when you want CI artifacts. See
-  [GitHub Action reference](github-action.md).
+  [GitHub Action quickstart](action-quickstart.md).
 
 ## 2. Inspect A Repo
 
@@ -141,7 +141,8 @@ For PR review packets, use `mode: cockpit` and `review-packet: 'true'`. The
 Action can upload artifacts and optionally comment on a PR. It does not promote
 advisory proof, enable Codecov upload by default, or make a merge verdict.
 
-See [GitHub Action reference](github-action.md) for all inputs and outputs.
+See [GitHub Action quickstart](action-quickstart.md) for copy-ready workflows
+or [GitHub Action reference](github-action.md) for all inputs and outputs.
 
 ## 7. Check Release-Facing Evidence
 

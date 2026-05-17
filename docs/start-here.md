@@ -151,6 +151,7 @@ maintainer explicitly promotes them.
 
 More detail:
 
+- [GitHub Action quickstart](action-quickstart.md).
 - [GitHub Action reference](github-action.md).
 - [Artifact glossary](artifacts.md) for proof and coverage receipts.
 - [Publishing evidence](publishing-evidence.md) for release-facing package

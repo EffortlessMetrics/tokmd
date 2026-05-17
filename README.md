@@ -145,7 +145,10 @@ Use the root composite Action when you want `tokmd` receipts, PR summaries, arti
     paths: .
 ```
 
-For all Action modes, inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see [GitHub Action reference](docs/github-action.md).
+For a copy-ready adoption workflow, see
+[GitHub Action quickstart](docs/action-quickstart.md). For all Action modes,
+inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see
+[GitHub Action reference](docs/github-action.md).
 
 ## Why It Exists
 

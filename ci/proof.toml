@@ -1097,6 +1097,7 @@ name = "user_guides"
 kind = "non_rust"
 paths = [
   "docs/artifacts.md",
+  "docs/action-quickstart.md",
   "docs/browser.md",
   "docs/examples/**",
   "docs/install-and-try.md",

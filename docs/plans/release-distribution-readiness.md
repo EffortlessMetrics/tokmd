@@ -62,11 +62,11 @@ what is the next action?
      `docs/install.md`, and
      `docs/user-paths.md` without duplicating all command details.
 2. Add a GitHub Action quickstart.
-   - Status: pending.
-   - Create `docs/action-quickstart.md` for the adoption path from Action
+   - Status: complete.
+   - Added `docs/action-quickstart.md` for the adoption path from Action
      install to review packet artifact, optional comment, and verifier receipt.
-   - Keep the full Action reference in `docs/github-action.md`.
-   - Explain required/advisory proof boundaries, no merge verdict, and no
+   - Kept the full Action reference in `docs/github-action.md`.
+   - Explained required/advisory proof boundaries, no merge verdict, and no
      default Codecov upload.
 3. Record a real user-path smoke run.
    - Status: pending.
@@ -174,3 +174,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Added the install-and-try guide and linked it from the public
   entry points. The guide keeps install, inspect, PR review, handoff, browser,
   CI, and release-facing evidence paths on existing commands and artifacts.
+- 2026-05-17: Added the GitHub Action quickstart and linked it from the public
+  docs entry points. The guide shows minimal receipt and PR review-packet
+  workflows while keeping the full Action reference separate.

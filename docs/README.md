@@ -15,6 +15,8 @@ schemas, and verification policy for `tokmd`.
 - [workflows.md](workflows.md) — copy-ready command sequences for inspection,
   PR review, proof planning, proof observations, agent handoff, browser trial,
   and publishing evidence.
+- [action-quickstart.md](action-quickstart.md) — copy-ready GitHub Action
+  workflows for receipt artifacts and cockpit review packets.
 - [examples/](examples/README.md) — small artifact-tree walkthroughs for
   review packets, handoff bundles, proof status, browser receipts, and
   publishing evidence.

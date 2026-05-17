@@ -209,6 +209,8 @@ Does not mean:
 
 Next action:
 
+- Use [GitHub Action quickstart](action-quickstart.md) when you want hosted
+  artifacts before wiring deeper proof workflows.
 - Resolve unknown files before relying on scoped proof.
 - Run required proof when the work needs executed evidence.
 - Verify source receipts and status packets with their matching checkers.
