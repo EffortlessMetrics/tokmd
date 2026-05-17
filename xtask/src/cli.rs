@@ -107,6 +107,8 @@ pub enum Commands {
     RiprPr(RiprPrArgs),
     /// Generate or check RIPR review guidance artifacts
     RiprReviewComments(RiprReviewCommentsArgs),
+    /// Emit GitHub workflow annotations from RIPR review guidance
+    RiprAnnotations(RiprAnnotationsArgs),
 }
 
 #[derive(Args, Debug, Clone)]
@@ -235,6 +237,21 @@ impl Default for RiprReviewCommentsArgs {
             check: false,
             base: "origin/main".to_string(),
             head: "HEAD".to_string(),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprAnnotationsArgs {
+    /// RIPR review comments JSON to convert into GitHub workflow annotations
+    #[arg(long, default_value = "target/ripr/review/comments.json")]
+    pub path: std::path::PathBuf,
+}
+
+impl Default for RiprAnnotationsArgs {
+    fn default() -> Self {
+        Self {
+            path: std::path::PathBuf::from("target/ripr/review/comments.json"),
         }
     }
 }

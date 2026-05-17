@@ -10,7 +10,7 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
 
-use crate::cli::{RiprPrArgs, RiprReviewCommentsArgs};
+use crate::cli::{RiprAnnotationsArgs, RiprPrArgs, RiprReviewCommentsArgs};
 
 const RIPR_PR_DIR: &str = "target/ripr/pr";
 const RIPR_REVIEW_DIR: &str = "target/ripr/review";
@@ -41,6 +41,94 @@ pub fn run_pr(args: RiprPrArgs) -> Result<()> {
     check_pr_contract(&out_dir)?;
     println!("ripr-pr: wrote {}", out_dir.display());
     Ok(())
+}
+
+pub fn run_annotations(args: RiprAnnotationsArgs) -> Result<()> {
+    let workspace_root = workspace_root_path()?;
+    let path = workspace_root.join(args.path);
+    emit_github_annotations(&path)
+}
+
+fn emit_github_annotations(path: &Path) -> Result<()> {
+    if !path.exists() {
+        eprintln!(
+            "::warning::{}",
+            escape_data("No RIPR review comments JSON found; skipping annotations.")
+        );
+        return Ok(());
+    }
+
+    let body = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let data = match serde_json::from_str::<Value>(&body) {
+        Ok(data) => data,
+        Err(error) => {
+            eprintln!(
+                "::warning::{}",
+                escape_data(format!(
+                    "Invalid RIPR review comments JSON in {}: {error}",
+                    path.display()
+                ))
+            );
+            return Ok(());
+        }
+    };
+
+    let Some(comments) = data.get("comments").and_then(Value::as_array) else {
+        return Ok(());
+    };
+
+    for item in comments {
+        let Some(file) = item
+            .get("path")
+            .or_else(|| item.get("file"))
+            .and_then(value_to_annotation_property)
+        else {
+            continue;
+        };
+        let Some(line) = item.get("line").and_then(value_to_annotation_property) else {
+            continue;
+        };
+        let title = item
+            .get("title")
+            .and_then(value_to_annotation_property)
+            .unwrap_or_else(|| "RIPR".to_string());
+        let body = item
+            .get("body")
+            .or_else(|| item.get("message"))
+            .and_then(value_to_annotation_property)
+            .unwrap_or_default();
+
+        println!(
+            "::warning file={},line={},title={}::{}",
+            escape_property(file),
+            escape_property(line),
+            escape_property(title),
+            escape_data(body)
+        );
+    }
+
+    Ok(())
+}
+
+fn value_to_annotation_property(value: &Value) -> Option<String> {
+    match value {
+        Value::String(value) if !value.is_empty() => Some(value.clone()),
+        Value::Number(value) => Some(value.to_string()),
+        _ => None,
+    }
+}
+
+fn escape_data(value: impl AsRef<str>) -> String {
+    value
+        .as_ref()
+        .replace('%', "%25")
+        .replace('\r', "%0D")
+        .replace('\n', "%0A")
+        .replace(':', "%3A")
+}
+
+fn escape_property(value: impl AsRef<str>) -> String {
+    escape_data(value).replace('=', "%3D").replace(',', "%2C")
 }
 
 pub fn run_review_comments(args: RiprReviewCommentsArgs) -> Result<()> {
@@ -246,5 +334,38 @@ mod tests {
         assert!(body.contains("RIPR Review Guidance"));
         assert!(body.contains("Summary-only items: 1"));
         check_review_contract(&json, &md).unwrap();
+    }
+
+    #[test]
+    fn annotation_escaping_matches_github_workflow_command_rules() {
+        assert_eq!(escape_data("a%b\rc\nd:e"), "a%25b%0Dc%0Ad%3Ae");
+        assert_eq!(escape_property("a=b,c"), "a%3Db%2Cc");
+    }
+
+    #[test]
+    fn annotation_properties_accept_strings_and_numbers_only() {
+        assert_eq!(
+            value_to_annotation_property(&Value::String("src/lib.rs".to_string())),
+            Some("src/lib.rs".to_string())
+        );
+        assert_eq!(
+            value_to_annotation_property(&Value::Number(12.into())),
+            Some("12".to_string())
+        );
+        assert_eq!(
+            value_to_annotation_property(&Value::String(String::new())),
+            None
+        );
+        assert_eq!(value_to_annotation_property(&Value::Bool(true)), None);
+    }
+
+    #[test]
+    fn annotations_treat_missing_or_invalid_json_as_advisory() {
+        let temp = tempfile::tempdir().unwrap();
+        emit_github_annotations(&temp.path().join("missing.json")).unwrap();
+
+        let invalid = temp.path().join("comments.json");
+        fs::write(&invalid, "not json").unwrap();
+        emit_github_annotations(&invalid).unwrap();
     }
 }
