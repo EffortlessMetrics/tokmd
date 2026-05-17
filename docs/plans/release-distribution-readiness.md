@@ -114,10 +114,12 @@ what is the next action?
      are sufficient until a named release, Action, or downstream consumer needs
      one stable JSON envelope.
 9. Compress the README first-run path after the adoption guides exist.
-   - Status: pending.
-   - Keep README above the fold focused on install, inspect, review, handoff,
-     and CI entry points.
-   - Link deeper reference pages instead of explaining the control plane inline.
+   - Status: complete.
+   - Compressed the README quick-start path around install, repo inspection, PR
+     review, agent handoff, CI adoption, browser-to-native, and release
+     readiness links.
+   - Kept deeper command inventory and control-plane references below the first
+     user path instead of making them the first decision surface.
 10. Close the lane.
     - Status: pending.
     - Close only when install/try, Action adoption, real smoke evidence, agent
@@ -202,3 +204,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Recorded the release-readiness wrapper receipt proposal and
   chose "no wrapper yet" until a concrete consumer cannot use the existing
   release evidence artifacts directly.
+- 2026-05-17: Compressed the README first-run path so outside users see
+  install, inspect, review, handoff, CI, browser, and release-readiness entry
+  points before deeper command inventory.
