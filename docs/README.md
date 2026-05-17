@@ -22,6 +22,8 @@ schemas, and verification policy for `tokmd`.
   publishing evidence.
 - [browser.md](browser.md) — no-install browser workflow and native-only
   boundaries.
+- [browser-to-native.md](browser-to-native.md) — move from a browser trial to
+  native review packets, handoff bundles, and CI evidence.
 - [VERIFICATION.md](VERIFICATION.md) — README badge meanings, generated endpoints, and PR evidence boundaries.
 - [agent-workflows/handoff-prompt.md](agent-workflows/handoff-prompt.md) —
   copy-ready prompt template for coding agents consuming `.handoff/` bundles.

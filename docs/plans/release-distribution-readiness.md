@@ -93,9 +93,11 @@ what is the next action?
      verifier for proof or review packets.
 6. Add browser-to-native adoption guidance if current browser docs still leave
    the trial-to-native path ambiguous.
-   - Status: pending.
-   - Keep browser mode as a no-install trial lens.
-   - Keep native mode as the review, proof, and handoff instrument.
+   - Status: complete.
+   - Added `docs/browser-to-native.md` as the bridge from no-install browser
+     inspection to native `cockpit`, `handoff`, and CI evidence workflows.
+   - Kept browser mode as a no-install trial lens and native mode as the
+     review, proof, and handoff instrument.
 7. Add a release evidence quickstart.
    - Status: pending.
    - Compose existing publishing evidence, version consistency, affected proof,
@@ -188,3 +190,6 @@ Run required affected proof if the affected proof plan selects it.
 - 2026-05-17: Strengthened handoff work-order integration coverage so the
   agent-facing linked-evidence sections, stop conditions, and guardrails stay
   stable through future refactors.
+- 2026-05-17: Added browser-to-native adoption guidance so browser trials end
+  with concrete native review, handoff, and CI evidence next actions without
+  implying browser/native parity.
