@@ -33,6 +33,8 @@ schemas, and verification policy for `tokmd`.
   surface, metadata, and CI ownership evidence before release mutation.
 - [release-readiness.md](release-readiness.md) — quickstart for pre-release
   evidence checks without publishing, tagging, or creating releases.
+- [releases/1.11.md](releases/1.11.md) — draft release notes for the 1.11
+  evidence-consumption release.
 - [reference-cli.md](reference-cli.md) — generated CLI flag reference.
 - [SCHEMA.md](SCHEMA.md) — receipt format documentation.
 - [architecture.md](architecture.md) — crate hierarchy and data flow.

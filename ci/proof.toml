@@ -1328,6 +1328,7 @@ kind = "non_rust"
 paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
+  "docs/releases/**",
 ]
 proof = [
   "cargo xtask version-consistency",
