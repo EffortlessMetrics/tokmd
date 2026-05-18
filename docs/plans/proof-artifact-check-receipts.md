@@ -3,7 +3,7 @@
 - Status: complete
 - Related proposal:
 - Related spec: `docs/ci/proof-observation-artifacts.md`
-- Related ADR: `docs/adr/0009-proof-observation-decision.md`
+- Related ADR: `docs/adr/0009-proof-observation-promotion-boundary.md`
 - Related issues:
 
 ## Goal

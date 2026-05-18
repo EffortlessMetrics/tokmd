@@ -12,7 +12,8 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 1 | live |
 | `auditor_bindings_manifests` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `bolt-run-001` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
-| `bolt_analysis_stack_builder` | Unknown | Unknown | Unknown | in-progress | 0 | live |
+| `bolt_analysis_stack_builder` | Bolt ⚡ | Builder | analysis-stack | in-progress | 1 | live |
+| `carto-roadmap-design-1` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design_1` | cartographer | builder | tooling-governance | in-progress | 0 | live |
 | `compat_interfaces_matrix_01` | Unknown | Unknown | Unknown | in-progress | 0 | live |
@@ -21,14 +22,16 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
 | `invariant_model_analysis` | invariant | prover | analysis-stack | in-progress | 0 | live |
 | `librarian_api_doctests` | Librarian | Prover | interfaces | success | 0 | live |
-| `librarian_docs_examples` | Librarian | Builder | tooling-governance | success | 0 | live |
+| `librarian_docs_examples` | Librarian | Builder | tooling-governance | in-progress | 6 | live |
 | `mutant_high_value` | Mutant | Prover | core-pipeline | in-progress | 0 | live |
 | `palette_binding_dx` | palette | prover | bindings-targets | success | 0 | live |
 | `palette_runtime_dx` | palette | builder | interfaces | success | 0 | live |
 | `palette_runtime_dx_interfaces` | Palette 🎨 | Builder | interfaces | in-progress | 0 | live |
+| `run-sentinel-redact-1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
 | `run_perf_cockpit_entry` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
+| `sentinel_boundaries` | Sentinel | Builder | interfaces | in-progress | 0 | live |
 | `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 0 | live |
 | `specsmith_interfaces` | Specsmith | Explorer | interfaces | success | 0 | live |
 | `steward_1` | Steward | Stabilizer | tooling-governance | success | 0 | live |

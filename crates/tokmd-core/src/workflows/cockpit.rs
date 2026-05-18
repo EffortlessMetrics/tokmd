@@ -34,6 +34,8 @@ use crate::settings::CockpitSettings;
 /// expect_success(Command::new("git").arg("init").current_dir(dir).status().expect("git init"));
 /// expect_success(Command::new("git").args(["config", "user.email", "test@example.com"]).current_dir(dir).status().expect("git config"));
 /// expect_success(Command::new("git").args(["config", "user.name", "Test User"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").args(["config", "commit.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").args(["config", "tag.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
 /// fs::write(dir.join("main.rs"), "fn main() {}").expect("write");
 /// expect_success(Command::new("git").args(["add", "main.rs"]).current_dir(dir).status().expect("git add"));
 /// expect_success(Command::new("git").args(["commit", "-m", "Initial commit"]).current_dir(dir).status().expect("git commit"));

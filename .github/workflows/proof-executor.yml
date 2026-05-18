@@ -111,6 +111,36 @@ jobs:
             echo "executor artifacts did not pass verification" > target/proof/proof-execution-observations-summary.txt
           fi
 
+          cargo xtask proof-workflow-status \
+            --workflow-kind scoped-coverage-executor \
+            --status "affected_status=${affected_status}" \
+            --status "executor_status=${executor_status}" \
+            --status "verifier_status=${verifier_status}" \
+            --status "observation_status=${observation_status}" \
+            --status "collection_status=${collection_status}" \
+            --proof-policy target/proof/proof-policy.json \
+            --affected target/proof/affected.json \
+            --proof-plan target/proof/proof-plan.json \
+            --executor-summary target/proof/executor-summary.json \
+            --executor-manifest target/proof/executor-manifest.json \
+            --proof-execution-artifacts-check target/proof/proof-execution-artifacts-check.json \
+            --proof-executor-observation target/proof/proof-executor-observation.json \
+            --proof-executor-observation-collection target/proof/proof-executor-observation-collection.json \
+            --json target/proof/proof-workflow-status.json \
+            --summary-md target/proof/proof-workflow-status.md \
+            --env-output target/proof/proof-workflow-status.env > target/proof/proof-workflow-status.txt 2>&1
+          proof_workflow_status_status=$?
+
+          if [ "${proof_workflow_status_status}" -eq 0 ]; then
+            cargo xtask proof-workflow-status-check \
+              --status target/proof/proof-workflow-status.json \
+              --json target/proof/proof-workflow-status-check.json > target/proof/proof-workflow-status-check.txt 2>&1
+            proof_workflow_status_check_status=$?
+          else
+            printf 'proof-workflow-status-check skipped because proof-workflow-status exited %s\n' "${proof_workflow_status_status}" > target/proof/proof-workflow-status-check.txt
+            proof_workflow_status_check_status=0
+          fi
+
           {
             echo "affected_status=${affected_status}"
             echo "executor_status=${executor_status}"
@@ -149,6 +179,14 @@ jobs:
               echo ""
               cat target/proof/proof-executor-observation-collection.md
             fi
+            if [ -f target/proof/proof-workflow-status.txt ]; then
+              echo ""
+              cat target/proof/proof-workflow-status.txt
+            fi
+            if [ -f target/proof/proof-workflow-status-check.txt ]; then
+              echo ""
+              cat target/proof/proof-workflow-status-check.txt
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${affected_status}" -ne 0 ]; then
@@ -165,6 +203,14 @@ jobs:
           fi
           if [ "${collection_status}" -ne 0 ]; then
             exit "${collection_status}"
+          fi
+
+          if [ "${proof_workflow_status_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_status}"
+          fi
+
+          if [ "${proof_workflow_status_check_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_check_status}"
           fi
 
           exit 0

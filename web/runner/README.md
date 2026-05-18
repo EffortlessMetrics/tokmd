@@ -54,7 +54,7 @@ The release asset is named:
 tokmd-wasm-<tag>.tar.gz
 ```
 
-`v1.9.0` becomes `tokmd-wasm-v1.9.0.tar.gz`. Extracting this archive into `vendor/tokmd-wasm` gives the exact layout expected by `web/runner/worker.js` without rebuilding from source.
+`v1.11.0` becomes `tokmd-wasm-v1.11.0.tar.gz`. Extracting this archive into `vendor/tokmd-wasm` gives the exact layout expected by `web/runner/worker.js` without rebuilding from source.
 
 ## GitHub ingest cache semantics
 

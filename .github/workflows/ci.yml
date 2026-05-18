@@ -312,6 +312,31 @@ jobs:
           cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json > target/proof-run/proof-run-observation.txt 2>&1
           proof_run_observation_status=$?
 
+          cargo xtask proof-workflow-status \
+            --workflow-kind fast-proof-run \
+            --status "proof_run_status=${proof_run_status}" \
+            --status "proof_run_artifacts_status=${proof_run_artifacts_status}" \
+            --status "proof_run_observation_status=${proof_run_observation_status}" \
+            --proof-policy target/proof-run/proof-policy.json \
+            --proof-plan target/proof-run/proof-plan.json \
+            --proof-run-summary target/proof-run/proof-run-summary.json \
+            --proof-run-artifacts-check target/proof-run/proof-run-artifacts-check.json \
+            --proof-run-observation target/proof-run/proof-run-observation.json \
+            --json target/proof-run/proof-workflow-status.json \
+            --summary-md target/proof-run/proof-workflow-status.md \
+            --env-output target/proof-run/proof-workflow-status.env > target/proof-run/proof-workflow-status.txt 2>&1
+          proof_workflow_status_status=$?
+
+          if [ "${proof_workflow_status_status}" -eq 0 ]; then
+            cargo xtask proof-workflow-status-check \
+              --status target/proof-run/proof-workflow-status.json \
+              --json target/proof-run/proof-workflow-status-check.json > target/proof-run/proof-workflow-status-check.txt 2>&1
+            proof_workflow_status_check_status=$?
+          else
+            printf 'proof-workflow-status-check skipped because proof-workflow-status exited %s\n' "${proof_workflow_status_status}" > target/proof-run/proof-workflow-status-check.txt
+            proof_workflow_status_check_status=0
+          fi
+
           {
             echo "proof_run_status=${proof_run_status}"
             echo "proof_run_artifacts_status=${proof_run_artifacts_status}"
@@ -337,6 +362,14 @@ jobs:
               echo ""
               cat target/proof-run/proof-run-observation.txt
             fi
+            if [ -f target/proof-run/proof-workflow-status.txt ]; then
+              echo ""
+              cat target/proof-run/proof-workflow-status.txt
+            fi
+            if [ -f target/proof-run/proof-workflow-status-check.txt ]; then
+              echo ""
+              cat target/proof-run/proof-workflow-status-check.txt
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "${proof_run_status}" -ne 0 ]; then
@@ -349,6 +382,14 @@ jobs:
 
           if [ "${proof_run_observation_status}" -ne 0 ]; then
             exit "${proof_run_observation_status}"
+          fi
+
+          if [ "${proof_workflow_status_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_status}"
+          fi
+
+          if [ "${proof_workflow_status_check_status}" -ne 0 ]; then
+            exit "${proof_workflow_status_check_status}"
           fi
 
           exit 0
@@ -599,21 +640,24 @@ jobs:
         id: changed
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
-          git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.rs' \
-            | grep -v '/tests/' \
-            | grep -v '_test\.rs$' \
-            | grep -v '^fuzz/' \
-            | grep -v '/fuzz/' \
-            > changed_files.txt || true
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_REF="${{ github.base_ref }}"
+          else
+            BASE_REF="main"
+          fi
 
-          COUNT="$(wc -l < changed_files.txt | tr -d ' ')"
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          git fetch origin "$BASE_REF":"refs/remotes/origin/$BASE_REF" || true
 
-          echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          cat changed_files.txt >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          cargo xtask mutation-scope \
+            --base-ref "$BASE_REF" \
+            --base "origin/$BASE_REF" \
+            --head HEAD \
+            --max-files 20 \
+            --all-changed-files all_changed_files.txt \
+            --changed-files changed_files.txt \
+            --json-output target/mutation/mutation-scope.json \
+            --github-output "$GITHUB_OUTPUT"
 
       - name: Mutation Testing
         if: steps.changed.outputs.count != '0'
@@ -646,8 +690,12 @@ jobs:
           echo "✓ All mutations caught or unviable (0 MISSED)"
 
       - name: Skip notice
-        if: steps.changed.outputs.count == '0'
+        if: steps.changed.outputs.count == '0' && steps.changed.outputs.scope_exceeded != 'true'
         run: echo "No production Rust files changed - skipping mutation testing"
+
+      - name: Scope exceeded notice
+        if: steps.changed.outputs.scope_exceeded == 'true'
+        run: echo "Mutation scope exceeded - selected files were cleared. See target/mutation/mutation-scope.json."
 
       - name: Upload mutants report
         if: always()
@@ -655,6 +703,9 @@ jobs:
         with:
           name: mutants-report
           path: |
+            target/mutation/mutation-scope.json
+            all_changed_files.txt
+            changed_files.txt
             mutants.out/
             crates/**/mutants.out/
           if-no-files-found: ignore

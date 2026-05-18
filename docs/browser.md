@@ -59,6 +59,11 @@ browser run
 Browser artifacts are useful inputs for inspection and handoff. They are not a
 replacement for native review packets, proof plans, baselines, or gates.
 
+When the browser result shows the repo needs real PR review, proof routing, or
+agent context, use [Browser to native](browser-to-native.md) for the shortest
+bridge from browser receipts to native `cockpit`, `handoff`, and CI evidence
+workflows.
+
 ## Native-Only Boundaries
 
 These stay native-first:
