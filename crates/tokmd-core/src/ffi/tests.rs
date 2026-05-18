@@ -314,10 +314,11 @@ fn null_values_use_defaults() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn null_paths_uses_default() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Value = serde_json::json!({"paths": null});
+fn null_scan_options_use_defaults() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Value = serde_json::json!({"excluded": null});
     let settings = parse_scan_settings(&args)?;
     assert_eq!(settings.paths, vec!["."]);
+    assert!(settings.options.excluded.is_empty());
     Ok(())
 }
 
