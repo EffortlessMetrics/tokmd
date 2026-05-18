@@ -565,6 +565,88 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should emit a compact proof-run observation"
     );
     assert!(
+        ci.contains("cargo xtask proof-workflow-status"),
+        "fast proof job should summarize status arbitration through xtask"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_status=${proof_run_status}\""),
+        "fast proof job should pass proof run status to the status packet"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_artifacts_status=${proof_run_artifacts_status}\""),
+        "fast proof job should pass artifact verifier status to the status packet"
+    );
+    assert!(
+        ci.contains("--status \"proof_run_observation_status=${proof_run_observation_status}\""),
+        "fast proof job should pass observation status to the status packet"
+    );
+    assert!(
+        ci.contains("--proof-policy target/proof-run/proof-policy.json"),
+        "fast proof job should pass the proof policy artifact"
+    );
+    assert!(
+        ci.contains("--proof-plan target/proof-run/proof-plan.json"),
+        "fast proof job should pass the proof plan artifact"
+    );
+    assert!(
+        ci.contains("--proof-run-summary target/proof-run/proof-run-summary.json"),
+        "fast proof job should pass the proof-run summary artifact"
+    );
+    assert!(
+        ci.contains("--proof-run-artifacts-check target/proof-run/proof-run-artifacts-check.json"),
+        "fast proof job should pass the proof-run verifier receipt"
+    );
+    assert!(
+        ci.contains("--proof-run-observation target/proof-run/proof-run-observation.json"),
+        "fast proof job should pass the proof-run observation artifact"
+    );
+    assert!(
+        ci.contains("--json target/proof-run/proof-workflow-status.json"),
+        "fast proof job should write the workflow status packet"
+    );
+    assert!(
+        ci.contains("--summary-md target/proof-run/proof-workflow-status.md"),
+        "fast proof job should write a Rust-rendered workflow summary"
+    );
+    assert!(
+        ci.contains("--env-output target/proof-run/proof-workflow-status.env"),
+        "fast proof job should write workflow-compatible status outputs"
+    );
+    assert!(
+        ci.contains("cargo xtask proof-workflow-status-check"),
+        "fast proof job should verify the workflow status packet"
+    );
+    assert!(
+        ci.contains("--json target/proof-run/proof-workflow-status-check.json"),
+        "fast proof job should write the workflow status verifier receipt"
+    );
+    assert!(
+        ci.contains("proof-workflow-status-check skipped because proof-workflow-status exited"),
+        "fast proof job should skip checker cleanly when status packet generation fails"
+    );
+    let proof_run_exit = ci
+        .find("if [ \"${proof_run_status}\" -ne 0 ]; then")
+        .expect("proof_run_status exit check should remain");
+    let proof_run_artifacts_exit = ci
+        .find("if [ \"${proof_run_artifacts_status}\" -ne 0 ]; then")
+        .expect("proof_run_artifacts_status exit check should remain");
+    let proof_run_observation_exit = ci
+        .find("if [ \"${proof_run_observation_status}\" -ne 0 ]; then")
+        .expect("proof_run_observation_status exit check should remain");
+    let proof_workflow_status_exit = ci
+        .find("if [ \"${proof_workflow_status_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_status exit check should be present");
+    let proof_workflow_status_check_exit = ci
+        .find("if [ \"${proof_workflow_status_check_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_check_status exit check should be present");
+    assert!(
+        proof_run_exit < proof_run_artifacts_exit
+            && proof_run_artifacts_exit < proof_run_observation_exit
+            && proof_run_observation_exit < proof_workflow_status_exit
+            && proof_workflow_status_exit < proof_workflow_status_check_exit,
+        "fast proof job should preserve exit priority: proof run, artifacts, observation, status packet, status check"
+    );
+    assert!(
         ci.contains("Fast proof-run artifact generation is advisory"),
         "fast proof job summary should state advisory status"
     );
@@ -577,6 +659,74 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
     assert!(
         !required_section.contains("- fast-proof-run"),
         "required CI aggregate must not depend on the advisory fast proof runner"
+    );
+}
+
+#[test]
+fn ci_mutation_job_uses_rust_owned_mutation_scope_selector() {
+    let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
+        .expect("ci workflow should be readable");
+    let mutation_section = ci
+        .split("  mutation:")
+        .nth(1)
+        .and_then(|section| section.split("  ci-required:").next())
+        .expect("CI workflow should define mutation and required aggregate jobs");
+
+    assert!(
+        mutation_section.contains("cargo xtask mutation-scope"),
+        "CI mutation job should route file selection through xtask"
+    );
+    assert!(
+        mutation_section.contains("--base-ref \"$BASE_REF\""),
+        "CI mutation job should record the human base ref"
+    );
+    assert!(
+        mutation_section.contains("--base \"origin/$BASE_REF\""),
+        "CI mutation job should diff against the fetched base ref"
+    );
+    assert!(
+        mutation_section.contains("--head HEAD"),
+        "CI mutation job should diff against checked-out HEAD"
+    );
+    assert!(
+        mutation_section.contains("--all-changed-files all_changed_files.txt"),
+        "CI mutation job should preserve the all-changed-files evidence path"
+    );
+    assert!(
+        mutation_section.contains("--changed-files changed_files.txt"),
+        "CI mutation job should preserve the changed_files.txt execution input"
+    );
+    assert!(
+        mutation_section.contains("--json-output target/mutation/mutation-scope.json"),
+        "CI mutation job should emit the mutation scope JSON receipt"
+    );
+    assert!(
+        mutation_section.contains("--github-output \"$GITHUB_OUTPUT\""),
+        "CI mutation job should preserve workflow-compatible count/files outputs"
+    );
+    assert!(
+        mutation_section.contains("steps.changed.outputs.count != '0'"),
+        "CI mutation execution should still branch on the Rust-owned count output"
+    );
+    assert!(
+        mutation_section.contains("done < changed_files.txt"),
+        "CI mutation execution should keep consuming changed_files.txt"
+    );
+    assert!(
+        mutation_section.contains("target/mutation/mutation-scope.json"),
+        "CI mutation artifacts should include the mutation scope receipt"
+    );
+    assert!(
+        mutation_section.contains("all_changed_files.txt"),
+        "CI mutation artifacts should include all changed-file evidence"
+    );
+    assert!(
+        !mutation_section.contains("git diff --name-only"),
+        "CI mutation job should not keep the inline git diff classifier"
+    );
+    assert!(
+        !mutation_section.contains("grep -v '/tests/'"),
+        "CI mutation job should not keep duplicate shell filter logic"
     );
 }
 
@@ -661,6 +811,116 @@ fn scoped_coverage_executor_is_pr_visible_but_not_required() {
     assert!(
         executor.contains("--json-output target/proof/affected.json"),
         "executor workflow should write affected.json through xtask instead of shell redirection"
+    );
+    assert!(
+        executor.contains("cargo xtask proof-workflow-status"),
+        "executor workflow should summarize status arbitration through xtask"
+    );
+    assert!(
+        executor.contains("--workflow-kind scoped-coverage-executor"),
+        "executor workflow should identify the scoped coverage status packet kind"
+    );
+    assert!(
+        executor.contains("--status \"affected_status=${affected_status}\""),
+        "executor workflow should pass affected status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"executor_status=${executor_status}\""),
+        "executor workflow should pass executor status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"verifier_status=${verifier_status}\""),
+        "executor workflow should pass verifier status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"observation_status=${observation_status}\""),
+        "executor workflow should pass observation status to the status packet"
+    );
+    assert!(
+        executor.contains("--status \"collection_status=${collection_status}\""),
+        "executor workflow should pass collection status to the status packet"
+    );
+    assert!(
+        executor.contains("--affected target/proof/affected.json"),
+        "executor workflow should pass the affected artifact"
+    );
+    assert!(
+        executor.contains("--executor-summary target/proof/executor-summary.json"),
+        "executor workflow should pass the executor summary"
+    );
+    assert!(
+        executor.contains("--executor-manifest target/proof/executor-manifest.json"),
+        "executor workflow should pass the executor manifest"
+    );
+    assert!(
+        executor.contains(
+            "--proof-execution-artifacts-check target/proof/proof-execution-artifacts-check.json"
+        ),
+        "executor workflow should pass the execution artifact verifier receipt"
+    );
+    assert!(
+        executor
+            .contains("--proof-executor-observation target/proof/proof-executor-observation.json"),
+        "executor workflow should pass the executor observation"
+    );
+    assert!(
+        executor.contains("--proof-executor-observation-collection target/proof/proof-executor-observation-collection.json"),
+        "executor workflow should pass the executor observation collection"
+    );
+    assert!(
+        executor.contains("--json target/proof/proof-workflow-status.json"),
+        "executor workflow should write the workflow status packet"
+    );
+    assert!(
+        executor.contains("--summary-md target/proof/proof-workflow-status.md"),
+        "executor workflow should write a Rust-rendered workflow status summary"
+    );
+    assert!(
+        executor.contains("--env-output target/proof/proof-workflow-status.env"),
+        "executor workflow should write workflow-compatible status output"
+    );
+    assert!(
+        executor.contains("cargo xtask proof-workflow-status-check"),
+        "executor workflow should verify the workflow status packet"
+    );
+    assert!(
+        executor.contains("--json target/proof/proof-workflow-status-check.json"),
+        "executor workflow should write the workflow status verifier receipt"
+    );
+    assert!(
+        executor
+            .contains("proof-workflow-status-check skipped because proof-workflow-status exited"),
+        "executor workflow should skip checker cleanly when status packet generation fails"
+    );
+    let affected_exit = executor
+        .find("if [ \"${affected_status}\" -ne 0 ]; then")
+        .expect("affected_status exit check should remain");
+    let executor_exit = executor
+        .find("if [ \"${executor_status}\" -ne 0 ]; then")
+        .expect("executor_status exit check should remain");
+    let verifier_exit = executor
+        .find("if [ \"${verifier_status}\" -ne 0 ]; then")
+        .expect("verifier_status exit check should remain");
+    let observation_exit = executor
+        .find("if [ \"${observation_status}\" -ne 0 ]; then")
+        .expect("observation_status exit check should remain");
+    let collection_exit = executor
+        .find("if [ \"${collection_status}\" -ne 0 ]; then")
+        .expect("collection_status exit check should remain");
+    let workflow_status_exit = executor
+        .find("if [ \"${proof_workflow_status_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_status exit check should be present");
+    let workflow_status_check_exit = executor
+        .find("if [ \"${proof_workflow_status_check_status}\" -ne 0 ]; then")
+        .expect("proof_workflow_status_check_status exit check should be present");
+    assert!(
+        affected_exit < executor_exit
+            && executor_exit < verifier_exit
+            && verifier_exit < observation_exit
+            && observation_exit < collection_exit
+            && collection_exit < workflow_status_exit
+            && workflow_status_exit < workflow_status_check_exit,
+        "executor workflow should preserve exit priority: affected, executor, verifier, observation, collection, status packet, status check"
     );
     assert!(
         !executor.contains("--json > target/proof/affected.json"),

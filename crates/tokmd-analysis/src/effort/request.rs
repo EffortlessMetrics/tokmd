@@ -116,3 +116,44 @@ impl Display for EffortLayer {
         write!(f, "{}", self.as_str())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn effort_request_default_pins_engine_baseline() {
+        let req = EffortRequest::default();
+        assert_eq!(req.model, EffortModelKind::Cocomo81Basic);
+        assert_eq!(req.layer, EffortLayer::Full);
+        assert!(req.base_ref.is_none());
+        assert!(req.head_ref.is_none());
+        assert!(!req.monte_carlo);
+        assert_eq!(req.mc_iterations, 10_000);
+        assert!(req.mc_seed.is_none());
+    }
+
+    #[test]
+    fn effort_model_kind_string_forms_are_stable() {
+        for (kind, expected) in [
+            (EffortModelKind::Cocomo81Basic, "cocomo81-basic"),
+            (EffortModelKind::Cocomo2Early, "cocomo2-early"),
+            (EffortModelKind::Ensemble, "ensemble"),
+        ] {
+            assert_eq!(kind.as_str(), expected);
+            assert_eq!(kind.to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn effort_layer_string_forms_are_stable() {
+        for (layer, expected) in [
+            (EffortLayer::Headline, "headline"),
+            (EffortLayer::Why, "why"),
+            (EffortLayer::Full, "full"),
+        ] {
+            assert_eq!(layer.as_str(), expected);
+            assert_eq!(layer.to_string(), expected);
+        }
+    }
+}

@@ -980,7 +980,7 @@ fn test_cockpit_artifacts_dir() {
 #[test]
 fn test_cockpit_review_packet_dir() {
     // Given: A git repository with a main branch and a test branch with code changes
-    // When: User runs `tokmd cockpit --base main --review-packet-dir .tokmd/review`
+    // When: User runs `tokmd cockpit --base main --review-packet-dir .tokmd/custom-review`
     // Then: The review packet directory should contain the initial packet artifacts
     if !common::git_available() {
         return;
@@ -1007,7 +1007,8 @@ fn test_cockpit_review_packet_dir() {
         return;
     }
 
-    let packet_dir = dir.path().join(".tokmd").join("review");
+    let packet_dir_arg = std::path::PathBuf::from(".tokmd").join("custom-review");
+    let packet_dir = dir.path().join(&packet_dir_arg);
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
     cmd.current_dir(dir.path())
@@ -1015,7 +1016,7 @@ fn test_cockpit_review_packet_dir() {
         .arg("--base")
         .arg("main")
         .arg("--review-packet-dir")
-        .arg(&packet_dir)
+        .arg(&packet_dir_arg)
         .assert()
         .success();
 
@@ -1170,6 +1171,16 @@ fn test_cockpit_review_packet_dir() {
             .all(|item| item["evidence"]["status"].is_string()),
         "each review-map item should expose compact evidence status"
     );
+    assert!(
+        items[0]["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str().unwrap_or("").contains(
+                "tokmd cockpit --base main --head HEAD --review-packet-dir .tokmd/custom-review"
+            )),
+        "review-map JSON should reproduce the actual packet directory"
+    );
 
     let review_map_md = std::fs::read_to_string(packet_dir.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("# Review Map"));
@@ -1182,10 +1193,9 @@ fn test_cockpit_review_packet_dir() {
     assert!(review_map_md.contains("evidence.json#/gates"));
     assert!(review_map_md.contains("Reproduce:"));
     assert!(review_map_md.contains("tokmd cockpit --base main --head HEAD --format json"));
-    assert!(
-        review_map_md
-            .contains("tokmd cockpit --base main --head HEAD --review-packet-dir .tokmd/review")
-    );
+    assert!(review_map_md.contains(
+        "tokmd cockpit --base main --head HEAD --review-packet-dir .tokmd/custom-review"
+    ));
 
     let comment_md = std::fs::read_to_string(packet_dir.join("comment.md")).unwrap();
     assert!(comment_md.contains("Evidence availability"));

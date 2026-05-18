@@ -37,6 +37,10 @@ pub enum Commands {
     ProofObservationStatus(ProofObservationStatusArgs),
     /// Verify an advisory proof-observation decision-status packet
     ProofObservationStatusCheck(ProofObservationStatusCheckArgs),
+    /// Summarize proof workflow status arbitration without executing proof
+    ProofWorkflowStatus(ProofWorkflowStatusArgs),
+    /// Verify a proof workflow status packet
+    ProofWorkflowStatusCheck(ProofWorkflowStatusCheckArgs),
     /// Discover proof scopes affected by a git diff
     Affected(AffectedArgs),
     /// Print proof command plans without executing them
@@ -107,6 +111,8 @@ pub enum Commands {
     RiprPr(RiprPrArgs),
     /// Generate or check RIPR review guidance artifacts
     RiprReviewComments(RiprReviewCommentsArgs),
+    /// Emit GitHub workflow annotations from RIPR review guidance JSON
+    RiprAnnotations(RiprAnnotationsArgs),
 }
 
 #[derive(Args, Debug, Clone)]
@@ -212,6 +218,13 @@ impl Default for RiprPrArgs {
             base: "origin/main".to_string(),
         }
     }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RiprAnnotationsArgs {
+    /// RIPR review comments JSON to annotate
+    #[arg(long, default_value = "target/ripr/review/comments.json")]
+    pub comments: std::path::PathBuf,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -874,6 +887,142 @@ pub struct ProofObservationStatusCheckArgs {
         default_value = "target/proof-observations/proof-observation-decision.json"
     )]
     pub decision: std::path::PathBuf,
+
+    /// Optional JSON receipt path for the verifier result
+    #[arg(long, value_name = "PATH")]
+    pub json: Option<std::path::PathBuf>,
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProofWorkflowKind {
+    FastProofRun,
+    ScopedCoverageExecutor,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofWorkflowStatusArgs {
+    /// Proof workflow kind to summarize
+    #[arg(long, value_enum, default_value_t = ProofWorkflowKind::FastProofRun)]
+    pub workflow_kind: ProofWorkflowKind,
+
+    /// Explicit command exit status in NAME=INTEGER form. Repeat for each status.
+    #[arg(long = "status", value_name = "NAME=INTEGER")]
+    pub statuses: Vec<String>,
+
+    /// Checked proof-policy artifact to include
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-policy.json"
+    )]
+    pub proof_policy: std::path::PathBuf,
+
+    /// Proof-plan artifact to include
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-plan.json"
+    )]
+    pub proof_plan: std::path::PathBuf,
+
+    /// Required proof-run summary artifact to include
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-run-summary.json"
+    )]
+    pub proof_run_summary: std::path::PathBuf,
+
+    /// Required proof-run artifact verifier receipt to include
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-run-artifacts-check.json"
+    )]
+    pub proof_run_artifacts_check: std::path::PathBuf,
+
+    /// Required proof-run observation artifact to include
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-run-observation.json"
+    )]
+    pub proof_run_observation: std::path::PathBuf,
+
+    /// Affected-scope artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/affected.json"
+    )]
+    pub affected: std::path::PathBuf,
+
+    /// Executor summary artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-summary.json"
+    )]
+    pub executor_summary: std::path::PathBuf,
+
+    /// Executor manifest artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/executor-manifest.json"
+    )]
+    pub executor_manifest: std::path::PathBuf,
+
+    /// Executed proof artifact verifier receipt to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-execution-artifacts-check.json"
+    )]
+    pub proof_execution_artifacts_check: std::path::PathBuf,
+
+    /// Executor observation artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-observation.json"
+    )]
+    pub proof_executor_observation: std::path::PathBuf,
+
+    /// Executor observation collection artifact to include for scoped coverage executor workflows
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof/proof-executor-observation-collection.json"
+    )]
+    pub proof_executor_observation_collection: std::path::PathBuf,
+
+    /// Write the workflow status packet to this path
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-workflow-status.json"
+    )]
+    pub json: std::path::PathBuf,
+
+    /// Optional Markdown summary path for human workflow logs
+    #[arg(long, value_name = "PATH")]
+    pub summary_md: Option<std::path::PathBuf>,
+
+    /// Optional workflow-compatible key/value output path
+    #[arg(long, value_name = "PATH")]
+    pub env_output: Option<std::path::PathBuf>,
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct ProofWorkflowStatusCheckArgs {
+    /// Proof workflow status packet to verify
+    #[arg(
+        long,
+        value_name = "PATH",
+        default_value = "target/proof-run/proof-workflow-status.json"
+    )]
+    pub status: std::path::PathBuf,
 
     /// Optional JSON receipt path for the verifier result
     #[arg(long, value_name = "PATH")]

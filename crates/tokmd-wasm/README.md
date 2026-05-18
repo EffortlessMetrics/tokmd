@@ -39,7 +39,7 @@ The JavaScript object helpers also accept raw JSON strings for callers that alre
 
 The current release path is:
 
-- GitHub release asset: `tokmd-wasm-<tag>.tar.gz` such as `tokmd-wasm-v1.9.0.tar.gz`
+- GitHub release asset: `tokmd-wasm-<tag>.tar.gz` such as `tokmd-wasm-v1.11.0.tar.gz`
 - Extract contents into `web/runner/vendor/tokmd-wasm/`
 
 The runner expects the `web/runner/vendor/tokmd-wasm` layout with `tokmd_wasm.js` and `tokmd_wasm_bg.wasm` present, plus the `wasm-pack` companion files.

@@ -218,10 +218,28 @@ Using `cargo-fuzz` with `libfuzzer-sys`:
 ### Running Fuzz Tests
 
 ```bash
-cargo +nightly fuzz list                              # List targets
+cd fuzz
+cargo +nightly fuzz list                                   # List targets
 cargo +nightly fuzz run fuzz_entropy --features content    # Run target
-cargo +nightly fuzz run fuzz_entropy -- -max_len=4096     # With limits
+cargo +nightly fuzz run fuzz_entropy -- -max_len=4096      # With limits
 ```
+
+On Windows/MSVC, add the Visual Studio ASAN runtime directory containing
+`clang_rt.asan_dynamic-x86_64.dll` to `PATH` before running a target. A bounded
+smoke command is:
+
+```powershell
+$asan = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022" `
+  -Recurse `
+  -Filter clang_rt.asan_dynamic-x86_64.dll |
+  Select-Object -First 1
+$env:PATH = "$($asan.DirectoryName);$env:PATH"
+cargo +nightly fuzz run fuzz_toml_config --features config --strip-dead-code false -- -runs=1 -max_len=1024
+```
+
+If the nightly or sanitizer toolchain is unavailable, use deterministic
+regression or property coverage for the same input boundary and record the
+tooling blocker separately.
 
 ### Seed Corpus
 

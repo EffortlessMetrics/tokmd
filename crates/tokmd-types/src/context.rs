@@ -462,3 +462,716 @@ pub struct ArtifactHash {
     pub algo: String,
     pub hash: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_tool() -> ToolInfo {
+        ToolInfo {
+            name: "tokmd".into(),
+            version: "1.0.0".into(),
+        }
+    }
+
+    fn sample_context_file_row() -> ContextFileRow {
+        ContextFileRow {
+            path: "src/main.rs".into(),
+            module: "src".into(),
+            lang: "Rust".into(),
+            tokens: 100,
+            code: 50,
+            lines: 65,
+            bytes: 2_000,
+            value: 75,
+            rank_reason: String::new(),
+            policy: InclusionPolicy::Full,
+            effective_tokens: None,
+            policy_reason: None,
+            classifications: vec![],
+        }
+    }
+
+    // ── Schema version constants ────────────────────────────────────
+    #[test]
+    fn handoff_schema_version_constant() {
+        assert_eq!(HANDOFF_SCHEMA_VERSION, 5);
+    }
+
+    #[test]
+    fn context_bundle_schema_version_constant() {
+        assert_eq!(CONTEXT_BUNDLE_SCHEMA_VERSION, 2);
+    }
+
+    #[test]
+    fn context_schema_version_constant() {
+        assert_eq!(CONTEXT_SCHEMA_VERSION, 4);
+    }
+
+    // ── ContextReceipt ──────────────────────────────────────────────
+    #[test]
+    fn context_receipt_serde_roundtrip_minimal() {
+        let receipt = ContextReceipt {
+            schema_version: CONTEXT_SCHEMA_VERSION,
+            generated_at_ms: 1_700_000_000_000,
+            tool: sample_tool(),
+            mode: "context".into(),
+            budget_tokens: 8_000,
+            used_tokens: 4_000,
+            utilization_pct: 50.0,
+            strategy: "value-greedy".into(),
+            rank_by: "value".into(),
+            file_count: 1,
+            files: vec![sample_context_file_row()],
+            rank_by_effective: None,
+            fallback_reason: None,
+            excluded_by_policy: vec![],
+            token_estimation: None,
+            bundle_audit: None,
+        };
+        let json = serde_json::to_string(&receipt).unwrap();
+        let back: ContextReceipt = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.schema_version, CONTEXT_SCHEMA_VERSION);
+        assert_eq!(back.mode, "context");
+        assert_eq!(back.files.len(), 1);
+        assert_eq!(back.budget_tokens, 8_000);
+    }
+
+    #[test]
+    fn context_receipt_omits_optional_when_empty_or_none() {
+        let receipt = ContextReceipt {
+            schema_version: CONTEXT_SCHEMA_VERSION,
+            generated_at_ms: 0,
+            tool: sample_tool(),
+            mode: "context".into(),
+            budget_tokens: 0,
+            used_tokens: 0,
+            utilization_pct: 0.0,
+            strategy: String::new(),
+            rank_by: String::new(),
+            file_count: 0,
+            files: vec![],
+            rank_by_effective: None,
+            fallback_reason: None,
+            excluded_by_policy: vec![],
+            token_estimation: None,
+            bundle_audit: None,
+        };
+        let value = serde_json::to_value(&receipt).unwrap();
+        assert!(value.get("rank_by_effective").is_none());
+        assert!(value.get("fallback_reason").is_none());
+        assert!(value.get("excluded_by_policy").is_none());
+        assert!(value.get("token_estimation").is_none());
+        assert!(value.get("bundle_audit").is_none());
+    }
+
+    #[test]
+    fn context_receipt_field_names_stable() {
+        let receipt = ContextReceipt {
+            schema_version: CONTEXT_SCHEMA_VERSION,
+            generated_at_ms: 0,
+            tool: sample_tool(),
+            mode: "context".into(),
+            budget_tokens: 100,
+            used_tokens: 50,
+            utilization_pct: 0.5,
+            strategy: "s".into(),
+            rank_by: "r".into(),
+            file_count: 0,
+            files: vec![],
+            rank_by_effective: None,
+            fallback_reason: None,
+            excluded_by_policy: vec![],
+            token_estimation: None,
+            bundle_audit: None,
+        };
+        let value = serde_json::to_value(&receipt).unwrap();
+        for key in [
+            "schema_version",
+            "generated_at_ms",
+            "tool",
+            "mode",
+            "budget_tokens",
+            "used_tokens",
+            "utilization_pct",
+            "strategy",
+            "rank_by",
+            "file_count",
+            "files",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in ContextReceipt"
+            );
+        }
+    }
+
+    // ── ContextFileRow ──────────────────────────────────────────────
+    #[test]
+    fn context_file_row_omits_default_policy() {
+        let row = sample_context_file_row();
+        let value = serde_json::to_value(&row).unwrap();
+        assert!(value.get("policy").is_none());
+        assert!(value.get("rank_reason").is_none());
+        assert!(value.get("effective_tokens").is_none());
+        assert!(value.get("policy_reason").is_none());
+        assert!(value.get("classifications").is_none());
+    }
+
+    #[test]
+    fn context_file_row_keeps_non_default_fields() {
+        let row = ContextFileRow {
+            policy: InclusionPolicy::HeadTail,
+            effective_tokens: Some(40),
+            policy_reason: Some("budget".into()),
+            rank_reason: "high churn".into(),
+            classifications: vec![FileClassification::Generated],
+            ..sample_context_file_row()
+        };
+        let value = serde_json::to_value(&row).unwrap();
+        assert_eq!(value["policy"], "head_tail");
+        assert_eq!(value["effective_tokens"], 40);
+        assert_eq!(value["policy_reason"], "budget");
+        assert_eq!(value["rank_reason"], "high churn");
+        assert_eq!(value["classifications"][0], "generated");
+    }
+
+    #[test]
+    fn context_file_row_serde_roundtrip() {
+        let row = sample_context_file_row();
+        let json = serde_json::to_string(&row).unwrap();
+        let back: ContextFileRow = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.path, row.path);
+        assert_eq!(back.tokens, row.tokens);
+        assert_eq!(back.policy, row.policy);
+    }
+
+    // ── ContextLogRecord ────────────────────────────────────────────
+    #[test]
+    fn context_log_record_serde_roundtrip() {
+        let rec = ContextLogRecord {
+            schema_version: CONTEXT_SCHEMA_VERSION,
+            generated_at_ms: 1_700_000_000_000,
+            tool: sample_tool(),
+            budget_tokens: 10_000,
+            used_tokens: 9_000,
+            utilization_pct: 90.0,
+            strategy: "greedy".into(),
+            rank_by: "value".into(),
+            file_count: 12,
+            total_bytes: 35_000,
+            output_destination: "stdout".into(),
+        };
+        let json = serde_json::to_string(&rec).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in [
+            "schema_version",
+            "generated_at_ms",
+            "tool",
+            "budget_tokens",
+            "used_tokens",
+            "utilization_pct",
+            "strategy",
+            "rank_by",
+            "file_count",
+            "total_bytes",
+            "output_destination",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in ContextLogRecord"
+            );
+        }
+        let back: ContextLogRecord = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.file_count, 12);
+        assert_eq!(back.output_destination, "stdout");
+    }
+
+    // ── TokenEstimationMeta ─────────────────────────────────────────
+    #[test]
+    fn token_estimation_default_divisor_constants() {
+        assert_eq!(TokenEstimationMeta::DEFAULT_BPT_EST, 4.0);
+        assert_eq!(TokenEstimationMeta::DEFAULT_BPT_LOW, 3.0);
+        assert_eq!(TokenEstimationMeta::DEFAULT_BPT_HIGH, 5.0);
+    }
+
+    #[test]
+    fn token_estimation_invariant_min_le_est_le_max() {
+        let est = TokenEstimationMeta::from_bytes(12_345, 4.0);
+        assert!(est.tokens_min <= est.tokens_est);
+        assert!(est.tokens_est <= est.tokens_max);
+    }
+
+    #[test]
+    fn token_estimation_serde_roundtrip_keeps_invariant() {
+        let est = TokenEstimationMeta::from_bytes_with_bounds(10_000, 4.0, 3.0, 5.0);
+        let json = serde_json::to_string(&est).unwrap();
+        let back: TokenEstimationMeta = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.source_bytes, 10_000);
+        assert_eq!(back.bytes_per_token_est, 4.0);
+        assert_eq!(back.tokens_min, est.tokens_min);
+        assert_eq!(back.tokens_est, est.tokens_est);
+        assert_eq!(back.tokens_max, est.tokens_max);
+        assert!(back.tokens_min <= back.tokens_est);
+        assert!(back.tokens_est <= back.tokens_max);
+    }
+
+    #[test]
+    fn token_estimation_accepts_legacy_aliases() {
+        let json = r#"{
+            "bytes_per_token_est": 4.0,
+            "bytes_per_token_low": 3.0,
+            "bytes_per_token_high": 5.0,
+            "tokens_high": 200,
+            "tokens_est": 250,
+            "tokens_low": 333,
+            "source_bytes": 1000
+        }"#;
+        let est: TokenEstimationMeta = serde_json::from_str(json).unwrap();
+        assert_eq!(est.tokens_min, 200);
+        assert_eq!(est.tokens_est, 250);
+        assert_eq!(est.tokens_max, 333);
+    }
+
+    // ── TokenAudit ──────────────────────────────────────────────────
+    #[test]
+    fn token_audit_serde_roundtrip() {
+        let audit = TokenAudit::from_output(5_000, 4_500);
+        let json = serde_json::to_string(&audit).unwrap();
+        let back: TokenAudit = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.output_bytes, 5_000);
+        assert_eq!(back.overhead_bytes, 500);
+        assert!(back.tokens_min <= back.tokens_est);
+        assert!(back.tokens_est <= back.tokens_max);
+    }
+
+    #[test]
+    fn token_audit_accepts_legacy_aliases() {
+        let json = r#"{
+            "output_bytes": 1000,
+            "tokens_high": 200,
+            "tokens_est": 250,
+            "tokens_low": 333,
+            "overhead_bytes": 100,
+            "overhead_pct": 0.1
+        }"#;
+        let audit: TokenAudit = serde_json::from_str(json).unwrap();
+        assert_eq!(audit.tokens_min, 200);
+        assert_eq!(audit.tokens_max, 333);
+    }
+
+    // ── FileClassification ──────────────────────────────────────────
+    #[test]
+    fn file_classification_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&FileClassification::DataBlob).unwrap(),
+            "\"data_blob\""
+        );
+        assert_eq!(
+            serde_json::to_string(&FileClassification::Sourcemap).unwrap(),
+            "\"sourcemap\""
+        );
+    }
+
+    #[test]
+    fn file_classification_all_variants_roundtrip() {
+        for variant in [
+            FileClassification::Generated,
+            FileClassification::Fixture,
+            FileClassification::Vendored,
+            FileClassification::Lockfile,
+            FileClassification::Minified,
+            FileClassification::DataBlob,
+            FileClassification::Sourcemap,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: FileClassification = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn file_classification_ord_is_stable() {
+        let mut variants = [
+            FileClassification::Sourcemap,
+            FileClassification::Generated,
+            FileClassification::Lockfile,
+        ];
+        variants.sort();
+        assert_eq!(variants[0], FileClassification::Generated);
+        assert_eq!(variants[1], FileClassification::Lockfile);
+        assert_eq!(variants[2], FileClassification::Sourcemap);
+    }
+
+    // ── InclusionPolicy ─────────────────────────────────────────────
+    #[test]
+    fn inclusion_policy_default_is_full() {
+        assert_eq!(InclusionPolicy::default(), InclusionPolicy::Full);
+    }
+
+    #[test]
+    fn inclusion_policy_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&InclusionPolicy::HeadTail).unwrap(),
+            "\"head_tail\""
+        );
+        assert_eq!(
+            serde_json::to_string(&InclusionPolicy::Full).unwrap(),
+            "\"full\""
+        );
+    }
+
+    #[test]
+    fn inclusion_policy_all_variants_roundtrip() {
+        for variant in [
+            InclusionPolicy::Full,
+            InclusionPolicy::HeadTail,
+            InclusionPolicy::Summary,
+            InclusionPolicy::Skip,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: InclusionPolicy = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn is_default_policy_helper_only_true_for_full() {
+        assert!(is_default_policy(&InclusionPolicy::Full));
+        assert!(!is_default_policy(&InclusionPolicy::HeadTail));
+        assert!(!is_default_policy(&InclusionPolicy::Summary));
+        assert!(!is_default_policy(&InclusionPolicy::Skip));
+    }
+
+    // ── PolicyExcludedFile ──────────────────────────────────────────
+    #[test]
+    fn policy_excluded_file_serde_roundtrip() {
+        let f = PolicyExcludedFile {
+            path: "vendor/big.json".into(),
+            original_tokens: 10_000,
+            policy: InclusionPolicy::Skip,
+            reason: "data_blob".into(),
+            classifications: vec![FileClassification::DataBlob, FileClassification::Vendored],
+        };
+        let json = serde_json::to_string(&f).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value["policy"], "skip");
+        assert_eq!(value["classifications"][0], "data_blob");
+        assert_eq!(value["classifications"][1], "vendored");
+        let back: PolicyExcludedFile = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.path, f.path);
+        assert_eq!(back.policy, f.policy);
+    }
+
+    // ── HandoffManifest ─────────────────────────────────────────────
+    #[test]
+    fn handoff_manifest_minimal_serde_roundtrip() {
+        let m = HandoffManifest {
+            schema_version: HANDOFF_SCHEMA_VERSION,
+            generated_at_ms: 1_700_000_000_000,
+            tool: sample_tool(),
+            mode: "handoff".into(),
+            inputs: vec![".".into()],
+            output_dir: "/tmp/out".into(),
+            budget_tokens: 8_000,
+            used_tokens: 4_000,
+            utilization_pct: 50.0,
+            strategy: "value-greedy".into(),
+            rank_by: "value".into(),
+            capabilities: vec![CapabilityStatus {
+                name: "git".into(),
+                status: CapabilityState::Available,
+                reason: None,
+            }],
+            artifacts: vec![ArtifactEntry {
+                name: "summary.md".into(),
+                path: "out/summary.md".into(),
+                description: "Markdown summary".into(),
+                bytes: 256,
+                hash: None,
+            }],
+            included_files: vec![sample_context_file_row()],
+            excluded_paths: vec![],
+            excluded_patterns: vec![],
+            smart_excluded_files: vec![],
+            total_files: 10,
+            bundled_files: 5,
+            intelligence_preset: "compact".into(),
+            rank_by_effective: None,
+            fallback_reason: None,
+            excluded_by_policy: vec![],
+            token_estimation: None,
+            code_audit: None,
+        };
+        let json = serde_json::to_string(&m).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in [
+            "schema_version",
+            "generated_at_ms",
+            "tool",
+            "mode",
+            "inputs",
+            "output_dir",
+            "budget_tokens",
+            "used_tokens",
+            "utilization_pct",
+            "strategy",
+            "rank_by",
+            "capabilities",
+            "artifacts",
+            "included_files",
+            "excluded_paths",
+            "excluded_patterns",
+            "smart_excluded_files",
+            "total_files",
+            "bundled_files",
+            "intelligence_preset",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in HandoffManifest"
+            );
+        }
+        assert!(value.get("rank_by_effective").is_none());
+        assert!(value.get("fallback_reason").is_none());
+        assert!(value.get("excluded_by_policy").is_none());
+        assert!(value.get("token_estimation").is_none());
+        assert!(value.get("code_audit").is_none());
+        let back: HandoffManifest = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.schema_version, HANDOFF_SCHEMA_VERSION);
+        assert_eq!(back.bundled_files, 5);
+        assert_eq!(back.intelligence_preset, "compact");
+    }
+
+    // ── ContextBundleManifest ───────────────────────────────────────
+    #[test]
+    fn context_bundle_manifest_serde_roundtrip() {
+        let m = ContextBundleManifest {
+            schema_version: CONTEXT_BUNDLE_SCHEMA_VERSION,
+            generated_at_ms: 0,
+            tool: sample_tool(),
+            mode: "context".into(),
+            budget_tokens: 0,
+            used_tokens: 0,
+            utilization_pct: 0.0,
+            strategy: "value".into(),
+            rank_by: "value".into(),
+            file_count: 0,
+            bundle_bytes: 0,
+            artifacts: vec![],
+            included_files: vec![],
+            excluded_paths: vec![ContextExcludedPath {
+                path: "secret".into(),
+                reason: "redacted".into(),
+            }],
+            excluded_patterns: vec!["target".into()],
+            rank_by_effective: None,
+            fallback_reason: None,
+            excluded_by_policy: vec![],
+            token_estimation: None,
+            bundle_audit: None,
+        };
+        let json = serde_json::to_string(&m).unwrap();
+        let back: ContextBundleManifest = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.excluded_paths.len(), 1);
+        assert_eq!(back.excluded_paths[0].path, "secret");
+        assert_eq!(back.excluded_patterns, vec!["target".to_string()]);
+    }
+
+    // ── ContextExcludedPath / HandoffExcludedPath / SmartExcludedFile ──
+    #[test]
+    fn context_excluded_path_serde_roundtrip() {
+        let v = ContextExcludedPath {
+            path: "p".into(),
+            reason: "r".into(),
+        };
+        let json = serde_json::to_string(&v).unwrap();
+        let back: ContextExcludedPath = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.path, "p");
+        assert_eq!(back.reason, "r");
+    }
+
+    #[test]
+    fn handoff_excluded_path_serde_roundtrip() {
+        let v = HandoffExcludedPath {
+            path: "p".into(),
+            reason: "r".into(),
+        };
+        let json = serde_json::to_string(&v).unwrap();
+        let back: HandoffExcludedPath = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.path, "p");
+        assert_eq!(back.reason, "r");
+    }
+
+    #[test]
+    fn smart_excluded_file_serde_roundtrip() {
+        let v = SmartExcludedFile {
+            path: "vendor/x.min.js".into(),
+            reason: "minified".into(),
+            tokens: 999,
+        };
+        let json = serde_json::to_string(&v).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in ["path", "reason", "tokens"] {
+            assert!(value.get(key).is_some());
+        }
+        let back: SmartExcludedFile = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.tokens, 999);
+    }
+
+    // ── HandoffIntelligence + sub-types ─────────────────────────────
+    #[test]
+    fn handoff_intelligence_full_roundtrip() {
+        let intel = HandoffIntelligence {
+            tree: Some("root\n  a\n  b".into()),
+            tree_depth: Some(2),
+            hotspots: Some(vec![HandoffHotspot {
+                path: "src/main.rs".into(),
+                commits: 10,
+                lines: 100,
+                score: 42,
+            }]),
+            complexity: Some(HandoffComplexity {
+                total_functions: 100,
+                avg_function_length: 12.5,
+                max_function_length: 80,
+                avg_cyclomatic: 3.5,
+                max_cyclomatic: 30,
+                high_risk_files: 2,
+            }),
+            derived: Some(HandoffDerived {
+                total_files: 50,
+                total_code: 5_000,
+                total_lines: 6_500,
+                total_tokens: 12_000,
+                lang_count: 3,
+                dominant_lang: "Rust".into(),
+                dominant_pct: 80.0,
+            }),
+            warnings: vec!["no git".into()],
+        };
+        let json = serde_json::to_string(&intel).unwrap();
+        let back: HandoffIntelligence = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.tree_depth, Some(2));
+        let hotspots = back.hotspots.expect("hotspots present");
+        assert_eq!(hotspots.len(), 1);
+        assert_eq!(hotspots[0].score, 42);
+        let complexity = back.complexity.expect("complexity present");
+        assert_eq!(complexity.high_risk_files, 2);
+        let derived = back.derived.expect("derived present");
+        assert_eq!(derived.dominant_lang, "Rust");
+        assert_eq!(back.warnings, vec!["no git".to_string()]);
+    }
+
+    #[test]
+    fn handoff_intelligence_all_none_serializes() {
+        let intel = HandoffIntelligence {
+            tree: None,
+            tree_depth: None,
+            hotspots: None,
+            complexity: None,
+            derived: None,
+            warnings: vec![],
+        };
+        let json = serde_json::to_string(&intel).unwrap();
+        let back: HandoffIntelligence = serde_json::from_str(&json).unwrap();
+        assert!(back.tree.is_none());
+        assert!(back.hotspots.is_none());
+        assert!(back.warnings.is_empty());
+    }
+
+    // ── CapabilityState / CapabilityStatus ──────────────────────────
+    #[test]
+    fn capability_state_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&CapabilityState::Available).unwrap(),
+            "\"available\""
+        );
+        assert_eq!(
+            serde_json::to_string(&CapabilityState::Skipped).unwrap(),
+            "\"skipped\""
+        );
+        assert_eq!(
+            serde_json::to_string(&CapabilityState::Unavailable).unwrap(),
+            "\"unavailable\""
+        );
+    }
+
+    #[test]
+    fn capability_state_all_variants_roundtrip() {
+        for variant in [
+            CapabilityState::Available,
+            CapabilityState::Skipped,
+            CapabilityState::Unavailable,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: CapabilityState = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn capability_status_with_reason_keeps_field() {
+        let s = CapabilityStatus {
+            name: "git".into(),
+            status: CapabilityState::Unavailable,
+            reason: Some("not a repo".into()),
+        };
+        let value = serde_json::to_value(&s).unwrap();
+        assert_eq!(value["reason"], "not a repo");
+        let back: CapabilityStatus = serde_json::from_str(&value.to_string()).unwrap();
+        assert_eq!(back.reason.as_deref(), Some("not a repo"));
+    }
+
+    #[test]
+    fn capability_status_without_reason_omits_field() {
+        let s = CapabilityStatus {
+            name: "git".into(),
+            status: CapabilityState::Available,
+            reason: None,
+        };
+        let value = serde_json::to_value(&s).unwrap();
+        assert!(value.get("reason").is_none());
+    }
+
+    // ── ArtifactEntry / ArtifactHash ────────────────────────────────
+    #[test]
+    fn artifact_entry_with_hash_roundtrip() {
+        let a = ArtifactEntry {
+            name: "bundle.txt".into(),
+            path: "out/bundle.txt".into(),
+            description: "Concatenated source".into(),
+            bytes: 1_024,
+            hash: Some(ArtifactHash {
+                algo: "sha256".into(),
+                hash: "deadbeef".into(),
+            }),
+        };
+        let json = serde_json::to_string(&a).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in ["name", "path", "description", "bytes", "hash"] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in ArtifactEntry"
+            );
+        }
+        assert_eq!(value["hash"]["algo"], "sha256");
+        let back: ArtifactEntry = serde_json::from_str(&json).unwrap();
+        let h = back.hash.expect("hash present");
+        assert_eq!(h.algo, "sha256");
+        assert_eq!(h.hash, "deadbeef");
+    }
+
+    #[test]
+    fn artifact_entry_without_hash_omits_field() {
+        let a = ArtifactEntry {
+            name: "x".into(),
+            path: "y".into(),
+            description: "z".into(),
+            bytes: 0,
+            hash: None,
+        };
+        let value = serde_json::to_value(&a).unwrap();
+        assert!(value.get("hash").is_none());
+    }
+}

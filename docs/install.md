@@ -1,5 +1,8 @@
 # Install tokmd
 
+For a first-run path after installation, use
+[Install and try tokmd](install-and-try.md).
+
 ## Cargo
 
 ```bash
