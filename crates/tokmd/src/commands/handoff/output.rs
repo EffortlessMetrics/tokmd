@@ -239,7 +239,6 @@ fn push_start_here_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
     out.push_str("## Start Here\n\n");
     let mut steps = vec![
         "Read `manifest.json` for the authoritative artifact index, token budget, included files, and exclusions.",
-        "Read `work-order.md` for the agent task map and guardrails.",
         "Read `code.txt` for the bounded source bundle.",
         "Use `map.jsonl` for full file inventory and path lookup.",
         "Use `intelligence.json` for repository shape, hotspots, complexity, and derived signals.",

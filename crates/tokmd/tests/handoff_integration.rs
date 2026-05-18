@@ -210,6 +210,7 @@ fn test_handoff_links_review_and_proof_artifacts() {
     let work_order = fs::read_to_string(out_dir.join("work-order.md")).unwrap();
     assert!(work_order.contains("review-links.json"));
     assert!(work_order.contains("proof-links.json"));
+    assert!(!work_order.contains("Read `work-order.md`"));
     assert!(
         work_order.contains("Treat linked review and proof receipts as external evidence handles")
     );
