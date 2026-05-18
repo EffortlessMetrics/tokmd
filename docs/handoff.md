@@ -123,9 +123,12 @@ has already verified everything:
    ```
 
 3. Use the `Linked Evidence Summary` section in `.handoff/work-order.md` as a
-   quick triage view of readable review/proof receipts, then open the linked
-   receipts for source-of-truth details. Missing, stale, degraded, skipped, or
-   unavailable evidence is a task for the agent, not passing proof.
+   quick triage view of readable review/proof receipts. The `Changed
+   Surfaces`, `Review Evidence`, `Proof Expectations`, `Missing / Stale /
+   Degraded Evidence`, and `Agent Stop Conditions` sections turn those handles
+   into the agent work order. Open the linked receipts for source-of-truth
+   details. Missing, stale, degraded, skipped, or unavailable evidence is a
+   task for the agent, not passing proof.
 4. Use `.tokmd/review/review-map.md` for review order and reproduction
    commands.
 5. Use `target/proof/affected.json` to see which proof scopes matched the
@@ -144,7 +147,7 @@ sources.
 ```
 <out-dir>/
 ├── manifest.json      # authoritative index (schema v5)
-├── work-order.md      # agent work map and evidence guardrails
+├── work-order.md      # agent work map, evidence summary, and stop conditions
 ├── map.jsonl          # full file inventory (JSONL)
 ├── intelligence.json  # summary signals (payload-only)
 ├── code.txt           # token-budgeted code bundle
@@ -156,8 +159,9 @@ sources.
 
 1. **Read `manifest.json` first.**  
    It is the authoritative index, lists artifacts, included files, and exclusions.
-2. **Read `work-order.md`** for the agent task map, best-effort linked
-   evidence summary, evidence handles, and guardrails.
+2. **Read `work-order.md`** for the agent task map, changed surfaces,
+   best-effort linked evidence summary, proof expectations, missing evidence,
+   stop conditions, and guardrails.
 3. **Use `map.jsonl`** for full inventory or downstream tooling.
 4. **Use `intelligence.json`** as a warning label (tree, hotspots, derived).
 5. **Use `code.txt`** as the LLM bundle content.

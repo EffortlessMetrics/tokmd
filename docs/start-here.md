@@ -6,6 +6,15 @@ learn the whole control plane first.
 If a workflow gives you an artifact name and you need to know what it means,
 open the [Artifact glossary](artifacts.md).
 
+If you have not installed `tokmd` yet or want the first useful local command,
+open [Install and try tokmd](install-and-try.md).
+
+If you need the shortest map from user job to command, artifact, meaning, and
+next action, open [User paths](user-paths.md).
+
+If you need to see the physical output layout before running a workflow, open
+[Sample artifact trees](examples/README.md).
+
 ## 1. Tell Me What This Repo Is
 
 Start with the smallest useful receipt:
@@ -142,6 +151,7 @@ maintainer explicitly promotes them.
 
 More detail:
 
+- [GitHub Action quickstart](action-quickstart.md).
 - [GitHub Action reference](github-action.md).
 - [Artifact glossary](artifacts.md) for proof and coverage receipts.
 - [Publishing evidence](publishing-evidence.md) for release-facing package
@@ -207,5 +217,6 @@ Native filesystem flows, git-history enrichers, `cockpit`, `gate`, `sensor`,
 More detail:
 
 - [Browser runner](browser.md).
+- [Browser to native](browser-to-native.md).
 - [Browser/WASM contract](architecture.md#wasm--browser-runner).
 - [Browser capability matrix](capabilities/wasm.json).

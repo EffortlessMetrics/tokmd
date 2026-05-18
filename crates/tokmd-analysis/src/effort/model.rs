@@ -200,3 +200,58 @@ struct SizeContext {
     size_basis: EffortSizeBasis,
     basis_confidence: f64,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_results(scale: f64) -> EffortResults {
+        EffortResults {
+            effort_pm_p50: 1.0 * scale,
+            schedule_months_p50: 2.0 * scale,
+            staff_p50: 0.5 * scale,
+            effort_pm_low: 0.5 * scale,
+            effort_pm_p80: 1.5 * scale,
+            schedule_months_low: 1.5 * scale,
+            schedule_months_p80: 2.5 * scale,
+            staff_low: 0.3 * scale,
+            staff_p80: 0.7 * scale,
+        }
+    }
+
+    #[test]
+    fn avg_models_averages_every_band_independently() {
+        let a = make_results(1.0);
+        let b = make_results(3.0);
+        let avg = avg_models(&a, &b);
+
+        assert!((avg.effort_pm_p50 - 2.0).abs() < 1e-9);
+        assert!((avg.schedule_months_p50 - 4.0).abs() < 1e-9);
+        assert!((avg.staff_p50 - 1.0).abs() < 1e-9);
+        assert!((avg.effort_pm_low - 1.0).abs() < 1e-9);
+        assert!((avg.effort_pm_p80 - 3.0).abs() < 1e-9);
+        assert!((avg.schedule_months_low - 3.0).abs() < 1e-9);
+        assert!((avg.schedule_months_p80 - 5.0).abs() < 1e-9);
+        assert!((avg.staff_low - 0.6).abs() < 1e-9);
+        assert!((avg.staff_p80 - 1.4).abs() < 1e-9);
+    }
+
+    #[test]
+    fn avg_models_is_symmetric() {
+        let a = make_results(1.0);
+        let b = make_results(7.0);
+        let ab = avg_models(&a, &b);
+        let ba = avg_models(&b, &a);
+
+        assert!((ab.effort_pm_p50 - ba.effort_pm_p50).abs() < 1e-9);
+        assert!((ab.schedule_months_p50 - ba.schedule_months_p50).abs() < 1e-9);
+        assert!((ab.staff_p80 - ba.staff_p80).abs() < 1e-9);
+    }
+
+    #[test]
+    fn has_host_root_detects_empty_path() {
+        assert!(!has_host_root(Path::new("")));
+        assert!(has_host_root(Path::new("/tmp")));
+        assert!(has_host_root(Path::new(".")));
+    }
+}

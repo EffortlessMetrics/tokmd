@@ -141,6 +141,19 @@ mod tests {
             .current_dir(root)
             .output()
             .ok()?;
+        // Disable commit signing so environments with a global signing key
+        // do not turn this test repo into a no-commit setup that makes
+        // downstream assertions flaky.
+        Command::new("git")
+            .args(["config", "commit.gpgsign", "false"])
+            .current_dir(root)
+            .output()
+            .ok()?;
+        Command::new("git")
+            .args(["config", "tag.gpgsign", "false"])
+            .current_dir(root)
+            .output()
+            .ok()?;
 
         // main.rs: 2 commits (3 lines initially, then 4)
         std::fs::write(root.join("main.rs"), "1\n2\n3").ok()?;

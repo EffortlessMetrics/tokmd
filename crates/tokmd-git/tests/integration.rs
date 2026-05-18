@@ -124,6 +124,16 @@ fn create_test_repo() -> Option<TempGitRepo> {
         .args(["config", "user.name", "Test User"])
         .output()
         .ok()?;
+    // Disable commit signing so a host-global signing config can't break
+    // this fixture's ability to record commits.
+    git_in(&temp_dir)
+        .args(["config", "commit.gpgsign", "false"])
+        .output()
+        .ok()?;
+    git_in(&temp_dir)
+        .args(["config", "tag.gpgsign", "false"])
+        .output()
+        .ok()?;
 
     // Create first commit with a file
     let file1 = temp_dir.join("file1.txt");
@@ -407,6 +417,16 @@ fn create_test_repo_with_multi_file_commits() -> Option<TempGitRepo> {
         .ok()?;
     git_in(&temp_dir)
         .args(["config", "user.name", "Test User"])
+        .output()
+        .ok()?;
+    // Disable commit signing so a host-global signing config can't break
+    // this fixture's ability to record commits.
+    git_in(&temp_dir)
+        .args(["config", "commit.gpgsign", "false"])
+        .output()
+        .ok()?;
+    git_in(&temp_dir)
+        .args(["config", "tag.gpgsign", "false"])
         .output()
         .ok()?;
 
