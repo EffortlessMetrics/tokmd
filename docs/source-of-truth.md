@@ -3,8 +3,8 @@
 Status: active documentation convention.
 
 This document defines where durable tokmd intent, behavior, decisions, plans,
-agent state, and machine-checkable policy belong. It is a routing guide for
-maintainers and agents, not a new product feature.
+agent-local state, and machine-checkable policy belong. It is a routing guide
+for maintainers and agents, not a new product feature.
 
 ## Goal
 
@@ -36,8 +36,8 @@ the owning artifact before relying on chat history.
 When planning a lane:
 
 1. Read `docs/NEXT.md` for the current operating mode.
-2. Read `.jules/goals/active.toml` for the active machine-readable lane and its
-   linked plan/spec/ADR/policy files.
+2. Read the accepted plan/spec/ADR/policy files linked by `docs/NEXT.md`, the
+   PR, or current repo guidance.
 3. Create or update a proposal only when the why, alternatives, or open
    questions need durable review.
 4. Create or update a spec when behavior, artifact shape, compatibility, or
@@ -50,7 +50,7 @@ When planning a lane:
 
 When executing a lane:
 
-- keep `.jules/goals/active.toml` small and current;
+- keep agent-local state small and clearly scoped to its agent;
 - follow the linked plan rather than inventing a parallel queue;
 - update specs before relying on new behavior contracts;
 - update ADRs before relying on new durable architecture decisions;
@@ -74,9 +74,10 @@ changing a lane, see `docs/agent-workflows/source-of-truth.md`.
 | `docs/specs/` | Testable behavior contracts, artifact shapes, compatibility rules, proof requirements, and accepted semantics. | Historical decision rationale or PR-by-PR sequencing. |
 | `docs/adr/` | Durable architecture, packaging, boundary, or governance decisions and their consequences. | Detailed behavior matrices that should be tested as specs. |
 | `docs/plans/` | PR sequencing, implementation packets, validation commands, dependencies, and stop conditions. | Product contracts or architecture decisions. |
-| `.jules/goals/active.toml` | Machine-readable active-agent state: current program, current lane, stop conditions, and where to find the human plan. | Raw terminal logs, complete run history, or policy. |
-| `.jules/runs/` | Per-run Jules packets, receipts, decisions, and PR bodies. | Shared active state or edited truth ledgers. |
-| `.jules/friction/` | Structured future-work and friction items found by agent runs. | Current implementation plans or accepted decisions. |
+| `.jules/goals/active.toml` | Jules-local machine-readable state, suggestions, and linked context for Jules runs. | Codex primary lane selection, accepted product decisions, raw terminal logs, complete run history, or policy. |
+| `.jules/runs/` | Per-run Jules packets, receipts, decisions, and PR bodies. | Codex primary lane selection, shared active state, or edited truth ledgers. |
+| `.jules/friction/` | Structured future-work and friction items found by Jules runs. | Codex primary lane selection, current implementation plans, or accepted decisions. |
+| `.codex/` | Codex-local tracked execution packets, operator notes, friction, or run provenance when present. | Jules run state, accepted product decisions, or shared truth ledgers. |
 | `ci/proof.toml` | Proof scope classification, affected-plan policy, executor defaults, allowlists, and dependency/fixture rules. | Narrative rationale or PR sequencing. |
 | `policy/*.toml` | Machine-checkable repo policies that are not proof-scope policy. | Human-only conventions. |
 | PR bodies and comments | Review-local summary, validation evidence, links to durable artifacts, and disposition rationale. | Primary long-term truth when a repo artifact should exist. |
@@ -90,8 +91,8 @@ When artifacts disagree:
 3. ADRs explain why durable decisions exist.
 4. Plans define the next implementation order, but never override specs or ADRs.
 5. Proposals explain unaccepted or exploratory direction.
-6. `.jules/goals/active.toml` points at the active lane, but it does not replace
-   the linked plan, spec, ADR, or policy.
+6. Agent-local state may point at a lane or suggestion, but it does not replace
+   the linked plan, spec, ADR, policy, or PR context.
 
 If a PR changes behavior, update the spec or schema that owns that behavior. If
 it changes architecture boundaries, add or update an ADR. If it changes the
@@ -124,14 +125,18 @@ future agent can pick the next PR without reopening the whole design discussion.
 
 ### Active agent state
 
-Use `.jules/goals/active.toml` to make the current program machine-readable. It
-should be small, current, and linked to durable human docs. It should not become
-a diary.
+Use `.jules/goals/active.toml` to make Jules-local state machine-readable. It
+should be small and linked to durable human docs when useful for Jules. It
+should not become a diary or Codex's primary active-lane controller.
 
 When a lane completes or is superseded, archive the old active goal under
 `.jules/goals/archive/YYYY-MM-DD-lane-slug.toml` only if the machine-readable
 checkpoint has durable value. Archived goals are historical context; they do not
 replace or compete with the current `active.toml`.
+
+Codex-local state may live under `.codex/` when a Codex workflow needs a durable
+in-repo packet. Jules suggestions remain useful inputs; they are not
+instructions to stop Jules or discard Jules provenance.
 
 ### Policy
 

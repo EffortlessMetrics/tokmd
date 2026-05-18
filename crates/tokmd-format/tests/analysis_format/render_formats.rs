@@ -1207,3 +1207,224 @@ fn midi_format_requires_fun_feature() {
     let err = result.err().unwrap();
     assert!(err.to_string().contains("fun"));
 }
+
+// ---------------------------------------------------------------------------
+// Effort estimate rendering exercises tokmd_format/analysis/markdown/effort.rs
+// ---------------------------------------------------------------------------
+
+fn full_effort_report() -> EffortEstimateReport {
+    let mut overrides = BTreeMap::new();
+    overrides.insert("monte_carlo".into(), "iterations=2500 seed=Some(7)".into());
+    EffortEstimateReport {
+        model: EffortModel::Cocomo81Basic,
+        size_basis: EffortSizeBasis {
+            total_lines: 500,
+            authored_lines: 460,
+            generated_lines: 20,
+            vendored_lines: 20,
+            kloc_total: 0.5,
+            kloc_authored: 0.46,
+            generated_pct: 0.04,
+            vendored_pct: 0.04,
+            classification_confidence: EffortConfidenceLevel::High,
+            warnings: vec!["minor classification warning".into()],
+            by_tag: vec![
+                EffortTagSizeRow {
+                    tag: "generated".into(),
+                    lines: 20,
+                    authored_lines: 0,
+                    pct_of_total: 0.04,
+                },
+                EffortTagSizeRow {
+                    tag: "vendored".into(),
+                    lines: 20,
+                    authored_lines: 0,
+                    pct_of_total: 0.04,
+                },
+            ],
+        },
+        results: EffortResults {
+            effort_pm_p50: 2.0,
+            schedule_months_p50: 3.5,
+            staff_p50: 1.5,
+            effort_pm_low: 1.5,
+            effort_pm_p80: 2.6,
+            schedule_months_low: 3.0,
+            schedule_months_p80: 4.0,
+            staff_low: 1.0,
+            staff_p80: 2.0,
+        },
+        confidence: EffortConfidence {
+            level: EffortConfidenceLevel::Medium,
+            reasons: vec!["test density missing".into(), "git data missing".into()],
+            data_coverage_pct: Some(0.62),
+        },
+        drivers: vec![
+            EffortDriver {
+                key: "complexity".into(),
+                label: "Complexity".into(),
+                weight: 1.4,
+                direction: EffortDriverDirection::Raises,
+                evidence: "avg cyclomatic 12".into(),
+            },
+            EffortDriver {
+                key: "tests".into(),
+                label: "Test coverage".into(),
+                weight: 0.9,
+                direction: EffortDriverDirection::Lowers,
+                evidence: "test ratio 0.4".into(),
+            },
+            EffortDriver {
+                key: "polyglot".into(),
+                label: "Polyglot mix".into(),
+                weight: 1.0,
+                direction: EffortDriverDirection::Neutral,
+                evidence: "single dominant language".into(),
+            },
+        ],
+        assumptions: EffortAssumptions {
+            notes: vec![
+                "default blended estimate".into(),
+                "size basis treats generated and vendored separately".into(),
+            ],
+            overrides,
+        },
+        delta: Some(EffortDeltaReport {
+            base: "HEAD~1".into(),
+            head: "HEAD".into(),
+            files_changed: 3,
+            modules_changed: 2,
+            langs_changed: 1,
+            hotspot_files_touched: 1,
+            coupled_neighbors_touched: 2,
+            blast_radius: 7.5,
+            classification: EffortDeltaClassification::Low,
+            effort_pm_low: 0.1,
+            effort_pm_est: 0.18,
+            effort_pm_high: 0.25,
+        }),
+    }
+}
+
+#[test]
+fn md_renders_effort_section_when_effort_present() {
+    let mut receipt = minimal_receipt();
+    receipt.derived = Some(sample_derived());
+    receipt.effort = Some(full_effort_report());
+
+    let rendered = render(&receipt, AnalysisFormat::Md).expect("render md");
+    let text = match rendered {
+        RenderedOutput::Text(s) => s,
+        RenderedOutput::Binary(_) => panic!("expected text"),
+    };
+
+    assert!(text.contains("## Effort estimate"));
+    assert!(text.contains("### Size basis"));
+    assert!(text.contains("Model: `cocomo81-basic`"));
+    assert!(text.contains("Total LOC lines: `500`"));
+    assert!(text.contains("Authored LOC lines: `460`"));
+    assert!(text.contains("Generated LOC lines: `20`"));
+    assert!(text.contains("Vendored LOC lines: `20`"));
+    assert!(text.contains("Classification confidence: `high`"));
+
+    assert!(text.contains("### Size by tag"));
+    assert!(text.contains("|generated|20|0|"));
+    assert!(text.contains("|vendored|20|0|"));
+
+    assert!(text.contains("### Headline"));
+    assert!(text.contains("Effort p50:"));
+    assert!(text.contains("Schedule p50:"));
+    assert!(text.contains("Staff p50:"));
+
+    assert!(text.contains("### Why"));
+    assert!(text.contains("Confidence level: `medium`"));
+    assert!(text.contains("Data coverage:"));
+    assert!(text.contains("- Reasons:"));
+    assert!(text.contains("test density missing"));
+
+    assert!(text.contains("### Drivers"));
+    assert!(text.contains("|Complexity|raises|"));
+    assert!(text.contains("|Test coverage|lowers|"));
+    assert!(text.contains("|Polyglot mix|neutral|"));
+
+    assert!(text.contains("### Assumptions"));
+    assert!(text.contains("- default blended estimate"));
+
+    assert!(text.contains("### Assumption overrides"));
+    assert!(text.contains("|monte_carlo|iterations=2500 seed=Some(7)|"));
+
+    assert!(text.contains("### Delta"));
+    assert!(text.contains("Reference window: `HEAD~1`..`HEAD`"));
+    assert!(text.contains("Files changed: `3`"));
+    assert!(text.contains("Classification: `low`"));
+}
+
+#[test]
+fn md_renders_effort_without_drivers_or_delta() {
+    let mut receipt = minimal_receipt();
+    receipt.derived = Some(sample_derived());
+    let mut effort = full_effort_report();
+    effort.drivers.clear();
+    effort.delta = None;
+    effort.assumptions.notes.clear();
+    effort.assumptions.overrides.clear();
+    effort.size_basis.by_tag.clear();
+    effort.confidence.reasons.clear();
+    effort.confidence.data_coverage_pct = None;
+    receipt.effort = Some(effort);
+
+    let rendered = render(&receipt, AnalysisFormat::Md).expect("render md");
+    let text = match rendered {
+        RenderedOutput::Text(s) => s,
+        RenderedOutput::Binary(_) => panic!("expected text"),
+    };
+
+    assert!(text.contains("### Drivers"));
+    assert!(text.contains("- No material drivers were inferred."));
+    assert!(!text.contains("### Size by tag"));
+    assert!(!text.contains("### Assumptions"));
+    assert!(!text.contains("### Assumption overrides"));
+    assert!(!text.contains("Data coverage:"));
+    assert!(!text.contains("- Reasons:"));
+    assert!(text.contains("### Delta"));
+    assert!(text.contains("Baseline comparison is not available"));
+}
+
+#[test]
+fn md_renders_legacy_cocomo_block_when_effort_absent_but_cocomo_present() {
+    let mut receipt = minimal_receipt();
+    let mut derived = sample_derived();
+    derived.cocomo = Some(CocomoReport {
+        kloc: 0.5,
+        effort_pm: 1.5,
+        duration_months: 3.0,
+        staff: 1.5,
+        a: 2.4,
+        b: 1.05,
+        c: 2.5,
+        d: 0.38,
+        mode: "organic".into(),
+    });
+    receipt.derived = Some(derived);
+    // No effort section; legacy fallback should render.
+    receipt.effort = None;
+
+    let rendered = render(&receipt, AnalysisFormat::Md).expect("render md");
+    let text = match rendered {
+        RenderedOutput::Text(s) => s,
+        RenderedOutput::Binary(_) => panic!("expected text"),
+    };
+
+    assert!(text.contains("## Effort estimate"));
+    assert!(text.contains("### Size basis"));
+    assert!(text.contains("- KLOC: `0.5"));
+    assert!(text.contains("### Headline"));
+    assert!(text.contains("Effort: `1.5"));
+    assert!(text.contains("Duration: `3"));
+    assert!(text.contains("Staff: `1.5"));
+    assert!(text.contains("Model: `COCOMO` (`organic` mode)"));
+    // fmt_f64(value, 2) renders with two decimals (e.g. "2.40").
+    assert!(text.contains("Coefficients: `a=2.40`"));
+    assert!(text.contains("### Delta"));
+    assert!(text.contains("Baseline comparison is not available"));
+}

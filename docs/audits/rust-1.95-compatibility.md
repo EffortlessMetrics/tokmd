@@ -3,7 +3,7 @@
 **Date:** 2026-05-08
 **Auditor:** Claude (automated)
 **Toolchain tested:** `rustc 1.95.0 (59807616e 2026-04-14)`
-**Workspace version at audit:** `1.10.0`
+**Workspace version at audit:** `1.11.0`
 
 ## Summary
 

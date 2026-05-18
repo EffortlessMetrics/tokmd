@@ -160,13 +160,16 @@ the publishing evidence readiness and proof workflow status packet closeouts.
 The refreshed audit selects no new implementation lane; future work should
 start from a fresh consumer, artifact, workflow, or product gap.
 
-The user-path evidence consumption lane is now active. Its purpose is to make
-existing cockpit, handoff, proof, browser, and publishing evidence consumable
-from user jobs without adding a new public `tokmd review` command, promoting
-proof or Codecov defaults, changing AST product behavior, or treating broad
-generated coverage PRs as lane owners. The first packet adds
-`docs/user-paths.md` and records sequencing in
-`docs/plans/user-path-evidence-consumption.md`.
+The user-path evidence consumption lane is closed. It made existing cockpit,
+handoff, proof, browser, and publishing evidence consumable from user jobs
+without adding a new public `tokmd review` command, promoting proof or Codecov
+defaults, changing AST product behavior, or treating broad generated coverage
+PRs as lane owners. The closeout is recorded in
+`docs/plans/user-path-evidence-consumption.md`: `docs/user-paths.md`,
+`docs/examples/*`, `docs/workflows.md`, the handoff work-order improvements,
+review-map priority explanations, proof observation reading order, browser and
+publishing guidance, and #2299 keeper-slice disposition are now the durable
+evidence.
 
 The publishing evidence readiness lane is closed. The plan in
 `docs/plans/publishing-evidence-readiness.md` made release and publishing facts
@@ -198,31 +201,54 @@ domains. Reopen publishing evidence only from a fresh proposal naming a
 consumer and a gap that the current publish-surface, version-consistency, CI
 lane, release workflow, and affected-proof evidence cannot cover.
 
+The release and distribution readiness lane is closed. Its plan lives in
+`docs/plans/release-distribution-readiness.md` and records the adoption packet:
+install-and-try guide, GitHub Action quickstart, real user-path smoke
+transcript, agent handoff prompt, handoff work-order contract coverage,
+browser-to-native guide, release evidence quickstart, README first-run
+compression, and the release-readiness receipt decision. The outcome is no
+wrapper receipt yet: existing publish-surface, version-consistency, affected,
+proof-plan, and proof-evidence artifacts remain sufficient until a named
+consumer proves otherwise.
+
+There is no selected implementation lane. `.jules/goals/active.toml` is paused
+as the current machine-readable state, and new work should start only from a
+fresh consumer, missing artifact, workflow pain, or product gap. Do not reopen
+proof, AST, architecture, user-path, publishing, or release-readiness work by
+inertia.
+
 ## Next Work Packets
 
 1. Do not extend the closed proof workflow status packet lane to any other
    workflow without fresh evidence of a real status-arbitration gap; preserve
    advisory/non-required behavior and manual-only Codecov upload.
-2. Do not reopen AST productization without a fresh proposal grounded in the
+2. Treat the release and distribution readiness lane as closed. Reopen
+   adoption or release-readiness work only from a fresh consumer, missing
+   artifact, workflow pain, or product gap; do not add a new wrapper receipt or
+   command unless existing artifacts cannot answer that named consumer.
+3. Do not reopen AST productization without a fresh proposal grounded in the
    shadow evidence.
-3. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
+4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
-4. Preserve `tokmd cockpit` as the review evidence implementation surface until
+5. Preserve `tokmd cockpit` as the review evidence implementation surface until
    a separate review orchestrator has a real contract.
-5. Continue architecture consolidation in batches, preserving `ci/proof.toml`
-   scope granularity as implementation microcrates collapse into SRP modules.
-6. Use bounded performance timing receipts before optimizing hot paths.
-7. Keep source-of-truth docs, active goal state, and proof-policy routing
+6. Do not continue architecture consolidation by inertia. If fresh product or
+   proof evidence shows a real owner-module problem, preserve `ci/proof.toml`
+   scope granularity while changing implementation modules.
+7. Use bounded performance timing receipts before optimizing hot paths.
+8. Keep source-of-truth docs, active goal state, and proof-policy routing
    aligned as new lanes start; do not reopen the doc-artifacts checker lane
    unless the spec changes.
-8. Keep product-readiness docs aligned as workflows change, but start any new
+9. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-9. Keep AST foundation work in shadow mode until comparison evidence justifies
+10. Keep AST foundation work in shadow mode until comparison evidence justifies
    any public receipt or default behavior change.
-10. For the active user-path evidence consumption lane, prefer docs and small
-    output-readability improvements that map commands to artifacts, meanings,
-    advisory boundaries, missing evidence, and next actions.
+11. Treat the user-path evidence consumption lane as closed. Start the next
+    product lane only from a fresh consumer, missing artifact, workflow pain, or
+    product gap; do not extend the completed compression pass by inertia.
+12. Keep the active goal paused until a new implementation lane is deliberately
+    selected.
 
 ## Directional Rules
 
@@ -356,7 +382,8 @@ lane, release workflow, and affected-proof evidence cannot cover.
 - The documentation source-of-truth lane is closed through first enforcement:
   `docs/plans/doc-artifacts-check.md` is complete, the completed goal is
   archived in `.jules/goals/archive/2026-05-13-doc-artifacts-check.toml`, and
-  `.jules/goals/active.toml` now points at cockpit review usefulness.
+  `.jules/goals/active.toml` then moved on to cockpit review usefulness. The
+  current active-goal state is authoritative in `.jules/goals/active.toml`.
 - The cockpit review packet comment now points directly to `evidence.json`, `review-map.md`, and `cockpit.json`, so hosted PR comments have a short path from the summary to the full packet artifacts.
 - Cockpit review-packet evidence availability now uses the `missing` bucket for pending gates with relevant scope but no tested scope, keeping absent optional gates separate as `unavailable`.
 - The composite Action now adds hosted packet metadata to review-packet PR comments, pointing reviewers to the workflow run, `tokmd-receipts` artifact, and `.tokmd/review` packet path when artifacts are uploaded.

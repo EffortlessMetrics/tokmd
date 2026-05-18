@@ -229,15 +229,6 @@ classification = "documentation"
 reason = "Documents generated Shields endpoint JSON for public README badges."
 covered_by = ["cargo xtask docs --check"]
 
-[[allow]]
-glob = "scripts/ripr-annotations.py"
-kind = "ci_script"
-owner = "release/ci"
-surface = "ci"
-classification = "config"
-reason = "Small CI helper scripts used by advisory workflow annotations."
-covered_by = ["cargo xtask ripr-review-comments --check", "ripr advisory workflow"]
-
 # -----------------------------------------------------------------------
 # .github/ tree
 # -----------------------------------------------------------------------

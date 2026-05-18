@@ -17,6 +17,14 @@ Land one security-significant hardening improvement.
 ## Proof expectations
 Use targeted tests/contracts/receipts to prove the hardening. Keep threat models high level in PR text.
 
+## Subprocess boundary triage
+Treat raw subprocess calls on product/runtime paths as security-boundary
+findings when they execute user-derived input, inherit unsafe environment, or
+can leak trust-bearing receipt state. Do not present test fixture setup or
+xtask-local repository plumbing as a security hardening fix by default. If a
+raw `Command::new("git")` occurrence is limited to tests or developer tooling,
+record the boundary classification and only patch it when it creates a real
+trust, determinism, or maintenance problem.
+
 ## Anti-drift rules
 Do not choose test-only panic cleanup unless no stronger boundary-hardening target exists in the shard.
-

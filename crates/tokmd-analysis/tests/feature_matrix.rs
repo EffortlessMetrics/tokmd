@@ -64,6 +64,15 @@ fn make_git_context(export: ExportData) -> (AnalysisContext, tempfile::TempDir) 
             .expect("git config user.name")
             .success()
     );
+    // Disable commit signing so global signing configs don't break this fixture.
+    let _ = Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(repo_root)
+        .status();
+    let _ = Command::new("git")
+        .args(["config", "tag.gpgsign", "false"])
+        .current_dir(repo_root)
+        .status();
 
     assert!(
         Command::new("git")

@@ -16,6 +16,10 @@ push Docker images, or approve a release by itself.
 
 ## Start Here
 
+For the shortest command-first path, use
+[Release readiness](release-readiness.md). This page explains the evidence
+model and reading order in more detail.
+
 Run the package-surface check first:
 
 ```bash

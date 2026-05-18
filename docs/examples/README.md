@@ -14,6 +14,7 @@ artifact set.
 - [Proof status tree](proof-status-tree.md)
 - [Browser receipt tree](browser-receipt-tree.md)
 - [Publishing evidence tree](publishing-evidence-tree.md)
+- [Real user path smoke run](real-user-path-smoke-run.md)
 
 ## Rules
 
