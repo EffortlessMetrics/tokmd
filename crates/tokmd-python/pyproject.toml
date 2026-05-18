@@ -37,7 +37,7 @@ Repository = "https://github.com/EffortlessMetrics/tokmd"
 Changelog = "https://github.com/EffortlessMetrics/tokmd/blob/main/CHANGELOG.md"
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["extension-module"]
 python-source = "python"
 module-name = "tokmd._tokmd"
 strip = true
