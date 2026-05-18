@@ -53,6 +53,24 @@ Ask before committing, pushing, or merging only when:
 - the diff is broad or ambiguous relative to the requested lane;
 - the worktree contains unrelated user changes that cannot be isolated safely.
 
+## Release-Prep PR Lifecycle
+
+Never close a PR merely because a release is near.
+
+During prep or RC hardening, classify each open PR by substance: release
+blocker, safe aligned change, useful non-blocking work, duplicate of a merged
+keeper, invalid or incorrect work, stale branch needing restack, or explicitly
+declined work.
+
+Merge release blockers and safe aligned PRs after validation. Leave useful
+non-blocking PRs open, parked, labeled, or restacked for later. Close a PR only
+when it is intrinsically invalid, duplicated or superseded by a merged keeper,
+stale beyond practical restack, conflicts with accepted direction, or was
+explicitly declined.
+
+Queue cleanliness is not a release criterion. Release readiness is proven by
+preflight, release-record accuracy, and clean release-surface evidence.
+
 ## Architecture
 
 The codebase follows a tiered crate-and-module architecture:

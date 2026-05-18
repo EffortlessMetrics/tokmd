@@ -278,9 +278,18 @@ cargo +nightly fuzz list  # List all targets
   - the change is not worth merging in the current phase
 
 ### Release-prep queue discipline
-- During prep or RC hardening, every open PR must either be a real blocker/improvement worth finishing now or remain explicitly parked for later.
-- “Not for prep” does not automatically mean “close now”.
-- If a PR may still be worth keeping, leave it open or restack it; do not churn the queue without a concrete reason.
+- Never close a PR merely because a release is near.
+- During prep or RC hardening, classify each open PR by substance: release
+  blocker, safe aligned change, useful non-blocking work, duplicate of a
+  merged keeper, invalid/incorrect work, stale branch needing restack, or
+  explicitly declined work.
+- Merge release blockers and safe aligned PRs after validation. Leave useful
+  non-blocking PRs open, parked, labeled, or restacked for later.
+- Close a PR only for an intrinsic reason: it is invalid, duplicated or
+  superseded by a merged keeper, stale beyond practical restack, conflicts with
+  accepted direction, or was explicitly declined.
+- Queue cleanliness is not a release criterion. Release readiness is proven by
+  preflight, release-record accuracy, and clean release-surface evidence.
 
 ## Codex Commit / Push Policy
 

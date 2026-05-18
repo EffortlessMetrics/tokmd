@@ -18,7 +18,7 @@ codecov_default_upload = "do_not_enable_without_maintainer_decision"
 product_behavior = "docs_only_lane"
 
 [stop_conditions]
-open_pr_queue = "must_be_empty_before_starting_new_lane"
+open_pr_queue = "must_be_reviewed_and_classified_before_starting_new_lane"
 docs_check = "cargo xtask docs --check"
 proof_policy = "cargo xtask proof-policy --check"
 affected_plan = "cargo xtask affected --base origin/main --head HEAD --json"
