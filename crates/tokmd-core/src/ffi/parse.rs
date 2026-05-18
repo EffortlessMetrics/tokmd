@@ -255,3 +255,585 @@ pub(super) fn parse_import_granularity(args: &Value, default: &str) -> Result<St
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::error::ErrorCode;
+    use serde_json::json;
+
+    // ---- scan_arg_object --------------------------------------------------
+
+    #[test]
+    fn scan_arg_object_returns_nested_when_present() {
+        let args = json!({"scan": {"root": "."}, "other": 1});
+        let inner = scan_arg_object(&args);
+        assert_eq!(inner, &json!({"root": "."}));
+    }
+
+    #[test]
+    fn scan_arg_object_returns_args_when_missing() {
+        let args = json!({"root": "."});
+        let inner = scan_arg_object(&args);
+        assert_eq!(inner, &args);
+    }
+
+    // ---- parse_bool -------------------------------------------------------
+
+    #[test]
+    fn parse_bool_returns_value_when_present() {
+        let args = json!({"flag": true});
+        assert!(parse_bool(&args, "flag", false).unwrap());
+        let args = json!({"flag": false});
+        assert!(!parse_bool(&args, "flag", true).unwrap());
+    }
+
+    #[test]
+    fn parse_bool_returns_default_when_missing_or_null() {
+        let args = json!({});
+        assert!(parse_bool(&args, "flag", true).unwrap());
+        let args = json!({"flag": null});
+        assert!(parse_bool(&args, "flag", true).unwrap());
+    }
+
+    #[test]
+    fn parse_bool_errors_on_wrong_type() {
+        let args = json!({"flag": "yes"});
+        let err = parse_bool(&args, "flag", false).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_usize ------------------------------------------------------
+
+    #[test]
+    fn parse_usize_returns_value_when_present() {
+        let args = json!({"top": 5_u64});
+        assert_eq!(parse_usize(&args, "top", 0).unwrap(), 5);
+    }
+
+    #[test]
+    fn parse_usize_returns_default_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_usize(&args, "top", 7).unwrap(), 7);
+        let args = json!({"top": null});
+        assert_eq!(parse_usize(&args, "top", 7).unwrap(), 7);
+    }
+
+    #[test]
+    fn parse_usize_errors_on_wrong_type() {
+        let args = json!({"top": "ten"});
+        let err = parse_usize(&args, "top", 0).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    #[test]
+    fn parse_usize_errors_on_negative() {
+        let args = json!({"top": -1_i64});
+        let err = parse_usize(&args, "top", 0).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_optional_u64 -----------------------------------------------
+
+    #[test]
+    fn parse_optional_u64_returns_some_when_present() {
+        let args = json!({"limit": 42_u64});
+        assert_eq!(parse_optional_u64(&args, "limit").unwrap(), Some(42));
+    }
+
+    #[test]
+    fn parse_optional_u64_returns_none_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_optional_u64(&args, "limit").unwrap(), None);
+        let args = json!({"limit": null});
+        assert_eq!(parse_optional_u64(&args, "limit").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_optional_u64_errors_on_wrong_type() {
+        let args = json!({"limit": "many"});
+        let err = parse_optional_u64(&args, "limit").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_optional_usize ---------------------------------------------
+
+    #[test]
+    fn parse_optional_usize_returns_some_when_present() {
+        let args = json!({"limit": 3_u64});
+        assert_eq!(parse_optional_usize(&args, "limit").unwrap(), Some(3));
+    }
+
+    #[test]
+    fn parse_optional_usize_returns_none_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_optional_usize(&args, "limit").unwrap(), None);
+        let args = json!({"limit": null});
+        assert_eq!(parse_optional_usize(&args, "limit").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_optional_usize_errors_on_wrong_type() {
+        let args = json!({"limit": true});
+        let err = parse_optional_usize(&args, "limit").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_optional_bool ----------------------------------------------
+
+    #[test]
+    fn parse_optional_bool_returns_some_when_present() {
+        let args = json!({"flag": false});
+        assert_eq!(parse_optional_bool(&args, "flag").unwrap(), Some(false));
+    }
+
+    #[test]
+    fn parse_optional_bool_returns_none_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_optional_bool(&args, "flag").unwrap(), None);
+        let args = json!({"flag": null});
+        assert_eq!(parse_optional_bool(&args, "flag").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_optional_bool_errors_on_wrong_type() {
+        let args = json!({"flag": 1});
+        let err = parse_optional_bool(&args, "flag").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_optional_string --------------------------------------------
+
+    #[test]
+    fn parse_optional_string_returns_some_when_present() {
+        let args = json!({"label": "hello"});
+        assert_eq!(
+            parse_optional_string(&args, "label").unwrap(),
+            Some("hello".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_optional_string_returns_none_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_optional_string(&args, "label").unwrap(), None);
+        let args = json!({"label": null});
+        assert_eq!(parse_optional_string(&args, "label").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_optional_string_errors_on_wrong_type() {
+        let args = json!({"label": 1});
+        let err = parse_optional_string(&args, "label").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_string -----------------------------------------------------
+
+    #[test]
+    fn parse_string_returns_value_when_present() {
+        let args = json!({"name": "ada"});
+        assert_eq!(parse_string(&args, "name", "default").unwrap(), "ada");
+    }
+
+    #[test]
+    fn parse_string_returns_default_when_missing_or_null() {
+        let args = json!({});
+        assert_eq!(parse_string(&args, "name", "default").unwrap(), "default");
+        let args = json!({"name": null});
+        assert_eq!(parse_string(&args, "name", "default").unwrap(), "default");
+    }
+
+    #[test]
+    fn parse_string_errors_on_wrong_type() {
+        let args = json!({"name": 42});
+        let err = parse_string(&args, "name", "default").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_required_string --------------------------------------------
+
+    #[test]
+    fn parse_required_string_returns_value_when_present() {
+        let args = json!({"name": "ada"});
+        assert_eq!(parse_required_string(&args, "name").unwrap(), "ada");
+    }
+
+    #[test]
+    fn parse_required_string_errors_when_missing() {
+        let args = json!({});
+        let err = parse_required_string(&args, "name").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    #[test]
+    fn parse_required_string_errors_when_null() {
+        let args = json!({"name": null});
+        let err = parse_required_string(&args, "name").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    #[test]
+    fn parse_required_string_errors_on_wrong_type() {
+        let args = json!({"name": 42});
+        let err = parse_required_string(&args, "name").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_string_array -----------------------------------------------
+
+    #[test]
+    fn parse_string_array_returns_value_when_present() {
+        let args = json!({"items": ["a", "b", "c"]});
+        let result = parse_string_array(&args, "items", vec![]).unwrap();
+        assert_eq!(result, vec!["a", "b", "c"]);
+    }
+
+    #[test]
+    fn parse_string_array_returns_default_when_missing_or_null() {
+        let default = vec!["x".to_string()];
+        let args = json!({});
+        assert_eq!(
+            parse_string_array(&args, "items", default.clone()).unwrap(),
+            default
+        );
+        let args = json!({"items": null});
+        assert_eq!(
+            parse_string_array(&args, "items", default.clone()).unwrap(),
+            default
+        );
+    }
+
+    #[test]
+    fn parse_string_array_errors_when_not_array() {
+        let args = json!({"items": "not-an-array"});
+        let err = parse_string_array(&args, "items", vec![]).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    #[test]
+    fn parse_string_array_errors_when_element_wrong_type() {
+        let args = json!({"items": ["a", 2, "c"]});
+        let err = parse_string_array(&args, "items", vec![]).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+        // The error should reference the index of the offending element.
+        assert!(err.message.contains("items[1]"));
+    }
+
+    // ---- parse_children_mode ----------------------------------------------
+
+    #[test]
+    fn parse_children_mode_accepts_known_values() {
+        let args = json!({"children": "collapse"});
+        assert_eq!(
+            parse_children_mode(&args, ChildrenMode::Separate).unwrap(),
+            ChildrenMode::Collapse
+        );
+        let args = json!({"children": "separate"});
+        assert_eq!(
+            parse_children_mode(&args, ChildrenMode::Collapse).unwrap(),
+            ChildrenMode::Separate
+        );
+    }
+
+    #[test]
+    fn parse_children_mode_returns_default_when_missing() {
+        let args = json!({});
+        assert_eq!(
+            parse_children_mode(&args, ChildrenMode::Collapse).unwrap(),
+            ChildrenMode::Collapse
+        );
+    }
+
+    #[test]
+    fn parse_children_mode_errors_on_unknown_value() {
+        let args = json!({"children": "bogus"});
+        let err = parse_children_mode(&args, ChildrenMode::Collapse).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_child_include_mode -----------------------------------------
+
+    #[test]
+    fn parse_child_include_mode_accepts_known_values() {
+        let args = json!({"children": "separate"});
+        assert_eq!(
+            parse_child_include_mode(&args, ChildIncludeMode::ParentsOnly).unwrap(),
+            ChildIncludeMode::Separate
+        );
+        let args = json!({"children": "parents-only"});
+        assert_eq!(
+            parse_child_include_mode(&args, ChildIncludeMode::Separate).unwrap(),
+            ChildIncludeMode::ParentsOnly
+        );
+    }
+
+    #[test]
+    fn parse_child_include_mode_returns_default_when_missing() {
+        let args = json!({});
+        assert_eq!(
+            parse_child_include_mode(&args, ChildIncludeMode::Separate).unwrap(),
+            ChildIncludeMode::Separate
+        );
+    }
+
+    #[test]
+    fn parse_child_include_mode_errors_on_unknown_value() {
+        let args = json!({"children": "collapse"});
+        let err = parse_child_include_mode(&args, ChildIncludeMode::Separate).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_redact_mode ------------------------------------------------
+
+    #[test]
+    fn parse_redact_mode_accepts_known_values() {
+        let args = json!({"redact": "none"});
+        assert_eq!(
+            parse_redact_mode(&args, RedactMode::All).unwrap(),
+            RedactMode::None
+        );
+        let args = json!({"redact": "paths"});
+        assert_eq!(
+            parse_redact_mode(&args, RedactMode::None).unwrap(),
+            RedactMode::Paths
+        );
+        let args = json!({"redact": "all"});
+        assert_eq!(
+            parse_redact_mode(&args, RedactMode::None).unwrap(),
+            RedactMode::All
+        );
+    }
+
+    #[test]
+    fn parse_redact_mode_returns_default_when_missing() {
+        let args = json!({});
+        assert_eq!(
+            parse_redact_mode(&args, RedactMode::Paths).unwrap(),
+            RedactMode::Paths
+        );
+    }
+
+    #[test]
+    fn parse_redact_mode_errors_on_unknown_value() {
+        let args = json!({"redact": "bogus"});
+        let err = parse_redact_mode(&args, RedactMode::None).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_effort_model -----------------------------------------------
+
+    #[test]
+    fn parse_effort_model_returns_none_when_missing() {
+        let args = json!({});
+        assert_eq!(parse_effort_model(&args, "model").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_effort_model_accepts_supported_value_case_insensitive() {
+        let args = json!({"model": "COCOMO81-basic"});
+        assert_eq!(
+            parse_effort_model(&args, "model").unwrap(),
+            Some("cocomo81-basic".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_effort_model_rejects_known_unsupported_variants() {
+        for value in ["cocomo2-early", "ensemble"] {
+            let args = json!({ "model": value });
+            let err = parse_effort_model(&args, "model").unwrap_err();
+            assert_eq!(err.code, ErrorCode::InvalidSettings);
+            assert!(
+                err.message.contains("only 'cocomo81-basic'"),
+                "expected unsupported message, got: {}",
+                err.message
+            );
+        }
+    }
+
+    #[test]
+    fn parse_effort_model_rejects_unknown_values() {
+        let args = json!({"model": "made-up"});
+        let err = parse_effort_model(&args, "model").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_effort_layer -----------------------------------------------
+
+    #[test]
+    fn parse_effort_layer_returns_none_when_missing() {
+        let args = json!({});
+        assert_eq!(parse_effort_layer(&args, "layer").unwrap(), None);
+    }
+
+    #[test]
+    fn parse_effort_layer_accepts_known_values_case_insensitive() {
+        for value in ["headline", "WHY", "Full"] {
+            let args = json!({ "layer": value });
+            let result = parse_effort_layer(&args, "layer").unwrap();
+            assert_eq!(result, Some(value.to_ascii_lowercase()));
+        }
+    }
+
+    #[test]
+    fn parse_effort_layer_rejects_unknown_values() {
+        let args = json!({"layer": "deep"});
+        let err = parse_effort_layer(&args, "layer").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_optional_redact_mode ---------------------------------------
+
+    #[test]
+    fn parse_optional_redact_mode_returns_some_when_present() {
+        let args = json!({"redact": "paths"});
+        assert_eq!(
+            parse_optional_redact_mode(&args).unwrap(),
+            Some(RedactMode::Paths)
+        );
+    }
+
+    #[test]
+    fn parse_optional_redact_mode_returns_none_when_missing() {
+        let args = json!({});
+        assert_eq!(parse_optional_redact_mode(&args).unwrap(), None);
+    }
+
+    #[test]
+    fn parse_optional_redact_mode_errors_on_unknown_value() {
+        let args = json!({"redact": "bogus"});
+        let err = parse_optional_redact_mode(&args).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_config_mode ------------------------------------------------
+
+    #[test]
+    fn parse_config_mode_accepts_known_values() {
+        let args = json!({"config": "auto"});
+        assert_eq!(
+            parse_config_mode(&args, ConfigMode::None).unwrap(),
+            ConfigMode::Auto
+        );
+        let args = json!({"config": "none"});
+        assert_eq!(
+            parse_config_mode(&args, ConfigMode::Auto).unwrap(),
+            ConfigMode::None
+        );
+    }
+
+    #[test]
+    fn parse_config_mode_returns_default_when_missing() {
+        let args = json!({});
+        assert_eq!(
+            parse_config_mode(&args, ConfigMode::Auto).unwrap(),
+            ConfigMode::Auto
+        );
+    }
+
+    #[test]
+    fn parse_config_mode_errors_on_unknown_value() {
+        let args = json!({"config": "bogus"});
+        let err = parse_config_mode(&args, ConfigMode::Auto).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_export_format ----------------------------------------------
+
+    #[test]
+    fn parse_export_format_accepts_known_values() {
+        let cases = [
+            ("csv", ExportFormat::Csv),
+            ("jsonl", ExportFormat::Jsonl),
+            ("json", ExportFormat::Json),
+            ("cyclonedx", ExportFormat::Cyclonedx),
+        ];
+        for (input, expected) in cases {
+            let args = json!({ "format": input });
+            assert_eq!(
+                parse_export_format(&args, ExportFormat::Csv).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn parse_export_format_returns_default_when_missing() {
+        let args = json!({});
+        assert_eq!(
+            parse_export_format(&args, ExportFormat::Jsonl).unwrap(),
+            ExportFormat::Jsonl
+        );
+    }
+
+    #[test]
+    fn parse_export_format_errors_on_unknown_value() {
+        let args = json!({"format": "yaml"});
+        let err = parse_export_format(&args, ExportFormat::Csv).unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_analyze_preset ---------------------------------------------
+
+    #[test]
+    fn parse_analyze_preset_accepts_known_values_case_insensitive() {
+        let known = [
+            "receipt",
+            "estimate",
+            "health",
+            "risk",
+            "supply",
+            "architecture",
+            "topics",
+            "security",
+            "identity",
+            "git",
+            "deep",
+            "fun",
+        ];
+        for value in known {
+            let args = json!({ "preset": value });
+            assert_eq!(parse_analyze_preset(&args, "receipt").unwrap(), value);
+        }
+        // Uppercase + surrounding whitespace are normalized.
+        let args = json!({"preset": "  Estimate  "});
+        assert_eq!(parse_analyze_preset(&args, "receipt").unwrap(), "estimate");
+    }
+
+    #[test]
+    fn parse_analyze_preset_uses_default_when_missing() {
+        let args = json!({});
+        assert_eq!(parse_analyze_preset(&args, "receipt").unwrap(), "receipt");
+    }
+
+    #[test]
+    fn parse_analyze_preset_errors_on_unknown_value() {
+        let args = json!({"preset": "bogus"});
+        let err = parse_analyze_preset(&args, "receipt").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+
+    // ---- parse_import_granularity -----------------------------------------
+
+    #[test]
+    fn parse_import_granularity_accepts_known_values_case_insensitive() {
+        let args = json!({"granularity": "module"});
+        assert_eq!(parse_import_granularity(&args, "file").unwrap(), "module");
+        let args = json!({"granularity": "File"});
+        assert_eq!(parse_import_granularity(&args, "module").unwrap(), "file");
+    }
+
+    #[test]
+    fn parse_import_granularity_uses_default_when_missing() {
+        let args = json!({});
+        assert_eq!(parse_import_granularity(&args, "module").unwrap(), "module");
+    }
+
+    #[test]
+    fn parse_import_granularity_errors_on_unknown_value() {
+        let args = json!({"granularity": "package"});
+        let err = parse_import_granularity(&args, "module").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
+    }
+}

@@ -483,3 +483,597 @@ pub enum AnalysisFormat {
     Tree,
     Html,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_totals() -> Totals {
+        Totals {
+            code: 100,
+            lines: 200,
+            files: 10,
+            bytes: 5_000,
+            tokens: 250,
+            avg_lines: 20,
+        }
+    }
+
+    fn sample_lang_row() -> LangRow {
+        LangRow {
+            lang: "Rust".into(),
+            code: 100,
+            lines: 150,
+            files: 5,
+            bytes: 3_000,
+            tokens: 200,
+            avg_lines: 30,
+        }
+    }
+
+    fn sample_module_row() -> ModuleRow {
+        ModuleRow {
+            module: "src".into(),
+            code: 80,
+            lines: 120,
+            files: 4,
+            bytes: 2_500,
+            tokens: 160,
+            avg_lines: 30,
+        }
+    }
+
+    fn sample_file_row() -> FileRow {
+        FileRow {
+            path: "src/main.rs".into(),
+            module: "src".into(),
+            lang: "Rust".into(),
+            kind: FileKind::Parent,
+            code: 50,
+            comments: 10,
+            blanks: 5,
+            lines: 65,
+            bytes: 2_000,
+            tokens: 100,
+        }
+    }
+
+    fn sample_scan_args() -> ScanArgs {
+        ScanArgs {
+            paths: vec!["src".into(), "tests".into()],
+            excluded: vec!["target".into()],
+            excluded_redacted: false,
+            config: ConfigMode::Auto,
+            hidden: false,
+            no_ignore: false,
+            no_ignore_parent: false,
+            no_ignore_dot: false,
+            no_ignore_vcs: false,
+            treat_doc_strings_as_comments: false,
+        }
+    }
+
+    // ── Totals ───────────────────────────────────────────────────────
+    #[test]
+    fn totals_serde_roundtrip() {
+        let t = sample_totals();
+        let json = serde_json::to_string(&t).unwrap();
+        let back: Totals = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, t);
+    }
+
+    #[test]
+    fn totals_field_names_stable() {
+        let value = serde_json::to_value(sample_totals()).unwrap();
+        for key in ["code", "lines", "files", "bytes", "tokens", "avg_lines"] {
+            assert!(value.get(key).is_some(), "missing key `{key}` in Totals");
+        }
+    }
+
+    // ── LangRow / LangReport ─────────────────────────────────────────
+    #[test]
+    fn lang_row_serde_roundtrip() {
+        let r = sample_lang_row();
+        let json = serde_json::to_string(&r).unwrap();
+        let back: LangRow = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, r);
+    }
+
+    #[test]
+    fn lang_row_field_names_stable() {
+        let value = serde_json::to_value(sample_lang_row()).unwrap();
+        for key in [
+            "lang",
+            "code",
+            "lines",
+            "files",
+            "bytes",
+            "tokens",
+            "avg_lines",
+        ] {
+            assert!(value.get(key).is_some(), "missing key `{key}` in LangRow");
+        }
+    }
+
+    #[test]
+    fn lang_report_serde_roundtrip() {
+        let report = LangReport {
+            rows: vec![sample_lang_row()],
+            total: sample_totals(),
+            with_files: false,
+            children: ChildrenMode::Collapse,
+            top: 10,
+        };
+        let json = serde_json::to_string(&report).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in ["rows", "total", "with_files", "children", "top"] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in LangReport"
+            );
+        }
+        let back: LangReport = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.rows.len(), 1);
+        assert_eq!(back.rows[0], report.rows[0]);
+        assert_eq!(back.total, report.total);
+        assert_eq!(back.top, 10);
+    }
+
+    // ── ModuleRow / ModuleReport ─────────────────────────────────────
+    #[test]
+    fn module_row_serde_roundtrip() {
+        let r = sample_module_row();
+        let json = serde_json::to_string(&r).unwrap();
+        let back: ModuleRow = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, r);
+    }
+
+    #[test]
+    fn module_row_field_names_stable() {
+        let value = serde_json::to_value(sample_module_row()).unwrap();
+        for key in [
+            "module",
+            "code",
+            "lines",
+            "files",
+            "bytes",
+            "tokens",
+            "avg_lines",
+        ] {
+            assert!(value.get(key).is_some(), "missing key `{key}` in ModuleRow");
+        }
+    }
+
+    #[test]
+    fn module_report_serde_roundtrip() {
+        let report = ModuleReport {
+            rows: vec![sample_module_row()],
+            total: sample_totals(),
+            module_roots: vec!["crates".into()],
+            module_depth: 2,
+            children: ChildIncludeMode::ParentsOnly,
+            top: 5,
+        };
+        let json = serde_json::to_string(&report).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in [
+            "rows",
+            "total",
+            "module_roots",
+            "module_depth",
+            "children",
+            "top",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in ModuleReport"
+            );
+        }
+        let back: ModuleReport = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.rows.len(), 1);
+        assert_eq!(back.module_depth, 2);
+        assert_eq!(back.top, 5);
+    }
+
+    // ── FileRow / ExportData ─────────────────────────────────────────
+    #[test]
+    fn file_row_serde_roundtrip_parent() {
+        let r = sample_file_row();
+        let json = serde_json::to_string(&r).unwrap();
+        let back: FileRow = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, r);
+    }
+
+    #[test]
+    fn file_row_serde_roundtrip_child() {
+        let r = FileRow {
+            kind: FileKind::Child,
+            ..sample_file_row()
+        };
+        let json = serde_json::to_string(&r).unwrap();
+        let back: FileRow = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, r);
+        assert_eq!(back.kind, FileKind::Child);
+    }
+
+    #[test]
+    fn file_row_field_names_stable() {
+        let value = serde_json::to_value(sample_file_row()).unwrap();
+        for key in [
+            "path", "module", "lang", "kind", "code", "comments", "blanks", "lines", "bytes",
+            "tokens",
+        ] {
+            assert!(value.get(key).is_some(), "missing key `{key}` in FileRow");
+        }
+    }
+
+    #[test]
+    fn export_data_serde_roundtrip_preserves_row_order() {
+        let mut rows = Vec::new();
+        for path in ["a.rs", "b.rs", "c.rs", "d.rs"] {
+            let mut row = sample_file_row();
+            row.path = path.to_string();
+            rows.push(row);
+        }
+        let data = ExportData {
+            rows: rows.clone(),
+            module_roots: vec![],
+            module_depth: 1,
+            children: ChildIncludeMode::Separate,
+        };
+        let json = serde_json::to_string(&data).unwrap();
+        let back: ExportData = serde_json::from_str(&json).unwrap();
+        let paths: Vec<_> = back.rows.iter().map(|r| r.path.as_str()).collect();
+        assert_eq!(paths, vec!["a.rs", "b.rs", "c.rs", "d.rs"]);
+        assert_eq!(back.children, ChildIncludeMode::Separate);
+        assert_eq!(back.module_depth, 1);
+    }
+
+    // ── Enums ────────────────────────────────────────────────────────
+    #[test]
+    fn file_kind_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&FileKind::Parent).unwrap(),
+            "\"parent\""
+        );
+        assert_eq!(
+            serde_json::to_string(&FileKind::Child).unwrap(),
+            "\"child\""
+        );
+    }
+
+    #[test]
+    fn scan_status_uses_snake_case() {
+        assert_eq!(
+            serde_json::to_string(&ScanStatus::Complete).unwrap(),
+            "\"complete\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ScanStatus::Partial).unwrap(),
+            "\"partial\""
+        );
+        for variant in [ScanStatus::Complete, ScanStatus::Partial] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: ScanStatus = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn child_include_mode_uses_kebab_case_for_parents_only() {
+        assert_eq!(
+            serde_json::to_string(&ChildIncludeMode::ParentsOnly).unwrap(),
+            "\"parents-only\""
+        );
+        for variant in [ChildIncludeMode::Separate, ChildIncludeMode::ParentsOnly] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: ChildIncludeMode = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn analysis_format_kebab_case_check() {
+        assert_eq!(
+            serde_json::to_string(&AnalysisFormat::Jsonld).unwrap(),
+            "\"jsonld\""
+        );
+        assert_eq!(
+            serde_json::to_string(&AnalysisFormat::Mermaid).unwrap(),
+            "\"mermaid\""
+        );
+    }
+
+    #[test]
+    fn commit_intent_kind_all_variants_roundtrip() {
+        for variant in [
+            CommitIntentKind::Feat,
+            CommitIntentKind::Fix,
+            CommitIntentKind::Refactor,
+            CommitIntentKind::Docs,
+            CommitIntentKind::Test,
+            CommitIntentKind::Chore,
+            CommitIntentKind::Ci,
+            CommitIntentKind::Build,
+            CommitIntentKind::Perf,
+            CommitIntentKind::Style,
+            CommitIntentKind::Revert,
+            CommitIntentKind::Other,
+        ] {
+            let json = serde_json::to_string(&variant).unwrap();
+            let back: CommitIntentKind = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, variant);
+        }
+    }
+
+    #[test]
+    fn config_mode_default_is_auto() {
+        assert_eq!(ConfigMode::default(), ConfigMode::Auto);
+        assert_eq!(
+            serde_json::to_string(&ConfigMode::Auto).unwrap(),
+            "\"auto\""
+        );
+        assert_eq!(
+            serde_json::to_string(&ConfigMode::None).unwrap(),
+            "\"none\""
+        );
+    }
+
+    // ── ToolInfo ─────────────────────────────────────────────────────
+    #[test]
+    fn tool_info_default_serde() {
+        let tool = ToolInfo::default();
+        let json = serde_json::to_string(&tool).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(value.get("name").is_some());
+        assert!(value.get("version").is_some());
+        assert_eq!(value["name"], "");
+        assert_eq!(value["version"], "");
+    }
+
+    #[test]
+    fn tool_info_current_has_tokmd_name() {
+        let tool = ToolInfo::current();
+        assert_eq!(tool.name, "tokmd");
+        assert!(!tool.version.is_empty());
+        let json = serde_json::to_string(&tool).unwrap();
+        let back: ToolInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.name, tool.name);
+        assert_eq!(back.version, tool.version);
+    }
+
+    // ── ScanArgs ─────────────────────────────────────────────────────
+    #[test]
+    fn scan_args_roundtrip_preserves_paths_order() {
+        let args = sample_scan_args();
+        let json = serde_json::to_string(&args).unwrap();
+        let back: ScanArgs = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.paths, vec!["src".to_string(), "tests".to_string()]);
+        assert_eq!(back.excluded, vec!["target".to_string()]);
+        assert_eq!(back.config, ConfigMode::Auto);
+    }
+
+    #[test]
+    fn scan_args_excluded_redacted_omitted_when_false() {
+        let args = sample_scan_args();
+        let value = serde_json::to_value(&args).unwrap();
+        assert!(value.get("excluded_redacted").is_none());
+    }
+
+    #[test]
+    fn scan_args_excluded_redacted_present_when_true() {
+        let args = ScanArgs {
+            excluded_redacted: true,
+            ..sample_scan_args()
+        };
+        let value = serde_json::to_value(&args).unwrap();
+        assert_eq!(value["excluded_redacted"], true);
+    }
+
+    // ── Receipts ─────────────────────────────────────────────────────
+    #[test]
+    fn lang_receipt_flattens_report_fields() {
+        let receipt = LangReceipt {
+            schema_version: crate::SCHEMA_VERSION,
+            generated_at_ms: 1_700_000_000_000,
+            tool: ToolInfo::current(),
+            mode: "lang".into(),
+            status: ScanStatus::Complete,
+            warnings: vec![],
+            scan: sample_scan_args(),
+            args: LangArgsMeta {
+                format: "md".into(),
+                top: 10,
+                with_files: true,
+                children: ChildrenMode::Separate,
+            },
+            report: LangReport {
+                rows: vec![sample_lang_row()],
+                total: sample_totals(),
+                with_files: true,
+                children: ChildrenMode::Separate,
+                top: 10,
+            },
+        };
+        let value = serde_json::to_value(&receipt).unwrap();
+        // Envelope fields
+        for key in [
+            "schema_version",
+            "generated_at_ms",
+            "tool",
+            "mode",
+            "status",
+            "warnings",
+            "scan",
+            "args",
+        ] {
+            assert!(value.get(key).is_some(), "missing envelope key `{key}`");
+        }
+        // Flattened report fields
+        for key in ["rows", "total", "with_files", "children", "top"] {
+            assert!(
+                value.get(key).is_some(),
+                "missing flattened report key `{key}`"
+            );
+        }
+        // Roundtrip
+        let json = serde_json::to_string(&receipt).unwrap();
+        let back: LangReceipt = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.mode, "lang");
+        assert_eq!(back.report.rows.len(), 1);
+    }
+
+    #[test]
+    fn module_receipt_flattens_report_fields() {
+        let receipt = ModuleReceipt {
+            schema_version: crate::SCHEMA_VERSION,
+            generated_at_ms: 0,
+            tool: ToolInfo::default(),
+            mode: "module".into(),
+            status: ScanStatus::Partial,
+            warnings: vec!["something".into()],
+            scan: sample_scan_args(),
+            args: ModuleArgsMeta {
+                format: "json".into(),
+                module_roots: vec!["crates".into()],
+                module_depth: 3,
+                children: ChildIncludeMode::Separate,
+                top: 20,
+            },
+            report: ModuleReport {
+                rows: vec![sample_module_row()],
+                total: sample_totals(),
+                module_roots: vec!["crates".into()],
+                module_depth: 3,
+                children: ChildIncludeMode::Separate,
+                top: 20,
+            },
+        };
+        let json = serde_json::to_string(&receipt).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(value["status"], "partial");
+        // Flattened ModuleReport fields
+        for key in [
+            "rows",
+            "total",
+            "module_roots",
+            "module_depth",
+            "children",
+            "top",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing flattened key `{key}` in ModuleReceipt JSON"
+            );
+        }
+        let back: ModuleReceipt = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.mode, "module");
+        assert_eq!(back.report.module_depth, 3);
+        assert_eq!(back.warnings, vec!["something".to_string()]);
+    }
+
+    #[test]
+    fn export_receipt_flattens_data_fields() {
+        let receipt = ExportReceipt {
+            schema_version: crate::SCHEMA_VERSION,
+            generated_at_ms: 0,
+            tool: ToolInfo::default(),
+            mode: "export".into(),
+            status: ScanStatus::Complete,
+            warnings: vec![],
+            scan: sample_scan_args(),
+            args: ExportArgsMeta {
+                format: ExportFormat::Json,
+                module_roots: vec![],
+                module_depth: 1,
+                children: ChildIncludeMode::Separate,
+                min_code: 0,
+                max_rows: 100,
+                redact: RedactMode::None,
+                strip_prefix: None,
+                strip_prefix_redacted: false,
+            },
+            data: ExportData {
+                rows: vec![sample_file_row()],
+                module_roots: vec![],
+                module_depth: 1,
+                children: ChildIncludeMode::Separate,
+            },
+        };
+        let json = serde_json::to_string(&receipt).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        // Flattened ExportData fields
+        for key in ["rows", "module_roots", "module_depth", "children"] {
+            assert!(
+                value.get(key).is_some(),
+                "missing flattened key `{key}` in ExportReceipt JSON"
+            );
+        }
+        let back: ExportReceipt = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.mode, "export");
+        assert_eq!(back.data.rows.len(), 1);
+    }
+
+    #[test]
+    fn export_args_meta_strip_prefix_omitted_when_false() {
+        let meta = ExportArgsMeta {
+            format: ExportFormat::Csv,
+            module_roots: vec![],
+            module_depth: 0,
+            children: ChildIncludeMode::Separate,
+            min_code: 0,
+            max_rows: 0,
+            redact: RedactMode::None,
+            strip_prefix: None,
+            strip_prefix_redacted: false,
+        };
+        let value = serde_json::to_value(&meta).unwrap();
+        assert!(value.get("strip_prefix_redacted").is_none());
+    }
+
+    #[test]
+    fn export_args_meta_strip_prefix_present_when_true() {
+        let meta = ExportArgsMeta {
+            format: ExportFormat::Csv,
+            module_roots: vec![],
+            module_depth: 0,
+            children: ChildIncludeMode::Separate,
+            min_code: 0,
+            max_rows: 0,
+            redact: RedactMode::None,
+            strip_prefix: Some("abc".into()),
+            strip_prefix_redacted: true,
+        };
+        let value = serde_json::to_value(&meta).unwrap();
+        assert_eq!(value["strip_prefix_redacted"], true);
+        assert_eq!(value["strip_prefix"], "abc");
+    }
+
+    #[test]
+    fn run_receipt_serde_roundtrip() {
+        let receipt = RunReceipt {
+            schema_version: crate::SCHEMA_VERSION,
+            generated_at_ms: 1_700_000_000_000,
+            lang_file: "lang.json".into(),
+            module_file: "module.json".into(),
+            export_file: "export.json".into(),
+        };
+        let json = serde_json::to_string(&receipt).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+        for key in [
+            "schema_version",
+            "generated_at_ms",
+            "lang_file",
+            "module_file",
+            "export_file",
+        ] {
+            assert!(
+                value.get(key).is_some(),
+                "missing key `{key}` in RunReceipt JSON"
+            );
+        }
+        let back: RunReceipt = serde_json::from_str(&json).unwrap();
+        assert_eq!(back.lang_file, "lang.json");
+        assert_eq!(back.export_file, "export.json");
+    }
+}

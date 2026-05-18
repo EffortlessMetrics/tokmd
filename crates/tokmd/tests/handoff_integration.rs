@@ -127,7 +127,7 @@ fn test_handoff_links_review_and_proof_artifacts() {
           "schema":"tokmd.affected.v1",
           "changed_files":["docs/handoff.md"],
           "scopes":[{"name":"user_guides"}],
-          "unknown_files":[]
+          "unknown_files":["docs/unrouted.md"]
         }"#,
     )
     .unwrap();
@@ -217,11 +217,65 @@ fn test_handoff_links_review_and_proof_artifacts() {
     assert!(work_order.contains("Review packet verifier: ok=true"));
     assert!(work_order.contains("Review map: 1 item(s)"));
     assert!(work_order.contains("`docs/handoff.md`: handoff behavior changed"));
+    assert_sections_in_order(
+        &work_order,
+        &[
+            "## Changed Surfaces",
+            "## Linked Evidence",
+            "## Linked Evidence Summary",
+            "## Review Evidence",
+            "## Proof Expectations",
+            "## Missing / Stale / Degraded Evidence",
+            "## Included Files",
+            "## Agent Stop Conditions",
+            "## Agent Guardrails",
+        ],
+    );
+    assert!(work_order.contains("Changed files to inspect first:"));
+    assert!(work_order.contains("Review packet verifier: linked and ok."));
+    assert!(work_order.contains("Run expected proof before claiming done:"));
+    assert!(work_order.contains("Review evidence missing: 1"));
+    assert!(work_order.contains("Review evidence unavailable: 1"));
     assert!(
-        work_order.contains("Affected proof: 1 changed file(s), 1 scope(s), 0 unknown file(s)")
+        work_order.contains("Affected proof: 1 changed file(s), 1 scope(s), 1 unknown file(s)")
     );
     assert!(work_order.contains("Proof plan: 2 command(s), 1 required, 1 advisory"));
     assert!(work_order.contains("A proof plan is planned evidence, not execution proof."));
+    assert!(work_order.contains(
+        "Affected proof has 1 unknown file(s); update proof routing before trusting scoped proof."
+    ));
+    assert!(
+        work_order.contains(
+            "Stop if the linked review-packet verifier is missing, unreadable, or failing."
+        )
+    );
+    assert!(
+        work_order
+            .contains("Stop before claiming proof if affected routing still has unknown files.")
+    );
+    assert!(work_order.contains(
+        "Stop before claiming done until required proof commands are run or explicitly deferred."
+    ));
+    assert!(
+        work_order.contains(
+            "Treat missing, stale, degraded, skipped, or unavailable evidence as work to resolve, not as passing proof."
+        )
+    );
+}
+
+fn assert_sections_in_order(content: &str, sections: &[&str]) {
+    let mut previous = 0;
+    for section in sections {
+        let index = content[previous..]
+            .find(section)
+            .map(|offset| previous + offset)
+            .unwrap_or_else(|| panic!("missing section `{section}`"));
+        assert!(
+            index >= previous,
+            "section `{section}` appeared before the previous section"
+        );
+        previous = index;
+    }
 }
 
 #[test]

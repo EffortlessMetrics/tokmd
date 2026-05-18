@@ -29,6 +29,9 @@ mod git_tests {
         let dir = tempdir().expect("tempdir");
         let root = dir.path();
         git_cmd(root, &["init"]);
+        // Disable host commit-signing config from leaking into this fixture.
+        git_cmd(root, &["config", "commit.gpgsign", "false"]);
+        git_cmd(root, &["config", "tag.gpgsign", "false"]);
 
         std::fs::create_dir_all(root.join("src")).unwrap();
         std::fs::write(root.join("src/lib.rs"), "fn a() {}\n").unwrap();

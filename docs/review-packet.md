@@ -266,10 +266,12 @@ compact item-level evidence status, evidence references, optional `proof_refs`,
 and reproduction commands. Proof refs are added only when imported proof
 evidence directly lists the item path as a changed file; scope-only or global
 proof stays packet-level until a policy-backed scope matcher exists.
-`review-map.md` is a Markdown rendering of the same ordered items, including a
-"Review First" section, evidence present/missing lines where applicable,
-matching proof evidence, proof references, evidence references, and reproduction
-commands for artifact browsing and local review.
+`review-map.md` is a Markdown rendering of the same ordered items. It starts
+with a short work-order note that the packet is not a merge verdict, then lists
+the "Review First" items with a review-first signal, the cockpit reason,
+evidence present/missing lines where applicable, matching proof evidence, proof
+references, evidence references, and reproduction commands for artifact browsing
+and local review.
 
 ## Exit Codes
 

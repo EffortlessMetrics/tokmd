@@ -20,12 +20,19 @@ pub(super) fn review_packet_review_map(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    review_packet_dir: &str,
 ) -> Value {
     let proof_refs = review_map_proof_refs(receipt, proof_inputs);
     let has_doc_artifacts_evidence = doc_artifacts.is_some() || doc_artifacts_expected(receipt);
     let evidence_refs =
         review_map_evidence_refs(!proof_refs.is_empty(), has_doc_artifacts_evidence);
     let ordered_items = ordered_review_map_items(receipt);
+    let context = ReviewMapRenderContext {
+        receipt,
+        proof_refs: &proof_refs,
+        doc_artifacts,
+        review_packet_dir,
+    };
     let items: Vec<_> = ordered_items
         .iter()
         .enumerate()
@@ -34,10 +41,8 @@ pub(super) fn review_packet_review_map(
                 rank + 1,
                 ordered.source_index,
                 ordered.item,
-                receipt,
                 &ordered.evidence,
-                &proof_refs,
-                doc_artifacts,
+                &context,
             )
         })
         .collect();
@@ -57,18 +62,23 @@ pub(super) fn review_packet_review_map(
     })
 }
 
+struct ReviewMapRenderContext<'a> {
+    receipt: &'a CockpitReceipt,
+    proof_refs: &'a [ReviewMapProofRef],
+    doc_artifacts: Option<&'a DocArtifactsEvidenceInput>,
+    review_packet_dir: &'a str,
+}
+
 fn review_map_item(
     rank: usize,
     source_index: usize,
     item: &ReviewItem,
-    receipt: &CockpitReceipt,
     evidence: &ReviewMapItemEvidence,
-    proof_refs: &[ReviewMapProofRef],
-    doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    context: &ReviewMapRenderContext<'_>,
 ) -> Value {
-    let proof = review_map_item_proof(item, proof_refs);
-    let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, doc_artifacts);
-    let reproduce = review_map_item_reproduce(item, receipt);
+    let proof = review_map_item_proof(item, context.proof_refs);
+    let doc_artifacts_refs = review_map_item_doc_artifacts_refs(item, context.doc_artifacts);
+    let reproduce = review_map_item_reproduce(item, context.receipt, context.review_packet_dir);
 
     json!({
         "rank": rank,
@@ -166,6 +176,32 @@ fn review_order_bucket(item: &ReviewItem, evidence: &ReviewMapItemEvidence) -> u
     }
 }
 
+fn review_order_reason(item: &ReviewItem, evidence: &ReviewMapItemEvidence) -> &'static str {
+    if review_item_is_source_of_truth(item) {
+        "Source-of-truth artifact changed; review the governing contract before ordinary files."
+    } else if !evidence.missing.is_empty() {
+        "Evidence is missing for this item; repair or acknowledge the missing proof before relying on it."
+    } else if !evidence.stale.is_empty() {
+        "Evidence is stale for this item; regenerate it before treating the packet as current."
+    } else if !evidence.degraded.is_empty() {
+        "Evidence is degraded for this item; inspect the degraded receipt before relying on it."
+    } else if item.complexity.unwrap_or(0) >= 4 {
+        "High review complexity; inspect before lower-complexity changes."
+    } else if review_contract_path(&item.path) {
+        "Contract or policy path changed; review before ordinary implementation changes."
+    } else if item.priority <= 1 {
+        "Highest cockpit priority from the source review plan."
+    } else if item.priority == 2 {
+        "Medium cockpit priority from the source review plan."
+    } else if !evidence.present.is_empty() {
+        "Evidence is available; use the attached references to review efficiently."
+    } else if !evidence.skipped.is_empty() {
+        "Evidence was skipped; confirm the skip reason is expected."
+    } else {
+        "Lower-priority source review item; review after higher-risk signals."
+    }
+}
+
 fn review_contract_path(path: &str) -> bool {
     schema_review_path(path)
         || policy_review_path(path)
@@ -197,15 +233,19 @@ fn api_review_path(path: &str) -> bool {
     path.ends_with("lib.rs") || path.ends_with("mod.rs")
 }
 
-fn review_map_item_reproduce(item: &ReviewItem, receipt: &CockpitReceipt) -> Vec<String> {
+fn review_map_item_reproduce(
+    item: &ReviewItem,
+    receipt: &CockpitReceipt,
+    review_packet_dir: &str,
+) -> Vec<String> {
     let mut commands = vec![
         format!(
             "tokmd cockpit --base {} --head {} --format json",
             receipt.base_ref, receipt.head_ref
         ),
         format!(
-            "tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review",
-            receipt.base_ref, receipt.head_ref
+            "tokmd cockpit --base {} --head {} --review-packet-dir {}",
+            receipt.base_ref, receipt.head_ref, review_packet_dir
         ),
     ];
 
@@ -317,6 +357,7 @@ pub(super) fn render_review_map_md(
     receipt: &CockpitReceipt,
     proof_inputs: &[ProofEvidenceInput],
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
+    review_packet_dir: &str,
 ) -> String {
     use std::fmt::Write;
 
@@ -326,6 +367,11 @@ pub(super) fn render_review_map_md(
     let _ = writeln!(s);
     let _ = writeln!(s, "Base: `{}`", receipt.base_ref);
     let _ = writeln!(s, "Head: `{}`", receipt.head_ref);
+    let _ = writeln!(s);
+    let _ = writeln!(
+        s,
+        "Open this as a review work order: inspect items in order, regenerate the listed evidence when it is missing, stale, or degraded, and do not treat this packet as a merge verdict."
+    );
     let _ = writeln!(s);
 
     let evidence = evidence_counts(receipt);
@@ -360,11 +406,13 @@ pub(super) fn render_review_map_md(
             s,
             "{}. `{}`
    Priority: {} ({})
+   Review-first signal: {}
    Why it matters: {}",
             rank + 1,
             item.path,
             item.priority,
             review_priority_label(item.priority),
+            review_order_reason(item, evidence),
             item.reason
         );
 
@@ -394,8 +442,8 @@ pub(super) fn render_review_map_md(
         );
         let _ = writeln!(
             s,
-            "   - `tokmd cockpit --base {} --head {} --review-packet-dir .tokmd/review`",
-            receipt.base_ref, receipt.head_ref
+            "   - `tokmd cockpit --base {} --head {} --review-packet-dir {}`",
+            receipt.base_ref, receipt.head_ref, review_packet_dir
         );
         if review_item_is_source_of_truth(item) {
             let _ = writeln!(
@@ -523,4 +571,339 @@ fn write_evidence_list(s: &mut String, label: &str, gates: &[&str]) {
     }
 
     let _ = writeln!(s, "   {label}: {}", gates.join(", "));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn item(path: &str, priority: u32) -> ReviewItem {
+        ReviewItem {
+            path: path.to_string(),
+            reason: "test".to_string(),
+            priority,
+            complexity: None,
+            lines_changed: None,
+        }
+    }
+
+    // ---------- review_priority_label ----------
+
+    #[test]
+    fn priority_label_one_is_highest() {
+        assert_eq!(review_priority_label(1), "highest");
+    }
+
+    #[test]
+    fn priority_label_two_is_medium() {
+        assert_eq!(review_priority_label(2), "medium");
+    }
+
+    #[test]
+    fn priority_label_zero_is_low() {
+        assert_eq!(review_priority_label(0), "low");
+    }
+
+    #[test]
+    fn priority_label_three_is_low() {
+        assert_eq!(review_priority_label(3), "low");
+    }
+
+    #[test]
+    fn priority_label_large_is_low() {
+        assert_eq!(review_priority_label(99), "low");
+    }
+
+    // ---------- schema_review_path ----------
+
+    #[test]
+    fn schema_review_path_exact_docs_schema_json() {
+        assert!(schema_review_path("docs/schema.json"));
+    }
+
+    #[test]
+    fn schema_review_path_exact_docs_schema_md() {
+        assert!(schema_review_path("docs/SCHEMA.md"));
+    }
+
+    #[test]
+    fn schema_review_path_docs_dot_schema_json() {
+        assert!(schema_review_path("docs/foo.schema.json"));
+    }
+
+    #[test]
+    fn schema_review_path_crates_schemas_dir() {
+        assert!(schema_review_path("crates/tokmd/schemas/x.json"));
+    }
+
+    #[test]
+    fn schema_review_path_rejects_unrelated_paths() {
+        assert!(!schema_review_path("src/lib.rs"));
+        assert!(!schema_review_path("docs/guide.md"));
+        assert!(!schema_review_path("schemas/x.json"));
+    }
+
+    // ---------- policy_review_path ----------
+
+    #[test]
+    fn policy_review_path_ci_proof_toml() {
+        assert!(policy_review_path("ci/proof.toml"));
+    }
+
+    #[test]
+    fn policy_review_path_codecov_yml() {
+        assert!(policy_review_path("codecov.yml"));
+    }
+
+    #[test]
+    fn policy_review_path_policy_prefix() {
+        assert!(policy_review_path("policy/x.toml"));
+    }
+
+    #[test]
+    fn policy_review_path_github_workflows() {
+        assert!(policy_review_path(".github/workflows/x.yml"));
+    }
+
+    #[test]
+    fn policy_review_path_rejects_unrelated_paths() {
+        assert!(!policy_review_path("src/lib.rs"));
+        assert!(!policy_review_path("ci/other.toml"));
+        assert!(!policy_review_path(".github/dependabot.yml"));
+    }
+
+    // ---------- cli_review_path ----------
+
+    #[test]
+    fn cli_review_path_commands_dir() {
+        assert!(cli_review_path("crates/tokmd/src/commands/run.rs"));
+    }
+
+    #[test]
+    fn cli_review_path_cli_dir() {
+        assert!(cli_review_path("crates/tokmd/src/cli/parser.rs"));
+    }
+
+    #[test]
+    fn cli_review_path_config_rs() {
+        assert!(cli_review_path("crates/tokmd/src/config.rs"));
+    }
+
+    #[test]
+    fn cli_review_path_rejects_unrelated_paths() {
+        assert!(!cli_review_path("crates/tokmd/src/lib.rs"));
+        assert!(!cli_review_path("crates/tokmd-cockpit/src/cli/parser.rs"));
+        assert!(!cli_review_path("src/config.rs"));
+    }
+
+    // ---------- api_review_path ----------
+
+    #[test]
+    fn api_review_path_lib_rs() {
+        assert!(api_review_path("crates/foo/src/lib.rs"));
+    }
+
+    #[test]
+    fn api_review_path_mod_rs() {
+        assert!(api_review_path("crates/foo/src/mod.rs"));
+    }
+
+    #[test]
+    fn api_review_path_rejects_unrelated_paths() {
+        assert!(!api_review_path("crates/foo/src/main.rs"));
+        assert!(!api_review_path("crates/foo/src/util.rs"));
+        assert!(!api_review_path("README.md"));
+    }
+
+    // ---------- review_contract_path ----------
+
+    #[test]
+    fn review_contract_path_matches_schema_predicate() {
+        assert!(review_contract_path("docs/schema.json"));
+    }
+
+    #[test]
+    fn review_contract_path_matches_policy_predicate() {
+        assert!(review_contract_path("policy/x.toml"));
+    }
+
+    #[test]
+    fn review_contract_path_matches_cli_predicate() {
+        assert!(review_contract_path("crates/tokmd/src/config.rs"));
+    }
+
+    #[test]
+    fn review_contract_path_matches_api_predicate() {
+        assert!(review_contract_path("crates/foo/src/lib.rs"));
+    }
+
+    #[test]
+    fn review_contract_path_rejects_unrelated_path() {
+        assert!(!review_contract_path("src/main.rs"));
+    }
+
+    // ---------- review_map_evidence_refs ----------
+
+    #[test]
+    fn evidence_refs_only_gates_when_no_extras() {
+        let refs = review_map_evidence_refs(false, false);
+        assert_eq!(refs, vec!["evidence.json#/gates"]);
+    }
+
+    #[test]
+    fn evidence_refs_adds_proof_only() {
+        let refs = review_map_evidence_refs(true, false);
+        assert_eq!(refs, vec!["evidence.json#/gates", "evidence.json#/proof"]);
+    }
+
+    #[test]
+    fn evidence_refs_adds_doc_artifacts_only() {
+        let refs = review_map_evidence_refs(false, true);
+        assert_eq!(
+            refs,
+            vec!["evidence.json#/gates", "evidence.json#/doc_artifacts"]
+        );
+    }
+
+    #[test]
+    fn evidence_refs_adds_both_proof_and_doc_artifacts() {
+        let refs = review_map_evidence_refs(true, true);
+        assert_eq!(
+            refs,
+            vec![
+                "evidence.json#/gates",
+                "evidence.json#/proof",
+                "evidence.json#/doc_artifacts",
+            ]
+        );
+    }
+
+    // ---------- ReviewMapItemEvidence::status ----------
+
+    #[test]
+    fn evidence_status_defaults_to_unavailable() {
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(ev.status(), "unavailable");
+    }
+
+    #[test]
+    fn evidence_status_missing_takes_priority() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.missing.push("g");
+        ev.stale.push("g");
+        ev.degraded.push("g");
+        ev.present.push("g");
+        ev.skipped.push("g");
+        ev.unavailable.push("g");
+        assert_eq!(ev.status(), "missing");
+    }
+
+    #[test]
+    fn evidence_status_stale_when_no_missing() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.stale.push("g");
+        ev.degraded.push("g");
+        ev.present.push("g");
+        assert_eq!(ev.status(), "stale");
+    }
+
+    #[test]
+    fn evidence_status_degraded_when_no_stale_or_missing() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.degraded.push("g");
+        ev.present.push("g");
+        assert_eq!(ev.status(), "degraded");
+    }
+
+    #[test]
+    fn evidence_status_available_when_only_present() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.present.push("g");
+        assert_eq!(ev.status(), "available");
+    }
+
+    #[test]
+    fn evidence_status_skipped_when_only_skipped() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.skipped.push("g");
+        assert_eq!(ev.status(), "skipped");
+    }
+
+    #[test]
+    fn evidence_status_unavailable_when_only_unavailable() {
+        let mut ev = ReviewMapItemEvidence::default();
+        ev.unavailable.push("g");
+        assert_eq!(ev.status(), "unavailable");
+    }
+
+    // ---------- review_order_bucket / review_order_reason ----------
+
+    #[test]
+    fn order_bucket_priority_one_falls_in_bucket_six() {
+        let it = item("src/main.rs", 1);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(review_order_bucket(&it, &ev), 6);
+    }
+
+    #[test]
+    fn order_reason_priority_one_is_highest_priority_message() {
+        let it = item("src/main.rs", 1);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(
+            review_order_reason(&it, &ev),
+            "Highest cockpit priority from the source review plan."
+        );
+    }
+
+    #[test]
+    fn order_bucket_priority_two_falls_in_bucket_seven() {
+        let it = item("src/main.rs", 2);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(review_order_bucket(&it, &ev), 7);
+    }
+
+    #[test]
+    fn order_reason_priority_two_is_medium_priority_message() {
+        let it = item("src/main.rs", 2);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(
+            review_order_reason(&it, &ev),
+            "Medium cockpit priority from the source review plan."
+        );
+    }
+
+    #[test]
+    fn order_bucket_default_low_priority_is_ten() {
+        let it = item("src/main.rs", 5);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(review_order_bucket(&it, &ev), 10);
+    }
+
+    #[test]
+    fn order_reason_default_low_priority_message() {
+        let it = item("src/main.rs", 5);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(
+            review_order_reason(&it, &ev),
+            "Lower-priority source review item; review after higher-risk signals."
+        );
+    }
+
+    #[test]
+    fn order_bucket_contract_path_falls_in_bucket_five() {
+        // `ci/proof.toml` is a policy contract path, but not a source-of-truth path.
+        let it = item("ci/proof.toml", 3);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(review_order_bucket(&it, &ev), 5);
+    }
+
+    #[test]
+    fn order_reason_contract_path_message() {
+        let it = item("ci/proof.toml", 3);
+        let ev = ReviewMapItemEvidence::default();
+        assert_eq!(
+            review_order_reason(&it, &ev),
+            "Contract or policy path changed; review before ordinary implementation changes."
+        );
+    }
 }

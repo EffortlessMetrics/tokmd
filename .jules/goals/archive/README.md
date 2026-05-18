@@ -1,12 +1,13 @@
 # Archived Jules Goals
 
-Completed or superseded active-goal files may be copied here when a lane needs a
-durable machine-readable checkpoint after `active.toml` moves on.
+Completed or superseded Jules-local active-goal files may be copied here when a
+Jules lane needs a durable machine-readable checkpoint after `active.toml`
+moves on.
 
 Archive files are historical snapshots, not active execution state. The current
-lane always lives in `.jules/goals/active.toml`, and `cargo xtask
+Jules-local state always lives in `.jules/goals/active.toml`, and `cargo xtask
 doc-artifacts --check` validates only that active file in the first checker
-slice.
+slice. Codex-local state, when needed, belongs under `.codex/`.
 
 ## Naming
 
@@ -32,6 +33,7 @@ Examples:
 5. Keep raw logs and narrative run history in `.jules/runs/`, PR bodies, or
    linked plans instead.
 
-Do not let archived goals become a second active queue. If archived state and
-`active.toml` disagree, `active.toml` owns the current lane and the archive owns
-only historical context.
+Do not let archived goals become a second active queue. If archived Jules state
+and `active.toml` disagree, `active.toml` owns the current Jules-local state and
+the archive owns only historical context. Jules suggestions remain inputs for
+Codex to evaluate, not Codex's primary active-lane controller.
