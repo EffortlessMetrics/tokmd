@@ -6,6 +6,9 @@ This document defines where durable tokmd intent, behavior, decisions, plans,
 agent state, and machine-checkable policy belong. It is a routing guide for
 maintainers and agents, not a new product feature.
 
+The compact reference and agent stop-condition contract lives in
+[`docs/reference/SPEC_SYSTEM.md`](reference/SPEC_SYSTEM.md).
+
 ## Goal
 
 Keep tokmd's repository knowledge reviewable and enforceable by putting each

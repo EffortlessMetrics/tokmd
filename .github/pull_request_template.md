@@ -3,6 +3,35 @@
 <!-- AI-FILL:SUMMARY -->
 <!-- Brief description of what this PR does -->
 
+
+## Source-of-Truth Links
+
+Proposal:
+Spec:
+ADR:
+Plan item:
+Active goal:
+
+## Scope
+
+- [ ] Proposal / why
+- [ ] Spec / behavior contract
+- [ ] ADR / durable decision
+- [ ] Plan / sequencing
+- [ ] Active goal / current execution state
+- [ ] Runtime / implementation
+- [ ] Policy ledger
+- [ ] Support-tier update
+- [ ] Generated status / receipt
+
+## Non-goals
+
+What this PR explicitly does not do:
+
+## Claim Boundary
+
+What may be claimed after this PR, and what must not be claimed yet:
+
 ## Type of Change
 
 <!-- Check the relevant option(s) -->

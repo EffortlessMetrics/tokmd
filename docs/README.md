@@ -3,6 +3,8 @@
 This directory contains user guides, product contracts, architecture notes,
 schemas, and verification policy for `tokmd`.
 
+- [reference/SPEC_SYSTEM.md](reference/SPEC_SYSTEM.md) — source-of-truth stack, artifact roles, agent workflow, and stop conditions.
+
 ## Key references
 
 - [start-here.md](start-here.md) — choose the shortest path for repo
