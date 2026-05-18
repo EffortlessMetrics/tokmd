@@ -273,3 +273,26 @@ cargo +nightly fuzz list  # List all targets
 - During prep or RC hardening, every open PR must either be a real blocker/improvement worth finishing now or remain explicitly parked for later.
 - “Not for prep” does not automatically mean “close now”.
 - If a PR may still be worth keeping, leave it open or restack it; do not churn the queue without a concrete reason.
+
+## Codex Commit / Push Policy
+
+For PR-bound work, Codex may create scoped branches, commit scoped changes, push
+branches, open PRs, update PR branches, and merge aligned PRs after validation
+without asking for additional user confirmation.
+
+PR-bound work includes requests to implement, review, improve, merge, drain PRs,
+prepare release docs, update changelogs, fix tests, or otherwise carry a repo
+task through completion.
+
+Do not ask for extra permission merely because a commit, push, PR update, or
+aligned merge is needed to finish that task.
+
+Ask before committing, pushing, or merging only when:
+
+- the user explicitly requested read-only or local-only work;
+- the task is exploratory and no implementation was requested;
+- the mutation would publish crates, create tags, create GitHub releases, move
+  release aliases, push images, rotate secrets, or change external-service
+  ownership;
+- the diff is broad or ambiguous relative to the requested lane;
+- the worktree contains unrelated user changes that cannot be isolated safely.
