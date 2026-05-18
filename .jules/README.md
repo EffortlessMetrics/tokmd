@@ -56,8 +56,8 @@ The primary truth for any run is the **per-run packet** under:
 - friction items under `.jules/friction/open/`
 - persona-local notes under `.jules/personas/<persona>/notes/`
   *(Use this directory only for **reusable learnings** that later runs can benefit from. Do not write per-run summaries here; per-run packets belong under `.jules/runs/<run-id>/`.)*
-- machine-readable active state under `.jules/goals/active.toml` when the
-  prompt explicitly changes the active lane or asks for a durable control
+- Jules-local machine-readable state under `.jules/goals/active.toml` when the
+  prompt explicitly changes Jules run state or asks for a durable Jules control
   surface update
 
 ### Agents must not write
@@ -73,7 +73,7 @@ The primary truth for any run is the **per-run packet** under:
 - `personas/` — persona-local notes and README files
 - `runs/` — per-run packets
 - `index/` — optional generated summaries
-- `goals/` — small machine-readable active-lane state
+- `goals/` — small Jules-local machine-readable state
 
 ## Persona instruction surface
 

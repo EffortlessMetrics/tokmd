@@ -1,16 +1,16 @@
 # Spec: Proof Observation Decision Packet
 
-- Status: draft
+- Status: active
 - Schema family, if any: `tokmd.proof_observation_decision.v1`;
   verifier receipt `tokmd.proof_observation_decision_check.v1`
-- Related ADRs:
+- Related ADRs: `docs/adr/0009-proof-observation-promotion-boundary.md`
 - Related proof scopes: `proof_control_plane`, `project_truth_docs`
 
 ## Contract
 
-A proof observation decision packet is a future advisory summary artifact for
-maintainers deciding whether proof observations are ready for promotion,
-continued observation, rollback, or simplification.
+A proof observation decision packet is an advisory summary artifact for
+maintainers deciding whether proof observations support promotion, continued
+observation, rollback, or simplification.
 
 The packet must aggregate existing Rust-owned proof receipts. It must not run
 proof commands, upload coverage, change required gates, enable default Codecov
@@ -63,7 +63,7 @@ source references. The packet should not require network access, GitHub API
 access, hidden workflow state, timestamps, absolute local paths, or downloaded
 artifact directories that are not named by the caller.
 
-The first implementation is developer tooling under `cargo xtask`. It accepts
+The implementation is developer tooling under `cargo xtask`. It accepts
 explicit source artifacts instead of discovering hidden workflow state:
 
 ```bash
@@ -144,7 +144,7 @@ receipts. Existing outputs remain authoritative for their own domains:
 The decision packet is an aggregate. Consumers must be able to ignore it and
 keep using the source artifacts directly.
 
-The first implementation should stay in `xtask`. It must not add a public
+The implementation stays in `xtask`. It must not add a public
 `tokmd review` command, change `tokmd cockpit`, change `tokmd handoff`, enable
 default Codecov upload, or make advisory evidence required. Cockpit or handoff
 integration may come later only when the decision packet and its verifier
@@ -152,7 +152,7 @@ receipt are supplied as explicit evidence handles.
 
 ## Proof Requirements
 
-For this draft spec, validation is documentation-control proof:
+For spec-only changes, validation is documentation-control proof:
 
 ```bash
 cargo xtask doc-artifacts --check
@@ -164,8 +164,8 @@ cargo fmt-check
 git diff --check
 ```
 
-If a Rust-owned command is added later, the implementation PR should also add
-focused `xtask` tests covering:
+Implementation changes to the Rust-owned command should also include focused
+`xtask` tests covering:
 
 - valid aggregate output from minimal source artifacts;
 - missing optional evidence reported as missing or unavailable, not passing;
@@ -186,10 +186,11 @@ The verifier should also cover both success and failure fixtures:
 
 ## Open Questions
 
-- Whether the first implementation should accept many explicit input flags or a
-  single observations directory plus named source artifacts.
+- Whether a future convenience mode should accept a single observations
+  directory plus named source artifacts in addition to the current explicit
+  input flags.
 - Whether required proof-run observations and executor observations should share
-  one freshness classifier in the first implementation.
+  one freshness classifier in a future revision.
 - Whether readiness should be expressed only as `criteria_met` /
   `criteria_missing`, or whether a small `state` enum such as
   `observe`, `needs_more_data`, and `ready_for_maintainer_review` is useful.

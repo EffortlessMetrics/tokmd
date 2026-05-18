@@ -60,6 +60,9 @@ fn cockpit_workflow_computes_receipt_from_settings() {
     git(repo.path(), &["init", "-b", "main"]);
     git(repo.path(), &["config", "user.email", "tokmd@example.com"]);
     git(repo.path(), &["config", "user.name", "tokmd"]);
+    // Avoid host commit-signing config bleeding into this fixture repo.
+    git(repo.path(), &["config", "commit.gpgsign", "false"]);
+    git(repo.path(), &["config", "tag.gpgsign", "false"]);
 
     write(&repo.path().join("README.md"), "# Demo\n");
     git(repo.path(), &["add", "README.md"]);

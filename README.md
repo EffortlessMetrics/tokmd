@@ -28,7 +28,8 @@ Metrics evidence stack. It turns a source tree into stable Markdown and JSON
 artifacts: language and module summaries, file receipts, analysis reports,
 diffs, policy gates, baselines, sensor reports, and LLM-ready context bundles.
 
-Use it from the CLI first; wire the same surfaces into CI when you want automated receipts, comments, and gates.
+Use it from the CLI first; wire the same surfaces into CI when you want
+automated receipts, comments, and gates.
 
 ## Install
 
@@ -37,29 +38,47 @@ cargo install tokmd --locked
 tokmd --version
 ```
 
-See [Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
+See [Install and try tokmd](docs/install-and-try.md) for the first-run path, or
+[Install tokmd](docs/install.md) for release binaries, Nix, and CI usage.
 
-## Start With One Job
+## Quick Start
 
 ```bash
-# Tell me what this repo is
+# Install
+cargo install tokmd --locked
+
+# Inspect this repo
 tokmd --format md --top 8
 
-# Tell me what changed
-tokmd diff origin/main HEAD
-
-# Help me review this PR
+# Review this PR
 tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review
 
-# Give CI stable evidence and gates
-tokmd run --analysis receipt --output-dir .runs/current
-tokmd gate --receipt .runs/current/receipt.json --policy tokmd-gate.toml
-
-# Give my coding agent context and proof expectations
+# Prepare a coding-agent handoff
 tokmd handoff --preset risk --budget 128k --strategy spread --out-dir .handoff
 ```
 
-For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
+For CI adoption, start with the GitHub Action quickstart:
+
+```yaml
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.11.0'
+    paths: .
+    artifact: 'true'
+```
+
+For browser/no-install trial, use [Browser runner](docs/browser.md) and then
+[Browser to native](docs/browser-to-native.md) when the job becomes PR review,
+handoff, or CI evidence.
+
+For release-facing evidence, start with
+[Release readiness](docs/release-readiness.md). It checks package and version
+readiness without publishing, tagging, or creating releases.
+
+For a job-oriented walkthrough, start with
+[Install and try tokmd](docs/install-and-try.md) or
+[Start Here](docs/start-here.md). For the command-to-artifact reading order,
+use [User paths](docs/user-paths.md).
 
 ## What tokmd Produces
 
@@ -73,7 +92,9 @@ For a job-oriented walkthrough, start with [Start Here](docs/start-here.md).
 | LLM context | Bounded bundles, redaction, [handoff directories](docs/handoff.md) |
 
 For the receipt and packet names you will see in these workflows, use the
-[artifact glossary](docs/artifacts.md).
+[artifact glossary](docs/artifacts.md). For which artifact to open first for a
+specific job, use [User paths](docs/user-paths.md). For copy-ready command
+sequences, use [Copy-Ready Workflows](docs/workflows.md).
 
 ## Choose a Path
 
@@ -98,8 +119,8 @@ tokmd cockpit \
   --review-packet-dir .tokmd/review
 ```
 
-Start with `.tokmd/review/comment.md`, then use
-`.tokmd/review/review-map.md` for the review order and reproduction commands.
+Start with `.tokmd/review/review-map.md` for the review order and reproduction
+commands, then read `.tokmd/review/comment.md` for the PR summary.
 `.tokmd/review/evidence.json` and `.tokmd/review/manifest.json` carry the
 machine-readable evidence state and hash-indexed packet inventory.
 
@@ -140,7 +161,10 @@ Use the root composite Action when you want `tokmd` receipts, PR summaries, arti
     paths: .
 ```
 
-For all Action modes, inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see [GitHub Action reference](docs/github-action.md).
+For a copy-ready adoption workflow, see
+[GitHub Action quickstart](docs/action-quickstart.md). For all Action modes,
+inputs, outputs, artifacts, checkout guidance, and release-asset behavior, see
+[GitHub Action reference](docs/github-action.md).
 
 ## Why It Exists
 

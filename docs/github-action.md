@@ -2,6 +2,10 @@
 
 The root `EffortlessMetrics/tokmd` composite Action installs a released `tokmd` binary, runs one workflow mode, and optionally uploads generated files or posts a pull request comment.
 
+For a shorter adoption path with copy-ready receipt and review-packet workflows,
+start with [GitHub Action quickstart](action-quickstart.md). This page is the
+complete reference for inputs, outputs, modes, artifacts, and failure behavior.
+
 ## Quick Start
 
 ```yaml
