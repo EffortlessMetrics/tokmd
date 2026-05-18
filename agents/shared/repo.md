@@ -148,6 +148,18 @@ cargo mutants --file crates/tokmd-format/src/redact/mod.rs
 cargo +nightly fuzz list
 ```
 
+## Agent State Boundaries
+
+`.jules/**` is Google Jules provenance and ambient suggestion state. Treat it as
+useful repo input, not Codex's primary active-lane controller.
+
+Codex should use `AGENTS.md`, `docs/NEXT.md`, accepted docs/plans/specs/ADRs, PR
+context, and `.codex/**` state where present for Codex lane selection.
+
+Do not tell Jules to stop acting or remove Jules suggestions merely because
+Codex is working. Jules suggestions remain inputs to evaluate with the rest of
+the repo evidence.
+
 ## Reference Docs
 
 - `docs/architecture.md`
