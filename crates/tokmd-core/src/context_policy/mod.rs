@@ -77,7 +77,8 @@ const FIXTURE_DIRS: &[&str] = &[
 /// - `sourcemap`
 #[must_use]
 pub fn smart_exclude_reason(path: &str) -> Option<&'static str> {
-    let basename = path.rsplit('/').next().unwrap_or(path);
+    let normalized = normalize_path(path);
+    let basename = normalized.rsplit('/').next().unwrap_or(&normalized);
 
     if LOCKFILES.contains(&basename) {
         return Some("lockfile");
@@ -144,14 +145,14 @@ pub fn classify_file(
 
     if VENDORED_DIRS
         .iter()
-        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
+        .any(|dir| has_path_segment(&normalized, dir.trim_end_matches('/')))
     {
         classes.push(FileClassification::Vendored);
     }
 
     if FIXTURE_DIRS
         .iter()
-        .any(|dir| normalized.contains(dir) || normalized.starts_with(dir.trim_end_matches('/')))
+        .any(|dir| has_path_segment(&normalized, dir.trim_end_matches('/')))
     {
         classes.push(FileClassification::Fixture);
     }
@@ -218,6 +219,10 @@ pub fn assign_policy(
     )
 }
 
+fn has_path_segment(path: &str, segment: &str) -> bool {
+    path.split('/').any(|part| part == segment)
+}
+
 fn classification_name(classification: &FileClassification) -> &'static str {
     match classification {
         FileClassification::Generated => "generated",
@@ -254,6 +259,37 @@ mod tests {
         let classes = classify_file("src/node-types.json", 50_000, 5, 50.0);
         assert!(classes.contains(&FileClassification::Generated));
         assert!(classes.contains(&FileClassification::DataBlob));
+    }
+
+    #[test]
+    fn smart_exclude_reason_normalizes_windows_separators() {
+        assert_eq!(
+            smart_exclude_reason(r"frontend\package-lock.json"),
+            Some("lockfile")
+        );
+        assert_eq!(
+            smart_exclude_reason(r"dist\bundle.min.js"),
+            Some("minified")
+        );
+        assert_eq!(
+            smart_exclude_reason(r"dist\bundle.css.map"),
+            Some("sourcemap")
+        );
+    }
+
+    #[test]
+    fn classify_file_matches_directory_segments_exactly() {
+        let vendor_classes = classify_file("src/vendor/generated.rs", 10, 10, 50.0);
+        assert!(vendor_classes.contains(&FileClassification::Vendored));
+
+        let fixture_classes = classify_file(r"tests\fixtures\example.rs", 10, 10, 50.0);
+        assert!(fixture_classes.contains(&FileClassification::Fixture));
+
+        let similar_vendor = classify_file("vendorized/generated.rs", 10, 10, 50.0);
+        assert!(!similar_vendor.contains(&FileClassification::Vendored));
+
+        let similar_fixture = classify_file("fixtures_extra/example.rs", 10, 10, 50.0);
+        assert!(!similar_fixture.contains(&FileClassification::Fixture));
     }
 
     #[test]
