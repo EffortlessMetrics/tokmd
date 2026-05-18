@@ -3,19 +3,21 @@
 Status: active workflow guide.
 
 Use this guide when starting, continuing, or handing off a tokmd lane. It is
-operational guidance for humans and agents; the durable ownership rules remain
+operational guidance for humans and agents; the quick reference is
+`docs/reference/SPEC_SYSTEM.md`, and the durable ownership rules remain
 in `docs/source-of-truth.md`, `docs/specs/`, `docs/adr/`, `docs/plans/`,
 `.jules/goals/active.toml`, `ci/proof.toml`, and `policy/*.toml`.
 
 ## Before Starting
 
 1. Check the open PR queue.
-2. Read `docs/NEXT.md` for the current operating mode.
-3. Read `.jules/goals/active.toml` for the active program, lane, linked
+2. Read `docs/reference/SPEC_SYSTEM.md` for the source-of-truth stack.
+3. Read `docs/NEXT.md` for the current operating mode.
+4. Read `.jules/goals/active.toml` for the active program, lane, linked
    artifacts, rules, and stop conditions.
-4. Read the linked plan first, then any linked spec, ADR, proposal, or policy
+5. Read the linked plan first, then any linked spec, ADR, proposal, or policy
    file named by the active goal.
-5. Confirm `docs/NEXT.md` does not contradict `.jules/goals/active.toml` or the
+6. Confirm `docs/NEXT.md` does not contradict `.jules/goals/active.toml` or the
    linked plan.
 
 If those artifacts disagree, stop and fix the routing artifact that owns the

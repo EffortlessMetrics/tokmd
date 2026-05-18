@@ -5,6 +5,7 @@ lane = "no_selected_implementation_lane"
 outcome = "paused_after_release_distribution_readiness_closeout"
 
 [links]
+spec_system = "docs/reference/SPEC_SYSTEM.md"
 source_of_truth = "docs/source-of-truth.md"
 doc_artifacts_spec = "docs/specs/doc-artifacts.md"
 doc_artifacts_plan = "docs/plans/doc-artifacts-check.md"

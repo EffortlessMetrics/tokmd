@@ -2,6 +2,9 @@
 
 Status: active documentation convention.
 
+For a compact agent-facing checklist, see
+[`docs/reference/SPEC_SYSTEM.md`](reference/SPEC_SYSTEM.md).
+
 This document defines where durable tokmd intent, behavior, decisions, plans,
 agent state, and machine-checkable policy belong. It is a routing guide for
 maintainers and agents, not a new product feature.
