@@ -81,6 +81,7 @@ name = "fuzz_harnesses"
 kind = "rust"
 paths = [
   ".github/workflows/fuzz.yml",
+  "docs/testing.md",
   "fuzz/Cargo.toml",
   "fuzz/README.md",
   "fuzz/corpus/**",
@@ -778,6 +779,7 @@ paths = [
   "crates/tokmd-git/src/command.rs",
   "crates/tokmd-git/src/lib.rs",
   "crates/tokmd-git/src/refs.rs",
+  "crates/tokmd-git/tests/**",
   "crates/tokmd-scan/src/walk/git.rs",
   "crates/tokmd-scan/src/walk/mod.rs",
   "crates/tokmd/src/git_support.rs",
@@ -785,9 +787,22 @@ paths = [
 packages = ["tokmd-git", "tokmd-scan", "tokmd"]
 proof = [
   "cargo test -p tokmd-git git_cmd_removes --verbose",
+  "cargo test -p tokmd-git --test integration --verbose",
   "cargo test -p tokmd-scan git_cmd_removes --verbose",
   "cargo test -p tokmd git_cmd_removes --verbose",
 ]
+mutation = true
+coverage = true
+
+[[scope]]
+name = "tokmd_core_context_git"
+kind = "rust"
+paths = [
+  "crates/tokmd-core/src/context_git/**",
+  "crates/tokmd-core/src/context_git.rs",
+]
+packages = ["tokmd-core"]
+proof = ["cargo test -p tokmd-core --features git context_git --verbose"]
 mutation = true
 coverage = true
 
@@ -824,9 +839,11 @@ paths = [
   "crates/tokmd-format/tests/analysis_format/**",
   "crates/tokmd-format/tests/analysis_html.rs",
   "crates/tokmd-format/tests/analysis_html/**",
+  "crates/tokmd-format/tests/render_derived_markdown.rs",
 ]
 packages = ["tokmd-format"]
 proof = [
+  "cargo test -p tokmd-format --test render_derived_markdown --verbose",
   "cargo test -p tokmd-format --test analysis_format --verbose",
   "cargo test -p tokmd-format --test analysis_html --verbose",
 ]
@@ -1067,6 +1084,15 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "codex_workspace"
+kind = "non_rust"
+paths = [".codex/**"]
+proof = ["cargo xtask proof-policy --check"]
+reason = "Codex-local tracked execution state and operator notes are intentional repo knowledge artifacts when checked in."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "project_readme"
 kind = "non_rust"
 paths = ["README.md"]
@@ -1080,15 +1106,20 @@ name = "user_guides"
 kind = "non_rust"
 paths = [
   "docs/artifacts.md",
+  "docs/action-quickstart.md",
   "docs/browser.md",
+  "docs/browser-to-native.md",
   "docs/examples/**",
+  "docs/install-and-try.md",
   "docs/publishing-evidence.md",
+  "docs/release-readiness.md",
   "docs/start-here.md",
   "docs/handoff.md",
   "docs/recipes.md",
   "docs/tutorial.md",
   "docs/troubleshooting.md",
   "docs/user-paths.md",
+  "docs/workflows.md",
 ]
 proof = ["cargo xtask docs --check"]
 reason = "User-facing tutorial, recipe, and troubleshooting docs should route to documentation checks instead of appearing as unknown files."
@@ -1135,6 +1166,7 @@ paths = [
   "docs/specs/**",
   "docs/specification.md",
   "docs/templates/**",
+  "docs/testing.md",
 ]
 proof = ["cargo xtask docs --check"]
 reason = "Top-level architecture, ADR, design, roadmap, requirements, proposal/spec/plan/template, and audit docs are project truth surfaces; edits should route to documentation checks instead of appearing as unknown files."

@@ -5,7 +5,10 @@ first. It is a consumption map, not a command reference.
 
 For artifact definitions, use the [Artifact glossary](artifacts.md). For the
 first guided walkthrough, use [Start Here](start-here.md). For small physical
-layouts, use [Sample artifact trees](examples/README.md).
+layouts, use [Sample artifact trees](examples/README.md). For copy-ready command
+sequences, use [Copy-Ready Workflows](workflows.md). If you still need to
+install the tool or run the first local command, use
+[Install and try tokmd](install-and-try.md).
 
 ## At A Glance
 
@@ -151,6 +154,9 @@ Next action:
 - Treat missing, stale, degraded, or unavailable evidence as a task, not as a
   pass.
 - Verify linked review/proof artifacts with their own checkers.
+- Use the [handoff prompt template](agent-workflows/handoff-prompt.md) when you
+  want a copy-ready instruction block for Codex, Claude, Cursor, or another
+  coding agent.
 
 ## Read CI Proof Evidence
 
@@ -206,6 +212,8 @@ Does not mean:
 
 Next action:
 
+- Use [GitHub Action quickstart](action-quickstart.md) when you want hosted
+  artifacts before wiring deeper proof workflows.
 - Resolve unknown files before relying on scoped proof.
 - Run required proof when the work needs executed evidence.
 - Verify source receipts and status packets with their matching checkers.
@@ -239,6 +247,8 @@ Next action:
 - Move to native `tokmd handoff` when preparing agent context.
 - Check [Browser runner](browser.md) and the capability matrix before relying
   on a browser result.
+- Use [Browser to native](browser-to-native.md) when the trial needs to become
+  review, handoff, or CI evidence.
 
 ## Publish Or Release Safely
 
@@ -270,6 +280,8 @@ Does not mean:
 
 Next action:
 
+- Use [Release readiness](release-readiness.md) for the short pre-release
+  evidence command sequence.
 - Use [Publishing evidence](publishing-evidence.md) for the release-facing
   reading order.
 - Treat release mutation as a separate explicit decision.

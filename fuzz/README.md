@@ -19,6 +19,7 @@ This directory contains libfuzzer-based fuzz targets for tokmd microcrates.
 Each target requires its corresponding feature flag:
 
 ```bash
+cd fuzz
 cargo +nightly fuzz run <target> --features <feature>
 ```
 
@@ -42,6 +43,36 @@ Limit input size with libfuzzer flags:
 ```bash
 cargo +nightly fuzz run fuzz_entropy --features content -- -max_len=4096
 ```
+
+### Windows/MSVC ASAN Runtime
+
+On Windows/MSVC, a fuzz target can compile successfully but fail to start with
+`STATUS_DLL_NOT_FOUND` if the Visual Studio ASAN runtime is not on `PATH`.
+Before deciding the fuzzer gate is blocked, add the directory containing
+`clang_rt.asan_dynamic-x86_64.dll` to the current shell:
+
+```powershell
+$asan = Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022" `
+  -Recurse `
+  -Filter clang_rt.asan_dynamic-x86_64.dll |
+  Select-Object -First 1
+
+if ($null -eq $asan) {
+  throw "Visual Studio ASAN runtime not found"
+}
+
+$env:PATH = "$($asan.DirectoryName);$env:PATH"
+```
+
+Then run a bounded smoke target from the `fuzz/` directory:
+
+```powershell
+cargo +nightly fuzz run fuzz_toml_config --features config --strip-dead-code false -- -runs=1 -max_len=1024
+```
+
+If the toolchain or ASAN runtime is unavailable, record the blocker and use
+deterministic regression, property, or harness coverage for the same input
+boundary instead of making pseudo-fuzz claims.
 
 ## Fuzz Targets
 

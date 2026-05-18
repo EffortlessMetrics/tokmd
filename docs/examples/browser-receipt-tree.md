@@ -44,3 +44,5 @@ Next action:
 - Move to native `tokmd cockpit` for real PR review.
 - Move to native `tokmd handoff` for coding-agent context.
 - Check the browser capability matrix before relying on a browser result.
+- Use [Browser to native](../browser-to-native.md) for the shortest bridge from
+  browser output to native review, handoff, and CI evidence workflows.
