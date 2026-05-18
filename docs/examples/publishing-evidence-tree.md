@@ -50,6 +50,8 @@ What not to infer:
 
 Next action:
 
+- Use [Release readiness](../release-readiness.md) for the short pre-release
+  evidence command sequence.
 - Fix publish-surface violations before release work.
 - Pair publishing evidence with affected proof when release metadata changes.
 - Treat publish, tag, and release creation as separate explicit maintainer
