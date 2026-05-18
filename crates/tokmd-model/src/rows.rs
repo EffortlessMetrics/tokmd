@@ -467,4 +467,68 @@ mod tests {
 
         assert_eq!(env_interpreter_token(vec!["FOO=bar"].into_iter()), None);
     }
+
+    #[test]
+    fn language_from_env_interpreter_recognizes_supported_aliases() {
+        assert_eq!(
+            language_from_env_interpreter("/usr/local/bin/python3"),
+            LanguageType::from_file_extension("py")
+        );
+        assert_eq!(
+            language_from_env_interpreter("nodejs"),
+            LanguageType::from_name("JavaScript")
+        );
+        assert_eq!(
+            language_from_env_interpreter("-bash"),
+            LanguageType::from_name("Bash")
+        );
+        assert_eq!(language_from_env_interpreter("unknown-tool"), None);
+    }
+
+    #[test]
+    fn collect_in_memory_rows_detects_env_shebang_without_extension() {
+        let config = Config::default();
+        let bytes = b"#!/usr/bin/env -S python3 -O\nprint('hello')\n";
+        let input = InMemoryRowInput::new(Path::new("tools/greet"), bytes);
+
+        let rows =
+            collect_in_memory_file_rows(&[input], &[], 1, ChildIncludeMode::ParentsOnly, &config);
+
+        assert_eq!(rows.len(), 1);
+        let row = &rows[0];
+        assert_eq!(row.path, "tools/greet");
+        assert_eq!(row.module, "tools");
+        assert_eq!(row.lang, "Python");
+        assert_eq!(row.kind, FileKind::Parent);
+        assert_eq!(row.bytes, bytes.len());
+        assert_eq!(row.tokens, bytes.len() / CHARS_PER_TOKEN);
+        assert!(row.code > 0);
+    }
+
+    #[test]
+    fn collect_in_memory_rows_aggregates_duplicate_path_language_kind() {
+        let config = Config::default();
+        let first = b"print('one')\n";
+        let second = b"print('two')\n";
+        let inputs = [
+            InMemoryRowInput::new(Path::new("src/main.py"), first),
+            InMemoryRowInput::new(Path::new("src/main.py"), second),
+        ];
+
+        let rows =
+            collect_in_memory_file_rows(&inputs, &[], 1, ChildIncludeMode::ParentsOnly, &config);
+
+        assert_eq!(rows.len(), 1);
+        let row = &rows[0];
+        assert_eq!(row.path, "src/main.py");
+        assert_eq!(row.module, "src");
+        assert_eq!(row.lang, "Python");
+        assert_eq!(row.kind, FileKind::Parent);
+        assert_eq!(row.bytes, first.len() + second.len());
+        assert_eq!(
+            row.tokens,
+            (first.len() / CHARS_PER_TOKEN) + (second.len() / CHARS_PER_TOKEN)
+        );
+        assert_eq!(row.lines, row.code + row.comments + row.blanks);
+    }
 }
