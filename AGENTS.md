@@ -3,6 +3,29 @@
 Canonical shared repo guidance is mirrored in `agents/shared/repo.md`.
 This file provides guidance to AI agents (Claude, Factory Droid, etc.) when working with code in this repository.
 
+## Repo Source-of-Truth Stack
+
+tokmd uses a linked source-of-truth stack:
+
+```text
+Roadmap -> Proposal -> Spec -> ADR -> Plan -> Active goal -> PR -> Proof
+```
+
+Before changing source-of-truth artifacts or selecting implementation work, read:
+
+1. `docs/reference/SPEC_SYSTEM.md`
+2. `docs/source-of-truth.md`
+3. `.jules/goals/active.toml`
+4. the linked implementation plan
+5. the linked spec for the selected work item
+6. linked ADRs
+
+Work on one semantic artifact or one implementation work item per PR unless the
+selected plan item says otherwise. Do not broaden support claims without proof,
+do not hand-edit generated status unless the plan names that as the required
+change, and stop instead of guessing when linked artifacts are missing or a
+request conflicts with an ADR.
+
 ## Droid Auto Review
 
 **tokmd** uses Factory Droid for automated code review. Droid runs on all pull requests using the safe action configuration with MiniMax BYOK, and can be invoked manually with `@droid review` or `@droid security` comments.

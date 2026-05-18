@@ -9,13 +9,15 @@ in `docs/source-of-truth.md`, `docs/specs/`, `docs/adr/`, `docs/plans/`,
 
 ## Before Starting
 
-1. Check the open PR queue.
-2. Read `docs/NEXT.md` for the current operating mode.
-3. Read `.jules/goals/active.toml` for the active program, lane, linked
+1. Read `docs/reference/SPEC_SYSTEM.md` for the first-read contract and stop
+   conditions.
+2. Check the open PR queue.
+3. Read `docs/NEXT.md` for the current operating mode.
+4. Read `.jules/goals/active.toml` for the active program, lane, linked
    artifacts, rules, and stop conditions.
-4. Read the linked plan first, then any linked spec, ADR, proposal, or policy
+5. Read the linked plan first, then any linked spec, ADR, proposal, or policy
    file named by the active goal.
-5. Confirm `docs/NEXT.md` does not contradict `.jules/goals/active.toml` or the
+6. Confirm `docs/NEXT.md` does not contradict `.jules/goals/active.toml` or the
    linked plan.
 
 If those artifacts disagree, stop and fix the routing artifact that owns the

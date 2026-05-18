@@ -4,6 +4,23 @@ Canonical repo guidance lives in `agents/shared/repo.md`.
 
 This file is the Claude adapter wrapper for runtime-specific notes.
 
+## First Read Source-of-Truth Stack
+
+Before changing source-of-truth artifacts or selecting implementation work, read:
+
+1. `docs/reference/SPEC_SYSTEM.md`
+2. `docs/source-of-truth.md`
+3. `.jules/goals/active.toml`
+4. the linked implementation plan
+5. the linked spec for the selected work item
+6. linked ADRs
+
+Work on exactly one semantic artifact or one implementation work item per PR
+unless the selected plan item says otherwise. Stop instead of guessing when the
+active goal is missing or stale, linked artifacts are missing, proof commands
+cannot run, generated status is dirty without a named generator, or the request
+conflicts with an ADR.
+
 ## Claude Runtime Surface
 
 - Settings: `.claude/settings.json`

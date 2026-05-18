@@ -14,13 +14,14 @@ kind of truth in the artifact that can best carry it.
 The intended flow is:
 
 ```text
-idea or problem
+roadmap or problem
   -> proposal
   -> spec
   -> ADR when a durable architecture decision is needed
   -> implementation plan
-  -> policy/checks
-  -> receipts and PR evidence
+  -> active goal
+  -> PR / issue
+  -> proof commands, receipts, support tiers, and policy ledgers
 ```
 
 Skipping a step is fine for small changes, but mixing these roles in one
@@ -63,8 +64,10 @@ Templates under `docs/templates/` are starting points for new artifacts. They
 are not source-of-truth documents until copied into the owning directory and
 filled with repo-specific content.
 
-For an operational checklist that coding agents can follow before starting or
-changing a lane, see `docs/agent-workflows/source-of-truth.md`.
+For the canonical first-read contract and source-of-truth stack, see
+`docs/reference/SPEC_SYSTEM.md`. For an operational checklist that coding agents
+can follow before starting or changing a lane, see
+`docs/agent-workflows/source-of-truth.md`.
 
 ## Artifact Roles
 

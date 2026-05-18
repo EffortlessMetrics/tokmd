@@ -2,6 +2,20 @@
 
 This file is the canonical shared repo context for checked-in agent adapters in this repository.
 
+## Repo Source-of-Truth Stack
+
+tokmd uses a linked source-of-truth stack:
+
+```text
+Roadmap -> Proposal -> Spec -> ADR -> Plan -> Active goal -> PR -> Proof
+```
+
+Before changing source-of-truth artifacts or selecting implementation work, read
+`docs/reference/SPEC_SYSTEM.md`, `docs/source-of-truth.md`,
+`.jules/goals/active.toml`, the linked plan, the linked spec for the selected
+work item, and linked ADRs. Work on one semantic artifact or one implementation
+work item per PR unless the selected plan item says otherwise.
+
 ## Project Overview
 
 **tokmd** is a Rust CLI tool and library that generates deterministic inventory receipts and derived analytics for code repositories. It produces human-readable summaries and machine-friendly artifacts for AI-native workflows, LLM context generation, code analysis, and review pipelines.
