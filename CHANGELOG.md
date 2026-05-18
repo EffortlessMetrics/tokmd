@@ -14,6 +14,9 @@ packets, coding-agent handoffs, proof receipts, browser/native guidance, and
 release evidence now compose into practical workflows without promoting
 advisory checks or changing public AST behavior.
 
+This changelog is the concise release index. For the maintainer audit trail,
+see `docs/releases/1.11-ledger.md`.
+
 ### Added
 
 - Review packets and cockpit evidence: cockpit packets now surface

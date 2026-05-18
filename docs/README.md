@@ -33,7 +33,7 @@ schemas, and verification policy for `tokmd`.
   surface, metadata, and CI ownership evidence before release mutation.
 - [release-readiness.md](release-readiness.md) — quickstart for pre-release
   evidence checks without publishing, tagging, or creating releases.
-- [releases/1.11.md](releases/1.11.md) — draft release notes for the 1.11
+- [releases/1.11.md](releases/1.11.md) — user-facing release notes for the 1.11
   evidence-consumption release.
 - [releases/1.11-ledger.md](releases/1.11-ledger.md) — lane-by-lane maintainer
   ledger for the 1.11 evidence-consumption release.
