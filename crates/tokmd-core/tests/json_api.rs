@@ -697,12 +697,26 @@ fn nested_scan_invalid_returns_error() {
 
 #[test]
 fn null_values_use_defaults() {
-    let result = run_json("lang", r#"{"paths": null, "top": null, "files": null}"#);
+    let result = run_json("lang", r#"{"top": null, "files": null}"#);
     let parsed = assert_ok(&result);
 
     let args = &parsed["data"]["args"];
     assert_eq!(args["top"].as_u64(), Some(0));
     assert_eq!(args["with_files"].as_bool(), Some(false));
+}
+
+#[test]
+fn null_paths_returns_invalid_settings() {
+    let result = run_json("lang", r#"{"paths": null, "top": null, "files": null}"#);
+    let parsed = assert_err(&result);
+
+    assert_eq!(parsed["error"]["code"].as_str(), Some("invalid_settings"));
+    assert!(
+        parsed["error"]["message"]
+            .as_str()
+            .expect("error message should be a string")
+            .contains("paths")
+    );
 }
 
 // ============================================================================
