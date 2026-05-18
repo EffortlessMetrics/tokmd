@@ -233,6 +233,38 @@ pub fn get_added_lines(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::{BTreeMap, BTreeSet};
+    use std::process::Command;
+
+    fn test_git(dir: &Path) -> Command {
+        let mut cmd = git_cmd();
+        cmd.arg("-C").arg(dir);
+        cmd
+    }
+
+    fn run_git(dir: &Path, args: &[&str]) {
+        let output = test_git(dir).args(args).output().unwrap();
+        assert!(
+            output.status.success(),
+            "git {:?} failed\nstdout: {}\nstderr: {}",
+            args,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    fn init_repo() -> tempfile::TempDir {
+        let dir = tempfile::tempdir().unwrap();
+        run_git(dir.path(), &["init", "-b", "main"]);
+        run_git(dir.path(), &["config", "user.email", "test@test.com"]);
+        run_git(dir.path(), &["config", "user.name", "Test"]);
+        dir
+    }
+
+    fn commit_all(dir: &Path, message: &str) {
+        run_git(dir, &["add", "."]);
+        run_git(dir, &["commit", "-m", message]);
+    }
 
     #[test]
     fn git_range_two_dot_format() {
@@ -247,5 +279,76 @@ mod tests {
     #[test]
     fn git_range_default_is_two_dot() {
         assert_eq!(GitRangeMode::default(), GitRangeMode::TwoDot);
+    }
+
+    #[test]
+    fn collect_history_preserves_commit_metadata_and_limits_files() {
+        if !git_available() {
+            return;
+        }
+        let dir = init_repo();
+
+        std::fs::write(dir.path().join("alpha.txt"), "alpha\n").unwrap();
+        std::fs::write(dir.path().join("beta.txt"), "beta\n").unwrap();
+        commit_all(dir.path(), "feat: add fixtures");
+
+        let commits = collect_history(dir.path(), None, Some(1)).unwrap();
+
+        assert_eq!(commits.len(), 1);
+        let commit = &commits[0];
+        assert_eq!(commit.author, "test@test.com");
+        assert_eq!(commit.subject, "feat: add fixtures");
+        assert!(commit.hash.as_deref().is_some_and(|hash| hash.len() == 40));
+        assert_eq!(commit.files.len(), 1);
+        assert!(["alpha.txt", "beta.txt"].contains(&commit.files[0].as_str()));
+    }
+
+    #[test]
+    fn collect_history_respects_commit_and_file_limits() {
+        if !git_available() {
+            return;
+        }
+        let dir = init_repo();
+
+        std::fs::write(dir.path().join("first.txt"), "first\n").unwrap();
+        commit_all(dir.path(), "chore: first");
+        std::fs::write(dir.path().join("second.txt"), "second\n").unwrap();
+        std::fs::write(dir.path().join("third.txt"), "third\n").unwrap();
+        commit_all(dir.path(), "fix: second");
+
+        let commits = collect_history(dir.path(), Some(1), Some(0)).unwrap();
+
+        assert_eq!(commits.len(), 1);
+        assert_eq!(commits[0].subject, "fix: second");
+        assert!(commits[0].files.is_empty());
+    }
+
+    #[test]
+    fn get_added_lines_reports_new_line_numbers_per_file() {
+        if !git_available() {
+            return;
+        }
+        let dir = init_repo();
+
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+        std::fs::write(dir.path().join("src/lib.rs"), "fn a() {}\nfn d() {}\n").unwrap();
+        commit_all(dir.path(), "base");
+        run_git(dir.path(), &["tag", "base"]);
+
+        std::fs::write(
+            dir.path().join("src/lib.rs"),
+            "fn a() {}\nfn b() {}\nfn c() {}\nfn d() {}\n",
+        )
+        .unwrap();
+        commit_all(dir.path(), "add middle functions");
+
+        let added = get_added_lines(dir.path(), "base", "HEAD", GitRangeMode::TwoDot).unwrap();
+
+        let mut expected = BTreeMap::new();
+        expected.insert(
+            PathBuf::from("src/lib.rs"),
+            BTreeSet::from([2_usize, 3_usize]),
+        );
+        assert_eq!(added, expected);
     }
 }
