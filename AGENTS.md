@@ -254,6 +254,14 @@ cargo +nightly fuzz list  # List all targets
 
 ## PR Triage Rules
 
+### Codex and Jules state boundaries
+- `.jules/**` is Jules provenance and ambient suggestion state. Treat it as
+  useful repo input, not Codex's primary active-lane controller.
+- Codex should use `AGENTS.md`, `docs/NEXT.md`, accepted docs/plans/specs/ADRs,
+  PR context, and `.codex/**` state where present for Codex lane selection.
+- Do not tell Jules to stop acting or remove Jules suggestions merely because
+  Codex is working. Evaluate Jules suggestions like any other repo input.
+
 ### Jules provenance is intentional repo state
 - Treat `.jules/**` logs, ledgers, envelopes, runbooks, and friction notes as intentional provenance unless a repo owner explicitly says otherwise.
 - Do not close, trim, or reject a PR merely because it includes `.jules/**` files.
