@@ -35,6 +35,8 @@ schemas, and verification policy for `tokmd`.
   evidence checks without publishing, tagging, or creating releases.
 - [releases/1.11.md](releases/1.11.md) — draft release notes for the 1.11
   evidence-consumption release.
+- [releases/1.11-ledger.md](releases/1.11-ledger.md) — lane-by-lane maintainer
+  ledger for the 1.11 evidence-consumption release.
 - [reference-cli.md](reference-cli.md) — generated CLI flag reference.
 - [SCHEMA.md](SCHEMA.md) — receipt format documentation.
 - [architecture.md](architecture.md) — crate hierarchy and data flow.

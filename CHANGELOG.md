@@ -16,104 +16,99 @@ advisory checks or changing public AST behavior.
 
 ### Added
 
-- Cockpit review packets now surface clearer review-first ordering, source of
-  truth and proof evidence, missing/stale/degraded states, packet verification,
-  and reproduction commands for review evidence.
-- Review-map Markdown now explains priority reasons so reviewers can start from
-  the packet instead of inferring meaning from CI job names or pull request
-  prose.
-- Handoff bundles now include actionable `work-order.md` guidance for coding
-  agents, including changed surfaces, linked review evidence, proof
-  expectations, missing evidence, and stop conditions.
-- Handoff inputs can link review packets, review-packet verifier receipts,
-  affected-proof receipts, and proof plans as external evidence handles.
-- Proof observation, proof workflow status, proof artifact check, and CI
-  risk-pack receipts make required/advisory proof easier to inspect without
-  turning advisory evidence into gates.
-- Rust-owned `xtask` helpers now emit or verify more proof-control artifacts,
-  including affected proof plans, proof policy JSON, no-panic family JSON,
-  proof observation status, proof workflow status, mutation scope, mutation
-  summaries, and RIPR annotations.
-- User-path docs now map inspect, PR review, agent handoff, CI evidence,
-  browser trial, and publishing/release evidence to commands, primary
-  artifacts, open-first files, meanings, non-meanings, and next actions.
-- Sample artifact trees, copy-ready workflows, install/try guidance, GitHub
-  Action quickstarts, browser-to-native guidance, and release-readiness docs
-  provide adoption paths for maintainers, reviewers, CI owners, and agent
-  operators.
-- Publishing and release evidence docs now describe package-surface,
-  version-consistency, affected-proof, and proof-plan checks before any release
-  mutation.
-- Current-facing WASM/browser release artifact examples now point at the
-  `v1.11.0` artifact shape, and release-prep metadata is aligned with the
-  `1.11.0` workspace version.
-- Developer-facing AST shadow tooling can compare heuristic Rust landmarks
-  with Tree-sitter-backed Rust landmarks, write deterministic shadow artifacts,
-  verify them, summarize mismatch counts, and record function-boundary evidence.
-  AST remains shadow-only.
+- Review packets and cockpit evidence: cockpit packets now surface
+  review-first ordering, priority reasons, source-of-truth evidence,
+  proof evidence, missing/stale/degraded/skipped/unavailable states, packet
+  verification, and reproduction commands.
+- Agent handoff/work-order: handoff bundles now include actionable
+  `work-order.md` guidance, linked review-packet evidence, linked affected and
+  proof-plan receipts, proof expectations, missing evidence, stop conditions,
+  and agent guardrails.
+- Proof and CI evidence receipts: proof observation, proof workflow status,
+  proof artifact checks, CI risk-pack receipts, mutation summaries, mutation
+  scope, no-panic family JSON, and RIPR annotations are easier to inspect as
+  evidence without turning advisory telemetry into gates.
+- User-path and adoption docs: install/try, Start Here, user paths, copy-ready
+  workflows, sample artifact trees, GitHub Action quickstarts, browser-to-native
+  guidance, and release-readiness docs now map jobs to commands, artifacts,
+  open-first files, meanings, non-meanings, and next actions.
+- Publishing and release evidence: release-facing docs now describe
+  package-surface checks, version consistency, affected-proof routing, and
+  proof-plan generation before any release mutation.
+- Browser/WASM adoption: current-facing WASM/browser examples point at the
+  staged `v1.11.0` artifact shape while browser mode is positioned as a
+  no-install trial lens.
+- AST shadow evidence: developer-facing AST tooling can compare heuristic Rust
+  landmarks with Tree-sitter-backed Rust landmarks, write deterministic shadow
+  artifacts, verify them, summarize mismatch counts, and record timing and
+  function-boundary evidence. AST remains shadow-only.
+- Release record: `docs/releases/1.11-ledger.md` now gives maintainers a
+  lane-by-lane release ledger without flattening hundreds of PRs into this
+  changelog.
 
 ### Changed
 
-- Raised the minimum supported Rust version from 1.93 to 1.95.
-- Activated the Rust 1.94/1.95 lint policy ratchets staged in `policy/clippy-lints.toml`: `same_length_and_capacity` (deny), `manual_ilog2`, `decimal_bitwise_operands`, `needless_type_cast`, `manual_checked_ops`, `manual_take`, `manual_pop_if`, `duration_suboptimal_units`, and `unnecessary_trailing_comma` (all warn).
-- README, tutorial, recipes, and Start Here docs now emphasize the shortest
-  user paths instead of requiring readers to learn the proof-control plane
-  first.
-- Browser docs now frame browser mode as a no-install trial lens with clear
-  native-only boundaries, not native parity.
-- Cockpit and handoff internals continued moving toward smaller SRP owner
-  modules while preserving public schema and CLI behavior.
-- Workflow-local shell and Python glue continued moving into Rust-owned
-  `xtask` helpers where the resulting artifact is consumed as review or proof
-  evidence.
-- Proof remains advisory unless a maintainer explicitly promotes a check, and
-  Codecov upload remains opt-in rather than a default release or CI behavior.
+- MSRV and lint policy: the minimum supported Rust version moved from 1.93 to
+  1.95, and the Rust 1.94/1.95 lint ratchets staged in
+  `policy/clippy-lints.toml` are active.
+- CI/proof orchestration: workflow-local shell and Python glue continued moving
+  into Rust-owned `xtask` helpers where the result is consumed as review,
+  proof, mutation, or annotation evidence.
+- Browser/native positioning: browser docs now frame browser mode as a
+  no-install trial lens with clear native-only boundaries, not native parity.
+- First-run documentation: README, tutorial, recipes, Start Here, and user-path
+  docs emphasize the shortest job-oriented paths instead of requiring readers
+  to learn the proof-control plane first.
+- Owner-module cleanup: cockpit and handoff internals continued moving toward
+  smaller SRP owner modules while preserving public schema and CLI behavior.
+- Advisory evidence boundary: proof remains advisory unless a maintainer
+  explicitly promotes a check, and Codecov upload remains opt-in rather than a
+  default release or CI behavior.
 
 ### Fixed
 
-- Review-map reproduction commands now preserve the actual relative
-  `--review-packet-dir` instead of always showing `.tokmd/review` or leaking
-  absolute local paths.
-- UTF-8-sensitive analysis paths avoid byte/character index panics around
-  ternary `?` tokens after multibyte input.
-- Content tag counting now treats empty tags as zero matches and respects
-  Unicode identifier boundaries instead of matching inside non-ASCII words.
-- Context policy classification now normalizes Windows separators and matches
-  vendor, fixture, and generated directories by exact path segment instead of
-  broad substring matches.
-- Python/FFI JSON settings now reject `paths: null` consistently, keep other
-  nullable option fields on their defaults, and make PyO3 extension-module
+- Cockpit reproduction: review-map reproduction commands preserve the actual
+  relative `--review-packet-dir` instead of always showing `.tokmd/review` or
+  leaking absolute local paths.
+- FFI and Python settings: JSON settings reject `paths: null` consistently,
+  keep other nullable option fields on defaults, and make PyO3 extension-module
   behavior opt-in for the test harness.
-- Average-line rounding avoids integer overflow on very large code totals.
-- Complexity histogram Markdown handles narrow and zero-width rendering cases
-  without malformed ASCII bars.
-- Redacted safe-extension handling was tightened for compound and case-varied
-  extensions.
-- Browser token rejection and worker progress states now surface clearer
+- Unicode/content handling: UTF-8-sensitive analysis paths avoid
+  byte/character index panics, and content tag counting treats empty tags as
+  zero matches while respecting Unicode identifier boundaries.
+- Context policy paths: Windows separators are normalized, and vendor, fixture,
+  and generated directories match by exact path segment instead of broad
+  substring matches.
+- Numeric and rendering edges: average-line rounding avoids integer overflow,
+  and complexity histogram Markdown handles narrow and zero-width rendering
+  cases without malformed ASCII bars.
+- Browser feedback: token rejection and worker progress states surface clearer
   browser-runner feedback.
-- RIPR GitHub annotation rendering moved out of a Python helper into
-  `cargo xtask ripr-annotations`.
-- Generated coverage work was restacked into narrow keeper tests for cockpit
-  review maps, cockpit comments, derived Markdown rendering, core FFI parsing,
-  effort helpers, complexity spans, proof-evidence model strings, and git
-  fixture signing.
+- Test determinism: git fixture signing and generated coverage work were
+  restacked into narrow keeper tests for cockpit review maps, cockpit comments,
+  derived Markdown, core FFI parsing, effort helpers, complexity spans,
+  proof-evidence model strings, git behavior, and in-memory row collection.
+- Handoff smoke friction: generated `work-order.md` no longer tells readers to
+  read itself from inside the work order.
 
-### Internal
+### Internal / Governance
 
-- Added doc-artifact policy, receipt, CI upload, source-of-truth routing, and
-  cockpit import support so documentation-control evidence can appear in review
-  packets.
-- Added review-packet verifier receipts and tighter review-packet contract
-  documentation.
-- Added AST shadow fixture corpora, corpus manifests, comparison summaries,
-  timing receipts, verifier checks, and proof routing for the shadow lane.
-- Added proof observation decision artifacts, hosted proof workflow status
-  evidence, and verifier checks while preserving non-required/advisory behavior.
-- Added publishing-evidence and release-readiness plans, guides, glossary
-  entries, and closeouts without adding a release mutation command.
-- Added targeted tests and refactors across cockpit, handoff, analysis, format,
-  scan, gate, core, and types to lock behavior behind the new evidence
-  consumption paths.
+- Codex/Jules boundary: `.jules/**` remains Jules provenance and ambient
+  suggestion state, while Codex uses repo docs, accepted plans/specs/ADRs,
+  AGENTS.md, and `.codex` guidance as its operating surface.
+- PR-bound Codex policy: implementation, review, release-prep, PR-drain, and
+  changelog work authorize scoped commits, pushes, PR updates, and aligned
+  merges after validation without redundant permission prompts.
+- Generated PR triage: generated PRs were treated as scouts, with narrow
+  correctness/test/release-surface keepers merged and duplicate or broad
+  generated branches closed, parked, or superseded.
+- Source-of-truth and doc-artifact enforcement: doc-artifact policy, receipts,
+  CI upload, source-of-truth routing, and cockpit import support make
+  documentation-control evidence visible in review packets.
+- Known boundaries: 1.11 does not add `tokmd review`, proof promotion, default
+  Codecov upload, default AST-backed output, evidencebus runtime integration,
+  a release-readiness wrapper receipt, browser/native parity claims, or release
+  mutation without explicit maintainer action.
 
 ## [1.10.0] - 2026-04-30
 
