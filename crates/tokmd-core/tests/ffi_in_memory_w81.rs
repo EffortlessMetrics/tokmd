@@ -221,8 +221,8 @@ fn run_json_rejects_paths_when_inputs_are_present() {
 }
 
 #[test]
-fn run_json_allows_null_paths_when_inputs_are_present() {
-    let data = assert_ok(&run_json(
+fn run_json_rejects_null_paths_when_inputs_are_present() {
+    let error = assert_error(&run_json(
         "export",
         &json!({
             "inputs": [
@@ -237,6 +237,11 @@ fn run_json_allows_null_paths_when_inputs_are_present() {
         .to_string(),
     ));
 
-    assert_eq!(data["scan"]["paths"], json!(["src/lib.rs"]));
-    assert_eq!(data["rows"][0]["path"], "src/lib.rs");
+    assert_eq!(error["code"], "invalid_settings");
+    assert!(
+        error["message"]
+            .as_str()
+            .expect("error message")
+            .contains("paths")
+    );
 }

@@ -1084,6 +1084,15 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "codex_workspace"
+kind = "non_rust"
+paths = [".codex/**"]
+proof = ["cargo xtask proof-policy --check"]
+reason = "Codex-local tracked execution state and operator notes are intentional repo knowledge artifacts when checked in."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "project_readme"
 kind = "non_rust"
 paths = ["README.md"]
