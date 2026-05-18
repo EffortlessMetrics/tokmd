@@ -20,6 +20,9 @@ use crate::settings::{
 
 pub(super) fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
     let obj = scan_arg_object(args);
+    if obj.get("paths").is_some_and(Value::is_null) {
+        return Err(TokmdError::invalid_field("paths", "an array of strings"));
+    }
 
     Ok(ScanSettings {
         paths: parse_string_array(obj, "paths", vec![".".to_string()])?,
