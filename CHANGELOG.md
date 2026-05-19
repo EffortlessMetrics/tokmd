@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.1] - 2026-05-19
+
+### Fixed
+
+- `tokmd diff` now reports missing file-like inputs as missing or invalid paths
+  before falling through to git-reference resolution, including outside a git
+  repository.
+- Nix release validation now includes review-packet schema files in the checked
+  source tree and keeps receipt-status tests independent of repository-history
+  availability when Nix check sources intentionally omit `.git`.
+
 ## [1.11.0] - 2026-05-18
 
 1.11 makes tokmd's evidence surfaces easier to consume: cockpit review
