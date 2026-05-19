@@ -42,7 +42,7 @@ jobs:
       PROOF_EXECUTOR_MAX_COMMANDS_INPUT: ${{ github.event.inputs.max_evidence_commands || '' }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
 
@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload scoped coverage to Codecov
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_codecov == 'true' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: target/proof/coverage/*.lcov

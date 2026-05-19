@@ -32,7 +32,7 @@ jobs:
       # trusted FlakeHub Cache path is provisioned for this repo.
       USE_FLAKEHUB_CACHE: ${{ vars.NIX_USE_FLAKEHUB_CACHE }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
