@@ -49,3 +49,9 @@ top-level docs list.
 
 Specs should cite concrete commands, tests, schema files, or verifiers whenever
 the contract is already enforced.
+
+## Spec Inventory and Gaps
+
+Use `docs/specs/SPEC_GAPS.md` as the rolling inventory of repeated contracts
+that are already specified versus those still living in plans, policy comments,
+or implementation-only behavior.
