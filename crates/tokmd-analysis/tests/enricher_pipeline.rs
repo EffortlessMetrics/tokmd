@@ -249,7 +249,12 @@ fn empty_export_health_preset_succeeds() {
 
 #[test]
 fn empty_export_has_complete_status() {
-    let receipt = analyze(make_ctx(empty_export()), make_req(AnalysisPreset::Receipt)).unwrap();
+    let mut req = make_req(AnalysisPreset::Receipt);
+    // Keep this assertion focused on empty file-backed enrichment. The receipt
+    // preset requests git, and Nix check sources intentionally do not contain
+    // `.git`, which would make the status Partial for an unrelated reason.
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(empty_export()), req).unwrap();
     if cfg!(all(feature = "content", feature = "walk")) {
         assert!(
             matches!(receipt.status, ScanStatus::Complete),

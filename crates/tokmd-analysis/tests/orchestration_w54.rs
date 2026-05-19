@@ -261,7 +261,12 @@ fn w54_context_window_present() {
 // ===========================================================================
 #[test]
 fn w54_receipt_complete_status() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
+    let mut req = make_req(PresetKind::Receipt);
+    // This status assertion is about warning-free receipt enrichment. Disable
+    // git so Nix check sources without `.git` do not make the receipt Partial
+    // for an unrelated repository-history reason.
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     if cfg!(all(feature = "content", feature = "walk")) {
         assert!(matches!(receipt.status, ScanStatus::Complete));
         assert!(receipt.warnings.is_empty());

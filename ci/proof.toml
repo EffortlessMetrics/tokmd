@@ -193,6 +193,20 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "nix_release_validation"
+kind = "non_rust"
+paths = [
+  "flake.nix",
+]
+proof = [
+  "cargo xtask proof-policy --check",
+  "cargo test -p tokmd --test schema_validation --verbose",
+]
+reason = "Nix flake source filtering and package/check wiring are release-validation surfaces; local proof covers policy shape and schema tests while hosted Nix validates the flake itself."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "tokmd_core_ffi"
 kind = "rust"
 paths = [
