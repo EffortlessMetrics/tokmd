@@ -39,6 +39,7 @@
           || (nixpkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep the published schema used by include_str! sync tests.
           || (nixpkgs.lib.hasInfix "/docs/schema.json" p)
+          || (nixpkgs.lib.hasInfix "/docs/" p && nixpkgs.lib.hasSuffix ".schema.json" baseName)
           # Keep docs markdown referenced by compile-time include_str!s.
           || (nixpkgs.lib.hasInfix "/docs/" p && nixpkgs.lib.hasSuffix ".md" baseName)
           # Keep docs directory entries so the file filter can traverse them.
@@ -68,6 +69,7 @@
           || (pkgs.lib.hasInfix "/crates/tokmd/schemas" p)
           # Keep published schema (sync test compares against embedded copy)
           || (pkgs.lib.hasInfix "/docs/schema.json" p)
+          || (pkgs.lib.hasInfix "/docs/" p && pkgs.lib.hasSuffix ".schema.json" baseName)
           # Keep docs markdown files (include_str! in schema_sync tests)
           || (pkgs.lib.hasInfix "/docs/" p && pkgs.lib.hasSuffix ".md" baseName)
           # Keep docs directory (directory entry must pass filter for contents to be evaluated)

@@ -1,6 +1,6 @@
 {
   "name": "@tokmd/core",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Node.js bindings for tokmd - code inventory and analytics",
   "main": "index.js",
   "types": "index.d.ts",
@@ -35,17 +35,17 @@
     "*.node"
   ],
   "napi": {
-    "name": "tokmd",
-    "triples": {
-      "defaults": true,
-      "additional": [
-        "x86_64-unknown-linux-musl",
-        "aarch64-unknown-linux-gnu",
-        "aarch64-unknown-linux-musl",
-        "aarch64-apple-darwin",
-        "aarch64-pc-windows-msvc"
-      ]
-    }
+    "binaryName": "tokmd",
+    "targets": [
+      "x86_64-pc-windows-msvc",
+      "aarch64-pc-windows-msvc",
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-gnu",
+      "aarch64-unknown-linux-musl"
+    ]
   },
   "scripts": {
     "artifacts": "napi artifacts",
@@ -57,16 +57,16 @@
     "version": "napi version"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.0.0-alpha.66"
+    "@napi-rs/cli": "^3.6.2"
   },
   "optionalDependencies": {
-    "@tokmd/core-win32-x64-msvc": "1.11.0",
-    "@tokmd/core-darwin-x64": "1.11.0",
-    "@tokmd/core-darwin-arm64": "1.11.0",
-    "@tokmd/core-linux-x64-gnu": "1.11.0",
-    "@tokmd/core-linux-x64-musl": "1.11.0",
-    "@tokmd/core-linux-arm64-gnu": "1.11.0",
-    "@tokmd/core-linux-arm64-musl": "1.11.0",
-    "@tokmd/core-win32-arm64-msvc": "1.11.0"
+    "@tokmd/core-win32-x64-msvc": "1.11.1",
+    "@tokmd/core-darwin-x64": "1.11.1",
+    "@tokmd/core-darwin-arm64": "1.11.1",
+    "@tokmd/core-linux-x64-gnu": "1.11.1",
+    "@tokmd/core-linux-x64-musl": "1.11.1",
+    "@tokmd/core-linux-arm64-gnu": "1.11.1",
+    "@tokmd/core-linux-arm64-musl": "1.11.1",
+    "@tokmd/core-win32-arm64-msvc": "1.11.1"
   }
 }

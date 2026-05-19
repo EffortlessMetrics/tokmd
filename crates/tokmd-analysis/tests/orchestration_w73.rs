@@ -368,7 +368,11 @@ fn analyze_all_presets_produce_valid_receipts() {
 
 #[test]
 fn receipt_preset_produces_no_warnings() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
+    let mut req = make_req(AnalysisPreset::Receipt);
+    // Keep this warning/status assertion independent of repository history:
+    // Nix check sources intentionally do not include `.git`.
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     if cfg!(all(feature = "content", feature = "walk")) {
         assert!(
             receipt.warnings.is_empty(),

@@ -152,7 +152,13 @@ fn receipt_generated_at_ms_is_nonzero() {
 
 #[test]
 fn receipt_preset_with_no_warnings_is_complete() {
-    let receipt = analyze(make_ctx(sample_export()), make_req(AnalysisPreset::Receipt)).unwrap();
+    let mut req = make_req(AnalysisPreset::Receipt);
+    // Keep this assertion focused on warning-free enrichment status. The
+    // receipt preset requests git, and Nix check sources intentionally do not
+    // contain `.git`, which would make the status Partial for an unrelated
+    // reason.
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     if cfg!(all(feature = "content", feature = "walk")) {
         assert!(
             matches!(receipt.status, ScanStatus::Complete),

@@ -14,7 +14,7 @@ clap = { version = "4.6.0", features = ["derive"] }
 serde = { workspace = true }
 toml = "1.1.2"
 cargo_metadata = "0.23.1"
-jsonschema = { version = "0.46.4", default-features = false }
+jsonschema = { version = "0.46.5", default-features = false }
 petgraph = "0.8.3"
 chrono = "0.4"
 globset = "0.4.18"
@@ -25,7 +25,7 @@ proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
 walkdir = "2"
 tokmd-core = { workspace = true, features = ["analysis"] }
-tokmd-analysis = { path = "../crates/tokmd-analysis", version = "1.11.0", default-features = false, features = ["ast"] }
+tokmd-analysis = { path = "../crates/tokmd-analysis", version = "1.11.1", default-features = false, features = ["ast"] }
 tokmd-analysis-types.workspace = true
 
 [dev-dependencies]

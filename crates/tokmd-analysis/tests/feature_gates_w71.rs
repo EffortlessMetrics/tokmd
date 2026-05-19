@@ -287,7 +287,12 @@ fn receipt_preset_works_without_optional_features() {
     assert!(!plan.license, "receipt must not request license");
     assert!(!plan.fun, "receipt must not request fun");
 
-    let receipt = analyze(make_ctx(sample_export()), make_req(PresetKind::Receipt)).unwrap();
+    let mut req = make_req(PresetKind::Receipt);
+    // This test is about optional feature gates. Disable git so Nix check
+    // sources without `.git` do not make the receipt Partial for an unrelated
+    // repository-history reason.
+    req.git = Some(false);
+    let receipt = analyze(make_ctx(sample_export()), req).unwrap();
     assert!(
         receipt.derived.is_some(),
         "receipt must always produce derived"

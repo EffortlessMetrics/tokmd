@@ -104,8 +104,20 @@ fn resolve_lang_report(input: &str, global: &cli::GlobalArgs) -> Result<LangRepo
     if path.exists() {
         return load_lang_report_from_path(&path);
     }
+    if looks_like_missing_path(input, &path) {
+        bail!("invalid reference or path '{}': path does not exist", input);
+    }
 
     lang_report_from_git_ref(input, global)
+}
+
+fn looks_like_missing_path(input: &str, path: &Path) -> bool {
+    path.is_absolute()
+        || path.extension().is_some()
+        || input.starts_with("./")
+        || input.starts_with("../")
+        || input.starts_with(".\\")
+        || input.starts_with("..\\")
 }
 
 fn load_lang_report_from_path(path: &Path) -> Result<LangReport> {

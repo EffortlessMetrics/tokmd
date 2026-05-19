@@ -10,6 +10,7 @@ mod common;
 
 use assert_cmd::Command;
 use predicates::prelude::*;
+use tempfile::tempdir;
 
 fn tokmd_cmd() -> Command {
     Command::new(env!("CARGO_BIN_EXE_tokmd"))
@@ -165,6 +166,28 @@ fn diff_nonexistent_before_after_fails() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("invalid reference"));
+}
+
+#[test]
+fn diff_nonexistent_before_after_does_not_require_git_repo() {
+    let cwd = tempdir().unwrap();
+    let p = nonexistent_path();
+    let a = p.join("a.json");
+    let b = p.join("b.json");
+    let mut cmd = tokmd_cmd();
+
+    cmd.current_dir(cwd.path())
+        .arg("diff")
+        .arg("--from")
+        .arg(a.as_os_str())
+        .arg("--to")
+        .arg(b.as_os_str())
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("invalid reference")
+                .and(predicate::str::contains("not inside a git repository").not()),
+        );
 }
 
 // ===========================================================================
