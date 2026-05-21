@@ -29,7 +29,7 @@ each section.
 | Understand CI evidence | `target/proof/affected.json`, then `target/proof/proof-plan.json` | Shows changed files, matched proof scopes, and selected proof commands. |
 | Check executed required proof | `target/proof-run/proof-run-summary.json` | Shows which required proof commands actually ran and passed or failed. |
 | Prepare an agent | `.handoff/work-order.md`, then `.handoff/manifest.json` | Gives the agent task map, linked evidence summary, bundle index, and guardrails. |
-| Audit docs/source-of-truth changes | `target/docs/doc-artifacts-check.json` | Shows source-of-truth artifact shape, links, active-goal state, and policy checks. |
+| Audit source-of-truth changes | `target/docs/doc-artifacts-check.json` | Shows source-of-truth artifact shape, `.tokmd-spec` index paths, links, active-goal state, and policy checks. |
 
 ## Core Repo And Change Receipts
 
@@ -81,7 +81,7 @@ each section.
 | `proof-observation-decision.json` | `target/proof-observations/proof-observation-decision.json` | `cargo xtask proof-observation-status --json <path>` | Advisory aggregate over supplied proof artifacts: policy state, required/advisory proof counts, freshness, thresholds, criteria met/missing, and reproduction commands. | It does not execute proof, upload coverage, promote gates, or replace source-artifact verifiers. | Check the listed `source_artifacts`, `criteria_missing`, and `reproduce` commands before making a promotion decision. |
 | `proof-observation-decision-check.json` | `target/proof-observations/proof-observation-decision-check.json` | `cargo xtask proof-observation-status-check --decision <path> --json <path>` | Verifier receipt for the advisory decision packet: schema/mode, source artifact references, count consistency, policy guardrails, criteria shape, and reproduction commands. | It does not verify the original source receipts or make advisory proof required. | Run after generating `proof-observation-decision.json`; still verify source artifacts with their own checkers. |
 | `coverage-receipt.json` | `target/coverage/coverage-receipt.json` | `cargo xtask coverage-receipt` | Inventory and byte-count receipt for coverage artifacts such as JSON, text, and LCOV files. | It does not say coverage is required, sufficient, or uploaded to Codecov. | Inspect artifact paths and byte counts; pair with coverage workflow logs if needed. |
-| `doc-artifacts-check.json` | `target/docs/doc-artifacts-check.json` | `cargo xtask doc-artifacts --check --json <path>` | Source-of-truth docs/control-plane checker receipt: required docs, artifact family shape, active-goal links, status vocabulary, and errors. | It does not judge prose quality or merge readiness. | Re-run `cargo xtask doc-artifacts --check` or `cargo xtask docs --check`. |
+| `doc-artifacts-check.json` | `target/docs/doc-artifacts-check.json` | `cargo xtask doc-artifacts --check --json <path>` | Source-of-truth docs/control-plane checker receipt: required docs, `.tokmd-spec` index paths, artifact family shape, active-goal links, status vocabulary, and errors. | It does not judge prose quality or merge readiness. | Re-run `cargo xtask doc-artifacts --check` or `cargo xtask docs --check`. |
 
 ## Publishing And Release Evidence
 

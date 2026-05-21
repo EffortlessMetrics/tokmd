@@ -26,6 +26,7 @@ proof gates should be promoted.
 The documentation artifact checker reads these repo paths:
 
 - `.tokmd-spec/README.md`
+- `.tokmd-spec/index.toml`
 - `docs/source-of-truth.md`
 - `docs/proposals/**/*.md`
 - `docs/specs/**/*.md`
@@ -130,8 +131,21 @@ The checker should require:
 - `## Source-of-truth chain`.
 
 `.tokmd-spec/index.toml` is the index for durable artifacts in or linked from
-the namespace. Index schema enforcement is intentionally separate from this
-first routing check until the indexed artifact shape is promoted.
+the namespace.
+
+The checker should require:
+
+- `schema_version = "1.0"`;
+- `repo = "tokmd"`;
+- `namespace = ".tokmd-spec"`;
+- each `[[artifact]]` entry to have non-empty `id`, `kind`, `path`, and
+  `status`;
+- each `[[lane]]` entry to have non-empty `id`, `path`, and `status` when lane
+  entries are present;
+- indexed paths to be repo-relative, existing paths;
+- indexed paths to avoid tool-local namespaces such as `.codex/`, `.spec/`,
+  `.claude/`, and `.jules/`;
+- duplicate indexed IDs to fail the check.
 
 ## Outputs
 

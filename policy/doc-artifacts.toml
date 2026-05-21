@@ -17,6 +17,19 @@ proof_promotion = false
 codecov_default_upload = false
 json_receipt = "tokmd.doc_artifacts_check.v1"
 
+[spec_index]
+path = ".tokmd-spec/index.toml"
+schema_version = "1.0"
+repo = "tokmd"
+namespace = ".tokmd-spec"
+require_existing_paths = true
+forbidden_path_prefixes = [
+  ".codex/",
+  ".spec/",
+  ".claude/",
+  ".jules/",
+]
+
 [active_goal]
 path = ".jules/goals/active.toml"
 schema = "tokmd.jules.active_goal.v1"

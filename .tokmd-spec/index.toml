@@ -15,5 +15,56 @@ speckit = ".spec"
 claude = ".claude"
 jules = ".jules"
 
-# Add [[artifact]] and [[lane]] entries as durable artifacts are created.
-# Paths in [[artifact]] entries must not point into .codex/.spec/.claude/.jules.
+[[artifact]]
+id = "tokmd-spec-namespace"
+kind = "namespace"
+path = ".tokmd-spec/README.md"
+status = "active"
+
+[[artifact]]
+id = "tokmd-spec-index"
+kind = "index"
+path = ".tokmd-spec/index.toml"
+status = "active"
+
+[[artifact]]
+id = "source-of-truth-model"
+kind = "routing-guide"
+path = "docs/source-of-truth.md"
+status = "active"
+
+[[artifact]]
+id = "agent-source-of-truth-workflow"
+kind = "agent-workflow"
+path = "docs/agent-workflows/source-of-truth.md"
+status = "active"
+
+[[artifact]]
+id = "doc-artifacts-spec"
+kind = "spec"
+path = "docs/specs/doc-artifacts.md"
+status = "draft"
+
+[[artifact]]
+id = "doc-artifacts-policy"
+kind = "policy"
+path = "policy/doc-artifacts.toml"
+status = "draft"
+
+[[artifact]]
+id = "swarm-routing"
+kind = "topology"
+path = "docs/ci/swarm-routing.md"
+status = "active"
+
+[[artifact]]
+id = "spec-rails-contributor-guide"
+kind = "contributor-guide"
+path = "docs/contributing/spec-rails.md"
+status = "active"
+
+[[artifact]]
+id = "spec-rails-style-guide"
+kind = "style-guide"
+path = "docs/spec-style.md"
+status = "active"

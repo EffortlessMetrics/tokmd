@@ -441,8 +441,9 @@ cargo xtask review-packet-check --dir .tokmd/review
 - optional `target/tokmd/review-packet-check.json`: verifier receipt when
   `--json` is passed to `review-packet-check`
 
-If the PR changes source-of-truth docs, plans, ADRs, templates,
-`.jules/goals/**`, or doc-artifact policy, include the doc-artifacts receipt:
+If the PR changes `.tokmd-spec/**`, source-of-truth docs, plans, ADRs,
+templates, `.jules/goals/**`, or doc-artifact policy, include the
+doc-artifacts receipt:
 
 ```bash
 cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json

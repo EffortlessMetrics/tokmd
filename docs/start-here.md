@@ -92,9 +92,9 @@ Open these files in order:
 4. `.tokmd/review/manifest.json`
 5. `target/tokmd/review-packet-check.json`
 
-If the PR changes source-of-truth docs, plans, ADRs, templates,
-`.jules/goals/**`, or doc-artifact policy, generate the documentation-control
-receipt first and import it:
+If the PR changes `.tokmd-spec/**`, source-of-truth docs, plans, ADRs,
+templates, `.jules/goals/**`, or doc-artifact policy, generate the
+documentation-control receipt first and import it:
 
 ```bash
 cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json

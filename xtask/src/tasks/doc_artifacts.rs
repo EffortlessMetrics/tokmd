@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -16,11 +17,25 @@ struct Policy {
     schema_version: String,
     policy: String,
     #[serde(default)]
+    spec_index: Option<SpecIndexPolicy>,
+    #[serde(default)]
     active_goal: Option<ActiveGoalPolicy>,
     #[serde(default)]
     required_doc: Vec<RequiredDoc>,
     #[serde(default)]
     family: Vec<ArtifactFamily>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpecIndexPolicy {
+    path: String,
+    schema_version: String,
+    repo: String,
+    namespace: String,
+    #[serde(default)]
+    require_existing_paths: bool,
+    #[serde(default)]
+    forbidden_path_prefixes: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,6 +78,32 @@ struct ArtifactFamily {
     required_sections: Vec<String>,
     #[serde(default)]
     draft_may_omit_sections: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpecIndex {
+    schema_version: String,
+    repo: String,
+    namespace: String,
+    #[serde(default)]
+    artifact: Vec<SpecIndexArtifact>,
+    #[serde(default)]
+    lane: Vec<SpecIndexLane>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpecIndexArtifact {
+    id: String,
+    kind: String,
+    path: String,
+    status: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct SpecIndexLane {
+    id: String,
+    path: String,
+    status: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -145,6 +186,10 @@ fn check(root: &Path, policy_path: &Path) -> Result<CheckReport> {
     for required_doc in &policy.required_doc {
         report.required_docs += 1;
         validate_required_doc(root, required_doc, &mut report.errors);
+    }
+
+    if let Some(spec_index) = &policy.spec_index {
+        validate_spec_index(root, spec_index, &mut report.errors);
     }
 
     if let Some(active_goal) = &policy.active_goal {
@@ -232,6 +277,166 @@ fn validate_required_doc(root: &Path, required_doc: &RequiredDoc, errors: &mut V
     validate_top_heading(&required_doc.path, &content, errors);
     for section in &required_doc.required_sections {
         validate_section(&required_doc.path, &content, section, errors);
+    }
+}
+
+fn validate_spec_index(root: &Path, policy: &SpecIndexPolicy, errors: &mut Vec<String>) {
+    let path = root.join(&policy.path);
+    let content = match fs::read_to_string(&path) {
+        Ok(content) => content,
+        Err(err) => {
+            errors.push(format!("{} is unreadable: {err}", policy.path));
+            return;
+        }
+    };
+    let index: SpecIndex = match toml::from_str(&content) {
+        Ok(index) => index,
+        Err(err) => {
+            errors.push(format!("{} is invalid TOML: {err}", policy.path));
+            return;
+        }
+    };
+
+    if index.schema_version != policy.schema_version {
+        errors.push(format!(
+            "{}: unsupported schema_version {:?}; expected {:?}",
+            policy.path, index.schema_version, policy.schema_version
+        ));
+    }
+    if index.repo != policy.repo {
+        errors.push(format!(
+            "{}: repo {:?} does not match expected {:?}",
+            policy.path, index.repo, policy.repo
+        ));
+    }
+    if index.namespace != policy.namespace {
+        errors.push(format!(
+            "{}: namespace {:?} does not match expected {:?}",
+            policy.path, index.namespace, policy.namespace
+        ));
+    }
+    if index.artifact.is_empty() && index.lane.is_empty() {
+        errors.push(format!(
+            "{}: expected at least one [[artifact]] or [[lane]] entry",
+            policy.path
+        ));
+    }
+
+    let mut ids = BTreeSet::new();
+    for artifact in &index.artifact {
+        validate_non_empty_index_field(&policy.path, "artifact", &artifact.id, "id", errors);
+        validate_non_empty_index_field(
+            &policy.path,
+            &format!("artifact {}", artifact.id),
+            &artifact.kind,
+            "kind",
+            errors,
+        );
+        validate_non_empty_index_field(
+            &policy.path,
+            &format!("artifact {}", artifact.id),
+            &artifact.status,
+            "status",
+            errors,
+        );
+        validate_unique_index_id(&policy.path, "artifact", &artifact.id, &mut ids, errors);
+        validate_spec_index_path(
+            root,
+            &policy.path,
+            &format!("artifact {}", artifact.id),
+            &artifact.path,
+            policy,
+            errors,
+        );
+    }
+    for lane in &index.lane {
+        validate_non_empty_index_field(&policy.path, "lane", &lane.id, "id", errors);
+        validate_non_empty_index_field(
+            &policy.path,
+            &format!("lane {}", lane.id),
+            &lane.status,
+            "status",
+            errors,
+        );
+        validate_unique_index_id(&policy.path, "lane", &lane.id, &mut ids, errors);
+        validate_spec_index_path(
+            root,
+            &policy.path,
+            &format!("lane {}", lane.id),
+            &lane.path,
+            policy,
+            errors,
+        );
+    }
+}
+
+fn validate_non_empty_index_field(
+    index_path: &str,
+    entry: &str,
+    value: &str,
+    field: &str,
+    errors: &mut Vec<String>,
+) {
+    if value.trim().is_empty() {
+        errors.push(format!("{index_path}: {entry} must have non-empty {field}"));
+    }
+}
+
+fn validate_unique_index_id(
+    index_path: &str,
+    kind: &str,
+    id: &str,
+    ids: &mut BTreeSet<String>,
+    errors: &mut Vec<String>,
+) {
+    if id.trim().is_empty() {
+        return;
+    }
+    if !ids.insert(id.to_string()) {
+        errors.push(format!(
+            "{index_path}: duplicate indexed id {id:?} in {kind}"
+        ));
+    }
+}
+
+fn validate_spec_index_path(
+    root: &Path,
+    index_path: &str,
+    entry: &str,
+    value: &str,
+    policy: &SpecIndexPolicy,
+    errors: &mut Vec<String>,
+) {
+    let link_path = Path::new(value);
+    if link_path.is_absolute() {
+        errors.push(format!(
+            "{index_path}: {entry}.path must be repo-relative, found {value:?}"
+        ));
+        return;
+    }
+    if value.contains("..") {
+        errors.push(format!(
+            "{index_path}: {entry}.path must not traverse parents, found {value:?}"
+        ));
+        return;
+    }
+
+    let normalized = normalize_path(link_path);
+    for prefix in &policy.forbidden_path_prefixes {
+        let prefix = prefix.replace('\\', "/");
+        let prefix_without_slash = prefix.trim_end_matches('/');
+        if normalized == prefix_without_slash || normalized.starts_with(&prefix) {
+            errors.push(format!(
+                "{index_path}: {entry}.path must not point into forbidden prefix {prefix_without_slash:?}, found {value:?}"
+            ));
+            return;
+        }
+    }
+
+    if policy.require_existing_paths && !root.join(link_path).exists() {
+        errors.push(format!(
+            "{index_path}: {entry}.path points at missing path {value:?}"
+        ));
     }
 }
 
@@ -596,6 +801,72 @@ mod tests {
     }
 
     #[test]
+    fn spec_index_rejects_tool_local_paths() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        fs::write(
+            temp.path().join(".tokmd-spec/index.toml"),
+            spec_index(".jules/goals/active.toml"),
+        )
+        .unwrap();
+
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+
+        assert!(
+            report.errors.iter().any(|error| {
+                error.contains("forbidden prefix \".jules\"")
+                    && error.contains(".jules/goals/active.toml")
+            }),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn spec_index_rejects_missing_paths() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        fs::write(
+            temp.path().join(".tokmd-spec/index.toml"),
+            spec_index("docs/missing.md"),
+        )
+        .unwrap();
+
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|error| error.contains("points at missing path \"docs/missing.md\"")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn spec_index_rejects_duplicate_ids() {
+        let temp = tempfile::tempdir().unwrap();
+        write_valid_fixture(temp.path());
+        let index = spec_index("docs/source-of-truth.md").replace(
+            "[[artifact]]\nid = \"source-of-truth-model\"",
+            "[[artifact]]\nid = \"source-of-truth-model\"\nkind = \"spec\"\npath = \"docs/specs/doc-artifacts.md\"\nstatus = \"draft\"\n\n[[artifact]]\nid = \"source-of-truth-model\"",
+        );
+        fs::write(temp.path().join(".tokmd-spec/index.toml"), index).unwrap();
+
+        let report = check(temp.path(), Path::new("policy/doc-artifacts.toml")).unwrap();
+
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|error| error.contains("duplicate indexed id \"source-of-truth-model\"")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
     fn missing_required_section_fails() {
         let temp = tempfile::tempdir().unwrap();
         write_valid_fixture(temp.path());
@@ -685,6 +956,11 @@ mod tests {
         )
         .unwrap();
         fs::write(
+            root.join(".tokmd-spec/index.toml"),
+            spec_index("docs/source-of-truth.md"),
+        )
+        .unwrap();
+        fs::write(
             root.join("docs/source-of-truth.md"),
             "# Source of Truth Model\n\n## Goal\n\n## Artifact Roles\n\n## Conflict Resolution\n\n## Lifecycle\n\n## Review Expectations\n",
         )
@@ -741,6 +1017,34 @@ proof_promotion = "do_not_promote"
 
 [stop_conditions]
 docs_check = "cargo xtask docs --check"
+"#
+        )
+    }
+
+    fn spec_index(artifact_path: &str) -> String {
+        format!(
+            r#"schema_version = "1.0"
+
+repo = "tokmd"
+namespace = ".tokmd-spec"
+
+[conventions]
+proposal_prefix = "TOKMD-PROP"
+spec_prefix = "TOKMD-SPEC"
+adr_prefix = "TOKMD-ADR"
+lane_prefix = "TOKMD-LANE"
+
+[external_namespaces]
+codex = ".codex"
+speckit = ".spec"
+claude = ".claude"
+jules = ".jules"
+
+[[artifact]]
+id = "source-of-truth-model"
+kind = "routing-guide"
+path = "{artifact_path}"
+status = "active"
 "#
         )
     }

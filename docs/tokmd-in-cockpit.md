@@ -47,9 +47,9 @@ Open the packet in this order:
 4. `.tokmd/review/manifest.json` for packet-local artifact paths and hashes.
 5. `target/tokmd/review-packet-check.json` for the verifier receipt.
 
-When the PR changes source-of-truth docs, plans, ADRs, templates,
-`.jules/goals/**`, or doc-artifact policy, generate the documentation-control
-receipt first and import it:
+When the PR changes `.tokmd-spec/**`, source-of-truth docs, plans, ADRs,
+templates, `.jules/goals/**`, or doc-artifact policy, generate the
+documentation-control receipt first and import it:
 
 ```bash
 cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
@@ -78,7 +78,7 @@ Start with the smallest packet that can answer the review question:
 | PR shape | Add these inputs | What the packet can say |
 | --- | --- | --- |
 | Code-only change | `--review-packet-dir` | What changed, what to review first, and which cockpit evidence is available, missing, stale, degraded, skipped, or unavailable. |
-| Source-of-truth docs, plans, ADRs, templates, `.jules/goals/**`, or doc-artifact policy changed | `--doc-artifacts-check target/docs/doc-artifacts-check.json` | Whether the documentation-control checker receipt is present and whether source-of-truth artifact shape, links, active goal state, and policy routing passed. |
+| `.tokmd-spec/**`, source-of-truth docs, plans, ADRs, templates, `.jules/goals/**`, or doc-artifact policy changed | `--doc-artifacts-check target/docs/doc-artifacts-check.json` | Whether the documentation-control checker receipt is present and whether source-of-truth artifact shape, links, active goal state, spec-index paths, and policy routing passed. |
 | Required proof was planned or run | `--proof-run-summary`, `--proof-observation` | Which required proof applied to the reviewed change, whether it passed, and whether imported proof freshness matches the cockpit head. |
 | Advisory proof or coverage exists | `--executor-observation`, `--coverage-receipt` | Which advisory evidence exists, which evidence is missing, and which evidence must not be treated as a required gate. |
 

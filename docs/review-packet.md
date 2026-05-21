@@ -40,8 +40,8 @@ Open the packet in this order:
 4. `.tokmd/review/manifest.json` for packet-local artifact paths and hashes.
 5. `target/tokmd/review-packet-check.json` for the verifier receipt.
 
-If the PR changes source-of-truth docs, plans, ADRs, templates,
-`.jules/goals/**`, or doc-artifact policy, generate and import the
+If the PR changes `.tokmd-spec/**`, source-of-truth docs, plans, ADRs,
+templates, `.jules/goals/**`, or doc-artifact policy, generate and import the
 documentation-control receipt first:
 
 ```bash
@@ -189,9 +189,9 @@ packet, see [tokmd and evidencebus integration](evidencebus-integration.md).
 
 ## Documentation Artifact Evidence
 
-Source-of-truth changes are review evidence too. When a PR changes docs,
-plans, specs, ADRs, templates, `.jules/goals/**`, or doc-artifact policy,
-cockpit packets can import the docs checker receipt:
+Source-of-truth changes are review evidence too. When a PR changes
+`.tokmd-spec/**`, docs, plans, specs, ADRs, templates, `.jules/goals/**`, or
+doc-artifact policy, cockpit packets can import the docs checker receipt:
 
 ```text
 target/docs/doc-artifacts-check.json
