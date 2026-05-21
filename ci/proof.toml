@@ -1247,6 +1247,7 @@ name = "ci_economics_docs"
 kind = "non_rust"
 paths = [
   ".github/pull_request_template.md",
+  ".github/labels.yml",
   ".github/workflows/sync-labels.yml",
   "docs/POLICY_ALLOWLISTS.md",
   "docs/RIPR_EVIDENCE_POLICY.md",

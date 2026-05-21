@@ -24,6 +24,46 @@
   color: ededed
   description: Needs initial review and categorization
 
+- name: full-ci
+  color: ededed
+  description: Run all expensive CI lanes for a PR
+
+- name: wasm
+  color: ededed
+  description: Add WASM and browser-runner CI lanes
+
+- name: windows
+  color: ededed
+  description: Add Windows CI lanes
+
+- name: nix
+  color: ededed
+  description: Add Nix flake and package CI lanes
+
+- name: release-check
+  color: ededed
+  description: Add release-facing CI checks
+
+- name: mutation
+  color: ededed
+  description: Add cargo-mutants CI lanes
+
+- name: property-tests
+  color: ededed
+  description: Add expanded property-test CI lanes
+
+- name: ci-budget-ack
+  color: ededed
+  description: Acknowledge an elevated CI budget estimate
+
+- name: ci-budget-override
+  color: ededed
+  description: Bypass the CI hard budget ceiling for one PR
+
+- name: ripr-waive
+  color: ededed
+  description: Acknowledge an accepted RIPR advisory finding
+
 - name: good first issue
   color: 7057ff
   description: Good for newcomers
