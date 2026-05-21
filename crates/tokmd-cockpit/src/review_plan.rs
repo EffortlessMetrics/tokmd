@@ -203,7 +203,7 @@ mod tests {
     fn test_review_plan_boosts_source_of_truth_contracts() {
         let stats = vec![
             make_stat("src/large.rs", 150, 100),
-            make_stat("docs/review-packet.md", 3, 2),
+            make_stat("docs/ci/swarm-routing.md", 3, 2),
             make_stat("docs/tutorial.md", 3, 2),
         ];
         let contracts = Contracts {
@@ -213,7 +213,7 @@ mod tests {
             breaking_indicators: 0,
         };
         let plan = generate_review_plan(&stats, &contracts);
-        assert_eq!(plan[0].path, "docs/review-packet.md");
+        assert_eq!(plan[0].path, "docs/ci/swarm-routing.md");
         assert_eq!(plan[0].priority, 1);
         assert_eq!(
             plan[0].reason,

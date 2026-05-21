@@ -1209,12 +1209,16 @@ coverage = false
 name = "doc_artifacts_policy"
 kind = "non_rust"
 paths = [
+  ".tokmd-spec/**",
   ".jules/goals/**",
   "docs/adr/**",
   "docs/agent-workflows/**",
+  "docs/ci/swarm-routing.md",
+  "docs/contributing/spec-rails.md",
   "docs/plans/**",
   "docs/proposals/**",
   "docs/source-of-truth.md",
+  "docs/spec-style.md",
   "docs/specs/**",
   "docs/templates/**",
   "policy/doc-artifacts.toml",

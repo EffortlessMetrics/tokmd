@@ -27,6 +27,7 @@ The documentation artifact checker reads these repo paths:
 
 - `.tokmd-spec/README.md`
 - `.tokmd-spec/index.toml`
+- paths indexed by `.tokmd-spec/index.toml`
 - `docs/source-of-truth.md`
 - `docs/proposals/**/*.md`
 - `docs/specs/**/*.md`

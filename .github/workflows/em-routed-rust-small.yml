@@ -250,7 +250,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ci-disk-guard /mnt/ci-scratch 100
+          ci-disk-guard /mnt/ci-scratch 95
           ci-disk-guard /mnt/docker 20
           ci-disk-guard /mnt/ci-cache 20
 
