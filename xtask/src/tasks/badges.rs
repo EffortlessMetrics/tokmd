@@ -14,6 +14,7 @@ use crate::cli::BadgesArgs;
 
 const BADGE_ENDPOINT_DIR: &str = "badges";
 const BADGE_ENDPOINT_TARGET_DIR: &str = "target/xtask/badges";
+const EXPECTED_RIPR_VERSION: &str = "0.7.0";
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub(crate) struct ShieldsEndpointBadge {
@@ -59,6 +60,7 @@ pub fn run(args: BadgesArgs) -> Result<()> {
 
 fn ripr_badge(workspace_root: &Path) -> Result<ShieldsEndpointBadge> {
     let ripr_bin = std::env::var("RIPR_BIN").unwrap_or_else(|_| "ripr".to_string());
+    validate_ripr_version(&ripr_bin)?;
 
     let output = Command::new(&ripr_bin)
         .arg("check")
@@ -79,6 +81,39 @@ fn ripr_badge(workspace_root: &Path) -> Result<ShieldsEndpointBadge> {
 
     serde_json::from_slice(&output.stdout)
         .with_context(|| format!("{ripr_bin} emitted invalid Shields endpoint JSON"))
+}
+
+fn validate_ripr_version(ripr_bin: &str) -> Result<()> {
+    let output = Command::new(ripr_bin)
+        .arg("--version")
+        .output()
+        .with_context(|| format!("run {ripr_bin} --version"))?;
+
+    if !output.status.success() {
+        bail!(
+            "{ripr_bin} --version failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    let actual = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let expected = expected_ripr_version();
+
+    if !is_expected_ripr_version(&actual) {
+        bail!(
+            "ripr version drift: expected `{expected}`, got `{actual}`; install with `cargo install ripr --version {EXPECTED_RIPR_VERSION} --locked --force` or set RIPR_BIN to a matching binary"
+        );
+    }
+
+    Ok(())
+}
+
+fn expected_ripr_version() -> String {
+    format!("ripr {EXPECTED_RIPR_VERSION}")
+}
+
+fn is_expected_ripr_version(actual: &str) -> bool {
+    actual.trim() == expected_ripr_version()
 }
 
 pub(crate) fn validate_shields_badge(
@@ -165,5 +200,12 @@ mod tests {
         };
 
         assert!(validate_shields_badge(&badge, Some("ripr+")).is_err());
+    }
+
+    #[test]
+    fn ripr_version_match_is_exact() {
+        assert!(is_expected_ripr_version("ripr 0.7.0\n"));
+        assert!(!is_expected_ripr_version("ripr 0.5.0"));
+        assert!(!is_expected_ripr_version("ripr 0.7.0-dev"));
     }
 }

@@ -39,6 +39,13 @@ Regenerate public badge endpoints:
 cargo xtask badges
 ```
 
+Badge generation uses `ripr 0.7.0`. If local regeneration reports a version
+drift, install the pinned version or set `RIPR_BIN` to a matching binary:
+
+```bash
+cargo install ripr --version 0.7.0 --locked --force
+```
+
 Check committed endpoint drift:
 
 ```bash

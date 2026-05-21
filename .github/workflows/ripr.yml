@@ -17,6 +17,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -C debuginfo=0
+  RIPR_VERSION: "0.7.0"
 
 jobs:
   ripr:
@@ -35,7 +36,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install ripr
-        run: cargo install ripr --locked
+        run: cargo install ripr --version "$RIPR_VERSION" --locked
 
       - name: Fetch base branch
         if: github.base_ref != ''

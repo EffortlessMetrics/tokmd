@@ -10,6 +10,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  RIPR_VERSION: "0.7.0"
+
 concurrency:
   group: badge-endpoints-${{ github.ref }}
   cancel-in-progress: true
@@ -27,7 +30,7 @@ jobs:
           cache-on-failure: true
 
       - name: Install ripr
-        run: cargo install ripr --locked
+        run: cargo install ripr --version "$RIPR_VERSION" --locked
 
       - name: Refresh badge endpoints
         run: cargo xtask badges
