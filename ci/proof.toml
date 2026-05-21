@@ -101,6 +101,7 @@ kind = "rust"
 paths = [
   ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
+  ".github/workflows/em-routed-rust-small.yml",
   ".github/workflows/mutants.yml",
   ".github/workflows/nix-full.yml",
   ".github/workflows/nix-macos.yml",
