@@ -28,6 +28,8 @@ schemas, and verification policy for `tokmd`.
 - [agent-workflows/handoff-prompt.md](agent-workflows/handoff-prompt.md) —
   copy-ready prompt template for coding agents consuming `.handoff/` bundles.
 - [agent-workflows/source-of-truth.md](agent-workflows/source-of-truth.md) — maintainer and agent workflow for following source-of-truth artifacts.
+- [ci/swarm-routing.md](ci/swarm-routing.md) — dual-repo topology for
+  `tokmd` publication imports and `tokmd-swarm` active development.
 - [handoff.md](handoff.md) — coding-agent handoff bundle workflow and guardrails.
 - [publishing-evidence.md](publishing-evidence.md) — release-facing package
   surface, metadata, and CI ownership evidence before release mutation.
