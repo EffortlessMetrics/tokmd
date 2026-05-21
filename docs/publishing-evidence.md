@@ -126,6 +126,37 @@ Do not infer permission to publish, tag, or create a release from green
 publishing evidence. The release workflow is a separate mutation surface and
 requires an explicit release decision.
 
+## Post-Release GHCR Visibility Checks
+
+The release workflow's Docker job proves that the release run attempted the
+configured build and push. It does not, by itself, prove that unauthenticated or
+intended downstream consumers can pull the published GHCR tags.
+
+After an intentional stable release that should publish Docker images, verify
+the expected semver tags separately:
+
+```bash
+VERSION=1.11.1
+
+docker manifest inspect ghcr.io/effortlessmetrics/tokmd:${VERSION}
+docker manifest inspect ghcr.io/effortlessmetrics/tokmd:${VERSION%.*}
+docker manifest inspect ghcr.io/effortlessmetrics/tokmd:1
+```
+
+If direct registry inspection returns `denied`, do not rewrite the release tag
+or rerun release mutation by default. First check package visibility with a
+maintainer token that has GHCR package access:
+
+```bash
+gh api /orgs/EffortlessMetrics/packages/container/tokmd/versions
+```
+
+The package API may require the `read:packages` scope even for maintainers. A
+successful hosted `Build and Push Docker Image` job plus denied public manifest
+inspection is a release-verification audit item: confirm the package
+visibility, container package linkage, and semver aliases before deciding
+whether any repair is needed.
+
 ## Next Action
 
 For normal PRs:
