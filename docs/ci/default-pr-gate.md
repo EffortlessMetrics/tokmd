@@ -65,6 +65,16 @@ That remains below the hard override ceiling, but it is intentionally reported
 as high-cost while the advisory proof executor and proof-run observation lanes
 collect real timing evidence.
 
+`tokmd-swarm` workbench PRs also run the routed Rust Small frontdoor. The
+router and aggregate result are cheap, but the lane catalogue also includes the
+conditional implementation jobs for CPX42, CX43, CX53, and GitHub-hosted
+fallback. Only one implementation job should run for a given route; the others
+skip. Static PR Plan estimates may therefore look higher than the runtime cost
+until route-aware or learned estimates are wired in. When an override label is
+used for that case, review the latest successful PR Plan run for the current
+head SHA and the actual `Tokmd Rust Small Result` check rather than an older
+pre-label failure.
+
 ## Anti-patterns
 
 - Don't use `full-ci` to dodge a real failure; the deep lanes catch

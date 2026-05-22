@@ -76,6 +76,26 @@ fails until the PR is split or an explicit override label is present.
   actuals with `--actuals-dir`, but the workflow must wire that directory in
   before hosted PRs use learned estimates.
 
+## Routed Rust Small Interpretation
+
+`tokmd-swarm` has an additional routed Rust Small frontdoor. The lane catalogue
+lists the router, the aggregate `Tokmd Rust Small Result`, and each conditional
+implementation job so reviewers can see the whole route surface.
+
+Those implementation jobs are mutually exclusive at runtime. A trusted
+same-repo swarm PR normally selects one self-hosted target and skips the other
+implementation jobs. A publication-repo PR skips the routed workflow entirely
+because it is guarded to `github.repository == 'EffortlessMetrics/tokmd-swarm'`.
+
+Until hosted PR Plan uses route-aware or learned estimates, its static lane
+catalogue can overstate the cost of small proof-control or topology PRs by
+counting conditional routed implementation lanes that will not all run. In that
+case, reviewers should treat the latest successful PR Plan run for the current
+head SHA, the explicit `ci-budget-override` label, and the actual hosted check
+rollup as the actionable budget evidence. Do not treat an older failed PR Plan
+attempt for the same head as a code failure after the label-triggered rerun has
+passed.
+
 ## Override handling
 
 Use `ci-budget-override` when a high-LEM PR is intentionally broad enough to
