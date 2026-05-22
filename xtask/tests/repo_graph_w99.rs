@@ -224,6 +224,11 @@ fn repo_graph_rejects_swarm_ahead_when_publication_must_descend_from_swarm() {
         stderr.contains("repo graph expectation publication-descends-swarm was not met"),
         "stderr: {stderr}"
     );
+    assert!(
+        stderr.contains("publication has not imported the swarm head"),
+        "stderr: {stderr}"
+    );
+    assert!(stderr.contains("merge commit"), "stderr: {stderr}");
 }
 
 #[test]
@@ -257,6 +262,7 @@ fn repo_graph_rejects_diverged_refs_in_real_git_repo() {
         stderr.contains("repo graph expectation no-divergence was not met"),
         "stderr: {stderr}"
     );
+    assert!(stderr.contains("explicit sync merge"), "stderr: {stderr}");
 }
 
 #[test]
@@ -288,6 +294,7 @@ fn repo_graph_rejects_unrelated_refs_in_real_git_repo() {
         stderr.contains("repo graph expectation no-divergence was not met"),
         "stderr: {stderr}"
     );
+    assert!(stderr.contains("admin realignment"), "stderr: {stderr}");
 }
 
 #[test]

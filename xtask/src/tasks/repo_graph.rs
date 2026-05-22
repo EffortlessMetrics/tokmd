@@ -53,12 +53,14 @@ pub fn run(args: RepoGraphArgs) -> Result<()> {
     if report.ok {
         Ok(())
     } else {
+        let hint = expectation_failure_hint(&report);
         bail!(
-            "repo graph expectation {} was not met: relation {:?}, publication_ahead={}, swarm_ahead={}",
+            "repo graph expectation {} was not met: relation {:?}, publication_ahead={}, swarm_ahead={}. next: {}",
             report.expectation,
             report.relation,
             report.ahead_behind.publication_ahead,
-            report.ahead_behind.swarm_ahead
+            report.ahead_behind.swarm_ahead,
+            hint
         )
     }
 }
@@ -209,6 +211,26 @@ fn expectation_name(expectation: RepoGraphExpectation) -> &'static str {
     }
 }
 
+fn expectation_failure_hint(report: &RepoGraphReport) -> &'static str {
+    match (report.expectation.as_str(), report.relation) {
+        ("aligned", GraphRelation::SwarmAhead)
+        | ("publication-descends-swarm", GraphRelation::SwarmAhead) => {
+            "publication has not imported the swarm head; create a tokmd publication PR and merge it with a merge commit before fast-forwarding swarm"
+        }
+        ("aligned", GraphRelation::PublicationAhead)
+        | ("swarm-descends-publication", GraphRelation::PublicationAhead) => {
+            "swarm is behind publication; fast-forward tokmd-swarm/main to the publication commit before routine swarm work continues"
+        }
+        (_, GraphRelation::Diverged) => {
+            "publication and swarm both have unique commits; inspect the graph and use an explicit sync merge rather than a squash/content sync"
+        }
+        (_, GraphRelation::Unrelated) => {
+            "the refs share no merge base; stop normal work and run an admin realignment instead of merging unrelated histories"
+        }
+        _ => "inspect the requested expectation and refs before changing either main branch",
+    }
+}
+
 fn write_json(path: &Path, report: &RepoGraphReport) -> Result<()> {
     if let Some(parent) = path.parent()
         && !parent.as_os_str().is_empty()
@@ -244,7 +266,10 @@ fn print_human_report(report: &RepoGraphReport) {
 
 #[cfg(test)]
 mod tests {
-    use super::{AheadBehind, GraphRelation, classify_relation, expectation_matches};
+    use super::{
+        AheadBehind, GraphRelation, RefReport, RepoGraphReport, classify_relation,
+        expectation_failure_hint, expectation_matches,
+    };
     use crate::cli::RepoGraphExpectation;
 
     fn counts(publication_ahead: u64, swarm_ahead: u64) -> AheadBehind {
@@ -352,5 +377,64 @@ mod tests {
             RepoGraphExpectation::NoDivergence,
             GraphRelation::Unrelated
         ));
+    }
+
+    fn report(expectation: &str, relation: GraphRelation) -> RepoGraphReport {
+        let ahead_behind = match relation {
+            GraphRelation::Aligned => counts(0, 0),
+            GraphRelation::SwarmAhead => counts(0, 1),
+            GraphRelation::PublicationAhead => counts(1, 0),
+            GraphRelation::Diverged | GraphRelation::Unrelated => counts(1, 1),
+        };
+
+        RepoGraphReport {
+            schema: super::SCHEMA,
+            ok: false,
+            expectation: expectation.to_string(),
+            relation,
+            publication: RefReport {
+                name: "publication/main".to_string(),
+                sha: "publication-sha".to_string(),
+            },
+            swarm: RefReport {
+                name: "origin/main".to_string(),
+                sha: "swarm-sha".to_string(),
+            },
+            merge_base: Some("base-sha".to_string()),
+            ahead_behind,
+        }
+    }
+
+    #[test]
+    fn failure_hint_names_publication_import_for_swarm_ahead() {
+        let report = report("publication-descends-swarm", GraphRelation::SwarmAhead);
+
+        let hint = expectation_failure_hint(&report);
+
+        assert!(hint.contains("publication has not imported the swarm head"));
+        assert!(hint.contains("merge commit"));
+    }
+
+    #[test]
+    fn failure_hint_names_swarm_fast_forward_for_publication_ahead() {
+        let report = report(
+            "swarm-descends-publication",
+            GraphRelation::PublicationAhead,
+        );
+
+        let hint = expectation_failure_hint(&report);
+
+        assert!(hint.contains("swarm is behind publication"));
+        assert!(hint.contains("fast-forward tokmd-swarm/main"));
+    }
+
+    #[test]
+    fn failure_hint_names_admin_realignment_for_unrelated_refs() {
+        let report = report("no-divergence", GraphRelation::Unrelated);
+
+        let hint = expectation_failure_hint(&report);
+
+        assert!(hint.contains("share no merge base"));
+        assert!(hint.contains("admin realignment"));
     }
 }
