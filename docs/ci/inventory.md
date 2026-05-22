@@ -27,6 +27,8 @@ companion to `policy/ci-lane-whitelist.toml`. Update on rollout PRs.
 | `ripr_advisory` | ripr (advisory) | ubuntu | 2 | Static oracle-gap signal. |
 | `scoped_coverage_executor_non_required` | Scoped Coverage Executor (Non-Required) | ubuntu | 12 | Advisory proof executor. |
 | `ci_required` | CI (Required) | ubuntu | 1 | Aggregator. |
+| `tokmd_rust_small_route` | Route Tokmd Rust Small | ubuntu | 1 | Swarm route selector. |
+| `tokmd_rust_small_result` | Tokmd Rust Small Result | ubuntu | 20 | Aggregate budget for one selected routed implementation. |
 
 ## Risk-gated / expensive lanes
 
@@ -38,6 +40,19 @@ companion to `policy/ci-lane-whitelist.toml`. Update on rollout PRs.
 | `mutation_required` | Mutation Testing | ubuntu | 45 | push, `mutation`, or `full-ci`. |
 | `proptest_smoke` | Proptest Smoke | ubuntu | 8 | push, `property-tests`, `full-ci`, or core-receipts path risk. |
 | `rust_coverage` | Codecov Coverage | ubuntu | 30 | push, workflow dispatch, `coverage`, or `full-ci`. |
+
+## Conditional routed implementation lanes
+
+These lanes are listed in the whitelist for ownership and evidence tracking,
+but they are mutually exclusive at runtime. PR Plan counts the route selector
+and aggregate result lane by default instead of summing every skipped target.
+
+| Lane ID | Job | Runner | Base LEM | Trigger |
+|---------|-----|--------|----------|---------|
+| `tokmd_rust_small_cpx42` | Tokmd Rust Small on CPX42 | em-ci-small | 12 | selected by routed Rust Small. |
+| `tokmd_rust_small_cx43` | Tokmd Rust Small on CX43 | em-ci-small | 12 | selected by routed Rust Small. |
+| `tokmd_rust_small_cx53` | Tokmd Rust Small on CX53 | em-ci-small | 12 | selected by routed Rust Small. |
+| `tokmd_rust_small_github` | Tokmd Rust Small on GitHub Hosted | ubuntu | 20 | selected by routed Rust Small fallback. |
 
 ## Push / main-only
 
@@ -68,9 +83,14 @@ pr_plan_advisory            1
 ripr_advisory               2
 scoped_coverage_executor_non_required  12
 ci_required                 1
+tokmd_rust_small_route      1
+tokmd_rust_small_result    20
                           ----
-                            92  (high-cost band; below hard override ceiling)
+                           113  (high-cost band; below hard override ceiling)
 ```
 
 Expensive Windows, WASM, Nix, mutation, proptest, and coverage lanes are now
 label, path-risk, push, or dispatch routed instead of ordinary PR defaults.
+Routed Rust Small implementation jobs are represented in the default estimate
+by the aggregate `tokmd_rust_small_result` lane so skipped route targets do not
+force a budget override.

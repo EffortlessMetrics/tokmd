@@ -87,14 +87,13 @@ same-repo swarm PR normally selects one self-hosted target and skips the other
 implementation jobs. A publication-repo PR skips the routed workflow entirely
 because it is guarded to `github.repository == 'EffortlessMetrics/tokmd-swarm'`.
 
-Until hosted PR Plan uses route-aware or learned estimates, its static lane
-catalogue can overstate the cost of small proof-control or topology PRs by
-counting conditional routed implementation lanes that will not all run. In that
-case, reviewers should treat the latest successful PR Plan run for the current
-head SHA, the explicit `ci-budget-override` label, and the actual hosted check
-rollup as the actionable budget evidence. Do not treat an older failed PR Plan
-attempt for the same head as a code failure after the label-triggered rerun has
-passed.
+PR Plan budgets the routed frontdoor through the router plus the aggregate
+`Tokmd Rust Small Result` lane. The conditional implementation lanes stay in
+the whitelist inventory but are not ordinary default PR lanes, because only
+one implementation can run for a given route. The aggregate result lane uses a
+conservative static estimate for one selected implementation path so small
+swarm PRs do not require `ci-budget-override` merely because skipped route
+targets were counted.
 
 ## Override handling
 

@@ -57,23 +57,23 @@ pr_plan_advisory             1
 ripr_advisory                2
 scoped_coverage_executor_non_required 12
 ci_required                  1
+tokmd_rust_small_route       1
+tokmd_rust_small_result     20
                           ----
-                            92   default PR (was ~203)
+                           113   tokmd-swarm default PR (was ~203)
 ```
 
 That remains below the hard override ceiling, but it is intentionally reported
-as high-cost while the advisory proof executor and proof-run observation lanes
-collect real timing evidence.
+as high-cost while the advisory proof executor, proof-run observation lanes,
+and routed Rust Small frontdoor collect real timing evidence.
 
 `tokmd-swarm` workbench PRs also run the routed Rust Small frontdoor. The
-router and aggregate result are cheap, but the lane catalogue also includes the
-conditional implementation jobs for CPX42, CX43, CX53, and GitHub-hosted
-fallback. Only one implementation job should run for a given route; the others
-skip. Static PR Plan estimates may therefore look higher than the runtime cost
-until route-aware or learned estimates are wired in. When an override label is
-used for that case, review the latest successful PR Plan run for the current
-head SHA and the actual `Tokmd Rust Small Result` check rather than an older
-pre-label failure.
+router and aggregate result are default PR lanes. The lane catalogue also
+includes the conditional implementation jobs for CPX42, CX43, CX53, and
+GitHub-hosted fallback, but those jobs are mutually exclusive and are not
+counted as ordinary default PR lanes. The aggregate result carries a
+conservative one-route estimate, so a small swarm PR budgets the selected
+route without counting every skipped implementation target.
 
 ## Anti-patterns
 
