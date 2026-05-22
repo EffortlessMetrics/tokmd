@@ -39,20 +39,45 @@ explicit emergency repair.
 The current graph invariant is:
 
 ```bash
-git fetch origin main --prune
-git fetch publication main --prune
-git rev-list --left-right --count publication/main...origin/main
+cargo xtask repo-graph \
+  --publication publication/main \
+  --swarm origin/main \
+  --expect aligned \
+  --json target/repo-graph/alignment.json
 ```
 
 After a publication import and swarm fast-forward, the ahead/behind result
 should be:
 
 ```text
-0 0
+relation = aligned
+publication_ahead = 0
+swarm_ahead = 0
 ```
 
 Use the local remote name that points at `EffortlessMetrics/tokmd` in place of
-`publication` when it differs.
+`publication` when it differs. The local clone in Codex workbench runs often
+uses `public/main` for that remote, so the same check can be run with:
+
+```bash
+cargo xtask repo-graph \
+  --publication public/main \
+  --swarm origin/main \
+  --expect aligned \
+  --json target/repo-graph/alignment.json
+```
+
+Before a publication import, a green swarm PR may intentionally leave
+`tokmd-swarm/main` ahead of `tokmd/main`. In that state, verify the graph is
+still a single ancestor line rather than a divergence:
+
+```bash
+cargo xtask repo-graph \
+  --publication public/main \
+  --swarm origin/main \
+  --expect swarm-descends-publication \
+  --json target/repo-graph/pre-publication.json
+```
 
 ## Repository Roles
 

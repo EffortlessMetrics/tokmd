@@ -85,6 +85,8 @@ pub enum Commands {
     CheckClippyExceptions(ClippyExceptionsArgs),
     /// Generate the LEM-aware advisory PR Plan
     CiPlan(CiPlanArgs),
+    /// Check the tokmd/tokmd-swarm shared Git graph relation
+    RepoGraph(RepoGraphArgs),
     /// Generate Jules run and friction rollup indexes
     JulesIndex(JulesIndexArgs),
     /// Verify the workspace panic-family allowlist (semantic no-panic checker)
@@ -625,6 +627,48 @@ impl Default for CiPlanArgs {
             actuals_dir: None,
         }
     }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct RepoGraphArgs {
+    /// Publication repository ref to compare, usually EffortlessMetrics/tokmd main
+    #[arg(long, default_value = "public/main")]
+    pub publication: String,
+
+    /// Swarm workbench ref to compare, usually EffortlessMetrics/tokmd-swarm main
+    #[arg(long, default_value = "origin/main")]
+    pub swarm: String,
+
+    /// Required graph relation for a successful check
+    #[arg(long, value_enum, default_value_t = RepoGraphExpectation::Aligned)]
+    pub expect: RepoGraphExpectation,
+
+    /// Write a JSON graph receipt to this path
+    #[arg(long, value_name = "PATH")]
+    pub json: Option<std::path::PathBuf>,
+}
+
+impl Default for RepoGraphArgs {
+    fn default() -> Self {
+        Self {
+            publication: "public/main".to_string(),
+            swarm: "origin/main".to_string(),
+            expect: RepoGraphExpectation::Aligned,
+            json: None,
+        }
+    }
+}
+
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RepoGraphExpectation {
+    /// Refs point at the same commit.
+    Aligned,
+    /// Publication is an ancestor of swarm; aligned and swarm-ahead are accepted.
+    SwarmDescendsPublication,
+    /// Swarm is an ancestor of publication; aligned and publication-ahead are accepted.
+    PublicationDescendsSwarm,
+    /// Refs share history and one ref is an ancestor of the other.
+    NoDivergence,
 }
 
 #[derive(Args, Debug, Clone)]

@@ -152,6 +152,7 @@ paths = [
   "xtask/src/tasks/proof_plan.rs",
   "xtask/src/tasks/proof_run_pr_policy.rs",
   "xtask/src/tasks/proof_workflow_status.rs",
+  "xtask/src/tasks/repo_graph.rs",
   "xtask/tests/affected_w91.rs",
   "xtask/tests/ci_actuals_w96.rs",
   "xtask/tests/coverage_receipt_w95.rs",
@@ -162,6 +163,7 @@ paths = [
   "xtask/tests/proof_policy_w90.rs",
   "xtask/tests/proof_plan_w92.rs",
   "xtask/tests/proof_workflow_status_w98.rs",
+  "xtask/tests/repo_graph_w99.rs",
   "xtask/tests/xtask_contract_w65.rs",
 ]
 packages = ["xtask"]
@@ -189,6 +191,7 @@ proof = [
   "cargo test -p xtask proof_plan --verbose",
   "cargo test -p xtask proof_run_pr_policy --verbose",
   "cargo test -p xtask proof_workflow_status --verbose",
+  "cargo test -p xtask repo_graph --verbose",
 ]
 mutation = false
 coverage = false

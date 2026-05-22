@@ -65,6 +65,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
         Some(cli::Commands::CiPlan(args)) => tasks::ci_plan::run(args),
+        Some(cli::Commands::RepoGraph(args)) => tasks::repo_graph::run(args),
         Some(cli::Commands::JulesIndex(args)) => tasks::jules_index::run(args),
         Some(cli::Commands::CheckLintPolicy(args)) => tasks::lint_policy::run(args),
         Some(cli::Commands::CoverageReceipt(args)) => tasks::coverage_receipt::run(args),
