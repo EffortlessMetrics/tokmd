@@ -94,6 +94,41 @@ fast-forward complete. If it fails, triage it before release or publication
 claims that rely on full Nix proof; do not move the Nix-full lane into routine
 swarm development to make the workbench loop look cleaner.
 
+## Publication Merge-Commit Import Proof
+
+A later workbench loop on 2026-05-22 proved the merge-commit import shape that
+steady-state publication depends on:
+
+```text
+tokmd-swarm PR #46
+  test: cover publication merge import graph
+  squash merge: 617855b57afad3d7395529661662d4e737782f44
+
+tokmd publication PR #2453
+  merge(swarm): import tokmd-swarm repo graph import test
+  merge commit: f3c8f992e645cd323edc8649fd9e2de8e20332e6
+  parents:
+    bbf57aeb0f8f86138c95725e40c83f360ede029c
+    617855b57afad3d7395529661662d4e737782f44
+
+tokmd-swarm/main
+  fast-forwarded to f3c8f992e645cd323edc8649fd9e2de8e20332e6
+```
+
+That loop added a repo-graph test for a publication merge commit whose second
+parent is a squashed swarm commit. The final graph proof was:
+
+```text
+HEAD == origin/main == public/main == f3c8f992e645cd323edc8649fd9e2de8e20332e6
+repo-graph relation == aligned
+publication_ahead = 0
+swarm_ahead = 0
+```
+
+This is topology proof only. It does not move release tags, publish packages,
+sign artifacts, update the v1 alias, or promote Nix-full validation into the
+routine swarm workbench gate.
+
 Use the local remote name that points at `EffortlessMetrics/tokmd` in place of
 `publication` when it differs. The local clone in Codex workbench runs often
 uses `public/main` for that remote, so the same check can be run with:
