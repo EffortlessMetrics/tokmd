@@ -201,6 +201,74 @@ fn repo_graph_reports_publication_ahead_in_real_git_repo() {
 }
 
 #[test]
+fn repo_graph_no_divergence_accepts_swarm_ahead_in_real_git_repo() {
+    let temp = init_repo();
+    let repo = temp.path();
+
+    git(repo, &["switch", "swarm"]);
+    write_file(repo, "file.txt", "base\nswarm\n");
+    commit(repo, "swarm");
+
+    let (stdout, stderr, success) = run_xtask_in_dir(
+        &[
+            "repo-graph",
+            "--publication",
+            "publication",
+            "--swarm",
+            "swarm",
+            "--expect",
+            "no-divergence",
+        ],
+        repo,
+    );
+
+    assert!(
+        success,
+        "repo-graph no-divergence swarm-ahead failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("SwarmAhead"), "stdout: {stdout}");
+    assert!(stdout.contains("ok=true"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("open a tokmd publication PR"),
+        "stdout: {stdout}"
+    );
+}
+
+#[test]
+fn repo_graph_no_divergence_accepts_publication_ahead_in_real_git_repo() {
+    let temp = init_repo();
+    let repo = temp.path();
+
+    git(repo, &["switch", "publication"]);
+    write_file(repo, "file.txt", "base\npublication\n");
+    commit(repo, "publication");
+
+    let (stdout, stderr, success) = run_xtask_in_dir(
+        &[
+            "repo-graph",
+            "--publication",
+            "publication",
+            "--swarm",
+            "swarm",
+            "--expect",
+            "no-divergence",
+        ],
+        repo,
+    );
+
+    assert!(
+        success,
+        "repo-graph no-divergence publication-ahead failed. stderr: {stderr}"
+    );
+    assert!(stdout.contains("PublicationAhead"), "stdout: {stdout}");
+    assert!(stdout.contains("ok=true"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("fast-forward tokmd-swarm/main"),
+        "stdout: {stdout}"
+    );
+}
+
+#[test]
 fn repo_graph_rejects_swarm_ahead_when_publication_must_descend_from_swarm() {
     let temp = init_repo();
     let repo = temp.path();
