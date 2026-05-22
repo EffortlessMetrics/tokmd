@@ -22,6 +22,11 @@ Labels select expensive lanes that ordinary PRs skip. The PR Plan job (PR
 | `ci-budget-ack` | Acknowledge an estimate above the elevated band. Suppresses warning, does not bypass hard ceiling. |
 | `ci-budget-override` | Bypass the >125 LEM hard ceiling. Use sparingly. |
 
+Use `ci-budget-override` for a narrow PR only when the PR body or review
+comment cites why the estimate is an overcount. The common case is the routed
+Rust Small catalogue: PR Plan may count mutually exclusive implementation lanes
+that the hosted check rollup proves did not all run.
+
 ## Advisory labels
 
 | Label | Effect |
@@ -34,5 +39,7 @@ Labels select expensive lanes that ordinary PRs skip. The PR Plan job (PR
   things the default lane is *intentionally* skipping.
 - Don't apply `ci-budget-override` to ship a PR that's broad because it
   bundles unrelated work. Split the PR instead.
+- Don't treat an older failed PR Plan attempt as current after a label-triggered
+  rerun has passed for the same head SHA.
 - Labels do not retroactively change branch protection. The required
   summary job still has to pass.

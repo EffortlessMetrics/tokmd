@@ -38,7 +38,11 @@ changes.
 - `ci-budget-ack` — apply when the PR is intentionally elevated and the
   reviewer has confirmed the spend is worth it.
 - `ci-budget-override` — bypass the hard ceiling for one PR. Use
-  sparingly.
+  sparingly. This is appropriate when the PR is intentionally broad, or when a
+  narrow PR has a known static-estimator overcount such as mutually exclusive
+  routed Rust Small implementation lanes. In the overcount case, cite the
+  affected proof plan, latest passing PR Plan run for the current head SHA, and
+  hosted check rollup.
 - `full-ci` — also acts as override; the deep lanes will run anyway.
 
 If a label is added after an `override-required` failure, use the latest PR Plan
