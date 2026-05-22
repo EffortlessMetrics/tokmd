@@ -30,6 +30,13 @@ gate. Treat an in-progress Nix full run as a release-readiness caveat, not as a
 reason to block a green `tokmd-swarm` PR, a merge-commit publication import, or
 the follow-up fast-forward back to swarm.
 
+When checking current publication state, key Nix full runs by `headSha`, not
+just by workflow name. Multiple in-progress `Nix Full Validation` runs can be
+valid at the same time when they cover different publication commits. Report the
+run for the current `tokmd/main` head separately from older commit-scoped runs,
+and avoid treating an older in-progress run as evidence about the current
+publication merge.
+
 ## Cache save policy
 
 Every `Swatinem/rust-cache@v2` use sets:
