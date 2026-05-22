@@ -162,7 +162,9 @@ The checker may also write an optional JSON receipt:
 cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
 ```
 
-The JSON receipt uses schema `tokmd.doc_artifacts_check.v1`:
+The JSON receipt uses schema `tokmd.doc_artifacts_check.v1`. Count values report
+the checked repository state for the run that produced the receipt; the values
+below are illustrative shape examples, not stable repository totals:
 
 ```json
 {
