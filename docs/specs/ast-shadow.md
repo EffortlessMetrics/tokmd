@@ -153,11 +153,18 @@ receipt, browser, FFI, Python, Node, or CI behavior.
 
 The comparison-runner implementation plan,
 `docs/plans/ast-shadow-comparison-runner.md`, is complete through first
-enforcement. The active follow-on plan is
-`docs/plans/ast-function-boundary-candidate.md`. It uses the existing runner,
-verifier, Markdown summary, corpus evidence, mismatch classification, and
-timing receipts to decide whether Rust function-boundary precision is ready for
-a later public candidate proposal. It does not change default `tokmd` CLI
+enforcement. The follow-on function-boundary candidate and corpus-expansion
+plans, `docs/plans/ast-function-boundary-candidate.md` and
+`docs/plans/ast-function-boundary-corpus-expansion.md`, are also complete. Both
+closed with a `not yet` outcome for public function-boundary adoption, leaving
+AST evidence in shadow mode.
+
+The latest AST boundary is: there is no active AST productization lane. Future
+AST work should start from a fresh proposal that names the product surface,
+schema family, fallback behavior, proof ownership, browser/WASM reporting, and
+rollback story before implementation. The existing runner, verifier, Markdown
+summary, corpus manifest, mismatch classification, and timing receipts remain
+developer-facing shadow evidence only. They do not change default `tokmd` CLI
 behavior, public receipts, browser/WASM capability, cockpit output, handoff
 output, proof gates, Codecov defaults, or evidencebus runtime behavior.
 
