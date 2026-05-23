@@ -91,10 +91,12 @@ The swarm PR proved the same-repo workbench gate with
 merge commit and publication CI. Post-merge main CI passed in both repositories.
 
 `Nix Full Validation` remains a publication-only side workflow in `tokmd`.
-It is release-boundary evidence, not a condition for considering the swarm
-fast-forward complete. If it fails, triage it before release or publication
-claims that rely on full Nix proof; do not move the Nix-full lane into routine
-swarm development to make the workbench loop look cleaner.
+The CI `Nix PR Package Gate` is also publication-owned and must be guarded to
+`EffortlessMetrics/tokmd`. These Nix lanes are release-boundary evidence, not
+conditions for considering the swarm fast-forward complete. If they fail, triage
+them before release or publication claims that rely on Nix proof; do not move
+Nix package validation into routine swarm development to make the workbench loop
+look cleaner.
 
 ## Publication-Only Nix Full Handoff
 
@@ -274,8 +276,8 @@ for swarm-only routed CI jobs, and:
 if: github.repository == 'EffortlessMetrics/tokmd'
 ```
 
-for publication-only release, publish, signing, tag, alias, or full-matrix
-surfaces.
+for publication-only release, publish, signing, tag, alias, Nix package, or
+full-matrix surfaces.
 
 Shared files may include the routed Rust Small workflow and this routing
 document, as long as the jobs that must not run in one repository are guarded by

@@ -77,10 +77,11 @@ must not become the routine publication path.
 
 Swarm-aware files may live in shared history when their behavior is guarded by
 repository conditions. Publication-only workflows must not run release, publish,
-signing, tag, Docker, alias, or full-publication validation behavior in
-`tokmd-swarm`. Swarm-routed workbench workflows must not become required
-publication release gates unless a future ADR and policy update explicitly move
-that boundary.
+signing, tag, Docker, alias, Nix package, or full-publication validation
+behavior in `tokmd-swarm`. This includes CI package gates such as
+`Nix PR Package Gate`, not only separate Nix full-validation workflows.
+Swarm-routed workbench workflows must not become required publication release
+gates unless a future ADR and policy update explicitly move that boundary.
 
 This spec does not change product receipts, public CLI behavior, release
 workflow behavior, proof promotion, Codecov defaults, AST behavior, or
