@@ -1,11 +1,18 @@
 # Contributing: repo-native spec rails
 
-When adding or updating durable planning/spec artifacts in this repository, use `.tokmd-spec/` as the source of truth.
+When adding or updating durable planning/spec artifacts in this repository, use
+`.tokmd-spec/` as the indexed repo-native control plane.
+
+Existing accepted artifacts under `docs/proposals/`, `docs/specs/`,
+`docs/adr/`, and `docs/plans/` remain valid while they are linked from the
+source-of-truth model or `.tokmd-spec/index.toml`. Do not duplicate those files
+under `.tokmd-spec/` just to satisfy the namespace.
 
 ## Scope owned by this system
 
-- `.tokmd-spec/` artifacts and indexes
-- supporting guidance in `docs/`
+- `.tokmd-spec/` namespace guidance and index entries
+- durable artifacts under `.tokmd-spec/` or linked from `docs/`
+- supporting contributor and routing guidance in `docs/`
 - references to live ledgers in `policy/*.toml` when relevant
 
 ## Out of scope for this lane
@@ -21,13 +28,25 @@ Those directories are tool-specific execution/session state.
 
 ## Artifact intent
 
-- **Proposals** (`.tokmd-spec/proposals/`): why, user value, alternatives, success criteria
-- **Specs** (`.tokmd-spec/specs/`): required behavior, evidence requirements, acceptance boundaries
-- **ADRs** (`.tokmd-spec/adr/`): durable architecture decisions
-- **Lane trackers** (`.tokmd-spec/lanes/<lane>/tracker.toml`): durable lane state and next PR-sized work items
-- **Implementation plans** (`.tokmd-spec/lanes/<lane>/implementation-plan.md`): execution sequence
-- **Support/policy references** (`.tokmd-spec/support/`, `.tokmd-spec/policy/`): claim/proof and ledger linkage
-- **Closeouts** (`.tokmd-spec/closeouts/`): landed work, proof, remaining gaps
+- **Proposals**: why, user value, alternatives, success criteria
+- **Specs**: required behavior, evidence requirements, acceptance boundaries
+- **ADRs**: durable architecture decisions
+- **Lane trackers**: durable lane state and next PR-sized work items
+- **Implementation plans**: execution sequence
+- **Support/policy references**: claim/proof and ledger linkage
+- **Closeouts**: landed work, proof, remaining gaps
+
+## Choosing a path
+
+For current tokmd work, prefer the established `docs/proposals/`,
+`docs/specs/`, `docs/adr/`, and `docs/plans/` rails unless a migration plan
+has deliberately selected a `.tokmd-spec/<family>/` home. Link durable artifacts
+from `.tokmd-spec/index.toml` when they need to be discoverable from the
+repo-native control plane.
+
+New `.tokmd-spec/<family>/` paths are acceptable when the artifact is part of a
+deliberate namespace migration or a new family that has no established `docs/`
+home. Do not keep parallel copies in both places.
 
 ## Minimal external-state wording
 
