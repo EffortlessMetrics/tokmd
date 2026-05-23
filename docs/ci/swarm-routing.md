@@ -94,6 +94,35 @@ fast-forward complete. If it fails, triage it before release or publication
 claims that rely on full Nix proof; do not move the Nix-full lane into routine
 swarm development to make the workbench loop look cleaner.
 
+## Publication-Only Nix Full Handoff
+
+`Nix Full Validation` may still be queued or running after the publication PR's
+required checks pass, the merge-commit import lands, and `tokmd-swarm/main`
+fast-forwards to the publication merge commit. That is a release-boundary
+follow-up, not evidence that the shared-history graph is unaligned.
+
+When the publication-only Nix lane is still running after an otherwise complete
+import, record:
+
+- repository, run ID or URL, and head SHA;
+- current job or step, if the GitHub API exposes it;
+- whether any earlier attempt failed before repository code executed;
+- the boundary that no release, publish, signing, tag, Docker, `v1` alias, or
+  full-Nix claim is proven until the run reaches a terminal success.
+
+Routine swarm PR work may continue while that side workflow runs only when the
+publication PR's required checks passed, the publication merge commit was pushed
+back to `tokmd-swarm/main` as a fast-forward, and `repo-graph` reports
+`aligned`. Do not cite an in-progress Nix run as passing proof.
+
+If an earlier Nix attempt failed while fetching a flake input from GitHub, for
+example with `HTTP error 401` / `Bad credentials`, and a rerun gets past
+checkout, Nix installation, and cache setup into `nix flake check`, treat the
+first failure as an infrastructure/auth transient. Keep watching the rerun. If
+the rerun reaches repository validation and fails in `nix flake check`,
+`nix build .#tokmd`, or `nix build .#tokmd-with-alias`, triage it as a
+publication validation failure before making release-boundary claims.
+
 ## Publication Import CI Triage
 
 Publication imports should be treated as normal CI until evidence says
