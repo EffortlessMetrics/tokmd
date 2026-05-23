@@ -112,8 +112,14 @@ lands, fast-forward `tokmd-swarm/main` to the publication merge commit and rerun
 
 Required publication checks and an aligned repo graph prove the workbench loop.
 Publication-only side workflows such as Nix full validation are release-boundary
-evidence; record in-progress run IDs when relevant, but do not cite them as
-passing proof until they complete successfully.
+evidence. When those side workflows are still active, record the run ID or URL,
+head SHA, attempt, status, conclusion, and active job or step if available.
+Key the note by `headSha` so older commit-scoped Nix full runs are not confused
+with the current publication head. Use bounded status snapshots from
+`docs/ci/cache-and-cancellation.md#run-status-polling`; do not leave an
+unbounded `gh run watch` session running while waiting on long matrix or Nix
+jobs. Do not cite a side workflow as passing proof until it completes
+successfully.
 
 ## Validation
 
