@@ -66,6 +66,8 @@ pub(crate) fn normalize_proof_evidence(
                     execution_status,
                     availability,
                     commit_match,
+                    run_id: None,
+                    run_attempt: None,
                     artifact_refs: vec![format!("{source_ref}#/entries/{idx}")],
                 }
             })
@@ -90,6 +92,8 @@ pub(crate) fn normalize_proof_evidence(
                     execution_status,
                     availability,
                     commit_match,
+                    run_id: None,
+                    run_attempt: None,
                     artifact_refs: vec![format!("{source_ref}#/scopes/{idx}")],
                 }
             })
@@ -113,6 +117,8 @@ pub(crate) fn normalize_proof_evidence(
                     execution_status,
                     availability,
                     commit_match,
+                    run_id: None,
+                    run_attempt: None,
                     artifact_refs: vec![format!("{source_ref}#/scopes/{idx}")],
                 }
             })
@@ -144,6 +150,8 @@ pub(crate) fn normalize_proof_evidence(
                 execution_status,
                 availability,
                 commit_match,
+                run_id: non_empty_string(receipt.github.run_id.as_deref()),
+                run_attempt: non_empty_string(receipt.github.run_attempt.as_deref()),
                 artifact_refs,
             }]
         }
@@ -189,6 +197,10 @@ fn non_empty(value: Option<&str>) -> Option<&str> {
         let trimmed = value.trim();
         (!trimmed.is_empty()).then_some(trimmed)
     })
+}
+
+fn non_empty_string(value: Option<&str>) -> Option<String> {
+    non_empty(value).map(ToOwned::to_owned)
 }
 
 fn normalize_path_for_ref(path: &Path) -> String {
@@ -300,6 +312,8 @@ mod tests {
             evidence.artifact_refs,
             vec!["proof/coverage-receipt.json#/artifacts/0"]
         );
+        assert_eq!(evidence.run_id.as_deref(), Some("12345"));
+        assert_eq!(evidence.run_attempt.as_deref(), Some("1"));
     }
 
     #[test]

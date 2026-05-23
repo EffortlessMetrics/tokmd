@@ -1589,6 +1589,14 @@ fn scenario_review_map_md_includes_packet_level_proof_overview() {
     tokmd_cockpit::render::write_review_packet_with_proof_evidence(&out, &receipt, &[proof])
         .unwrap();
 
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(out.join("evidence.json")).unwrap()).unwrap();
+    let proof = evidence["proof"].as_array().expect("proof evidence array");
+    assert_eq!(proof.len(), 1);
+    assert_eq!(proof[0]["kind"], "coverage_receipt");
+    assert_eq!(proof[0]["run_id"], "12345");
+    assert_eq!(proof[0]["run_attempt"], "1");
+
     let review_map_md = std::fs::read_to_string(out.join("review-map.md")).unwrap();
     assert!(review_map_md.contains("Proof evidence overview:"));
     assert!(review_map_md.contains("- Required proof: 0 passed, 0 failed, 0 missing"));

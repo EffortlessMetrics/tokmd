@@ -117,7 +117,12 @@ const COVERAGE_RECEIPT_JSON: &str = r#"{
   "flag": "tokmd_cockpit",
   "workflow": "Coverage",
   "sha": "abc123",
-  "github": {},
+  "github": {
+    "run_id": "12345",
+    "run_attempt": "1",
+    "event_name": "pull_request",
+    "ref_name": "feature"
+  },
   "artifacts": [],
   "status": { "ok": true, "missing": [], "empty": [] }
 }"#;
@@ -349,6 +354,44 @@ fn test_cockpit_review_packet_includes_imported_proof_evidence() {
     assert!(comment_md.contains("Required proof: 1 passed, 0 failed, 0 missing"));
     assert!(comment_md.contains("Advisory proof: 0 available, 0 missing"));
     assert!(comment_md.contains("Proof freshness: 1 exact, 0 partial, 0 stale, 0 unknown"));
+}
+
+#[test]
+fn test_cockpit_review_packet_preserves_coverage_run_metadata() {
+    let Some(dir) = basic_cockpit_repo() else {
+        return;
+    };
+    let coverage_json = COVERAGE_RECEIPT_JSON.replace("\"sha\": \"abc123\"", "\"sha\": \"HEAD\"");
+    std::fs::write(dir.path().join("coverage-receipt.json"), coverage_json).unwrap();
+    let packet_dir = dir.path().join(".tokmd").join("review");
+
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path())
+        .arg("cockpit")
+        .arg("--base")
+        .arg("main")
+        .arg("--head")
+        .arg("HEAD")
+        .arg("--coverage-receipt")
+        .arg("coverage-receipt.json")
+        .arg("--review-packet-dir")
+        .arg(&packet_dir)
+        .assert()
+        .success();
+
+    let evidence: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(packet_dir.join("evidence.json")).unwrap())
+            .expect("valid evidence JSON");
+    assert_validates_against_schema(
+        REVIEW_PACKET_EVIDENCE_SCHEMA_JSON,
+        &evidence,
+        "review packet evidence with coverage run metadata",
+    );
+    let proof = evidence["proof"].as_array().expect("proof evidence array");
+    assert_eq!(proof.len(), 1);
+    assert_eq!(proof[0]["kind"], "coverage_receipt");
+    assert_eq!(proof[0]["run_id"], "12345");
+    assert_eq!(proof[0]["run_attempt"], "1");
 }
 
 #[test]

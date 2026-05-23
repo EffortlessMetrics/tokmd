@@ -93,7 +93,9 @@ fn review_packet_proof_evidence(
     )
     .into_iter()
     .map(|item| {
-        json!({
+        let run_id = item.run_id;
+        let run_attempt = item.run_attempt;
+        let mut evidence = json!({
             "kind": item.kind.as_str(),
             "source": normalize_path_for_output(&item.source_path),
             "source_schema": item.source_schema,
@@ -106,7 +108,16 @@ fn review_packet_proof_evidence(
             "availability": item.availability.as_str(),
             "commit_match": item.commit_match,
             "refs": item.artifact_refs,
-        })
+        });
+
+        if let Some(run_id) = run_id {
+            evidence["run_id"] = json!(run_id);
+        }
+        if let Some(run_attempt) = run_attempt {
+            evidence["run_attempt"] = json!(run_attempt);
+        }
+
+        evidence
     })
     .collect()
 }

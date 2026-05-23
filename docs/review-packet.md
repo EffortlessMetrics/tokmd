@@ -179,8 +179,10 @@ Cockpit proof imports should follow
 are supplied with `--review-packet-dir`, cockpit validates them, copies them
 into canonical packet-local `proof/*.json` paths, and records normalized proof
 items in `evidence.json`. Packet imports preserve required/advisory
-classification and commit freshness, and must not promote advisory proof into
-blocking evidence.
+classification and commit freshness. Coverage proof entries also preserve
+non-empty GitHub `run_id` and `run_attempt` values when the source receipt
+includes them. Packet imports must not promote advisory proof into blocking
+evidence.
 
 For a complete local workflow that plans proof, optionally executes guarded
 required proof, imports proof artifacts, and verifies the packet, see the
