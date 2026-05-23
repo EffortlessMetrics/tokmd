@@ -40,6 +40,12 @@ path = "docs/agent-workflows/source-of-truth.md"
 status = "active"
 
 [[artifact]]
+id = "next-program"
+kind = "operating-mode"
+path = "docs/NEXT.md"
+status = "active"
+
+[[artifact]]
 id = "doc-artifacts-spec"
 kind = "spec"
 path = "docs/specs/doc-artifacts.md"
