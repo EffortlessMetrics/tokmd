@@ -1171,6 +1171,7 @@ paths = [
   "docs/agent-workflows/**",
   "docs/architecture-consolidation-plan.md",
   "docs/architecture.md",
+  "docs/debugging.md",
   "docs/design.md",
   "docs/evidencebus-integration.md",
   "docs/implementation-plan.md",

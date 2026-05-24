@@ -7,7 +7,8 @@ schemas, and verification policy for `tokmd`.
 
 - [contributor-guide.md](contributor-guide.md) - make a first contributor PR
   without reading the whole repository history first.
-
+- [debugging.md](debugging.md) - debug local tests, snapshots, receipts, CI
+  mismatches, and performance evidence while developing tokmd.
 - [start-here.md](start-here.md) — choose the shortest path for repo
   inspection, PR review, CI evidence, agent handoff, or browser evaluation.
 - [install-and-try.md](install-and-try.md) — install tokmd, run the first

@@ -146,6 +146,7 @@ machine-enforced rules, and PR bodies own review-local evidence. See
 | Install and try the CLI | [install-and-try.md](install-and-try.md) |
 | Architecture and crate tiers | [architecture.md](architecture.md) |
 | Testing strategy | [testing.md](testing.md) |
+| Debug failed tests or CI evidence | [debugging.md](debugging.md) |
 | Current operating mode | [NEXT.md](NEXT.md) |
 | Swarm/publication topology | [ci/swarm-routing.md](ci/swarm-routing.md) |
 | Artifact meanings | [artifacts.md](artifacts.md) |
