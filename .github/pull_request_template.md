@@ -102,6 +102,10 @@
   Publication import PR: cargo xtask repo-graph --publication origin/main --swarm HEAD --expect swarm-ahead
   Post-publication fast-forward: cargo xtask repo-graph --publication public/main --swarm origin/main --expect aligned
 -->
+- **Publication import fields:** <!-- For publication import PRs only. Record
+  Swarm-Head, Swarm-Range, imported swarm PRs or commits, required swarm checks,
+  publication checks, and the post-merge fast-forward command/result. State
+  explicitly that the PR must merge with a merge commit, not squash. -->
 - **Post-fast-forward branch health:** <!-- If branch CI starts after the graph
   is aligned, record repo/run IDs, shared headSha, active jobs, and the boundary
   that in_progress jobs are not passing proof. -->
