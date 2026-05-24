@@ -218,6 +218,10 @@ not treat the Jules-local state file as Codex's active-lane controller. Do not
 reopen proof, AST, architecture, user-path, publishing, or release-readiness
 work by inertia.
 
+Roadmap selection and durable near/mid-term lane ranking now live in
+`docs/ROADMAP.md`. Keep `docs/NEXT.md` focused on current operating state,
+active constraints, and immediate work-packet decisions.
+
 ## Next Work Packets
 
 1. Do not extend the closed proof workflow status packet lane to any other

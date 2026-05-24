@@ -44,6 +44,41 @@ context for humans, machines, CI, and agents.
 
 ---
 
+## Current Roadmap Status
+
+The historical roadmap remains useful as a record of shipped milestones and
+longer-term horizons. The active planning state is now selection-first:
+
+- v1.11 browser runtime polish is complete.
+- Cockpit/review evidence is stable as the current PR-review surface.
+- Proof observation remains advisory, not promoted to required gates.
+- AST remains shadow-only until broader comparison evidence justifies public
+  schema or behavior changes.
+- There is no selected implementation lane by default.
+
+New work should start from one of:
+
+1. a named user or maintainer consumer,
+2. a missing artifact needed by that consumer,
+3. a concrete workflow pain,
+4. a product gap,
+5. a release/distribution verification gap,
+6. fresh measured performance evidence.
+
+The current near-term product priorities are:
+
+1. Release and distribution verification.
+2. CLI/user-facing friction reduction.
+3. Review evidence consumption.
+4. Measured performance and CI feedback.
+5. Browser/WASM capability-honest expansion.
+6. AST shadow evidence, not public AST behavior.
+
+See `docs/ROADMAP.md` for the agent workbench roadmap and lane selection
+rules.
+
+---
+
 ## Completed Milestones
 
 ### ✅ v1.0.0 — Stability Release
@@ -570,13 +605,21 @@ back into single-responsibility owner modules.
 
 ## Future Horizons
 
-### v1.12.0 — Cockpit & Architecture Consolidation (Active)
+### v1.12.x — Selection-First Product and Evidence Work
 
-_Goal: Improve cockpit as the PR-review evidence surface before adding a separate review orchestrator, and consolidate implementation microcrates into SRP modules._
+_Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 
-- Finish small cockpit review-packet and Action-hosting gaps.
-- Preserve `tokmd cockpit` as the review evidence implementation surface.
-- Start architecture consolidation in batches, preserving scope granularity.
+Potential lanes:
+
+- Release/distribution verification.
+- CLI and adoption UX.
+- Review evidence consumption.
+- Measured performance and CI feedback.
+- Browser/WASM rootless capability expansion.
+- AST shadow evidence expansion.
+
+Architecture consolidation is paused unless fresh product or proof evidence
+shows a real owner-module problem.
 
 ### v2.0 — Platform Evolution
 

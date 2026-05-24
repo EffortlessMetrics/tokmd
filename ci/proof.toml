@@ -1163,6 +1163,7 @@ kind = "non_rust"
 paths = [
   "ROADMAP.md",
   "tokmd-role.md",
+  "docs/ROADMAP.md",
   "docs/PRODUCT.md",
   "docs/NOW.md",
   "docs/agent-workflows/**",
