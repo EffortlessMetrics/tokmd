@@ -51,11 +51,11 @@ jobs:
             --github-summary "$GITHUB_STEP_SUMMARY" \
             --enforce
 
-      - name: Upload PR plan
-        if: always()
+      - name: Upload PR plan (failure only)
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: pr-plan
           path: target/ci/ci-plan.json
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 7

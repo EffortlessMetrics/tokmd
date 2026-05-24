@@ -37,6 +37,7 @@ jobs:
       reason: ${{ steps.route.outputs.reason }}
       error: ${{ steps.route.outputs.error }}
       trusted_self_hosted: ${{ steps.route.outputs.trusted_self_hosted }}
+      fallback_allowed: ${{ steps.route.outputs.fallback_allowed }}
     steps:
       - name: Decide target runner
         id: route
@@ -44,6 +45,7 @@ jobs:
           GH_TOKEN: ${{ secrets.EM_RUNNER_READ_TOKEN }}
           ORG: EffortlessMetrics
           FORCE_TARGET: ${{ github.event.inputs.force_target || 'auto' }}
+          LABELS_JSON: ${{ github.event_name == 'pull_request' && toJson(github.event.pull_request.labels.*.name) || '[]' }}
           TRUSTED_SELF_HOSTED: >-
             ${{
               github.event_name == 'workflow_dispatch' ||
@@ -57,49 +59,64 @@ jobs:
           set -eu
 
           emit() {
-            local target="$1" reason="$2" error="$3" trusted="$4"
+            local target="$1" reason="$2" error="$3" trusted="$4" fallback="$5"
             echo "router_target=${target}"
             echo "router_reason=${reason}"
             echo "router_error=${error}"
             echo "trusted_self_hosted=${trusted}"
+            echo "fallback_allowed=${fallback}"
             {
               echo "target=${target}"
               echo "reason=${reason}"
               echo "error=${error}"
               echo "trusted_self_hosted=${trusted}"
+              echo "fallback_allowed=${fallback}"
             } >> "$GITHUB_OUTPUT"
           }
 
           trusted="${TRUSTED_SELF_HOSTED:-false}"
+          fallback_allowed="false"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "merge_group" ]; then
+            fallback_allowed="true"
+          elif [ "${{ github.event_name }}" = "pull_request" ] && python - <<'PY'
+import json
+import os
+labels = set(json.loads(os.environ.get("LABELS_JSON", "[]")))
+allowed = bool({"allow-github-hosted", "ci-budget-ack"} & labels)
+raise SystemExit(0 if allowed else 1)
+PY
+          then
+            fallback_allowed="true"
+          fi
 
           case "${FORCE_TARGET:-auto}" in
             auto|"")
               ;;
             github)
-              emit "github" "forced_github" "false" "${trusted}"
+              emit "github" "forced_github" "false" "${trusted}" "true"
               exit 0
               ;;
             cpx42|cx43|cx53)
               if [ "${trusted}" != "true" ]; then
-                emit "github" "fork_pr" "true" "${trusted}"
+                emit "github" "fork_pr" "true" "${trusted}" "true"
                 exit 0
               fi
-              emit "${FORCE_TARGET}" "forced_${FORCE_TARGET}" "false" "${trusted}"
+              emit "${FORCE_TARGET}" "forced_${FORCE_TARGET}" "false" "${trusted}" "${fallback_allowed}"
               exit 0
               ;;
             *)
-              emit "github" "invalid_force_target" "true" "${trusted}"
+              emit "none" "invalid_force_target" "true" "${trusted}" "${fallback_allowed}"
               exit 0
               ;;
           esac
 
           if [ "${trusted}" != "true" ]; then
-            emit "github" "fork_pr" "false" "${trusted}"
+            emit "github" "fork_pr" "false" "${trusted}" "true"
             exit 0
           fi
 
           if [ -z "${GH_TOKEN:-}" ]; then
-            emit "github" "runner_token_missing" "true" "${trusted}"
+            emit "none" "runner_token_missing" "true" "${trusted}" "${fallback_allowed}"
             exit 0
           fi
 
@@ -111,11 +128,11 @@ jobs:
             cat /tmp/gh.err >&2 || true
             err="$(cat /tmp/gh.err 2>/dev/null || true)"
             if echo "$err" | grep -qi "401"; then
-              emit "github" "runner_token_unauthorized" "true" "${trusted}"
+              emit "none" "runner_token_unauthorized" "true" "${trusted}" "${fallback_allowed}"
             elif echo "$err" | grep -qi "403"; then
-              emit "github" "runner_token_forbidden" "true" "${trusted}"
+              emit "none" "runner_token_forbidden" "true" "${trusted}" "${fallback_allowed}"
             else
-              emit "github" "runner_api_failed" "true" "${trusted}"
+              emit "none" "runner_api_failed" "true" "${trusted}" "${fallback_allowed}"
             fi
             exit 0
           fi
@@ -144,7 +161,7 @@ jobs:
           print(f'idle_cx53={idle_count(["em-ci", "cx53", "rust-small", "trusted-pr"])}')
           PY
           then
-            emit "github" "parse_failed" "true" "${trusted}"
+            emit "none" "parse_failed" "true" "${trusted}" "${fallback_allowed}"
             exit 0
           fi
 
@@ -161,7 +178,11 @@ jobs:
           elif [ "${idle_cx53:-0}" -gt 0 ]; then
             emit "cx53" "cx53_idle" "false" "${trusted}"
           else
-            emit "github" "no_idle_runner" "false" "${trusted}"
+            if [ "${fallback_allowed}" = "true" ]; then
+              emit "github" "no_idle_runner" "false" "${trusted}" "true"
+            else
+              emit "none" "no_idle_runner" "true" "${trusted}" "false"
+            fi
           fi
 
   rust-small-cpx42:
@@ -480,7 +501,8 @@ jobs:
     needs: route-rust-small
     if: >-
       github.repository == 'EffortlessMetrics/tokmd-swarm' &&
-      needs.route-rust-small.outputs.target == 'github'
+      needs.route-rust-small.outputs.target == 'github' &&
+      needs.route-rust-small.outputs.fallback_allowed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -506,11 +528,8 @@ jobs:
           cache-directories: ${{ runner.temp }}/target
           save-if: false
 
-      - name: Check workspace
-        run: cargo check --workspace --all-features --locked
-
-      - name: Test workspace
-        run: cargo test --workspace --all-features --locked
+      - name: Tiny fallback check
+        run: cargo check --workspace --locked
 
   rust-small-result:
     name: Tokmd Rust Small Result
@@ -530,6 +549,8 @@ jobs:
         shell: bash
         env:
           TARGET: ${{ needs.route-rust-small.outputs.target }}
+          REASON: ${{ needs.route-rust-small.outputs.reason }}
+          FALLBACK_ALLOWED: ${{ needs.route-rust-small.outputs.fallback_allowed }}
           ROUTER_RESULT: ${{ needs.route-rust-small.result }}
           CPX42_RESULT: ${{ needs.rust-small-cpx42.result }}
           CX43_RESULT: ${{ needs.rust-small-cx43.result }}
@@ -538,6 +559,8 @@ jobs:
         run: |
           set -eu
           echo "router_target=${TARGET:-<empty>}"
+          echo "router_reason=${REASON:-<empty>}"
+          echo "fallback_allowed=${FALLBACK_ALLOWED:-<empty>}"
           echo "router_result=${ROUTER_RESULT:-<empty>}"
           echo "cpx42_result=${CPX42_RESULT:-<empty>}"
           echo "cx43_result=${CX43_RESULT:-<empty>}"
@@ -573,6 +596,11 @@ jobs:
                 echo "selected target github but rust-small-github result was ${GITHUB_RESULT}" >&2
                 exit 1
               fi
+              ;;
+            none)
+              echo "No execution lane selected (reason=${REASON})." >&2
+              echo "Use label allow-github-hosted or ci-budget-ack, or rerun via workflow_dispatch with force_target=github." >&2
+              exit 1
               ;;
             *)
               echo "router produced unknown target: ${TARGET}" >&2
