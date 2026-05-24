@@ -182,7 +182,9 @@ fn proof_policy_includes_current_product_scopes() {
         .filter_map(toml::Value::as_str)
         .collect::<BTreeSet<_>>();
 
+    assert!(project_truth_paths.contains("CONTRIBUTING.md"));
     assert!(project_truth_paths.contains("docs/agent-workflows/**"));
+    assert!(project_truth_paths.contains("docs/contributor-guide.md"));
     assert!(project_truth_paths.contains("docs/ROADMAP.md"));
 
     let doc_artifacts_policy = scopes

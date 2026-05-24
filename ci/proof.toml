@@ -1161,8 +1161,10 @@ coverage = false
 name = "project_truth_docs"
 kind = "non_rust"
 paths = [
+  "CONTRIBUTING.md",
   "ROADMAP.md",
   "tokmd-role.md",
+  "docs/contributor-guide.md",
   "docs/ROADMAP.md",
   "docs/PRODUCT.md",
   "docs/NOW.md",

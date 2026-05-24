@@ -4,6 +4,11 @@ Thank you for your interest in contributing to `tokmd`! This project aims to be 
 
 Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+If you are making a first contribution, start with the short
+[Contributor Guide](docs/contributor-guide.md). This file remains the full
+reference for setup, testing, hooks, repository structure, and release
+guidance.
+
 ## Development Setup
 
 ### Nix (recommended)
