@@ -45,7 +45,7 @@ jobs:
           GH_TOKEN: ${{ secrets.EM_RUNNER_READ_TOKEN }}
           ORG: EffortlessMetrics
           FORCE_TARGET: ${{ github.event.inputs.force_target || 'auto' }}
-          LABELS_JSON: ${{ github.event_name == 'pull_request' && toJson(github.event.pull_request.labels.*.name) || '[]' }}
+          LABELS_JSON: ${{ github.event_name == 'pull_request' && toJson(github.event.pull_request.labels) || '[]' }}
           TRUSTED_SELF_HOSTED: >-
             ${{
               github.event_name == 'workflow_dispatch' ||
@@ -81,7 +81,11 @@ jobs:
           elif [ "${{ github.event_name }}" = "pull_request" ] && python - <<'PY'
 import json
 import os
-labels = set(json.loads(os.environ.get("LABELS_JSON", "[]")))
+raw_labels = json.loads(os.environ.get("LABELS_JSON", "[]"))
+labels = {
+    label.get("name") if isinstance(label, dict) else str(label)
+    for label in raw_labels
+}
 allowed = bool({"allow-github-hosted", "ci-budget-ack"} & labels)
 raise SystemExit(0 if allowed else 1)
 PY
@@ -172,11 +176,11 @@ PY
           echo "idle_cx53=${idle_cx53:-0}"
 
           if [ "${idle_cpx42:-0}" -gt 0 ]; then
-            emit "cpx42" "cpx42_idle" "false" "${trusted}"
+            emit "cpx42" "cpx42_idle" "false" "${trusted}" "${fallback_allowed}"
           elif [ "${idle_cx43:-0}" -gt 0 ]; then
-            emit "cx43" "cx43_idle" "false" "${trusted}"
+            emit "cx43" "cx43_idle" "false" "${trusted}" "${fallback_allowed}"
           elif [ "${idle_cx53:-0}" -gt 0 ]; then
-            emit "cx53" "cx53_idle" "false" "${trusted}"
+            emit "cx53" "cx53_idle" "false" "${trusted}" "${fallback_allowed}"
           else
             if [ "${fallback_allowed}" = "true" ]; then
               emit "github" "no_idle_runner" "false" "${trusted}" "true"
