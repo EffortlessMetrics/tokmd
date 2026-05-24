@@ -24,7 +24,7 @@ env:
 jobs:
   fuzz:
     name: Fuzz Targets
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     strategy:
       fail-fast: false

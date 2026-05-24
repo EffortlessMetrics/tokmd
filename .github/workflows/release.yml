@@ -15,7 +15,7 @@ jobs:
   build-release:
     name: Build Release
     if: github.repository == 'EffortlessMetrics/tokmd'
-    runs-on: ${{ matrix.os }}
+    runs-on: self-hosted
     strategy:
       matrix:
         include:
@@ -78,7 +78,7 @@ jobs:
   build-wasm:
     name: Build tokmd-wasm Artifact
     if: github.repository == 'EffortlessMetrics/tokmd'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - name: Set up Rust
@@ -115,7 +115,7 @@ jobs:
       - build-release
       - build-wasm
     if: github.repository == 'EffortlessMetrics/tokmd'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
 
@@ -186,7 +186,7 @@ jobs:
     needs: create-release
     # Prerelease tags are distributed as GitHub Release assets only.
     if: ${{ github.repository == 'EffortlessMetrics/tokmd' && !contains(github.ref_name, '-') }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
@@ -203,7 +203,7 @@ jobs:
     needs: create-release
     # Stable-only: avoid moving Docker semver aliases for prerelease tags.
     if: ${{ github.repository == 'EffortlessMetrics/tokmd' && !contains(github.ref_name, '-') }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
 

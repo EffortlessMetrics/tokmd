@@ -14,7 +14,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       !contains(github.event.pull_request.title, '[skip-review]')
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     env:
       MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}

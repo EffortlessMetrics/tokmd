@@ -29,7 +29,7 @@ jobs:
   # in policy/ci-risk-packs.toml.
   detect:
     name: Detect risk packs
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       wasm: ${{ steps.detect.outputs.wasm }}
       nix: ${{ steps.detect.outputs.nix }}
@@ -70,7 +70,7 @@ jobs:
 
   msrv:
     name: MSRV Check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - name: Set up Rust (MSRV)
@@ -85,7 +85,7 @@ jobs:
 
   build:
     name: Build & Test (Linux)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v6.0.2
@@ -118,7 +118,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'windows') ||
       contains(github.event.pull_request.labels.*.name, 'full-ci') ||
       needs.detect.outputs.windows_path == 'true'
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v6.0.2
@@ -138,7 +138,7 @@ jobs:
   build-macos:
     name: Build & Test (macOS)
     if: github.event_name == 'push'
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v6.0.2
@@ -158,7 +158,7 @@ jobs:
 
   feature-boundaries:
     name: Feature Boundaries
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -182,7 +182,7 @@ jobs:
 
   proof-policy:
     name: Proof Policy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -195,7 +195,7 @@ jobs:
   affected-plan:
     name: Affected Proof Plan
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
         with:
@@ -275,7 +275,7 @@ jobs:
   fast-proof-run:
     name: Fast Proof Run (Advisory)
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
 
@@ -412,7 +412,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'wasm') ||
       contains(github.event.pull_request.labels.*.name, 'full-ci') ||
       needs.detect.outputs.wasm == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -446,7 +446,7 @@ jobs:
 
   gate:
     name: Quality Gate
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -466,7 +466,7 @@ jobs:
 
   deny:
     name: Cargo Deny
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: taiki-e/install-action@v2
@@ -479,7 +479,7 @@ jobs:
 
   typos:
     name: Typos
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: crate-ci/typos@v1
@@ -493,7 +493,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'full-ci') ||
       needs.detect.outputs.core_receipts == 'true' ||
       needs.detect.outputs.analysis == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -510,7 +510,7 @@ jobs:
 
   publish-plan:
     name: Publish Surface
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -524,7 +524,7 @@ jobs:
 
   version-consistency:
     name: Version consistency
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -533,7 +533,7 @@ jobs:
 
   docs-check:
     name: Docs Check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: dtolnay/rust-toolchain@stable
@@ -594,7 +594,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'full-ci') ||
       needs.detect.outputs.nix == 'true' ||
       needs.detect.outputs.release == 'true')
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 60
     permissions:
       contents: read
@@ -621,7 +621,7 @@ jobs:
 
   mutation:
     name: Mutation Testing
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     # Runtime mutation testing moves to label/push-to-main so ordinary
     # PRs don't pay 45 LEM by default. PR 11 adds an advisory `ripr`
     # job that gives mutation-testing-lite signal at static-analysis
@@ -719,7 +719,7 @@ jobs:
 
   ci-required:
     name: CI (Required)
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: always()
     needs:
       - detect

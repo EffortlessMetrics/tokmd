@@ -30,7 +30,7 @@ jobs:
   route-rust-small:
     name: Route Tokmd Rust Small
     if: github.repository == 'EffortlessMetrics/tokmd-swarm'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
     outputs:
       target: ${{ steps.route.outputs.target }}
@@ -507,7 +507,7 @@ jobs:
       github.repository == 'EffortlessMetrics/tokmd-swarm' &&
       needs.route-rust-small.outputs.target == 'github' &&
       needs.route-rust-small.outputs.fallback_allowed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 120
     env:
       CARGO_INCREMENTAL: "0"
@@ -546,7 +546,7 @@ jobs:
     if: >-
       always() &&
       github.repository == 'EffortlessMetrics/tokmd-swarm'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
     steps:
       - name: Evaluate router and selected target

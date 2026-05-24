@@ -21,7 +21,7 @@ env:
 jobs:
   check-no-panic-family:
     name: No-panic Family
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v6.0.2
 
