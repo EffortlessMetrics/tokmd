@@ -40,6 +40,109 @@ publication merge. When a failed Nix full run is rerun, also record the run
 same run ID, so an in-progress later attempt is different evidence from the
 earlier failed attempt.
 
+
+## Codex CI-efficiency compatibility invariants
+
+When drafting CI-efficiency PRs, treat this section as hard compatibility policy.
+
+### 1) Concurrency semantics are lane-specific
+
+Do not apply one concurrency recipe across every workflow. A CI-efficiency PR
+must preserve the cancellation model for the lane it edits:
+
+| Workflow class | Expected cancellation model |
+| --- | --- |
+| Core PR workflows | Cancel superseded `synchronize` runs, but do not cancel label/open/reopen runs. |
+| Routed Rust Small frontdoor | Cancel superseded route/result runs; only the newest route can satisfy the required check. |
+| Publication side validation | Treat runs as commit-scoped evidence keyed by `headSha`; do not collapse older publication evidence into the newest commit. |
+
+Do not submit generic efficiency edits that flip workflows to plain
+`cancel-in-progress: true`, plain `false`, or a new group key without explaining
+which lane class is changing and why the evidence semantics still hold.
+
+### 2) Change classification before lane selection
+
+Do not treat every changed path as Rust input. Control-plane and metadata edits
+must route to light validation paths unless mixed with real Rust/build/test
+changes.
+
+Paths that are docs/control-plane light by default:
+
+- `docs/**`, `*.md`, `README*`, `CHANGELOG*`, `SECURITY*`, `CONTRIBUTING*`
+- `policy/**`, `plans/**`, `badges/**`, `AGENTS.md`
+- `.github/CODEOWNERS`, `.github/dependabot.yml`, PR templates
+- `.codex/campaigns/**`, `docs/tracking/**`, `ci/hardware/**` receipts
+- `.rails/**`, `.uselesskey/**`
+
+Workflow edits are special:
+
+- `.github/workflows/**` must not be routed as docs-light.
+- Route workflow-only changes to minimal hosted workflow/YAML validation,
+  not full Rust CI unless required.
+
+### 3) Default PR routing policy
+
+Default PR CI proposals should classify first, then choose the cheapest truthful
+lane the current required-check policy can support:
+
+- docs/control-plane-only → avoid Rust compile only after the aggregate required
+  check still has truthful replacement evidence
+- workflow-only → hosted workflow validation only
+- Rust/build/test changes → routed Rust-small
+- hardware/GPU/receipt-only → syntax/receipt validation only
+- unknown or mixed → Rust-small (not full CI)
+
+Full CI requires explicit intent (labels, manual dispatch, merge queue, release,
+main push, or schedule according to workflow policy).
+
+### 4) Hosted fallback guardrails
+
+Do not silently replace a self-hosted Rust-small route with a full
+GitHub-hosted equivalent.
+
+- Fork PRs may use a tiny hosted safe lane.
+- Missing runner readiness, transient token failures, or no idle runner must not
+  automatically trigger a 75–120 minute hosted lane.
+- Require explicit labels/inputs for expensive hosted fallback (for example
+  `full-ci`, `allow-github-hosted`, `ci-budget-ack`).
+
+### 5) Artifact cost policy
+
+Do not upload large receipts/JUnit/log artifacts on every default PR run unless
+merge policy requires them.
+
+- Prefer upload-on-failure.
+- Keep retention short (typically 3–7 days).
+- Keep policy-required receipts small, and skip uploads for docs/control-plane
+  only paths whenever possible.
+
+### 6) Required validation for CI-only PRs
+
+Every CI-efficiency PR must include evidence for:
+
+- `git diff --check`
+- YAML parse check for each edited workflow
+- classification dry-run or shell-unit coverage for:
+  - docs-only
+  - `.rails/**`
+  - `.uselesskey/**`
+  - workflow-file change
+  - Rust-file change
+  - mixed docs + Rust
+- explicit confirmation that each edited workflow preserved its lane-specific
+  concurrency semantics, unless the change intentionally updates that policy
+
+### Reviewer reject checklist
+
+Reject CI-efficiency PRs unless all answers are "yes":
+
+1. Edited workflows preserve their documented concurrency semantics.
+2. Metadata/control-plane-only edits avoid unnecessary Rust CI, or the PR
+   explains why the current required aggregate still runs it.
+3. Workflow edits are kept out of docs-light routing.
+4. No silent expensive hosted fallback was introduced.
+5. The change reduces actual billable work instead of shifting cost.
+
 ## Run status polling
 
 For agent-run CI triage, prefer bounded status snapshots over long
