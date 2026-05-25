@@ -48,7 +48,7 @@ serde_json.workspace = true
 globset = { version = "0.4.18", optional = true }
 regex = { version = "1.12.3", optional = true }
 rustc-hash = { version = "2", optional = true }
-tree-sitter = { version = "0.26.8", optional = true }
+tree-sitter = { version = "0.26.9", optional = true }
 tree-sitter-rust = { version = "0.24.2", optional = true }
 
 # Core contracts
