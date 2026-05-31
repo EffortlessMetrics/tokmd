@@ -718,7 +718,7 @@ fn percentile(samples: &[f64], p: f64) -> f64 {
 }
 
 /// Walk a directory of past `ci-actuals.json` artifacts and collect per-job
-/// `actual_seconds` samples keyed by job id. Files that fail to parse are
+/// `duration_seconds` samples keyed by job id. Files that fail to parse are
 /// skipped — actuals are advisory.
 fn load_actuals(dir: &Path) -> Result<BTreeMap<String, Vec<f64>>> {
     let mut by_job: BTreeMap<String, Vec<f64>> = BTreeMap::new();
@@ -754,7 +754,7 @@ fn load_actuals(dir: &Path) -> Result<BTreeMap<String, Vec<f64>>> {
         for job in jobs {
             let (Some(name), Some(seconds)) = (
                 job.get("name").and_then(|v| v.as_str()),
-                job.get("actual_seconds").and_then(|v| v.as_f64()),
+                actual_duration_seconds(job),
             ) else {
                 continue;
             };
@@ -765,6 +765,12 @@ fn load_actuals(dir: &Path) -> Result<BTreeMap<String, Vec<f64>>> {
         }
     }
     Ok(by_job)
+}
+
+fn actual_duration_seconds(job: &serde_json::Value) -> Option<f64> {
+    job.get("duration_seconds")
+        .or_else(|| job.get("actual_seconds"))
+        .and_then(|v| v.as_f64())
 }
 
 fn classify_band(lem: u64, budget: Budget) -> &'static str {
@@ -1087,6 +1093,39 @@ mod tests {
         assert!(sel.estimated_lem >= 11);
         assert_eq!(sel.estimate_source, "learned-p50");
         assert!(sel.learned_p50_lem.is_some());
+    }
+
+    #[test]
+    fn load_actuals_consumes_ci_actuals_duration_seconds() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let path = temp.path().join("ci-actuals.json");
+        fs::write(
+            &path,
+            serde_json::to_string_pretty(&serde_json::json!({
+                "schema": "tokmd.ci_actuals.v1",
+                "jobs": [
+                    {"name": "build_test_linux", "duration_seconds": 600.0},
+                    {"name": "legacy_lane", "actual_seconds": 120.0},
+                    {"name": "zero_lane", "duration_seconds": 0.0},
+                    {"name": "missing_lane"}
+                ]
+            }))
+            .expect("serialize fixture"),
+        )
+        .expect("write fixture");
+
+        let actuals = load_actuals(temp.path()).expect("load actuals");
+
+        assert_eq!(actuals["build_test_linux"], vec![600.0]);
+        assert_eq!(actuals["legacy_lane"], vec![120.0]);
+        assert!(
+            !actuals.contains_key("zero_lane"),
+            "zero-duration samples should not seed learned estimates"
+        );
+        assert!(
+            !actuals.contains_key("missing_lane"),
+            "missing-duration jobs should not seed learned estimates"
+        );
     }
 
     #[test]

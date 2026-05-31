@@ -2,7 +2,7 @@
 
 `cargo xtask ci-plan` can consume past `ci-actuals.json` artifacts when
 `--actuals-dir <DIR>` is provided. The planner walks the directory, collects
-`actual_seconds` per job id, and computes:
+`duration_seconds` per job id, and computes:
 
 ```text
 estimate     = max(static_floor, p50_recent_actual × 1.15)
@@ -45,6 +45,9 @@ history across runs, copy artifacts into a long-lived store (for example, an
 object bucket or an ad-hoc nightly that aggregates recent runs) and pass that
 local cache as `--actuals-dir`.
 
+The planner also accepts legacy cached artifacts that used `actual_seconds`,
+but the Rust-owned `ci-actuals` receipt writes `duration_seconds`.
+
 The first calibration window is intentionally small: a handful of
 runs is enough to start beating the static floor on lanes that vary
 significantly with cache state.
@@ -52,7 +55,7 @@ significantly with cache state.
 ## Outliers
 
 The current model uses simple sorted-rank percentiles. A failed run
-contributes `actual_seconds == 0`, which `load_actuals` filters out, so
+contributes `duration_seconds == 0`, which `load_actuals` filters out, so
 failures don't drag percentiles down. A pathological cold-cache run
 contributes a high p95 — that's intentional; reviewers should see the
 real worst-case.
