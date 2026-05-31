@@ -57,10 +57,11 @@ pr_plan_advisory             1
 ripr_advisory                2
 scoped_coverage_executor_non_required 12
 ci_required                  1
+no_bare_self_hosted          1
 tokmd_rust_small_route       1
 tokmd_rust_small_result     20
                           ----
-                           113   tokmd-swarm default PR (was ~203)
+                           114   tokmd-swarm default PR (was ~203)
 ```
 
 That remains below the hard override ceiling, but it is intentionally reported

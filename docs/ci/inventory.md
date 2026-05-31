@@ -27,6 +27,7 @@ companion to `policy/ci-lane-whitelist.toml`. Update on rollout PRs.
 | `ripr_advisory` | ripr (advisory) | ubuntu | 2 | Static oracle-gap signal. |
 | `scoped_coverage_executor_non_required` | Scoped Coverage Executor (Non-Required) | ubuntu | 12 | Advisory proof executor. |
 | `ci_required` | CI (Required) | ubuntu | 1 | Aggregator. |
+| `no_bare_self_hosted` | No Bare Self-Hosted Routing | ubuntu | 1 | Runner routing policy guard. |
 | `tokmd_rust_small_route` | Route Tokmd Rust Small | ubuntu | 1 | Swarm route selector. |
 | `tokmd_rust_small_result` | Tokmd Rust Small Result | ubuntu | 20 | Aggregate budget for one selected routed implementation. |
 
@@ -83,10 +84,11 @@ pr_plan_advisory            1
 ripr_advisory               2
 scoped_coverage_executor_non_required  12
 ci_required                 1
+no_bare_self_hosted         1
 tokmd_rust_small_route      1
 tokmd_rust_small_result    20
                           ----
-                           113  (high-cost band; below hard override ceiling)
+                           114  (high-cost band; below hard override ceiling)
 ```
 
 Expensive Windows, WASM, Nix, mutation, proptest, and coverage lanes are now

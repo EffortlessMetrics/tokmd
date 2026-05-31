@@ -1245,12 +1245,12 @@ mod tests {
 
     #[test]
     fn budget_annotation_messages_high_cost_asks_for_ack_not_override() {
-        let plan = plan_for_budget("high-cost", 113, Vec::new());
+        let plan = plan_for_budget("high-cost", 114, Vec::new());
 
         let messages = budget_annotation_messages(&plan);
 
         assert_eq!(messages.len(), 1);
-        assert!(messages[0].contains("::warning::PR plan estimated 113 LEM"));
+        assert!(messages[0].contains("::warning::PR plan estimated 114 LEM"));
         assert!(messages[0].contains("ci-budget-ack"));
         assert!(!messages[0].contains("ci-budget-override"));
         assert!(!budget_requires_override(&plan));
@@ -1258,7 +1258,7 @@ mod tests {
 
     #[test]
     fn budget_annotation_messages_high_cost_ack_suppresses_warning() {
-        let plan = plan_for_budget("high-cost", 113, vec!["ci-budget-ack".to_string()]);
+        let plan = plan_for_budget("high-cost", 114, vec!["ci-budget-ack".to_string()]);
 
         let messages = budget_annotation_messages(&plan);
 
