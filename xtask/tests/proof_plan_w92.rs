@@ -487,6 +487,42 @@ fn ci_workflow_keeps_pr_docs_evidence_routable() {
 }
 
 #[test]
+fn routed_rust_small_result_uploads_normalized_receipt() {
+    let workflow =
+        fs::read_to_string(workspace_root().join(".github/workflows/em-routed-rust-small.yml"))
+            .expect("routed Rust Small workflow should be readable");
+
+    assert!(
+        workflow.contains("target/ci/routed-rust-small-result.json"),
+        "routed result job should write a stable JSON receipt"
+    );
+    assert!(
+        workflow.contains("\"schema\": \"tokmd.routed_rust_small_result.v1\""),
+        "routed result receipt should have a stable schema"
+    );
+    assert!(
+        workflow.contains("\"selected\": {"),
+        "routed result receipt should record the selected implementation"
+    );
+    assert!(
+        workflow.contains("python -m json.tool target/ci/routed-rust-small-result.json"),
+        "routed result job should validate the receipt as JSON"
+    );
+    assert!(
+        workflow.contains("name: routed-rust-small-result"),
+        "routed result job should upload the receipt with a stable artifact name"
+    );
+    assert!(
+        workflow.contains("if-no-files-found: error"),
+        "missing routed result receipt should fail artifact upload"
+    );
+    assert!(
+        workflow.contains("Receipt: `target/ci/routed-rust-small-result.json`"),
+        "step summary should point reviewers to the routed result receipt"
+    );
+}
+
+#[test]
 fn proof_plan_json_writes_plan_report_artifact() {
     let root = workspace_root();
     let path = root

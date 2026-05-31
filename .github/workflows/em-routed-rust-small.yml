@@ -579,6 +579,8 @@ jobs:
           GITHUB_RESULT: ${{ needs.rust-small-github.result }}
         run: |
           set -eu
+          mkdir -p target/ci
+
           echo "router_target=${TARGET:-<empty>}"
           echo "router_reason=${REASON:-<empty>}"
           echo "fallback_allowed=${FALLBACK_ALLOWED:-<empty>}"
@@ -588,45 +590,145 @@ jobs:
           echo "cx53_result=${CX53_RESULT:-<empty>}"
           echo "github_result=${GITHUB_RESULT:-<empty>}"
 
+          ok="false"
+          status="failure"
+          selected_result=""
+          selected_job=""
+          message=""
+
           if [ "${ROUTER_RESULT}" != "success" ]; then
-            echo "router job did not succeed; failing normalized result" >&2
-            exit 1
+            message="router job did not succeed; failing normalized result"
+          else
+            case "${TARGET}" in
+              cpx42)
+                selected_job="rust-small-cpx42"
+                selected_result="${CPX42_RESULT}"
+                ;;
+              cx43)
+                selected_job="rust-small-cx43"
+                selected_result="${CX43_RESULT}"
+                ;;
+              cx53)
+                selected_job="rust-small-cx53"
+                selected_result="${CX53_RESULT}"
+                ;;
+              github)
+                selected_job="rust-small-github"
+                selected_result="${GITHUB_RESULT}"
+                ;;
+              none)
+                selected_job="none"
+                selected_result="none"
+                message="No execution lane selected (reason=${REASON}). Use label allow-github-hosted or ci-budget-ack, or rerun via workflow_dispatch with force_target=github."
+                ;;
+              *)
+                selected_job="unknown"
+                selected_result="unknown"
+                message="router produced unknown target: ${TARGET}"
+                ;;
+            esac
+
+            if [ "${selected_result}" = "success" ]; then
+              ok="true"
+              status="success"
+              message="selected target ${TARGET} succeeded"
+            elif [ "${selected_job}" != "none" ] && [ "${selected_job}" != "unknown" ]; then
+              message="selected target ${TARGET} but ${selected_job} result was ${selected_result}"
+            fi
           fi
 
-          case "${TARGET}" in
-            cpx42)
-              if [ "${CPX42_RESULT}" != "success" ]; then
-                echo "selected target cpx42 but rust-small-cpx42 result was ${CPX42_RESULT}" >&2
-                exit 1
-              fi
-              ;;
-            cx43)
-              if [ "${CX43_RESULT}" != "success" ]; then
-                echo "selected target cx43 but rust-small-cx43 result was ${CX43_RESULT}" >&2
-                exit 1
-              fi
-              ;;
-            cx53)
-              if [ "${CX53_RESULT}" != "success" ]; then
-                echo "selected target cx53 but rust-small-cx53 result was ${CX53_RESULT}" >&2
-                exit 1
-              fi
-              ;;
-            github)
-              if [ "${GITHUB_RESULT}" != "success" ]; then
-                echo "selected target github but rust-small-github result was ${GITHUB_RESULT}" >&2
-                exit 1
-              fi
-              ;;
-            none)
-              echo "No execution lane selected (reason=${REASON})." >&2
-              echo "Use label allow-github-hosted or ci-budget-ack, or rerun via workflow_dispatch with force_target=github." >&2
-              exit 1
-              ;;
-            *)
-              echo "router produced unknown target: ${TARGET}" >&2
-              exit 1
-              ;;
-          esac
+          export ROUTER_TARGET="${TARGET:-}"
+          export ROUTER_REASON="${REASON:-}"
+          export ROUTER_FALLBACK_ALLOWED="${FALLBACK_ALLOWED:-}"
+          export ROUTER_RESULT="${ROUTER_RESULT:-}"
+          export SELECTED_JOB="${selected_job}"
+          export SELECTED_RESULT="${selected_result}"
+          export RESULT_OK="${ok}"
+          export RESULT_STATUS="${status}"
+          export RESULT_MESSAGE="${message}"
+          export CPX42_RESULT="${CPX42_RESULT:-}"
+          export CX43_RESULT="${CX43_RESULT:-}"
+          export CX53_RESULT="${CX53_RESULT:-}"
+          export GITHUB_RESULT="${GITHUB_RESULT:-}"
 
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def env(name, default=""):
+              return os.environ.get(name, default)
+
+          receipt = {
+              "schema": "tokmd.routed_rust_small_result.v1",
+              "schema_version": 1,
+              "ok": env("RESULT_OK") == "true",
+              "status": env("RESULT_STATUS", "failure"),
+              "message": env("RESULT_MESSAGE"),
+              "router": {
+                  "target": env("ROUTER_TARGET"),
+                  "reason": env("ROUTER_REASON"),
+                  "fallback_allowed": env("ROUTER_FALLBACK_ALLOWED"),
+                  "result": env("ROUTER_RESULT"),
+              },
+              "selected": {
+                  "job": env("SELECTED_JOB"),
+                  "result": env("SELECTED_RESULT"),
+              },
+              "jobs": {
+                  "cpx42": env("CPX42_RESULT"),
+                  "cx43": env("CX43_RESULT"),
+                  "cx53": env("CX53_RESULT"),
+                  "github": env("GITHUB_RESULT"),
+              },
+              "run": {
+                  "event": env("GITHUB_EVENT_NAME"),
+                  "run_id": env("GITHUB_RUN_ID"),
+                  "run_attempt": env("GITHUB_RUN_ATTEMPT"),
+                  "sha": env("GITHUB_SHA"),
+                  "ref": env("GITHUB_REF"),
+              },
+          }
+
+          path = Path("target/ci/routed-rust-small-result.json")
+          path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+          if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+            {
+              echo "## Tokmd Rust Small Result"
+              echo
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| status | \`${status}\` |"
+              echo "| target | \`${TARGET:-<empty>}\` |"
+              echo "| reason | \`${REASON:-<empty>}\` |"
+              echo "| selected job | \`${selected_job:-<empty>}\` |"
+              echo "| selected result | \`${selected_result:-<empty>}\` |"
+              echo "| fallback allowed | \`${FALLBACK_ALLOWED:-<empty>}\` |"
+              echo
+              echo 'Receipt: `target/ci/routed-rust-small-result.json`'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [ "${ok}" != "true" ]; then
+            echo "${message}" >&2
+            exit 1
+          fi
           echo "Tokmd Rust Small Result: success"
+
+      - name: Verify routed Rust Small result receipt
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s target/ci/routed-rust-small-result.json
+          python -m json.tool target/ci/routed-rust-small-result.json >/dev/null
+
+      - name: Upload routed Rust Small result receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: routed-rust-small-result
+          path: target/ci/routed-rust-small-result.json
+          if-no-files-found: error

@@ -418,6 +418,13 @@ Trigger a new route with a branch update or `workflow_dispatch` after applying
 the label. Do not treat the older failed aggregate as superseded until a newer
 `Tokmd Rust Small Result` succeeds for the same head.
 
+The aggregate result job writes and uploads
+`target/ci/routed-rust-small-result.json`. Use that receipt to inspect the
+router target, router reason, selected implementation job, selected result, and
+sibling job results for the same workflow run. The receipt is run evidence for
+the normalized routed check; it does not replace the selected implementation
+job log or authorize a fallback label for an older failed route.
+
 CPX42 uses the pinned Rust 1.95 toolchain directly on the host, with
 `/mnt/ci-scratch` `TMPDIR` prepared before the toolchain action runs. CX43 and
 CX53 keep their existing local `em-ci-rust:1.95` Docker execution path. CX43
