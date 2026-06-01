@@ -65,11 +65,18 @@ The review packet directory uses this stable layout:
   review-map.md
   proof/
     *.json
+  docs/
+    doc-artifacts-check.json
 ```
 
 `proof/` is present only when explicit proof artifacts are imported. Copied
 proof artifacts must use canonical packet-local paths and be listed in
 `manifest.json` with hashes.
+
+`docs/` is present only when explicit documentation-control artifacts are
+imported. The copied doc-artifacts check receipt uses
+`<packet>/docs/doc-artifacts-check.json` and is listed in `manifest.json` with
+hashes.
 
 `manifest.json` is the packet-local artifact index. It records generated-by
 metadata, base/head refs, packet-local artifact paths, schemas, media types,

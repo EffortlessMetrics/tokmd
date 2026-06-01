@@ -111,6 +111,8 @@ The review packet directory is:
     proof-run-observation.json
     proof-executor-observation.json
     coverage-receipt.json
+  docs/
+    doc-artifacts-check.json
 ```
 
 `review-map.json` and `review-map.md` are derived from the existing cockpit
@@ -124,6 +126,8 @@ source.
 The `proof/` directory is present only when explicit proof evidence artifacts
 are supplied. Missing optional proof artifacts are represented in evidence
 state instead of being silently assumed to have passed.
+The `docs/` directory is present only when explicit documentation-control
+evidence is supplied with `--doc-artifacts-check`.
 
 ## Artifacts
 
@@ -136,6 +140,7 @@ state instead of being silently assumed to have passed.
 | `review-map.json` | Machine-readable prioritized review plan with files, reasons, compact evidence status, evidence references, item-level proof references where imported proof directly matches the item path, and reproduction commands derived from `cockpit.json#/review_plan`. |
 | `review-map.md` | Human-readable review plan for artifact browsing and local review, including what to review first, which evidence is present or missing, and matching proof evidence lines when imported proof directly names the item path. |
 | `proof/*.json` | Optional packet-local copies of explicitly imported proof artifacts, listed and hash-verified through `manifest.json`. |
+| `<packet>/docs/doc-artifacts-check.json` | Optional packet-local copy of explicitly imported documentation-control evidence, listed and hash-verified through `manifest.json`. |
 
 Formal JSON Schemas are published with the docs and embedded in the CLI test
 package:
