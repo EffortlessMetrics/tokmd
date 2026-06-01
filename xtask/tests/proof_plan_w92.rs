@@ -587,12 +587,20 @@ fn coverage_workflow_preflights_route_before_expensive_coverage() {
         "coverage workflow should write the changed-file proof-pack route receipt"
     );
     assert!(
+        workflow.contains("name: Verify coverage route receipts"),
+        "coverage workflow should verify route receipts before expensive coverage"
+    );
+    assert!(
+        workflow.contains("Missing or empty coverage route receipt"),
+        "missing coverage route receipts should produce an actionable workflow error"
+    );
+    assert!(
         workflow.contains("name: coverage-route"),
         "coverage workflow should upload route receipts separately from coverage output"
     );
     assert!(
-        workflow.contains("if-no-files-found: warn"),
-        "route upload should not hide the original route-generation failure"
+        workflow.contains("if-no-files-found: error"),
+        "missing coverage route receipts should fail artifact upload"
     );
 }
 

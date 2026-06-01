@@ -95,6 +95,18 @@ jobs:
             --json-out target/ci/coverage-plan.json \
             --route-json-out target/ci/proof-pack-route.json
 
+      - name: Verify coverage route receipts
+        if: always()
+        run: |
+          status=0
+          for receipt in target/ci/coverage-plan.json target/ci/proof-pack-route.json; do
+            if [ ! -s "$receipt" ]; then
+              echo "::error::Missing or empty coverage route receipt: $receipt"
+              status=1
+            fi
+          done
+          exit "$status"
+
       - name: Upload coverage route receipts
         if: always()
         uses: actions/upload-artifact@v7
@@ -103,7 +115,7 @@ jobs:
           path: |
             target/ci/coverage-plan.json
             target/ci/proof-pack-route.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
 
       - name: Install cargo-llvm-cov

@@ -15,10 +15,11 @@ The coverage workflow runs on:
 
 Before installing `cargo-llvm-cov`, the workflow runs `cargo xtask ci-plan`
 with the same risk-pack manifest used by CI detect. That writes
-`target/ci/coverage-plan.json` and `target/ci/proof-pack-route.json`, then
-uploads them as the `coverage-route` artifact. Route incoherence fails before
-the expensive coverage run starts, and later coverage failures still have the
-changed-surface routing receipt attached.
+`target/ci/coverage-plan.json` and `target/ci/proof-pack-route.json`, verifies
+both are non-empty, then uploads them as the `coverage-route` artifact. Route
+incoherence or missing route receipts fail before the expensive coverage run
+starts, and later coverage failures still have the changed-surface routing
+receipt attached.
 
 Coverage execution uses Rust `1.92`, `cargo-llvm-cov`, `--workspace`,
 `--all-features`, and `--locked`.
