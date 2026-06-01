@@ -35,12 +35,12 @@ cargo xtask review-packet-check \
 
 Open first:
 
-1. `.tokmd/review/review-map.md`
-2. `.tokmd/review/comment.md`
+1. `.tokmd/review/comment.md`
+2. `.tokmd/review/review-map.md`
 3. `.tokmd/review/evidence.json`
 4. `target/tokmd/review-packet-check.json`
 
-This gives a review work order, packet summary, evidence state, and packet
+This gives a packet summary, review work order, evidence state, and packet
 verifier receipt. It is not a merge verdict.
 
 ## Plan CI Proof Evidence
