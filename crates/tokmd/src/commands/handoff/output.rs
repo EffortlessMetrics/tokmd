@@ -28,6 +28,7 @@ pub(super) struct HandoffLinkInputs<'a> {
     pub(super) review_packet_check: Option<&'a Path>,
     pub(super) affected: Option<&'a Path>,
     pub(super) proof_plan: Option<&'a Path>,
+    pub(super) proof_route: Option<&'a Path>,
 }
 
 pub(super) struct HandoffWorkOrderInputs<'a> {
@@ -129,13 +130,13 @@ pub(super) fn write_link_artifacts(
         )?);
     }
 
-    if links.affected.is_some() || links.proof_plan.is_some() {
+    if proof_links_present(links) {
         artifacts.push(write_json_artifact(
             out_dir,
             "proof-links",
             "proof-links.json",
-            "Linked affected-proof and proof-plan artifacts",
-            &proof_links_json(links.affected, links.proof_plan),
+            "Linked proof-route, affected-proof, and proof-plan artifacts",
+            &proof_links_json(links.affected, links.proof_plan, links.proof_route),
         )?);
     }
 
@@ -248,8 +249,10 @@ fn push_start_here_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
             "Use `review-links.json` for cockpit review packet and verifier receipt pointers.",
         );
     }
-    if links.affected.is_some() || links.proof_plan.is_some() {
-        steps.push("Use `proof-links.json` for affected-proof and proof-plan pointers.");
+    if proof_links_present(links) {
+        steps.push(
+            "Use `proof-links.json` for proof-route, affected-proof, and proof-plan pointers.",
+        );
     }
     for (index, step) in steps.iter().enumerate() {
         out.push_str(&format!("{}. {}\n", index + 1, step));
@@ -278,6 +281,49 @@ fn push_changed_surfaces_section(
     summary: &LinkedEvidenceSummary,
 ) {
     out.push_str("\n## Changed Surfaces\n\n");
+    if let Some(route) = &summary.proof_route {
+        out.push_str(&format!(
+            "- Proof route reports {} changed file(s), {} routed file(s), {} unmatched file(s), and {} skipped lane(s).\n",
+            route.changed_file_count,
+            route.routed_file_count,
+            route.unmatched_file_count,
+            route.skipped_lane_count
+        ));
+        if !route.surfaces.is_empty() {
+            out.push_str("- Routed surfaces: ");
+            out.push_str(&route.surfaces.join(", "));
+            out.push('\n');
+        }
+        if !route.first_changed_files.is_empty() {
+            out.push_str("- Routed files to inspect first:\n");
+            for file in &route.first_changed_files {
+                let packs = if file.proof_packs.is_empty() {
+                    "unknown".to_string()
+                } else {
+                    file.proof_packs.join(", ")
+                };
+                out.push_str(&format!(
+                    "  - `{}` -> `{}` ({})\n",
+                    file.path, file.surface, packs
+                ));
+            }
+            if route.routed_file_count > route.first_changed_files.len() {
+                out.push_str(&format!(
+                    "  - ... {} more routed file(s); open the proof route for the full list.\n",
+                    route.routed_file_count - route.first_changed_files.len()
+                ));
+            }
+        }
+        if !route.first_unmatched_files.is_empty() {
+            out.push_str("- Unmatched route files:\n");
+            for path in &route.first_unmatched_files {
+                out.push_str(&format!("  - `{path}`\n"));
+            }
+        }
+    } else if links.proof_route.is_some() {
+        out.push_str("- Proof route receipt is linked but not readable; regenerate or inspect `proof-links.json`.\n");
+    }
+
     if let Some(affected) = &summary.affected {
         out.push_str(&format!(
             "- Affected proof reports {} changed file(s), {} matched scope(s), and {} unknown file(s).\n",
@@ -315,6 +361,7 @@ fn push_linked_evidence_section(out: &mut String, links: &HandoffLinkInputs<'_>)
         "Review packet verifier receipt",
         links.review_packet_check,
     );
+    push_linked_path_line(out, "Proof route receipt", links.proof_route);
     push_linked_path_line(out, "Affected proof report", links.affected);
     push_linked_path_line(out, "Proof plan report", links.proof_plan);
 }
@@ -371,10 +418,25 @@ fn push_proof_expectations_section(
     summary: &LinkedEvidenceSummary,
 ) {
     out.push_str("\n## Proof Expectations\n\n");
-    if links.affected.is_none() && links.proof_plan.is_none() {
-        out.push_str("- Affected proof and proof plan: not linked.\n");
+    if !proof_links_present(links) {
+        out.push_str("- Proof route, affected proof, and proof plan: not linked.\n");
         out.push_str("- Do not claim scoped proof coverage from this handoff alone.\n");
         return;
+    }
+
+    if let Some(route) = &summary.proof_route {
+        out.push_str(&format!(
+            "- Proof route: {} routed file(s), {} unmatched file(s), {} skipped lane(s).\n",
+            route.routed_file_count, route.unmatched_file_count, route.skipped_lane_count
+        ));
+        if route.skipped_blocking_lanes > 0 {
+            out.push_str(&format!(
+                "- Proof route skipped {} blocking lane(s) by policy; do not treat them as executed proof.\n",
+                route.skipped_blocking_lanes
+            ));
+        }
+    } else if links.proof_route.is_some() {
+        out.push_str("- Proof route: linked but not readable.\n");
     }
 
     if let Some(affected) = &summary.affected {
@@ -407,7 +469,16 @@ fn push_proof_expectations_section(
         out.push_str("- Proof plan: linked but not readable.\n");
     }
 
-    out.push_str("- Treat proof plans as expectations until an executed proof receipt exists.\n");
+    if links.proof_plan.is_some() {
+        out.push_str(
+            "- Treat proof plans as expectations until an executed proof receipt exists.\n",
+        );
+    }
+    if links.proof_route.is_some() {
+        out.push_str(
+            "- Treat proof routes as selection and skip-policy receipts, not execution proof.\n",
+        );
+    }
 }
 
 fn push_missing_evidence_section(out: &mut String, summary: &LinkedEvidenceSummary) {
@@ -430,6 +501,23 @@ fn push_missing_evidence_section(out: &mut String, summary: &LinkedEvidenceSumma
             affected.unknown_files
         ));
         emitted = true;
+    }
+
+    if let Some(route) = &summary.proof_route {
+        if route.unmatched_file_count > 0 {
+            out.push_str(&format!(
+                "- Proof route has {} unmatched file(s); update CI route ownership before trusting scoped proof.\n",
+                route.unmatched_file_count
+            ));
+            emitted = true;
+        }
+        if route.skipped_lane_count > 0 {
+            out.push_str(&format!(
+                "- Proof route skipped {} lane(s) by policy; audit skipped reasons before claiming broader proof.\n",
+                route.skipped_lane_count
+            ));
+            emitted = true;
+        }
     }
 
     if !emitted {
@@ -493,6 +581,16 @@ fn push_agent_stop_conditions_section(
     {
         out.push_str("- Stop before claiming proof if affected routing still has unknown files.\n");
     }
+    if let Some(route) = &summary.proof_route {
+        if route.unmatched_file_count > 0 {
+            out.push_str(
+                "- Stop before claiming routed proof if proof-route receipt has unmatched files.\n",
+            );
+        }
+        if route.skipped_blocking_lanes > 0 {
+            out.push_str("- Stop before claiming full blocking proof until skipped blocking route lanes are run, label-requested, or explicitly deferred.\n");
+        }
+    }
     if links.proof_plan.is_some() {
         out.push_str("- Stop before claiming done until required proof commands are run or explicitly deferred.\n");
     }
@@ -542,8 +640,15 @@ fn review_links_json(
     })
 }
 
-fn proof_links_json(affected: Option<&Path>, proof_plan: Option<&Path>) -> Value {
+fn proof_links_json(
+    affected: Option<&Path>,
+    proof_plan: Option<&Path>,
+    proof_route: Option<&Path>,
+) -> Value {
     let mut artifacts = Vec::new();
+    if let Some(path) = proof_route {
+        artifacts.push(path_link("proof_route", path));
+    }
     if let Some(path) = affected {
         artifacts.push(path_link("affected", path));
     }
@@ -560,6 +665,10 @@ fn proof_links_json(affected: Option<&Path>, proof_plan: Option<&Path>) -> Value
             "integrity_source": "linked proof artifacts"
         }
     })
+}
+
+fn proof_links_present(links: &HandoffLinkInputs<'_>) -> bool {
+    links.affected.is_some() || links.proof_plan.is_some() || links.proof_route.is_some()
 }
 
 fn path_link(name: &str, path: &Path) -> Value {

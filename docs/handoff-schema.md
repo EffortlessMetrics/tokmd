@@ -55,8 +55,8 @@ Artifacts listed in `manifest.json`:
 - `code.txt`
 - `review-links.json` when `tokmd handoff` is given `--review-packet-dir` or
   `--review-packet-check`
-- `proof-links.json` when `tokmd handoff` is given `--affected` or
-  `--proof-plan`
+- `proof-links.json` when `tokmd handoff` is given `--proof-route`,
+  `--affected`, or `--proof-plan`
 
 Artifacts include size and optional hash. Hashing uses **blake3**.
 `work-order.md` is an agent-readable consumption guide generated from the

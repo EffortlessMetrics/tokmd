@@ -131,7 +131,7 @@ pub enum ContextOutput {
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    after_help = "Examples:\n  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k\n  tokmd handoff . --review-packet-dir .tokmd/review --proof-plan target/proof/proof-plan.json"
+    after_help = "Examples:\n  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k\n  tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json"
 )]
 pub struct HandoffArgs {
     /// Paths to scan (directories, files, or globs). Defaults to ".".
@@ -213,6 +213,10 @@ pub struct HandoffArgs {
     /// Link an existing proof-plan report from the handoff bundle.
     #[arg(long)]
     pub proof_plan: Option<PathBuf>,
+
+    /// Link an existing proof-pack route receipt from the handoff bundle.
+    #[arg(long)]
+    pub proof_route: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

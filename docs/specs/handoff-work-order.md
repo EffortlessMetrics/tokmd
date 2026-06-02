@@ -20,8 +20,9 @@ hash source for packet-local artifacts.
 
 The work order is not a proof verifier, merge verdict, release approval, or
 policy promotion surface. It may summarize adjacent review and proof receipts
-for triage, but the linked review-packet verifier, affected-proof receipt, and
-proof-plan receipt remain the evidence sources to inspect before claiming proof.
+for triage, but the linked review-packet verifier, proof-route receipt,
+affected-proof receipt, and proof-plan receipt remain the evidence sources to
+inspect before claiming proof.
 
 ## Inputs
 
@@ -30,7 +31,7 @@ The work order is generated from explicit handoff inputs:
 - the handoff manifest and selected bundle metadata;
 - included files, excluded paths, smart exclusions, and token-budget state;
 - optional `--review-packet-dir` and `--review-packet-check` inputs;
-- optional `--affected` and `--proof-plan` inputs;
+- optional `--proof-route`, `--affected`, and `--proof-plan` inputs;
 - best-effort readable summaries of linked review/proof receipts when supplied.
 
 Input paths recorded in the handoff bundle must be repo-relative or
@@ -51,7 +52,11 @@ content:
 - selected-file and bundle-scope summary;
 - changed-surface or relevant-source summary when available;
 - review evidence handles when review packet links are supplied;
+- proof-route, affected-proof, and proof-plan handles when proof links are
+  supplied;
 - proof expectations when affected/proof-plan links are supplied;
+- route ownership, unmatched route files, and skipped-by-policy lane counts
+  when a proof-route link is supplied;
 - missing, stale, degraded, skipped, or unavailable evidence as work to resolve;
 - agent stop conditions and boundaries;
 - pointers back to packet-local link artifacts when they exist.
@@ -72,7 +77,8 @@ Existing consumers can continue to read:
 - `.handoff/manifest.json` as the authoritative artifact index;
 - `.handoff/work-order.md` as the human agent brief;
 - `.handoff/review-links.json` for review packet handles;
-- `.handoff/proof-links.json` for affected/proof-plan handles;
+- `.handoff/proof-links.json` for proof-route, affected-proof, and proof-plan
+  handles;
 - linked review and proof receipts as their own evidence sources.
 
 Future changes that alter required work-order sections, link-artifact
@@ -100,6 +106,8 @@ handoff tests that prove:
 - plain handoffs include the reading order and guardrails;
 - linked review/proof handoffs include link handles without copying external
   receipts;
+- linked proof-route receipts are summarized as routing and skip-policy
+  evidence, not execution proof;
 - missing linked receipts are rendered as missing work, not passing proof;
 - advisory proof, Codecov upload, review verdicts, release mutation, and AST
   defaults remain unchanged.

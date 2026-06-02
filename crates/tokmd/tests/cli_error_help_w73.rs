@@ -232,7 +232,8 @@ fn help_handoff_mentions_practical_examples() {
         .stdout(
             predicate::str::contains("Examples:")
                 .and(predicate::str::contains("tokmd handoff"))
-                .and(predicate::str::contains("--review-packet-dir")),
+                .and(predicate::str::contains("--review-packet-dir"))
+                .and(predicate::str::contains("--proof-route")),
         );
 }
 

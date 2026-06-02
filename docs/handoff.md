@@ -59,6 +59,14 @@ For PR repair or review work in this repository, pair the handoff with cockpit
 and proof receipts:
 
 ```bash
+cargo xtask ci-plan \
+  --base origin/main \
+  --head HEAD \
+  --labels-json "[]" \
+  --json-out target/ci/ci-plan.json \
+  --route-json-out target/ci/proof-pack-route.json \
+  --no-budget-annotations
+
 cargo xtask affected \
   --base origin/main \
   --head HEAD \
@@ -87,6 +95,7 @@ tokmd handoff \
   --review-packet-check target/tokmd/review-packet-check.json \
   --affected target/proof/affected.json \
   --proof-plan target/proof/proof-plan.json \
+  --proof-route target/ci/proof-pack-route.json \
   --out-dir .handoff
 ```
 
@@ -99,13 +108,16 @@ Then give the agent the handoff plus the linked review evidence:
   commands.
 - `.tokmd/review/evidence.json` for available, missing, stale, degraded,
   skipped, and unavailable evidence.
+- `target/ci/proof-pack-route.json` for changed-file proof-pack routing,
+  unmatched files, skipped-by-policy lanes, and static or learned skipped-lane
+  estimate telemetry.
 - `target/proof/affected.json` for changed files and matched proof scopes.
 - `target/proof/proof-plan.json` for expected proof commands.
 - `target/tokmd/review-packet-check.json` for packet verification.
 - `.handoff/review-links.json` for packet-local pointers to the cockpit review
   packet and verifier receipt.
-- `.handoff/proof-links.json` for packet-local pointers to affected-proof and
-  proof-plan receipts.
+- `.handoff/proof-links.json` for packet-local pointers to proof-route,
+  affected-proof, and proof-plan receipts.
 
 ## Consuming Linked Evidence
 
@@ -131,10 +143,14 @@ has already verified everything:
    task for the agent, not passing proof.
 4. Use `.tokmd/review/review-map.md` for review order and reproduction
    commands.
-5. Use `target/proof/affected.json` to see which proof scopes matched the
+5. Use `target/ci/proof-pack-route.json` to see changed-file route ownership,
+   unmatched files, and skipped-by-policy lanes. A proof route is routing and
+   skip-policy evidence; it is not an execution result and skipped lanes are
+   not passing proof.
+6. Use `target/proof/affected.json` to see which proof scopes matched the
    change and `target/proof/proof-plan.json` to see expected commands. A proof
    plan is planned evidence; it is not an execution result.
-6. Keep the regenerated receipts with the repair so reviewers can follow the
+7. Keep the regenerated receipts with the repair so reviewers can follow the
    same handles from handoff to review packet to proof artifacts.
 
 The link artifacts do not copy, normalize, or verify external receipts. They
@@ -152,7 +168,7 @@ sources.
 ├── intelligence.json  # summary signals (payload-only)
 ├── code.txt           # token-budgeted code bundle
 ├── review-links.json  # optional linked cockpit review packet artifacts
-└── proof-links.json   # optional linked affected/proof-plan artifacts
+└── proof-links.json   # optional linked proof-route/affected/proof-plan artifacts
 ```
 
 ## Consumption Pattern

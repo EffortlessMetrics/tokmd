@@ -1086,6 +1086,9 @@ Options:
       --proof-plan <PROOF_PLAN>
           Link an existing proof-plan report from the handoff bundle
 
+      --proof-route <PROOF_ROUTE>
+          Link an existing proof-pack route receipt from the handoff bundle
+
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
@@ -1096,7 +1099,7 @@ Options:
 
 Examples:
   tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k
-  tokmd handoff . --review-packet-dir .tokmd/review --proof-plan target/proof/proof-plan.json
+  tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json
 ```
 <!-- /HELP: handoff -->
 
