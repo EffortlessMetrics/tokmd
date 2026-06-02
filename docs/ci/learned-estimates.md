@@ -14,9 +14,11 @@ The static floor in `policy/ci-lane-whitelist.toml :: base_lem` is the fallback
 when no actuals exist for a lane. This guarantees a brand-new lane never
 reports `0 LEM` because no calibration window has elapsed.
 
-The hosted PR Plan workflow currently uses static estimates because it does not
-provide `--actuals-dir`. Learned estimates are available to local or future
-hosted runs once a durable actuals cache is passed to the planner.
+The hosted PR Plan workflow uses a best-effort cache of recent successful
+`main` CI `ci-actuals` artifacts. When the cache download succeeds, PR Plan
+passes `--actuals-dir target/ci/actuals-cache` and reports learned estimate
+sources in the plan and route receipts. When no receipt is available, static
+`base_lem` estimates remain the fallback.
 
 ## Output
 
@@ -44,10 +46,11 @@ mean the lane executed, and they do not feed the learned-estimate cache.
 
 ## Storage
 
-`ci-actuals.json` can be emitted by `cargo xtask ci-actuals`. For durable
-history across runs, copy artifacts into a long-lived store (for example, an
-object bucket or an ad-hoc nightly that aggregates recent runs) and pass that
-local cache as `--actuals-dir`.
+`ci-actuals.json` can be emitted by `cargo xtask ci-actuals`. Hosted PR Plan
+currently uses recent successful `CI` artifacts from `main` as a small rolling
+cache. For longer durable history across runs, copy artifacts into a
+long-lived store (for example, an object bucket or an ad-hoc nightly that
+aggregates recent runs) and pass that local cache as `--actuals-dir`.
 
 The aggregate `CI (Required)` receipt records GitHub Actions `needs` keys such
 as `build`, `msrv`, `docs-check`, `mutation`, and `nix-pr`. The planner normalizes

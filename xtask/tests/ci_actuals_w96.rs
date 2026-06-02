@@ -281,6 +281,73 @@ fn ci_required_uploads_ci_actuals_before_status_check() {
 }
 
 #[test]
+fn pr_plan_downloads_ci_actuals_cache_before_planning() {
+    let workflow = fs::read_to_string(workspace_root().join(".github/workflows/pr-plan.yml"))
+        .expect("read PR Plan workflow");
+
+    assert!(
+        workflow.contains("permissions:\n  actions: read\n  contents: read\n  pull-requests: read"),
+        "PR Plan should request only read permissions needed to inspect prior CI actual artifacts"
+    );
+
+    let fetch_idx = workflow
+        .find("Fetch base ref")
+        .expect("fetch base step should exist");
+    let download_idx = workflow
+        .find("Download recent CI actuals cache")
+        .expect("actuals cache download step should exist");
+    let plan_idx = workflow
+        .find("Generate PR plan")
+        .expect("generate PR plan step should exist");
+    let verify_idx = workflow
+        .find("Verify PR plan receipts")
+        .expect("verify PR plan receipts step should exist");
+
+    assert!(
+        fetch_idx < download_idx && download_idx < plan_idx && plan_idx < verify_idx,
+        "PR Plan should fetch refs, download actuals cache, plan, then verify receipts"
+    );
+
+    let download_block = &workflow[download_idx..plan_idx];
+    let plan_block = &workflow[plan_idx..verify_idx];
+
+    assert!(download_block.contains("continue-on-error: true"));
+    assert!(
+        download_block.contains("GH_TOKEN: ${{ github.token }}"),
+        "actuals cache download should use the ephemeral workflow token"
+    );
+    assert!(
+        download_block.contains("target/ci/actuals-cache"),
+        "actuals cache should be local to target/ci"
+    );
+    assert!(
+        download_block
+            .contains("gh run list --workflow CI --branch main --status success --limit 5")
+            && download_block.contains("gh run download \"${run_id}\" --name ci-actuals"),
+        "PR Plan should read recent successful main CI actuals artifacts"
+    );
+    assert!(
+        download_block.contains("Downloaded ${count} CI actuals receipt(s)"),
+        "workflow summary should expose how many actuals receipts were available"
+    );
+    assert!(
+        download_block.contains("## CI actuals cache (advisory)")
+            && download_block.contains("Downloaded ${count} recent \\`ci-actuals\\` receipt(s)")
+            && download_block.contains("falls back to static \\`base_lem\\` estimates")
+            && download_block.contains(">> \"$GITHUB_STEP_SUMMARY\""),
+        "PR Plan step summary should make actuals-cache availability visible"
+    );
+
+    assert!(
+        plan_block.contains("actuals_args=()")
+            && plan_block.contains("if [ -d target/ci/actuals-cache ] && find target/ci/actuals-cache -name '*.json' -print -quit | grep -q .; then")
+            && plan_block.contains("actuals_args=(--actuals-dir target/ci/actuals-cache)")
+            && plan_block.contains("\"${actuals_args[@]}\""),
+        "ci-plan should receive --actuals-dir only when cached receipts exist"
+    );
+}
+
+#[test]
 fn ci_actuals_docs_explain_receipt_status_and_timing_semantics() {
     let root = workspace_root();
     let artifacts = fs::read_to_string(root.join("docs/artifacts.md"))
@@ -289,6 +356,10 @@ fn ci_actuals_docs_explain_receipt_status_and_timing_semantics() {
         .expect("CI actuals docs should be readable");
     let pr_plan = fs::read_to_string(root.join("docs/ci/pr-plan.md"))
         .expect("PR Plan docs should be readable");
+    let learned_estimates = fs::read_to_string(root.join("docs/ci/learned-estimates.md"))
+        .expect("learned estimates docs should be readable");
+    let budget_guard = fs::read_to_string(root.join("docs/ci/budget-guard.md"))
+        .expect("budget guard docs should be readable");
 
     assert!(
         artifacts.contains("Read CI actuals")
@@ -343,10 +414,51 @@ fn ci_actuals_docs_explain_receipt_status_and_timing_semantics() {
         "`cache_hit`",
         "They do not promote learned estimates",
         "`status.unused_timing` records timing sidecar entries",
+        "downloads recent successful `CI` run",
+        "`ci-actuals` artifacts from `main`",
+        "falls back to static `base_lem` values",
     ] {
         assert!(
             pr_plan.contains(text),
             "PR Plan docs should explain CI actuals reader guidance `{text}`"
+        );
+    }
+
+    for text in [
+        "best-effort cache of recent successful",
+        "passes `--actuals-dir target/ci/actuals-cache`",
+        "When no receipt is available",
+        "`base_lem` estimates remain the fallback",
+    ] {
+        assert!(
+            learned_estimates.contains(text),
+            "learned-estimates docs should explain hosted actuals-cache behavior `{text}`"
+        );
+    }
+
+    for text in [
+        "best-effort cache of recent successful `main` CI",
+        "When no cache receipt is available",
+        "the static floor is",
+        "the estimate",
+    ] {
+        assert!(
+            budget_guard.contains(text),
+            "budget guard docs should explain learned/static estimate fallback `{text}`"
+        );
+    }
+
+    for stale in [
+        "hosted PR Plan workflow currently uses static estimates",
+        "hosted PR Plan workflow currently uses static `base_lem`",
+        "must wire that directory in before hosted PRs use learned estimates",
+        "unless a future workflow change provides",
+    ] {
+        assert!(
+            !pr_plan.contains(stale)
+                && !learned_estimates.contains(stale)
+                && !budget_guard.contains(stale),
+            "docs should not retain stale hosted-static wording: {stale}"
         );
     }
 }

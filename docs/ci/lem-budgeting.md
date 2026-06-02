@@ -72,5 +72,5 @@ their lane ids before using the samples.
 
 The static floor still applies in learned mode so a brand-new lane never
 reports `0 LEM` because no data has been collected yet. The hosted PR Plan
-workflow currently uses static estimates unless a durable actuals cache is
-explicitly wired into the workflow invocation.
+workflow uses a best-effort cache of recent successful `main` CI actuals and
+falls back to static estimates when no valid cache is available.

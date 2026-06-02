@@ -6,6 +6,7 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
@@ -36,17 +37,49 @@ jobs:
       - name: Fetch base ref
         run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
 
+      - name: Download recent CI actuals cache
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p target/ci/actuals-cache
+          count=0
+          while IFS= read -r run_id; do
+            [ -n "$run_id" ] || continue
+            out="target/ci/actuals-cache/${run_id}"
+            mkdir -p "$out"
+            if gh run download "${run_id}" --name ci-actuals --dir "$out" >/tmp/ci-actuals-download.log 2>&1; then
+              if [ -s "$out/ci-actuals.json" ]; then
+                count=$((count + 1))
+              fi
+            fi
+          done < <(gh run list --workflow CI --branch main --status success --limit 5 --json databaseId --jq '.[].databaseId')
+          echo "Downloaded ${count} CI actuals receipt(s) for advisory learned estimates."
+          {
+            echo "## CI actuals cache (advisory)"
+            echo ""
+            echo "Downloaded ${count} recent \`ci-actuals\` receipt(s) from successful \`main\` CI runs."
+            echo "If this is zero, PR Plan falls back to static \`base_lem\` estimates."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Generate PR plan
         env:
           LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
         run: |
           mkdir -p target/ci
+          actuals_args=()
+          if [ -d target/ci/actuals-cache ] && find target/ci/actuals-cache -name '*.json' -print -quit | grep -q .; then
+            actuals_args=(--actuals-dir target/ci/actuals-cache)
+          fi
           cargo xtask ci-plan \
             --base "origin/${{ github.base_ref }}" \
             --head HEAD \
             --labels-json "$LABELS_JSON" \
             --lanes policy/ci-lane-whitelist.toml \
             --risk-packs policy/ci-risk-packs.toml \
+            "${actuals_args[@]}" \
             --json-out target/ci/ci-plan.json \
             --route-json-out target/ci/proof-pack-route.json \
             --github-summary "$GITHUB_STEP_SUMMARY" \

@@ -26,8 +26,9 @@ rollout intent:
 ## Static and learned estimates
 
 `base_lem` in `policy/ci-lane-whitelist.toml` is the static floor. The hosted
-PR Plan workflow uses this static floor unless a future workflow change provides
-an `--actuals-dir` cache of past `ci-actuals.json` receipts.
+PR Plan workflow uses a best-effort cache of recent successful `main` CI
+`ci-actuals` receipts. When no cache receipt is available, the static floor is
+the estimate.
 
 When `--actuals-dir` is provided, `cargo xtask ci-plan` can estimate lanes with
 `max(static_floor, p50_recent_actual × 1.15)` while still reporting p90 and p95

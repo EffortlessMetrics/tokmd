@@ -185,10 +185,12 @@ selection, not proof that those jobs executed or passed:
   warnings but do not fail the job.
 - `ci-budget-ack` acknowledges elevated and high-cost warnings below the hard
   ceiling. It does not bypass `override-required`.
-- The hosted PR Plan workflow currently uses static `base_lem` values from
-  `policy/ci-lane-whitelist.toml`. `cargo xtask ci-plan` can consume learned
-  actuals with `--actuals-dir`, but the workflow must wire that directory in
-  before hosted PRs use learned estimates.
+- The hosted PR Plan workflow downloads recent successful `CI` run
+  `ci-actuals` artifacts from `main` into `target/ci/actuals-cache` when
+  GitHub makes them available, then passes that directory to `ci-plan` with
+  `--actuals-dir`. The download is advisory: if no receipt is available or the
+  lookup fails, the planner falls back to static `base_lem` values from
+  `policy/ci-lane-whitelist.toml`.
 
 ## CI Actuals Interpretation
 
