@@ -68,9 +68,10 @@ The work order may summarize readable linked receipts, but it must keep those
 summaries compact. It should point to source artifacts instead of copying raw
 receipt bodies or command output. When a readable review-packet verifier receipt
 lists packet-local `proof/*.json` artifacts, the work order may summarize their
-verified paths, schemas, and media types as inventory evidence. It must not
-render those artifacts as executed proof or promote route receipts into passing
-evidence.
+verified paths, schemas, and media types as inventory evidence. Metadata-bearing
+entries should match a known proof or coverage receipt schema and JSON media
+type. The work order must not render those artifacts as executed proof or
+promote route receipts into passing evidence.
 
 ## Compatibility
 

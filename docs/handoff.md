@@ -150,7 +150,8 @@ has already verified everything:
 4. If the review-packet verifier summary lists verified packet-local
    `proof/*.json` artifacts, treat that as hash-verified packet inventory. It
    identifies copied route/proof receipts but does not mean those receipts were
-   executed or promoted.
+   executed or promoted. Handoff requires the artifact schema and media type to
+   avoid treating arbitrary packet-local files under `proof/` as proof receipts.
 5. Use `.tokmd/review/review-map.md` for review order and reproduction
    commands.
 6. Use the proof route linked from `.handoff/proof-links.json` to see
