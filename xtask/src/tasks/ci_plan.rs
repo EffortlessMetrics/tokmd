@@ -133,8 +133,10 @@ struct LaneSelection {
 
 #[derive(Debug, Serialize, Clone)]
 struct ChangedFileRoute {
+    changed_file: String,
     path: String,
     surface: String,
+    required_packs: Vec<String>,
     proof_packs: Vec<String>,
     reason: String,
     policy: String,
@@ -313,7 +315,7 @@ pub fn run(args: CiPlanArgs) -> Result<()> {
     let skipped_by_policy = skipped_by_policy(&whitelist, &selected_ids, &route_analysis, &actuals);
     let route_receipt = ProofPackRouteReceipt {
         schema: "tokmd.proof_pack_route.v1",
-        schema_version: 4,
+        schema_version: 5,
         base: args.base.clone(),
         head: args.head.clone(),
         labels: labels.clone(),
@@ -604,6 +606,7 @@ fn route_changed_files(
         }
 
         changed_files.push(ChangedFileRoute {
+            changed_file: file.clone(),
             path: file.clone(),
             surface: if pack_names.len() == 1 {
                 pack_names
@@ -613,6 +616,7 @@ fn route_changed_files(
             } else {
                 "multiple".to_string()
             },
+            required_packs: pack_names.clone(),
             proof_packs: pack_names.clone(),
             reason: "manifest_match".to_string(),
             policy: route_policy(&lanes, &deep_lanes, lane_index).to_string(),
@@ -1268,10 +1272,24 @@ mod tests {
         let route = route_changed_files(&changed, &risk_packs, &lane_index).expect("route");
 
         assert_eq!(route.changed_files.len(), 1);
+        assert_eq!(
+            route.changed_files[0].changed_file,
+            "crates/tokmd/src/main.rs"
+        );
         assert_eq!(route.changed_files[0].path, "crates/tokmd/src/main.rs");
         assert_eq!(route.changed_files[0].surface, "core");
+        assert_eq!(
+            route.changed_files[0].required_packs,
+            vec!["core".to_string()]
+        );
         assert_eq!(route.changed_files[0].proof_packs, vec!["core".to_string()]);
         assert_eq!(route.changed_files[0].policy, "blocking");
+        let serialized =
+            serde_json::to_value(&route.changed_files[0]).expect("serialize route file");
+        assert_eq!(serialized["changed_file"], "crates/tokmd/src/main.rs");
+        assert_eq!(serialized["path"], "crates/tokmd/src/main.rs");
+        assert_eq!(serialized["required_packs"], serde_json::json!(["core"]));
+        assert_eq!(serialized["proof_packs"], serde_json::json!(["core"]));
         assert_eq!(route.unmatched_files, vec!["unowned/input.txt".to_string()]);
         assert_eq!(
             route.matched_by_pack["core"],
@@ -1329,6 +1347,10 @@ mod tests {
 
         assert_eq!(route.changed_files.len(), 1);
         assert_eq!(route.changed_files[0].surface, "handoff_review_packet");
+        assert_eq!(
+            route.changed_files[0].required_packs,
+            vec!["handoff_review_packet".to_string()]
+        );
         assert_eq!(
             route.changed_files[0].proof_packs,
             vec!["handoff_review_packet".to_string()]
@@ -1526,7 +1548,7 @@ mod tests {
     fn route_receipt_validation_rejects_missing_skipped_reason() {
         let receipt = ProofPackRouteReceipt {
             schema: "tokmd.proof_pack_route.v1",
-            schema_version: 4,
+            schema_version: 5,
             base: "origin/main".to_string(),
             head: "HEAD".to_string(),
             labels: Vec::new(),

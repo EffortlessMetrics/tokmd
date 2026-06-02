@@ -52,6 +52,11 @@ known but intentionally not selected. Route-relevant unselected lanes are
 reported even when they are not expensive, so deep proof packs can be audited
 without reading the lane catalogue by hand:
 
+Each `changed_files[]` row names the changed path in `changed_file`, the
+canonical surface in `surface`, and the proof packs required by that surface in
+`required_packs`. The older `path` and `proof_packs` fields remain in the same
+row as compatibility aliases for existing cockpit and handoff readers.
+
 Specific authority packs can supersede generic packs in
 `policy/ci-risk-packs.toml`. For example, handoff and review-packet contract
 docs route as `handoff_review_packet` instead of also appearing as generic
@@ -60,11 +65,13 @@ docs route as `handoff_review_packet` instead of also appearing as generic
 ```json
 {
   "schema": "tokmd.proof_pack_route.v1",
-  "schema_version": 4,
+  "schema_version": 5,
   "changed_files": [
     {
+      "changed_file": "crates/tokmd/src/main.rs",
       "path": "crates/tokmd/src/main.rs",
       "surface": "core_receipts",
+      "required_packs": ["core_receipts"],
       "proof_packs": ["core_receipts"],
       "reason": "manifest_match",
       "policy": "blocking",
@@ -115,7 +122,7 @@ docs route as `handoff_review_packet` instead of also appearing as generic
 
 The summary reason counts are an at-a-glance index over the detailed
 `skipped_by_policy` array. Use the per-lane entries for matched files and
-lane-specific evidence. Route receipt v4 also records `lane_kind`, `tier`,
+lane-specific evidence. Route receipt v5 also records `lane_kind`, `tier`,
 `blocking`, `expensive`, `required_labels`, `estimated_lem`, `estimate_source`,
 and optional learned percentile fields for each skipped row so skipped deep
 proof can be audited without opening the lane whitelist. The estimate fields

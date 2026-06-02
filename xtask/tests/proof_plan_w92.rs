@@ -879,7 +879,7 @@ fn ci_plan_writes_proof_pack_route_receipt_artifact() {
         serde_json::from_str(&written).expect("route artifact should be valid JSON");
 
     assert_eq!(value["schema"], "tokmd.proof_pack_route.v1");
-    assert_eq!(value["schema_version"], 4);
+    assert_eq!(value["schema_version"], 5);
     assert_eq!(value["base"], "HEAD");
     assert_eq!(value["head"], "HEAD");
     assert!(value["changed_files"].as_array().unwrap().is_empty());

@@ -171,11 +171,13 @@ fn test_handoff_links_review_and_proof_artifacts() {
         &proof_route,
         r#"{
           "schema":"tokmd.proof_pack_route.v1",
-          "schema_version":4,
+          "schema_version":5,
           "changed_files":[
             {
+              "changed_file":"docs/handoff.md",
               "path":"docs/handoff.md",
               "surface":"handoff_review_packet",
+              "required_packs":["handoff_review_packet"],
               "proof_packs":["handoff_review_packet"],
               "reason":"manifest_match",
               "policy":"blocking",
@@ -332,7 +334,7 @@ fn test_handoff_links_review_and_proof_artifacts() {
         work_order.contains("Affected proof: 1 changed file(s), 1 scope(s), 1 unknown file(s)")
     );
     assert!(work_order.contains(
-        "Proof route: schema v4, 2 changed file(s), 1 routed, 1 unmatched, 1 skipped lane(s)"
+        "Proof route: schema v5, 2 changed file(s), 1 routed, 1 unmatched, 1 skipped lane(s)"
     ));
     assert!(work_order.contains("Skipped reasons: deep_lane_requires_label=1"));
     assert!(
@@ -413,7 +415,7 @@ fn test_handoff_discovers_packet_local_proof_route() {
     let work_order = fs::read_to_string(out_dir.join("work-order.md")).unwrap();
     assert!(work_order.contains("packet_local_route"));
     assert!(work_order.contains(
-        "Proof route: schema v4, 1 changed file(s), 1 routed, 0 unmatched, 0 skipped lane(s)"
+        "Proof route: schema v5, 1 changed file(s), 1 routed, 0 unmatched, 0 skipped lane(s)"
     ));
     assert!(work_order.contains(
         "Treat proof routes as selection and skip-policy receipts, not execution proof."
@@ -462,11 +464,13 @@ fn proof_route_json(surface: &str) -> String {
     format!(
         r#"{{
           "schema":"tokmd.proof_pack_route.v1",
-          "schema_version":4,
+          "schema_version":5,
           "changed_files":[
             {{
+              "changed_file":"docs/handoff.md",
               "path":"docs/handoff.md",
               "surface":"{surface}",
+              "required_packs":["{surface}"],
               "proof_packs":["{surface}"],
               "reason":"manifest_match",
               "policy":"blocking",

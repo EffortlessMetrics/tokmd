@@ -129,14 +129,16 @@ const COVERAGE_RECEIPT_JSON: &str = r#"{
 
 const PROOF_PACK_ROUTE_JSON: &str = r#"{
   "schema": "tokmd.proof_pack_route.v1",
-  "schema_version": 4,
+  "schema_version": 5,
   "base": "main",
   "head": "HEAD",
   "labels": [],
   "changed_files": [
     {
+      "changed_file": "new.rs",
       "path": "new.rs",
       "surface": "tokmd-cockpit",
+      "required_packs": ["tokmd-cockpit"],
       "proof_packs": ["tokmd-cockpit"],
       "reason": "manifest_match",
       "policy": "blocking",

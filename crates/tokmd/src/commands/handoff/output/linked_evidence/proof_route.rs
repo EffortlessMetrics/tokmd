@@ -146,20 +146,21 @@ pub(super) fn render(out: &mut String, proof_route: &ProofRouteSummary) {
 }
 
 fn route_file_summary(value: &Value) -> Option<RouteFileSummary> {
-    let path = value.get("path").and_then(Value::as_str)?.to_string();
+    let path = value
+        .get("changed_file")
+        .or_else(|| value.get("path"))
+        .and_then(Value::as_str)?
+        .to_string();
     let surface = value
         .get("surface")
         .and_then(Value::as_str)
         .unwrap_or("unknown")
         .to_string();
-    let proof_packs = value
-        .get("proof_packs")
-        .and_then(Value::as_array)
+    let proof_packs = string_array_field(value, "required_packs")
+        .or_else(|| string_array_field(value, "proof_packs"))
+        .unwrap_or_default()
         .into_iter()
-        .flat_map(|packs| packs.iter())
-        .filter_map(Value::as_str)
         .take(8)
-        .map(str::to_string)
         .collect();
 
     Some(RouteFileSummary {
@@ -167,6 +168,18 @@ fn route_file_summary(value: &Value) -> Option<RouteFileSummary> {
         surface,
         proof_packs,
     })
+}
+
+fn string_array_field(value: &Value, field: &str) -> Option<Vec<String>> {
+    Some(
+        value
+            .get(field)?
+            .as_array()?
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_string)
+            .collect(),
+    )
 }
 
 fn skipped_lane_summary(value: &Value) -> Option<SkippedLaneSummary> {
@@ -216,14 +229,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn proof_route_summary_reads_v4_counts_and_skipped_reasons() {
+    fn proof_route_summary_reads_v5_counts_routes_and_skipped_reasons() {
         let value = serde_json::json!({
             "schema": "tokmd.proof_pack_route.v1",
-            "schema_version": 4,
+            "schema_version": 5,
             "changed_files": [
                 {
+                    "changed_file": "docs/handoff.md",
                     "path": "docs/handoff.md",
                     "surface": "handoff_review_packet",
+                    "required_packs": ["handoff_review_packet"],
                     "proof_packs": ["handoff_review_packet"]
                 }
             ],
@@ -251,7 +266,7 @@ mod tests {
 
         let summary = summarize(&value);
 
-        assert_eq!(summary.schema_version, Some(4));
+        assert_eq!(summary.schema_version, Some(5));
         assert_eq!(summary.changed_file_count, 2);
         assert_eq!(summary.routed_file_count, 1);
         assert_eq!(summary.unmatched_file_count, 1);
@@ -263,12 +278,49 @@ mod tests {
             vec![("deep_lane_requires_label".to_string(), 1)]
         );
         assert_eq!(summary.first_changed_files[0].path, "docs/handoff.md");
+        assert_eq!(
+            summary.first_changed_files[0].proof_packs,
+            vec!["handoff_review_packet"]
+        );
         assert_eq!(summary.first_unmatched_files, vec!["docs/unrouted.md"]);
         assert_eq!(summary.first_skipped_lanes[0].lane, "proptest_smoke");
         assert_eq!(summary.first_skipped_lanes[0].estimated_lem, Some(8));
         assert_eq!(
             summary.first_skipped_lanes[0].estimate_source.as_deref(),
             Some("static")
+        );
+    }
+
+    #[test]
+    fn proof_route_summary_accepts_v4_path_and_proof_pack_names() {
+        let value = serde_json::json!({
+            "schema": "tokmd.proof_pack_route.v1",
+            "schema_version": 4,
+            "changed_files": [
+                {
+                    "path": "docs/handoff.md",
+                    "surface": "handoff_review_packet",
+                    "proof_packs": ["handoff_review_packet"]
+                }
+            ],
+            "unmatched_files": [],
+            "summary": {
+                "changed_file_count": 1,
+                "routed_file_count": 1,
+                "unmatched_file_count": 0,
+                "skipped_lane_count": 0,
+                "skipped_reason_counts": {}
+            },
+            "skipped_by_policy": []
+        });
+
+        let summary = summarize(&value);
+
+        assert_eq!(summary.schema_version, Some(4));
+        assert_eq!(summary.first_changed_files[0].path, "docs/handoff.md");
+        assert_eq!(
+            summary.first_changed_files[0].proof_packs,
+            vec!["handoff_review_packet"]
         );
     }
 }
