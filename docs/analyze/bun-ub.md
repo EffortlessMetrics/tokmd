@@ -148,6 +148,52 @@ The default context list shows charged tokens, full-file tokens, inclusion
 policy, and code lines so reviewers can see what was included, truncated, or
 skipped before handing the bundle to an agent.
 
+For a Bun native-boundary handoff, pass the same changed paths used for
+analysis. Common surfaces are:
+
+```bash
+tokmd context \
+  --budget 64000 \
+  src/runtime/api \
+  src/bun.js/bindings \
+  src/bun.js/api
+```
+
+Open the default list output first. It is the audit view for the context pack:
+
+| Column | Meaning |
+| --- | --- |
+| `Used` | Tokens charged against the handoff budget. |
+| `Tokens` | Full-file token estimate before truncation or policy. |
+| `Policy` | `full`, `head+tail`, `summary`, `skipped`, or a policy reason. |
+| `Code` | Code lines in the selected file. |
+
+If `Used` is lower than `Tokens`, the bundle is not full-file evidence for that
+row. If `Policy` reports `head+tail`, tell the agent that middle content was
+omitted. If a file is skipped by policy, the handoff should name that gap rather
+than imply the source text was included.
+
+When the handoff needs source text instead of the audit list, use bundle output
+after checking the list:
+
+```bash
+tokmd context \
+  --budget 64000 \
+  --mode bundle \
+  --output sensors/tokmd/context.txt \
+  <changed paths>
+```
+
+For bot or ledger ingestion, emit JSON instead of the list:
+
+```bash
+tokmd context \
+  --budget 64000 \
+  --mode json \
+  <changed paths> \
+  > sensors/tokmd/context.json
+```
+
 ## Failure Modes
 
 | Failure | Meaning | Next action |

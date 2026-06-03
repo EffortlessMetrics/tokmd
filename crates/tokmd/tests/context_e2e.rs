@@ -86,6 +86,155 @@ fn test_context_default_list_reconciles_head_tail_charged_tokens() {
     assert!(list.contains(reason));
 }
 
+#[test]
+fn test_context_bun_ub_handoff_recipe_scopes_paths_and_reports_policy() {
+    let dir = tempdir().unwrap();
+    let root = dir.path();
+    fs::create_dir_all(root.join(".git")).unwrap();
+
+    let runtime_api = root.join("src").join("runtime").join("api");
+    let bindings = root.join("src").join("bun.js").join("bindings");
+    let bun_api = root.join("src").join("bun.js").join("api");
+    let unrelated = root
+        .join("test")
+        .join("cli")
+        .join("install")
+        .join("fixtures");
+    fs::create_dir_all(&runtime_api).unwrap();
+    fs::create_dir_all(&bindings).unwrap();
+    fs::create_dir_all(&bun_api).unwrap();
+    fs::create_dir_all(&unrelated).unwrap();
+
+    let runtime_source = (1..=200)
+        .map(|i| {
+            format!(
+                "pub unsafe extern \"C\" fn markdown_object_{i}(ptr: *mut std::ffi::c_void) -> bool {{ !ptr.is_null() }}"
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(runtime_api.join("MarkdownObject.rs"), runtime_source).unwrap();
+    fs::write(
+        bindings.join("native.rs"),
+        "use std::ffi::c_void;\npub unsafe extern \"C\" fn bun_binding(ptr: *mut c_void) { let _ = ptr; }\n",
+    )
+    .unwrap();
+    fs::write(
+        bun_api.join("api.rs"),
+        "pub fn native_boundary_name() -> &'static str { \"bun-api\" }\n",
+    )
+    .unwrap();
+    let generated_nodes = format!(
+        "{{\"nodes\":[{}]}}",
+        (1..=300)
+            .map(|i| format!("{{\"type\":\"GeneratedNode{i}\",\"fields\":[\"a\",\"b\",\"c\"]}}"))
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+    fs::write(bun_api.join("node-types.json"), generated_nodes).unwrap();
+    fs::write(
+        unrelated.join("outside.rs"),
+        "pub fn outside_requested_scope() {}\n",
+    )
+    .unwrap();
+
+    let scope_args = ["src/runtime/api", "src/bun.js/bindings", "src/bun.js/api"];
+
+    let list_output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(root)
+        .args(["context", "--budget", "64000"])
+        .args(scope_args)
+        .output()
+        .unwrap();
+    assert!(
+        list_output.status.success(),
+        "bun-ub context list should succeed: {:?}\nstderr: {}",
+        list_output.status,
+        String::from_utf8_lossy(&list_output.stderr)
+    );
+
+    let list = String::from_utf8_lossy(&list_output.stdout);
+    assert!(list.contains("|Path|Module|Lang|Used|Tokens|Policy|Code|"));
+    assert!(list.contains("src/runtime/api/MarkdownObject.rs"));
+    assert!(list.contains("src/bun.js/bindings/native.rs"));
+    assert!(list.contains("src/bun.js/api/api.rs"));
+    assert!(
+        !list.contains("test/cli/install"),
+        "context list should stay inside requested Bun UB handoff paths:\n{list}"
+    );
+
+    let capped_json_output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(root)
+        .args(["context", "--mode", "json", "--budget", "64000"])
+        .args(["--max-file-tokens", "80"])
+        .args(scope_args)
+        .output()
+        .unwrap();
+    assert!(
+        capped_json_output.status.success(),
+        "bun-ub capped context JSON should succeed: {:?}\nstderr: {}",
+        capped_json_output.status,
+        String::from_utf8_lossy(&capped_json_output.stderr)
+    );
+
+    let parsed: serde_json::Value = serde_json::from_slice(&capped_json_output.stdout).unwrap();
+    assert_eq!(parsed["budget_tokens"].as_u64(), Some(64_000));
+    assert!(
+        parsed["used_tokens"].as_u64().unwrap_or(64_001) <= 64_000,
+        "used tokens should fit budget: {parsed}"
+    );
+
+    let files = parsed["files"].as_array().unwrap();
+    let runtime_row = files
+        .iter()
+        .find(|file| file["path"].as_str() == Some("src/runtime/api/MarkdownObject.rs"))
+        .expect("runtime API row should be selected");
+    let effective_tokens = runtime_row["effective_tokens"].as_u64().unwrap();
+    let full_tokens = runtime_row["tokens"].as_u64().unwrap();
+    let policy_reason = runtime_row["policy_reason"].as_str().unwrap();
+    assert!(
+        full_tokens > effective_tokens,
+        "runtime row should be head+tail truncated: {runtime_row}"
+    );
+    assert!(policy_reason.contains("head+tail"));
+
+    let excluded = parsed["excluded_by_policy"].as_array().unwrap();
+    let generated_skip = excluded
+        .iter()
+        .find(|file| file["path"].as_str() == Some("src/bun.js/api/node-types.json"))
+        .expect("generated node types should be visible as policy-skipped");
+    assert_eq!(generated_skip["policy"].as_str(), Some("skip"));
+    assert!(
+        generated_skip["reason"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("generated"),
+        "skip reason should explain generated policy: {generated_skip}"
+    );
+
+    let capped_list_output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(root)
+        .args(["context", "--budget", "64000"])
+        .args(["--max-file-tokens", "80"])
+        .args(scope_args)
+        .output()
+        .unwrap();
+    assert!(
+        capped_list_output.status.success(),
+        "bun-ub capped context list should succeed: {:?}\nstderr: {}",
+        capped_list_output.status,
+        String::from_utf8_lossy(&capped_list_output.stderr)
+    );
+
+    let capped_list = String::from_utf8_lossy(&capped_list_output.stdout);
+    assert!(capped_list.contains(&format!("|{effective_tokens}|{full_tokens}|")));
+    assert!(capped_list.contains("head+tail"));
+    assert!(
+        !capped_list.contains("node-types.json"),
+        "policy-skipped generated files belong in JSON excluded_by_policy, not selected rows:\n{capped_list}"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Mode: json
 // ---------------------------------------------------------------------------
