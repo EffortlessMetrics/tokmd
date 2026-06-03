@@ -147,24 +147,22 @@ fn list_files_git_fast_path_rejects_tracked_symlink_escape_when_supported() {
 }
 
 #[test]
-fn list_files_git_fast_path_errors_on_tracked_dangling_symlink_when_supported() {
+fn list_files_git_fast_path_skips_tracked_dangling_symlink_when_supported() {
     let repo = tempfile::tempdir().unwrap();
     init_git_repo(repo.path());
 
+    std::fs::write(repo.path().join("keep.txt"), "keep\n").unwrap();
     let missing_target = repo.path().join("missing-target.txt");
     let link = repo.path().join("broken-link.txt");
     if create_file_symlink(&missing_target, &link).is_err() {
         return;
     }
+    git_add(repo.path(), "keep.txt");
     git_add(repo.path(), "broken-link.txt");
 
-    let err = list_files(repo.path(), None).unwrap_err();
-    let message = err.to_string();
+    let files = list_files(repo.path(), None).unwrap();
 
-    assert!(
-        message.contains("Failed to resolve bounded path"),
-        "expected dangling symlink to fail closed, got: {message}"
-    );
+    assert_eq!(files, vec![PathBuf::from("keep.txt")]);
 }
 
 #[cfg(unix)]

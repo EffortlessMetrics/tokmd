@@ -13,6 +13,7 @@
 //! * Git history analysis (use tokmd-git)
 //! * File modification
 
+use std::io;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -61,13 +62,19 @@ pub fn list_files(root: &Path, max_files: Option<usize>) -> Result<Vec<PathBuf>>
     builder.follow_links(false);
 
     for entry in builder.build() {
-        let entry = entry?;
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) if is_skippable_walk_error(&err) => continue,
+            Err(err) => return Err(err.into()),
+        };
         if !entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
             continue;
         }
-        let rel = BoundedPath::existing_child(&root, entry.path())?
-            .relative()
-            .to_path_buf();
+        let rel = match BoundedPath::existing_child(&root, entry.path()) {
+            Ok(path) => path.relative().to_path_buf(),
+            Err(err) if is_skippable_path_violation(&err) => continue,
+            Err(err) => return Err(err.into()),
+        };
         files.push(rel);
         if let Some(limit) = max_files
             && files.len() >= limit
@@ -136,6 +143,42 @@ pub fn license_candidates(files: &[PathBuf]) -> LicenseCandidates {
         license_files,
         metadata_files,
     }
+}
+
+pub(crate) fn is_skippable_path_violation(err: &PathViolation) -> bool {
+    match err {
+        PathViolation::Missing(_) => true,
+        PathViolation::CanonicalizeFailed { path, source } => {
+            source.kind() == io::ErrorKind::NotFound && path_is_symlink(path)
+        }
+        PathViolation::Empty
+        | PathViolation::Absolute(_)
+        | PathViolation::ParentTraversal(_)
+        | PathViolation::RootEscape { .. } => false,
+    }
+}
+
+fn is_skippable_walk_error(err: &ignore::Error) -> bool {
+    err.io_error()
+        .is_some_and(|source| source.kind() == io::ErrorKind::NotFound)
+        && walk_error_path(err).is_some()
+}
+
+fn walk_error_path(err: &ignore::Error) -> Option<&Path> {
+    match err {
+        ignore::Error::WithPath { path, .. } => Some(path.as_path()),
+        ignore::Error::Partial(errors) if errors.len() == 1 => walk_error_path(&errors[0]),
+        ignore::Error::WithLineNumber { err, .. } | ignore::Error::WithDepth { err, .. } => {
+            walk_error_path(err)
+        }
+        _ => None,
+    }
+}
+
+fn path_is_symlink(path: &Path) -> bool {
+    std::fs::symlink_metadata(path)
+        .map(|metadata| metadata.file_type().is_symlink())
+        .unwrap_or(false)
 }
 
 pub fn file_size(root: &Path, relative: &Path) -> Result<u64> {
@@ -376,6 +419,21 @@ mod tests {
             !files.iter().any(|path| path == Path::new("leak.rs")),
             "walk should not expose symlink escapes: {files:?}"
         );
+    }
+
+    #[test]
+    fn test_list_files_skips_dangling_symlink_when_supported() {
+        let root_dir = tempfile::tempdir().unwrap();
+        let missing_target = root_dir.path().join("missing-target.rs");
+        let link = root_dir.path().join("broken-link.rs");
+        fs::write(root_dir.path().join("keep.rs"), "fn keep() {}\n").unwrap();
+        if create_file_symlink(&missing_target, &link).is_err() {
+            return;
+        }
+
+        let files = list_files(root_dir.path(), None).unwrap();
+
+        assert_eq!(files, vec![PathBuf::from("keep.rs")]);
     }
 
     #[cfg(unix)]

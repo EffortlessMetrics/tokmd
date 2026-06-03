@@ -7,6 +7,8 @@ use anyhow::Result;
 
 use crate::path::{BoundedPath, PathViolation, ValidatedRoot};
 
+use super::is_skippable_path_violation;
+
 const GIT_REPO_SHAPING_ENV: &[&str] = &[
     // Repository and object-store overrides.
     "GIT_DIR",
@@ -76,6 +78,7 @@ pub(super) fn bound_git_relative_path(
     match BoundedPath::existing_relative(root, path) {
         Ok(path) => Ok(Some(path.relative().to_path_buf())),
         Err(PathViolation::Missing(_)) => Ok(None),
+        Err(err) if is_skippable_path_violation(&err) => Ok(None),
         Err(err) => Err(err),
     }
 }

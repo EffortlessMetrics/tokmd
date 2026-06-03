@@ -87,6 +87,53 @@ fn analyze_health_scoped_directory_does_not_scan_unrelated_todos() {
 }
 
 #[test]
+fn analyze_health_skips_dangling_symlink_without_partial_status() {
+    let dir = tempdir().expect("should create temp dir");
+    let src_dir = dir.path().join("src");
+    let fixture_dir = dir.path().join("test").join("fixtures");
+    std::fs::create_dir_all(&src_dir).expect("create src dir");
+    std::fs::create_dir_all(&fixture_dir).expect("create fixture dir");
+    std::fs::create_dir_all(dir.path().join(".git")).expect("create .git marker");
+    std::fs::write(src_dir.join("main.rs"), "pub const X: i32 = 1;\n").expect("write src file");
+
+    let missing_target = fixture_dir.join("missing-target.rs");
+    let dangling_link = fixture_dir.join("broken-link.rs");
+    if create_file_symlink(&missing_target, &dangling_link).is_err() {
+        return;
+    }
+
+    let output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .arg("--no-progress")
+        .arg("analyze")
+        .arg(".")
+        .arg("--preset")
+        .arg("health")
+        .arg("--format")
+        .arg("json")
+        .arg("--no-git")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}\nstderr: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8(output.stdout).expect("invalid UTF-8");
+    let json: Value = serde_json::from_str(&stdout).expect("invalid JSON output");
+
+    assert_eq!(json["status"], "complete");
+    assert!(
+        json["warnings"].as_array().is_some_and(Vec::is_empty),
+        "dangling symlink should not create analysis warnings: {:?}",
+        json["warnings"]
+    );
+}
+
+#[test]
 fn analyze_writes_json_to_output_dir() {
     let dir = tempdir().expect("should create temp dir");
     let out = dir.path();
@@ -235,4 +282,14 @@ fn analyze_topics_preset_returns_topic_cloud() {
         .and_then(Value::as_array)
         .expect("topics.overall should be array");
     assert!(!overall.is_empty());
+}
+
+#[cfg(unix)]
+fn create_file_symlink(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
+    std::os::unix::fs::symlink(src, dst)
+}
+
+#[cfg(windows)]
+fn create_file_symlink(src: &std::path::Path, dst: &std::path::Path) -> std::io::Result<()> {
+    std::os::windows::fs::symlink_file(src, dst)
 }
