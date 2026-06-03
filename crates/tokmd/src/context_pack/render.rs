@@ -54,15 +54,30 @@ pub(crate) fn format_list_output(
     ));
     out.push_str(&format!("Files: {}\n", selected.len()));
     out.push_str(&format!("Strategy: {:?}\n\n", strategy));
-    out.push_str("|Path|Module|Lang|Tokens|Code|\n");
-    out.push_str("|---|---|---|---:|---:|\n");
+    out.push_str("|Path|Module|Lang|Used|Tokens|Policy|Code|\n");
+    out.push_str("|---|---|---|---:|---:|---|---:|\n");
     for file in selected {
+        let used = file.effective_tokens.unwrap_or(file.tokens);
+        let policy = list_policy_label(file);
         out.push_str(&format!(
-            "|{}|{}|{}|{}|{}|\n",
-            file.path, file.module, file.lang, file.tokens, file.code
+            "|{}|{}|{}|{}|{}|{}|{}|\n",
+            file.path, file.module, file.lang, used, file.tokens, policy, file.code
         ));
     }
     out
+}
+
+fn list_policy_label(file: &ContextFileRow) -> &str {
+    if let Some(reason) = file.policy_reason.as_deref() {
+        return reason;
+    }
+
+    match file.policy {
+        InclusionPolicy::Full => "full",
+        InclusionPolicy::HeadTail => "head+tail",
+        InclusionPolicy::Summary => "summary",
+        InclusionPolicy::Skip => "skipped",
+    }
 }
 
 /// Write bundle output (concatenated file contents) directly to a writer.
@@ -201,4 +216,57 @@ pub(crate) fn write_head_tail<W: Write>(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn context_row(policy: InclusionPolicy) -> ContextFileRow {
+        ContextFileRow {
+            path: "src/big.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            tokens: 31_753,
+            code: 2_370,
+            lines: 3_128,
+            bytes: 127_012,
+            value: 750,
+            rank_reason: "test".to_string(),
+            policy,
+            effective_tokens: None,
+            policy_reason: None,
+            classifications: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn list_output_shows_effective_tokens_and_policy_reason() {
+        let mut row = context_row(InclusionPolicy::HeadTail);
+        row.effective_tokens = Some(750);
+        row.policy_reason =
+            Some("file exceeds cap (31753 > 750 tokens); head+tail included".to_string());
+
+        let output = format_list_output(&[row], 5_000, 750, 15.0, cli::ContextStrategy::Greedy);
+
+        assert!(output.contains("|Path|Module|Lang|Used|Tokens|Policy|Code|"));
+        assert!(output.contains(
+            "|src/big.rs|src|Rust|750|31753|file exceeds cap (31753 > 750 tokens); head+tail included|2370|"
+        ));
+    }
+
+    #[test]
+    fn list_output_labels_full_policy_when_tokens_are_uncharged() {
+        let row = context_row(InclusionPolicy::Full);
+
+        let output = format_list_output(
+            std::slice::from_ref(&row),
+            50_000,
+            row.tokens,
+            63.5,
+            cli::ContextStrategy::Greedy,
+        );
+
+        assert!(output.contains("|src/big.rs|src|Rust|31753|31753|full|2370|"));
+    }
 }

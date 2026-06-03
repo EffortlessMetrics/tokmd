@@ -36,6 +36,56 @@ fn test_context_default_mode_is_list() {
         .stdout(predicate::str::contains("src/main.rs"));
 }
 
+#[test]
+fn test_context_default_list_reconciles_head_tail_charged_tokens() {
+    let dir = tempdir().unwrap();
+    let root = dir.path();
+    fs::create_dir_all(root.join(".git")).unwrap();
+
+    let large_file = (1..=300)
+        .map(|i| format!("pub fn f{i}() -> i32 {{ {i} }}"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(root.join("big.rs"), large_file).unwrap();
+
+    let json_output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(root)
+        .args(["context", "--mode", "json", "--budget", "1000"])
+        .args(["--max-file-tokens", "50"])
+        .output()
+        .unwrap();
+    assert!(json_output.status.success());
+
+    let parsed: serde_json::Value = serde_json::from_slice(&json_output.stdout).unwrap();
+    let files = parsed["files"].as_array().unwrap();
+    assert_eq!(files.len(), 1, "fixture should select exactly one file");
+    let file = &files[0];
+    let full_tokens = file["tokens"].as_u64().unwrap();
+    let effective_tokens = file["effective_tokens"].as_u64().unwrap();
+    let reason = file["policy_reason"].as_str().unwrap();
+
+    assert!(
+        full_tokens > effective_tokens,
+        "fixture should trigger head+tail truncation"
+    );
+    assert_eq!(parsed["used_tokens"].as_u64(), Some(effective_tokens));
+    assert_eq!(file["policy"].as_str(), Some("head_tail"));
+
+    let list_output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(root)
+        .args(["context", "--budget", "1000"])
+        .args(["--max-file-tokens", "50"])
+        .output()
+        .unwrap();
+    assert!(list_output.status.success());
+
+    let list = String::from_utf8_lossy(&list_output.stdout);
+    assert!(list.contains("|Path|Module|Lang|Used|Tokens|Policy|Code|"));
+    assert!(list.contains(&format!("Used: {effective_tokens} tokens")));
+    assert!(list.contains(&format!("|{effective_tokens}|{full_tokens}|")));
+    assert!(list.contains(reason));
+}
+
 // ---------------------------------------------------------------------------
 // Mode: json
 // ---------------------------------------------------------------------------
