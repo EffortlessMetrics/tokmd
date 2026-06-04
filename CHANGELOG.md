@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-04
+
+1.12 makes `tokmd` a scoped evidence sensor for Bun undefined-behavior review
+and similar high-risk native-boundary work. A reviewer or review bot can now
+produce `sensors/tokmd/analyze.md`, `sensors/tokmd/analyze.json`, and
+`sensors/tokmd/context.md` from explicit refs and changed paths without turning
+the result into a UB detector or whole-repo health claim.
+
+For the user-facing release note, see `docs/releases/1.12.md`. For the
+maintainer release record, see `docs/releases/1.12-ledger.md`.
+
+### Added
+
+- `tokmd analyze --preset bun-ub` as a thin on-diff review preset combining
+  effort delta, git/churn, imports, complexity, API-surface, and duplication
+  signals while avoiding supply-chain, license, asset, dependency, novelty, and
+  whole-repo deep scans.
+- Bun UB review-bot documentation and the `ub-review` sensor recipe for
+  writing `sensors/tokmd/analyze.md`, `sensors/tokmd/analyze.json`, and
+  `sensors/tokmd/context.md`.
+- Bun-shaped smoke coverage proving scoped Markdown and JSON evidence with
+  valid base/head refs and unrelated dangling symlink fixtures.
+- Cockpit and handoff references for `bun-ub` sensor artifacts and regeneration
+  commands, so missing tokmd evidence is visible rather than treated as passing
+  proof.
+
+### Fixed
+
+- `tokmd analyze <file-or-dir>` now keeps file-backed enrichers inside the
+  requested input scope instead of walking the whole checkout by default.
+- Explicit bad `--effort-base-ref` or `--effort-head-ref` values now fail
+  clearly and name the unresolved ref instead of producing a generic baseline
+  gap.
+- Documentation density now uses `comments / (comments + code)`, so Markdown
+  and other code-zero rows cannot report density above 100%.
+- `tokmd context` list output now shows charged tokens, full-file tokens,
+  inclusion policy, and code lines so budget math reconciles row by row.
+- Dangling symlinks are skipped as file omissions during analysis collection
+  without poisoning unrelated scoped analysis.
+
+### Tests
+
+- Added focused regressions for doc-density math, context effective-token
+  rendering, scoped file-backed analysis, dangling symlink handling, unresolved
+  effort refs, the `bun-ub` preset contract, and Bun-shaped review evidence
+  smoke output.
+
+### Boundaries
+
+- `bun-ub` does not prove undefined behavior exists or is absent.
+- 1.12 does not add a public `tokmd review` command, proof promotion, default
+  Codecov upload, default AST-backed behavior, evidencebus runtime integration,
+  full-matrix migration, or release mutation from `tokmd-swarm`.
+
 ## [1.11.1] - 2026-05-19
 
 ### Fixed
