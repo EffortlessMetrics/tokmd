@@ -9,11 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.12.0] - 2026-06-04
 
-1.12 makes `tokmd` a scoped evidence sensor for Bun undefined-behavior review
-and similar high-risk native-boundary work. A reviewer or review bot can now
-produce `sensors/tokmd/analyze.md`, `sensors/tokmd/analyze.json`, and
-`sensors/tokmd/context.md` from explicit refs and changed paths without turning
-the result into a UB detector or whole-repo health claim.
+1.12 is the Bun UB evidence-readiness and `tokmd-swarm` workbench release. The
+release range after `v1.11.1` includes the history-preserving swarm imports,
+the Bun-focused analyzer work, the routed-proof/CI actuals feedback loop, and
+the publication-graph tooling that keeps swarm development and `tokmd`
+publication on one shared history.
+
+A reviewer or review bot can now produce `sensors/tokmd/analyze.md`,
+`sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md` from explicit refs
+and changed paths without turning the result into a UB detector or whole-repo
+health claim. Just as importantly, the surrounding evidence workbench now
+records what proof was selected, why proof was skipped, what CI actually cost,
+and how handoff/review packets should point back to that evidence.
 
 For the user-facing release note, see `docs/releases/1.12.md`. For the
 maintainer release record, see `docs/releases/1.12-ledger.md`.
@@ -24,6 +31,8 @@ maintainer release record, see `docs/releases/1.12-ledger.md`.
   effort delta, git/churn, imports, complexity, API-surface, and duplication
   signals while avoiding supply-chain, license, asset, dependency, novelty, and
   whole-repo deep scans.
+- CLI help examples for `analyze`, `context`, `cockpit`, and `handoff` so the
+  review-packet and context-packet flows show concrete command shapes.
 - Bun UB review-bot documentation and the `ub-review` sensor recipe for
   writing `sensors/tokmd/analyze.md`, `sensors/tokmd/analyze.json`, and
   `sensors/tokmd/context.md`.
@@ -32,6 +41,39 @@ maintainer release record, see `docs/releases/1.12-ledger.md`.
 - Cockpit and handoff references for `bun-ub` sensor artifacts and regeneration
   commands, so missing tokmd evidence is visible rather than treated as passing
   proof.
+- Cockpit proof evidence now preserves proof source metadata and proof run
+  metadata, imports proof-route receipts, and carries route context through the
+  review map and review packet renderers.
+- Handoff output now links proof-route receipts, review-packet checks, verified
+  proof artifacts, and packet proof routes with explicit artifact metadata.
+- Routed Rust Small and PR-plan receipt infrastructure, including routed result
+  receipts, rerun counts, router metadata, plan receipt artifacts, risk-pack
+  lane-reference validation, and route-relevant skipped-lane reporting.
+- CI actuals receipts and learned-estimate inputs: hosted job timings,
+  aggregate actuals uploads, stable lane receipt shape, lane alias mapping,
+  estimate-source fields, recent actuals cache use, and workflow summaries for
+  lane actuals.
+- Focused proof routing for spec-index, source-of-truth, indexed docs,
+  handoff/review authority surfaces, coverage evidence, Droid security
+  evidence, and fork-safe static fallback cases.
+- Skipped-proof policy receipts with explicit reasons, skipped lane estimate
+  fields, and hardened skipped-policy rows.
+- `.tokmd-spec` as a repo-native spec namespace, plus active specs for review
+  packets, handoff work orders, coverage evidence, dependency maintenance,
+  no-panic policy, non-Rust file policy, diff input classification, release
+  source closure, PR disposition, and repo topology.
+- Repo-graph tooling and publication-loop evidence: graph state checks, exact
+  ahead/behind expectations, next-action receipts, hotfix/no-divergence/import
+  tests, PR-template graph evidence fields, and a documented swarm/publication
+  topology runbook.
+- ADR-0012 for the repo control-plane tool substrate and release-facing docs
+  for GHCR visibility checks, release readiness, publishing evidence, and
+  publication import boundaries.
+- Contributor, debugging, spec-rails, analysis README, orchestration README,
+  workflow, PR-plan, budget, cache/cancellation, CI actuals, and learned
+  estimates documentation for the new workbench operating surface.
+- Review packet and artifact docs now list packet output trees, reading order,
+  proof workflow status receipts, and packet verification boundaries.
 
 ### Fixed
 
@@ -46,6 +88,44 @@ maintainer release record, see `docs/releases/1.12-ledger.md`.
   inclusion policy, and code lines so budget math reconciles row by row.
 - Dangling symlinks are skipped as file omissions during analysis collection
   without poisoning unrelated scoped analysis.
+- PR CI routing now emits and uploads routed proof receipts before later proof
+  failures can hide route evidence.
+- Routed result receipt handling now preserves router metadata and rerun counts
+  instead of flattening route context into generic CI status.
+- Risk detection and mutation-scope detection now use the push-before SHA where
+  appropriate, with parent fallback for manual detect receipts.
+- Routed Rust Small budget accounting now avoids double-counting selected
+  routes and clarifies high-cost warning behavior.
+- Coverage routing now fails missing route receipts, uploads workflow status
+  before failure, and records route-specific coverage evidence.
+- CI lane selection now consumes label metadata, records skipped route reasons,
+  validates risk-pack references, and enforces the lane whitelist strictly.
+- Default PR CI was slimmed and GitHub-hosted fallback behavior was tightened
+  while keeping fork/static fallback proof paths explicit.
+- Nix package-gate and side-validation docs now preserve the publication-repo
+  boundary and record cancellation/rerun behavior without implying swarm-side
+  release authority.
+- Cockpit proof evidence rendering now keeps source/run metadata and proof-route
+  packet evidence instead of losing provenance at render time.
+- Handoff and review packet reading order now puts changed surfaces, proof
+  route context, missing evidence, and reproduction commands in the first-read
+  path.
+- Droid/security automation now accepts factory report PRs, routes Droid
+  security evidence, updates smoke-check guidance, and records the 2026-06-01
+  zero-finding security report.
+- Doc-artifact checking now validates policy files, inline artifact path
+  references, spec-index statuses, spec-index counts, and required proof-workflow
+  status receipts.
+- Repo-graph diagnostics now explain expectation failures and distinguish
+  aligned, ahead, hotfix, no-divergence, and publication-import states.
+- Scan, analysis, and core property tests were bounded so missing-path,
+  orchestration, depth, and FFI property inputs do not create accidental
+  unbounded test work.
+- Fuzz dictionary validation now rejects empty dictionary tokens.
+- OBJ coordinate parse diagnostics now distinguish the failing coordinate
+  shape more clearly.
+- Badge endpoints and RIPR badge generation were refreshed for current public
+  endpoints.
 
 ### Tests
 
@@ -53,6 +133,37 @@ maintainer release record, see `docs/releases/1.12-ledger.md`.
   rendering, scoped file-backed analysis, dangling symlink handling, unresolved
   effort refs, the `bun-ub` preset contract, and Bun-shaped review evidence
   smoke output.
+- Added integration coverage for Bun UB Markdown/JSON artifacts, context packet
+  output, cockpit artifact references, handoff proof links, and bad-ref failure
+  behavior.
+- Added repo-graph tests for aligned history, no-divergence ancestors,
+  publication hotfix expectations, publication imports, exact ahead counts, and
+  next-action receipts.
+- Added proof-plan, CI actuals, proof-policy, doc-artifacts, docs schema,
+  fuzz-dictionary, and review-packet-check tests for the new evidence surfaces.
+- Added late release-hardening tests for bounded analysis depth properties,
+  bounded analysis orchestration properties, bounded core FFI property inputs,
+  and temp missing-path scan fixtures.
+- Added CI documentation evidence guards and package/route receipt tests so
+  docs-only and release-facing changes still route through explicit proof.
+
+### Changed
+
+- `tokmd-swarm` is now documented and exercised as the active development
+  workbench, while `tokmd` remains the publication/release repository.
+- Publication imports now use merge commits and graph checks rather than
+  treating swarm as a file-sync overlay.
+- The PR template now captures `Swarm-Head`, `Swarm-Range`, merge method,
+  required-check evidence, branch-health evidence, and post-merge fast-forward
+  proof for publication imports.
+- Release-facing docs distinguish pre-release publishing evidence from actual
+  mutation surfaces such as tags, GitHub releases, crates.io publication, major
+  aliases, and Docker/GHCR publication.
+- The release workflow was tightened around stable/prerelease semantics, GHCR
+  visibility follow-up, and repository-conditional workflow behavior.
+- CI workflow dependencies and action versions were refreshed, including
+  `magic-nix-cache-action` v14, GitHub Actions dependency updates, `uuid`
+  1.23.2, and Rust minor patch group updates.
 
 ### Boundaries
 
