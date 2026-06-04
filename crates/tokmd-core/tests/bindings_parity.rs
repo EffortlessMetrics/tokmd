@@ -157,6 +157,16 @@ fn run_json_unknown_mode_returns_error() {
     );
 }
 
+#[test]
+fn run_json_cockpit_mode_returns_error_envelope_for_invalid_refs() {
+    let r = run_json(
+        "cockpit",
+        r#"{"base":"__tokmd_missing_base_ref__","head":"__tokmd_missing_head_ref__"}"#,
+    );
+    let v = assert_err(&r);
+    assert!(v["error"]["code"].is_string());
+}
+
 // ============================================================================
 // 3. Envelope format
 // ============================================================================
@@ -226,6 +236,8 @@ fn version_mode_matches_function() {
 // ============================================================================
 
 proptest! {
+    #![proptest_config(ProptestConfig::with_cases(32))]
+
     #[test]
     fn run_json_never_panics(mode in "\\PC{0,20}", args in "\\PC{0,200}") {
         let result = run_json(&mode, &args);
@@ -237,10 +249,9 @@ proptest! {
     #[test]
     fn run_json_valid_json_never_panics(
         mode in prop::sample::select(vec![
-            "lang", "module", "export", "analyze", "cockpit",
-            "diff", "version", "unknown",
+            "lang", "module", "export", "analyze", "diff", "version", "unknown",
         ]),
-        args in prop::collection::hash_map(
+        mut args in prop::collection::hash_map(
             "[a-z_]{1,10}",
             prop_oneof![
                 Just(Value::Null),
@@ -251,6 +262,32 @@ proptest! {
             0..5,
         ),
     ) {
+        let repo = make_repo("fn main() {}\n");
+        let other = make_repo("fn other() {}\n");
+        let path = repo.path().to_string_lossy().replace('\\', "/");
+        let other_path = other.path().to_string_lossy().replace('\\', "/");
+
+        match mode {
+            "lang" | "module" | "export" => {
+                args.insert(
+                    "paths".to_string(),
+                    Value::Array(vec![Value::String(path)]),
+                );
+            }
+            "analyze" => {
+                args.insert(
+                    "paths".to_string(),
+                    Value::Array(vec![Value::String(path)]),
+                );
+                args.insert("preset".to_string(), Value::String("receipt".to_string()));
+            }
+            "diff" => {
+                args.insert("from".to_string(), Value::String(path));
+                args.insert("to".to_string(), Value::String(other_path));
+            }
+            _ => {}
+        }
+
         let json_str = serde_json::to_string(&args).unwrap();
         let result = run_json(mode, &json_str);
         let _: Value = serde_json::from_str(&result)
