@@ -1149,6 +1149,16 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "docs_recipe_tests"
+kind = "rust"
+paths = ["crates/tokmd/tests/docs.rs"]
+packages = ["tokmd"]
+proof = ["cargo test -p tokmd --test docs --verbose"]
+reason = "Docs-as-tests recipe coverage validates user-facing command examples and release recipes."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "user_guides"
 kind = "non_rust"
 paths = [

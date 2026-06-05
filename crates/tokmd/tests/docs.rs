@@ -3,17 +3,61 @@
 use assert_cmd::Command;
 use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::prelude::*;
-use std::path::PathBuf;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command as StdCommand,
+};
 
 /// "Docs as tests" - verify that the commands we recommend in README/Recipes actually work.
 /// These run against `tests/data` to ensure stability.
 fn tokmd() -> Command {
+    let fixtures = fixture_dir();
+    tokmd_in(&fixtures)
+}
+
+fn tokmd_in(cwd: &Path) -> Command {
     let mut cmd: Command = cargo_bin_cmd!("tokmd");
-    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data");
-    cmd.current_dir(&fixtures);
+    cmd.current_dir(cwd);
     cmd
+}
+
+fn fixture_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("data")
+}
+
+fn git_recipe_fixture() -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("src");
+    fs::create_dir_all(&src).unwrap();
+    fs::write(src.join("main.rs"), "fn main() {}\n").unwrap();
+
+    run_git(tmp.path(), &["init"]);
+    run_git(tmp.path(), &["add", "."]);
+    run_git(
+        tmp.path(),
+        &[
+            "-c",
+            "user.name=tokmd docs test",
+            "-c",
+            "user.email=tokmd@example.invalid",
+            "commit",
+            "-m",
+            "initial",
+        ],
+    );
+    tmp
+}
+
+fn run_git(cwd: &Path, args: &[&str]) {
+    let status = StdCommand::new("git")
+        .current_dir(cwd)
+        .args(args)
+        .status()
+        .unwrap();
+    assert!(status.success(), "git {args:?} failed with {status}");
 }
 
 #[test]
@@ -70,7 +114,8 @@ fn recipe_analyze_presets() {
         .success();
 
     // "tokmd analyze --preset estimate --effort-base-ref main --effort-head-ref HEAD --format md"
-    tokmd()
+    let git_fixture = git_recipe_fixture();
+    tokmd_in(git_fixture.path())
         .arg("analyze")
         .arg("--preset")
         .arg("estimate")
