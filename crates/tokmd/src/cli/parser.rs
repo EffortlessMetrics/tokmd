@@ -25,6 +25,7 @@ mod commands;
 mod completions;
 mod context;
 mod diff;
+mod evidence_packet;
 mod export;
 mod gate;
 mod global;
@@ -48,6 +49,7 @@ pub use context::{
     CliContextArgs, ContextOutput, ContextStrategy, HandoffArgs, HandoffPreset, ValueMetric,
 };
 pub use diff::{ColorMode, DiffArgs, DiffFormat};
+pub use evidence_packet::EvidencePacketArgs;
 pub use export::CliExportArgs;
 pub use gate::{CliGateArgs, GateFormat};
 pub use global::GlobalArgs;

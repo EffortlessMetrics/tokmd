@@ -212,6 +212,7 @@ Representative summary output:
 | `tokmd gate` | Evaluate TOML policy rules and ratchets |
 | `tokmd baseline` | Capture a baseline for later ratchet comparisons |
 | `tokmd sensor` | Emit a `sensor.report.v1` envelope |
+| `tokmd evidence-packet` | Emit a manifest for sensor artifacts such as analyze and context output |
 | `tokmd tools` | Generate tool definitions for OpenAI, Anthropic, and JSON Schema consumers |
 | `tokmd init` | Generate a `.tokeignore` template |
 | `tokmd check-ignore` | Explain why a path is being ignored |
@@ -226,7 +227,7 @@ Representative summary output:
 - `export`
 - browser-safe `analyze` presets on ordered in-memory inputs
 
-Native filesystem flows, Git-history enrichers, `gate`, `cockpit`, `sensor`, `baseline`, `context`, and `handoff` remain native-first.
+Native filesystem flows, Git-history enrichers, `gate`, `cockpit`, `sensor`, `evidence-packet`, `baseline`, `context`, and `handoff` remain native-first.
 
 The browser runner documents its in-memory GitHub ingest cache, supports local
 file/directory inputs, shows repo-load and worker-run progress, surfaces

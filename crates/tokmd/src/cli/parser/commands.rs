@@ -7,8 +7,8 @@ use clap::Subcommand;
 
 use super::{
     BadgeArgs, BaselineArgs, CliAnalyzeArgs, CliCheckIgnoreArgs, CliContextArgs, CliExportArgs,
-    CliGateArgs, CliLangArgs, CliModuleArgs, CockpitArgs, CompletionsArgs, DiffArgs, HandoffArgs,
-    InitArgs, RunArgs, SensorArgs, ToolsArgs,
+    CliGateArgs, CliLangArgs, CliModuleArgs, CockpitArgs, CompletionsArgs, DiffArgs,
+    EvidencePacketArgs, HandoffArgs, InitArgs, RunArgs, SensorArgs, ToolsArgs,
 };
 
 #[derive(Subcommand, Debug, Clone)]
@@ -65,6 +65,9 @@ pub enum Commands {
 
     /// Run as a conforming sensor, producing a SensorReport.
     Sensor(SensorArgs),
+
+    /// Write a scoped evidence packet manifest.
+    EvidencePacket(EvidencePacketArgs),
 }
 
 #[cfg(test)]

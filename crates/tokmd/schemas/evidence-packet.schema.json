@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://effortlessmetrics.dev/schemas/tokmd/evidence-packet.v1.schema.json",
+  "title": "tokmd evidence packet manifest",
+  "description": "Schema for sensors/tokmd/manifest.json evidence packet manifests.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "tokmd_version",
+    "preset",
+    "base",
+    "head",
+    "paths",
+    "status",
+    "artifacts",
+    "warnings",
+    "errors",
+    "non_claims",
+    "reproduce"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "tokmd.evidence-packet/v1"
+    },
+    "tokmd_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "preset": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base": {
+      "type": "string",
+      "minLength": 1
+    },
+    "head": {
+      "type": "string",
+      "minLength": 1
+    },
+    "paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "partial", "failed"]
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["analyze_md", "analyze_json", "context_md"],
+      "properties": {
+        "analyze_md": {
+          "type": "string",
+          "minLength": 1
+        },
+        "analyze_json": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_md": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "non_claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "reproduce": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -1518,6 +1518,100 @@ tokmd sensor --base origin/main --head feature-branch --output ci/report.json
 tokmd sensor --format md
 ```
 
+### `tokmd evidence-packet`
+
+Writes a scoped evidence packet manifest over existing sensor artifacts.
+
+<!-- HELP: evidence-packet -->
+```text
+Write a scoped evidence packet manifest
+
+Usage: tokmd evidence-packet [OPTIONS] <PATH>...
+
+Arguments:
+  <PATH>...
+          Changed paths or scoped review inputs used to generate the packet
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --preset <PRESET>
+          Analysis preset used to generate analyze.md and analyze.json
+
+          [default: bun-ub]
+          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+
+      --base <BASE>
+          Base reference used by analyze artifacts
+
+          [default: origin/main]
+
+      --head <HEAD>
+          Head reference used by analyze artifacts
+
+          [default: HEAD]
+
+      --output <PATH>
+          Output path for the evidence packet manifest
+
+          [default: sensors/tokmd/manifest.json]
+
+      --analyze-md <PATH>
+          Path to the Markdown analysis artifact
+
+      --analyze-json <PATH>
+          Path to the JSON analysis artifact
+
+      --context-md <PATH>
+          Path to the context Markdown artifact
+
+      --context-budget <CONTEXT_BUDGET>
+          Context budget used for the context artifact reproduction command
+
+          [default: 64000]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+Examples:
+  tokmd evidence-packet --base origin/main --head HEAD src/runtime/api
+  tokmd evidence-packet --output sensors/tokmd/manifest.json --preset bun-ub src/runtime/api/MarkdownObject.rs
+```
+<!-- /HELP: evidence-packet -->
+
+**Usage**: `tokmd evidence-packet [OPTIONS] <PATH>...`
+
+Run this after producing `sensors/tokmd/analyze.md`,
+`sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md`. The command
+writes `sensors/tokmd/manifest.json` by default, validates the artifact paths,
+checks `analyze.json` preset/path/status coherence, preserves analysis
+warnings, and exits nonzero for failed packets while leaving the manifest on
+disk for inspection.
+
+**Examples**:
+```bash
+tokmd evidence-packet --base origin/main --head HEAD src/runtime/api
+
+tokmd evidence-packet \
+  --preset bun-ub \
+  --base "$BASE" \
+  --head "$HEAD" \
+  "$@"
+```
+
 ### `tokmd gate`
 
 Evaluates policy rules against analysis receipts for CI gating. Use this to enforce code quality standards in your pipeline.

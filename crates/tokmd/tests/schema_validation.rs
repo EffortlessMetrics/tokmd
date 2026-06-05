@@ -23,6 +23,9 @@ const HANDOFF_SCHEMA_JSON: &str = include_str!("../schemas/handoff.schema.json")
 /// Embedded JSON schema for sensor.report.v1 envelope (from schemas/sensor.report.v1.schema.json)
 const SENSOR_REPORT_SCHEMA_JSON: &str = include_str!("../schemas/sensor.report.v1.schema.json");
 
+/// Embedded JSON schema for evidence packet manifests
+const EVIDENCE_PACKET_SCHEMA_JSON: &str = include_str!("../schemas/evidence-packet.schema.json");
+
 /// Embedded JSON schema for review packet manifests
 const REVIEW_PACKET_MANIFEST_SCHEMA_JSON: &str =
     include_str!("../schemas/review-packet-manifest.schema.json");
@@ -49,6 +52,11 @@ fn load_handoff_schema() -> Result<Value> {
 fn load_sensor_report_schema() -> Result<Value> {
     serde_json::from_str(SENSOR_REPORT_SCHEMA_JSON)
         .context("Failed to parse embedded sensor.report.v1.schema.json")
+}
+
+fn load_evidence_packet_schema() -> Result<Value> {
+    serde_json::from_str(EVIDENCE_PACKET_SCHEMA_JSON)
+        .context("Failed to parse embedded evidence-packet.schema.json")
 }
 
 fn compile_schema(schema_json: &str, name: &str) -> Result<jsonschema::Validator> {
@@ -626,6 +634,59 @@ fn test_handoff_manifest_validates_against_schema() -> Result<()> {
             serde_json::to_string_pretty(&json).expect(
                 "schema validation failed and could not serialize output to string for debug"
             )
+        );
+    }
+    Ok(())
+}
+
+// =============================================================================
+// evidence-packet/v1 Schema Validation Tests
+// =============================================================================
+
+#[test]
+fn test_evidence_packet_schema_is_valid_json_schema() -> Result<()> {
+    let schema = load_evidence_packet_schema()?;
+    jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("evidence-packet schema is not valid: {}", e))?;
+    Ok(())
+}
+
+#[test]
+fn test_evidence_packet_example_validates() -> Result<()> {
+    let schema = load_evidence_packet_schema()?;
+    let validator = jsonschema::validator_for(&schema)
+        .map_err(|e| anyhow::anyhow!("Failed to compile evidence-packet schema: {}", e))?;
+    let example = serde_json::json!({
+        "schema": tokmd_types::EVIDENCE_PACKET_SCHEMA,
+        "tokmd_version": "1.12.0",
+        "preset": "bun-ub",
+        "base": "origin/main",
+        "head": "HEAD",
+        "paths": ["src/runtime/api"],
+        "status": "complete",
+        "artifacts": {
+            "analyze_md": "sensors/tokmd/analyze.md",
+            "analyze_json": "sensors/tokmd/analyze.json",
+            "context_md": "sensors/tokmd/context.md"
+        },
+        "warnings": [],
+        "errors": [],
+        "non_claims": [
+            "bun-ub packages review evidence; it does not prove UB exists or is absent"
+        ],
+        "reproduce": [
+            "tokmd analyze --preset bun-ub --format json --effort-base-ref origin/main --effort-head-ref HEAD --no-progress src/runtime/api > sensors/tokmd/analyze.json"
+        ]
+    });
+
+    if !validator.is_valid(&example) {
+        let errors: Vec<String> = validator
+            .iter_errors(&example)
+            .map(|e| format!("{} at {}", e, e.instance_path()))
+            .collect();
+        panic!(
+            "Evidence packet example validation failed:\n{}",
+            errors.join("\n")
         );
     }
     Ok(())

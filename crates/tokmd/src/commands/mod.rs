@@ -9,6 +9,7 @@ pub(crate) mod cockpit;
 pub(crate) mod completions;
 pub(crate) mod context;
 pub(crate) mod diff;
+pub(crate) mod evidence_packet;
 pub(crate) mod export;
 #[cfg(feature = "analysis")]
 pub(crate) mod gate;
@@ -51,6 +52,7 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Baseline(args) => baseline::handle(args, global),
         cli::Commands::Handoff(args) => handoff::handle(args, global),
         cli::Commands::Sensor(args) => sensor::handle(args, global),
+        cli::Commands::EvidencePacket(args) => evidence_packet::handle(args),
         #[cfg(not(feature = "analysis"))]
         _ => anyhow::bail!("analysis feature is not enabled"),
     }

@@ -32,6 +32,7 @@ pub mod cockpit;
 
 mod context;
 mod diff;
+mod evidence_packet;
 mod inventory;
 
 pub use context::{
@@ -43,6 +44,9 @@ pub use context::{
     TokenEstimationMeta,
 };
 pub use diff::{DiffReceipt, DiffRow, DiffTotals};
+pub use evidence_packet::{
+    EVIDENCE_PACKET_SCHEMA, EvidencePacketArtifacts, EvidencePacketManifest, EvidencePacketStatus,
+};
 pub use inventory::{
     AnalysisFormat, ChildIncludeMode, ChildrenMode, CommitIntentKind, ConfigMode, ExportArgs,
     ExportArgsMeta, ExportData, ExportFormat, ExportReceipt, FileKind, FileRow, LangArgs,

@@ -1,9 +1,9 @@
 # tokmd Evidence Packet Contract
 
-Status: specified. The first packet shape is intended for review bots,
-high-risk local review, and coding-agent handoff. Current `tokmd` commands emit
-the underlying receipts; a producer can assemble this manifest beside them until
-`tokmd` grows a first-class manifest emitter.
+Status: implemented. The first packet shape is intended for review bots,
+high-risk local review, and coding-agent handoff. `tokmd analyze` and
+`tokmd context` emit the underlying receipts; `tokmd evidence-packet` writes
+the manifest beside them.
 
 ## Purpose
 
@@ -98,10 +98,24 @@ fields are missing.
   "reproduce": [
     "tokmd analyze --preset bun-ub --format md --effort-base-ref origin/main --effort-head-ref HEAD --no-progress src/runtime/api > sensors/tokmd/analyze.md",
     "tokmd analyze --preset bun-ub --format json --effort-base-ref origin/main --effort-head-ref HEAD --no-progress src/runtime/api > sensors/tokmd/analyze.json",
-    "tokmd context --budget 64000 src/runtime/api > sensors/tokmd/context.md"
+    "tokmd context --budget 64000 src/runtime/api > sensors/tokmd/context.md",
+    "tokmd evidence-packet --base origin/main --head HEAD src/runtime/api"
   ]
 }
 ```
+
+Generate the manifest after the analysis and context artifacts exist:
+
+```bash
+tokmd evidence-packet \
+  --base origin/main \
+  --head HEAD \
+  src/runtime/api
+```
+
+The default output is `sensors/tokmd/manifest.json`. The command exits
+nonzero for `failed` packets while still writing the manifest so a bot or human
+can inspect the named errors.
 
 ## Status Rules
 
@@ -144,6 +158,8 @@ Do not attach a packet marked `complete` when the real state is `partial` or
    that the packet packages review evidence and does not prove UB exists or is
    absent.
 6. Keep reproduction commands copy-ready and scoped to the same paths.
+7. Prefer `tokmd evidence-packet` over hand-written manifest glue so preset,
+   path, artifact, warning, and status checks stay consistent.
 
 ## Consumer Rules
 

@@ -61,6 +61,12 @@ tokmd context \
   --budget 64000 \
   "$@" \
   > sensors/tokmd/context.md
+
+tokmd evidence-packet \
+  --preset bun-ub \
+  --base "$BASE" \
+  --head "$HEAD" \
+  "$@"
 ```
 
 Attach these artifacts:
@@ -73,9 +79,10 @@ Attach these artifacts:
 | `sensors/tokmd/context.md` | reviewer, agent | Context budget audit showing included, truncated, and skipped files. |
 
 Use the [evidence packet contract](../evidence-packet.md) for
-`sensors/tokmd/manifest.json`. Until `tokmd` has a first-class manifest
-emitter, review-bot glue can write the manifest from the same `BASE`, `HEAD`,
-and changed paths used to generate the three receipts.
+`sensors/tokmd/manifest.json`. `tokmd evidence-packet` writes that manifest
+from the same `BASE`, `HEAD`, and changed paths used to generate the receipts.
+It exits nonzero for failed packets while leaving the manifest on disk for
+inspection.
 
 ## Local Reviewer Recipe
 
