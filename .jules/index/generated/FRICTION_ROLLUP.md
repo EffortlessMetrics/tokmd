@@ -5,3 +5,5 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
+| `FRIC-20240508-001` | Librarian | Explorer | docs | open | Doctests relying on git functionality fail or lack dependencies in some isolated build modes. |
+| `FRIC-20240508-002` | Steward | Stabilizer | tooling-governance | open | Publishxtask surface demands a completely clean git state which can cause friction during automated builds or local debug sessions where untracked ignored files exist. |
