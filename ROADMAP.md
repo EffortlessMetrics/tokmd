@@ -39,6 +39,7 @@ context for humans, machines, CI, and agents.
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
 | **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and tokmd-swarm workbench. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
@@ -603,9 +604,19 @@ back into single-responsibility owner modules.
 - [x] Retry and rate-limit UX with retry-after guidance.
 - [x] Auth-safe fetch/cache boundaries with session-only token state.
 
+## v1.12.0 — Bun UB Evidence-Readiness
+
+**Goal:** Deliver the Bun UB evidence-readiness and `tokmd-swarm` workbench, turning `tokmd analyze` and `tokmd context` into a scoped evidence packet for high-risk review work.
+
+### What shipped for v1.12.0
+
+- [x] Thin on-diff review preset (`tokmd analyze --preset bun-ub`).
+- [x] Swarm workbench imports.
+- [x] Scoped evidence packet context routing.
+
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
+### v1.13.x — Selection-First Product and Evidence Work
 
 _Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 

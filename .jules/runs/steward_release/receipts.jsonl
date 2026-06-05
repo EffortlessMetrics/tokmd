@@ -1,0 +1,2 @@
+{"command": "cargo xtask version-consistency", "output": "Checking version consistency against workspace version 1.12.0\n\n  ✓ Cargo crate versions match 1.12.0.\n  ✓ Cargo workspace dependency versions match 1.12.0.\n  ✓ Node package manifest versions match 1.12.0.\n  ✓ No case-insensitive tracked-path collisions detected.\nVersion consistency checks passed."}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date.\ndoc artifacts ok: 2 required doc(s), 53 family file(s), 1 active goal(s), 18 spec-index artifact(s), 0 spec-index lane(s)"}
