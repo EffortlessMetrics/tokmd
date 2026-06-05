@@ -1540,6 +1540,13 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
             .as_array()
             .unwrap()
             .iter()
+            .any(|path| path == "sensors/tokmd/manifest.json")
+    );
+    assert!(
+        missing_item["bun_ub_sensor"]["missing"]
+            .as_array()
+            .unwrap()
+            .iter()
             .any(|path| path == "sensors/tokmd/analyze.md")
     );
     assert!(
@@ -1548,6 +1555,13 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
             .unwrap()
             .iter()
             .any(|path| path == "sensors/tokmd/analyze.json")
+    );
+    assert!(
+        missing_item["bun_ub_sensor"]["missing"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|path| path == "sensors/tokmd/context.md")
     );
     assert!(
         missing_item["reproduce"]
@@ -1567,13 +1581,43 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
                 "tokmd analyze --preset bun-ub --format json --effort-base-ref main --effort-head-ref HEAD --no-progress src/runtime/api/MarkdownObject.rs > sensors/tokmd/analyze.json"
             ))
     );
+    assert!(
+        missing_item["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str().unwrap_or("").contains(
+                "tokmd context --budget 64000 src/runtime/api/MarkdownObject.rs > sensors/tokmd/context.md"
+            ))
+    );
+    assert!(
+        missing_item["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str().unwrap_or("").contains(
+                "tokmd syntax --no-progress src/runtime/api/MarkdownObject.rs > sensors/tokmd/syntax.json"
+            ))
+    );
+    assert!(
+        missing_item["reproduce"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|command| command.as_str().unwrap_or("").contains(
+                "tokmd evidence-packet --preset bun-ub --base main --head HEAD --output sensors/tokmd/manifest.json src/runtime/api/MarkdownObject.rs"
+            ))
+    );
 
     let missing_review_map_md =
         std::fs::read_to_string(missing_packet_dir.join("review-map.md")).unwrap();
     assert!(missing_review_map_md.contains("Bun UB sensor artifacts: missing."));
     assert!(missing_review_map_md.contains("Bun UB sensor: missing"));
+    assert!(missing_review_map_md.contains("sensors/tokmd/manifest.json"));
     assert!(missing_review_map_md.contains("sensors/tokmd/analyze.md"));
     assert!(missing_review_map_md.contains("sensors/tokmd/analyze.json"));
+    assert!(missing_review_map_md.contains("sensors/tokmd/context.md"));
+    assert!(missing_review_map_md.contains("sensors/tokmd/syntax.json"));
     let missing_comment_md =
         std::fs::read_to_string(missing_packet_dir.join("comment.md")).unwrap();
     assert!(missing_comment_md.contains("Bun UB sensor artifacts"));
@@ -1582,8 +1626,10 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
 
     let sensor_dir = dir.path().join("sensors").join("tokmd");
     std::fs::create_dir_all(&sensor_dir).unwrap();
+    std::fs::write(sensor_dir.join("manifest.json"), "{}").unwrap();
     std::fs::write(sensor_dir.join("analyze.md"), "# Bun UB analyze\n").unwrap();
     std::fs::write(sensor_dir.join("analyze.json"), r#"{"preset":"bun-ub"}"#).unwrap();
+    std::fs::write(sensor_dir.join("context.md"), "# Context\n").unwrap();
 
     let available_packet_dir_arg = std::path::PathBuf::from(".tokmd").join("review-available");
     let available_packet_dir = dir.path().join(&available_packet_dir_arg);
@@ -1627,6 +1673,13 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
             .as_array()
             .unwrap()
             .iter()
+            .any(|path| path == "sensors/tokmd/manifest.json")
+    );
+    assert!(
+        available_item["bun_ub_sensor"]["available"]
+            .as_array()
+            .unwrap()
+            .iter()
             .any(|path| path == "sensors/tokmd/analyze.md")
     );
     assert!(
@@ -1635,6 +1688,20 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
             .unwrap()
             .iter()
             .any(|path| path == "sensors/tokmd/analyze.json")
+    );
+    assert!(
+        available_item["bun_ub_sensor"]["available"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|path| path == "sensors/tokmd/context.md")
+    );
+    assert!(
+        available_item["bun_ub_sensor"]["available"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|path| path != "sensors/tokmd/syntax.json")
     );
     let available_comment_md =
         std::fs::read_to_string(available_packet_dir.join("comment.md")).unwrap();

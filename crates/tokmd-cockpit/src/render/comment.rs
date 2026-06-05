@@ -4,9 +4,7 @@ use crate::doc_artifacts_evidence::DocArtifactsEvidenceInput;
 use crate::proof_evidence::ProofEvidenceInput;
 use crate::{CockpitReceipt, GateStatus, RiskLevel};
 
-use super::bun_ub_sensor::{
-    BUN_UB_ANALYZE_JSON_PATH, BUN_UB_ANALYZE_MD_PATH, BunUbSensorEvidence, receipt_has_bun_ub_scope,
-};
+use super::bun_ub_sensor::{BunUbSensorEvidence, bun_ub_sensor_refs, receipt_has_bun_ub_scope};
 use super::evidence::{doc_artifacts_expected, evidence_counts};
 use super::proof_summary::proof_evidence_summary;
 
@@ -194,8 +192,9 @@ fn write_bun_ub_sensor_summary(
     }
 
     let _ = writeln!(s, "**Bun UB sensor artifacts**: {}.", sensor.status());
-    let _ = writeln!(s, "- {BUN_UB_ANALYZE_MD_PATH}");
-    let _ = writeln!(s, "- {BUN_UB_ANALYZE_JSON_PATH}");
+    for path in bun_ub_sensor_refs() {
+        let _ = writeln!(s, "- {path}");
+    }
     let missing = sensor.missing_paths();
     if !missing.is_empty() {
         let _ = writeln!(s, "- Missing: {}", missing.join(", "));

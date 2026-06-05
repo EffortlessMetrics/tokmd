@@ -7,8 +7,8 @@ use crate::proof_evidence::ProofEvidenceInput;
 use crate::{CockpitReceipt, GateMeta, ReviewItem};
 
 use super::bun_ub_sensor::{
-    BUN_UB_ANALYZE_JSON_PATH, BUN_UB_ANALYZE_MD_PATH, BunUbSensorEvidence, bun_ub_analyze_commands,
-    bun_ub_sensor_refs, receipt_has_bun_ub_scope, review_item_is_bun_ub_scope,
+    BunUbSensorEvidence, bun_ub_sensor_commands, bun_ub_sensor_refs, receipt_has_bun_ub_scope,
+    review_item_is_bun_ub_scope,
 };
 use super::evidence::{
     doc_artifacts_expected, evidence_availability_optional, evidence_counts,
@@ -267,7 +267,7 @@ fn review_map_item_reproduce(
         );
     }
     if review_item_is_bun_ub_scope(&item.path) {
-        commands.extend(bun_ub_analyze_commands(
+        commands.extend(bun_ub_sensor_commands(
             &item.path,
             &receipt.base_ref,
             &receipt.head_ref,
@@ -522,8 +522,9 @@ fn write_bun_ub_sensor_overview(
     }
 
     let _ = writeln!(s, "Bun UB sensor artifacts: {}.", sensor.status());
-    let _ = writeln!(s, "- {BUN_UB_ANALYZE_MD_PATH}");
-    let _ = writeln!(s, "- {BUN_UB_ANALYZE_JSON_PATH}");
+    for path in bun_ub_sensor_refs() {
+        let _ = writeln!(s, "- {path}");
+    }
     let missing = sensor.missing_paths();
     if !missing.is_empty() {
         let _ = writeln!(s, "- Missing: {}", missing.join(", "));
@@ -570,8 +571,9 @@ fn write_bun_ub_sensor_block(s: &mut String, item: &ReviewItem, sensor: BunUbSen
     }
 
     let _ = writeln!(s, "   Bun UB sensor: {}", sensor.status());
-    let _ = writeln!(s, "   - {BUN_UB_ANALYZE_MD_PATH}");
-    let _ = writeln!(s, "   - {BUN_UB_ANALYZE_JSON_PATH}");
+    for path in bun_ub_sensor_refs() {
+        let _ = writeln!(s, "   - {path}");
+    }
     let missing = sensor.missing_paths();
     if !missing.is_empty() {
         let _ = writeln!(s, "   Sensor missing: {}", missing.join(", "));
