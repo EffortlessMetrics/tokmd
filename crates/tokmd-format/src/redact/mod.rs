@@ -294,4 +294,30 @@ mod tests {
     fn test_redact_path_normalizes_dot_prefix() {
         assert_eq!(redact_path("src/main.rs"), redact_path("./src/main.rs"));
     }
+
+    #[test]
+    fn test_clean_path_trailing_dot() {
+        assert_eq!(clean_path("src/lib/."), "src/lib");
+    }
+
+    #[test]
+    fn test_redact_path_empty_filename_part() {
+        let redacted = redact_path(".env");
+        assert_eq!(redacted.len(), 16);
+        assert!(!redacted.contains('.'));
+    }
+
+    #[test]
+    fn test_redact_path_only_extension() {
+        let redacted = redact_path(".rs");
+        assert_eq!(redacted.len(), 16);
+        assert!(!redacted.contains('.'));
+    }
+
+    #[test]
+    fn test_redact_path_hidden_compound_extension() {
+        let redacted = redact_path(".tar.gz");
+        assert!(redacted.ends_with(".gz"));
+        assert_eq!(redacted.len(), 16 + 3);
+    }
 }

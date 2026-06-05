@@ -1,0 +1,4 @@
+{"timestamp": "2026-06-05T06:09:30Z", "command": "mkdir -p .jules/runs/run-1", "output": ""}
+{"timestamp": "2026-06-05T06:10:15Z", "command": "cargo mutants --file crates/tokmd-format/src/redact/mod.rs -p tokmd-format --no-shuffle", "output": "MISSED   crates/tokmd-format/src/redact/mod.rs:48:46: replace - with + in clean_path\nMISSED   crates/tokmd-format/src/redact/mod.rs:48:46: replace - with / in clean_path\nMISSED   crates/tokmd-format/src/redact/mod.rs:140:41: replace == with != in redact_path"}
+{"timestamp": "2026-06-05T06:15:20Z", "command": "cargo test -p tokmd-format", "output": "test result: ok. 154 passed; 0 failed"}
+{"timestamp": "2026-06-05T06:18:40Z", "command": "cargo mutants --file crates/tokmd-format/src/redact/mod.rs -p tokmd-format --no-shuffle", "output": "17 mutants tested in 4m: 17 caught"}

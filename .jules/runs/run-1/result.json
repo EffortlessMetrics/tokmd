@@ -1,0 +1,6 @@
+{
+  "outcome": "proof-improvement patch",
+  "receipts_count": 4,
+  "options_considered": ["Option A", "Option B"],
+  "decision": "Option A"
+}
