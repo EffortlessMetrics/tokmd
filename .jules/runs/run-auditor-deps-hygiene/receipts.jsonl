@@ -1,0 +1,7 @@
+{"command": "sed -i 's/tokmd-types = { path = \"..\\/tokmd-types\", version = \">=1.9, <2\" }/tokmd-types.workspace = true/' crates/tokmd-wasm/Cargo.toml", "outcome": "success"}
+{"command": "cargo fmt -- --check", "outcome": "success"}
+{"command": "cargo clippy -p tokmd-wasm -- -D warnings", "outcome": "success"}
+{"command": "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-bindgen-test-runner cargo test -p tokmd-wasm --target wasm32-unknown-unknown", "outcome": "11 passed; 0 failed"}
+{"command": "cargo build -p tokmd-wasm", "outcome": "success"}
+{"command": "cargo deny --all-features check", "outcome": "skipped - cargo deny not installed/configured natively"}
+{"command": "cargo run -p xtask -- proof-policy", "outcome": "failed, but xtask not configured"}

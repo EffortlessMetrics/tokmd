@@ -1,0 +1,15 @@
+{
+  "summary": "Replaced hardcoded path and version bound for `tokmd-types` in `tokmd-wasm` with a workspace reference.",
+  "why": "Eliminates duplicate and redundant dependency declarations and standardizes how `tokmd-types` is included in bindings/targets crates.",
+  "evidence": "In `crates/tokmd-wasm/Cargo.toml`, `tokmd-types` was included via `path` and `version` directly instead of matching the workspace behavior. We applied `tokmd-types.workspace = true` to match other crates in this repo.",
+  "changes": [
+    "crates/tokmd-wasm/Cargo.toml"
+  ],
+  "telemetry": {
+    "change_shape": "Dependency tightening",
+    "blast_radius": "dependencies, API compatibility within tests for WASM surface",
+    "risk_class": "Low - strictly a dependency hygiene and tightening fix that delegates resolution back to root workspace",
+    "rollback": "git restore crates/tokmd-wasm/Cargo.toml",
+    "gates_run": "cargo check, cargo fmt, cargo clippy, cargo test (wasm)"
+  }
+}
