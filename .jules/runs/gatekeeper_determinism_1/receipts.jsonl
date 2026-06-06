@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd --test schema_sync", "status": "success", "output": "test result: ok. 22 passed"}
+{"command": "cargo test -p tokmd-format --test test_redaction_leak", "status": "success", "output": "test result: ok. 6 passed"}
+{"command": "cargo test -p tokmd-types --test schema_contract", "status": "success", "output": "test result: ok. 17 passed"}
