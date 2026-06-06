@@ -1,0 +1,4 @@
+{"command": "cargo run -p xtask -- version-consistency", "outcome": "Success, version checks pass against 1.12.0"}
+{"command": "cargo run -p xtask -- docs --check", "outcome": "Documentation is up to date."}
+{"command": "grep -rn \"1.11.0\" docs/ README.md", "outcome": "Found numerous outdated version references."}
+{"command": "sed -i 's/1.11.0/1.12.0/g' docs/...", "outcome": "Replaced versions."}

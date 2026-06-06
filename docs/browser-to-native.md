@@ -124,7 +124,7 @@ Use the GitHub Action when you want hosted artifacts:
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: cockpit
     review-packet: 'true'
     artifact: 'true'

@@ -17,7 +17,7 @@ evidence for this range only.
   `386f76cd5459bb60b5dcd196a98f2d1df04a4b3f`.
 - Change: GitHub Action quickstart docs plus related links and proof routing.
 - Local note: `tokmd` on `PATH` was `1.10.0`, while the workspace binary was
-  `1.11.0`, so the smoke run used `cargo run -p tokmd -- ...` for commands
+  `1.12.0`, so the smoke run used `cargo run -p tokmd -- ...` for commands
   that need current branch behavior.
 
 ## Run First

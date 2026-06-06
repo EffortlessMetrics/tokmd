@@ -15,7 +15,7 @@ That dual use creates an ambiguity when an input does not exist on disk:
   caller outside a git repository can receive `not inside a git repository`
   instead of a useful missing-path error.
 
-This ambiguity surfaced during the v1.11.0 release repair path. A Nix tag-check
+This ambiguity surfaced during the v1.12.0 release repair path. A Nix tag-check
 run exercised `tokmd diff` from a non-git sandbox with missing receipt paths,
 and the command reported the git-repository precondition rather than the
 invalid path input.

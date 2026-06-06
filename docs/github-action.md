@@ -26,7 +26,7 @@ jobs:
 
       - uses: EffortlessMetrics/tokmd@v1
         with:
-          version: '1.11.0'
+          version: '1.12.0'
           paths: .
           artifact: 'true'
           comment: 'true'
@@ -39,23 +39,23 @@ There are two version choices in every workflow:
 | Setting | Meaning | Example |
 | :------ | :------ | :------ |
 | Action ref | Which repository ref GitHub uses for `action.yml` | `EffortlessMetrics/tokmd@v1` |
-| `version` input | Which released `tokmd` binary the Action downloads | `version: '1.11.0'` |
+| `version` input | Which released `tokmd` binary the Action downloads | `version: '1.12.0'` |
 
 Use stable workflows like this:
 
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     paths: .
 ```
 
 For release-candidate smoke tests, pin both the Action ref and the downloaded binary:
 
 ```yaml
-- uses: EffortlessMetrics/tokmd@v1.11.0-rc.1
+- uses: EffortlessMetrics/tokmd@v1.12.0-rc.1
   with:
-    version: '1.11.0-rc.1'
+    version: '1.12.0-rc.1'
     paths: .
 ```
 
@@ -63,9 +63,9 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 
 | `version` input | Release tag |
 | :-------------- | :---------- |
-| `1.11.0` | `v1.11.0` |
-| `v1.11.0` | `v1.11.0` |
-| `1.11.0-rc.1` | `v1.11.0-rc.1` |
+| `1.12.0` | `v1.12.0` |
+| `v1.12.0` | `v1.12.0` |
+| `1.12.0-rc.1` | `v1.12.0-rc.1` |
 
 ## Inputs
 
@@ -223,7 +223,7 @@ For `cockpit` and `sensor` in external pull request workflows, prefer full histo
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: cockpit
     head: HEAD
     artifact: 'true'
@@ -295,7 +295,7 @@ Supported binary assets:
 
 When `checksums.txt` exists on the release, the Action verifies the downloaded binary before running it.
 
-Stable release tags update the `v1` major tag. Release-candidate tags such as `v1.11.0-rc.1` are prereleases, do not become the latest release, and do not move `v1`.
+Stable release tags update the `v1` major tag. Release-candidate tags such as `v1.12.0-rc.1` are prereleases, do not become the latest release, and do not move `v1`.
 
 ## Examples
 
@@ -304,7 +304,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     paths: .
     artifact: 'true'
     comment: 'true'
@@ -325,7 +325,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: gate
     paths: .
     artifact: 'true'
@@ -341,7 +341,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: cockpit
     head: HEAD
     artifact: 'true'
@@ -357,7 +357,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: sensor
     head: HEAD
     artifact: 'true'
@@ -369,7 +369,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
+    version: '1.12.0'
     mode: baseline
     paths: .
     artifact: 'true'
