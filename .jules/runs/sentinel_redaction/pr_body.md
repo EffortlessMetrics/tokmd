@@ -1,51 +1,53 @@
 ## 💡 Summary
-Hardened path redaction to preserve explicitly known compound suffixes without widening arbitrary suffix leakage. `.tar.gz` is now preserved as a unit, unknown safe-looking chains still collapse to the final extension, and unsafe final suffixes strip all suffix output.
+This is a learning PR. We investigated a potential trust-boundary data leak where mixed-case file extensions could bypass case-normalization during redaction in `tokmd-format`. Our tests confirmed the existing logic already safely normalizes these to lowercase, meaning the boundary is secure.
 
 ## 🎯 Why
-The original `redact_path` relied solely on `Path::extension()` which only retrieved the final extension. That made safe compound archive suffixes like `.tar.gz` less useful in redacted receipts. The replacement keeps compound suffixes explicit and narrow instead of preserving every safe-looking dotted segment.
+The prompt indicated that `tokmd-format` path redaction must normalize known safe extensions to lowercase rather than preserving mixed-case input. However, after exploring `crates/tokmd-format/src/redact/extensions.rs`, we determined that the statically-defined `SAFE_PATH_EXTENSIONS` already enforce a strict lowercase output policy. To prevent landing a fake fix, we are emitting a learning PR.
 
 ## 🔎 Evidence
-- `crates/tokmd-format/src/redact/mod.rs`
-- `crates/tokmd-format/tests/test_redaction_leak.rs`
-- `cargo test -p tokmd-format redaction --verbose`
+- `crates/tokmd-format/src/redact/extensions.rs`
+- Tests run locally using `cargo test -p tokmd-format --test test_redaction_leak`
+- Both single extensions (`file.jSoN` -> `.json`) and compound suffixes (`archive.tAr.Gz` -> `.tar.gz`) were correctly normalized without any code modifications.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Preserve explicitly known safe compound suffixes such as `.tar.gz`, otherwise keep only the final allowlisted extension.
-- Fits this repo and shard by protecting the data boundary.
-- **Trade-offs:** Structure: High signal boundary hardening. Velocity: Easy to audit. Governance: Improves security guarantees.
+- Emit a learning PR and friction item.
+- Fits the shard and persona because Sentinel mandates high-confidence improvements, and explicitly forbids forcing fake fixes when the boundary is already hardened.
+- Trade-offs: Structure is preserved without unnecessary commits; Velocity is maintained.
 
 ### Option B
-- Use `Path::new().extension()`, retrieving only the final extension.
-- Choose it when simple extension matching is enough.
-- **Trade-offs:** Drops useful compound archive suffix context such as `.tar.gz`.
+- Introduce redundant normalization functions.
+- Choose this only if the current functions failed to output strictly lowercase extensions.
+- Trade-offs: Would add needless complexity and hallucinate a fix for an issue that doesn't exist.
 
 ## ✅ Decision
-Option A. Correctly implements secure path redaction while preserving semantic archive suffixes like `.tar.gz`, avoiding arbitrary safe-chain preservation like `.json.rs`, and hiding unsafe suffixes like `.rs.bak`.
+Option A. The `tokmd-format` path redaction already properly normalizes mixed-case input.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/src/redact/mod.rs`: Updated `redact_path` to preserve explicit safe compound suffixes before falling back to the final extension.
-- `crates/tokmd-format/src/redact/extensions.rs`: Added a private compound suffix policy for `.tar.gz`.
-- `crates/tokmd-format/tests/test_redaction_leak.rs`: Verified `.tar.gz`, unknown safe chains, and unsafe final suffixes.
+- Added a friction item regarding the verified-safe redaction leak.
+- Added a Sentinel persona note.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-format redaction --verbose
-test result: ok
-cargo test -p tokmd-format scan_args --verbose
-test result: ok
-cargo clippy -p tokmd-format --all-targets -- -D warnings
-finished successfully
-cargo xtask proof-policy --check
-Proof policy OK
+running 8 tests
+test redaction_does_not_leak_mixed_case ... ok
+test redaction_drops_suffixes_when_final_extension_is_unsafe ... ok
+test redaction_normalizes_safe_extension_case ... ok
+test redaction_normalizes_known_compound_archive_suffix_case ... ok
+test redaction_preserves_known_compound_archive_suffix ... ok
+test redaction_preserves_only_final_extension_for_unknown_safe_chains ... ok
+test test_compound_suffix_mixed_case ... ok
+test test_redact_path_leak ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Core formatting update
-- Blast radius: Output receipts file paths
-- Risk class + why: Low, contained to pure formatter.
-- Rollback: Revert PR.
-- Gates run: `cargo test`
+- Change shape: Learning PR
+- Blast radius: None (No production code changes)
+- Risk class: Low
+- Rollback: N/A
+- Gates run: targeted cargo test
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_redaction/envelope.json`
@@ -53,6 +55,8 @@ Proof policy OK
 - `.jules/runs/sentinel_redaction/receipts.jsonl`
 - `.jules/runs/sentinel_redaction/result.json`
 - `.jules/runs/sentinel_redaction/pr_body.md`
+- `.jules/friction/open/sentinel_redaction.md`
+- `.jules/personas/sentinel/notes/redaction_case_normalization.md`
 
 ## 🔜 Follow-ups
 None.

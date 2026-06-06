@@ -1,7 +1,7 @@
 {
   "prompt_id": "sentinel_redaction",
-  "persona": "Sentinel",
-  "style": "Stabilizer",
+  "persona": "sentinel",
+  "style": "stabilizer",
   "primary_shard": "core-pipeline",
   "allowed_paths": [
     "crates/tokmd-types/**",
@@ -13,8 +13,5 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "security-boundary",
-  "allowed_outcomes": [
-    "PR-ready patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["patch", "learning"]
 }
