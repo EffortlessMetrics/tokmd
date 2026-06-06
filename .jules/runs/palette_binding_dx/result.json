@@ -1,6 +1,6 @@
 {
   "outcome": "patch",
-  "title": "palette: cleanly extract bracket-only errors in browser runner \ud83c\udfa8",
+  "title": "palette: cleanly extract bracket-only errors in browser runner 🎨",
   "summary": "Fixed an issue in the browser runner where bracket-only errors (like `[invalid_settings]`) would evaluate to an empty message string fallback that incorrectly reproduced the original unparsed string instead of defaulting to the error code itself.",
   "target_paths": [
     "web/runner/runtime.js",

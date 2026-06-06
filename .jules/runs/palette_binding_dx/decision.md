@@ -16,11 +16,7 @@ This is confusing for runtime developers, as the error message still contains th
 
 ## Option A (recommended)
 Fix `extractRunnerError` in `web/runner/runtime.js` to correctly handle bracketed codes without trailing messages.
-Instead of `match[2] || message`, we can use `match[2] || match[1]` or simply check if `match[2]` is falsy and fall back to `match[1]` (the code) as the message if no message text is provided.
-
-Wait, the best fallback for an empty `match[2]` is probably `match[1]` (the code itself), or we could just use `match[2] || message` but replace it with `match[2] ? match[2] : match[1]`. Wait, if we use `match[1]`, then `"[invalid_settings]"` becomes `code: "invalid_settings", message: "invalid_settings"`. If we just leave it empty, `message: ""` isn't great. Let's fall back to `match[1]`.
-
-Let's check what `tokmd-wasm` actually returns. When `tokmd-wasm` panics or returns an error, it usually has `"[invalid_settings] Cannot use both paths and inputs"`. But if it only had `"[invalid_settings]"`, the current behavior reproduces `"[invalid_settings]"`. Wait, what if we just do `match[2] || match[1]`?
+Instead of `match[2] || message`, we can use `match[2] || match[1]`.
 
 Let's do Option A: Update `extractRunnerError` to use `match[2] || match[1]` so that empty message strings cleanly fall back to the bare code rather than the raw unparsed bracket string. We also add a test to `web/runner/runtime.test.mjs` to lock in this behavior.
 
