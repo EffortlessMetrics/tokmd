@@ -8,6 +8,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::cli;
@@ -142,6 +143,10 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         )
     })?;
 
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    let timestamp = js_sys::Date::now().max(1.0) as u128;
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()

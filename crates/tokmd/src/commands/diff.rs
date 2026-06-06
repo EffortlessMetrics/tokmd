@@ -12,7 +12,10 @@ use tokmd_types::LangReport;
 
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
-#[cfg(feature = "git")]
+#[cfg(all(
+    feature = "git",
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()> {
@@ -240,13 +243,28 @@ impl Drop for GitWorktree {
     }
 }
 
+#[cfg(all(feature = "git", target_arch = "wasm32", target_os = "unknown"))]
+#[inline]
+fn now_ms() -> u128 {
+    js_sys::Date::now().max(1.0) as u128
+}
+
+#[cfg(all(
+    feature = "git",
+    not(all(target_arch = "wasm32", target_os = "unknown"))
+))]
+#[inline]
+fn now_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+}
+
 #[cfg(feature = "git")]
 fn make_temp_dir(prefix: &str) -> Result<PathBuf> {
     let base = std::env::temp_dir();
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis();
+    let now = now_ms();
     let pid = std::process::id();
 
     for attempt in 0..1000 {

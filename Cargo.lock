@@ -2512,6 +2512,7 @@ dependencies = [
  "dirs",
  "indicatif",
  "insta",
+ "js-sys",
  "jsonschema",
  "predicates",
  "proptest",

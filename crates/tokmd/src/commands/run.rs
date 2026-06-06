@@ -201,6 +201,14 @@ pub(crate) fn handle(args: cli::RunArgs, global: &cli::GlobalArgs) -> Result<()>
     Ok(())
 }
 
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+#[inline]
+fn now_ms() -> u128 {
+    js_sys::Date::now().max(1.0) as u128
+}
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+#[inline]
 fn now_ms() -> u128 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

@@ -1,0 +1,8 @@
+{"command": "cargo check -p tokmd-core --target wasm32-unknown-unknown", "output": "error[E0463]: can't find crate for `std`", "outcome": "failed"}
+{"command": "cargo build -p tokmd --target wasm32-unknown-unknown", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 43.40s", "outcome": "passed"}
+{"command": "cargo check -p tokmd --all-features", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.50s", "outcome": "passed"}
+{"command": "cargo check -p tokmd --no-default-features", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.20s", "outcome": "passed"}
+{"command": "cargo test -p tokmd --no-default-features", "output": "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s", "outcome": "passed"}
+{"command": "cargo test -p tokmd --all-features", "output": "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s", "outcome": "passed"}
+{"command": "cargo fmt -- --check", "output": "success", "outcome": "passed"}
+{"command": "cargo clippy -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.59s", "outcome": "passed"}

@@ -3,6 +3,7 @@
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
@@ -50,6 +51,10 @@ pub(crate) fn write_bundle_directory(
             .with_context(|| format!("Failed to create bundle directory: {}", dir.display()))?;
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    let now_ms = js_sys::Date::now().max(1.0) as u128;
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     let now_ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()

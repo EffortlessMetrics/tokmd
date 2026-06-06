@@ -3,6 +3,7 @@
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
@@ -68,6 +69,21 @@ pub(crate) fn write_to_destination(
     }
 }
 
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+#[inline]
+fn now_ms() -> u128 {
+    js_sys::Date::now().max(1.0) as u128
+}
+
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+#[inline]
+fn now_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+}
+
 /// Append a context JSONL log record.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn append_context_log_record(
@@ -82,10 +98,7 @@ pub(crate) fn append_context_log_record(
 ) -> Result<()> {
     let log_record = ContextLogRecord {
         schema_version: SCHEMA_VERSION,
-        generated_at_ms: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
+        generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
         budget_tokens: budget,
         used_tokens,
@@ -155,10 +168,7 @@ fn format_json_output(
     let token_estimation = tokmd_types::TokenEstimationMeta::from_bytes(total_file_bytes, 4.0);
     let receipt = ContextReceipt {
         schema_version: CONTEXT_SCHEMA_VERSION,
-        generated_at_ms: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_millis(),
+        generated_at_ms: now_ms(),
         tool: ToolInfo::current(),
         mode: "context".to_string(),
         budget_tokens: budget,
