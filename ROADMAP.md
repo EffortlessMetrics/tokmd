@@ -38,7 +38,8 @@ context for humans, machines, CI, and agents.
 | **v1.9.0** | ✅ Complete | Browser/WASM productization: parity-covered wasm entrypoints, browser runner MVP, and public repo ingestion via tree+contents |
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
-| **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.11.0** | ✅ Complete | Evidence consumption surfaces, review packets, agent handoff, and browser runtime polish. |
+| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and `tokmd-swarm` workbench release. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
@@ -603,23 +604,19 @@ back into single-responsibility owner modules.
 - [x] Retry and rate-limit UX with retry-after guidance.
 - [x] Auth-safe fetch/cache boundaries with session-only token state.
 
+## Completed: v1.12.0 — Bun UB Evidence and Swarm Workbench
+
+**Goal:** Make `tokmd` useful as a bounded evidence sensor for high-risk review workflows by producing scoped analysis and context artifacts for explicit refs and changed paths.
+
+### What shipped in v1.12.0
+
+- [x] Bun UB preset (`tokmd analyze --preset bun-ub`) as a thin, scoped review evidence preset.
+- [x] Context handoff and `ub-review` artifact recipes.
+- [x] Cockpit and handoff linkages to reference tokmd Bun UB artifacts.
+- [x] `tokmd-swarm` workbench imported and shared graph preserved.
+- [x] Trust repairs around path scope, context token reconciliation, and doc density.
+
 ## Future Horizons
-
-### v1.12.x — Selection-First Product and Evidence Work
-
-_Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
-
-Potential lanes:
-
-- Release/distribution verification.
-- CLI and adoption UX.
-- Review evidence consumption.
-- Measured performance and CI feedback.
-- Browser/WASM rootless capability expansion.
-- AST shadow evidence expansion.
-
-Architecture consolidation is paused unless fresh product or proof evidence
-shows a real owner-module problem.
 
 ### v2.0 — Platform Evolution
 
