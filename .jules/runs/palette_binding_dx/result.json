@@ -1,4 +1,17 @@
 {
-  "status": "success",
-  "summary": "Updated `invalid_field` to embed exact field paths into the FFI error response payload under `error.details`. This makes invalid FFI config parameters immediately understandable for Py/Node/WASM bindings."
+  "outcome": "patch",
+  "title": "palette: cleanly extract bracket-only errors in browser runner \ud83c\udfa8",
+  "summary": "Fixed an issue in the browser runner where bracket-only errors (like `[invalid_settings]`) would evaluate to an empty message string fallback that incorrectly reproduced the original unparsed string instead of defaulting to the error code itself.",
+  "target_paths": [
+    "web/runner/runtime.js",
+    "web/runner/runtime.test.mjs"
+  ],
+  "proof_summary": "Added a new test `runtime extracts error codes from fallback string errors without extra message` in `web/runner/runtime.test.mjs` to ensure the bracketed string extraction logic correctly maps `[unknown_mode]` to `{ code: 'unknown_mode', message: 'unknown_mode' }`.",
+  "gates_run": [
+    "npm --prefix web/runner test"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git checkout web/runner/runtime.js web/runner/runtime.test.mjs",
+  "follow_ups": []
 }

@@ -526,3 +526,26 @@ test("runtime emits analyze progress before analyze runner failures", async () =
     );
     assert.match(progress.at(-1).message, /analysis exploded/);
 });
+
+test("runtime extracts error codes from fallback string errors without extra message", async () => {
+    const runner = {
+        runExport() {
+            throw "[unknown_mode]";
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-err-code-str-empty",
+            mode: "export",
+            args: {
+                inputs: [{ path: "src/lib.rs", text: "pub fn alpha() {}\n" }],
+            },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "unknown_mode");
+    assert.equal(message.error.message, "unknown_mode");
+});
