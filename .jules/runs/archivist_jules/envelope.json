@@ -5,5 +5,8 @@
   "primary_shard": "workspace-wide",
   "allowed_paths": ["**"],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
+  "option_a": "Generate summary indexes/rollups of per-run packets and friction items.",
+  "option_b": "Consolidate recurring friction themes into shared policy/docs.",
+  "selected_option": null
 }
