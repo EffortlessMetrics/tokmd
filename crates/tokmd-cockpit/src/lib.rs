@@ -16,7 +16,6 @@
 //! * CLI argument parsing (use `tokmd::cli`)
 //! * Type definitions (use tokmd-types::cockpit)
 
-#[cfg(feature = "git")]
 mod change_surface;
 mod composition;
 mod contracts;
@@ -24,39 +23,31 @@ pub mod determinism;
 mod display;
 mod doc_artifacts_evidence;
 mod file_stat;
-#[cfg(feature = "git")]
 mod gates;
 mod health;
 mod proof_evidence;
 pub mod render;
 mod review_plan;
 mod risk;
-#[cfg(feature = "git")]
 mod supply_chain;
 mod trend;
 
-#[cfg(feature = "git")]
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-#[cfg(feature = "git")]
 use change_surface::compute_change_surface;
-#[cfg(feature = "git")]
 pub use change_surface::get_file_stats;
 pub use composition::compute_composition;
 pub use contracts::detect_contracts;
 pub use display::{format_signed_f64, now_iso8601, round_pct, sparkline, trend_direction_label};
 pub use doc_artifacts_evidence::{DocArtifactsEvidenceInput, parse_doc_artifacts_evidence_input};
 pub use file_stat::FileStat;
-#[cfg(feature = "git")]
 pub use gates::compute_determinism_gate;
-#[cfg(feature = "git")]
 use gates::compute_evidence;
 pub use health::compute_code_health;
 pub use proof_evidence::{ProofEvidenceInput, ProofEvidenceKind};
 pub use review_plan::generate_review_plan;
 pub use risk::compute_risk;
-#[cfg(feature = "git")]
 use risk::compute_risk_owned;
 pub use trend::{compute_complexity_trend, compute_metric_trend, load_and_compute_trend};
 // Re-export types from tokmd_types::cockpit for convenience
@@ -86,7 +77,6 @@ pub fn parse_proof_evidence_input(
 // =============================================================================
 
 /// Compute the full cockpit receipt for a PR.
-#[cfg(feature = "git")]
 pub fn compute_cockpit(
     repo_root: &PathBuf,
     base: &str,

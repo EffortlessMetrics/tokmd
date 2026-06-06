@@ -26,7 +26,7 @@ analysis = [
     "tokmd-analysis/halstead",
     "tokmd-analysis/topics",
 ]
-cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
+cockpit = ["dep:tokmd-cockpit"]
 # Feature propagation for fun formats (OBJ/MIDI)
 fun = ["tokmd-format/fun"]
 

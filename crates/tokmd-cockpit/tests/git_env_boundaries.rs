@@ -1,5 +1,3 @@
-#![cfg(feature = "git")]
-
 use std::ffi::OsString;
 use std::path::Path;
 use std::process::Command;

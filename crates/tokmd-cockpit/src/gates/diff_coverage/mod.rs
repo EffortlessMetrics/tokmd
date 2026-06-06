@@ -21,11 +21,8 @@ mod artifact;
 mod intersect;
 mod lcov;
 
-#[cfg(feature = "git")]
 const MAX_UNCOVERED_HUNKS: usize = 20;
-#[cfg(feature = "git")]
 const COVERAGE_PASS_THRESHOLD: f64 = 0.80;
-#[cfg(feature = "git")]
 const COVERAGE_WARN_THRESHOLD: f64 = 0.50;
 
 /// Compute diff coverage gate.
@@ -33,7 +30,6 @@ const COVERAGE_WARN_THRESHOLD: f64 = 0.50;
 /// Looks for coverage artifacts (lcov.info, coverage.json, cobertura.xml) and
 /// parses them. Only LCOV is currently parsed; other formats short-circuit
 /// to `Ok(None)`.
-#[cfg(feature = "git")]
 pub(in crate::gates) fn compute_diff_coverage_gate(
     repo_root: &Path,
     base: &str,
@@ -91,7 +87,6 @@ pub(in crate::gates) fn compute_diff_coverage_gate(
     }))
 }
 
-#[cfg(feature = "git")]
 fn coverage_status(pct: f64) -> GateStatus {
     if pct >= COVERAGE_PASS_THRESHOLD {
         GateStatus::Pass
@@ -102,7 +97,7 @@ fn coverage_status(pct: f64) -> GateStatus {
     }
 }
 
-#[cfg(all(test, feature = "git"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

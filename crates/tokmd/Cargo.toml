@@ -33,7 +33,7 @@ git = [
     "tokmd-analysis/git",
     "dep:tokmd-git",
     "dep:tokmd-cockpit",
-    "tokmd-cockpit/git",
+
     "tokmd-core/git",
 ]
 walk = ["tokmd-analysis/walk"]

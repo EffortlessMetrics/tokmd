@@ -7,7 +7,6 @@
 
 use std::path::{Path, PathBuf};
 
-#[cfg(feature = "git")]
 const SEARCH_PATHS: &[&str] = &[
     "coverage/lcov.info",
     "target/coverage/lcov.info",
@@ -25,7 +24,6 @@ const SEARCH_PATHS: &[&str] = &[
 /// Returns `Some(path)` only when a `lcov.info` file is found. Non-LCOV
 /// artifacts (cobertura.xml, coverage.json) cause the search to stop with
 /// `None` because they cannot yet be parsed, matching the prior behaviour.
-#[cfg(feature = "git")]
 pub(super) fn find_lcov_artifact(repo_root: &Path) -> Option<PathBuf> {
     for candidate in SEARCH_PATHS {
         let path = repo_root.join(candidate);
@@ -39,7 +37,7 @@ pub(super) fn find_lcov_artifact(repo_root: &Path) -> Option<PathBuf> {
     None
 }
 
-#[cfg(all(test, feature = "git"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

@@ -1,6 +1,5 @@
 /// Check if a file is a relevant Rust source file for mutation testing.
 /// Excludes test files, fuzz targets, etc.
-#[cfg(feature = "git")]
 pub(super) fn is_relevant_rust_source(path: &str) -> bool {
     let path_lower = path.to_lowercase();
 

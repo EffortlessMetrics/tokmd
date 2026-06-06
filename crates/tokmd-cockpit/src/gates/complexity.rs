@@ -9,7 +9,6 @@ use crate::{COMPLEXITY_THRESHOLD, FileStat, round_pct};
 
 /// Compute complexity gate.
 /// Analyzes cyclomatic complexity of changed Rust source files.
-#[cfg(feature = "git")]
 pub(super) fn compute_complexity_gate(
     repo_root: &Path,
     changed_files: &[FileStat],

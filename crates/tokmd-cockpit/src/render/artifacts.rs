@@ -53,7 +53,6 @@ pub fn write_artifacts(dir: &Path, receipt: &CockpitReceipt) -> Result<()> {
 }
 
 /// Write sensor artifacts.
-#[cfg(feature = "git")]
 pub fn write_sensor_artifacts(
     dir: &Path,
     receipt: &CockpitReceipt,

@@ -7,7 +7,6 @@ use tokmd_types::cockpit::*;
 use crate::FileStat;
 
 /// Compute contract diff gate (semver, CLI, schema).
-#[cfg(feature = "git")]
 pub(super) fn compute_contract_gate(
     repo_root: &Path,
     base: &str,
@@ -163,7 +162,6 @@ pub(super) fn compute_contract_gate(
 
 /// Run cargo-semver-checks if available.
 /// Returns a SemverSubGate with the result.
-#[cfg(feature = "git")]
 fn run_semver_check(repo_root: &Path) -> SemverSubGate {
     // Check if cargo-semver-checks is available
     let available = Command::new("cargo")
@@ -241,7 +239,6 @@ fn run_semver_check(repo_root: &Path) -> SemverSubGate {
 
 /// Run git diff on docs/schema.json to detect schema changes.
 /// Returns a SchemaSubGate with the result.
-#[cfg(feature = "git")]
 fn run_schema_diff(repo_root: &Path, base: &str, head: &str) -> SchemaSubGate {
     // Use two-dot syntax for comparing refs directly (per project convention)
     let range = format!("{}..{}", base, head);

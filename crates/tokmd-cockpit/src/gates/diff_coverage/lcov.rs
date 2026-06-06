@@ -8,13 +8,11 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 /// `file path → { line number → hit count }`.
-#[cfg(feature = "git")]
 pub(super) type LcovData = BTreeMap<String, BTreeMap<usize, usize>>;
 
 /// Parse the textual contents of an `lcov.info` file.
 ///
 /// `repo_root` is used to make absolute `SF:` paths repo-relative.
-#[cfg(feature = "git")]
 pub(super) fn parse_lcov(repo_root: &Path, content: &str) -> LcovData {
     let mut lcov_data: LcovData = BTreeMap::new();
     let mut current_file: Option<String> = None;
@@ -48,7 +46,6 @@ pub(super) fn parse_lcov(repo_root: &Path, content: &str) -> LcovData {
     lcov_data
 }
 
-#[cfg(feature = "git")]
 fn normalize_source_path(repo_root: &Path, raw: &str) -> String {
     let path = raw.replace('\\', "/");
     if let Ok(abs) = Path::new(&path).canonicalize()
@@ -59,13 +56,11 @@ fn normalize_source_path(repo_root: &Path, raw: &str) -> String {
     path
 }
 
-#[cfg(feature = "git")]
 fn parse_da_record(da: &str) -> Option<(usize, usize)> {
     let (line_no, count) = da.split_once(',')?;
     Some((line_no.parse().ok()?, count.parse().ok()?))
 }
 
-#[cfg(feature = "git")]
 fn merge_record(lcov_data: &mut LcovData, file: String, lines: BTreeMap<usize, usize>) {
     match lcov_data.entry(file) {
         std::collections::btree_map::Entry::Occupied(mut entry) => {
@@ -77,7 +72,7 @@ fn merge_record(lcov_data: &mut LcovData, file: String, lines: BTreeMap<usize, u
     }
 }
 
-#[cfg(all(test, feature = "git"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

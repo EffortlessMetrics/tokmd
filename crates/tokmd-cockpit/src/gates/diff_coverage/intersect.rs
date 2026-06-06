@@ -9,11 +9,9 @@ use std::path::PathBuf;
 
 use tokmd_types::cockpit::UncoveredHunk;
 
-#[cfg(feature = "git")]
 use super::lcov::LcovData;
 
 /// Per-file totals and uncovered hunks for the diff under inspection.
-#[cfg(feature = "git")]
 pub(super) struct Intersection {
     pub total_added: usize,
     pub total_covered: usize,
@@ -24,7 +22,6 @@ pub(super) struct Intersection {
 /// Intersect each file's added lines with its LCOV record.
 ///
 /// Files missing from LCOV contribute all their added lines as uncovered.
-#[cfg(feature = "git")]
 pub(super) fn intersect(
     added_lines: &BTreeMap<PathBuf, BTreeSet<usize>>,
     lcov_data: &LcovData,
@@ -59,7 +56,6 @@ pub(super) fn intersect(
 ///
 /// Increments `total_covered` for each line with a hit > 0; returns the
 /// uncovered set in ascending order.
-#[cfg(feature = "git")]
 fn partition_file(
     added: &BTreeSet<usize>,
     file_lcov: Option<&BTreeMap<usize, usize>>,
@@ -81,7 +77,6 @@ fn partition_file(
 }
 
 /// Coalesce consecutive uncovered line numbers into hunks and append them.
-#[cfg(feature = "git")]
 pub(super) fn flush_uncovered_hunks(
     file: &str,
     uncovered: &[usize],
@@ -114,7 +109,7 @@ pub(super) fn flush_uncovered_hunks(
     });
 }
 
-#[cfg(all(test, feature = "git"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

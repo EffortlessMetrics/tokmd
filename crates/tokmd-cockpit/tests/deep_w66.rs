@@ -9,7 +9,6 @@
 //! - sparkline, round_pct, format_signed_f64, trend helpers
 //! - compute_metric_trend directions
 //! - determinism: same input → same output
-//! - Feature-gated git tests with #[cfg(feature = "git")]
 
 use tokmd_cockpit::*;
 
@@ -403,7 +402,6 @@ mod properties {
 // 9. Feature-gated git tests
 // =========================================================================
 
-#[cfg(feature = "git")]
 mod git_tests {
 
     use std::fs;

@@ -8,7 +8,6 @@ use super::rust_source::is_relevant_rust_source;
 use crate::FileStat;
 
 /// Get the current HEAD commit hash.
-#[cfg(feature = "git")]
 fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
     let output = tokmd_git::git_cmd()
         .arg("-C")
@@ -28,7 +27,6 @@ fn get_head_commit(repo_root: &PathBuf) -> Result<String> {
 
 /// CI workflow summary format (mutants-summary.json).
 #[derive(Debug, Clone, Deserialize)]
-#[cfg(feature = "git")]
 struct CiMutantsSummary {
     commit: String,
     status: String,
@@ -40,7 +38,6 @@ struct CiMutantsSummary {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[cfg(feature = "git")]
 struct CiSurvivor {
     file: String,
     line: usize,
@@ -48,7 +45,6 @@ struct CiSurvivor {
 }
 
 /// Compute the mutation gate status.
-#[cfg(feature = "git")]
 pub(super) fn compute_mutation_gate(
     repo_root: &PathBuf,
     _base: &str,
@@ -104,7 +100,6 @@ pub(super) fn compute_mutation_gate(
 
 /// Try to load mutation results from CI artifact.
 /// Checks for mutants-summary.json (our format) first, then falls back to mutants.out/outcomes.json.
-#[cfg(feature = "git")]
 fn try_load_ci_artifact(
     repo_root: &Path,
     head_commit: &str,
@@ -182,7 +177,6 @@ fn try_load_ci_artifact(
 }
 
 /// Try to load cached mutation results.
-#[cfg(feature = "git")]
 fn try_load_cached(
     repo_root: &Path,
     head_commit: &str,
@@ -220,12 +214,10 @@ fn try_load_cached(
     Ok(Some(gate))
 }
 
-#[cfg(feature = "git")]
 fn cache_file_name_for_head(head_commit: &str) -> String {
     format!("{head_commit}.json")
 }
 
-#[cfg(feature = "git")]
 fn cached_commit_mismatch(gate: &MutationGate, head_commit: &str) -> bool {
     gate.meta
         .evidence_commit
@@ -234,7 +226,6 @@ fn cached_commit_mismatch(gate: &MutationGate, head_commit: &str) -> bool {
 }
 
 /// Run mutations locally.
-#[cfg(feature = "git")]
 fn run_mutations(_repo_root: &Path, relevant_files: &[String]) -> Result<MutationGate> {
     // This is expensive, so we only do it if explicitly asked or no other choice
     // For now, return Pending

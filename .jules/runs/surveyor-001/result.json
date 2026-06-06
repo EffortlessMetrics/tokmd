@@ -1,0 +1,22 @@
+{
+  "outcome": "pr_ready_patch",
+  "title": "surveyor: make tokmd-git a hard dependency of tokmd-cockpit \ud83e\udded",
+  "summary": "Removed the `git` feature flag from `tokmd-cockpit`. `tokmd-cockpit` requires `tokmd-git` for its PR metrics computation to be useful, making the feature boundary artificial and the source code noisy with dozens of `#[cfg(feature = \"git\")]` macros. Making git a hard dependency simplifies the codebase and aligns the architectural seam.",
+  "target_paths": [
+    "crates/tokmd/Cargo.toml",
+    "crates/tokmd-core/Cargo.toml",
+    "crates/tokmd-cockpit/Cargo.toml",
+    "crates/tokmd-cockpit/src/*",
+    "crates/tokmd-cockpit/tests/*"
+  ],
+  "proof_summary": "Cargo workspace compiles successfully. `cargo test -p tokmd-cockpit` and `cargo test -p tokmd` pass. Validated removal of `#[cfg(feature = \"git\")]` and `#[cfg(all(test, feature = \"git\"))]` across the cockpit crate.",
+  "gates_run": [
+    "cargo check --workspace",
+    "cargo test -p tokmd-cockpit",
+    "cargo test -p tokmd"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd/Cargo.toml crates/tokmd-core/Cargo.toml crates/tokmd-cockpit",
+  "follow_ups": []
+}

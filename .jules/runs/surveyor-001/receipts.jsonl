@@ -1,0 +1,14 @@
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "envelope initialized", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "grep feature.*git", "output": "found ~242 instances of git feature gating across crates"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test --workspace", "output": "timeout"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "grep -rnw tokmd-cockpit -e feature.*git", "output": "found dozens of feature=git conditionals inside tokmd-cockpit"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "sed ... remove git feature in tokmd-cockpit Cargo.toml", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "sed ... remove #[cfg(feature = \"git\")] in tokmd-cockpit src/ and tests/", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "sed ... remove #[cfg(all(test, feature = \"git\"))] in tokmd-cockpit src/ and tests/", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo check --workspace", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test -p tokmd-cockpit", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo fmt && cargo clippy -- -D warnings", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo run -p xtask -- proof-policy", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test -p tokmd --features=git,walk,content,ui,fun,topics,archetype,analysis", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "cargo test -p tokmd-core", "output": "success"}
+{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "git add crates/tokmd-core/Cargo.toml", "output": "success"}

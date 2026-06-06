@@ -15,7 +15,6 @@ use std::fs;
 
 use tempfile::TempDir;
 
-#[cfg(feature = "git")]
 use tokmd_cockpit::render::write_sensor_artifacts;
 use tokmd_cockpit::render::{render_comment_md, write_artifacts};
 use tokmd_cockpit::*;
@@ -243,7 +242,6 @@ fn write_artifacts_creates_missing_output_directory() {
 // write_sensor_artifacts — feature-gated git path
 // ---------------------------------------------------------------------------
 
-#[cfg(feature = "git")]
 fn sensor_report_verdict(dir: &std::path::Path) -> String {
     let raw = fs::read_to_string(dir.join("report.json")).expect("report.json readable");
     let v: serde_json::Value = serde_json::from_str(&raw).expect("valid json");
@@ -253,7 +251,6 @@ fn sensor_report_verdict(dir: &std::path::Path) -> String {
         .to_string()
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_emits_report_json_with_base_head_summary() {
     let tmp = TempDir::new().unwrap();
@@ -271,7 +268,6 @@ fn write_sensor_artifacts_emits_report_json_with_base_head_summary() {
     assert_eq!(v["verdict"].as_str(), Some("pass"));
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_fail_status_maps_to_fail_verdict() {
     let tmp = TempDir::new().unwrap();
@@ -285,7 +281,6 @@ fn write_sensor_artifacts_fail_status_maps_to_fail_verdict() {
     assert_eq!(sensor_report_verdict(tmp.path()), "fail");
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_warn_status_maps_to_warn_verdict() {
     let tmp = TempDir::new().unwrap();
@@ -299,7 +294,6 @@ fn write_sensor_artifacts_warn_status_maps_to_warn_verdict() {
     assert_eq!(sensor_report_verdict(tmp.path()), "warn");
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_skipped_status_maps_to_skip_verdict() {
     let tmp = TempDir::new().unwrap();
@@ -313,7 +307,6 @@ fn write_sensor_artifacts_skipped_status_maps_to_skip_verdict() {
     assert_eq!(sensor_report_verdict(tmp.path()), "skip");
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_pending_status_maps_to_pending_verdict() {
     let tmp = TempDir::new().unwrap();
@@ -327,7 +320,6 @@ fn write_sensor_artifacts_pending_status_maps_to_pending_verdict() {
     assert_eq!(sensor_report_verdict(tmp.path()), "pending");
 }
 
-#[cfg(feature = "git")]
 #[test]
 fn write_sensor_artifacts_creates_missing_output_directory() {
     let tmp = TempDir::new().unwrap();

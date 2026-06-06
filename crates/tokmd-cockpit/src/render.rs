@@ -19,7 +19,6 @@ mod review_packet;
 mod sections;
 
 pub use artifacts::write_artifacts;
-#[cfg(feature = "git")]
 pub use artifacts::write_sensor_artifacts;
 pub use bun_ub_sensor::BunUbSensorEvidence;
 pub use comment::render_comment_md;

@@ -7,7 +7,6 @@ use crate::determinism;
 
 /// Compute determinism gate.
 /// Compares expected source hash (from baseline) with a fresh hash of the repo.
-#[cfg(feature = "git")]
 pub fn compute_determinism_gate(
     repo_root: &Path,
     baseline_path: Option<&Path>,

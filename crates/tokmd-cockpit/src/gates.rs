@@ -25,7 +25,6 @@ pub use determinism_gate::compute_determinism_gate;
 // =============================================================================
 
 /// Compute evidence section with all gates.
-#[cfg(feature = "git")]
 pub(crate) fn compute_evidence(
     repo_root: &PathBuf,
     base: &str,
@@ -64,7 +63,6 @@ pub(crate) fn compute_evidence(
 }
 
 /// Compute overall status from all gates.
-#[cfg(feature = "git")]
 fn compute_overall_status(
     mutation: &MutationGate,
     diff_coverage: &Option<DiffCoverageGate>,

@@ -16,7 +16,6 @@ use crate::FileStat;
 ///
 /// The gate is scoped to `Cargo.lock` changes. It runs `cargo audit --json`
 /// when the tool is available; otherwise it records pending local evidence.
-#[cfg(feature = "git")]
 pub(crate) fn compute_supply_chain_gate(
     repo_root: &Path,
     changed_files: &[FileStat],
