@@ -1,52 +1,49 @@
 ## 💡 Summary
-Replaced the hardcoded path and version bound for `tokmd-types` in `tokmd-wasm`'s `dev-dependencies` with a workspace reference. This standardizes the dependency declaration and eliminates a redundant duplicate manifest entry.
-
-/label ci-budget-override
+This is a learning PR. Attempted to standardize the `tokmd-types` dependency in `crates/tokmd-wasm/Cargo.toml` to use the workspace definition, but was blocked by the CI LEM budget ceiling.
 
 ## 🎯 Why
-In bindings and targets crates, redundant paths and version bounds for shared dependencies (like `tokmd-types`) create drift risk and violate dependency hygiene. The `tokmd-wasm` crate was explicitly specifying the path `../tokmd-types` and a version bound (`>=1.9, <2`), instead of utilizing the `workspace` property used by the rest of the monorepo. This fixes the anomaly and tightens the dev-dependency to perfectly match the workspace.
+During a dependency hygiene sweep of the bindings targets, I identified that `tokmd-wasm` manually defined the path and version for `tokmd-types` instead of using `workspace = true`. Removing this redundancy is a standard Auditor improvement. However, modifying `crates/tokmd-wasm/Cargo.toml` causes `ci-plan` to estimate a 139 LEM cost (based on historical actuals + static WASM build cost), which exceeds the 125 LEM hard ceiling. Because autonomous agents cannot apply the `ci-budget-override` GitHub label, the trivial fix is hard-blocked.
 
 ## 🔎 Evidence
 - File: `crates/tokmd-wasm/Cargo.toml`
-- Finding: `tokmd-types = { path = "../tokmd-types", version = ">=1.9, <2" }`
-- Replaced with: `tokmd-types.workspace = true`
+- Observed behavior: `ci-plan` rejects the change with `PR plan estimated 139 LEM (>125 hard ceiling)`.
+- Command run: `cargo xtask ci-plan --base origin/main --head HEAD --labels-json '[]' ...` failed with the override requirement.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Update `crates/tokmd-wasm/Cargo.toml` to replace the hardcoded `tokmd-types` path and version with `tokmd-types.workspace = true`.
-- **Why it fits**: This exactly hits the persona goal of "remove duplicate or redundant dependency declarations/features" in "bindings and target-specific crates". The workspace already provides the version and path definition for `tokmd-types`. Redundant paths in bindings create drift risk.
-- **Trade-offs**:
-  - *Structure*: Improves consistency.
-  - *Velocity*: Minimal impact, simplifies future upgrades.
-  - *Governance*: Better dependency hygiene by ensuring all crates use the exact same definition.
+Revert the Cargo.toml change and submit a learning PR highlighting the friction.
+- What it is: Do not force a fake fix; instead, document the structural friction preventing small hygiene fixes in WASM.
+- Why it fits this repo: Honors the hard constraint to avoid blocking and not to force a fix when legitimately blocked.
+- Trade-offs:
+  - Structure: Leaves the redundant manifest entry in place for now.
+  - Velocity: Avoids CI failures and highlights a process improvement.
+  - Governance: Follows agent protocol by recording a friction item.
 
 ### Option B
-Remove `napi-build` from `tokmd-node` as flagged by `cargo-machete`.
-- **Why to choose**: If we blindly trusted `cargo-machete` output.
-- **Trade-offs**: It would break the Node.js native extension build since `napi_build` is explicitly used in `tokmd-node/build.rs`.
+Remove `napi-build` from `tokmd-node`'s `build-dependencies`.
+- What it is: Follow `cargo-machete`'s hint that `napi-build` is unused.
+- When to choose it instead: If it were actually true.
+- Trade-offs: This would break the Node.js native extension build since `napi-build` is explicitly invoked in `crates/tokmd-node/build.rs`.
 
 ## ✅ Decision
-Option A. Updated `crates/tokmd-wasm/Cargo.toml` to inherit `tokmd-types` from the workspace. Note that CI estimates cost at 139 LEM (base PR cost), so this PR requires `ci-budget-override`.
+Option A. I reverted the patch to `crates/tokmd-wasm/Cargo.toml` and am submitting this learning PR with a friction item detailing the CI budget constraint on leaf crates.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-wasm/Cargo.toml`
+- (None - learning PR only)
 
 ## 🧪 Verification receipts
 ```text
-sed -i 's/tokmd-types = { path = "../tokmd-types", version = ">=1.9, <2" }/tokmd-types.workspace = true/' crates/tokmd-wasm/Cargo.toml
 cargo check -p tokmd-wasm
 cargo fmt -- --check
 cargo clippy -p tokmd-wasm -- -D warnings
-CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-bindgen-test-runner cargo test -p tokmd-wasm --target wasm32-unknown-unknown
-cargo build -p tokmd-wasm
 ```
 
 ## 🧭 Telemetry
-- Change shape: Dependency tightening
-- Blast radius: dependencies, API compatibility within tests for WASM surface
-- Risk class: Low - strictly a dependency hygiene and tightening fix that delegates resolution back to root workspace
-- Rollback: `git restore crates/tokmd-wasm/Cargo.toml`
-- Gates run: `cargo check`, `cargo fmt`, `cargo clippy`, `cargo test (wasm)`
+- Change shape: Learning PR / Friction Recording
+- Blast radius: None
+- Risk class: Low
+- Rollback: None needed
+- Gates run: `cargo check`, `cargo fmt`, `cargo clippy`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-auditor-deps-hygiene/envelope.json`
@@ -54,6 +51,7 @@ cargo build -p tokmd-wasm
 - `.jules/runs/run-auditor-deps-hygiene/receipts.jsonl`
 - `.jules/runs/run-auditor-deps-hygiene/result.json`
 - `.jules/runs/run-auditor-deps-hygiene/pr_body.md`
+- `.jules/friction/open/ci-budget-blocks-trivial-wasm-manifest-fix.md`
 
 ## 🔜 Follow-ups
-CI budget ceiling exceeds 125 LEM for this change and requires override.
+See `.jules/friction/open/ci-budget-blocks-trivial-wasm-manifest-fix.md` regarding the CI budget ceiling.
