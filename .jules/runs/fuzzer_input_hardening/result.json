@@ -1,0 +1,14 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record fuzzer learning on cargo fuzz nightly blocker 🌪️",
+  "summary": "Documented environment blocker: cargo fuzz requires a nightly toolchain and fails due to ASAN in the standard sandbox. Existing proptests already cover the CLI surface.",
+  "target_paths": [],
+  "proof_summary": "Attempted to run cargo fuzz list and cargo fuzz run, encountered nightly/ASAN toolchain errors. Verified that cli_parser_properties.rs already covers deterministic parser regressions.",
+  "gates_run": [],
+  "friction_items_created": [
+    ".jules/friction/open/FRIC-20260607-cargo-fuzz-nightly.md"
+  ],
+  "persona_notes_created": [],
+  "rollback": "Delete learning artifacts.",
+  "follow_ups": []
+}

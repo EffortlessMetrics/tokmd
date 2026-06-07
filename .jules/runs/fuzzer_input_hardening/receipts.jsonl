@@ -1,0 +1,7 @@
+{"cmd": "cargo +nightly fuzz list", "status": "error", "summary": "error: no such command: `fuzz`"}
+{"cmd": "cargo install cargo-fuzz", "status": "success", "summary": "Installed cargo-fuzz v0.13.1"}
+{"cmd": "cargo test -p tokmd --test cli_parser_fuzz_proptest", "status": "success", "summary": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.99s"}
+{"cmd": "cargo build --verbose", "status": "success", "summary": "built the workspace"}
+{"cmd": "CI=true cargo test --verbose -p tokmd --test cli_parser_fuzz_proptest", "status": "success", "summary": "ran validation proptest"}
+{"cmd": "cargo fmt -- --check", "status": "success", "summary": "formatting verified"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success", "summary": "clippy verified"}
