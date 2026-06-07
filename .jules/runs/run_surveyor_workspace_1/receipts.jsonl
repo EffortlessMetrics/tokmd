@@ -1,0 +1,3 @@
+{"ts_utc": "2026-01-01T00:00:00Z", "phase": "investigation", "cwd": "/app", "cmd": "grep -rn \"tokmd-analysis\" crates/tokmd-cockpit/Cargo.toml", "status": "success"}
+{"ts_utc": "2026-01-01T00:00:00Z", "phase": "patch", "cwd": "/app", "cmd": "git mv crates/tokmd-analysis/src/source_complexity.rs crates/tokmd-cockpit/src/", "status": "success"}
+{"ts_utc": "2026-01-01T00:00:00Z", "phase": "patch", "cwd": "/app", "cmd": "cargo test --workspace", "status": "success"}

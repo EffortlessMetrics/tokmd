@@ -23,6 +23,7 @@ pub struct RustFunctionComplexitySummary {
 }
 
 /// Testable source analyzer seam for review and gate callers.
+#[allow(dead_code)]
 pub trait SourceAnalyzer {
     /// Analyze function-scoped Rust complexity for one source file.
     fn analyze_rust(&self, content: &str) -> RustFunctionComplexitySummary;
@@ -30,6 +31,7 @@ pub trait SourceAnalyzer {
 
 /// Heuristic Rust analyzer used by cockpit review gates.
 #[derive(Debug, Default, Clone, Copy)]
+#[allow(dead_code)]
 pub struct RustAnalyzer;
 
 impl SourceAnalyzer for RustAnalyzer {

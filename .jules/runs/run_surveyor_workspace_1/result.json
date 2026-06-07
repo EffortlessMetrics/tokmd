@@ -1,0 +1,19 @@
+{
+  "outcome_type": "patch",
+  "reviewer_facing_title": "surveyor: move source_complexity to tokmd-cockpit to resolve layering violation 🧭",
+  "summary": "Moved the cockpit-specific heuristic `source_complexity` out of `tokmd-analysis` into `tokmd-cockpit`, completely dropping the `tokmd-analysis` dependency from `tokmd-cockpit`.",
+  "target_paths": [
+    "crates/tokmd-cockpit/Cargo.toml",
+    "crates/tokmd-cockpit/src/lib.rs",
+    "crates/tokmd-cockpit/src/gates/complexity.rs",
+    "crates/tokmd-cockpit/src/source_complexity.rs",
+    "crates/tokmd-cockpit/src/source_complexity/mask.rs",
+    "crates/tokmd-analysis/src/lib.rs"
+  ],
+  "proof_summary": "Verified using cargo test across the workspace. All complexity gates continue to function using the localized logic.",
+  "gates_run": ["cargo build --verbose", "CI=true cargo test --verbose", "cargo fmt -- --check", "cargo clippy -- -D warnings"],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git reset --hard && git clean -fd",
+  "follow_ups": []
+}

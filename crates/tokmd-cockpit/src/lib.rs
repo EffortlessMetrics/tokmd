@@ -34,6 +34,7 @@ mod risk;
 #[cfg(feature = "git")]
 mod supply_chain;
 mod trend;
+pub(crate) mod source_complexity;
 
 #[cfg(feature = "git")]
 use std::path::{Path, PathBuf};
