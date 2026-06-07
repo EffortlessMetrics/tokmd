@@ -272,3 +272,36 @@ fn given_project_when_analyze_health_then_todo_and_complexity_present() {
         "should have derived.todo section"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 10: Empty directory gracefully produces valid receipt with zeroed metrics
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_empty_dir_when_analyze_json_then_valid_empty_receipt() {
+    let dir = tempdir().expect("should create temp dir");
+
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "receipt", "--format", "json"])
+        .current_dir(dir.path())
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(output.status.success(), "analyze command failed");
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let json: Value = serde_json::from_str(&stdout).unwrap();
+
+    assert_eq!(json["mode"], "analysis");
+    assert!(json.get("derived").is_some(), "missing derived");
+
+    let derived = &json["derived"];
+
+    assert_eq!(derived["totals"]["files"], 0, "should have 0 files");
+    assert_eq!(derived["totals"]["code"], 0, "should have 0 code");
+
+    let dist = &derived["distribution"];
+    assert_eq!(dist["count"], 0, "distribution count should be 0");
+    assert_eq!(dist["min"], 0, "distribution min should be 0");
+    assert_eq!(dist["max"], 0, "distribution max should be 0");
+    assert_eq!(dist["gini"], 0.0, "gini should gracefully be 0.0");
+}
