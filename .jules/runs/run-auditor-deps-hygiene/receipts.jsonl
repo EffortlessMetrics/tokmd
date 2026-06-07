@@ -5,3 +5,4 @@
 {"command": "cargo build -p tokmd-wasm", "outcome": "success"}
 {"command": "cargo deny --all-features check", "outcome": "skipped - cargo deny not installed/configured natively"}
 {"command": "cargo run -p xtask -- proof-policy", "outcome": "failed, but xtask not configured"}
+{"command": "git reset HEAD && git restore crates/tokmd-wasm/Cargo.toml", "outcome": "Reverted the Cargo.toml change to avoid the CI hard ceiling constraint"}

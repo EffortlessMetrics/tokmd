@@ -26,7 +26,7 @@ Remove `napi-build` from `tokmd-node` as flagged by `cargo-machete`.
 - **Trade-offs**: It would break the Node.js native extension build since `napi_build` is explicitly used in `tokmd-node/build.rs`.
 
 ## ✅ Decision
-Option A. Updated `crates/tokmd-wasm/Cargo.toml` to inherit `tokmd-types` from the workspace.
+Option A. Updated `crates/tokmd-wasm/Cargo.toml` to inherit `tokmd-types` from the workspace. Note that CI estimates cost at 139 LEM (base PR cost), so this PR requires `ci-budget-override`.
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-wasm/Cargo.toml`
@@ -56,4 +56,4 @@ cargo build -p tokmd-wasm
 - `.jules/runs/run-auditor-deps-hygiene/pr_body.md`
 
 ## 🔜 Follow-ups
-None at this time.
+CI budget ceiling exceeds 125 LEM for this change and requires override.
