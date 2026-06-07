@@ -1,6 +1,8 @@
 ## 💡 Summary
 Replaced the hardcoded path and version bound for `tokmd-types` in `tokmd-wasm`'s `dev-dependencies` with a workspace reference. This standardizes the dependency declaration and eliminates a redundant duplicate manifest entry.
 
+/label ci-budget-override
+
 ## 🎯 Why
 In bindings and targets crates, redundant paths and version bounds for shared dependencies (like `tokmd-types`) create drift risk and violate dependency hygiene. The `tokmd-wasm` crate was explicitly specifying the path `../tokmd-types` and a version bound (`>=1.9, <2`), instead of utilizing the `workspace` property used by the rest of the monorepo. This fixes the anomaly and tightens the dev-dependency to perfectly match the workspace.
 
