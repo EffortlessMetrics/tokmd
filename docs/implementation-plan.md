@@ -415,6 +415,20 @@ modules, and keep proof observations advisory while artifacts mature.
 
 ---
 
+## Phase 5e: Bun UB Evidence Readiness (v1.12.0) ✅ Complete
+
+**Goal**: Make tokmd useful as a bounded evidence sensor for high-risk review workflows by producing scoped analysis and context artifacts for explicit refs and changed paths.
+
+### Work Items
+
+- [x] Fixed visible evidence defects before adding the preset: doc density math, context token reconciliation, path scope, symlink omissions, and bad ref handling.
+- [x] Added `tokmd analyze --preset bun-ub` as a thin, scoped review evidence preset.
+- [x] Added Bun-shaped fixture coverage for scoped native/API paths, valid refs, and unrelated dangling symlinks.
+- [x] Documented `bun-ub`, context handoff, and `ub-review` artifact recipes.
+- [x] Taught review/handoff surfaces to reference tokmd Bun UB artifacts and regeneration commands.
+
+---
+
 ## Phase 6: MCP Server Mode (v2.0)
 
 **Goal**: Native integration with Claude and MCP clients.

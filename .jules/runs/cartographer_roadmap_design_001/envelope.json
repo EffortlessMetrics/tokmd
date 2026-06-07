@@ -1,0 +1,30 @@
+{
+  "run_id": "cartographer_roadmap_design_001",
+  "prompt_id": "cartographer_roadmap_design",
+  "persona": "Cartographer",
+  "style": "Builder",
+  "primary_shard": "tooling-governance",
+  "allowed_paths": [
+    "xtask/**",
+    ".github/workflows/**",
+    "docs/**",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock"
+  ],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
+  "decision": {
+    "options": ["Option A", "Option B"],
+    "selection": "Option A"
+  },
+  "artifacts": [
+    ".jules/runs/cartographer_roadmap_design_001/envelope.json",
+    ".jules/runs/cartographer_roadmap_design_001/decision.md",
+    ".jules/runs/cartographer_roadmap_design_001/receipts.jsonl",
+    ".jules/runs/cartographer_roadmap_design_001/result.json",
+    ".jules/runs/cartographer_roadmap_design_001/pr_body.md"
+  ],
+  "commands": []
+}

@@ -1,0 +1,21 @@
+{
+  "outcome_type": "patch",
+  "reviewer_facing_title": "cartographer: update roadmap and implementation plan for 1.12 release 🗺️",
+  "summary": "Updated `ROADMAP.md` and `docs/implementation-plan.md` to accurately reflect the completion of the `v1.12.0` Bun UB evidence-readiness release, resolving drift between the docs and the actual shipped features documented in `CHANGELOG.md` and `docs/releases/1.12.md`.",
+  "target_paths": [
+    "ROADMAP.md",
+    "docs/implementation-plan.md"
+  ],
+  "proof_summary": "All changes conform with `docs/releases/1.12.md` and `docs/releases/1.12-ledger.md` notes. Verification succeeded with `cargo xtask docs --check`, `cargo xtask version-consistency`, and `cargo xtask publish --plan --verbose`.",
+  "gates_run": [
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "cargo xtask docs --check",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git restore ROADMAP.md docs/implementation-plan.md",
+  "follow_ups": []
+}

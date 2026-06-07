@@ -39,6 +39,7 @@ context for humans, machines, CI, and agents.
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
 | **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and `tokmd-swarm` workbench release. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
@@ -49,7 +50,7 @@ context for humans, machines, CI, and agents.
 The historical roadmap remains useful as a record of shipped milestones and
 longer-term horizons. The active planning state is now selection-first:
 
-- v1.11 browser runtime polish is complete.
+- v1.12 Bun UB evidence-readiness is complete.
 - Cockpit/review evidence is stable as the current PR-review surface.
 - Proof observation remains advisory, not promoted to required gates.
 - AST remains shadow-only until broader comparison evidence justifies public
@@ -603,9 +604,21 @@ back into single-responsibility owner modules.
 - [x] Retry and rate-limit UX with retry-after guidance.
 - [x] Auth-safe fetch/cache boundaries with session-only token state.
 
+## Completed: v1.12.0 — Bun UB Evidence Readiness
+
+**Goal:** Turn analysis and context commands into a scoped evidence packet for high-risk review work.
+
+### What shipped for v1.12.0
+
+- [x] Fixed visible evidence defects before adding the preset: doc density math, context token reconciliation, path scope, symlink omissions, and bad ref handling.
+- [x] Added `tokmd analyze --preset bun-ub` as a thin, scoped review evidence preset.
+- [x] Added Bun-shaped fixture coverage for scoped native/API paths, valid refs, and unrelated dangling symlinks.
+- [x] Documented `bun-ub`, context handoff, and `ub-review` artifact recipes.
+- [x] Taught review/handoff surfaces to reference tokmd Bun UB artifacts and regeneration commands.
+
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
+### Selection-First Product and Evidence Work
 
 _Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 
