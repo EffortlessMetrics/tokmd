@@ -1,0 +1,17 @@
+{
+  "outcome": "patch",
+  "primary_shard": "tooling-governance",
+  "gate_profile": "governance-release",
+  "files_modified": [
+    "xtask/src/tasks/publish.rs"
+  ],
+  "verification_commands_run": [
+    "cargo run -p xtask -- publish --plan --verbose",
+    "cargo run -p xtask -- version-consistency",
+    "cargo run -p xtask -- docs --check",
+    "cargo build -p xtask --verbose",
+    "cargo test -p xtask --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}

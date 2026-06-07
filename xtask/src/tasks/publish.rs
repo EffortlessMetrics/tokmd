@@ -55,6 +55,18 @@ pub enum ExclusionReason {
     NotRequested,
 }
 
+impl std::fmt::Display for ExclusionReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExclusionReason::NotPublishable => write!(f, "publish = false in manifest"),
+            ExclusionReason::IsXtask => write!(f, "internal xtask tool"),
+            ExclusionReason::IsFuzz => write!(f, "internal fuzz tool"),
+            ExclusionReason::ExplicitExclude => write!(f, "explicitly excluded"),
+            ExclusionReason::NotRequested => write!(f, "not in requested set"),
+        }
+    }
+}
+
 /// The resolved publish plan.
 #[derive(Debug)]
 pub struct PublishPlan {
@@ -326,7 +338,7 @@ fn print_plan(plan: &PublishPlan, args: &PublishArgs) {
     if !plan.exclusion_reasons.is_empty() && args.verbose {
         println!("\nExcluded crates:");
         for (name, reason) in &plan.exclusion_reasons {
-            println!("  - {}: {:?}", name, reason);
+            println!("  - {}: {}", name, reason);
         }
     }
 

@@ -1,0 +1,1 @@
+{"command": "cargo run -p xtask -- publish --plan --verbose", "output_snippet": "Excluded crates:\\n  - tokmd-fuzz: NotPublishable\\n  - tokmd-node: NotPublishable"}
