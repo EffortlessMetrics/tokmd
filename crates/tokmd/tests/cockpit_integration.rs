@@ -1735,6 +1735,10 @@ fn test_cockpit_file_classification() {
         composition.get("config_pct").is_some(),
         "should have config_pct"
     );
+    assert!(
+        composition.get("test_ratio").is_some(),
+        "should have test_ratio"
+    );
 }
 
 // =============================================================================

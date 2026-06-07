@@ -1,0 +1,8 @@
+{"command": "grep -rn \"test_pct\" docs/schema.json docs/SCHEMA.md", "result": "docs/schema.json:      \"required\": [\"code_pct\", \"test_pct\", \"docs_pct\", \"config_pct\", \"test_ratio\"], ..."}
+{"command": "grep -rn \"test_ratio\" docs/schema.json docs/SCHEMA.md", "result": "docs/schema.json:      \"required\": [\"code_pct\", \"test_pct\", \"docs_pct\", \"config_pct\", \"test_ratio\"], ..."}
+{"command": "grep -rn \"test_pct\" crates/tokmd/tests/cockpit_integration.rs", "result": "crates/tokmd/tests/cockpit_integration.rs:    // Then: Output should include composition with code_pct, test_pct, docs_pct, config_pct ..."}
+{"command": "grep -rn \"test_ratio\" crates/tokmd/tests/cockpit_integration.rs", "result": "Nothing"}
+{"command": "cargo test -p tokmd --test cockpit_integration", "result": "ok. 23 passed"}
+{"command": "cargo xtask proof-policy", "result": "Proof policy OK"}
+{"command": "cargo fmt -- --check", "result": "ok"}
+{"command": "cargo clippy -- -D warnings", "result": "ok"}

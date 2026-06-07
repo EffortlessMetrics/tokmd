@@ -1,0 +1,18 @@
+{
+  "summary": "Tighten `CockpitReceipt` JSON output integration tests to ensure that `test_ratio` is present in the `composition` field as required by the schema.",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd/tests/cockpit_integration.rs"
+  ],
+  "gates_run": [
+    "cargo test -p tokmd --test cockpit_integration",
+    "cargo xtask proof-policy",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "telemetry": {
+    "change_shape": "test-addition",
+    "blast_radius": "tests",
+    "risk_class": "low"
+  }
+}
