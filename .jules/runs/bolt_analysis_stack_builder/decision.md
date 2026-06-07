@@ -1,12 +1,21 @@
-## Options Considered
+# Decision
 
-### Option A: Remove String allocations in duplicate analysis hot loop
-- **What it is:** Change `BTreeMap<String, ...>` to `BTreeMap<&str, ...>` in `build_duplicate_report` (inside `tokmd-analysis/src/content/mod.rs`). Replace redundant `get_mut` / `insert` blocks with `entry(module).or_default()`.
-- **Trade-offs:** Clean win. Reduces repeated hashing/lookups and removes string copying completely during the hot loop of counting duplicate and wasted files by module. Very aligned with Bolt's "hot-path work reduction" and "unnecessary string building".
+## Option A (recommended)
+**What it is:** Reduce unnecessary String allocations and clones inside analysis hot paths. Specifically:
+- `git/mod.rs` and `git/freshness.rs`: Use `&str` instead of `String` for map keys (avoiding string allocations per commit file).
+- `topics/mod.rs`: Maintain `overall_tf` inside the main pass rather than merging dynamically, avoiding extra string allocations/clones.
 
-### Option B: Partial sorting in `build_top_offenders`
-- **What it is:** Use `select_nth_unstable` in `tokmd-analysis/src/derived/files.rs` to avoid full `O(N log N)` sorting on large file trees.
-- **Trade-offs:** `select_nth_unstable` requires mutable, owned vectors, so we'd still have to allocate vectors. And while it saves sorting time, the duplicate report string building happens per duplicate file group, which can be significant.
+**Why it fits:** The analysis stack operates on a high volume of file rows and git commits. Unnecessary string allocations within loops (e.g. `String::clone()`) contribute heavily to GC / allocator pressure. Using reference keys where possible yields deterministic and safe memory footprint reductions without behavior changes.
+
+**Trade-offs:**
+- Structure: Mildly tighter lifetimes are required (e.g. `BTreeMap<&str, i64>`).
+- Velocity: Trivial to verify via existing test suite.
+- Governance: Follows standard Rust performance patterns.
+
+## Option B
+**What it is:** Restructure derived metrics parallelization with Rayon or crossbeam.
+
+**Why not:** It violates the goal of starting with explicit structural reduction (allocations) vs risking determinism drift with concurrency, as parallel analysis outputs can become non-deterministic if not carefully sequenced.
 
 ## ✅ Decision
-We will proceed with Option A because `tokmd-analysis/src/content/mod.rs` does repetitive `to_string()` allocations and double map lookups in a hot loop (iterating every duplicate file). By binding the module strings to the lifetime of the input `ExportData` and using the `Entry` API natively, we remove the string allocations and halve the map lookups.
+Option A. It's safe, fully structural, relies heavily on eliminating `.clone()` for `String`s in high loop iterations, and passes all existing determinism test suites while delivering explicit alloc reductions.

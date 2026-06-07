@@ -28,32 +28,34 @@ pub(crate) fn build_git_report(
         row_map.insert(key, (row, row.module.as_str()));
     }
 
-    let mut commit_counts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut commit_counts: BTreeMap<&str, usize> = BTreeMap::new();
     let mut authors_by_module: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
-    let mut last_change: BTreeMap<String, i64> = BTreeMap::new();
+    let mut last_change: BTreeMap<&str, i64> = BTreeMap::new();
     let mut max_ts = 0i64;
 
     for commit in commits {
         max_ts = max_ts.max(commit.timestamp);
         for file in &commit.files {
             let key = normalize_git_path(file);
-            if let Some(&(_row, module)) = row_map.get(&key) {
-                *commit_counts.entry(key.clone()).or_insert(0) += 1;
+            if let Some((map_key, &(_row, module))) = row_map.get_key_value(&key) {
+                *commit_counts.entry(map_key.as_str()).or_insert(0) += 1;
                 authors_by_module
                     .entry(module)
                     .or_default()
                     .insert(commit.author.as_str());
-                last_change.entry(key).or_insert(commit.timestamp);
+                last_change
+                    .entry(map_key.as_str())
+                    .or_insert(commit.timestamp);
             }
         }
     }
 
     let mut hotspots: Vec<HotspotRow> = commit_counts
         .iter()
-        .filter_map(|(path, commits)| {
+        .filter_map(|(&path, commits)| {
             let &(row, _) = row_map.get(path)?;
             Some(HotspotRow {
-                path: path.clone(),
+                path: path.to_string(),
                 commits: *commits,
                 lines: row.lines,
                 score: row.lines * commits,

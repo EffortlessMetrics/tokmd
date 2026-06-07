@@ -20,6 +20,7 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
     let stopwords = build_stopwords(export);
     let mut terms_by_module: BTreeMap<&str, BTreeMap<String, u32>> = BTreeMap::new();
     let mut df_map: BTreeMap<String, u32> = BTreeMap::new();
+    let mut overall_tf: BTreeMap<String, u32> = BTreeMap::new();
 
     for row in parents {
         let mut terms = tokenize_path(&row.path, &stopwords);
@@ -37,6 +38,12 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
                     module_terms.insert(term.clone(), weight);
                 }
             }
+            match overall_tf.get_mut(term) {
+                Some(count) => *count += weight,
+                None => {
+                    overall_tf.insert(term.clone(), weight);
+                }
+            }
         }
 
         terms.dedup();
@@ -52,7 +59,6 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
 
     let module_count = terms_by_module.len() as f64;
     let mut per_module: BTreeMap<String, Vec<TopicTerm>> = BTreeMap::new();
-    let mut overall_tf: BTreeMap<String, u32> = BTreeMap::new();
 
     for (module, tf_map) in &terms_by_module {
         let mut rows: Vec<TopicTerm> = tf_map
@@ -76,21 +82,17 @@ pub(crate) fn build_topic_clouds(export: &ExportData) -> TopicClouds {
         });
         rows.truncate(TOP_K);
         per_module.insert(module.to_string(), rows);
-
-        for (term, tf) in tf_map {
-            *overall_tf.entry(term.clone()).or_insert(0) += *tf;
-        }
     }
 
     let mut overall: Vec<TopicTerm> = overall_tf
-        .iter()
+        .into_iter()
         .map(|(term, tf)| {
-            let df = *df_map.get(term).unwrap_or(&0);
-            let score = score_term(*tf, df, module_count);
+            let df = *df_map.get(&term).unwrap_or(&0);
+            let score = score_term(tf, df, module_count);
             TopicTerm {
-                term: term.clone(),
+                term,
                 score,
-                tf: *tf,
+                tf,
                 df,
             }
         })

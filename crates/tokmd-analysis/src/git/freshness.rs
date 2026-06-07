@@ -15,7 +15,7 @@ const REFRESH_WINDOW_DAYS: i64 = 30;
 const REFRESH_TREND_EPSILON: f64 = 0.10;
 
 pub(super) fn build_freshness_report(
-    last_change: &BTreeMap<String, i64>,
+    last_change: &BTreeMap<&str, i64>,
     row_map: &BTreeMap<String, (&FileRow, &str)>,
     reference_ts: i64,
 ) -> FreshnessReport {
@@ -24,7 +24,7 @@ pub(super) fn build_freshness_report(
     let mut total_files = 0usize;
     let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
 
-    for (path, ts) in last_change {
+    for (&path, ts) in last_change {
         let module = match row_map.get(path) {
             Some((_, module)) => *module,
             None => continue,
@@ -85,7 +85,7 @@ pub(super) fn build_freshness_report(
 }
 
 pub(super) fn build_code_age_distribution(
-    last_change: &BTreeMap<String, i64>,
+    last_change: &BTreeMap<&str, i64>,
     reference_ts: i64,
     commits: &[tokmd_git::GitCommit],
 ) -> CodeAgeDistributionReport {
@@ -141,7 +141,7 @@ pub(super) fn build_code_age_distribution(
         })
         .collect();
 
-    let tracked_paths: BTreeSet<String> = last_change.keys().cloned().collect();
+    let tracked_paths: BTreeSet<String> = last_change.keys().map(|&k| k.to_string()).collect();
     let (recent_refreshes, prior_refreshes, refresh_trend) =
         compute_refresh_trend(commits, reference_ts, &tracked_paths);
 
