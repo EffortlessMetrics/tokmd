@@ -131,7 +131,30 @@ pub fn short_hash(s: &str) -> String {
 /// assert!(gz.ends_with(".tar.gz"));
 /// ```
 pub fn redact_path(path: &str) -> String {
-    let cleaned = clean_path(path);
+    let mut cleaned = clean_path(path);
+    let filename = cleaned.split('/').next_back().unwrap_or(&cleaned);
+    let parts: Vec<&str> = filename.split('.').collect();
+
+    let mut ext_len = 0;
+    if parts.len() > 1 && !(parts.len() == 2 && parts[0].is_empty()) {
+        let extension_parts = if parts[0].is_empty() {
+            &parts[2..]
+        } else {
+            &parts[1..]
+        };
+
+        if let Some(suffix) = extensions::safe_path_extension_suffix(extension_parts) {
+            ext_len = suffix.iter().map(|ext| ext.len() + 1).sum();
+        }
+    }
+
+    if ext_len > 0 {
+        let len_without_ext = cleaned.len() - ext_len;
+        let ext = &cleaned[len_without_ext..];
+        let lower_ext = ext.to_ascii_lowercase();
+        cleaned.replace_range(len_without_ext.., &lower_ext);
+    }
+
     let mut out = short_hash(&cleaned);
 
     let filename = cleaned.split('/').next_back().unwrap_or(&cleaned);
