@@ -1,0 +1,2 @@
+# Notes on fuzzing CLI parser
+When writing `fuzz_cli_parser.rs`, remember that clap arguments typically expect `OsString`. It is simpler to parse the raw byte array provided by `fuzz_target!` as a string, split it, and convert to `OsString` before passing to `Cli::try_parse_from`. Keep in mind the `fuzz` crate manifest needs to be updated with `cli_parser = ["dep:tokmd"]` under `[features]` and the new `[[bin]]` added.

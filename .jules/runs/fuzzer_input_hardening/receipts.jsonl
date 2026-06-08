@@ -1,0 +1,1 @@
+{"command": "cargo check --bin fuzz_cli_parser --features cli_parser", "outcome": "success"}

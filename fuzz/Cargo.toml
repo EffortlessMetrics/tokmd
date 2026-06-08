@@ -31,6 +31,8 @@ cargo-fuzz = true
 # Optional dependencies are pulled only by targets that need them.
 
 [dependencies]
+tokmd = { path = "../crates/tokmd", optional = true }
+clap = { version = "4.6.0", features = ["derive"], optional = true }
 libfuzzer-sys = "0.4.10"
 anyhow = { workspace = true, optional = true }
 blake3 = { workspace = true, optional = true }
@@ -139,6 +141,8 @@ gate_ratchet = ["dep:tokmd-gate", "dep:serde_json"]
 # SVG badge rendering (tokmd-format/badge)
 # Targets: fuzz_badge_svg
 badge = ["dep:tokmd-format"]
+
+cli_parser = ["dep:tokmd", "dep:clap"]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -342,3 +346,13 @@ path = "fuzz_targets/fuzz_badge_svg.rs"
 test = false
 doc = false
 required-features = ["badge"]
+
+# ============================================================================
+# Fuzz Targets - CLI Parsing
+# ============================================================================
+[[bin]]
+name = "fuzz_cli_parser"
+path = "fuzz_targets/fuzz_cli_parser.rs"
+test = false
+doc = false
+required-features = ["cli_parser"]

@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "reason": "Successfully created fuzz_cli_parser and added it to the fuzz target list",
+  "artifacts": [
+    ".jules/runs/fuzzer_input_hardening/envelope.json",
+    ".jules/runs/fuzzer_input_hardening/decision.md",
+    ".jules/runs/fuzzer_input_hardening/receipts.jsonl",
+    ".jules/runs/fuzzer_input_hardening/result.json",
+    ".jules/runs/fuzzer_input_hardening/pr_body.md"
+  ]
+}
