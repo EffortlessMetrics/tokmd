@@ -198,4 +198,54 @@ proptest! {
             );
         }
     }
+
+    #[test]
+    fn deterministic_entropy_report(data in arb_file_content()) {
+        let dir = tempdir().unwrap();
+        let f = dir.path().join("test.bin");
+        fs::write(&f, &data).unwrap();
+
+        let export = export_for_paths(&["test.bin"]);
+        let files = vec![PathBuf::from("test.bin")];
+
+        let report1 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+        let report2 = build_entropy_report(dir.path(), &files, &export, &AnalysisLimits::default()).unwrap();
+
+        prop_assert_eq!(report1.suspects.len(), report2.suspects.len(), "suspects length must be deterministic");
+        for (s1, s2) in report1.suspects.iter().zip(report2.suspects.iter()) {
+            prop_assert_eq!(&s1.path, &s2.path);
+            prop_assert_eq!(&s1.module, &s2.module);
+            prop_assert_eq!(s1.entropy_bits_per_byte, s2.entropy_bits_per_byte);
+            prop_assert_eq!(s1.sample_bytes, s2.sample_bytes);
+            prop_assert_eq!(&s1.class, &s2.class);
+        }
+    }
+
+    #[test]
+    fn suspect_paths_must_be_in_inputs(data in prop::collection::vec(arb_file_content(), 1..=5)) {
+        let dir = tempdir().unwrap();
+        let mut paths = Vec::new();
+        let mut path_strs = Vec::new();
+
+        for (i, content) in data.iter().enumerate() {
+            let name = format!("f{i}.bin");
+            let f = dir.path().join(&name);
+            fs::write(&f, content).unwrap();
+            paths.push(PathBuf::from(&name));
+            path_strs.push(name);
+        }
+
+        let str_refs: Vec<&str> = path_strs.iter().map(|s| s.as_str()).collect();
+        let export = export_for_paths(&str_refs);
+        let report =
+            build_entropy_report(dir.path(), &paths, &export, &AnalysisLimits::default()).unwrap();
+
+        for finding in &report.suspects {
+            prop_assert!(
+                str_refs.contains(&finding.path.as_str()),
+                "suspect path {} must be in the input list",
+                finding.path
+            );
+        }
+    }
 }
