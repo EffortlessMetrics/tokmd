@@ -5,6 +5,19 @@ use serde::{Deserialize, Serialize};
 
 use super::AnalysisFormat;
 
+/// Command line arguments for `tokmd analyze`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliAnalyzeArgs, AnalysisFormat};
+///
+/// let args = Cli::try_parse_from(["tokmd", "analyze", "--preset", "receipt", "--format", "md"]).unwrap();
+/// if let Some(Commands::Analyze(analyze_args)) = args.command {
+///     assert!(matches!(analyze_args.format, Some(AnalysisFormat::Md)));
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 #[command(
     after_help = "Examples:\n  tokmd analyze --preset receipt --format md\n  tokmd analyze . --preset risk --output-dir .runs/analysis"

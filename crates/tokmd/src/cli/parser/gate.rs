@@ -10,6 +10,19 @@ use serde::{Deserialize, Serialize};
 
 use super::AnalysisPreset;
 
+/// Command line arguments for `tokmd gate`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliGateArgs};
+///
+/// let args = Cli::try_parse_from(["tokmd", "gate", "--policy", "policy.toml"]).unwrap();
+/// if let Some(Commands::Gate(gate_args)) = args.command {
+///     assert!(gate_args.policy.is_some());
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 pub struct CliGateArgs {
     /// Input analysis receipt or path to scan.

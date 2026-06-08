@@ -1,44 +1,55 @@
 ## 💡 Summary
-This is a learning PR. I investigated adding executable doctests to the config resolver interfaces (`crates/tokmd/src/config/resolve/`) but found they already have comprehensive, passing doctest coverage.
+Added executable Rust doctests to the `clap::Args` and `Subcommand` structs in `crates/tokmd/src/cli/parser/*.rs`. This ensures that CLI arguments parse correctly to their respective structures, closing a proof gap in the CLI public API documentation.
 
 ## 🎯 Why
-The goal was to improve factual docs quality and executable examples for public interfaces to prevent silent drift.
+The CLI interface definitions (like `tokmd lang`, `tokmd export`, etc.) lacked localized, executable doctests. This poses a risk of the API drifting from how it is documented to be used. Adding doctests provides immediate, testable proof of correctness directly alongside the structures.
 
 ## 🔎 Evidence
-- `crates/tokmd/src/config/resolve/export.rs`
-- `crates/tokmd/src/config/resolve/module.rs`
-- `crates/tokmd/src/config/resolve/lang.rs`
-- The `resolve_*` and `resolve_*_with_config` functions all have `/// # Examples` sections containing executable ````rust` doctests.
+Minimal proof:
+- file paths: `crates/tokmd/src/cli/parser/*.rs`
+- observed behavior: Doctests were previously absent from these structures.
+- receipt: `cargo test --doc -p tokmd` passes with 21 total doctests.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add doctests to config resolvers (`resolve_lang`, `resolve_export`, etc.).
-- This fits the shard by directly targeting the core CLI configuration interfaces.
-- Trade-offs: Structure is improved by ensuring public APIs have executable examples. Velocity is unaffected. Governance is improved by preventing silent drift.
+- What it is: Add executable ````rust` doctests directly to the `clap::Args` struct definitions in `crates/tokmd/src/cli/parser/*.rs`.
+- Why it fits this repo and this shard: The Librarian persona focuses on missing doctest/example coverage for core/config/CLI public APIs. Testing `try_parse_from` ensures that valid CLI invocations actually parse to the expected structs.
+- Trade-offs: High confidence in CLI parsing, small increase in test compilation time.
 
 ### Option B
-- Add doctests to `tokmd_core::workflows`.
-- Choose this if the config layer is already fully covered.
-- Trade-offs: Might duplicate existing integration tests, focusing less on public APIs than the configuration layer.
+- What it is: Modify `tests/docs.rs` to extract code blocks dynamically from markdown docs.
+- When to choose it instead: If we want full end-to-end command execution (which `docs.rs` already partly does via hardcoded `tokmd()` calls).
+- Trade-offs: Slower to run, harder to maintain string-matching in tests.
 
 ## ✅ Decision
-Option A was chosen to investigate the config resolvers. Upon investigation, the config resolvers already have comprehensive doctest coverage. Therefore, this is submitted as a learning PR instead of forcing a fake fix.
+Chosen Option A. Adding doctests directly on the CLI structs is the idiomatic Rust way to prevent API usage drift.
 
 ## 🧱 Changes made (SRP)
-- None. This is a learning PR.
+- `crates/tokmd/src/cli/parser/analysis.rs`: Added doctest for `CliAnalyzeArgs`.
+- `crates/tokmd/src/cli/parser/cockpit.rs`: Added doctest for `CockpitArgs`.
+- `crates/tokmd/src/cli/parser/commands.rs`: Added doctest for `Commands`.
+- `crates/tokmd/src/cli/parser/context.rs`: Added doctest for `CliContextArgs`.
+- `crates/tokmd/src/cli/parser/export.rs`: Added doctest for `CliExportArgs`.
+- `crates/tokmd/src/cli/parser/gate.rs`: Added doctest for `CliGateArgs`.
+- `crates/tokmd/src/cli/parser/lang.rs`: Added doctest for `CliLangArgs`.
+- `crates/tokmd/src/cli/parser/module.rs`: Added doctest for `CliModuleArgs`.
+- `crates/tokmd/src/cli/parser/sensor.rs`: Added doctest for `SensorArgs`.
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask docs --check
-cargo test --doc
+$ cargo test --doc -p tokmd
+
+running 21 tests
+...
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
 ```
 
 ## 🧭 Telemetry
-- Change shape: learning PR
-- Blast radius: none
-- Risk class: none (learning PR)
-- Rollback: none
-- Gates run: docs-executable (cargo xtask docs --check, cargo test --doc)
+- Change shape: Additions of `/// ```rust` comment blocks.
+- Blast radius: docs
+- Risk class: Low (Documentation/Test only)
+- Rollback: `git reset --hard HEAD`
+- Gates run: `cargo test --doc -p tokmd`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -46,7 +57,6 @@ cargo test --doc
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
-- `.jules/friction/open/config_resolver_doctests.md`
 
 ## 🔜 Follow-ups
 None.

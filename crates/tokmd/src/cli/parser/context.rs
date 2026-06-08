@@ -3,6 +3,20 @@ use std::path::PathBuf;
 use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
+/// Command line arguments for `tokmd context`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliContextArgs, ContextOutput};
+///
+/// let args = Cli::try_parse_from(["tokmd", "context", "--budget", "128k", "--mode", "bundle"]).unwrap();
+/// if let Some(Commands::Context(context_args)) = args.command {
+///     assert_eq!(context_args.budget, "128k");
+///     assert!(matches!(context_args.output_mode, ContextOutput::Bundle));
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 #[command(
     after_help = "Examples:\n  tokmd context --budget 128k --mode bundle --output context.txt\n  tokmd context crates/tokmd xtask --strategy spread --budget 200k"

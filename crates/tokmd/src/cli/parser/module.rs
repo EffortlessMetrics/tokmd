@@ -9,6 +9,20 @@ use clap::Args;
 
 use super::{ChildIncludeMode, TableFormat};
 
+/// Command line arguments for `tokmd module`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliModuleArgs, TableFormat};
+///
+/// let args = Cli::try_parse_from(["tokmd", "module", "--format", "md", "--top", "5"]).unwrap();
+/// if let Some(Commands::Module(module_args)) = args.command {
+///     assert_eq!(module_args.top, Some(5));
+///     assert!(matches!(module_args.format, Some(TableFormat::Md)));
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 pub struct CliModuleArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."

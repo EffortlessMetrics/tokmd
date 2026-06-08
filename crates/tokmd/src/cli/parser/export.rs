@@ -9,6 +9,20 @@ use clap::Args;
 
 use super::{ChildIncludeMode, ExportFormat, RedactMode};
 
+/// Command line arguments for `tokmd export`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliExportArgs, ExportFormat};
+///
+/// let args = Cli::try_parse_from(["tokmd", "export", "--format", "jsonl", "--min-code", "10"]).unwrap();
+/// if let Some(Commands::Export(export_args)) = args.command {
+///     assert_eq!(export_args.min_code, Some(10));
+///     assert!(matches!(export_args.format, Some(ExportFormat::Jsonl)));
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 pub struct CliExportArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."

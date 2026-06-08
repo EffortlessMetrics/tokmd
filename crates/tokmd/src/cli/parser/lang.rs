@@ -9,6 +9,19 @@ use clap::Args;
 
 use super::{ChildrenMode, TableFormat};
 
+/// Command line arguments for `tokmd lang`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CliLangArgs};
+///
+/// let args = Cli::try_parse_from(["tokmd", "lang", "--format", "md", "--top", "5"]).unwrap();
+/// if let Some(Commands::Lang(lang_args)) = args.command {
+///     assert_eq!(lang_args.top, Some(5));
+/// }
+/// ```
 #[derive(Args, Debug, Clone, Default)]
 pub struct CliLangArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."

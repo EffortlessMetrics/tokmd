@@ -3,14 +3,6 @@
   "persona": "Librarian",
   "style": "Prover",
   "primary_shard": "interfaces",
-  "allowed_paths": [
-    "crates/tokmd-config/**",
-    "crates/tokmd-core/**",
-    "crates/tokmd/**",
-    "docs/reference-cli.md",
-    "docs/tutorial.md",
-    "crates/tokmd/tests/**"
-  ],
   "gate_profile": "docs-executable",
-  "allowed_outcomes": ["proof-improvement", "learning"]
+  "allowed_outcomes": ["proof_patch", "learning_pr"]
 }

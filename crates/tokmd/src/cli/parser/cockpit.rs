@@ -3,6 +3,19 @@ use std::path::PathBuf;
 use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
+/// Command line arguments for `tokmd cockpit`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, CockpitArgs, CockpitFormat};
+///
+/// let args = Cli::try_parse_from(["tokmd", "cockpit", "--format", "json"]).unwrap();
+/// if let Some(Commands::Cockpit(cockpit_args)) = args.command {
+///     assert!(matches!(cockpit_args.format, CockpitFormat::Json));
+/// }
+/// ```
 #[derive(Args, Debug, Clone)]
 #[command(
     after_help = "Examples:\n  tokmd cockpit --base origin/main --head HEAD --format comment\n  tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review"

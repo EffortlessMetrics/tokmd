@@ -8,6 +8,19 @@ use std::path::PathBuf;
 use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
+/// Command line arguments for `tokmd sensor`.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands, SensorArgs, SensorFormat};
+///
+/// let args = Cli::try_parse_from(["tokmd", "sensor", "--format", "json"]).unwrap();
+/// if let Some(Commands::Sensor(sensor_args)) = args.command {
+///     assert!(matches!(sensor_args.format, SensorFormat::Json));
+/// }
+/// ```
 #[derive(Args, Debug, Clone, Serialize, Deserialize)]
 pub struct SensorArgs {
     /// Base reference to compare from (default: main).

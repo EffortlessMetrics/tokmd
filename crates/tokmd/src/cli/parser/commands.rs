@@ -11,6 +11,17 @@ use super::{
     InitArgs, RunArgs, SensorArgs, ToolsArgs,
 };
 
+/// Top-level subcommands for the `tokmd` CLI.
+///
+/// # Example
+///
+/// ```rust
+/// use clap::Parser;
+/// use tokmd::cli::{Cli, Commands};
+///
+/// let args = Cli::try_parse_from(["tokmd", "lang"]).unwrap();
+/// assert!(matches!(args.command, Some(Commands::Lang(_))));
+/// ```
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
     /// Language summary (default).
