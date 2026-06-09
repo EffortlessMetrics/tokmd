@@ -1,11 +1,11 @@
 {
   "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd-analysis/src/derived/tests/properties.rs"
-  ],
-  "invariants_added": [
-    "distribution_median_is_correct",
-    "distribution_percentiles_are_correct",
-    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
-  ]
+  "learning_pr": false,
+  "telemetry": {
+    "change_shape": "Property-based test additions",
+    "blast_radius": "tests",
+    "risk_class": "Low - test additions only",
+    "rollback": "revert",
+    "gates_run": ["property"]
+  }
 }

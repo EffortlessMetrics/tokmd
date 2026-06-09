@@ -1,15 +1,19 @@
 # Decision
 
-## Option A
-Add property tests for the `distribution_median`, `distribution_percentiles`, and `histogram_bucket_bounds` invariants in `crates/tokmd-analysis/src/derived/tests/properties.rs`.
+## Problem
+The `tokmd-analysis` crate contains several modules for static analysis of codebases, including `license` detection logic. There are some implicit invariants around how metadata licenses are parsed. For example, `parse_toml_key` makes a best effort to parse `key = "value"` or `key = 'value'`, extracting the string. We can ensure we don't regress parsing behavior for different quote types or whitespace. We also have `parse_package_json_license` that parses JSON licenses.
 
-These invariants reflect important facts about the analysis:
-1. `distribution_median_is_correct` - median should accurately reflect the 50th percentile.
-2. `distribution_percentiles_are_correct` - p90 and p99 should accurately reflect the underlying `tokmd_scan::percentile` calculations over sizes.
-3. `histogram_bucket_bounds_are_ordered_and_non_overlapping` - bucket sizes should remain contiguous with `prev.max.unwrap() + 1 == curr.min` allowing no gaps or overlap.
+## Option A (Recommended)
+Add property tests asserting that:
+1.  `extract_quoted` never panics on arbitrary string inputs.
+2.  `extract_quoted` successfully parses any string wrapped in matching single or double quotes, correctly unwrapping the content.
+3.  Any valid TOML/JSON layout for metadata files always retains the exact string if properly formatted.
+4.  `package.json` license strings round-trip successfully, regardless of extraneous whitespace or nested object layout (the existing test just tests top-level strings).
+
+I'll write tests directly calling `build_license_report` with these invariants to be safe since it's the public interface for the module.
 
 ## Option B
-Find an alternative location to add property tests. But the existing `derived::tests::properties` clearly contains a gap because only `distribution_count`, `min_le_max`, `mean_between_min_max` and `gini` were verified, ignoring other critical metrics returned by `build_distribution_report` and `build_histogram`.
+Add property tests for `tokmd_analysis::near_dup` or `maintainability`, testing edge cases in threshold logic. We already have several property tests there (e.g. `similarity_in_unit_range`), and `license` offers clearer text-parsing invariants.
 
 ## Decision
-Choose Option A. I have implemented and verified all three new invariants which reduce uncertainty over these analytical outputs using proptest properties in the analysis crate tests.
+Option A. It tests string parsing invariants around quote extraction and format structure in the license parser, an important model piece.
