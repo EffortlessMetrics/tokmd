@@ -92,6 +92,19 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
         format!("[{code}] {message}")
     };
 
+    if let Some(suggestions) = error_obj.get("suggestions").and_then(Value::as_array) {
+        let suggest_strs: Vec<String> = suggestions
+            .iter()
+            .filter_map(Value::as_str)
+            .map(|s| s.to_string())
+            .collect();
+        if !suggest_strs.is_empty() {
+            formatted.push_str(" (Suggestions: ");
+            formatted.push_str(&suggest_strs.join(", "));
+            formatted.push(')');
+        }
+    }
+
     if is_rate_limit_code(code) {
         if let Some(seconds) = retry_after_seconds(error_obj) {
             formatted.push_str(&format!(

@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-envelope -p tokmd-core --verbose", "status": "success"}
+{"command": "cargo fmt -p tokmd-envelope -- --check", "status": "success"}
+{"command": "cargo clippy -p tokmd-envelope -- -D warnings", "status": "success"}
