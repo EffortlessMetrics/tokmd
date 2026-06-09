@@ -253,7 +253,7 @@ mod tests {
         let report_paths: Vec<_> = rust
             .reports
             .iter()
-            .map(|report| normalize_slashes(&report.name.to_string_lossy()))
+            .map(|report| normalize_slashes(&report.name.to_string_lossy()).into_owned())
             .collect();
 
         assert!(

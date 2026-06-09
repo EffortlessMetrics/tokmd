@@ -1,0 +1,5 @@
+{"step": "init", "command": "wrote envelope.json"}
+{"step": "decision", "command": "wrote decision.md choosing Option A"}
+{"step": "refactor path normalizers", "command": "refactored normalize_slashes and normalize_rel_path to return Cow, updated tests and callers in exclude/ignore_patterns/lib"}
+{"step": "result", "command": "wrote result.json"}
+{"step": "pr_body", "command": "wrote pr_body.md"}

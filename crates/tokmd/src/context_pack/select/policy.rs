@@ -40,7 +40,7 @@ pub(super) fn prepare_policy_selection(
         let (policy, reason) = assign_policy(row.tokens, file_cap, &classifications);
 
         file_meta_map.insert(
-            path.clone(),
+            path.to_string(),
             FileContextMeta {
                 classifications: classifications.clone(),
                 policy,
@@ -51,7 +51,7 @@ pub(super) fn prepare_policy_selection(
 
         if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
             excluded_by_policy.push(PolicyExcludedFile {
-                path,
+                path: path.to_string(),
                 original_tokens: row.tokens,
                 policy,
                 reason: reason.unwrap_or_default(),
@@ -62,7 +62,7 @@ pub(super) fn prepare_policy_selection(
 
     let excluded_paths: BTreeSet<&str> = excluded_by_policy
         .iter()
-        .map(|file| file.path.as_str())
+        .map(|file| file.path.as_ref())
         .collect();
 
     let pack_rows = candidate_rows
@@ -72,11 +72,11 @@ pub(super) fn prepare_policy_selection(
                 return true;
             }
             let path = normalize_path(&row.path);
-            !excluded_paths.contains(path.as_str())
+            !excluded_paths.contains(path.as_ref())
         })
         .map(|row| {
             let path = normalize_path(&row.path);
-            if let Some(meta) = file_meta_map.get(&path)
+            if let Some(meta) = file_meta_map.get(path.as_ref())
                 && meta.policy == InclusionPolicy::HeadTail
             {
                 return FileRow {
@@ -99,7 +99,7 @@ impl PolicySelection {
     pub(super) fn annotate_selected(&self, selected: &mut [ContextFileRow]) {
         for file in selected {
             let path = normalize_path(&file.path);
-            if let Some(meta) = self.file_meta_map.get(&path) {
+            if let Some(meta) = self.file_meta_map.get(path.as_ref()) {
                 file.classifications = meta.classifications.clone();
                 file.policy = meta.policy;
                 file.policy_reason = meta.policy_reason.clone();

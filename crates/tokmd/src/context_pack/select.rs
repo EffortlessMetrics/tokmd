@@ -200,7 +200,7 @@ pub fn select_files_with_options(
                 let path = normalize_path(&row.path);
                 if let Some(reason) = is_smart_excluded(&path) {
                     smart_excluded.push(SmartExcludedFile {
-                        path,
+                        path: path.to_string(),
                         reason: reason.to_string(),
                         tokens: row.tokens,
                     });

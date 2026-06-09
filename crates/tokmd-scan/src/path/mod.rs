@@ -33,8 +33,8 @@ pub(crate) use validated_root::ValidatedRoot;
 /// assert_eq!(normalize_slashes("no/change"), "no/change");
 /// ```
 #[must_use]
-pub fn normalize_slashes(path: &str) -> String {
-    normalize_slashes_cow(path).into_owned()
+pub fn normalize_slashes(path: &str) -> std::borrow::Cow<'_, str> {
+    normalize_slashes_cow(path)
 }
 
 pub(crate) fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
@@ -77,13 +77,30 @@ pub(crate) fn normalize_slashes_cow(path: &str) -> std::borrow::Cow<'_, str> {
 /// assert_eq!(once, "src/lib.rs");
 /// ```
 #[must_use]
-pub fn normalize_rel_path(path: &str) -> String {
+pub fn normalize_rel_path(path: &str) -> std::borrow::Cow<'_, str> {
     let normalized = normalize_slashes_cow(path);
     let mut s = normalized.as_ref();
+    let mut stripped = false;
     while let Some(rest) = s.strip_prefix("./") {
         s = rest;
+        stripped = true;
     }
-    s.to_string()
+
+    let drain_len = if stripped {
+        normalized.len() - s.len()
+    } else {
+        0
+    };
+
+    match normalized {
+        std::borrow::Cow::Borrowed(_) if !stripped => std::borrow::Cow::Borrowed(path),
+        std::borrow::Cow::Borrowed(_) => std::borrow::Cow::Borrowed(&path[path.len() - s.len()..]),
+        std::borrow::Cow::Owned(owned) if !stripped => std::borrow::Cow::Owned(owned),
+        std::borrow::Cow::Owned(mut owned) => {
+            owned.drain(..drain_len);
+            std::borrow::Cow::Owned(owned)
+        }
+    }
 }
 
 /// Normalize a root-relative path and reject traversal or absolute inputs.
@@ -222,7 +239,7 @@ mod normalization_tests {
         fn normalize_slashes_idempotent(path in "\\PC*") {
             let once = normalize_slashes(&path);
             let twice = normalize_slashes(&once);
-            prop_assert_eq!(once, twice);
+            prop_assert_eq!(once.as_ref(), twice.as_ref());
         }
 
         #[test]
@@ -235,7 +252,7 @@ mod normalization_tests {
         fn normalize_rel_path_idempotent(path in "\\PC*") {
             let once = normalize_rel_path(&path);
             let twice = normalize_rel_path(&once);
-            prop_assert_eq!(once, twice);
+            prop_assert_eq!(once.as_ref(), twice.as_ref());
         }
     }
 

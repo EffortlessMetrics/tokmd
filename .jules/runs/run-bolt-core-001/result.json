@@ -1,0 +1,9 @@
+{
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    "crates/tokmd-scan/src/path/mod.rs",
+    "crates/tokmd-scan/src/exclude/mod.rs",
+    "crates/tokmd-scan/src/ignore_patterns.rs",
+    "crates/tokmd-scan/src/lib.rs"
+  ]
+}
