@@ -132,7 +132,12 @@ pub fn short_hash(s: &str) -> String {
 /// ```
 pub fn redact_path(path: &str) -> String {
     let cleaned = clean_path(path);
-    let mut out = short_hash(&cleaned);
+
+    let filename_index = cleaned.rfind('/').map(|i| i + 1).unwrap_or(0);
+    let mut lowercase_cleaned = cleaned[..filename_index].to_string();
+    lowercase_cleaned.push_str(&cleaned[filename_index..].to_ascii_lowercase());
+
+    let mut out = short_hash(&lowercase_cleaned);
 
     let filename = cleaned.split('/').next_back().unwrap_or(&cleaned);
     let parts: Vec<&str> = filename.split('.').collect();
@@ -147,7 +152,7 @@ pub fn redact_path(path: &str) -> String {
         if let Some(suffix) = extensions::safe_path_extension_suffix(extension_parts) {
             for ext in suffix {
                 out.push('.');
-                out.push_str(ext);
+                out.push_str(&ext.to_ascii_lowercase());
             }
         }
     }

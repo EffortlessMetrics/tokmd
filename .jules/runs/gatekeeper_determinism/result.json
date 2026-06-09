@@ -1,0 +1,5 @@
+{
+  "outcome": "success",
+  "patch_type": "proof-improvement patch",
+  "reason": "Fixed redaction casing leak, ensuring deterministic lower-case output for safe file extensions."
+}

@@ -46,3 +46,13 @@ fn redaction_normalizes_known_compound_archive_suffix_case() {
     assert!(redacted.ends_with(".tar.gz"));
     assert!(!redacted.ends_with(".TAR.GZ"));
 }
+
+#[test]
+fn test_redact_path_leaks_original_case() {
+    let p1 = redact_path("file.JSON");
+    let p2 = redact_path("file.json");
+    assert_eq!(
+        p1, p2,
+        "Path redaction leaks original file extension casing"
+    );
+}
