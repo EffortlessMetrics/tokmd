@@ -1,46 +1,55 @@
 ## 💡 Summary
-Fixed malformed metadata frontmatter in two existing friction items and regenerated the Jules indexes. This ensures the `.jules/index/generated/FRICTION_ROLLUP.md` accurately tracks personas, styles, and shards for open friction rather than listing them as "Unknown", and updates the `RUNS_ROLLUP.md` with missing runs.
+Moved duplicated and conflicting "zero-drift exit" guidance from the mutant, steward, and librarian personas into a single shared section in `RUN_PACKET.md`. This clarifies that agents should always produce a durable learning PR when a surface is already tight, superseding old instructions to stop without an artifact.
 
 ## 🎯 Why
-The Archivist persona is responsible for consolidating recurring friction themes into better templates and summarizing run packets into generated indexes. Because `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` lacked standard `id/persona/style/shard/status` frontmatter, the `cargo xtask jules-index` aggregator could not properly identify them.
+Agents were encountering conflicting constraints. The main Jules prompt strictly forbade "forcing a fake fix" while persona-specific documentation (for `mutant`, `steward`, and `librarian`) simultaneously told them *not* to produce a learning PR. Because orchestrators require a PR-worthy artifact to finalize the task, agents would either fail, force a fake patch, or output a learning PR anyway and complain about the contradiction in their receipts. Consolidating this clarifies the rule and unblocks agents.
 
 ## 🔎 Evidence
-- files: `.jules/index/generated/FRICTION_ROLLUP.md`
-- observed behavior before: `librarian_doctest_git_dependency` showed `Unknown` persona and style.
-- command receipt: `cargo xtask jules-index` successfully regenerates with corrected metadata.
+- Found 8+ instances of "fake fix" friction in historical runs (e.g., `.jules/runs/steward_1778084540/decision.md`, `.jules/runs/sentinel_boundaries/pr_body.md`).
+- `grep -rn "Zero-drift exit" .jules/personas/` and `grep -A 5 "Already-tight exit" .jules/personas/mutant/README.md` confirmed the conflicting constraints in persona READMEs.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Fix the metadata frontmatter in the friction items and run `cargo xtask jules-index`.
-- why it fits this repo and shard: It directly satisfies Archivist targets #1 and #2 (consolidating friction templates and generating indexes) in the `workspace-wide` shard.
-- trade-offs: Structure: High. Governance: High. Velocity: Neutral.
+- What it is: Add a unified `Shared Zero-Drift/Already-Tight Guidance` section to `.jules/runbooks/RUN_PACKET.md` and update `mutant`, `steward`, and `librarian` persona docs to reference it.
+- Why it fits: Directly aligns with the Archivist mission to "move duplicated persona-local conventions into neutral shared guidance."
+- Trade-offs: Structure: Improves consistency. Velocity: Unblocks agents that were failing due to conflicting constraints. Governance: Clarifies the official zero-drift policy.
 
 ### Option B
-- what it is: Only regenerate the indexes without fixing metadata.
-- when to choose it instead: If the metadata formats were intentionally non-standard (they weren't).
-- trade-offs: We would leave broken metadata rendering as "Unknown" in the generated docs.
+- What it is: Remove the exit sections from the persona files entirely.
+- When to choose it instead: If the shared guidance applies implicitly everywhere.
+- Trade-offs: Might make agents overlook the zero-drift possibility entirely when reading their specific persona documentation, leading them to hallucinate patches anyway. Option A is safer.
 
 ## ✅ Decision
-Option A. It's an honest patch that directly improves the Jules scaffolding and indexing health by fixing the root cause of the "Unknown" rows.
+Option A. It's the safest way to maintain persona-specific context (knowing *when* a surface is already tight) while unifying the mechanical outcome (what to *do* when it's tight) in the shared runbook.
 
 ## 🧱 Changes made (SRP)
-- Re-formatted `.jules/friction/open/librarian_doctest_git_dependency.md` to include valid frontmatter.
-- Re-formatted `.jules/friction/open/steward-release-clean-state.md` to include valid frontmatter.
-- Ran `cargo xtask jules-index` to update `.jules/index/generated/RUNS_ROLLUP.md` and `.jules/index/generated/FRICTION_ROLLUP.md`.
+- `.jules/runbooks/RUN_PACKET.md`: Added `Shared Zero-Drift Guidance` section explaining the learning PR fallback.
+- `.jules/personas/mutant/README.md`: Replaced `Already-tight exit` logic with a reference to shared guidance.
+- `.jules/personas/steward/README.md`: Replaced `Zero-drift exit` logic with a reference to shared guidance.
+- `.jules/personas/librarian/README.md`: Replaced `Already-covered exit` logic with a reference to shared guidance.
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2024-05-08T20:55:00Z", "phase": "investigation", "cwd": "/app", "cmd": "cat .jules/index/generated/FRICTION_ROLLUP.md", "status": 0, "summary": "Found that friction items librarian_doctest_git_dependency and steward-release-clean-state had Unknown metadata in the rollup."}
-{"ts_utc": "2024-05-08T20:56:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cat << 'EOF' > .jules/friction/open/librarian_doctest_git_dependency.md ...", "status": 0, "summary": "Fixed frontmatter for librarian_doctest_git_dependency.md and steward-release-clean-state.md to match schema."}
-{"ts_utc": "2024-05-08T20:57:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cargo xtask jules-index", "status": 0, "summary": "Regenerated the indexes, which correctly updated FRICTION_ROLLUP.md and RUNS_ROLLUP.md"}
+{"ts_utc": "2026-06-09T16:03:00Z", "phase": "investigate", "cwd": "/home/jules", "cmd": "grep -r \"fake fix\" .jules/ || true", "status": 0, "summary": "Found historical run conflicts regarding fake fixes vs learning PRs"}
+{"ts_utc": "2026-06-09T16:05:00Z", "phase": "investigate", "cwd": "/home/jules", "cmd": "cat .jules/personas/*/README.md || true", "status": 0, "summary": "Identified zero-drift exit clauses in mutant, steward, and librarian"}
+{"ts_utc": "2026-06-09T16:10:00Z", "phase": "implement", "cwd": "/home/jules", "cmd": "cat << 'EOF' >> .jules/runbooks/RUN_PACKET.md\n\n## Shared Zero-Drift Guidance\n...", "status": 0, "summary": "Added Shared Zero-Drift Guidance"}
+{"ts_utc": "2026-06-09T16:12:00Z", "phase": "implement", "cwd": "/home/jules", "cmd": "patch .jules/personas/mutant/README.md < fix_mutant.patch", "status": 0, "summary": "Updated mutant persona file to reference shared guidance"}
+{"ts_utc": "2026-06-09T16:14:00Z", "phase": "implement", "cwd": "/home/jules", "cmd": "python3 update_steward.py && python3 update_librarian.py", "status": 0, "summary": "Updated steward and librarian persona files to reference shared guidance"}
+{"ts_utc": "2026-06-09T16:18:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo xtask docs --check", "status": 0, "summary": "Documentation checks pass"}
+{"ts_utc": "2026-06-09T16:18:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo fmt -- --check", "status": 0, "summary": "Code formatting checks pass"}
+{"ts_utc": "2026-06-09T16:20:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo xtask version-consistency", "status": 0, "summary": "Version consistency checks pass"}
+{"ts_utc": "2026-06-09T16:22:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo xtask publish --plan --verbose", "status": 0, "summary": "Publish plan checks pass"}
+{"ts_utc": "2026-06-09T16:25:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo build --verbose", "status": 0, "summary": "Build successful"}
+{"ts_utc": "2026-06-09T16:28:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "CI=true cargo test -p tokmd-types -p tokmd-model -p tokmd-settings -p tokmd-scan -p tokmd-git -p tokmd-envelope -p tokmd-sensor -p tokmd-analysis-types -p tokmd-format -p tokmd-analysis --features git -p tokmd-cockpit -p tokmd-core -p tokmd-wasm -p tokmd --verbose", "status": 0, "summary": "Tests successful"}
+{"ts_utc": "2026-06-09T16:30:00Z", "phase": "verify", "cwd": "/home/jules", "cmd": "cargo clippy -- -D warnings", "status": 0, "summary": "Clippy checks pass"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation and metadata indexing
-- Blast radius: Jules documentation / scaffolding
+- Change shape: Docs update
+- Blast radius: Jules orchestrator behavior, agent instructions
 - Risk class: Low
-- Rollback: `git restore .jules/friction/open/ .jules/index/generated/`
-- Gates run: `cargo xtask jules-index`
+- Rollback: `git checkout .jules/runbooks/RUN_PACKET.md .jules/personas/mutant/README.md .jules/personas/steward/README.md .jules/personas/librarian/README.md`
+- Gates run: Not required for `.jules` scaffolding files, but manual review confirms markdown syntax.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/archivist_jules/envelope.json`

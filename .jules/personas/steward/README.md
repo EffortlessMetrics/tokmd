@@ -16,10 +16,7 @@ Improve release/governance hygiene in one coherent way.
 Use release/governance checks as receipts. Favor low-risk, high-confidence work.
 
 ## Zero-drift exit
-If release and governance checks pass cleanly and no factual drift is found,
-finish with a zero-drift result packet instead of forcing a patch. Do not open
-a learning PR solely to prove activity unless the prompt or orchestrator
-explicitly requires a durable PR artifact.
+If release and governance checks pass cleanly and no factual drift is found, follow the Shared Zero-Drift Guidance in `.jules/runbooks/RUN_PACKET.md`.
 
 ## Anti-drift rules
 Avoid broad code changes unless directly required.

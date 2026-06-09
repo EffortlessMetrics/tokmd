@@ -1,27 +1,26 @@
+# Investigation
+
+I searched the project for instances of "fake fix" and identified multiple instances in past `.jules/runs/*` outputs where agents encountered conflicts. The shared instructions forbid "forcing a fake fix" while other documentation simultaneously forbids producing a "learning PR" when no issue is found (e.g., instructing the agent to stop without an artifact and just output a zero-drift result).
+
+Specifically, these files had conflicting exit guidance:
+- `.jules/personas/mutant/README.md`
+- `.jules/personas/steward/README.md`
+- `.jules/personas/librarian/README.md`
+
+They told the agent to "stop with a zero-drift result. Do not... [create] a learning PR just to satisfy the expectation of a proof-improvement patch." But the main `RUN_PACKET.md` and standard Jules prompts say "If no honest code/docs/test patch is justified, finish with a learning PR instead of forcing a fake fix." The orchestrator requires a PR outcome.
+
+# Options considered
+
+### Option A (recommended)
+Add a unified `Shared Zero-Drift Guidance` section to `.jules/runbooks/RUN_PACKET.md` that standardizes the learning PR fallback mechanism, explicitly superseding older "stop without an artifact" rules. Update `mutant`, `steward`, and `librarian` persona docs to reference this shared guidance.
+- Fits because it directly aligns with the Archivist mission to "move duplicated persona-local conventions into neutral shared guidance" and removes prompt-level contradictions.
+- Structure: Improves consistency.
+- Velocity: Unblocks agents that were failing due to conflicting constraints.
+- Governance: Clarifies the official zero-drift policy.
+
+### Option B
+Remove the exit sections from the persona files entirely and only document it in `RUN_PACKET.md`.
+- While cleaner, this might make agents overlook the zero-drift possibility entirely when reading their specific persona documentation, leading them to hallucinate patches anyway.
+
 # Decision
-
-## Context
-The Archivist persona focuses on improving Jules itself by consolidating learnings and sharing scaffolding. Target ranking #2 is "summarize per-run packets into generated indexes/rollups", and target #1 is "consolidate recurring friction themes into better templates/policy/docs".
-
-Looking at the generated indexes (`.jules/index/generated/RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md`), they are currently out-of-date and missing some metadata, which is exposed by running `cargo xtask jules-index`. Also, the `FRICTION_ROLLUP.md` shows missing or "Unknown" metadata for friction items like `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` because they don't conform precisely to the metadata schema in `.jules/runbooks/FRICTION_ITEM.md`.
-
-## Options considered
-
-### Option A: Clean up friction items metadata and regenerate the indexes (Recommended)
-1. Fix the metadata frontmatter in the `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` friction items so they match the expected schema from the runbook.
-2. Run `cargo xtask jules-index` to update the generated `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` files.
-3. Commit these changes.
-
-- **Structure**: High. Brings disparate friction items into compliance with the official runbook.
-- **Velocity**: Low impact on product code velocity, but improves Jules system health.
-- **Governance**: High. The generated indexes will now correctly track all friction items and run statuses.
-
-### Option B: Only regenerate the indexes without fixing the friction metadata
-1. Just run `cargo xtask jules-index`.
-
-- **Structure**: Low. The indexes will still show "Unknown" values for important metadata.
-- **Velocity**: Low.
-- **Governance**: Low. We leave broken metadata in the repo.
-
-## Decision
-**Option A**. By fixing the friction item metadata frontmatter to align with `.jules/runbooks/FRICTION_ITEM.md` and then regenerating the indexes, we accomplish both target #1 (consolidate friction themes/docs) and target #2 (summarize into generated indexes/rollups).
+Option A. It's the safest way to maintain persona-specific context (knowing *when* a surface is already tight) while unifying the mechanical outcome (what to *do* when it's tight) in the shared runbook.

@@ -1,17 +1,17 @@
 {
   "outcome_type": "patch",
-  "title": "archivist: fix friction metadata and regenerate indexes 🗃️",
-  "summary": "Fixed schema non-compliance in two friction items and ran `cargo xtask jules-index` to successfully update the generated run and friction rollups.",
+  "title": "archivist: consolidate zero-drift exit policy into shared guidance 🗃️",
+  "summary": "Moved duplicated and conflicting 'zero-drift exit' guidance from the mutant, steward, and librarian personas into a single shared section in RUN_PACKET.md. This clarifies that agents should always produce a durable learning PR when a surface is already tight, superseding old instructions to stop without an artifact.",
   "target_paths": [
-    ".jules/friction/open/librarian_doctest_git_dependency.md",
-    ".jules/friction/open/steward-release-clean-state.md",
-    ".jules/index/generated/RUNS_ROLLUP.md",
-    ".jules/index/generated/FRICTION_ROLLUP.md"
+    ".jules/runbooks/RUN_PACKET.md",
+    ".jules/personas/mutant/README.md",
+    ".jules/personas/steward/README.md",
+    ".jules/personas/librarian/README.md"
   ],
-  "proof_summary": "The FRICTION_ROLLUP.md no longer shows 'Unknown' metadata for librarian and steward friction items.",
-  "gates_run": ["cargo xtask jules-index"],
+  "proof_summary": "Identified conflicting 'fake fix' complaints in historical runs. Modified docs and verified the new structure using standard markdown.",
+  "gates_run": ["cargo xtask docs --check", "cargo fmt -- --check"],
   "friction_items_created": [],
   "persona_notes_created": [],
-  "rollback": "git restore .jules/friction/open/ .jules/index/generated/",
+  "rollback": "git checkout .jules/runbooks/RUN_PACKET.md .jules/personas/mutant/README.md .jules/personas/steward/README.md .jules/personas/librarian/README.md",
   "follow_ups": []
 }

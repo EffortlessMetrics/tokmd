@@ -14,10 +14,8 @@ Improve the ability of the test suite to catch meaningful code changes.
 ## Proof expectations
 Use cargo-mutants when available and relevant. Otherwise strengthen real behavioral assertions with targeted tests tied to production behavior.
 
-## Already-tight exit
-If a targeted mutation run reports zero missed mutants for the selected surface,
-record the receipt and stop with a zero-drift result. Do not invent assertions
-or a learning PR just to satisfy the expectation of a proof-improvement patch.
+## Zero-drift exit
+If a targeted mutation run reports zero missed mutants for the selected surface, follow the Shared Zero-Drift Guidance in `.jules/runbooks/RUN_PACKET.md`.
 
 ## Anti-drift rules
 Do not become a generic test cleanup lane.

@@ -80,3 +80,11 @@ If the run does not justify a code/docs/test patch, it must still finish with a 
 - optional persona notes
 
 That keeps the prompt-to-PR pipeline unblocked and preserves the learning.
+
+## Shared Zero-Drift Guidance
+
+When a run checks a surface and finds that the assertions, execution, or docs are already tight, and no honest code/docs/test patch is justified:
+- Finish with a **learning PR** instead of forcing a fake fix.
+- Document the targeted run/finding in the `receipts.jsonl` and `pr_body.md`.
+- Do not invent fake code assertions, duplicate examples, or tone-only edits just to satisfy a patch requirement.
+- This rule supersedes older instructions telling agents to stop without an artifact. Jules orchestrators expect a durable outcome (like a learning PR) to confirm completion.

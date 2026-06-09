@@ -1,9 +1,24 @@
 {
   "prompt_id": "archivist_jules",
-  "persona": "Archivist",
+  "persona": "archivist",
   "style": "Builder",
-  "primary_shard": "workspace-wide",
-  "allowed_paths": ["**"],
+  "allowed_paths": [
+    "**"
+  ],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+  "allowed_outcomes": [
+    "patch",
+    "proof_patch",
+    "learning_pr"
+  ],
+  "selected_option": null,
+  "artifacts": [
+    ".jules/runs/archivist_jules/envelope.json",
+    ".jules/runs/archivist_jules/decision.md",
+    ".jules/runs/archivist_jules/receipts.jsonl",
+    ".jules/runs/archivist_jules/result.json",
+    ".jules/runs/archivist_jules/pr_body.md"
+  ],
+  "commands": [],
+  "primary_shard": "workspace-wide"
 }
