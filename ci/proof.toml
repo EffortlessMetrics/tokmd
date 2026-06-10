@@ -1124,7 +1124,7 @@ coverage = true
 [[scope]]
 name = "jules_workspace"
 kind = "non_rust"
-paths = [".jules/**"]
+paths = [".jules/**", "plan.md"]
 proof = ["cargo xtask proof-policy --check"]
 reason = "Jules provenance, specs, investigations, friction notes, runbooks, ledgers, envelopes, and generated indexes are intentional repo knowledge artifacts."
 mutation = false
@@ -1471,7 +1471,7 @@ coverage = true
 
 [[allow.workspace_area]]
 name = "jules_knowledge_workspace"
-paths = [".jules/**"]
+paths = [".jules/**", "plan.md"]
 reason = "Durable specs, investigations, friction notes, persona learnings, and generated indexes are allowed here."
 discourage = [
   "raw terminal logs",
