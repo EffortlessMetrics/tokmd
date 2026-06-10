@@ -1,0 +1,8 @@
+{"command": "cargo run -p tokmd-model --example bench_normalize --release", "result": "Average time per call: 82ns (before patch)"}
+{"command": "cargo test -p tokmd-model normalize_path", "result": "All normalize_path tests pass."}
+{"command": "cargo run -p tokmd-model --example bench_normalize --release (after patch)", "result": "Average time per call: 63ns (after patch)"}
+{"command": "CI=true cargo test -p tokmd-model", "result": "All tests passed"}
+{"command": "cargo check -p tokmd-model", "result": "Finished `dev` profile"}
+{"command": "cargo build --verbose", "result": "Finished `dev` profile"}
+{"command": "cargo clippy -p tokmd-model -- -D warnings", "result": "Finished `dev` profile"}
+{"command": "cargo fmt -- --check", "result": "Passed"}

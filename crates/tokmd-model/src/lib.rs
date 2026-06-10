@@ -91,11 +91,23 @@ pub fn avg(lines: usize, files: usize) -> usize {
 /// ```
 #[inline]
 pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
-    let s_cow = path.to_string_lossy();
-    let s: Cow<str> = if s_cow.contains('\\') {
-        Cow::Owned(s_cow.replace('\\', "/"))
-    } else {
-        s_cow
+    let s_cow;
+    let s: Cow<str> = match path.to_str() {
+        Some(valid_utf8) => {
+            if valid_utf8.as_bytes().contains(&b'\\') {
+                Cow::Owned(valid_utf8.replace('\\', "/"))
+            } else {
+                Cow::Borrowed(valid_utf8)
+            }
+        }
+        None => {
+            s_cow = path.to_string_lossy();
+            if s_cow.contains('\\') {
+                Cow::Owned(s_cow.replace('\\', "/"))
+            } else {
+                Cow::Owned(s_cow.into_owned())
+            }
+        }
     };
 
     let mut slice: &str = &s;
@@ -106,12 +118,19 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     }
 
     if let Some(prefix) = strip_prefix {
-        let p_cow = prefix.to_string_lossy();
+        let p_cow;
+        let p_source = match prefix.to_str() {
+            Some(v) => v,
+            None => {
+                p_cow = prefix.to_string_lossy();
+                p_cow.as_ref()
+            }
+        };
+
         // Strip leading ./ from prefix so it can match normalized paths
-        let p_source = p_cow.as_ref();
         let mut p_slice = p_source.strip_prefix("./").unwrap_or(p_source);
         let normalized_prefix;
-        if p_slice.contains('\\') {
+        if p_slice.as_bytes().contains(&b'\\') {
             normalized_prefix = p_slice.replace('\\', "/");
             p_slice = &normalized_prefix;
         }
