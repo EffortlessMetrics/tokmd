@@ -1,4 +1,5 @@
-use std::collections::{BTreeMap, BTreeSet};
+use rustc_hash::FxHashMap;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -35,7 +36,7 @@ pub(crate) fn build_todo_report(
     limits: &ContentLimits,
     total_code: usize,
 ) -> Result<TodoReport> {
-    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    let mut counts: FxHashMap<String, usize> = FxHashMap::default();
     let tags = ["TODO", "FIXME", "HACK", "XXX"];
     let mut total_bytes = 0u64;
     let max_total = limits.max_bytes;
@@ -88,7 +89,7 @@ pub(crate) fn build_duplicate_report(
     export: &ExportData,
     limits: &ContentLimits,
 ) -> Result<DuplicateReport> {
-    let mut by_size: BTreeMap<u64, Vec<&PathBuf>> = BTreeMap::new();
+    let mut by_size: FxHashMap<u64, Vec<&PathBuf>> = FxHashMap::default();
     let size_limit = limits.max_file_bytes;
 
     for rel in files {
@@ -101,8 +102,8 @@ pub(crate) fn build_duplicate_report(
         by_size.entry(size).or_default().push(rel);
     }
 
-    let mut path_to_module: BTreeMap<String, &str> = BTreeMap::new();
-    let mut module_bytes: BTreeMap<&str, u64> = BTreeMap::new();
+    let mut path_to_module: FxHashMap<String, &str> = FxHashMap::default();
+    let mut module_bytes: FxHashMap<&str, u64> = FxHashMap::default();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let normalized = normalize_path(&row.path, root);
         path_to_module.insert(normalized, row.module.as_str());
@@ -114,16 +115,16 @@ pub(crate) fn build_duplicate_report(
     let mut duplicate_files = 0usize;
     let mut duplicated_bytes = 0u64;
 
-    let mut module_duplicate_files: BTreeMap<&str, usize> = BTreeMap::new();
-    let mut module_wasted_files: BTreeMap<&str, usize> = BTreeMap::new();
-    let mut module_duplicated_bytes: BTreeMap<&str, u64> = BTreeMap::new();
-    let mut module_wasted_bytes: BTreeMap<&str, u64> = BTreeMap::new();
+    let mut module_duplicate_files: FxHashMap<&str, usize> = FxHashMap::default();
+    let mut module_wasted_files: FxHashMap<&str, usize> = FxHashMap::default();
+    let mut module_duplicated_bytes: FxHashMap<&str, u64> = FxHashMap::default();
+    let mut module_wasted_bytes: FxHashMap<&str, u64> = FxHashMap::default();
 
     for (size, paths) in by_size {
         if paths.len() < 2 || size == 0 {
             continue;
         }
-        let mut by_hash: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut by_hash: FxHashMap<String, Vec<String>> = FxHashMap::default();
         for rel in paths {
             let path = root.join(rel);
             if let Ok(hash) = hash_file_full(&path) {
@@ -228,13 +229,13 @@ pub(crate) fn build_import_report(
     granularity: ImportGranularity,
     limits: &ContentLimits,
 ) -> Result<ImportReport> {
-    let mut map: BTreeMap<String, &FileRow> = BTreeMap::new();
+    let mut map: FxHashMap<String, &FileRow> = FxHashMap::default();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         let key = normalize_path(&row.path, root);
         map.insert(key, row);
     }
 
-    let mut edges: BTreeMap<(&str, String), usize> = BTreeMap::new();
+    let mut edges: FxHashMap<(&str, String), usize> = FxHashMap::default();
     let mut total_bytes = 0u64;
     let max_total = limits.max_bytes;
     let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES) as usize;
