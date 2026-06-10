@@ -413,6 +413,21 @@ modules, and keep proof observations advisory while artifacts mature.
 - [x] Add source-of-truth, user-path, handoff, release-readiness, and AST-shadow
       planning/evidence surfaces without changing default product behavior
 
+## Phase 5e: Bun UB Evidence-Readiness & Swarm Workbench (v1.12.0) ✅ Complete
+
+**Goal**: Provide a scoped evidence packet for high-risk review workflows (starting with `ub-review`) without turning tokmd into a UB detector.
+
+### Work Items
+
+- [x] Add the `bun-ub` preset for bounded, reproducible evidence.
+- [x] Improve trust in evidence by fixing doc density math, context token reconciliation, and path scope.
+- [x] Explicitly fail on bad effort refs instead of silent degradation.
+- [x] Provide Bun-shaped smoke tests covering valid refs, dangling symlinks, and Markdown/JSON outputs.
+- [x] Keep `tokmd-swarm` as the active workbench and import release work cleanly into `tokmd`.
+
+---
+
+
 ---
 
 ## Phase 6: MCP Server Mode (v2.0)

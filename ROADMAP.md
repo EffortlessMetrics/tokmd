@@ -605,9 +605,25 @@ back into single-responsibility owner modules.
 
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
+## Completed: v1.12.0 — Bun UB Evidence-Readiness & Swarm Workbench
 
-_Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
+**Goal:** Turn `tokmd analyze` and `tokmd context` into a scoped evidence packet for high-risk review work, starting with `EffortlessMetrics/ub-review`.
+
+### What shipped for v1.12.0
+
+- [x] Added `tokmd analyze --preset bun-ub` as a thin on-diff review preset combining complexity, churn, API-surface, and import signals.
+- [x] Path-scoped analysis to prevent file-backed enrichers from scanning outside explicit inputs.
+- [x] Context list output reconciles charged tokens against full-file tokens.
+- [x] Explicit failure for unresolved `BASE` and `HEAD` effort refs.
+- [x] Dangling symlinks skipped gracefully.
+- [x] Cockpit and handoff linkage to reference tokmd Bun UB artifacts.
+- [x] Swarm workbench imported into `tokmd` publication repository.
+
+## Future Horizons
+
+### v1.13.x — Selection-First Product and Evidence Work
+
+_Goal: Choose the next implementation lane deliberately from v1.12 adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 
 Potential lanes:
 

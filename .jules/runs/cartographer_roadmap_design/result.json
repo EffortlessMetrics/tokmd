@@ -1,9 +1,7 @@
 {
-  "outcome": "PR-ready patch",
-  "title": "cartographer: align browser runner non-goals with v1.11 reality 🗺️",
-  "summary": "Updated docs/architecture.md and docs/NOW.md to reflect current browser constraints rather than outdated v1.9.0 non-goals.",
-  "target_paths": [
-    "docs/architecture.md",
-    "docs/NOW.md"
-  ]
+  "run_id": "cartographer_roadmap_design",
+  "persona": "Cartographer",
+  "title": "cartographer: align roadmap and implementation plan with v1.12 reality \ud83d\uddfa\ufe0f",
+  "outcome": "success",
+  "action_taken": "Updated ROADMAP.md and docs/implementation-plan.md to reflect the already-shipped v1.12.0 release, removing it from 'Future Horizons'."
 }
