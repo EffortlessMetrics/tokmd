@@ -1,0 +1,87 @@
+[scan]
+paths = ["src", "tests", "docs"]
+exclude = ["target", "*.bak"]
+hidden = true
+no_ignore = false
+no_ignore_parent = true
+no_ignore_dot = false
+no_ignore_vcs = true
+doc_comments = true
+config = "auto"
+
+[module]
+roots = ["crates"]
+depth = 2
+children = "collapse"
+
+[export]
+min_code = 10
+max_rows = 100
+redact = "paths"
+format = "jsonl"
+children = "separate"
+
+[analyze]
+preset = "receipt"
+window = 20
+format = "table"
+git = true
+max_files = 1000
+max_bytes = 10485760
+max_file_bytes = 1048576
+max_commits = 50
+max_commit_files = 100
+granularity = "module"
+effort_model = "standard"
+effort_layer = "complexity"
+effort_base_ref = "main"
+effort_head_ref = "feature"
+effort_monte_carlo = true
+effort_mc_iterations = 1000
+effort_mc_seed = 42
+
+[context]
+budget = "8k"
+strategy = "spread"
+rank_by = "code"
+output = "bundle"
+compress = true
+
+[badge]
+metric = "code"
+
+[gate]
+policy = "policy.toml"
+baseline = "baseline.json"
+preset = "default"
+fail_fast = true
+allow_missing_baseline = false
+allow_missing_current = false
+
+[[gate.rules]]
+name = "Max Complexity"
+pointer = "/complexity"
+op = "lt"
+value = 100
+level = "error"
+message = "Complexity exceeded threshold"
+
+[[gate.ratchet]]
+pointer = "/totals/code"
+max_increase_pct = 5.0
+max_value = 50000.0
+level = "warn"
+description = "Code size growth limit"
+
+[view.ci]
+format = "json"
+top = 50
+files = true
+meta = true
+preset = "ci"
+
+[view.llm]
+budget = "128k"
+strategy = "greedy"
+output = "json"
+compress = false

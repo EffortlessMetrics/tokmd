@@ -1,0 +1,13 @@
+[scan]
+paths = "src" # Should be array
+hidden = "true" # Should be bool
+no_ignore = 1 # Should be bool
+
+[module]
+depth = "two" # Should be int
+
+[export]
+min_code = -10 # Should be unsigned int
+
+[analyze]
+git = "yes" # Should be bool

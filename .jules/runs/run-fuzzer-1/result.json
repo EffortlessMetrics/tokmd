@@ -1,0 +1,10 @@
+{
+  "summary": "Added a seed corpus and deterministic tests for TOML configuration parsing.",
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "fuzz/corpus/fuzz_toml_config/seed_valid_kitchen_sink.toml",
+    "fuzz/corpus/fuzz_toml_config/seed_invalid_types.toml",
+    "crates/tokmd-settings/tests/deterministic_config.rs"
+  ],
+  "gates_run": ["cargo fmt", "cargo clippy", "cargo test -p tokmd-settings --test deterministic_config"]
+}
