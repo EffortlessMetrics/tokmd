@@ -35,6 +35,7 @@ Sample layout:
   intelligence.json
   review-links.json
   proof-links.json
+  evidence-packet-links.json
 ```
 
 Open first:
@@ -44,6 +45,7 @@ Open first:
 3. `.handoff/code.txt`
 4. `.handoff/review-links.json`
 5. `.handoff/proof-links.json`
+6. `.handoff/evidence-packet-links.json`
 
 What each file owns:
 
@@ -56,12 +58,15 @@ What each file owns:
 | `intelligence.json` | Repo shape, hotspot, and derived analysis signals. |
 | `review-links.json` | Pointers to external review packet artifacts and verifier receipt. |
 | `proof-links.json` | Pointers to proof-route, affected-proof, and proof-plan artifacts. |
+| `evidence-packet-links.json` | Pointer to a tokmd evidence packet manifest and its review-priority source. |
 
 What not to infer:
 
 - The handoff does not verify external review or proof receipts.
+- The handoff does not verify an external evidence packet manifest.
 - The source bundle is not necessarily the whole repository.
 - A proof plan is not executed proof.
+- An evidence packet review priority is first-read order, not a verdict.
 - Linked missing, stale, degraded, skipped, or unavailable evidence is agent
   work, not a pass.
 
@@ -69,4 +74,5 @@ Next action:
 
 - Give the agent `work-order.md` first.
 - Tell the agent to use `code.txt` as the bounded source bundle.
-- Verify linked review and proof receipts with their own checkers.
+- Verify linked review, proof, and evidence-packet receipts with their own
+  checkers or manifests.

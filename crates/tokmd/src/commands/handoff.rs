@@ -168,6 +168,7 @@ pub(crate) fn handle(args: cli::HandoffArgs, global: &cli::GlobalArgs) -> Result
         affected: args.affected.as_deref(),
         proof_plan: args.proof_plan.as_deref(),
         proof_route,
+        evidence_packet: args.evidence_packet.as_deref(),
     };
     let mut link_artifacts = write_link_artifacts(&args.out_dir, &link_inputs)?;
     payloads.artifacts.append(&mut link_artifacts);

@@ -33,6 +33,11 @@ skip-policy evidence, not executed proof. A proof plan is expected proof, not
 executed proof. Do not claim proof passed until required proof commands have
 run or are explicitly deferred.
 
+If `.handoff/evidence-packet-links.json` exists, treat it as a handle to a tokmd
+evidence packet manifest. Use its `review_priority` as first-read order, not as
+a verdict, and resolve or acknowledge partial/failed packet status before
+claiming complete review evidence.
+
 Treat missing, stale, degraded, skipped, or unavailable evidence as work to
 resolve, not as passing proof.
 
@@ -46,11 +51,12 @@ are satisfied or explicitly deferred with a clear reason.
 
 ## Required Guardrails
 
-- Linked review and proof evidence is a handle, not copied or verified proof.
-- `work-order.md` summarizes linked receipts, but the linked verifier and proof
-  receipts remain the evidence sources of truth.
-- Missing, stale, degraded, skipped, or unavailable evidence is not passing
-  proof.
+- Linked review, proof, and evidence-packet evidence is a handle, not copied or
+  verified proof.
+- `work-order.md` summarizes linked receipts, but the linked verifier, proof
+  receipts, and evidence packet manifest remain the evidence sources of truth.
+- Missing, stale, degraded, skipped, unavailable, partial, or failed evidence is
+  not passing proof.
 - Planned proof is not executed proof.
 - Cockpit and handoff outputs are not merge verdicts.
 - Advisory proof, coverage, mutation, browser output, and Codecov upload remain

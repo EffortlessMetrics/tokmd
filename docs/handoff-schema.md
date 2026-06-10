@@ -58,15 +58,18 @@ Artifacts listed in `manifest.json`:
 - `proof-links.json` when `tokmd handoff` is given `--proof-route`,
   `--affected`, or `--proof-plan`, or when `--review-packet-dir` contains
   `proof/proof-pack-route.json`
+- `evidence-packet-links.json` when `tokmd handoff` is given
+  `--evidence-packet`
 
 Artifacts include size and optional hash. Hashing uses **blake3**.
 `work-order.md` is an agent-readable consumption guide generated from the
-manifest inputs, selected files, and optional review/proof link inputs. It may
-summarize readable linked receipts for triage, but it does not verify external
-receipts and does not replace their source artifacts.
-The link artifacts are packet-local JSON files that point at external review or
-proof receipts. They do not copy those external receipts into the handoff and
-do not replace the review-packet verifier.
+manifest inputs, selected files, and optional review/proof/evidence-packet link
+inputs. It may summarize readable linked receipts for triage, but it does not
+verify external receipts and does not replace their source artifacts.
+The link artifacts are packet-local JSON files that point at external review,
+proof, or evidence-packet receipts. They do not copy those external receipts
+into the handoff and do not replace the review-packet verifier or the linked
+evidence packet manifest.
 When the linked proof route comes from `--review-packet-dir`, the route remains
 owned by the cockpit review packet and should be verified with the packet
 manifest/checker before relying on it.

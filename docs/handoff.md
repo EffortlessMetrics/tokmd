@@ -5,9 +5,10 @@ review and automation. It is intended to be pasted or uploaded as a stable,
 deterministic artifact when a coding agent needs the right source slice without
 the whole repository.
 
-When you pass review or proof inputs, the bundle also writes link artifacts that
-point at adjacent evidence. Those links are handles, not copied proof. The
-review-packet verifier and proof receipts remain the sources of evidence truth.
+When you pass review, proof, or evidence-packet inputs, the bundle also writes
+link artifacts that point at adjacent evidence. Those links are handles, not
+copied proof. The review-packet verifier, proof receipts, and evidence packet
+manifest remain the sources of evidence truth.
 
 Use handoff when the job is:
 
@@ -120,19 +121,25 @@ Then give the agent the handoff plus the linked review evidence:
 - `target/proof/affected.json` for changed files and matched proof scopes.
 - `target/proof/proof-plan.json` for expected proof commands.
 - `target/tokmd/review-packet-check.json` for packet verification.
+- `sensors/tokmd/manifest.json` for a tokmd evidence packet that can provide
+  status, warnings/errors, scoped paths, reproduction commands, and
+  `review_priority`.
 - `.handoff/review-links.json` for packet-local pointers to the cockpit review
   packet and verifier receipt.
 - `.handoff/proof-links.json` for packet-local pointers to proof-route,
   affected-proof, and proof-plan receipts.
+- `.handoff/evidence-packet-links.json` for a packet-local pointer to the
+  evidence packet manifest.
 
 ## Consuming Linked Evidence
 
 Use linked evidence as a review map, not as a hidden assertion that the handoff
 has already verified everything:
 
-1. Read `.handoff/review-links.json` and `.handoff/proof-links.json` to find the
-   adjacent receipt paths. If a linked path has `exists: false`, treat that
-   evidence as missing until it is regenerated.
+1. Read `.handoff/review-links.json`, `.handoff/proof-links.json`, and
+   `.handoff/evidence-packet-links.json` when present to find the adjacent
+   receipt paths. If a linked path has `exists: false`, treat that evidence as
+   missing until it is regenerated.
 2. Open `target/tokmd/review-packet-check.json` before trusting a linked review
    packet. If the verifier receipt is absent, rerun:
 
@@ -141,12 +148,12 @@ has already verified everything:
    ```
 
 3. Use the `Linked Evidence Summary` section in `.handoff/work-order.md` as a
-   quick triage view of readable review/proof receipts. The `Changed
-   Surfaces`, `Review Evidence`, `Proof Expectations`, `Missing / Stale /
-   Degraded Evidence`, and `Agent Stop Conditions` sections turn those handles
-   into the agent work order. Open the linked receipts for source-of-truth
-   details. Missing, stale, degraded, skipped, or unavailable evidence is a
-   task for the agent, not passing proof.
+   quick triage view of readable review/proof/evidence-packet receipts. The
+   `Changed Surfaces`, `Review Evidence`, `Proof Expectations`,
+   `Missing / Stale / Degraded Evidence`, and `Agent Stop Conditions` sections
+   turn those handles into the agent work order. Open the linked receipts for
+   source-of-truth details. Missing, stale, degraded, skipped, unavailable,
+   partial, or failed evidence is a task for the agent, not passing proof.
 4. If the review-packet verifier summary lists verified packet-local
    `proof/*.json` artifacts, treat that as hash-verified packet inventory. It
    identifies copied route/proof receipts but does not mean those receipts were
@@ -161,16 +168,20 @@ has already verified everything:
    when a different route receipt should own the link. A proof route is routing
    and skip-policy evidence; it is not an execution result and skipped lanes
    are not passing proof.
-6. Use `target/proof/affected.json` to see which proof scopes matched the
+7. Use `target/proof/affected.json` to see which proof scopes matched the
    change and `target/proof/proof-plan.json` to see expected commands. A proof
    plan is planned evidence; it is not an execution result.
-7. Keep the regenerated receipts with the repair so reviewers can follow the
+8. If `.handoff/evidence-packet-links.json` is present, open the linked
+   `sensors/tokmd/manifest.json`. Use `review_priority` as first-read order,
+   not as a verdict, and resolve or explicitly acknowledge `partial`/`failed`
+   packet status before claiming complete review evidence.
+9. Keep the regenerated receipts with the repair so reviewers can follow the
    same handles from handoff to review packet to proof artifacts.
 
 The link artifacts do not copy, normalize, or verify external receipts. They
-make the handoff bundle point at adjacent review/proof evidence while
-preserving the review-packet verifier and proof artifacts as their own evidence
-sources.
+make the handoff bundle point at adjacent review/proof/evidence-packet evidence
+while preserving the review-packet verifier, proof artifacts, and evidence
+packet manifest as their own evidence sources.
 
 ## Output Tree
 
@@ -182,7 +193,8 @@ sources.
 ├── intelligence.json  # summary signals (payload-only)
 ├── code.txt           # token-budgeted code bundle
 ├── review-links.json  # optional linked cockpit review packet artifacts
-└── proof-links.json   # optional linked proof-route/affected/proof-plan artifacts
+├── proof-links.json   # optional linked proof-route/affected/proof-plan artifacts
+└── evidence-packet-links.json # optional linked tokmd evidence packet manifest
 ```
 
 ## Consumption Pattern

@@ -29,6 +29,7 @@ pub(super) struct HandoffLinkInputs<'a> {
     pub(super) affected: Option<&'a Path>,
     pub(super) proof_plan: Option<&'a Path>,
     pub(super) proof_route: Option<&'a Path>,
+    pub(super) evidence_packet: Option<&'a Path>,
 }
 
 pub(super) struct HandoffWorkOrderInputs<'a> {
@@ -137,6 +138,16 @@ pub(super) fn write_link_artifacts(
             "proof-links.json",
             "Linked proof-route, affected-proof, and proof-plan artifacts",
             &proof_links_json(links.affected, links.proof_plan, links.proof_route),
+        )?);
+    }
+
+    if links.evidence_packet.is_some() {
+        artifacts.push(write_json_artifact(
+            out_dir,
+            "evidence-packet-links",
+            "evidence-packet-links.json",
+            "Linked tokmd evidence packet manifest",
+            &evidence_packet_links_json(links.evidence_packet),
         )?);
     }
 
@@ -254,6 +265,11 @@ fn push_start_here_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
             "Use `proof-links.json` for proof-route, affected-proof, and proof-plan pointers.",
         );
     }
+    if links.evidence_packet.is_some() {
+        steps.push(
+            "Use `evidence-packet-links.json` for the tokmd evidence packet manifest pointer.",
+        );
+    }
     for (index, step) in steps.iter().enumerate() {
         out.push_str(&format!("{}. {}\n", index + 1, step));
     }
@@ -351,6 +367,23 @@ fn push_changed_surfaces_section(
     } else {
         out.push_str("- No affected-proof report linked. Treat bundled files as context, not a complete change list.\n");
     }
+
+    if let Some(packet) = &summary.evidence_packet {
+        if !packet.paths.is_empty() {
+            out.push_str("- Evidence packet scope:\n");
+            for path in packet.paths.iter().take(5) {
+                out.push_str(&format!("  - `{path}`\n"));
+            }
+            if packet.paths.len() > 5 {
+                out.push_str(&format!(
+                    "  - ... {} more path(s); open the evidence packet manifest for the full scope.\n",
+                    packet.paths.len() - 5
+                ));
+            }
+        }
+    } else if links.evidence_packet.is_some() {
+        out.push_str("- Evidence packet manifest is linked but not readable; regenerate or inspect `evidence-packet-links.json`.\n");
+    }
 }
 
 fn push_linked_evidence_section(out: &mut String, links: &HandoffLinkInputs<'_>) {
@@ -364,6 +397,7 @@ fn push_linked_evidence_section(out: &mut String, links: &HandoffLinkInputs<'_>)
     push_linked_path_line(out, "Proof route receipt", links.proof_route);
     push_linked_path_line(out, "Affected proof report", links.affected);
     push_linked_path_line(out, "Proof plan report", links.proof_plan);
+    push_linked_path_line(out, "Evidence packet manifest", links.evidence_packet);
 }
 
 fn push_linked_path_line(out: &mut String, label: &str, path: Option<&Path>) {
@@ -379,7 +413,10 @@ fn push_review_evidence_section(
     summary: &LinkedEvidenceSummary,
 ) {
     out.push_str("\n## Review Evidence\n\n");
-    if links.review_packet_dir.is_none() && links.review_packet_check.is_none() {
+    let review_packet_linked =
+        links.review_packet_dir.is_some() || links.review_packet_check.is_some();
+    let evidence_packet_linked = links.evidence_packet.is_some();
+    if !review_packet_linked && !evidence_packet_linked {
         out.push_str("- Review packet: not linked.\n");
         out.push_str("- Open first: `work-order.md`, then `code.txt`.\n");
         return;
@@ -409,7 +446,41 @@ fn push_review_evidence_section(
         out.push_str("- Review map: linked but not readable.\n");
     }
 
-    out.push_str("- Reproduce review evidence with commands listed in the linked review map.\n");
+    if let Some(packet) = &summary.evidence_packet {
+        out.push_str(&format!(
+            "- Evidence packet: linked with status `{}`",
+            packet.status_label()
+        ));
+        if let Some(preset) = &packet.preset {
+            out.push_str(&format!(" and preset `{preset}`"));
+        }
+        out.push_str(".\n");
+        if !packet.review_priority.is_empty() {
+            out.push_str("- Open first from evidence packet review priority:\n");
+            for item in &packet.review_priority {
+                out.push_str(&format!(
+                    "  - `{}`: {}/{} score {} - {}\n",
+                    item.path, item.category, item.severity, item.score, item.reason
+                ));
+            }
+        }
+        if !packet.reproduce.is_empty() {
+            out.push_str("- Reproduce evidence packet with:\n");
+            for command in packet.reproduce.iter().take(3) {
+                out.push_str(&format!("  - `{command}`\n"));
+            }
+            if packet.reproduce.len() > 3 {
+                out.push_str(&format!(
+                    "  - ... {} more command(s); open the evidence packet manifest for the full list.\n",
+                    packet.reproduce.len() - 3
+                ));
+            }
+        }
+    } else if links.evidence_packet.is_some() {
+        out.push_str("- Evidence packet: linked but not readable.\n");
+    }
+
+    out.push_str("- Reproduce review evidence with commands listed in the linked review map or evidence packet manifest.\n");
 }
 
 fn push_proof_expectations_section(
@@ -520,6 +591,24 @@ fn push_missing_evidence_section(out: &mut String, summary: &LinkedEvidenceSumma
         }
     }
 
+    if let Some(packet) = &summary.evidence_packet {
+        if packet.is_failed() {
+            out.push_str("- Evidence packet status is failed; regenerate the packet before treating it as review evidence.\n");
+            emitted = true;
+        } else if packet.is_partial() {
+            out.push_str("- Evidence packet status is partial; acknowledge limitations before using it as complete evidence.\n");
+            emitted = true;
+        }
+        for warning in &packet.warnings {
+            out.push_str(&format!("- Evidence packet warning: {warning}\n"));
+            emitted = true;
+        }
+        for error in &packet.errors {
+            out.push_str(&format!("- Evidence packet error: {error}\n"));
+            emitted = true;
+        }
+    }
+
     if !emitted {
         out.push_str("- No missing, stale, degraded, skipped, unavailable, or unknown-file evidence was reported by linked summaries.\n");
     }
@@ -594,6 +683,15 @@ fn push_agent_stop_conditions_section(
     if links.proof_plan.is_some() {
         out.push_str("- Stop before claiming done until required proof commands are run or explicitly deferred.\n");
     }
+    if let Some(packet) = &summary.evidence_packet {
+        if packet.is_failed() || !packet.errors.is_empty() {
+            out.push_str("- Stop before claiming review evidence is usable until the linked evidence packet errors are resolved.\n");
+        } else if packet.is_partial() || !packet.warnings.is_empty() {
+            out.push_str("- Stop before claiming complete review evidence until linked evidence packet warnings are acknowledged or resolved.\n");
+        }
+    } else if links.evidence_packet.is_some() {
+        out.push_str("- Stop before claiming review evidence is usable if the linked evidence packet manifest is unreadable.\n");
+    }
     out.push_str("- Stop before promoting advisory proof, enabling Codecov defaults, adding AST defaults, or treating cockpit/handoff output as a merge verdict.\n");
 }
 
@@ -663,6 +761,18 @@ fn proof_links_json(
             "kind": "external_links",
             "copied": false,
             "integrity_source": "linked proof artifacts"
+        }
+    })
+}
+
+fn evidence_packet_links_json(evidence_packet: Option<&Path>) -> Value {
+    json!({
+        "schema": "tokmd.handoff_evidence_packet_links.v1",
+        "evidence_packet": evidence_packet.map(|path| path_link("evidence_packet", path)),
+        "semantics": {
+            "kind": "external_links",
+            "copied": false,
+            "integrity_source": "tokmd evidence-packet manifest"
         }
     })
 }

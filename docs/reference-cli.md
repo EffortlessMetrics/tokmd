@@ -1095,6 +1095,9 @@ Options:
       --proof-route <PROOF_ROUTE>
           Link an existing proof-pack route receipt from the handoff bundle
 
+      --evidence-packet <PATH>
+          Link an existing tokmd evidence packet manifest from the handoff bundle
+
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 

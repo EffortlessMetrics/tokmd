@@ -389,6 +389,108 @@ fn test_handoff_links_review_and_proof_artifacts() {
 }
 
 #[test]
+fn test_handoff_links_evidence_packet_review_priority() {
+    let dir = tempdir().unwrap();
+    let out_dir = dir.path().join("handoff_evidence_packet");
+    let sensor_dir = dir.path().join("sensors").join("tokmd");
+    fs::create_dir_all(&sensor_dir).unwrap();
+
+    let evidence_packet = sensor_dir.join("manifest.json");
+    fs::write(
+        &evidence_packet,
+        r#"{
+          "schema":"tokmd.evidence-packet/v1",
+          "tokmd_version":"1.12.0",
+          "preset":"bun-ub",
+          "base":"origin/main",
+          "head":"HEAD",
+          "paths":["src/runtime/api/MarkdownObject.rs"],
+          "status":"partial",
+          "artifacts":{
+            "analyze_md":"sensors/tokmd/analyze.md",
+            "analyze_json":"sensors/tokmd/analyze.json",
+            "context_md":"sensors/tokmd/context.md",
+            "syntax_json":"sensors/tokmd/syntax.json"
+          },
+          "review_priority":[
+            {
+              "rank":1,
+              "path":"src/runtime/api/MarkdownObject.rs",
+              "category":"panic_seam",
+              "severity":"high",
+              "score":95,
+              "kind":"expect_call",
+              "reason":"panic-like seam near review scope",
+              "evidence":"expect",
+              "refs":["sensors/tokmd/syntax.json#/receipts/0/review_signals/1"]
+            }
+          ],
+          "warnings":["syntax_json status is partial"],
+          "errors":[],
+          "non_claims":[
+            "bun-ub packages review evidence; it does not prove UB exists or is absent"
+          ],
+          "reproduce":[
+            "tokmd analyze --preset bun-ub --format json --effort-base-ref origin/main --effort-head-ref HEAD --no-progress src/runtime/api/MarkdownObject.rs > sensors/tokmd/analyze.json",
+            "tokmd context --budget 64000 src/runtime/api/MarkdownObject.rs > sensors/tokmd/context.md",
+            "tokmd syntax --no-progress src/runtime/api/MarkdownObject.rs > sensors/tokmd/syntax.json",
+            "tokmd evidence-packet --base origin/main --head HEAD src/runtime/api/MarkdownObject.rs"
+          ]
+        }"#,
+    )
+    .unwrap();
+
+    let mut cmd = tokmd_cmd();
+    cmd.arg("handoff")
+        .arg("--out-dir")
+        .arg(&out_dir)
+        .arg("--evidence-packet")
+        .arg(&evidence_packet)
+        .assert()
+        .success();
+
+    let packet_links: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(out_dir.join("evidence-packet-links.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        packet_links["schema"].as_str(),
+        Some("tokmd.handoff_evidence_packet_links.v1")
+    );
+    assert_eq!(packet_links["semantics"]["copied"].as_bool(), Some(false));
+    assert_eq!(
+        packet_links["evidence_packet"]["exists"].as_bool(),
+        Some(true)
+    );
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(out_dir.join("manifest.json")).unwrap()).unwrap();
+    assert!(
+        manifest["artifacts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|entry| entry["path"] == "evidence-packet-links.json")
+    );
+
+    let work_order = fs::read_to_string(out_dir.join("work-order.md")).unwrap();
+    assert!(work_order.contains("evidence-packet-links.json"));
+    assert!(work_order.contains("Evidence packet manifest"));
+    assert!(work_order.contains("Evidence packet: status=partial preset=bun-ub"));
+    assert!(work_order.contains("Review priority:"));
+    assert!(work_order.contains(
+        "`src/runtime/api/MarkdownObject.rs`: panic_seam/high score 95 - panic-like seam near review scope"
+    ));
+    assert!(work_order.contains("Evidence packet warning: syntax_json status is partial"));
+    assert!(work_order.contains(
+        "Evidence packet status is partial; acknowledge limitations before using it as complete evidence."
+    ));
+    assert!(work_order.contains(
+        "Stop before claiming complete review evidence until linked evidence packet warnings are acknowledged or resolved."
+    ));
+}
+
+#[test]
 fn test_handoff_discovers_packet_local_proof_route() {
     let dir = tempdir().unwrap();
     let out_dir = dir.path().join("handoff_packet_route");

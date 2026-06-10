@@ -220,6 +220,10 @@ pub struct HandoffArgs {
     /// Link an existing proof-pack route receipt from the handoff bundle.
     #[arg(long)]
     pub proof_route: Option<PathBuf>,
+
+    /// Link an existing tokmd evidence packet manifest from the handoff bundle.
+    #[arg(long = "evidence-packet", value_name = "PATH")]
+    pub evidence_packet: Option<PathBuf>,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]

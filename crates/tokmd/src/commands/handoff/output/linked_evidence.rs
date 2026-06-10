@@ -6,12 +6,14 @@ use std::path::Path;
 use serde_json::Value;
 
 mod affected;
+mod evidence_packet;
 mod proof_plan;
 mod proof_route;
 mod review_map;
 mod review_packet_check;
 
 pub(in crate::commands::handoff) use affected::AffectedSummary;
+pub(in crate::commands::handoff) use evidence_packet::EvidencePacketSummary;
 pub(in crate::commands::handoff) use proof_plan::ProofPlanSummary;
 pub(in crate::commands::handoff) use proof_route::ProofRouteSummary;
 pub(in crate::commands::handoff) use review_map::ReviewMapSummary;
@@ -24,6 +26,7 @@ pub(in crate::commands::handoff) struct LinkedEvidenceSummary {
     pub(in crate::commands::handoff) affected: Option<AffectedSummary>,
     pub(in crate::commands::handoff) proof_plan: Option<ProofPlanSummary>,
     pub(in crate::commands::handoff) proof_route: Option<ProofRouteSummary>,
+    pub(in crate::commands::handoff) evidence_packet: Option<EvidencePacketSummary>,
 }
 
 pub(super) fn summarize(links: &super::HandoffLinkInputs<'_>) -> LinkedEvidenceSummary {
@@ -48,6 +51,10 @@ pub(super) fn summarize(links: &super::HandoffLinkInputs<'_>) -> LinkedEvidenceS
             .proof_route
             .and_then(read_json_value)
             .map(|value| proof_route::summarize(&value)),
+        evidence_packet: links
+            .evidence_packet
+            .and_then(read_json_value)
+            .map(|value| evidence_packet::summarize(&value)),
     }
 }
 
@@ -92,6 +99,12 @@ pub(super) fn render(
     } else if links.proof_plan.is_some() {
         out.push_str("- Proof plan: linked but not readable\n");
     }
+
+    if let Some(packet) = &summary.evidence_packet {
+        evidence_packet::render(out, packet);
+    } else if links.evidence_packet.is_some() {
+        out.push_str("- Evidence packet: linked but not readable\n");
+    }
 }
 
 fn has_any_link(links: &super::HandoffLinkInputs<'_>) -> bool {
@@ -100,6 +113,7 @@ fn has_any_link(links: &super::HandoffLinkInputs<'_>) -> bool {
         || links.affected.is_some()
         || links.proof_plan.is_some()
         || links.proof_route.is_some()
+        || links.evidence_packet.is_some()
 }
 
 fn read_json_value(path: &Path) -> Option<Value> {
