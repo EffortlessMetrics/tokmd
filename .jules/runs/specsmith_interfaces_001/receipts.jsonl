@@ -1,0 +1,5 @@
+{"command": "grep -rnw \"crates/tokmd/tests/\" -e \"edge_cases\" | head -n 30"}
+{"command": "cat crates/tokmd/tests/edge_cases_cli_w50.rs"}
+{"command": "grep -C 5 -rnw \"crates/tokmd/tests/\" -e \"negative\""}
+{"command": "cat crates/tokmd/src/config.rs"}
+{"command": "cargo test config_resolution"}

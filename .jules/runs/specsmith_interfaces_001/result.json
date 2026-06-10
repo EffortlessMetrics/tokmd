@@ -1,0 +1,4 @@
+{
+  "outcome": "learning-pr",
+  "reason": "CLI config and parser edge cases are already well-covered by proptest and explicit unit tests. No high-signal BDD gap was found to justify a patch."
+}
