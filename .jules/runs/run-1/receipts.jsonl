@@ -1,0 +1,12 @@
+{"command": "grep -r 'path = \"\\.\\./tokmd' crates/*/Cargo.toml", "outcome": "Found several crates hardcoding paths and versions instead of using workspace."}
+{"command": "sed -i 's/tokmd-scan = { path = \"\\.\\.\\/tokmd-scan\", version = \">=1.9, <2\" }/tokmd-scan = { workspace = true }/g' crates/tokmd-analysis-types/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-core = { path = \"\\.\\.\\/tokmd-core\", version = \">=1.9, <2\" }/tokmd-core = { workspace = true }/g' crates/tokmd-envelope/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-model = { path = \"\\.\\.\\/tokmd-model\", version = \">=1.9, <2\" }/tokmd-model = { workspace = true }/g' crates/tokmd-scan/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-scan = { path = \"\\.\\.\\/tokmd-scan\", version = \">=1.9, <2\" }/tokmd-scan = { workspace = true }/g' crates/tokmd-types/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-format = { path = \"\\.\\.\\/tokmd-format\", version = \">=1.9, <2\" }/tokmd-format = { workspace = true }/g' crates/tokmd-types/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-model = { path = \"\\.\\.\\/tokmd-model\", version = \">=1.9, <2\" }/tokmd-model = { workspace = true }/g' crates/tokmd-types/Cargo.toml", "outcome": "Success"}
+{"command": "sed -i 's/tokmd-types = { path = \"\\.\\.\\/tokmd-types\", version = \">=1.9, <2\" }/tokmd-types = { workspace = true }/g' crates/tokmd-wasm/Cargo.toml", "outcome": "Success"}
+{"command": "cargo build --verbose", "outcome": "Success"}
+{"command": "CI=true cargo test --verbose -p tokmd-cockpit -p tokmd-analysis-types -p tokmd-envelope -p tokmd-scan -p tokmd-types -p tokmd-wasm", "outcome": "Success"}
+{"command": "cargo fmt -- --check", "outcome": "Success"}
+{"command": "cargo clippy -- -D warnings", "outcome": "Success"}

@@ -23,4 +23,4 @@ js-sys = "0.3.91"
 [dev-dependencies]
 chrono = "0.4.44"
 proptest.workspace = true
-tokmd-scan = { path = "../tokmd-scan", version = ">=1.9, <2" }
+tokmd-scan = { workspace = true }
