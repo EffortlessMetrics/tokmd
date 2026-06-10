@@ -5,3 +5,4 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
+| `cargo_mutants_schema_drift` | archivist | builder | workspace-wide | open | When consolidating run learnings via the `archivist_jules` run, it was found that `.jules/friction/done/cargo_mutants_schema_drift.md` (and a few others) did not have the exact heading format the parser was expecting for friction rollup generation. The parser failed to extract summary accurately from some formats, falling back to a line starting with `-`. |

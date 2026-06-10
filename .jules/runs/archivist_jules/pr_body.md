@@ -1,45 +1,44 @@
 ## 💡 Summary
-Fixed malformed metadata frontmatter in two existing friction items and regenerated the Jules indexes. This ensures the `.jules/index/generated/FRICTION_ROLLUP.md` accurately tracks personas, styles, and shards for open friction rather than listing them as "Unknown", and updates the `RUNS_ROLLUP.md` with missing runs.
+This is a learning PR. I ran `cargo xtask jules-index` to consolidate per-run packets and friction items into generated rollups. I also generated a new friction item, as I noticed the current parser in `xtask` misses accurately parsing some older friction items summaries.
 
 ## 🎯 Why
-The Archivist persona is responsible for consolidating recurring friction themes into better templates and summarizing run packets into generated indexes. Because `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` lacked standard `id/persona/style/shard/status` frontmatter, the `cargo xtask jules-index` aggregator could not properly identify them.
+The target ranking for the Archivist persona includes summarizing per-run packets into generated indexes/rollups. Generating these rollups provides a consolidated view of runs and friction, addressing target #2 in the mission. I also added a friction item indicating drift between how `xtask` parses friction items, and how some were historically written.
 
 ## 🔎 Evidence
-- files: `.jules/index/generated/FRICTION_ROLLUP.md`
-- observed behavior before: `librarian_doctest_git_dependency` showed `Unknown` persona and style.
-- command receipt: `cargo xtask jules-index` successfully regenerates with corrected metadata.
+- file path(s): `.jules/index/generated/RUNS_ROLLUP.md`, `.jules/index/generated/FRICTION_ROLLUP.md`
+- observed behavior / finding: The rollups were successfully generated using the xtask, but I noticed the friction items parser is brittle.
+- command: `cargo xtask jules-index`
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Fix the metadata frontmatter in the friction items and run `cargo xtask jules-index`.
-- why it fits this repo and shard: It directly satisfies Archivist targets #1 and #2 (consolidating friction templates and generating indexes) in the `workspace-wide` shard.
-- trade-offs: Structure: High. Governance: High. Velocity: Neutral.
+- what it is: Run `cargo xtask jules-index` to regenerate rollups and add a friction item capturing the parser limitations.
+- why it fits this repo and shard: It directly addresses target #2 for the Archivist persona in the workspace-wide shard, and adding the friction item satisfies the learning PR requirements.
+- trade-offs: Structure / Velocity / Governance: Improves structure by providing consolidated indexes and capturing friction. No negative impact on velocity or governance.
 
 ### Option B
-- what it is: Only regenerate the indexes without fixing metadata.
-- when to choose it instead: If the metadata formats were intentionally non-standard (they weren't).
-- trade-offs: We would leave broken metadata rendering as "Unknown" in the generated docs.
+- what it is: Consolidate recurring friction themes into better templates/policy/docs without generating rollups.
+- when to choose it instead: When there's a strong recurring theme that isn't already handled.
+- trade-offs: More subjective and time-consuming, skips the immediate benefit of index generation.
 
 ## ✅ Decision
-Option A. It's an honest patch that directly improves the Jules scaffolding and indexing health by fixing the root cause of the "Unknown" rows.
+Option A was chosen to provide an immediate, concrete improvement to the workspace-wide Jules scaffolding by generating the latest indexes and cleanly recording a learning via a new friction item.
 
 ## 🧱 Changes made (SRP)
-- Re-formatted `.jules/friction/open/librarian_doctest_git_dependency.md` to include valid frontmatter.
-- Re-formatted `.jules/friction/open/steward-release-clean-state.md` to include valid frontmatter.
-- Ran `cargo xtask jules-index` to update `.jules/index/generated/RUNS_ROLLUP.md` and `.jules/index/generated/FRICTION_ROLLUP.md`.
+- Updated `.jules/index/generated/RUNS_ROLLUP.md`
+- Updated `.jules/index/generated/FRICTION_ROLLUP.md`
+- Added `.jules/friction/open/cargo_mutants_schema_drift.md`
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2024-05-08T20:55:00Z", "phase": "investigation", "cwd": "/app", "cmd": "cat .jules/index/generated/FRICTION_ROLLUP.md", "status": 0, "summary": "Found that friction items librarian_doctest_git_dependency and steward-release-clean-state had Unknown metadata in the rollup."}
-{"ts_utc": "2024-05-08T20:56:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cat << 'EOF' > .jules/friction/open/librarian_doctest_git_dependency.md ...", "status": 0, "summary": "Fixed frontmatter for librarian_doctest_git_dependency.md and steward-release-clean-state.md to match schema."}
-{"ts_utc": "2024-05-08T20:57:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cargo xtask jules-index", "status": 0, "summary": "Regenerated the indexes, which correctly updated FRICTION_ROLLUP.md and RUNS_ROLLUP.md"}
+cargo xtask jules-index
+Jules indexes written under /app/.jules/index/generated
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation and metadata indexing
-- Blast radius: Jules documentation / scaffolding
-- Risk class: Low
-- Rollback: `git restore .jules/friction/open/ .jules/index/generated/`
+- Change shape: Documentation update (generated files)
+- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): Docs only (Jules index and friction items)
+- Risk class + why: Low, only generated documentation and a friction item are updated.
+- Rollback: `git checkout .jules/index/generated/ && rm .jules/friction/open/cargo_mutants_schema_drift.md`
 - Gates run: `cargo xtask jules-index`
 
 ## 🗂️ .jules artifacts
@@ -48,6 +47,7 @@ Option A. It's an honest patch that directly improves the Jules scaffolding and 
 - `.jules/runs/archivist_jules/receipts.jsonl`
 - `.jules/runs/archivist_jules/result.json`
 - `.jules/runs/archivist_jules/pr_body.md`
+- `.jules/friction/open/cargo_mutants_schema_drift.md`
 
 ## 🔜 Follow-ups
-None.
+- Address the friction item around parsing friction item summaries in `jules-index`

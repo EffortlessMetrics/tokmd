@@ -1,17 +1,22 @@
 {
-  "outcome_type": "patch",
-  "title": "archivist: fix friction metadata and regenerate indexes 🗃️",
-  "summary": "Fixed schema non-compliance in two friction items and ran `cargo xtask jules-index` to successfully update the generated run and friction rollups.",
+  "outcome": "learning_pr",
+  "title": "jules: record archivist learning on index generation 🗃️",
+  "summary": "Ran cargo xtask jules-index to consolidate run packets and friction items into generated rollups. Noted friction with parser drift on friction items.",
   "target_paths": [
-    ".jules/friction/open/librarian_doctest_git_dependency.md",
-    ".jules/friction/open/steward-release-clean-state.md",
     ".jules/index/generated/RUNS_ROLLUP.md",
-    ".jules/index/generated/FRICTION_ROLLUP.md"
+    ".jules/index/generated/FRICTION_ROLLUP.md",
+    ".jules/friction/open/cargo_mutants_schema_drift.md"
   ],
-  "proof_summary": "The FRICTION_ROLLUP.md no longer shows 'Unknown' metadata for librarian and steward friction items.",
-  "gates_run": ["cargo xtask jules-index"],
-  "friction_items_created": [],
+  "proof_summary": "cargo xtask jules-index ran successfully and updated the rollups.",
+  "gates_run": [
+    "cargo xtask jules-index"
+  ],
+  "friction_items_created": [
+    ".jules/friction/open/cargo_mutants_schema_drift.md"
+  ],
   "persona_notes_created": [],
-  "rollback": "git restore .jules/friction/open/ .jules/index/generated/",
-  "follow_ups": []
+  "rollback": "git checkout .jules/index/generated/ && rm .jules/friction/open/cargo_mutants_schema_drift.md",
+  "follow_ups": [
+    "Address the friction item around parsing friction item summaries in jules-index"
+  ]
 }
