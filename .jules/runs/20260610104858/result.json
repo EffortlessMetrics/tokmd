@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "summary": "Fixed doctests in `tokmd` config resolution modules."
+}

@@ -13,7 +13,8 @@ use super::parse::{parse_child_include_mode, parse_table_format};
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::cli::{CliModuleArgs, Profile};
+/// use tokmd::cli::CliModuleArgs;
+/// use tokmd_settings::Profile;
 /// use tokmd::resolve_module;
 ///
 /// let cli_args = CliModuleArgs {
