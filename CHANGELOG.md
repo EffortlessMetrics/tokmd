@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-06-11
+
+1.13.1 is a correction release for the syntax-aware evidence packet surface
+introduced in 1.13.0. The 1.13.0 crate and release assets were published, but a
+default `cargo install tokmd --version 1.13.0` binary did not include the
+feature-gated `tokmd syntax` command that the release notes and packet workflow
+documented. This patch release makes the documented packet flow installable from
+the default published artifact and tightens bounded complexity evidence status.
+
+### Fixed
+
+- Default `tokmd` installs now include the `ast` feature so `tokmd syntax` and
+  syntax-aware evidence packet workflows are available from the published crate
+  without custom feature flags.
+- File-backed complexity scans that are bounded by the default
+  `max_file_bytes` content window now emit explicit `complexity scan bounded`
+  warnings and mark the analysis receipt `partial` instead of looking complete
+  with silently clipped input.
+- The `tokmd analyze --max-file-bytes` help and generated CLI reference now
+  state the default file-backed scan cap.
+
+### Tests
+
+- Added an installed-binary smoke during release prep proving `tokmd syntax
+  --help` and `tokmd evidence-packet --help` are available from the default
+  install surface.
+- Added a capped-complexity integration regression proving a large scoped Rust
+  file reports `status=partial` with bounded-evidence warnings.
+- Re-ran affected proof for analysis complexity, analysis orchestration, CLI,
+  and workspace dependency graph scopes before publication import.
+
 ## [1.13.0] - 2026-06-11
 
 1.13 is the syntax-aware evidence packet release. It turns the Bun UB evidence
