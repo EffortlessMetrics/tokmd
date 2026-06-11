@@ -1,5 +1,0 @@
-{"cmd": "ls -la .jules/friction/", "status": "success"}
-{"cmd": "ls -la xtask/src/", "status": "success"}
-{"cmd": "cat xtask/src/main.rs", "status": "success"}
-{"cmd": "cat xtask/src/tasks/jules_index.rs", "status": "success"}
-{"cmd": "cargo run -p xtask -- jules-index", "status": "success"}
