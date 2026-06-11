@@ -1,15 +1,17 @@
-# Decision
+## Options considered
 
-## Option A
-Add property tests for the `distribution_median`, `distribution_percentiles`, and `histogram_bucket_bounds` invariants in `crates/tokmd-analysis/src/derived/tests/properties.rs`.
+### Option A (recommended)
+- Tighten proptests for `compute_maintainability_index` in `crates/tokmd-analysis/src/maintainability/tests/properties.rs`.
+- The current implementation enforces things like `score_is_non_negative`, `score_is_at_most_171`, `result_is_deterministic`, etc.
+- However, we can add properties regarding the boundary conditions or mathematical invariants such as:
+    - Score decreases strictly with an increase in CC (currently tests only `<=`).
+    - The fallback condition when volume is zero or negative explicitly testing the exact mathematical output compared to simplified calculation.
+- We can expand the bounds testing and properties verifying the exact formulas used (e.g., verifying that the difference between simplified and full formula matches exactly `- 5.2 * ln(V)`).
+- Fits `analysis-stack` shard well and strengthens property coverage of derived metrics.
 
-These invariants reflect important facts about the analysis:
-1. `distribution_median_is_correct` - median should accurately reflect the 50th percentile.
-2. `distribution_percentiles_are_correct` - p90 and p99 should accurately reflect the underlying `tokmd_scan::percentile` calculations over sizes.
-3. `histogram_bucket_bounds_are_ordered_and_non_overlapping` - bucket sizes should remain contiguous with `prev.max.unwrap() + 1 == curr.min` allowing no gaps or overlap.
-
-## Option B
-Find an alternative location to add property tests. But the existing `derived::tests::properties` clearly contains a gap because only `distribution_count`, `min_le_max`, `mean_between_min_max` and `gini` were verified, ignoring other critical metrics returned by `build_distribution_report` and `build_histogram`.
+### Option B
+- Add a new `properties.rs` file for other analysis models, like `license` reporting or `entropy` calculations.
+- While useful, `maintainability` has clear mathematical invariants that map directly to the `proptest` model, making it a stronger target for pure property testing.
 
 ## Decision
-Choose Option A. I have implemented and verified all three new invariants which reduce uncertainty over these analytical outputs using proptest properties in the analysis crate tests.
+Choosing Option A because it allows directly strengthening the existing `compute_maintainability_index` invariants, which is a core piece of analysis math and perfectly suited to `proptest`.

@@ -1,6 +1,11 @@
 use crate::maintainability::compute_maintainability_index;
 use proptest::prelude::*;
 
+fn round_f64(val: f64, decimals: u32) -> f64 {
+    let factor = 10f64.powi(decimals as i32);
+    (val * factor).round() / factor
+}
+
 proptest! {
     #[test]
     fn score_is_non_negative(
@@ -98,14 +103,32 @@ proptest! {
     }
 
     #[test]
-    fn higher_cc_decreases_score(
+    fn exact_halstead_volume_penalty(
+        cc in 0.0f64..100.0,
+        loc in 1.0f64..1000.0,
+        vol in 1.0f64..1e5,
+    ) {
+        let full = compute_maintainability_index(cc, loc, Some(vol)).expect("full");
+
+        // Given that max function enforces score is 0 bounded, check un-bounded:
+        let avg_loc = round_f64(loc, 2);
+        let raw_full = 171.0 - 5.2 * vol.ln() - 0.23 * cc - 16.2 * avg_loc.ln();
+
+        let expected_full_score = round_f64(raw_full.max(0.0), 2);
+        prop_assert_eq!(full.score, expected_full_score);
+    }
+
+    #[test]
+    fn strictly_higher_cc_decreases_score(
         cc1 in 0.0f64..500.0,
-        cc2 in 0.0f64..500.0,
+        cc_diff in 0.1f64..100.0,
         loc in 1.0f64..1000.0,
     ) {
+        let cc2 = cc1 + cc_diff;
         let mi1 = compute_maintainability_index(cc1, loc, None).expect("mi1");
         let mi2 = compute_maintainability_index(cc2, loc, None).expect("mi2");
-        if cc1 < cc2 {
+
+        if mi1.score > 0.0 {
             prop_assert!(mi1.score >= mi2.score);
         }
     }

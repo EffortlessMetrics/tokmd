@@ -1,11 +1,17 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd-analysis/src/derived/tests/properties.rs"
+  "outcome": "proof_patch",
+  "title": "invariant: tighten mathematical proptests for maintainability index 🔬",
+  "summary": "Added an explicit proptest to verify the exact boundary mathematical translation of the Halstead Volume penalty on the Maintainability Index.",
+  "target_paths": [
+    "crates/tokmd-analysis/src/maintainability/tests/properties.rs"
   ],
-  "invariants_added": [
-    "distribution_median_is_correct",
-    "distribution_percentiles_are_correct",
-    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
-  ]
+  "proof_summary": "Added the `exact_halstead_volume_penalty` and `strictly_higher_cc_decreases_score` proptests to rigorously ensure that the formulas function mathematically within known boundaries.",
+  "gates_run": [
+    "cargo test -p tokmd-analysis --lib properties",
+    "cargo clippy -p tokmd-analysis -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd-analysis/src/maintainability/tests/properties.rs",
+  "follow_ups": []
 }

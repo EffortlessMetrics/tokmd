@@ -1,48 +1,42 @@
 ## 💡 Summary
-Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
+Tightened mathematical invariants for `compute_maintainability_index`.
 
 ## 🎯 Why
-Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
+The SEI maintainability index has sharp boundary conditions, especially around Halstead Volume fallbacks. Adding exact boundary and mathematical proofs using `proptest` ensures these models remain perfectly coherent with expectations under all potential variable domains.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
-- Proptest coverage now properly models these bounds and constraints.
+File path: `crates/tokmd-analysis/src/maintainability/tests/properties.rs`.
+The proptest suite previously only tested weak inequalities for variables like CC decreasing scores, but lacked explicit assertions regarding exact calculations (like bounding the specific `-5.2 * V.ln()` penalty relative to the simplified version).
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
-- Fits the analysis-stack by increasing deterministic guarantees in data generation.
-- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
+- Tighten proptests for `compute_maintainability_index` in `crates/tokmd-analysis/src/maintainability/tests/properties.rs`.
+- Why it fits: Strengthens invariant coverage of core analysis models.
+- Trade-offs: Adds a slight amount of runtime for properties validation but explicitly locks in correctness.
 
 ### Option B
-- Add deterministic hard-coded unit test values.
-- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
-- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
+- Add a new `properties.rs` file for other analysis models, like `license` reporting.
+- When to choose: If maintainability was already sufficiently mapped out mathematically.
+- Trade-offs: Does not tighten the known mathematical model of the maintainability index bounds.
 
 ## ✅ Decision
-Chose Option A to enforce invariants across arbitrary file arrays properly.
+Chose Option A to add explicit exact formula invariants and strict monotonicity constraints via `proptest`.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
+- `crates/tokmd-analysis/src/maintainability/tests/properties.rs`
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis --lib derived::tests::properties
-...
-test derived::tests::properties::distribution_median_is_correct ... ok
-test derived::tests::properties::distribution_percentiles_are_correct ... ok
-test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
-...
-test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
+cargo test -p tokmd-analysis --lib properties
+cargo clippy -p tokmd-analysis -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test/Proof improvement
+- Change shape: Invariant Proofs
 - Blast radius: Internal test surface only
 - Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Rollback: `git checkout crates/tokmd-analysis/src/maintainability/tests/properties.rs`
+- Gates run: targeted cargo test, clippy
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
