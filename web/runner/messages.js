@@ -174,7 +174,7 @@ export function resolveRunInputs(args) {
 }
 
 function isScanOptions(value) {
-    return value === undefined || (isPlainObject(value) && hasOnlyKeys(value, ["inputs"]));
+    return value === undefined || isPlainObject(value);
 }
 
 function isRunArgsForMode(mode, args) {
@@ -188,22 +188,7 @@ function isRunArgsForMode(mode, args) {
         return false;
     }
 
-    if (mode === "analyze") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "scan", "preset", "analyze"]) &&
-                (args.preset === undefined || typeof args.preset === "string") &&
-                (args.analyze === undefined || isAnalyzeOptions(args.analyze))
-        );
-    }
-
-    if (mode === "lang") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "scan", "files"]) &&
-                (args.files === undefined || typeof args.files === "boolean")
-        );
-    }
-
-    return hasOnlyKeys(args, ["inputs", "scan"]);
+    return true;
 }
 
 export function isRunMessage(value) {

@@ -1,4 +1,5 @@
 {
+  "run_id": "palette_binding_dx",
   "prompt_id": "palette_binding_dx",
   "persona": "palette",
   "style": "prover",
@@ -7,14 +8,12 @@
     "crates/tokmd-python/**",
     "crates/tokmd-node/**",
     "crates/tokmd-wasm/**",
-    "web/runner/**",
+    "web/runner/**"
+  ],
+  "adjacent_paths": [
     "crates/tokmd-core/**",
     "docs/**"
   ],
   "gate_profile": "core-rust",
-  "allowed_outcomes": [
-    "proof-improvement patch",
-    "PR-ready patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["proof-improvement patch", "PR-ready patch", "learning PR"]
 }
