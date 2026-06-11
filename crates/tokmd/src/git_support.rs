@@ -17,6 +17,12 @@ const GIT_REPO_SHAPING_ENV: &[&str] = &[
     "GIT_EDITOR",
     "GIT_PROXY_COMMAND",
     "GIT_EXTERNAL_DIFF",
+    // Config injection vectors that can bypass specific execution overrides.
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
+    "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_SYSTEM",
+    "GIT_CONFIG_NOSYSTEM",
 ];
 
 /// Create a `git` command without inheriting repo or execution-shaping overrides.
@@ -25,6 +31,8 @@ pub(crate) fn git_cmd() -> Command {
     for name in GIT_REPO_SHAPING_ENV {
         cmd.env_remove(name);
     }
+    cmd.env("GIT_TERMINAL_PROMPT", "0");
+    cmd.env("GIT_OPTIONAL_LOCKS", "0");
     cmd
 }
 
@@ -62,11 +70,41 @@ mod tests {
             "GIT_EDITOR",
             "GIT_PROXY_COMMAND",
             "GIT_EXTERNAL_DIFF",
+            "GIT_CONFIG_PARAMETERS",
+            "GIT_CONFIG_COUNT",
+            "GIT_CONFIG_GLOBAL",
+            "GIT_CONFIG_SYSTEM",
+            "GIT_CONFIG_NOSYSTEM",
         ] {
             assert!(
                 removed.contains(name),
                 "missing execution env_remove for {name}"
             );
         }
+    }
+
+    #[test]
+    fn git_cmd_sets_non_interactive_env() {
+        let cmd = git_cmd();
+        let envs: std::collections::BTreeMap<_, _> = cmd
+            .get_envs()
+            .filter_map(|(k, v)| {
+                v.map(|v| {
+                    (
+                        k.to_string_lossy().into_owned(),
+                        v.to_string_lossy().into_owned(),
+                    )
+                })
+            })
+            .collect();
+
+        assert_eq!(
+            envs.get("GIT_TERMINAL_PROMPT").map(|s| s.as_str()),
+            Some("0")
+        );
+        assert_eq!(
+            envs.get("GIT_OPTIONAL_LOCKS").map(|s| s.as_str()),
+            Some("0")
+        );
     }
 }

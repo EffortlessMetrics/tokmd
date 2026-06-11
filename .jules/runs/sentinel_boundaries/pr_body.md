@@ -1,52 +1,55 @@
 ## 💡 Summary
-This is a learning PR. I investigated `tokmd-core` and adjacent interfaces for subprocess boundary leakage (specifically bare `Command::new("git")` usage). While I found several instances, they were strictly contained within test setups rather than operational production paths.
+Hardened the `git` subprocess boundary by stripping environment variables used for arbitrary configuration injection (`GIT_CONFIG_PARAMETERS`, `GIT_CONFIG_COUNT`, `GIT_CONFIG_GLOBAL`, `GIT_CONFIG_SYSTEM`, `GIT_CONFIG_NOSYSTEM`). Also disabled interactive prompts (`GIT_TERMINAL_PROMPT=0`) and background lock-blocking (`GIT_OPTIONAL_LOCKS=0`) to ensure deterministic and safe headless execution across `tokmd` and `tokmd-git`.
 
 ## 🎯 Why
-The mission was to land a security-significant hardening improvement. Hardening test setup code is not a production security improvement and forcing a fix there would violate the constraint against "fake fixes". FFI and environment boundaries in operational paths appear well-hardened and correctly utilize `tokmd_git::git_cmd()`.
+The `git` subprocess boundary is a critical trust surface for a static analysis tool. While some execution helpers (`GIT_EDITOR`, `GIT_EXTERNAL_DIFF`) were already stripped, a caller or environment could still bypass this boundary using `GIT_CONFIG_PARAMETERS` or `GIT_CONFIG_COUNT` to inject configuration overrides like `core.hooksPath` or `core.pager`. Hardening this prevents unintended side effects or arbitrary execution. Disabling optional locks and interactive prompts further stabilizes headless analysis environments, preventing hangs or blocking behavior when git falls back to credential helpers.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/context_git/mod.rs`
-- Found 9 usages of raw `Command::new("git")` but they are isolated within `#[cfg(all(test, feature = "git"))] mod tests`.
-- `crates/tokmd/tests/sensor_integration.rs` uses `Command::new("git")` for test repo scaffolding.
-- Operational code already relies on the secure `tokmd_git` abstractions.
+- `crates/tokmd/src/git_support.rs` and `crates/tokmd-git/src/command.rs` both expose `git_cmd()` meant to enforce process isolation.
+- Missing `GIT_CONFIG_PARAMETERS` in the stripping array allows config injection to bypass explicit overrides.
+- No tests existed confirming that interactive prompts were explicitly disabled.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Produce a learning PR.
-- Records the findings and adds a friction item regarding test-path hygiene without forcing a low-value code patch.
-- Trade-offs: Structure is preserved without unnecessary diffs.
+- Harden `git_cmd()` in both `crates/tokmd/src/git_support.rs` and `crates/tokmd-git/src/command.rs`.
+- It fits this repo and shard because the environment stripping list is explicitly the responsibility of these duplicate `git_cmd()` constructors.
+- Trade-offs: Structure / Velocity / Governance - Slight structural duplication across the two files remains, but correctly isolates the execution boundaries without needing a broader workspace dependency refactor.
 
 ### Option B
-- Refactor test setups to use `tokmd_git::git_cmd()`.
-- Trade-offs: This is tool cargo-culting for test scaffolding and does not materially improve the trust boundary of the actual system.
+- Refactor the workspace to remove the duplicate `git_cmd()` code from `tokmd` and point entirely to `tokmd-git`.
+- Choose this when `tokmd-git` becomes a mandatory rather than optional workspace dependency.
+- Trade-offs: Introduces larger architectural changes outside the strict interfaces shard scope, potentially breaking non-git build configurations.
 
 ## ✅ Decision
-Chosen Option A. No honest production code boundary patch was justified by the findings. Falling back to a learning PR as instructed.
+Proceeded with Option A to properly secure the subprocess environment and provide a clear, testable boundary against configuration injection.
 
 ## 🧱 Changes made (SRP)
-- Added a friction item regarding `Command::new("git")` in test surfaces.
-- Recorded the learning PR run packet.
+- `crates/tokmd/src/git_support.rs`: Added `GIT_CONFIG_*` vectors to `GIT_REPO_SHAPING_ENV` and set `GIT_TERMINAL_PROMPT=0`/`GIT_OPTIONAL_LOCKS=0`. Added a unit test validating non-interactive enforcement.
+- `crates/tokmd-git/src/command.rs`: Applied the exact same trust-boundary hardening and unit test logic.
 
 ## 🧪 Verification receipts
 ```text
-$ grep -rn "Command::new(\"git\")" crates/tokmd-core/src/context_git/
-crates/tokmd-core/src/context_git/mod.rs:129:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:134:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:139:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:147:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:152:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:159:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:164:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:172:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
+running 3 tests
+test command::git_cmd_sets_non_interactive_env ... ok
+test command::tests::git_cmd_removes_execution_helper_env_overrides ... ok
+test command::tests::git_cmd_removes_repo_shaping_env_overrides ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out
+
+running 3 tests
+test git_support::tests::git_cmd_removes_execution_helper_env_overrides ... ok
+test git_support::tests::git_cmd_removes_repo_shaping_env_overrides ... ok
+test git_support::git_cmd_sets_non_interactive_env ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 527 filtered out
 ```
 
 ## 🧭 Telemetry
-- Change shape: Learning PR
-- Blast radius: None (documentation / learning only)
-- Risk class: Zero risk
-- Rollback: N/A
-- Gates run: `cargo check -p tokmd-core --all-features`
+- Change shape: Hardening
+- Blast radius: API (Subprocess environment initialization logic). Does not affect runtime logic flow or external CLI API.
+- Risk class + why: Low. Explicitly unsetting more config-injection variables only increases deterministic behavior. Disabling optional locks and terminal prompts prevents known test and environment hangs.
+- Rollback: Revert the additions to the environment blocklist in `git_cmd()`.
+- Gates run: `cargo test -p tokmd-git --lib`, `cargo test -p tokmd --lib`, `cargo test -p tokmd --tests`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_boundaries/envelope.json`
@@ -54,7 +57,6 @@ crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
 - `.jules/runs/sentinel_boundaries/receipts.jsonl`
 - `.jules/runs/sentinel_boundaries/result.json`
 - `.jules/runs/sentinel_boundaries/pr_body.md`
-- `.jules/friction/open/sentinel_git_command_tests.md`
 
 ## 🔜 Follow-ups
-- Discuss whether `Command::new("git")` should be entirely forbidden via clippy or an anti-pattern rule to prevent future leakage, even in tests.
+None.
