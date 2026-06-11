@@ -1,5 +1,3 @@
 {
-  "status": "success",
-  "reason": "Successfully added explicit proof surfaces around hidden files and trailing-slash paths in redact_path logic.",
-  "outcome": "proof-improvement patch"
+  "outcome": "learning PR"
 }

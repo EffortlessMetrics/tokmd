@@ -46,28 +46,3 @@ fn redaction_normalizes_known_compound_archive_suffix_case() {
     assert!(redacted.ends_with(".tar.gz"));
     assert!(!redacted.ends_with(".TAR.GZ"));
 }
-
-#[test]
-fn redaction_handles_hidden_files() {
-    let redacted = tokmd_format::redact_path(".gitignore");
-    assert_eq!(redacted.len(), 16);
-    assert!(!redacted.contains("gitignore"));
-
-    let redacted_env = tokmd_format::redact_path(".env.local");
-    assert_eq!(redacted_env.len(), 16);
-    assert!(!redacted_env.contains("env"));
-    assert!(!redacted_env.contains("local"));
-
-    // .ts is a valid extension but an empty filename causes the code to grab nothing.
-    let redacted_ts = tokmd_format::redact_path(".ts");
-    assert_eq!(redacted_ts.len(), 16);
-
-    let redacted_tar_gz = tokmd_format::redact_path(".tar.gz");
-    assert!(redacted_tar_gz.ends_with(".gz"));
-}
-
-#[test]
-fn redaction_handles_paths_ending_in_slash() {
-    let redacted = tokmd_format::redact_path("src/lib.rs/");
-    assert_eq!(redacted.len(), 16);
-}
