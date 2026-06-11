@@ -1,8 +1,8 @@
 ## 💡 Summary
-Relaxes JavaScript runner object validation to fix confusing error messages. Now, when a user specifies valid protocol messages with unsupported mode-options, the browser runner leverages the mature Rust core schema to surface actionable and highly detailed errors instead of the ambiguous generic `invalid_message` error.
+Relaxes JavaScript runner object validation to fix confusing error messages. However, noting PR feedback, this is a learning PR as the topology directs `browser-runner` improvements into `EffortlessMetrics/tokmd-swarm`.
 
 ## 🎯 Why
-In `web/runner/messages.js`, the `isRunArgsForMode` method was excessively strict, aggressively verifying that JS clients specify *only* `inputs` or `scan` for modes like `export`. When users passed a perfectly valid `{"export": {"format": "csv"}}` args block, `messages.js` blocked the message outright, generating an extremely unhelpful runtime error message (`[invalid_message] expected { type: "run", requestId, mode, args }`) before `tokmd-wasm` could process the instruction. Removing `hasOnlyKeys` shifts option validation directly onto the WASM runner where `tokmd-core` emits explicitly formatted, contextually helpful validation errors for improperly structured mode operations.
+In `web/runner/messages.js`, the `isRunArgsForMode` method was excessively strict, aggressively verifying that JS clients specify *only* `inputs` or `scan` for modes like `export`. When users passed a perfectly valid `{"export": {"format": "csv"}}` args block, `messages.js` blocked the message outright, generating an extremely unhelpful runtime error message (`[invalid_message] expected { type: "run", requestId, mode, args }`) before `tokmd-wasm` could process the instruction. Removing `hasOnlyKeys` shifts option validation directly onto the WASM runner where `tokmd-core` emits explicitly formatted, contextually helpful validation errors. However, this is a learning PR per the reviewer.
 
 ## 🔎 Evidence
 - `web/runner/messages.test.mjs`
@@ -21,11 +21,10 @@ In `web/runner/messages.js`, the `isRunArgsForMode` method was excessively stric
 - Trade-offs: Duplicate maintenance burden, likely leading to out-of-date settings bounds such as the recent `top` or `format` limitations in JS, degrading user DX.
 
 ## ✅ Decision
-Option A. Leveraging standard protocol shape validation while offloading internal properties checks to `tokmd-core` yields the best of both worlds by returning explicit diagnostic output when bad parameters are parsed.
+Option A. Leveraging standard protocol shape validation while offloading internal properties checks to `tokmd-core` yields the best of both worlds by returning explicit diagnostic output when bad parameters are parsed. However, recorded as a learning PR instead of a code patch due to the repo-topology block.
 
 ## 🧱 Changes made (SRP)
-- `web/runner/messages.js`
-- `web/runner/messages.test.mjs`
+- None (recorded as a learning PR).
 
 ## 🧪 Verification receipts
 ```text
@@ -33,11 +32,11 @@ cd web/runner && npm test
 ```
 
 ## 🧭 Telemetry
-- Change shape: bugfix
+- Change shape: learning
 - Blast radius: API, JS interface DX
-- Risk class: low (only changes client-facing JS validation limits and test coverage)
-- Rollback: Revert `messages.js` and `messages.test.mjs`
-- Gates run: `npm test` inside `web/runner`, targeted test suites `cargo test -p tokmd-core`
+- Risk class: none (learning PR)
+- Rollback: none
+- Gates run: `npm test` inside `web/runner`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/palette_binding_dx/envelope.json`
@@ -47,4 +46,4 @@ cd web/runner && npm test
 - `.jules/runs/palette_binding_dx/pr_body.md`
 
 ## 🔜 Follow-ups
-None.
+Create a targeted patch in `tokmd-swarm`.
