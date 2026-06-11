@@ -1,18 +1,13 @@
 {
-  "summary": "Tighten `CockpitReceipt` JSON output integration tests to ensure that `test_ratio` is present in the `composition` field as required by the schema.",
-  "outcome": "proof-improvement patch",
+  "summary": "Attempted to tighten `CockpitReceipt` JSON output integration tests to ensure that `test_ratio` is present. Pivoted to a learning PR due to wrong-repo intake.",
+  "outcome": "learning PR",
   "files_changed": [
-    "crates/tokmd/tests/cockpit_integration.rs"
+    ".jules/friction/open/wrong-repo-intake.md"
   ],
-  "gates_run": [
-    "cargo test -p tokmd --test cockpit_integration",
-    "cargo xtask proof-policy",
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings"
-  ],
+  "gates_run": [],
   "telemetry": {
-    "change_shape": "test-addition",
-    "blast_radius": "tests",
+    "change_shape": "learning",
+    "blast_radius": "friction",
     "risk_class": "low"
   }
 }

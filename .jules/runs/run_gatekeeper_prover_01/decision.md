@@ -14,4 +14,4 @@ Do an extensive overhaul of schema validations, digging into all `crates/tokmd-t
 - **Velocity**: Low. Could be slow and break existing assumptions.
 - **Governance**: Medium. Adds complexity.
 
-Decision: Option A
+Decision: Option A was initially chosen. However, the PR was closed due to `wrong-repo` intake (these changes should land in `tokmd-swarm`). The outcome is therefore pivoted to a learning PR.
