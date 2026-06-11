@@ -1426,7 +1426,6 @@ kind = "non_rust"
 paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
-  "docs/release-readiness.md",
   "docs/releases/**",
 ]
 proof = [

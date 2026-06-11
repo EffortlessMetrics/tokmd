@@ -1,0 +1,9 @@
+{
+  "status": "learning_pr",
+  "story": "steward: record swarm-topology friction 🚢",
+  "primary_shard": "tooling-governance",
+  "gate_profile": "governance-release",
+  "files_changed": [
+    ".jules/friction/open/run-steward-tooling-gov-wrong-repo.md"
+  ]
+}

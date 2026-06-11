@@ -1,4 +1,0 @@
-{"command": "cargo xtask docs --check", "status": "success", "duration_ms": 250}
-{"command": "cargo xtask version-consistency", "status": "success", "duration_ms": 260}
-{"command": "cargo xtask publish --plan --verbose", "status": "success", "duration_ms": 260}
-{"command": "cargo xtask publish-surface --json --verify-publish", "status": "success", "duration_ms": 260}
