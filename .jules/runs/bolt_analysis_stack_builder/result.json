@@ -1,12 +1,10 @@
 {
   "status": "success",
   "files_modified": [
-    "crates/tokmd-analysis/Cargo.toml",
-    "crates/tokmd-analysis/src/content/mod.rs",
-    "crates/tokmd-analysis/src/api_surface/report.rs",
-    "crates/tokmd-analysis/src/near_dup/pairs.rs"
+    ".jules/friction/open/wrong_repo_intake_friction.md"
   ],
-  "performance_improvement": true,
-  "test_status": "passed",
-  "fallback_gates_passed": true
+  "performance_improvement": false,
+  "test_status": "N/A",
+  "fallback_gates_passed": true,
+  "learning_pr": true
 }

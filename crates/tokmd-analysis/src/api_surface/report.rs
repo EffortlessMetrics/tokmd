@@ -4,7 +4,7 @@
 //! into the API surface report DTOs. Language-specific source scanning stays in
 //! the sibling `symbols` module.
 
-use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -26,7 +26,7 @@ pub(crate) fn build_api_surface_report(
     limits: &AnalysisLimits,
 ) -> Result<ApiSurfaceReport> {
     // Build lookup from normalized path -> FileRow
-    let mut row_map: FxHashMap<String, &FileRow> = FxHashMap::default();
+    let mut row_map: BTreeMap<String, &FileRow> = BTreeMap::new();
     for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
         row_map.insert(normalize_path(&row.path, root), row);
     }
@@ -41,10 +41,10 @@ pub(crate) fn build_api_surface_report(
     let mut documented_public = 0usize;
 
     // Per-language accumulators
-    let mut lang_totals: FxHashMap<&str, (usize, usize, usize)> = FxHashMap::default(); // (total, public, internal)
+    let mut lang_totals: BTreeMap<&str, (usize, usize, usize)> = BTreeMap::new(); // (total, public, internal)
 
     // Per-module accumulators
-    let mut module_totals: FxHashMap<&str, (usize, usize)> = FxHashMap::default(); // (total, public)
+    let mut module_totals: BTreeMap<&str, (usize, usize)> = BTreeMap::new(); // (total, public)
 
     // Top exporters
     let mut exporters: Vec<ApiExportItem> = Vec::new();
@@ -118,7 +118,7 @@ pub(crate) fn build_api_surface_report(
     }
 
     // Build per-language map
-    let by_language: std::collections::BTreeMap<String, LangApiSurface> = lang_totals
+    let by_language: BTreeMap<String, LangApiSurface> = lang_totals
         .into_iter()
         .map(|(lang, (total, public, internal))| {
             let public_ratio = if total == 0 {

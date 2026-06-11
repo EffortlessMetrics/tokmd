@@ -1,6 +1,6 @@
 //! Pair scoring for near-duplicate detection.
 
-use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
 
 use tokmd_analysis_types::NearDupPairRow;
 use tokmd_types::FileRow;
@@ -61,8 +61,8 @@ pub(super) fn build_pairs(
     }
 }
 
-fn inverted_index(file_fingerprints: &[(usize, Vec<u64>)]) -> FxHashMap<u64, Vec<usize>> {
-    let mut inverted: FxHashMap<u64, Vec<usize>> = FxHashMap::default();
+fn inverted_index(file_fingerprints: &[(usize, Vec<u64>)]) -> BTreeMap<u64, Vec<usize>> {
+    let mut inverted: BTreeMap<u64, Vec<usize>> = BTreeMap::new();
     for (local_idx, (_, fps)) in file_fingerprints.iter().enumerate() {
         for &fp in fps {
             inverted.entry(fp).or_default().push(local_idx);
@@ -72,9 +72,9 @@ fn inverted_index(file_fingerprints: &[(usize, Vec<u64>)]) -> FxHashMap<u64, Vec
 }
 
 fn shared_fingerprint_counts(
-    inverted: &FxHashMap<u64, Vec<usize>>,
-) -> FxHashMap<(usize, usize), usize> {
-    let mut pair_shared: FxHashMap<(usize, usize), usize> = FxHashMap::default();
+    inverted: &BTreeMap<u64, Vec<usize>>,
+) -> BTreeMap<(usize, usize), usize> {
+    let mut pair_shared: BTreeMap<(usize, usize), usize> = BTreeMap::new();
     for posting_list in inverted.values() {
         if posting_list.len() > MAX_POSTINGS {
             continue;
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn self_pair_guard_skips_same_index() {
-        let mut inverted = FxHashMap::default();
+        let mut inverted = BTreeMap::new();
         inverted.insert(1, vec![0, 0, 1]);
 
         let pair_shared = shared_fingerprint_counts(&inverted);
