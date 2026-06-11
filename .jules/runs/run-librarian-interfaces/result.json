@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "reason": "Added missing doctest coverage to ConfigContext and ResolvedConfig methods."
+}

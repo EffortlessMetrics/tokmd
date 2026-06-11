@@ -31,17 +31,43 @@ pub struct ConfigContext {
 
 impl ConfigContext {
     /// Get view profile from TOML config by name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ConfigContext;
+    ///
+    /// let ctx = ConfigContext::default();
+    /// assert!(ctx.get_toml_view("default").is_none());
+    /// ```
     pub fn get_toml_view(&self, name: &str) -> Option<&ViewProfile> {
         self.toml.as_ref().and_then(|t| t.view.get(name))
     }
 
     /// Get profile from JSON config by name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ConfigContext;
+    ///
+    /// let ctx = ConfigContext::default();
+    /// assert!(ctx.get_json_profile("default").is_none());
+    /// ```
     pub fn get_json_profile(&self, name: &str) -> Option<&Profile> {
         self.json.as_ref().and_then(|c| c.profiles.get(name))
     }
 }
 
 /// Load all configuration sources.
+///
+/// # Examples
+///
+/// ```
+/// use tokmd::config::load_config;
+///
+/// let config = load_config();
+/// ```
 pub fn load_config() -> ConfigContext {
     let toml_result = discover_toml_config();
     let json = load_json_config();
@@ -215,6 +241,15 @@ pub struct ResolvedConfig<'a> {
 
 impl ResolvedConfig<'_> {
     /// Get format string, preferring TOML view, then JSON profile.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.format(), None);
+    /// ```
     pub fn format(&self) -> Option<&str> {
         self.toml_view
             .and_then(|v| v.format.as_deref())
@@ -222,6 +257,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get top value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.top(), None);
+    /// ```
     pub fn top(&self) -> Option<usize> {
         self.toml_view
             .and_then(|v| v.top)
@@ -229,6 +273,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get files flag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.files(), None);
+    /// ```
     pub fn files(&self) -> Option<bool> {
         self.toml_view
             .and_then(|v| v.files)
@@ -236,6 +289,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get module roots.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.module_roots(), None);
+    /// ```
     pub fn module_roots(&self) -> Option<Vec<String>> {
         self.toml_view
             .and_then(|v| v.module_roots.clone())
@@ -244,6 +306,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get module depth.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.module_depth(), None);
+    /// ```
     pub fn module_depth(&self) -> Option<usize> {
         self.toml_view
             .and_then(|v| v.module_depth)
@@ -252,6 +323,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get children mode string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.children(), None);
+    /// ```
     pub fn children(&self) -> Option<&str> {
         self.toml_view
             .and_then(|v| v.children.as_deref())
@@ -260,6 +340,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get min_code.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.min_code(), None);
+    /// ```
     pub fn min_code(&self) -> Option<usize> {
         self.toml_view
             .and_then(|v| v.min_code)
@@ -268,6 +357,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get max_rows.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.max_rows(), None);
+    /// ```
     pub fn max_rows(&self) -> Option<usize> {
         self.toml_view
             .and_then(|v| v.max_rows)
@@ -276,6 +374,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get redact mode string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.redact(), None);
+    /// ```
     pub fn redact(&self) -> Option<&str> {
         self.toml_view
             .and_then(|v| v.redact.as_deref())
@@ -283,6 +390,15 @@ impl ResolvedConfig<'_> {
     }
 
     /// Get meta flag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokmd::config::ResolvedConfig;
+    ///
+    /// let resolved = ResolvedConfig::default();
+    /// assert_eq!(resolved.meta(), None);
+    /// ```
     pub fn meta(&self) -> Option<bool> {
         self.toml_view
             .and_then(|v| v.meta)
