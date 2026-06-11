@@ -1,2 +1,0 @@
-{"command": "mkdir -p .jules/runs/run_fuzzer_1234", "outcome": "success"}
-{"command": "write decision.md", "outcome": "success"}

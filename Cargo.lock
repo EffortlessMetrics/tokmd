@@ -2653,11 +2653,9 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "blake3",
- "clap",
  "libfuzzer-sys",
  "serde_json",
  "tempfile",
- "tokmd",
  "tokmd-core",
  "tokmd-envelope",
  "tokmd-format",
