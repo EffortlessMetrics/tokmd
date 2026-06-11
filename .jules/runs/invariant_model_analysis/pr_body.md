@@ -1,42 +1,48 @@
 ## 💡 Summary
-Added missing property-based invariants around metadata license parsing in `tokmd-analysis`. The new tests formalize expectations for TOML key/value parsing (whitespace, quote style, section isolation) and JSON object structuring in `package.json`.
+Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
 
 ## 🎯 Why
-The `parse_toml_key` and `parse_package_json_license` routines in `tokmd_analysis::license` perform best-effort parsing without fully rigorous tokenizing. It's critical to prove that these ad-hoc parsers do not panic on arbitrary inputs and accurately handle formatting edge cases like varying whitespace, section boundaries, and object structures.
+Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis/src/license/mod.rs` contains `parse_toml_key`, `extract_quoted`, and `parse_package_json_license` logic.
-- We added rigorous proptests in `crates/tokmd-analysis/src/license/tests/properties.rs`.
-- `cargo test -p tokmd-analysis properties` passed.
+- `crates/tokmd-analysis/src/derived/tests/properties.rs`
+- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
+- Proptest coverage now properly models these bounds and constraints.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add deterministic structural and edge-case property tests to `license/tests/properties.rs`.
-- Fits the model/analysis invariant expectation.
-- Trade-offs: Structure/Velocity/Governance - Locks down edge cases without refactoring production code.
+- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
+- Fits the analysis-stack by increasing deterministic guarantees in data generation.
+- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
 
 ### Option B
-- Add invariant checks to `near_dup`.
-- When to choose it instead: If license invariants were fully saturated.
-- Trade-offs: `near_dup` already has heavy proptest coverage, while license string-extraction was less locked down.
+- Add deterministic hard-coded unit test values.
+- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
+- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
 
 ## ✅ Decision
-Option A. It tests string parsing invariants around quote extraction and format structure in the license parser, an important model piece.
+Chose Option A to enforce invariants across arbitrary file arrays properly.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/license/tests/properties.rs`: Added 4 new properties testing JSON layout, TOML key/value spacing, section isolation, and panic prevention on arbitrary inputs.
+- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
 
 ## 🧪 Verification receipts
 ```text
-{"cmd": "cargo test -p tokmd-analysis properties", "status": "success"}
+cargo test -p tokmd-analysis --lib derived::tests::properties
+...
+test derived::tests::properties::distribution_median_is_correct ... ok
+test derived::tests::properties::distribution_percentiles_are_correct ... ok
+test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
+...
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Property-based test additions
-- Blast radius: tests
-- Risk class: Low - test additions only
-- Rollback: revert
-- Gates run: property
+- Change shape: Test/Proof improvement
+- Blast radius: Internal test surface only
+- Risk class: Low
+- Rollback: Revert the PR
+- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
