@@ -1,0 +1,4 @@
+{"command": "mkdir -p .jules/runs/archivist_jules_run_1", "status": "success"}
+{"command": "write envelope.json", "status": "success"}
+{"command": "cargo xtask jules-index", "status": "success"}
+{"command": "cargo xtask jules-index --check", "status": "success"}
