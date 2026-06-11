@@ -1,25 +1,33 @@
-# Cartographer Decision
+## Problem
+The `docs/implementation-plan.md` has stale sections that mislead contributors.
+Specifically, `Phase 3: tokmd-core Stabilization` is outdated.
+It lists:
+- "Define port traits" as incomplete.
+- "Publish tokmd-core to crates.io (when stable)" as incomplete.
 
-## Target identification
-The shard is `tooling-governance` with allowed paths including `ROADMAP.md`, `docs/**`, `Cargo.toml`.
-Currently `Cargo.toml` is at version `1.11.0` and the last two releases (1.10.0 and 1.11.0) have been marked complete in `ROADMAP.md` and `CHANGELOG.md`.
+However:
+1. `tokmd-io-port` was landed in Phase 4d, so port traits exist. The "Define port traits" task is conceptually complete (even though they are separated into `tokmd-io-port`).
+2. `tokmd-core` has already been published to crates.io (it's marked as public product in `docs/architecture-consolidation-plan.md` and `Phase 3` is structurally behind `Phase 4d`). Actually, Phase 3 is NOT marked as "✅ Complete" in `implementation-plan.md` but all subsequent phases are!
 
-In `docs/architecture.md`, the `## WASM & Browser Runner` section refers to `v1.9.0` as the current state in its non-goals section: `Non-goals for v1.9.0: No browser-side git-history churn/hotspot metrics or other heavy host tooling. No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy.`
-However, we just completed `v1.11.0` which focuses on "Browser Runtime Polish". The architecture doc's references to `v1.9.0` constraints and non-goals are outdated and misleading.
+This is a clear target for "stale implementation-plan sections that mislead contributors" and "roadmap/design/requirements drift from shipped reality" as specified by the persona instructions. We should update `Phase 3` to be `✅ Complete` and tick the remaining boxes based on the current reality of the system.
 
-In `docs/NOW.md`, the `LATER (roadmap)` section says: `- **Browser runner**: zipball ingestion remains later; in-browser receipt generation shipped in \`1.9.0\`.`. Since we are at v1.11.0, this is historically accurate but phrased as if it just shipped, and we can just frame it generically or reflect that we are much further along. Better to just say "in-browser analysis has shipped".
+## Option A (recommended)
+Update `Phase 3: tokmd-core Stabilization` to be `✅ Complete`.
+- Check off "Define port traits" (since `tokmd-io-port` provides this).
+- Check off "Add comprehensive API documentation" (core lib is well-documented).
+- Check off "Publish tokmd-core to crates.io" (it is published).
+- Mark Phase 3 as complete in the heading.
 
-## Options Considered
+**Why it fits:** Directly addresses roadmap/implementation-plan drift, matching the #3 target in Cartographer's ranking.
+**Trade-offs:**
+- *Structure*: Keeps the implementation plan accurate to shipped reality.
+- *Velocity*: Eliminates contributor confusion about whether the core API is stable/published.
+- *Governance*: Aligns docs with actual published crate status.
 
-### Option A: Update `docs/architecture.md` and `docs/NOW.md` to reflect `v1.11.0` state and current non-goals
-- **What it is**: Update references to `v1.9.0` non-goals in `docs/architecture.md` to reflect the current ongoing state, and update `docs/NOW.md` to remove stale "shipped in 1.9.0" context, orienting instead to the active v1.12.0 architecture consolidation focus.
-- **Why it fits**: The architecture document describes the current shape of the WASM/Browser Runner. Keeping non-goals scoped to `v1.9.0` when the repo is at `1.11.0` (with 1.11.0 having shipped browser polish) makes the architecture doc read as outdated. `docs/NOW.md` also references the v1.9.0 browser runner instead of the v1.12.0 active work.
-- **Trade-offs**: Corrects drift without being overly broad. Velocity is fast. Structure is improved.
-
-### Option B: Rewrite the entire `docs/architecture.md`
-- **What it is**: Redo the entire WASM section to focus solely on architecture, removing any milestone/versioning mentions.
-- **Why it fits**: Avoids future version drift.
-- **Trade-offs**: Higher risk of removing important historical context or current-state context.
+## Option B
+Delete Phase 3 entirely.
+**When to choose:** If the phase was abandoned.
+**Trade-offs:** We lose the historical record of the work, which goes against the document's purpose as a record.
 
 ## Decision
-**Option A**. It's precise, targets actual drift where docs lag behind the completed `v1.11.0` and active `v1.12.0` roadmap states, and fixes misleading references to older versions in structural/architecture files.
+Proceed with **Option A**. The system *did* stabilize tokmd-core, and the `tokmd-io-port` crate fulfilled the port requirements.

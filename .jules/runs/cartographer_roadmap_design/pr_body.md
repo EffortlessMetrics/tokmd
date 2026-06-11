@@ -1,46 +1,59 @@
 ## 💡 Summary
-Updated `docs/NOW.md` and `docs/architecture.md` to reflect the shipped state of the v1.11.0 browser runner polish. Stale references to `v1.9.0` non-goals were removed or updated to correctly represent current constraints without version drift.
+Updated the `implementation-plan.md` to reflect that Phase 3 (`tokmd-core` stabilization) is actually complete. Port traits were shipped via `tokmd-io-port` and `tokmd-core` is actively published to crates.io as part of the public product surface.
 
 ## 🎯 Why
-With the completion of v1.11.0 ("Browser Runtime Polish") and active focus on v1.12.0 ("Cockpit & Architecture Consolidation"), the `architecture.md` references to "Non-goals for v1.9.0" read as outdated history rather than the current truth of the system's browser boundaries. `NOW.md` also incorrectly framed in-browser capabilities using historical `1.9.0` phrasing.
+The `docs/implementation-plan.md` was misleading contributors by showing Phase 3 as incomplete and missing checkboxes for port traits and crate publishing. This created an artificial contradiction between the documented plan and the shipped reality of the current `1.13.x` workspace.
 
 ## 🔎 Evidence
-- `docs/architecture.md` explicitly listed `### Non-goals for v1.9.0`.
-- `docs/NOW.md` stated `in-browser receipt generation shipped in 1.9.0` while actively in the `LATER` section, which creates confusing version timelines.
+- `docs/implementation-plan.md` showed Phase 3 without a `✅ Complete` marker and unchecked items for port traits and publishing.
+- `docs/architecture-consolidation-plan.md` lists `tokmd-core` under "Public product" and `tokmd-io-port` under "Public contract".
+- `crates/tokmd-core/Cargo.toml` inherits workspace version and has no `publish = false` restriction.
+- `cargo xtask publish-surface --verify-publish` confirms `tokmd-core` is in the publish closure.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update references to `v1.9.0` non-goals in `docs/architecture.md` to reflect the current ongoing state, and update `docs/NOW.md` to remove stale "shipped in 1.9.0" context, orienting instead to the active v1.12.0 architecture consolidation focus.
-- Why it fits: The architecture document describes the current shape of the WASM/Browser Runner. Keeping non-goals scoped to `v1.9.0` when the repo is at `1.11.0` makes the architecture doc read as outdated. `docs/NOW.md` also referenced the v1.9.0 browser runner instead of the broader completed state.
-- Trade-offs: Corrects drift without being overly broad. Velocity is fast. Structure is improved.
+- **What it is**: Update `Phase 3: tokmd-core Stabilization` to be `✅ Complete` in `docs/implementation-plan.md` and check off the completed work items.
+- **Why it fits this repo and shard**: Directly addresses roadmap/implementation-plan drift, which is the #1 target for Cartographer.
+- **Trade-offs**:
+  - Structure: Keeps the implementation plan accurate to shipped reality.
+  - Velocity: Eliminates contributor confusion about whether the core API is stable/published.
+  - Governance: Aligns docs with actual published crate status.
 
 ### Option B
-- Redo the entire WASM section to focus solely on architecture, removing any milestone/versioning mentions entirely.
-- When to choose: If the entire browser runner strategy changed dramatically.
-- Trade-offs: Higher risk of removing important historical or structural context.
+- **What it is**: Delete Phase 3 entirely.
+- **When to choose it instead**: If the phase was abandoned.
+- **Trade-offs**: We lose the historical record of the work, which goes against the document's purpose as a record.
 
 ## ✅ Decision
-Option A. It's precise, targets actual drift where docs lag behind the completed `v1.11.0` and active `v1.12.0` roadmap states, and fixes misleading references to older versions in structural/architecture files.
+Proceeded with Option A. The system stabilized `tokmd-core`, and the `tokmd-io-port` crate fulfilled the port requirements.
 
 ## 🧱 Changes made (SRP)
-- `docs/architecture.md`: Renamed `### Non-goals for v1.9.0` to `### Current browser non-goals`.
-- `docs/NOW.md`: Updated roadmap reference from `shipped in 1.9.0` to `has shipped`.
+- `docs/implementation-plan.md`: Marked Phase 3 as `✅ Complete` and checked off port traits and crates.io publish items.
 
 ## 🧪 Verification receipts
 ```text
 $ cargo xtask docs --check
 Documentation is up to date.
 
-$ cargo fmt -- --check && cargo clippy -- -D warnings
-Finished `dev` profile [unoptimized + debuginfo] target(s) in 38.34s
+$ cargo xtask publish-surface --json --verify-publish
+...
+"violations": []
+
+$ cargo xtask version-consistency
+Checking version consistency against workspace version 1.13.1
+  ✓ Cargo crate versions match 1.13.1.
+  ✓ Cargo workspace dependency versions match 1.13.1.
+  ✓ Node package manifest versions match 1.13.1.
+  ✓ No case-insensitive tracked-path collisions detected.
+Version consistency checks passed.
 ```
 
 ## 🧭 Telemetry
 - Change shape: Docs update
-- Blast radius: Docs only
-- Risk class: Zero risk.
-- Rollback: git revert
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Blast radius: docs
+- Risk class: low (factual update to stale docs)
+- Rollback: `git checkout docs/implementation-plan.md`
+- Gates run: `cargo xtask docs --check`, `cargo xtask publish-surface`, `cargo xtask version-consistency`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
@@ -50,4 +63,4 @@ Finished `dev` profile [unoptimized + debuginfo] target(s) in 38.34s
 - `.jules/runs/cartographer_roadmap_design/pr_body.md`
 
 ## 🔜 Follow-ups
-None.
+None
