@@ -184,6 +184,7 @@ fn proof_policy_includes_current_product_scopes() {
 
     assert!(user_guide_paths.contains("docs/analyze/**"));
     assert!(user_guide_paths.contains("docs/integrations/**"));
+    assert!(user_guide_paths.contains("docs/packet-workflows.md"));
     assert!(user_guide_paths.contains("docs/recipes.md"));
     assert!(user_guide_paths.contains("docs/user-paths.md"));
 

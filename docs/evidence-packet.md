@@ -219,6 +219,7 @@ A `bun-ub` evidence packet does not:
 
 ## Related Docs
 
+- [PR evidence packet workflows](packet-workflows.md)
 - [Bun UB analysis preset](analyze/bun-ub.md)
 - [ub-review tokmd sensor recipe](integrations/ub-review.md)
 - [Artifact glossary](artifacts.md)

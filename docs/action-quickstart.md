@@ -7,6 +7,10 @@ comment.
 This page is the adoption path. For every input, output, and mode, use the
 [GitHub Action reference](github-action.md).
 
+For the planned `sensors/tokmd/` evidence packet Action path, see
+[PR evidence packet workflows](packet-workflows.md). This page documents the
+currently implemented root Action modes.
+
 ## Minimal Receipt Workflow
 
 Use this when you want a repository summary and machine-readable receipt

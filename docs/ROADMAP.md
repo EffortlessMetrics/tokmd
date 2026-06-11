@@ -18,7 +18,9 @@ scoped coverage, mutation, coverage telemetry, and Codecov upload remain
 advisory unless maintainers deliberately promote them with fresh verified
 decision evidence.
 
-There is no active implementation lane until one is deliberately selected.
+The active product lane is PR evidence packet workflows: make the
+`sensors/tokmd/` packet easy to generate from one local CLI command and one
+GitHub Action step before adding more analysis.
 
 ## Roadmap Principles
 
@@ -39,6 +41,47 @@ There is no active implementation lane until one is deliberately selected.
    - the non-goals.
 
 ## Near-Term Roadmap
+
+### Active Lane: PR Evidence Packet Workflows
+
+**Goal:** Make `tokmd` useful in pull request workflows and local review by
+producing the same bounded evidence packet from a one-command CLI path and a
+GitHub Action path.
+
+**Why now:** `tokmd` already has the packet ingredients: scoped analysis,
+context, optional syntax evidence, a manifest, and review priority. The next
+gap is consumption. Users should not need to script five commands correctly or
+build `tokmd` in every repository.
+
+**Candidate work packets:**
+
+1. Workflow contract and support model
+   - Document local CLI, GitHub Action, GHCR, and Cargo fallback paths.
+   - Record packet status semantics, fail-on behavior, artifact layout, and
+     non-claims.
+2. One-command CLI orchestration
+   - Add a thin packet-generation command over existing receipts.
+   - Keep base/head/path scope consistent across artifacts.
+3. GitHub Action packet path
+   - Download/cache a prebuilt binary by version.
+   - Upload `sensors/tokmd/`, write a job summary, and expose status outputs.
+4. GHCR secondary runtime
+   - Verify public pull, labels, `git`/certs, entrypoint behavior, and packet
+     smoke before documenting it as a supported runtime.
+
+**Do not:**
+
+- add a new analysis engine,
+- claim UB detection, reachability proof, safety proof, or merge readiness,
+- make GHCR the primary user experience,
+- promote advisory proof, Codecov upload, or release mutation by default.
+
+**Done when:**
+
+- local users can generate `sensors/tokmd/` with one command,
+- PR workflows can generate and upload the same packet with one Action step,
+- packet status drives documented `fail-on` behavior,
+- GHCR is either verified as a secondary runtime or explicitly marked pending.
 
 ### Lane 0: Release and Distribution Verification
 

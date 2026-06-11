@@ -21,6 +21,8 @@ schemas, and verification policy for `tokmd`.
   and publishing evidence.
 - [action-quickstart.md](action-quickstart.md) — copy-ready GitHub Action
   workflows for receipt artifacts and cockpit review packets.
+- [packet-workflows.md](packet-workflows.md) - planned one-command CLI and
+  GitHub Action support model for `sensors/tokmd/` evidence packets.
 - [examples/](examples/README.md) — small artifact-tree walkthroughs for
   review packets, handoff bundles, proof status, browser receipts, and
   publishing evidence.
@@ -32,7 +34,7 @@ schemas, and verification policy for `tokmd`.
   for Bun undefined-behavior review bots, local reviewers, and agent handoff.
 - [evidence-packet.md](evidence-packet.md) - versioned
   `sensors/tokmd/manifest.json` packet contract over `analyze.md`,
-  `analyze.json`, and `context.md`.
+  `analyze.json`, `context.md`, and optional `syntax.json`.
 - [integrations/ub-review.md](integrations/ub-review.md) - copy-ready
   `ub-review` sensor recipe for `sensors/tokmd/analyze.md`,
   `sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md`.

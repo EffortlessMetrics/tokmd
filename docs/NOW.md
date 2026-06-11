@@ -1,10 +1,14 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the release/distribution readiness closeout and proof-pack route receipt refresh.
+> One-screen operational truth. Updated after selecting the PR evidence packet
+> workflow lane.
 
 ## NOW (active)
 
-- **Selection-first mode is current**: there is no standing implementation lane; start new work only from a fresh consumer, missing artifact, workflow pain, or product gap.
+- **PR evidence packet workflows are selected**: make `sensors/tokmd/`
+  evidence packets boring to generate from one local command and one GitHub
+  Action step, starting with docs, then a thin CLI orchestrator, then Action
+  runtime support.
 - **Release/distribution readiness is closed**: existing install, Action, review, handoff, browser-to-native, publishing, and release-evidence guides are the current adoption packet.
 - **Proof control plane is observing, not promoting**: proof-pack routing, fast proof-run, scoped coverage, mutation, and coverage telemetry remain advisory unless maintainers deliberately promote them with fresh evidence.
 - **Cockpit and handoff are the evidence surfaces**: keep `tokmd cockpit` as the PR-review surface and `tokmd handoff` as the agent work-order surface unless a fresh accepted contract selects something else.
@@ -12,6 +16,8 @@
 
 ## NEXT (short horizon)
 
+- **Packet workflow support model**: define the CLI, Action, GHCR, and Cargo
+  fallback paths before implementation grows.
 - **Release/distribution verification**: resolve or explicitly record current GHCR visibility uncertainty without rewriting releases or moving release mutation into the swarm.
 - **CLI friction**: continue practical help examples, actionable errors, progress, and config explainability where current command use shows a real user gap.
 - **Review evidence consumption**: improve cockpit/review packet reading, hosted-comment, or missing-evidence behavior only when current evidence shows a concrete product or verifier gap.
