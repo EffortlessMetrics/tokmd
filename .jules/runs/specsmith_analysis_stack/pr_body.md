@@ -1,59 +1,43 @@
 ## 💡 Summary
-Extracted and formalized BDD-style integration tests into a dedicated `tests/bdd.rs` file within `tokmd-analysis`. This ensures high-level scenario coverage for orchestrator paths and aligns the crate with standard workspace behavior-level testing conventions. Included a fix for the CI scoped coverage executor by updating `ci/proof.toml` to track the new test file.
+This learning PR documents an attempt to extract BDD integration tests into `tokmd-analysis` which failed topology verification and was closed as wrong-repo intake. This change belongs in the `tokmd-swarm` repository.
 
 ## 🎯 Why
-`tokmd-analysis` lacked a dedicated integration suite for behavior-level testing. The BDD scenarios were previously mingled with low-level unit tests or deeply nested within `tests/analysis_deep_w64.rs`. Centralizing them provides a clear `cargo test --test bdd` entry point to lock in behavior and improves regression coverage transparency without cluttering isolated structural tests.
+The Specsmith assignment aimed to improve scenario coverage for the analysis stack by separating BDD-style tests from unit tests. However, the attempt was rejected because this logic originates in `EffortlessMetrics/tokmd-swarm` and must be ported there first.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis/tests/bdd.rs`
-- Observed behavior: `cargo test -p tokmd-analysis --test bdd` previously failed with `no test target named bdd`. Now it passes successfully.
-- Receipt:
-  ```text
-  cargo test -p tokmd-analysis --test bdd
-  test result: ok. 4 passed; 0 failed
-  ```
+- Original target: `crates/tokmd-analysis/tests/bdd.rs`
+- Feedback received: "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- **What it is:** Extract existing behavior scenarios into `tests/bdd.rs`.
-- **Why it fits this repo and shard:** Provides explicit "Given/When/Then" behavior-level tests targeting analysis totals, empty repo edge cases, and determinism.
-- **Trade-offs:** Better structure and governance at the cost of a minor increase in compile-time for the new integration test entry point.
+- **What it is:** Abandon the PR in this repo, record the learning, and plan to port the effort to `tokmd-swarm`.
+- **Why it fits this repo and shard:** Adheres to the multi-repo topology contract and stops hallucinated or duplicate work.
+- **Trade-offs:** Short-term velocity loss for long-term consistency.
 
 ### Option B
-- **What it is:** Keep the tests within `tests/analysis_deep_w64.rs` and merely add BDD-style comments.
-- **When to choose it instead:** If creating a new test binary adds excessive compile overhead.
-- **Trade-offs:** Fails to expose a standard `bdd` test target and keeps behavior scenarios buried.
+- **What it is:** Keep pushing the PR in this repo.
+- **When to choose it instead:** Never, as it breaks repository boundaries.
+- **Trade-offs:** Rejection and sync drift.
 
 ## ✅ Decision
-Option A was chosen. Centralizing behavior scenarios into `tests/bdd.rs` conforms to the workspace conventions (seen in `tokmd-git`, `tokmd-gate`, etc.) and provides a dedicated proof surface for high-level features.
+Option A. I am rolling back the local changes, closing this effort as a learning PR, and documenting the wrong-repo intake.
 
 ## 🧱 Changes made (SRP)
-- Created `crates/tokmd-analysis/tests/bdd.rs` with formal integration scenarios for `tokmd-analysis` output shape.
-- Removed duplicated/mingled BDD scenarios from `crates/tokmd-analysis/tests/analysis_deep_w64.rs`.
-- Updated `ci/proof.toml` to swap `orchestrator.rs` for the new `bdd.rs` to satisfy the Scoped Coverage Executor.
-- Reverted the erroneous deletion of `orchestrator.rs`.
+- Recorded a learning PR about repository boundaries and PR intake.
+- Reverted all attempted codebase modifications (the extraction of `tests/bdd.rs` and the changes to `ci/proof.toml` and `tests/analysis_deep_w64.rs`).
 
 ## 🧪 Verification receipts
 ```text
-$ cargo test -p tokmd-analysis --test bdd
-running 4 tests
-test empty_repo_produces_zero_totals ... ok
-test multi_module_repo_produces_module_breakdown ... ok
-test standard_repo_produces_correct_totals ... ok
-test repeated_analysis_is_deterministic ... ok
-
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
-$ cargo xtask proof-policy --check
-Proof policy OK: ci/proof.toml
+$ git reset --hard origin/main
+HEAD is now at ...
 ```
 
 ## 🧭 Telemetry
-- Change shape: Proof improvement patch
-- Blast radius: Internal tests only (no product code API or IO impacted)
+- Change shape: Learning PR
+- Blast radius: None (documentation only)
 - Risk class: Low
-- Rollback: Revert test movements
-- Gates run: `cargo xtask proof-policy --check`, `cargo test -p tokmd-analysis`, `cargo clippy`
+- Rollback: N/A
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_analysis_stack/envelope.json`
@@ -61,6 +45,7 @@ Proof policy OK: ci/proof.toml
 - `.jules/runs/specsmith_analysis_stack/receipts.jsonl`
 - `.jules/runs/specsmith_analysis_stack/result.json`
 - `.jules/runs/specsmith_analysis_stack/pr_body.md`
+- `.jules/friction/open/wrong-repo-intake.md`
 
 ## 🔜 Follow-ups
-None.
+Port the BDD test extraction logic to a narrow PR in `EffortlessMetrics/tokmd-swarm`.
