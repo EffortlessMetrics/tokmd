@@ -1,0 +1,15 @@
+{
+  "summary": "Added test constraints to guarantee SCHEMA.md docs track Tool, Baseline, and Envelope versions.",
+  "findings": "Missing coverage for non-CLI specific JSON schemas was causing silent drift.",
+  "receipts": [
+    "cargo test -p tokmd --test schema_sync",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "gates_run": [
+    "contracts-determinism",
+    "targeted cargo build/test",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}

@@ -39,6 +39,8 @@ const COCKPIT_SCHEMA_VERSION: u32 = tokmd_types::cockpit::COCKPIT_SCHEMA_VERSION
 const HANDOFF_SCHEMA_VERSION: u32 = tokmd_types::HANDOFF_SCHEMA_VERSION;
 const CONTEXT_SCHEMA_VERSION: u32 = tokmd_types::CONTEXT_SCHEMA_VERSION;
 const CONTEXT_BUNDLE_SCHEMA_VERSION: u32 = tokmd_types::CONTEXT_BUNDLE_SCHEMA_VERSION;
+const SENSOR_REPORT_SCHEMA: &str = tokmd_envelope::SENSOR_REPORT_SCHEMA;
+const BASELINE_VERSION: u32 = tokmd_analysis_types::BASELINE_VERSION;
 
 // ---------------------------------------------------------------------------
 // Embedded documentation (compiled into the test binary)
@@ -177,6 +179,65 @@ fn schema_md_context_bundle_version_matches_code() {
         CONTEXT_BUNDLE_SCHEMA_VERSION,
         "SCHEMA.md Context Bundle version ({}) != CONTEXT_BUNDLE_SCHEMA_VERSION ({CONTEXT_BUNDLE_SCHEMA_VERSION})",
         cb.unwrap().1
+    );
+}
+
+#[test]
+fn schema_md_envelope_version_matches_code() {
+    let mut found = false;
+    for line in SCHEMA_MD.lines() {
+        if line.contains("| **Envelope** |") {
+            assert!(
+                line.contains(&format!("`\"{SENSOR_REPORT_SCHEMA}\"`")),
+                "SCHEMA.md Envelope version string mismatch. Expected `\"{SENSOR_REPORT_SCHEMA}\"`"
+            );
+            found = true;
+            break;
+        }
+    }
+    assert!(found, "SCHEMA.md must document the Envelope receipt family");
+}
+
+#[test]
+fn schema_md_baseline_version_matches_code() {
+    let versions = parse_schema_md_versions(SCHEMA_MD);
+    let baseline = versions.iter().find(|(f, _)| f == "Baseline");
+    assert!(
+        baseline.is_some(),
+        "SCHEMA.md must document the Baseline receipt family"
+    );
+    assert_eq!(
+        baseline.unwrap().1,
+        BASELINE_VERSION,
+        "SCHEMA.md Baseline version ({}) != BASELINE_VERSION ({BASELINE_VERSION})",
+        baseline.unwrap().1
+    );
+}
+
+#[test]
+fn schema_md_tool_version_matches_code() {
+    let versions = parse_schema_md_versions(SCHEMA_MD);
+    let tool = versions.iter().find(|(f, _)| f == "Tool");
+    assert!(
+        tool.is_some(),
+        "SCHEMA.md must document the Tool receipt family"
+    );
+
+    let output = tokmd_cmd()
+        .args(["tools", "--format", "jsonschema"])
+        .output()
+        .expect("tokmd tools --format jsonschema should run");
+    assert!(output.status.success());
+
+    let receipt: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let code_version = receipt.get("schema_version").unwrap().as_u64().unwrap() as u32;
+
+    assert_eq!(
+        tool.unwrap().1,
+        code_version,
+        "SCHEMA.md Tool version ({}) != tokmd tools output schema_version ({})",
+        tool.unwrap().1,
+        code_version
     );
 }
 

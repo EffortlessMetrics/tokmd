@@ -1,0 +1,20 @@
+cargo test -p tokmd --test schema_sync
+Diff in /app/crates/tokmd/tests/schema_sync.rs:228:
+         .output()
+         .expect("tokmd tools --format jsonschema should run");
+     assert!(output.status.success());
+[31m-
+[m[32m+
+[m     let receipt: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+     let code_version = receipt.get("schema_version").unwrap().as_u64().unwrap() as u32;
+
+Diff in /app/crates/tokmd/tests/schema_sync.rs:228:
+         .output()
+         .expect("tokmd tools --format jsonschema should run");
+     assert!(output.status.success());
+[31m-
+[m[32m+
+[m     let receipt: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+     let code_version = receipt.get("schema_version").unwrap().as_u64().unwrap() as u32;
+
+cargo xtask check-file-policy --strict
