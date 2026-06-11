@@ -1349,6 +1349,8 @@ Options:
 Examples:
   tokmd cockpit --base origin/main --head HEAD --format comment
   tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review
+  tokmd cockpit --base origin/main --head HEAD --proof-run-summary target/proof/proof-run-summary.json --review-packet-dir .tokmd/review
+  tokmd cockpit --base origin/main --head HEAD --doc-artifacts-check target/docs/doc-artifacts-check.json --review-packet-dir .tokmd/review
 ```
 <!-- /HELP: cockpit -->
 

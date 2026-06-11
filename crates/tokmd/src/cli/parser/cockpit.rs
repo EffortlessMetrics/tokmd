@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    after_help = "Examples:\n  tokmd cockpit --base origin/main --head HEAD --format comment\n  tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review"
+    after_help = "Examples:\n  tokmd cockpit --base origin/main --head HEAD --format comment\n  tokmd cockpit --base origin/main --head HEAD --review-packet-dir .tokmd/review\n  tokmd cockpit --base origin/main --head HEAD --proof-run-summary target/proof/proof-run-summary.json --review-packet-dir .tokmd/review\n  tokmd cockpit --base origin/main --head HEAD --doc-artifacts-check target/docs/doc-artifacts-check.json --review-packet-dir .tokmd/review"
 )]
 pub struct CockpitArgs {
     /// Base reference to compare from (default: main).

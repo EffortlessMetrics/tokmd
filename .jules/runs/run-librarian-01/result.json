@@ -1,0 +1,17 @@
+{
+  "gate_status": "pass",
+  "outcome": "pr_ready_patch",
+  "primary_shard": "tooling-governance",
+  "files_changed": [
+    "crates/tokmd/src/cli/parser/cockpit.rs",
+    "docs/reference-cli.md"
+  ],
+  "gates_run": [
+    "cargo xtask docs --update",
+    "cargo xtask docs --check",
+    "CI=true cargo test -p tokmd --verbose",
+    "cargo test --doc -p tokmd",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}
