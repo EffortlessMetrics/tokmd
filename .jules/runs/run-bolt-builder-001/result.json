@@ -1,0 +1,6 @@
+{
+  "performance_improvement": true,
+  "issue_resolution": "Removed 1000s of string allocations from derived stats calculation.",
+  "target": "analysis files",
+  "shard": "analysis-stack"
+}

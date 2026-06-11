@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use tokmd_analysis_types::{
     BoilerplateReport, CocomoReport, ContextWindowReport, DerivedReport, DerivedTotals,
-    FileStatRow, NestingReport, NestingRow, ReadingTimeReport, TestDensityReport,
+    NestingReport, NestingRow, ReadingTimeReport, TestDensityReport,
 };
 use tokmd_analysis_types::{is_infra_lang, is_test_path};
 use tokmd_format::render_analysis_tree;
@@ -17,7 +17,7 @@ mod integrity;
 mod languages;
 mod ratios;
 use distribution::{build_distribution_report, build_histogram};
-use files::{build_file_stats, build_max_file_report, build_top_offenders};
+use files::{FileStatView, build_file_stats, build_max_file_report, build_top_offenders};
 use integrity::build_integrity_report;
 use languages::{build_lang_purity_report, build_polyglot_report};
 use ratios::{build_doc_density_report, build_verbosity_report, build_whitespace_report};
@@ -142,7 +142,7 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
     }
 }
 
-fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
+fn build_nesting_report(rows: &[FileStatView<'_>]) -> NestingReport {
     if rows.is_empty() {
         return NestingReport {
             max: 0,
@@ -158,10 +158,10 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
     for row in rows {
         total_depth += row.depth;
         max_depth = max_depth.max(row.depth);
-        if let Some(existing) = by_module.get_mut(row.module.as_str()) {
+        if let Some(existing) = by_module.get_mut(row.module) {
             existing.push(row.depth);
         } else {
-            by_module.insert(row.module.as_str(), vec![row.depth]);
+            by_module.insert(row.module, vec![row.depth]);
         }
     }
 
