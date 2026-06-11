@@ -25,6 +25,7 @@ Option A. The `v1.12.0` release is already documented in the changelog and relea
 
 ## 🧱 Changes made (SRP)
 - `ROADMAP.md`: Added `v1.12.0` to the completed milestones and bumped the future horizon to `v1.13.x`.
+- `.jules/friction/open/wrong-repo-intake.md`: Documented constraint that swarm PRs should go to tokmd-swarm.
 - `docs/implementation-plan.md`: Inserted Phase 5e covering the `v1.12.0` `bun-ub` preset and swarm workbench work.
 
 ## 🧪 Verification receipts
