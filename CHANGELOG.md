@@ -7,6 +7,139 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-06-11
+
+1.13 is the syntax-aware evidence packet release. It turns the Bun UB evidence
+path from 1.12 into a manifest-first packet that can include scoped analysis,
+context, optional syntax receipts, review-priority rows, artifact references,
+reproduction commands, warnings, errors, and non-claims in one bot-readable
+contract.
+
+The release range after `v1.12.0` includes the history-preserving swarm import
+for the syntax/evidence lane, the feature-gated syntax receipt command, packet
+manifest wiring, cockpit/handoff artifact references, complexity metric trust
+repairs, real dogfood runs, and a command-backed readiness report. The release
+does not make syntax evidence a verifier and does not claim UB detection,
+public reachability, type resolution, or merge readiness.
+
+For the user-facing release note, see `docs/releases/1.13.md`. For the
+maintainer release record, see `docs/releases/1.13-ledger.md`. For dogfood and
+pre-release proof, see `docs/releases/1.13-dogfood.md` and
+`docs/releases/1.13-readiness.md`.
+
+### Added
+
+- `tokmd evidence-packet` now emits `sensors/tokmd/manifest.json`, a versioned
+  `tokmd.evidence-packet/v1` manifest over `analyze.md`, `analyze.json`,
+  `context.md`, and optional `syntax.json` artifacts.
+- Evidence packet manifests now record packet status, artifact paths,
+  warnings, errors, non-claims, reproduction commands, and advisory
+  `review_priority` rows.
+- Feature-gated `tokmd syntax` command for parser-backed
+  `tokmd.syntax_receipts.v1` receipts when the binary is built with the `ast`
+  feature.
+- Syntax parser registry and capability model for Rust, TypeScript, TSX, and
+  Python, with unsupported or skipped syntax evidence represented explicitly
+  instead of silently disappearing.
+- Rust syntax extraction for function and call facts, panic-like seams,
+  indexing/capacity risk seams, native/FFI hints, and advisory review signals.
+- TypeScript and TSX syntax extraction for imports, exports, dynamic imports,
+  call sites, native-boundary hints, and review signals.
+- Python syntax extraction for imports, from-imports, call sites, dynamic
+  execution, subprocess/file I/O seams, native/FFI hints, exception seams, and
+  review signals.
+- Cross-language syntax fact and review-signal normalization so packet
+  consumers can read common categories across Rust, TypeScript, TSX, and
+  Python without scraping language-specific prose.
+- Optional `--syntax-json` support in `tokmd evidence-packet`, including refs
+  from manifest `review_priority` entries back into `syntax.json` JSON
+  pointers.
+- Syntax-derived advisory review priority that ranks parser-backed risk seams
+  and exposes category, severity, score, reason, evidence, path, and refs.
+- Cockpit references to Bun UB packet artifacts, including manifest,
+  analysis, context, optional syntax evidence, and regeneration commands.
+- Handoff output references to evidence packet artifacts and review-priority
+  context so agents can start from the manifest rather than rediscovering the
+  packet layout.
+- JSON schemas and docs for the evidence packet manifest, including generated
+  schema copies under both CLI and docs schema locations.
+- Syntax receipt specification in `docs/specs/syntax-receipts.md`, covering
+  status, parser capability, facts, review signals, warnings, errors, and
+  non-claims.
+- Release documentation for 1.13: user release notes, maintainer ledger,
+  dogfood report, and command-backed readiness report.
+- Syntax fixtures for Rust panic seams, TypeScript native boundaries, TSX
+  components, and Python native/dynamic-boundary examples.
+
+### Changed
+
+- `docs/analyze/bun-ub.md`, `docs/integrations/ub-review.md`, and artifact
+  docs now describe the full packet family:
+  `manifest.json`, `analyze.md`, `analyze.json`, `context.md`, and optional
+  `syntax.json`.
+- `docs/reference-cli.md` and CLI snapshots now include the evidence-packet
+  command and the feature-gated syntax command/help surface.
+- Handoff examples and handoff schema docs now show linked packet evidence and
+  packet-backed reading order.
+- WASM capability metadata was refreshed to preserve native-only boundaries
+  while the new syntax command remains native/feature-gated.
+- Proof policy now routes syntax receipt specs and 1.13 release metadata
+  through named proof scopes instead of unknown-file handling.
+- The evidence packet docs now make `manifest.json` the first file a reviewer,
+  bot, or agent should open.
+- Release readiness docs now link directly to the 1.13 command-backed
+  readiness report.
+
+### Fixed
+
+- Cockpit `avg_cyclomatic` now divides total function cyclomatic complexity by
+  detected function count instead of reporting a per-file total as an average.
+- Analysis aggregate `avg_cyclomatic` now uses detected functions as the
+  denominator and excludes functionless rows from the function average.
+- Complexity schema and metric explanation text now describe
+  `avg_cyclomatic` as an average across detected functions, preventing
+  avg-vs-max unit contradictions in review packets.
+- Evidence packets now degrade optional malformed, failed, or explicitly
+  missing syntax artifacts to named warnings/status instead of silently
+  treating syntax evidence as valid.
+- Syntax artifact status is surfaced in packet manifests so partial parser
+  evidence remains visible to bots and reviewers.
+- The Rust ref recipe documentation test now runs in a git fixture, avoiding
+  environment-dependent failures outside a repository.
+
+### Tests
+
+- Added syntax CLI integration coverage for scoped parser receipts, feature
+  gating, parser status, and fixture-backed syntax output.
+- Added evidence packet integration tests for complete packets, missing
+  required artifacts, optional syntax artifacts, malformed syntax JSON, failed
+  syntax receipts, explicit missing syntax artifacts, review-priority ordering,
+  and schema validation.
+- Added language-specific syntax tests for Rust, TypeScript/TSX, and Python
+  fact extraction and review-signal normalization.
+- Added cockpit integration coverage for Bun UB packet artifact references.
+- Added handoff integration coverage for packet artifact links and linked
+  evidence output.
+- Added schema validation for evidence packet JSON schema copies.
+- Added complexity average-unit regressions for cockpit and analysis receipts.
+- Added dogfood packet runs over real tokmd Rust parser source plus
+  representative Rust, TypeScript, and Python syntax fixtures.
+- Added release-readiness evidence covering fmt, clippy, workspace tests,
+  docs/doc-artifacts, proof policy, lane whitelist, publish surface, affected
+  routing, packet smoke, and bad-ref negative smoke.
+
+### Boundaries
+
+- Syntax receipts are advisory parser evidence, not a verifier.
+- 1.13 does not prove public reachability, UB presence or absence, safety,
+  correctness, CI proof, or merge readiness.
+- `tokmd syntax` remains feature-gated behind `ast`; default installs do not
+  imply default AST-backed behavior.
+- Full public-reachable panic-seam receipts remain post-1.13 work.
+- 1.13 does not add a semantic call graph, type resolution, public
+  `tokmd review` command, evidencebus runtime, proof promotion, default
+  Codecov upload, or release mutation from `tokmd-swarm`.
+
 ## [1.12.0] - 2026-06-04
 
 1.12 is the Bun UB evidence-readiness and `tokmd-swarm` workbench release. The
