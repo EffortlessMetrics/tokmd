@@ -13,8 +13,7 @@ use super::parse::{parse_children_mode, parse_table_format};
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::cli::CliLangArgs;
-/// use tokmd_settings::Profile;
+/// use tokmd::cli::{CliLangArgs, Profile};
 /// use tokmd::resolve_lang;
 ///
 /// let cli_args = CliLangArgs {
