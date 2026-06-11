@@ -2585,6 +2585,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "time",
+ "tokmd-analysis",
  "tokmd-analysis-types",
  "tokmd-envelope",
  "tokmd-git",

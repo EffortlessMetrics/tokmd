@@ -1,19 +1,18 @@
 {
-  "outcome_type": "patch",
-  "reviewer_facing_title": "surveyor: move source_complexity to tokmd-cockpit to resolve layering violation 🧭",
-  "summary": "Moved the cockpit-specific heuristic `source_complexity` out of `tokmd-analysis` into `tokmd-cockpit`, completely dropping the `tokmd-analysis` dependency from `tokmd-cockpit`.",
+  "outcome_type": "learning_pr",
+  "reviewer_facing_title": "jules: record surveyor learning on workspace topology 🧭",
+  "summary": "The PR was closed as wrong-repo intake because structural implementation changes for tokmd must land in `EffortlessMetrics/tokmd-swarm` and be imported. Generated a friction item.",
   "target_paths": [
-    "crates/tokmd-cockpit/Cargo.toml",
-    "crates/tokmd-cockpit/src/lib.rs",
-    "crates/tokmd-cockpit/src/gates/complexity.rs",
-    "crates/tokmd-cockpit/src/source_complexity.rs",
-    "crates/tokmd-cockpit/src/source_complexity/mask.rs",
-    "crates/tokmd-analysis/src/lib.rs"
+    ".jules/friction/open/"
   ],
-  "proof_summary": "Verified using cargo test across the workspace. All complexity gates continue to function using the localized logic.",
-  "gates_run": ["cargo build --verbose", "CI=true cargo test --verbose", "cargo fmt -- --check", "cargo clippy -- -D warnings"],
-  "friction_items_created": [],
-  "persona_notes_created": [],
-  "rollback": "git reset --hard && git clean -fd",
+  "proof_summary": "Recorded learning from PR closure comment.",
+  "gates_run": [],
+  "friction_items_created": [
+    ".jules/friction/open/wrong-repo-intake-tokmd-swarm.md"
+  ],
+  "persona_notes_created": [
+    ".jules/personas/surveyor/notes/repo-topology-constraints.md"
+  ],
+  "rollback": "git reset --hard",
   "follow_ups": []
 }

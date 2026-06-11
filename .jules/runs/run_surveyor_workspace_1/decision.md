@@ -3,14 +3,14 @@
 ## Options considered
 
 ### Option A (recommended)
-- what it is: Move `source_complexity` out of `tokmd-analysis` into `tokmd-cockpit` and remove the dependency.
-- why it fits this repo and shard: It resolves a crate boundary layering violation where `tokmd-cockpit` directly reached into `tokmd-analysis` internals for a cockpit-specific heuristic, and completely drops the `tokmd-analysis` crate dependency from `tokmd-cockpit`.
-- trade-offs: Improves structural layering and build times without sacrificing functionality.
+- what it is: Port the `source_complexity` modularization refactor to `EffortlessMetrics/tokmd-swarm`.
+- why it fits this repo and shard: As pointed out by the PR comment, the correct repository topology requires this implementation to land in `tokmd-swarm` first, then be imported here via a merge commit.
+- trade-offs: Structure is improved, but in the correct repo.
 
 ### Option B
-- what it is: Export `source_complexity` from `tokmd_analysis_types`.
-- when to choose it instead: If it was truly a shared type definition.
-- trade-offs: It violates the Tier 0 definition of `tokmd_analysis_types` which should have no business logic.
+- what it is: Discard the work completely.
+- when to choose it instead: If the refactor is no longer desired.
+- trade-offs: We lose the structural improvement.
 
 ## Decision
-Option A, as it perfectly fits the Surveyor mission of fixing structural coherence and dependency direction problems.
+The pull request was closed as wrong-repo intake. I am outputting a learning PR and friction item to document this topology constraint.

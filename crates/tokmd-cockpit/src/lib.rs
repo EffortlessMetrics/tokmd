@@ -31,7 +31,6 @@ mod proof_evidence;
 pub mod render;
 mod review_plan;
 mod risk;
-pub(crate) mod source_complexity;
 #[cfg(feature = "git")]
 mod supply_chain;
 mod trend;

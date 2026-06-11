@@ -1,48 +1,41 @@
 ## 💡 Summary
-Moved the `source_complexity` heuristic directly into `tokmd-cockpit` where it belongs. This drops `tokmd-analysis` from `tokmd-cockpit`'s dependency tree and resolves a tiering violation.
+This is a learning PR. I attempted to refactor the `source_complexity` logic to fix a crate layering violation, but the PR was closed as wrong-repo intake. This PR records that learning.
 
 ## 🎯 Why
-`tokmd-cockpit` was improperly pulling orchestration internals from an adjacent module (`tokmd-analysis`), violating the rule that higher-tier products must own their specific domain heuristics locally or use shared contracts.
+Normal implementation changes and structural refactors belong in `EffortlessMetrics/tokmd-swarm` and are imported into `EffortlessMetrics/tokmd`.
 
 ## 🔎 Evidence
-- `crates/tokmd-cockpit/src/gates/complexity.rs` was directly using `tokmd_analysis::source_complexity::analyze_rust_function_complexity`.
-- `crates/tokmd-cockpit/Cargo.toml` had a hardcoded `path = "../tokmd-analysis", version = "1.11.0"` dependency.
+- PR comment: "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit. If useful, this should be ported as a narrow tokmd-swarm PR with focused proof."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Move `source_complexity` out of `tokmd-analysis` into `tokmd-cockpit` and remove the dependency.
-- why it fits this repo and shard: It resolves a crate boundary layering violation and completely drops the `tokmd-analysis` crate dependency from `tokmd-cockpit`.
-- trade-offs: Structure is improved, dependency tree is simpler.
+- what it is: Port the `source_complexity` modularization refactor to `EffortlessMetrics/tokmd-swarm`.
+- why it fits this repo and shard: It respects the correct repository topology.
+- trade-offs: Structure is improved, but in the correct repo.
 
 ### Option B
-- what it is: Export `source_complexity` from `tokmd_analysis_types`.
-- when to choose it instead: If it was truly a shared type definition.
-- trade-offs: It violates the Tier 0 definition of `tokmd_analysis_types` which should have no business logic.
+- what it is: Discard the work completely.
+- when to choose it instead: If the refactor is no longer desired.
+- trade-offs: We lose the structural improvement.
 
 ## ✅ Decision
-Option A was chosen. It fits the Surveyor mission perfectly by fixing a structural coherence problem and respecting the Tier boundaries.
+Option A is recommended for future follow-up. This PR just records the learning.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/source_complexity.rs` -> `crates/tokmd-cockpit/src/source_complexity.rs`
-- `crates/tokmd-analysis/src/source_complexity/` -> `crates/tokmd-cockpit/src/source_complexity/`
-- Updated `crates/tokmd-cockpit/Cargo.toml` to remove the `tokmd-analysis` dependency.
-- Updated `crates/tokmd-cockpit/src/gates/complexity.rs` to point to the local `crate::source_complexity::analyze_rust_function_complexity`.
-- Updated `crates/tokmd-analysis/src/lib.rs` and `crates/tokmd-cockpit/src/lib.rs` module bindings.
+- Recorded a friction item `.jules/friction/open/wrong-repo-intake-tokmd-swarm.md`.
+- Recorded a persona note `.jules/personas/surveyor/notes/repo-topology-constraints.md`.
 
 ## 🧪 Verification receipts
 ```text
-cargo test --verbose
-cargo check
-cargo clippy -- -D warnings
-cargo fmt -- --check
+PR closure comment read successfully.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Structural refactor
-- Blast radius: dependencies
-- Risk class + why: Low, code is simply moved without changes to logic. Tests confirm behavior remains identical.
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class + why: Zero, only `.jules` artifacts were added.
 - Rollback: Revert the PR
-- Gates run: `cargo build`, `cargo test`, `cargo fmt`, `cargo clippy`
+- Gates run: None
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run_surveyor_workspace_1/envelope.json`
@@ -50,6 +43,8 @@ cargo fmt -- --check
 - `.jules/runs/run_surveyor_workspace_1/receipts.jsonl`
 - `.jules/runs/run_surveyor_workspace_1/result.json`
 - `.jules/runs/run_surveyor_workspace_1/pr_body.md`
+- `.jules/friction/open/wrong-repo-intake-tokmd-swarm.md`
+- `.jules/personas/surveyor/notes/repo-topology-constraints.md`
 
 ## 🔜 Follow-ups
-None
+- A human or another agent should port the `source_complexity` modularization refactor to `tokmd-swarm`.
