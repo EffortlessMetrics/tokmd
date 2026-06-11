@@ -1,5 +1,5 @@
 {
-  "outcome": "PR-ready patch",
-  "learning_pr": false,
-  "summary": "Consolidated workspace dependency definitions."
+  "outcome": "learning PR",
+  "learning_pr": true,
+  "summary": "Workspace structural changes rejected as wrong-repo intake. Architectural changes must originate in tokmd-swarm."
 }

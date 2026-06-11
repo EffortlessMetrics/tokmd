@@ -1,47 +1,45 @@
 ## 💡 Summary
-Consolidated explicit path and version declarations for internal crates to rely on workspace dependency resolution. This aligns crates like `tokmd-types`, and `tokmd-wasm` with the rest of the workspace.
+Learning PR documenting that workspace structural changes (like consolidating internal crates to use workspace dependencies) are wrong-repo intake for `tokmd`. Such architectural changes must originate in `tokmd-swarm`.
 
 ## 🎯 Why
-Several `dev-dependencies` and `dependencies` blocks across internal crates were manually specifying `path` and `version` blocks instead of utilizing `{ workspace = true }`. This causes internal drift and increases maintenance overhead when making version bumps or structural refactors across the project.
+We attempted to consolidate explicit `path` and `version` declarations for internal crates to rely on workspace dependency resolution. This aligns crates like `tokmd-types` with the rest of the workspace and prevents internal drift. However, the PR was closed by reviewers indicating the current topology requires normal implementation to land in `tokmd-swarm` first and be imported via merge commit.
 
 ## 🔎 Evidence
-- `crates/tokmd-types/Cargo.toml` manually specified `path = "../tokmd-scan", version = ">=1.9, <2"`.
-- Workspace resolution (`cargo tree`) succeeds and confirms proper linking after the change.
+- Reviewer comment: "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Use `{ workspace = true }` for all internal crates already defined in the root `Cargo.toml` under `[workspace.dependencies]` where possible.
-- Fits this repo and shard as it directly improves workspace structure and dependency hygiene.
-- Trade-offs: Requires a targeted refactor of `Cargo.toml` files, but increases Structural cohesion and Velocity for future version bumps.
+- Produce a learning PR documenting the wrong-repo intake finding.
+- Fits this repo and shard as it records an important architectural boundary constraint.
+- Trade-offs: Abandons the immediate code fix, but prevents future agents from wasting effort on direct `tokmd` structural refactors.
 
 ### Option B
-- Keep the hardcoded paths.
-- Trade-offs: Preserves current state, but allows dependency graphs to fragment and requires redundant version updates across the codebase.
+- Attempt to force the fix anyway.
+- Trade-offs: Violates reviewer instructions and repository topology constraints.
 
 ## ✅ Decision
-Proceed with Option A. The workspace structure is cleaner and less prone to publish errors when centralized in the root `Cargo.toml`. `tokmd-cockpit` was left as-is because Cargo workspace dependencies cannot override default-features yet, so the explicit path is maintained.
+Proceed with Option A. We will close out this run as a learning PR, acknowledging that the code patch is obsolete and structural changes belong in the upstream swarm repo.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis-types/Cargo.toml`: Migrated `tokmd-scan` to workspace.
-- `crates/tokmd-envelope/Cargo.toml`: Migrated `tokmd-core` to workspace.
-- `crates/tokmd-scan/Cargo.toml`: Migrated `tokmd-model` to workspace.
-- `crates/tokmd-types/Cargo.toml`: Migrated `tokmd-scan`, `tokmd-format`, and `tokmd-model` to workspace.
-- `crates/tokmd-wasm/Cargo.toml`: Migrated `tokmd-types` to workspace.
+- `.jules/runs/run-1/envelope.json`: Written.
+- `.jules/runs/run-1/decision.md`: Written.
+- `.jules/runs/run-1/receipts.jsonl`: Written.
+- `.jules/runs/run-1/result.json`: Written.
+- `.jules/runs/run-1/pr_body.md`: Written.
+- `.jules/friction/open/wrong_repo_intake_surveyor.md`: Written.
 
 ## 🧪 Verification receipts
 ```text
-cargo build --verbose
-CI=true cargo test --verbose -p tokmd-cockpit -p tokmd-analysis-types -p tokmd-envelope -p tokmd-scan -p tokmd-types -p tokmd-wasm
-cargo fmt -- --check
-cargo clippy -- -D warnings
+cargo xtask ci-plan --base origin/main --head HEAD --labels-json '[]' --lanes policy/ci-lane-whitelist.toml --risk-packs policy/ci-risk-packs.toml --json-out target/ci/ci-plan.json --route-json-out target/ci/proof-pack-route.json --enforce
+cat target/ci/ci-plan.json | jq '.estimated_lem'
 ```
 
 ## 🧭 Telemetry
-- Change shape: Structural refactor.
-- Blast radius: Internal API / build resolution. No runtime impact.
-- Risk class: Low. Cargo verifies workspace validity at build time.
-- Rollback: Revert `Cargo.toml` changes.
-- Gates run: `cargo build`, `cargo test`, `cargo fmt`, `cargo clippy`.
+- Change shape: Learning PR / documentation.
+- Blast radius: None.
+- Risk class: Low. No code changes.
+- Rollback: Revert `.jules` artifacts.
+- Gates run: None.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/run-1/envelope.json`
@@ -49,6 +47,7 @@ cargo clippy -- -D warnings
 - `.jules/runs/run-1/receipts.jsonl`
 - `.jules/runs/run-1/result.json`
 - `.jules/runs/run-1/pr_body.md`
+- `.jules/friction/open/wrong_repo_intake_surveyor.md`
 
 ## 🔜 Follow-ups
-None.
+If useful, the consolidated workspace dependencies change should be ported as a narrow `tokmd-swarm` PR with focused proof.
