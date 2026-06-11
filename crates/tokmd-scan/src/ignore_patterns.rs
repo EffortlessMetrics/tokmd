@@ -32,8 +32,7 @@ pub(crate) fn ignored_patterns(args: &ScanOptions, roots: &[ValidatedRoot]) -> V
         }
 
         for root in roots {
-            let lossy = root.canonical().to_string_lossy();
-            let canonical = normalize_slashes(&lossy);
+            let canonical = normalize_slashes(&root.canonical().to_string_lossy());
             patterns.insert(format!("{}/{}", canonical.trim_end_matches('/'), relative));
         }
     }
@@ -50,7 +49,7 @@ fn is_absolute_pattern(pattern: &str) -> bool {
 }
 
 fn normalize_relative_ignore_pattern(pattern: &str) -> String {
-    let mut normalized = normalize_slashes(pattern).into_owned();
+    let mut normalized = normalize_slashes(pattern);
     while let Some(rest) = normalized.strip_prefix("./") {
         normalized = rest.to_string();
     }
@@ -89,8 +88,7 @@ mod tests {
             &scan_options(&["secret_folder/**"]),
             std::slice::from_ref(&root),
         );
-        let lossy = root.canonical().to_string_lossy();
-        let canonical = normalize_slashes(&lossy);
+        let canonical = normalize_slashes(&root.canonical().to_string_lossy());
 
         assert!(patterns.contains(&"secret_folder/**".to_string()));
         assert!(patterns.contains(&"**/secret_folder/**".to_string()));

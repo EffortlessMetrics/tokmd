@@ -32,7 +32,7 @@ pub fn compute_git_scores(
     let file_lines: BTreeMap<String, usize> = rows
         .iter()
         .filter(|r| r.kind == FileKind::Parent)
-        .map(|r| (normalize_path(&r.path).into_owned(), r.lines))
+        .map(|r| (normalize_path(&r.path), r.lines))
         .collect();
 
     // Count commits per file
@@ -40,8 +40,8 @@ pub fn compute_git_scores(
     for commit in &commits {
         for file in &commit.files {
             let key = normalize_path(file);
-            if file_lines.contains_key(key.as_ref()) {
-                *commit_counts.entry(key.into_owned()).or_insert(0) += 1;
+            if file_lines.contains_key(&key) {
+                *commit_counts.entry(key).or_insert(0) += 1;
             }
         }
     }

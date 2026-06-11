@@ -18,12 +18,12 @@ pub(super) fn get_value(
         ValueMetric::Code => row.code,
         ValueMetric::Tokens => row.tokens,
         ValueMetric::Hotspot => git_scores
-            .and_then(|gs| gs.hotspots.get(path.as_ref()).copied())
+            .and_then(|gs| gs.hotspots.get(&path).copied())
             .unwrap_or(row.code),
         ValueMetric::Churn => {
             // Use commit count as churn proxy, scaled by code lines for tie-breaking.
             git_scores
-                .and_then(|gs| gs.commit_counts.get(path.as_ref()).copied())
+                .and_then(|gs| gs.commit_counts.get(&path).copied())
                 .map(|commits| commits * 1000 + row.code)
                 .unwrap_or(row.code)
         }

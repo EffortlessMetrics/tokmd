@@ -25,17 +25,19 @@ Option A was chosen as it cleanly removes an unconditional hot-path allocation w
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-scan/src/path/mod.rs`: Updated return types for normalizers. Implemented a `match` logic to handle stripped prefixes directly returning a slice.
-- `crates/tokmd-scan/src/exclude/mod.rs`: Adapted caller to take ownership only when needed.
+- `crates/tokmd-scan/src/exclude/mod.rs`: Adapted caller to take ownership only when needed. Added missing coverage scope to `ci/proof.toml`
 - `crates/tokmd-scan/src/ignore_patterns.rs`: Handled `.to_string_lossy()` lifetimes around `Cow` borrowing.
 - `crates/tokmd-scan/src/lib.rs`: Handled `.to_string_lossy()` lifetimes around `Cow` borrowing.
 - `crates/tokmd-core/src/context_git/mod.rs` and `crates/tokmd-core/src/context/mod.rs`: Updated usages due to Cow returns.
 - `crates/tokmd/src/context_pack/select/policy.rs`, `crates/tokmd/src/context_pack/select/pack.rs`, `crates/tokmd/src/context_pack/select.rs`: Adapted path callers.
+- Fixed an issue caught by mutating `normalize_rel_path` where Cow allocations weren't perfectly tested for regression, avoiding double allocating and fixing `!stripped` lifetime handling.
 
 ## 🧪 Verification receipts
 ```text
 cargo build --verbose
 bash -c 'cargo test -p tokmd-scan -p tokmd-model -p tokmd-format'
 cargo fmt -- --check && cargo clippy -- -D warnings
+cargo llvm-cov -p tokmd-model -p tokmd-scan --all-features --lcov --output-path target/proof/coverage/model_scan_path_normalization.lcov
 ```
 
 ## 🧭 Telemetry

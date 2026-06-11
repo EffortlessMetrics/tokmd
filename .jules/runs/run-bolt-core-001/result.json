@@ -4,6 +4,12 @@
     "crates/tokmd-scan/src/path/mod.rs",
     "crates/tokmd-scan/src/exclude/mod.rs",
     "crates/tokmd-scan/src/ignore_patterns.rs",
-    "crates/tokmd-scan/src/lib.rs"
+    "crates/tokmd-scan/src/lib.rs",
+    "crates/tokmd-core/src/context_git/mod.rs",
+    "crates/tokmd-core/src/context/mod.rs",
+    "crates/tokmd/src/context_pack/select.rs",
+    "crates/tokmd/src/context_pack/select/pack.rs",
+    "crates/tokmd/src/context_pack/select/policy.rs",
+    "ci/proof.toml"
   ]
 }

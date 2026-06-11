@@ -30,7 +30,7 @@ pub fn normalize_exclude_pattern(root: &Path, path: &Path) -> String {
     } else {
         path
     };
-    normalize_rel_path(&rel.to_string_lossy()).into_owned()
+    normalize_rel_path(&rel.to_string_lossy())
 }
 
 /// Return `true` when `existing` already contains `pattern` after normalization.
@@ -94,7 +94,7 @@ mod tests {
             .join("tokmd-exclude-lib-outside")
             .join("bundle.txt");
         let got = normalize_exclude_pattern(&root, &outside);
-        let expected = crate::normalize_rel_path(&outside.to_string_lossy()).into_owned();
+        let expected = crate::normalize_rel_path(&outside.to_string_lossy());
         assert_eq!(got, expected);
     }
 
