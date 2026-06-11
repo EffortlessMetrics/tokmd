@@ -18,3 +18,6 @@ Let's review the prompt instructions for the "Sentinel" persona when no honest f
 Since `tokmd-format`'s path redaction is already perfectly safe and normalizing, any code change here would just be a fake fix. Therefore, I will produce a learning PR.
 
 Wait, are there ANY OTHER functions in `crates/tokmd-format/src/redact/mod.rs`? Let me look at `short_hash`.
+
+**Update after PR comment:** The reviewer closed the PR with "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit. If useful, this should be ported as a narrow tokmd-swarm PR with focused proof."
+Since my assignment is an async one-shot branch author and I cannot operate outside my assigned shard or repo, I will acknowledge this feedback and stop work on this PR as requested by the reviewer.
