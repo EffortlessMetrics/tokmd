@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use crate::maintainability::compute_maintainability_index;
@@ -179,4 +180,69 @@ pub(crate) fn build_complexity_report(
         technical_debt,
         files: file_complexities,
     })
+}
+
+pub(crate) fn bounded_complexity_warnings(
+    root: &Path,
+    files: &[PathBuf],
+    export: &ExportData,
+    limits: &AnalysisLimits,
+) -> Vec<String> {
+    let mut row_map: BTreeMap<String, &FileRow> = BTreeMap::new();
+    for row in export.rows.iter().filter(|r| r.kind == FileKind::Parent) {
+        row_map.insert(normalize_path(&row.path, root), row);
+    }
+
+    let scoped_files: BTreeSet<String> = files
+        .iter()
+        .map(|path| path.to_string_lossy().replace('\\', "/"))
+        .collect();
+    let per_file_limit = limits.max_file_bytes.unwrap_or(DEFAULT_MAX_FILE_BYTES);
+    let limit_label = if limits.max_file_bytes.is_some() {
+        format!("max_file_bytes={per_file_limit}")
+    } else {
+        format!("default max_file_bytes={per_file_limit}")
+    };
+
+    let mut eligible_files = 0usize;
+    let mut clipped_files = 0usize;
+    let mut bounded_bytes = 0u64;
+    let mut total_estimated_read_bytes = 0u64;
+
+    for (path, row) in row_map {
+        if !scoped_files.contains(&path) || !is_complexity_lang(&row.lang) {
+            continue;
+        }
+
+        eligible_files += 1;
+        let row_bytes = row.bytes as u64;
+        let read_bytes = row_bytes.min(per_file_limit);
+        total_estimated_read_bytes = total_estimated_read_bytes.saturating_add(read_bytes);
+
+        if row_bytes > per_file_limit {
+            clipped_files += 1;
+            bounded_bytes = bounded_bytes.saturating_add(row_bytes.saturating_sub(per_file_limit));
+        }
+    }
+
+    let mut warnings = Vec::new();
+    if clipped_files > 0 {
+        warnings.push(format!(
+            "complexity scan bounded: {clipped_files} of {eligible_files} eligible file(s) exceed {limit_label}; complexity metrics are partial"
+        ));
+    }
+    if let Some(max_bytes) = limits.max_bytes
+        && total_estimated_read_bytes > max_bytes
+    {
+        warnings.push(format!(
+            "complexity scan bounded: max_bytes={max_bytes} stops before all eligible complexity files are scanned; complexity metrics are partial"
+        ));
+    }
+    if bounded_bytes > 0 {
+        warnings.push(format!(
+            "complexity scan bounded: at least {bounded_bytes} byte(s) of eligible source were outside the scanned content window"
+        ));
+    }
+
+    warnings
 }

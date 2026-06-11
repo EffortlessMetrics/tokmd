@@ -64,6 +64,51 @@ fn analyze_help_lists_bun_ub_preset() {
 }
 
 #[test]
+fn analyze_marks_default_capped_complexity_as_partial() {
+    let dir = tempdir().expect("should create temp dir");
+    let src_dir = dir.path().join("src");
+    std::fs::create_dir_all(&src_dir).expect("create src dir");
+    std::fs::create_dir_all(dir.path().join(".git")).expect("create .git marker");
+
+    let mut source =
+        String::from("pub fn early_branch(x: i32) -> i32 { if x > 0 { x } else { 0 } }\n");
+    source
+        .push_str(&"// filler keeps the file over the default complexity byte cap\n".repeat(3000));
+    std::fs::write(src_dir.join("large.rs"), source).expect("write large Rust source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .arg("--no-progress")
+        .arg("analyze")
+        .arg("src/large.rs")
+        .arg("--preset")
+        .arg("receipt")
+        .arg("--format")
+        .arg("json")
+        .arg("--no-git")
+        .output()
+        .expect("failed to execute tokmd analyze");
+
+    assert!(
+        output.status.success(),
+        "tokmd analyze failed: {:?}\nstderr: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("invalid JSON output");
+    assert_eq!(json["status"], "partial");
+    let warnings = json["warnings"].as_array().expect("warnings array");
+    assert!(
+        warnings.iter().any(|warning| {
+            warning
+                .as_str()
+                .is_some_and(|text| text.contains("complexity scan bounded"))
+        }),
+        "{warnings:?}"
+    );
+}
+
+#[test]
 fn analyze_health_scoped_directory_does_not_scan_unrelated_todos() {
     let dir = tempdir().expect("should create temp dir");
     let src_dir = dir.path().join("src");

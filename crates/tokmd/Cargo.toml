@@ -26,7 +26,7 @@ exclude = [
 ]
 
 [features]
-default = ["git", "walk", "content", "ui", "fun", "topics", "archetype", "analysis"]
+default = ["git", "walk", "content", "ui", "fun", "topics", "archetype", "analysis", "ast"]
 alias-tok = []
 analysis = ["tokmd-core/analysis"]
 git = [

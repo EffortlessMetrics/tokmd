@@ -394,7 +394,7 @@ Options:
           Limit total bytes read during content scans
 
       --max-file-bytes <MAX_FILE_BYTES>
-          Limit bytes per file during content scans
+          Limit bytes per file during content scans [default for file-backed scans: 131072]
 
       --max-commits <MAX_COMMITS>
           Limit how many commits are scanned for git metrics

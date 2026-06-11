@@ -356,6 +356,46 @@ fn test_compute_technical_debt_ratio_none_for_zero_code() {
 }
 
 #[test]
+fn bounded_complexity_warnings_report_default_file_cap() {
+    let export = ExportData {
+        rows: vec![FileRow {
+            path: "src/lib.rs".to_string(),
+            module: "src".to_string(),
+            lang: "Rust".to_string(),
+            kind: FileKind::Parent,
+            code: 40_000,
+            comments: 0,
+            blanks: 0,
+            lines: 40_000,
+            bytes: DEFAULT_MAX_FILE_BYTES as usize + 4096,
+            tokens: 10_000,
+        }],
+        module_roots: vec![],
+        module_depth: 1,
+        children: tokmd_types::ChildIncludeMode::Separate,
+    };
+    let warnings = bounded_complexity_warnings(
+        Path::new("."),
+        &[PathBuf::from("src/lib.rs")],
+        &export,
+        &AnalysisLimits::default(),
+    );
+
+    assert!(
+        warnings
+            .iter()
+            .any(|warning| warning.contains("default max_file_bytes=131072")),
+        "{warnings:?}"
+    );
+    assert!(
+        warnings
+            .iter()
+            .any(|warning| warning.contains("complexity metrics are partial")),
+        "{warnings:?}"
+    );
+}
+
+#[test]
 fn test_detect_fn_python_decorators_extended() {
     let code = r#"
 @app.route("/")

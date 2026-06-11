@@ -46,7 +46,7 @@ pub struct CliAnalyzeArgs {
     #[arg(long)]
     pub max_bytes: Option<u64>,
 
-    /// Limit bytes per file during content scans.
+    /// Limit bytes per file during content scans [default for file-backed scans: 131072].
     #[arg(long)]
     pub max_file_bytes: Option<u64>,
 
