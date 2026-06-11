@@ -32,6 +32,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4.10"
+clap = { version = "4.6.0", features = ["derive"], optional = true }
 anyhow = { workspace = true, optional = true }
 blake3 = { workspace = true, optional = true }
 
@@ -50,6 +51,7 @@ tokmd-format = { workspace = true, optional = true }
 tokmd-settings = { workspace = true, optional = true }
 tokmd-envelope = { workspace = true, optional = true }
 tokmd-core = { workspace = true, optional = true }
+tokmd = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true
@@ -139,6 +141,10 @@ gate_ratchet = ["dep:tokmd-gate", "dep:serde_json"]
 # SVG badge rendering (tokmd-format/badge)
 # Targets: fuzz_badge_svg
 badge = ["dep:tokmd-format"]
+
+# CLI parser (tokmd::cli)
+# Targets: fuzz_cli_parser
+cli = ["dep:tokmd", "dep:clap"]
 
 # ============================================================================
 # Fuzz Targets - Path/Module Functions
@@ -342,3 +348,15 @@ path = "fuzz_targets/fuzz_badge_svg.rs"
 test = false
 doc = false
 required-features = ["badge"]
+
+# ============================================================================
+# Fuzz Targets - CLI Parser
+# ============================================================================
+# Tests CLI parser with arbitrary string arrays to find panics.
+
+[[bin]]
+name = "fuzz_cli_parser"
+path = "fuzz_targets/fuzz_cli_parser.rs"
+test = false
+doc = false
+required-features = ["cli"]
