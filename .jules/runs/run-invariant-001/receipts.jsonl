@@ -1,5 +1,0 @@
-{"command": "cargo build --verbose", "outcome": "success"}
-{"command": "CI=true cargo test --verbose", "outcome": "success"}
-{"command": "cargo fmt -- --check", "outcome": "success"}
-{"command": "cargo clippy -- -D warnings", "outcome": "success"}
-{"command": "CI=true cargo test -p tokmd-analysis properties --all-features", "outcome": "success"}
