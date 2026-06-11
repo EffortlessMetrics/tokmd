@@ -1,17 +1,14 @@
 {
-  "outcome": "patch",
-  "title": "palette: cleanly extract bracket-only errors in browser runner 🎨",
-  "summary": "Fixed an issue in the browser runner where bracket-only errors (like `[invalid_settings]`) would evaluate to an empty message string fallback that incorrectly reproduced the original unparsed string instead of defaulting to the error code itself.",
-  "target_paths": [
-    "web/runner/runtime.js",
-    "web/runner/runtime.test.mjs"
+  "outcome": "learning_pr",
+  "title": "jules: record palette learning on bindings-targets 🎨",
+  "summary": "This work was closed as obsolete because it was directed at the wrong repository (`tokmd` instead of `tokmd-swarm`). A friction item has been recorded to clarify the topology rules for bindings-targets.",
+  "target_paths": [],
+  "proof_summary": "Recorded learning PR instead of patch.",
+  "gates_run": [],
+  "friction_items": [
+    ".jules/friction/open/wrong-repo-intake-bindings.md"
   ],
-  "proof_summary": "Added a new test `runtime extracts error codes from fallback string errors without extra message` in `web/runner/runtime.test.mjs` to ensure the bracketed string extraction logic correctly maps `[unknown_mode]` to `{ code: 'unknown_mode', message: 'unknown_mode' }`.",
-  "gates_run": [
-    "npm --prefix web/runner test"
-  ],
-  "friction_items": [],
   "persona_notes": [],
-  "rollback": "git checkout web/runner/runtime.js web/runner/runtime.test.mjs",
+  "rollback": "git reset --hard origin/main",
   "follow_ups": []
 }

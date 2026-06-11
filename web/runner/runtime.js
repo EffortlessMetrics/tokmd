@@ -48,7 +48,7 @@ function extractRunnerError(error) {
 
     const match = message.match(/^\[([^\]]+)\]\s*(.*)$/);
     if (match) {
-        return { code: match[1], message: match[2] || match[1] };
+        return { code: match[1], message: match[2] || message };
     }
 
     return { code, message };

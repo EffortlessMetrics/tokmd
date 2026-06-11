@@ -15,10 +15,11 @@ Because `match[2]` is `""`, `match[2] || message` evaluates to `message`, which 
 This is confusing for runtime developers, as the error message still contains the bracket code, or is just the bracket code itself, instead of cleanly stripping the bracket and providing a clean message (or falling back to the code as the message if there's no additional text).
 
 ## Option A (recommended)
-Fix `extractRunnerError` in `web/runner/runtime.js` to correctly handle bracketed codes without trailing messages.
-Instead of `match[2] || message`, we can use `match[2] || match[1]`.
-
-Let's do Option A: Update `extractRunnerError` to use `match[2] || match[1]` so that empty message strings cleanly fall back to the bare code rather than the raw unparsed bracket string. We also add a test to `web/runner/runtime.test.mjs` to lock in this behavior.
+Record a learning PR and a friction item.
+Stop work as instructed by the user and preserve the context.
 
 ## Option B
-Do not fix this, as it is a minor issue. (Not recommended).
+Continue modifying the file in the wrong repository. (Not recommended).
+
+## Decision
+Chose Option A to respect the correct repository topology and avoid a wrong-repo intake.
