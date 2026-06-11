@@ -179,6 +179,23 @@ mod tests {
     }
 
     #[test]
+    fn collects_violations_skipping_allowlisted_checker_source_file() {
+        let dir = tempdir().expect("tempdir");
+        let bad = dir.path().join("fixtures").join("bad.pem");
+        fs::create_dir_all(bad.parent().unwrap()).expect("fixtures dir");
+        fs::write(&bad, "BEGIN PRIVATE KEY").expect("write pem");
+
+        let tracked = vec![
+            "xtask/src/tasks/fixture_blobs_check.rs".to_string(),
+            "fixtures/bad.pem".to_string(),
+        ];
+        let violations = collect_violations(dir.path(), &tracked).expect("collect");
+
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].path, "fixtures/bad.pem");
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
