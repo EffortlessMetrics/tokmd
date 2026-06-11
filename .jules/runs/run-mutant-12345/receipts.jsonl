@@ -1,2 +1,0 @@
-{"command": "cargo test -p tokmd-format --test test_redaction_case_leak", "output": "test redaction_must_normalize_case_for_safe_extensions_hash ... FAILED"}
-{"command": "cargo test -p tokmd-format --test test_redaction_case_leak", "output": "test redaction_must_normalize_case_for_safe_extensions_hash ... ok"}
