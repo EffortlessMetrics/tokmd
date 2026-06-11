@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd-node"}
+{"command": "cargo test -p tokmd-wasm"}
