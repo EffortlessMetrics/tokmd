@@ -1,1 +1,3 @@
 {"command": "cargo test -p tokmd-analysis --test bdd", "status": "success", "output": "test result: ok. 4 passed"}
+{"command": "cargo xtask proof-policy --check", "status": "success", "output": "Proof policy OK: ci/proof.toml"}
+{"command": "cargo test -p tokmd-analysis --test bdd --test orchestrator", "status": "success", "output": "test result: ok. 13 passed"}

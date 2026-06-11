@@ -372,6 +372,7 @@ paths = [
   "crates/tokmd-analysis/tests/enricher_pipeline.rs",
   "crates/tokmd-analysis/tests/feature_*.rs",
   "crates/tokmd-analysis/tests/orchestration*.rs",
+  "crates/tokmd-analysis/tests/bdd.rs",
   "crates/tokmd-analysis/tests/orchestrator.rs",
   "crates/tokmd/src/commands/analyze.rs",
   "crates/tokmd/tests/analyze_integration.rs",
@@ -379,7 +380,7 @@ paths = [
 ]
 packages = ["tokmd-analysis", "tokmd"]
 proof = [
-  "cargo test -p tokmd-analysis --all-features --test orchestrator --test orchestration_w54 --test orchestration_w68 --test orchestration_w73 --verbose",
+  "cargo test -p tokmd-analysis --all-features --test bdd --test orchestrator --test orchestration_w54 --test orchestration_w68 --test orchestration_w73 --verbose",
   "cargo test -p tokmd-analysis --all-features --test analysis_deep_w64 --test analysis_depth_w62 --test deep --test deep_analysis_w48 --verbose",
   "cargo test -p tokmd-analysis --all-features --test orchestration receipt --verbose",
   "cargo test -p tokmd-analysis --all-features feature --verbose",
