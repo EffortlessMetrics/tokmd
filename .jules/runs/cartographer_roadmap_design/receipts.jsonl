@@ -1,4 +1,1 @@
-{"command": "cargo xtask docs --check", "outcome": "Documentation is up to date."}
-{"command": "cargo xtask publish-surface --json --verify-publish", "outcome": "Success, no violations"}
-{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed."}
-{"command": "git diff docs/implementation-plan.md", "outcome": "diff showing Phase 3 checked off and marked Complete"}
+{"command": "read_pr_comments", "outcome": "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit."}

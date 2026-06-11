@@ -69,7 +69,7 @@ As part of this phase, the sensor/envelope surfaces were created:
 
 ---
 
-## Phase 3: tokmd-core Stabilization (v1.5.x) ✅ Complete
+## Phase 3: tokmd-core Stabilization
 
 **Goal**: Make tokmd-core the stable embedding surface.
 
@@ -99,11 +99,11 @@ pub fn cockpit_workflow(settings: &CockpitSettings) -> Result<CockpitReceipt>;
 
 ### Work Items
 
-- [x] Define port traits (implemented via `tokmd-io-port`)
+- [ ] Define port traits (if adding extensibility)
 - [x] Implement `analyze_workflow`
 - [x] Implement `cockpit_workflow`
-- [x] Add comprehensive API documentation
-- [x] Publish tokmd-core to crates.io
+- [ ] Add comprehensive API documentation
+- [ ] Publish tokmd-core to crates.io (when stable)
 
 ### Tests
 

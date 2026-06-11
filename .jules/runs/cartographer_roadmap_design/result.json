@@ -1,5 +1,5 @@
 {
   "status": "success",
-  "outcome": "PR-ready patch",
-  "summary": "Updated docs/implementation-plan.md to reflect that Phase 3 (tokmd-core stabilization) is complete, as tokmd-io-port has shipped port traits and tokmd-core is published to crates.io."
+  "outcome": "learning PR",
+  "summary": "Pivoted from patch to learning PR after discovering that the tokmd repository has a downstream merge topology constraint requiring changes to originate in tokmd-swarm."
 }

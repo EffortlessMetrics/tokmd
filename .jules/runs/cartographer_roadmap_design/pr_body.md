@@ -1,59 +1,45 @@
 ## 💡 Summary
-Updated the `implementation-plan.md` to reflect that Phase 3 (`tokmd-core` stabilization) is actually complete. Port traits were shipped via `tokmd-io-port` and `tokmd-core` is actively published to crates.io as part of the public product surface.
+This is a learning PR documenting a repository topology constraint. I initially created a patch to fix documentation drift in `docs/implementation-plan.md`, but the PR was rejected as "wrong-repo intake" because the `tokmd` repository acts as a downstream sink for `tokmd-swarm`.
 
 ## 🎯 Why
-The `docs/implementation-plan.md` was misleading contributors by showing Phase 3 as incomplete and missing checkboxes for port traits and crate publishing. This created an artificial contradiction between the documented plan and the shipped reality of the current `1.13.x` workspace.
+Future agents and contributors need to understand the structural boundaries between `tokmd-swarm` and `tokmd` to avoid submitting work to the wrong repository. The prompt instructions directed work against `tokmd` directly, which conflicted with the actual project topology.
 
 ## 🔎 Evidence
-- `docs/implementation-plan.md` showed Phase 3 without a `✅ Complete` marker and unchecked items for port traits and publishing.
-- `docs/architecture-consolidation-plan.md` lists `tokmd-core` under "Public product" and `tokmd-io-port` under "Public contract".
-- `crates/tokmd-core/Cargo.toml` inherits workspace version and has no `publish = false` restriction.
-- `cargo xtask publish-surface --verify-publish` confirms `tokmd-core` is in the publish closure.
+- `receipts.jsonl` containing the PR rejection comment: "Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit."
+- The `.jules/friction/open/cartographer_roadmap_design_obsolete.md` friction artifact detailing the gap.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- **What it is**: Update `Phase 3: tokmd-core Stabilization` to be `✅ Complete` in `docs/implementation-plan.md` and check off the completed work items.
-- **Why it fits this repo and shard**: Directly addresses roadmap/implementation-plan drift, which is the #1 target for Cartographer.
-- **Trade-offs**:
-  - Structure: Keeps the implementation plan accurate to shipped reality.
-  - Velocity: Eliminates contributor confusion about whether the core API is stable/published.
-  - Governance: Aligns docs with actual published crate status.
+### Option A
+- **What it is**: Stop work and report failure.
+- **When to choose it instead**: If no other value could be derived from the attempt.
+- **Trade-offs**: Loses the valuable context of *why* the initial patch failed, preventing future routing improvements.
 
-### Option B
-- **What it is**: Delete Phase 3 entirely.
-- **When to choose it instead**: If the phase was abandoned.
-- **Trade-offs**: We lose the historical record of the work, which goes against the document's purpose as a record.
+### Option B (recommended)
+- **What it is**: Pivot to a learning PR and document the topology constraint as a friction item.
+- **Why it fits this repo and shard**: The instructions mandate finishing with a learning PR if a valid patch is not justified. Since `tokmd` is not the correct origin repo, a patch is not justified.
+- **Trade-offs**:
+  - Structure: Preserves the learning in a structured format.
+  - Velocity: Helps redirect future tooling to the correct repository.
+  - Governance: Documents an undocumented or poorly signaled repository boundary.
 
 ## ✅ Decision
-Proceeded with Option A. The system stabilized `tokmd-core`, and the `tokmd-io-port` crate fulfilled the port requirements.
+Proceeded with Option B. Captured the swarm vs. downstream topology constraint as a friction item.
 
 ## 🧱 Changes made (SRP)
-- `docs/implementation-plan.md`: Marked Phase 3 as `✅ Complete` and checked off port traits and crates.io publish items.
+- `.jules/friction/open/cartographer_roadmap_design_obsolete.md`
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --check
-Documentation is up to date.
-
-$ cargo xtask publish-surface --json --verify-publish
-...
-"violations": []
-
-$ cargo xtask version-consistency
-Checking version consistency against workspace version 1.13.1
-  ✓ Cargo crate versions match 1.13.1.
-  ✓ Cargo workspace dependency versions match 1.13.1.
-  ✓ Node package manifest versions match 1.13.1.
-  ✓ No case-insensitive tracked-path collisions detected.
-Version consistency checks passed.
+$ read_pr_comments
+Body: Closing as wrong-repo intake for the current topology. Normal implementation lands in EffortlessMetrics/tokmd-swarm and is imported into EffortlessMetrics/tokmd by merge commit. If useful, this should be ported as a narrow tokmd-swarm PR with focused proof.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: docs
-- Risk class: low (factual update to stale docs)
-- Rollback: `git checkout docs/implementation-plan.md`
-- Gates run: `cargo xtask docs --check`, `cargo xtask publish-surface`, `cargo xtask version-consistency`
+- Change shape: Learning PR
+- Blast radius: `.jules` artifacts only
+- Risk class: lowest
+- Rollback: N/A
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/cartographer_roadmap_design/envelope.json`
@@ -61,6 +47,7 @@ Version consistency checks passed.
 - `.jules/runs/cartographer_roadmap_design/receipts.jsonl`
 - `.jules/runs/cartographer_roadmap_design/result.json`
 - `.jules/runs/cartographer_roadmap_design/pr_body.md`
+- `.jules/friction/open/cartographer_roadmap_design_obsolete.md`
 
 ## 🔜 Follow-ups
-None
+Port the documentation drift fix (Phase 3 completion status) to `EffortlessMetrics/tokmd-swarm` in a future run.

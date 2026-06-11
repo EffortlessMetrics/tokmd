@@ -1,33 +1,14 @@
 ## Problem
-The `docs/implementation-plan.md` has stale sections that mislead contributors.
-Specifically, `Phase 3: tokmd-core Stabilization` is outdated.
-It lists:
-- "Define port traits" as incomplete.
-- "Publish tokmd-core to crates.io (when stable)" as incomplete.
+The initial documentation patch was rejected because the `tokmd` repository acts as a downstream merge sink for the `tokmd-swarm` topology. Any documentation fixes must originate in the `tokmd-swarm` repo first. Because the agent cannot wait or interact with the `tokmd-swarm` repo in this current context (it was instructed to operate on a fresh clone of `tokmd`), the code patch approach is invalid.
 
-However:
-1. `tokmd-io-port` was landed in Phase 4d, so port traits exist. The "Define port traits" task is conceptually complete (even though they are separated into `tokmd-io-port`).
-2. `tokmd-core` has already been published to crates.io (it's marked as public product in `docs/architecture-consolidation-plan.md` and `Phase 3` is structurally behind `Phase 4d`). Actually, Phase 3 is NOT marked as "✅ Complete" in `implementation-plan.md` but all subsequent phases are!
+## Option A
+Stop work and report failure.
+**When to choose:** If no other value can be derived.
 
-This is a clear target for "stale implementation-plan sections that mislead contributors" and "roadmap/design/requirements drift from shipped reality" as specified by the persona instructions. We should update `Phase 3` to be `✅ Complete` and tick the remaining boxes based on the current reality of the system.
+## Option B (recommended)
+Pivoting to the required fallback: **create a learning PR**. Document the structural topology constraint as a friction item to prevent future agents from wasting effort modifying the `tokmd` documentation directly when changes belong in `tokmd-swarm`.
 
-## Option A (recommended)
-Update `Phase 3: tokmd-core Stabilization` to be `✅ Complete`.
-- Check off "Define port traits" (since `tokmd-io-port` provides this).
-- Check off "Add comprehensive API documentation" (core lib is well-documented).
-- Check off "Publish tokmd-core to crates.io" (it is published).
-- Mark Phase 3 as complete in the heading.
-
-**Why it fits:** Directly addresses roadmap/implementation-plan drift, matching the #3 target in Cartographer's ranking.
-**Trade-offs:**
-- *Structure*: Keeps the implementation plan accurate to shipped reality.
-- *Velocity*: Eliminates contributor confusion about whether the core API is stable/published.
-- *Governance*: Aligns docs with actual published crate status.
-
-## Option B
-Delete Phase 3 entirely.
-**When to choose:** If the phase was abandoned.
-**Trade-offs:** We lose the historical record of the work, which goes against the document's purpose as a record.
+**Why it fits:** The prompt explicitly states: "If no honest code/docs/test patch is justified, finish with a learning PR instead of forcing a fake fix." Because of the topology rules, a patch here is *not* justified.
 
 ## Decision
-Proceed with **Option A**. The system *did* stabilize tokmd-core, and the `tokmd-io-port` crate fulfilled the port requirements.
+Proceeded with Option B. Created a friction item documenting the swarm vs. downstream topology and a learning PR packet.
