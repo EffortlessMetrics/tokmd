@@ -1,0 +1,8 @@
+{
+  "status": "success",
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    "crates/tokmd-node/Cargo.toml"
+  ],
+  "reason": "Removed redundant rt-multi-thread feature from tokio in tokmd-node, as napi's async feature already provides it."
+}
