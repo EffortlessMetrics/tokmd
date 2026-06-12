@@ -1,0 +1,20 @@
+{
+  "outcome_type": "patch",
+  "title": "surveyor: consolidate internal dependency versions to workspace definitions 🧭",
+  "summary": "Updated internal dependencies that bypass the workspace definition to use `workspace = true`.",
+  "target_paths": [
+    "crates/tokmd-analysis-types/Cargo.toml",
+    "crates/tokmd-envelope/Cargo.toml",
+    "crates/tokmd-scan/Cargo.toml",
+    "crates/tokmd-types/Cargo.toml",
+    "crates/tokmd-wasm/Cargo.toml"
+  ],
+  "proof_summary": "Architecture reasoning (workspace structure problem) + targeted cargo check",
+  "gates_run": ["core-rust fallbacks", "cargo check", "cargo clippy", "cargo fmt", "cargo xtask version-consistency"],
+  "friction_items_created": [
+    "FRIC-20240612-001.md"
+  ],
+  "persona_notes_created": [],
+  "rollback": "git reset HEAD --hard",
+  "follow_ups": ["Address tokmd-node redundant feature flag"]
+}

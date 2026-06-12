@@ -1,0 +1,2 @@
+{"ts_utc": "2024-06-12T12:00:00Z", "phase": "investigate", "cwd": "/app", "cmd": "cargo xtask version-consistency", "status": "success", "summary": "Checked version consistency", "key_lines": ["Version consistency checks passed."]}
+{"ts_utc": "2024-06-12T12:05:00Z", "phase": "investigate", "cwd": "/app", "cmd": "cargo check --workspace --all-features", "status": "success", "summary": "Checked workspace", "key_lines": ["Finished `dev` profile [unoptimized + debuginfo] target(s)"]}
