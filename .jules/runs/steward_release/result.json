@@ -1,0 +1,10 @@
+{
+  "outcome": "PR-ready patch",
+  "reason": "Successfully consolidated the `toml` dependency into `[workspace.dependencies]` aligning version to 1.1.2 across `tokmd-gate`, `tokmd-settings`, and `tokmd`.",
+  "files_changed": [
+    "Cargo.toml",
+    "crates/tokmd/Cargo.toml",
+    "crates/tokmd-gate/Cargo.toml",
+    "crates/tokmd-settings/Cargo.toml"
+  ]
+}
