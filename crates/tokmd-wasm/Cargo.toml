@@ -26,7 +26,7 @@ tokmd-envelope.workspace = true
 wasm-bindgen = "0.2.114"
 
 [dev-dependencies]
-tokmd-types.workspace = true
+tokmd-types = { path = "../tokmd-types", version = ">=1.9, <2" }
 wasm-bindgen-test = "0.3.72"
 
 [package.metadata.wasm-pack.profile.release]
