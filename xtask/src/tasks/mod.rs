@@ -9,6 +9,7 @@ pub mod ci_actuals;
 pub mod ci_lane_whitelist;
 pub mod ci_plan;
 pub mod ci_route;
+pub mod ci_runner_health;
 pub mod clippy_exceptions;
 pub mod cockpit;
 pub mod coverage_receipt;

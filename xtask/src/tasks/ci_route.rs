@@ -1,7 +1,17 @@
-use crate::cli::{CiRouteArgs, CiRouteHealth, CiRouteMode};
+use crate::{
+    cli::{CiRouteArgs, CiRouteHealth, CiRouteMode},
+    tasks::ci_runner_health::{
+        CiRunnerHealthReceipt, CiRunnerHealthStatus, read_runner_health_receipt,
+    },
+};
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
-use std::{env, fs, io::Write, path::Path};
+use std::{
+    env, fs,
+    io::Write,
+    path::Path,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub const ROUTE_RECEIPT_SCHEMA: &str = "tokmd.ci_route.v1";
 pub const RUST_SMALL_LANE: &str = "rust-small";
@@ -174,6 +184,7 @@ pub fn decide_route(args: &CiRouteArgs) -> Result<CiRouteReceipt> {
     }
 
     let context = route_context(args);
+    let inputs = resolve_route_inputs(args);
     let mut receipt = if args.mode == CiRouteMode::ForceSelfHosted && !context.trusted_event {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::ManualForceSelfHostedDenied)
     } else if !context.trusted_event {
@@ -189,41 +200,43 @@ pub fn decide_route(args: &CiRouteArgs) -> Result<CiRouteReceipt> {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerTokenUnavailable)
     } else if !runner_api_available(args) {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerApiUnavailable)
-    } else if args.health == CiRouteHealth::Stale {
+    } else if inputs.health == CiRouteHealth::Stale {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerHealthStale)
-    } else if args.health == CiRouteHealth::Degraded {
-        CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerHealthDegraded)
-    } else if args.health == CiRouteHealth::Quarantined {
+    } else if inputs.health == CiRouteHealth::Quarantined {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerQuarantined)
-    } else if args.low_disk {
+    } else if inputs.low_disk {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::LowDisk)
-    } else if args.low_scratch {
+    } else if inputs.low_scratch {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::LowScratch)
-    } else if args.health != CiRouteHealth::Healthy {
+    } else if inputs.health == CiRouteHealth::Degraded {
+        CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerHealthDegraded)
+    } else if inputs.health != CiRouteHealth::Healthy {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::UnknownState)
-    } else if args.eligible_runners == 0
-        || args.healthy_runners == 0
-        || args.busy_runners >= args.healthy_runners
+    } else if inputs.eligible_runners == 0
+        || inputs.healthy_runners == 0
+        || inputs.busy_runners >= inputs.healthy_runners
     {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::SelfHostedCapacityFull)
-    } else if let Some(selected_runner) = &args.selected_runner {
+    } else if let Some(selected_runner) = &inputs.selected_runner {
         CiRouteReceipt::self_hosted(
             context,
-            args.selected_runner_label.clone(),
+            inputs.selected_runner_label.clone(),
             selected_runner.clone(),
-            args.eligible_runners,
-            args.busy_runners,
-            args.healthy_runners,
+            inputs.eligible_runners,
+            inputs.busy_runners,
+            inputs.healthy_runners,
         )
     } else {
         CiRouteReceipt::github_hosted_fallback(context, CiRouteReason::RunnerApiUnavailable)
     };
 
     if receipt.target == CiRouteTarget::GithubHosted {
-        receipt.eligible_runners = args.eligible_runners;
-        receipt.busy_runners = args.busy_runners;
-        receipt.healthy_runners = args.healthy_runners;
+        receipt.eligible_runners = inputs.eligible_runners;
+        receipt.busy_runners = inputs.busy_runners;
+        receipt.healthy_runners = inputs.healthy_runners;
     }
+    receipt.warnings.extend(inputs.warnings);
+    receipt.errors.extend(inputs.errors);
     validate_route_receipt(&receipt)?;
     Ok(receipt)
 }
@@ -345,8 +358,106 @@ fn runner_api_available(args: &CiRouteArgs) -> bool {
     args.runner_api_available.unwrap_or(false)
 }
 
+#[derive(Debug, Clone)]
+struct RouteInputs {
+    eligible_runners: u32,
+    busy_runners: u32,
+    healthy_runners: u32,
+    health: CiRouteHealth,
+    low_disk: bool,
+    low_scratch: bool,
+    selected_runner_label: String,
+    selected_runner: Option<String>,
+    warnings: Vec<String>,
+    errors: Vec<String>,
+}
+
+fn resolve_route_inputs(args: &CiRouteArgs) -> RouteInputs {
+    let mut inputs = RouteInputs {
+        eligible_runners: args.eligible_runners,
+        busy_runners: args.busy_runners,
+        healthy_runners: args.healthy_runners,
+        health: args.health,
+        low_disk: args.low_disk,
+        low_scratch: args.low_scratch,
+        selected_runner_label: args.selected_runner_label.clone(),
+        selected_runner: args.selected_runner.clone(),
+        warnings: Vec::new(),
+        errors: Vec::new(),
+    };
+
+    let Some(health_json) = &args.health_json else {
+        return inputs;
+    };
+
+    let receipt = match read_runner_health_receipt(health_json) {
+        Ok(receipt) => receipt,
+        Err(_) => {
+            inputs.health = CiRouteHealth::Unknown;
+            inputs
+                .warnings
+                .push("runner_health_receipt_unavailable".to_string());
+            return inputs;
+        }
+    };
+
+    apply_health_receipt(args, &mut inputs, &receipt);
+    inputs
+}
+
+fn apply_health_receipt(
+    args: &CiRouteArgs,
+    inputs: &mut RouteInputs,
+    receipt: &CiRunnerHealthReceipt,
+) {
+    if is_health_stale(
+        receipt.generated_at_ms,
+        args.now_ms.unwrap_or_else(now_ms),
+        args.health_max_age_seconds,
+    ) {
+        inputs.health = CiRouteHealth::Stale;
+        inputs
+            .warnings
+            .push("runner_health_receipt_stale".to_string());
+    } else {
+        inputs.health = match receipt.status {
+            CiRunnerHealthStatus::Healthy => CiRouteHealth::Healthy,
+            CiRunnerHealthStatus::Degraded => CiRouteHealth::Degraded,
+            CiRunnerHealthStatus::Quarantined => CiRouteHealth::Quarantined,
+        };
+    }
+
+    inputs.low_disk |= receipt
+        .disk_free_bytes
+        .is_some_and(|free| free < receipt.min_free_bytes);
+    inputs.low_scratch |= receipt
+        .scratch_free_bytes
+        .is_some_and(|free| free < receipt.min_free_bytes);
+
+    inputs.eligible_runners = inputs.eligible_runners.max(1);
+    if receipt.status == CiRunnerHealthStatus::Healthy && inputs.health == CiRouteHealth::Healthy {
+        inputs.healthy_runners = inputs.healthy_runners.max(1);
+    }
+    inputs.selected_runner = inputs
+        .selected_runner
+        .clone()
+        .or_else(|| Some(receipt.runner_name.clone()));
+}
+
+fn is_health_stale(generated_at_ms: u128, now_ms: u128, max_age_seconds: u64) -> bool {
+    let max_age_ms = u128::from(max_age_seconds) * 1_000;
+    now_ms.saturating_sub(generated_at_ms) > max_age_ms
+}
+
 fn env_non_empty(name: &str) -> Option<String> {
     env::var(name).ok().filter(|value| !value.trim().is_empty())
+}
+
+fn now_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
 }
 
 fn append_github_output(path: &Path, receipt: &CiRouteReceipt, json_path: &Path) -> Result<()> {
@@ -435,6 +546,7 @@ fn looks_like_secret(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tasks::ci_runner_health::ToolHealth;
     use std::fs;
 
     fn trusted_context() -> CiRouteContext {
@@ -544,6 +656,54 @@ mod tests {
         }
     }
 
+    fn health_receipt(
+        status: CiRunnerHealthStatus,
+        generated_at_ms: u128,
+    ) -> CiRunnerHealthReceipt {
+        CiRunnerHealthReceipt {
+            schema: crate::tasks::ci_runner_health::RUNNER_HEALTH_SCHEMA.to_string(),
+            runner_name: "CPX42".to_string(),
+            labels: vec![
+                "em-ci-small".to_string(),
+                "linux".to_string(),
+                "self-hosted".to_string(),
+            ],
+            generated_at_ms,
+            status,
+            reason: status.as_str().to_string(),
+            disk_free_bytes: Some(16 * 1024 * 1024 * 1024),
+            scratch_free_bytes: Some(16 * 1024 * 1024 * 1024),
+            min_free_bytes: 8 * 1024 * 1024 * 1024,
+            rustc: ToolHealth {
+                available: true,
+                version: Some("rustc 1.95.0".to_string()),
+            },
+            git: ToolHealth {
+                available: true,
+                version: Some("git version 2.50.0".to_string()),
+            },
+            docker: ToolHealth {
+                available: false,
+                version: None,
+            },
+            warnings: Vec::new(),
+            errors: Vec::new(),
+        }
+    }
+
+    fn write_health_receipt(
+        dir: &tempfile::TempDir,
+        receipt: &CiRunnerHealthReceipt,
+    ) -> std::path::PathBuf {
+        let path = dir.path().join("runner-health.json");
+        fs::write(
+            &path,
+            serde_json::to_string_pretty(receipt).expect("health json"),
+        )
+        .expect("write health");
+        path
+    }
+
     #[test]
     fn same_repo_pr_can_select_self_hosted_when_capacity_is_healthy() {
         let receipt = decide_route(&CiRouteArgs {
@@ -560,6 +720,139 @@ mod tests {
         assert_eq!(receipt.target, CiRouteTarget::SelfHosted);
         assert_eq!(receipt.reason, CiRouteReason::TrustedCapacityAvailable);
         assert_eq!(receipt.selected_runner.as_deref(), Some("CPX42"));
+    }
+
+    #[test]
+    fn fresh_healthy_health_receipt_can_select_self_hosted() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let health_json = write_health_receipt(
+            &dir,
+            &health_receipt(CiRunnerHealthStatus::Healthy, 1_700_000_000_000),
+        );
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            now_ms: Some(1_700_000_000_500),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::SelfHosted);
+        assert_eq!(receipt.reason, CiRouteReason::TrustedCapacityAvailable);
+        assert_eq!(receipt.eligible_runners, 1);
+        assert_eq!(receipt.healthy_runners, 1);
+        assert_eq!(receipt.selected_runner.as_deref(), Some("CPX42"));
+    }
+
+    #[test]
+    fn stale_health_receipt_routes_to_github_hosted() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let health_json = write_health_receipt(
+            &dir,
+            &health_receipt(CiRunnerHealthStatus::Healthy, 1_700_000_000_000),
+        );
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            now_ms: Some(1_700_000_901_001),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::GithubHosted);
+        assert_eq!(receipt.reason, CiRouteReason::RunnerHealthStale);
+        assert!(
+            receipt
+                .warnings
+                .contains(&"runner_health_receipt_stale".to_string())
+        );
+    }
+
+    #[test]
+    fn degraded_health_receipt_routes_to_github_hosted() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let health_json = write_health_receipt(
+            &dir,
+            &health_receipt(CiRunnerHealthStatus::Degraded, 1_700_000_000_000),
+        );
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            now_ms: Some(1_700_000_000_500),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::GithubHosted);
+        assert_eq!(receipt.reason, CiRouteReason::RunnerHealthDegraded);
+        assert_eq!(receipt.eligible_runners, 1);
+        assert_eq!(receipt.healthy_runners, 0);
+    }
+
+    #[test]
+    fn low_scratch_health_receipt_uses_low_scratch_reason() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let mut health = health_receipt(CiRunnerHealthStatus::Degraded, 1_700_000_000_000);
+        health.reason = "scratch_free_below_guard".to_string();
+        health.scratch_free_bytes = Some(1024);
+        let health_json = write_health_receipt(&dir, &health);
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            now_ms: Some(1_700_000_000_500),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::GithubHosted);
+        assert_eq!(receipt.reason, CiRouteReason::LowScratch);
+        assert_eq!(receipt.eligible_runners, 1);
+        assert_eq!(receipt.healthy_runners, 0);
+    }
+
+    #[test]
+    fn quarantined_health_receipt_routes_to_github_hosted() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let health_json = write_health_receipt(
+            &dir,
+            &health_receipt(CiRunnerHealthStatus::Quarantined, 1_700_000_000_000),
+        );
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            now_ms: Some(1_700_000_000_500),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::GithubHosted);
+        assert_eq!(receipt.reason, CiRouteReason::RunnerQuarantined);
+    }
+
+    #[test]
+    fn unreadable_health_receipt_falls_back_to_unknown_state() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let health_json = dir.path().join("missing-health.json");
+
+        let receipt = decide_route(&CiRouteArgs {
+            trusted_event: Some(true),
+            health_json: Some(health_json),
+            ..route_args()
+        })
+        .expect("route");
+
+        assert_eq!(receipt.target, CiRouteTarget::GithubHosted);
+        assert_eq!(receipt.reason, CiRouteReason::UnknownState);
+        assert!(
+            receipt
+                .warnings
+                .contains(&"runner_health_receipt_unavailable".to_string())
+        );
     }
 
     #[test]
