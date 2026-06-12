@@ -59,3 +59,5 @@ Finished `dev` profile [unoptimized + debuginfo] target(s)
 
 ## 🔜 Follow-ups
 - FRIC-20240612-001: Redundant `tokio` feature flag in `tokmd-node`.
+
+/ci-budget-override
