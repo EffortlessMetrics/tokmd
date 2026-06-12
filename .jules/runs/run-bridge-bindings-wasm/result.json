@@ -1,0 +1,16 @@
+{
+  "outcome": "patch",
+  "title": "bridge: delegate js runner validation to rust core 🌉",
+  "summary": "Removed redundant argument pre-validation from web/runner/messages.js, delegating it entirely to tokmd-wasm. This ensures consistent, high-quality invalid_settings errors across the binding and core.",
+  "target_paths": [
+    "web/runner/messages.js",
+    "web/runner/messages.test.mjs",
+    "web/runner/runtime.test.mjs"
+  ],
+  "proof_summary": "Tests pass and web/runner now accurately reflects tokmd-wasm error context.",
+  "gates_run": ["cd web/runner && npm test", "cargo test -p tokmd-wasm"],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git checkout web/runner/messages.js web/runner/messages.test.mjs web/runner/runtime.test.mjs",
+  "follow_ups": []
+}

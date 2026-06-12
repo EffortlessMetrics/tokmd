@@ -52,20 +52,6 @@ test("runtime rejects malformed messages", async () => {
     assert.equal(isProtocolMessage(message), true);
 });
 
-test("runtime rejects run messages with invalid inputs shape and retains requestId", async () => {
-    const message = await handleRunnerMessage(
-        createRunMessage({
-            requestId: "run-2",
-            mode: "lang",
-            args: { inputs: [{ path: "", text: "bad\n" }] },
-        })
-    );
-
-    assert.equal(message.type, MESSAGE_TYPES.ERROR);
-    assert.equal(message.error.code, "invalid_message");
-    assert.equal(message.requestId, "run-2");
-});
-
 test("runtime rejects native-only modes before runner execution", async () => {
     const message = await handleRunnerMessage(
         createRunMessage({
@@ -525,4 +511,26 @@ test("runtime emits analyze progress before analyze runner failures", async () =
         ["start", "fetch", "analyze", "error"]
     );
     assert.match(progress.at(-1).message, /analysis exploded/);
+});
+
+test("runtime delegates invalid inputs shape to runner and extracts invalid_settings", async () => {
+    // createStubRunner doesn't validate inputs, so we simulate the WASM runner failure
+    const runner = {
+        runLang() {
+            throw new Error("[invalid_settings] a non-empty relative file path");
+        },
+    };
+
+    const message = await handleRunnerMessage(
+        createRunMessage({
+            requestId: "run-invalid",
+            mode: "lang",
+            args: { inputs: [{ path: "", text: "bad\n" }] },
+        }),
+        { runner }
+    );
+
+    assert.equal(message.type, MESSAGE_TYPES.ERROR);
+    assert.equal(message.error.code, "invalid_settings");
+    assert.equal(message.requestId, "run-invalid");
 });
