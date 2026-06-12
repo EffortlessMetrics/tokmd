@@ -1,0 +1,6 @@
+{
+  "title": "fuzzer: add deterministic parser robustness proof 🌪️",
+  "summary": "Added a property test to ensure TomlConfig::parse never panics on arbitrary string input, acting as a deterministic fuzz regression.",
+  "outcome": "proof-improvement patch",
+  "proof_summary": "cargo test -p tokmd-settings --test properties passed successfully, including the new toml_config_parse_no_panic test."
+}

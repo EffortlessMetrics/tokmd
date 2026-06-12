@@ -368,6 +368,14 @@ proptest! {
 }
 
 proptest! {
+    /// Deterministic regression from fuzzing: config parse should not panic on any string.
+    #[test]
+    fn toml_config_parse_no_panic(config_str in "\\PC*") {
+        let _ = TomlConfig::parse(&config_str);
+    }
+}
+
+proptest! {
     #[test]
     fn module_config_toml_roundtrip(
         depth in proptest::option::of(0usize..100),
