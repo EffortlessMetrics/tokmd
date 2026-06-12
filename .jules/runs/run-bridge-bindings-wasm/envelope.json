@@ -12,5 +12,6 @@
     "docs/**"
   ],
   "gate_profile": "compat-matrix",
-  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"]
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
+  "ci-budget-override": true
 }
