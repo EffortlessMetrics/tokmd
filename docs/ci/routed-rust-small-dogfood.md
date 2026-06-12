@@ -101,6 +101,28 @@ estimate without the normal CI actuals path.
 The result receipt correctly preserved missing/available telemetry as
 observation data instead of turning it into route authority.
 
+## Manual proof runs
+
+After the first PR dogfood run, the manual proof modes were dispatched
+sequentially on `main` so workflow-level concurrency could not cancel an older
+pending dispatch. Each run selected GitHub-hosted before implementation
+dispatch, skipped the self-hosted implementation job, completed the selected
+GitHub-hosted implementation, and passed `Tokmd Rust Small Result`.
+
+| Mode | Run | Target | Reason | Self-hosted | GitHub-hosted | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| `simulate-full` | [`27396775371`](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/27396775371) | `github-hosted` | `self_hosted_capacity_full` | `skipped` | `success` | `success` |
+| `simulate-unhealthy` | [`27397251268`](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/27397251268) | `github-hosted` | `runner_health_degraded` | `skipped` | `success` | `success` |
+| `simulate-api-unavailable` | [`27397718187`](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/27397718187) | `github-hosted` | `runner_api_unavailable` | `skipped` | `success` | `success` |
+| `simulate-untrusted` | [`27398214166`](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/27398214166) | `github-hosted` | `untrusted_event` | `skipped` | `success` | `success` |
+| `force-github-hosted` | [`27398703674`](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/27398703674) | `github-hosted` | `manual_force_github_hosted` | `skipped` | `success` | `success` |
+
+The downloaded `route-rust-small` and `routed-rust-small-result` artifacts for
+those runs showed the expected route reason, selected job
+`rust-small-github`, selected result `success`, and final status `success`.
+The hosted implementation duration was about 10.5 to 10.9 minutes with 1 to 2
+seconds of queue time in these observations.
+
 ## Cases not yet observed live
 
 These cases remain `Unknown` from live hosted evidence in this dogfood note:
@@ -108,11 +130,6 @@ These cases remain `Unknown` from live hosted evidence in this dogfood note:
 | Case | Status | Next proof |
 | --- | --- | --- |
 | Same-repo PR with idle healthy self-hosted capacity | Unknown | Observe a real PR or manual run when an eligible runner is idle and healthy. |
-| `workflow_dispatch` `simulate-full` | Not run live here | Dispatch off-hours and confirm hosted fallback before implementation dispatch. |
-| `workflow_dispatch` `simulate-unhealthy` | Not run live here | Dispatch off-hours and confirm hosted fallback before implementation dispatch. |
-| `workflow_dispatch` `simulate-api-unavailable` | Not run live here | Dispatch off-hours and confirm hosted fallback before implementation dispatch. |
-| `workflow_dispatch` `simulate-untrusted` | Not run live here | Dispatch off-hours and confirm hosted fallback before implementation dispatch. |
-| Manual `force-github-hosted` | Not run live here | Dispatch when a hosted diagnostic run is needed. |
 
 The workflow-contract tests cover the proof-mode wiring, and the route helper
 tests cover the decision table. Those tests are not substitutes for live fleet
@@ -131,8 +148,6 @@ observations.
 
 ## Follow-ups
 
-- Run the manual simulation modes sequentially during a low-pressure window and
-  append the run ids here.
 - Capture one self-hosted-selected run when an eligible runner is idle and
   health is fresh.
 - Keep branch protection pinned to `Tokmd Rust Small Result`; do not require
