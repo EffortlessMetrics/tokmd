@@ -34,6 +34,8 @@ pub fn run(args: DocsArgs) -> Result<()> {
         ("tools", "tools"),
         ("cockpit", "cockpit"),
         ("sensor", "sensor"),
+        ("syntax", "syntax"),
+        ("evidence-packet", "evidence-packet"),
         ("gate", "gate"),
         ("completions", "completions"),
     ];

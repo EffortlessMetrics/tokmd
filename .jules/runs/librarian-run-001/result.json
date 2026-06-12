@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome": "patch",
+  "description": "Fixed silent documentation drift by adding missing syntax and evidence-packet commands to reference-cli.md marker list in xtask/src/tasks/docs.rs."
+}

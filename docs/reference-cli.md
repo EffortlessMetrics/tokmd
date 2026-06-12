@@ -1541,14 +1541,14 @@ Arguments:
 Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
-          
+
           Examples: --exclude target --exclude "**/*.min.js"
-          
+
           [aliases: --ignore]
 
       --max-bytes <MAX_BYTES>
           Maximum bytes per file before syntax parsing is skipped
-          
+
           [default: 1048576]
 
       --include-generated-vendor
@@ -1559,7 +1559,7 @@ Options:
 
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
-          
+
           [aliases: --view]
 
   -h, --help
