@@ -201,6 +201,7 @@ Result semantics:
 - selected implementation succeeds -> `Tokmd Rust Small Result` succeeds;
 - selected implementation fails, times out, or is cancelled -> result fails;
 - non-selected implementation jobs are ignored when skipped;
+- non-selected implementation jobs that run unexpectedly -> result fails;
 - router failure without a safe fallback -> result fails.
 
 ## Manual proof modes

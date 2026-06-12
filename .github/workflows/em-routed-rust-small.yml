@@ -531,6 +531,8 @@ jobs:
           status="failure"
           selected_result=""
           selected_job=""
+          unselected_result=""
+          unselected_job=""
           message=""
 
           if [ "${ROUTER_RESULT}" != "success" ]; then
@@ -540,29 +542,39 @@ jobs:
               self-hosted)
                 selected_job="rust-small-self-hosted"
                 selected_result="${SELF_HOSTED_RESULT}"
+                unselected_job="rust-small-github"
+                unselected_result="${GITHUB_RESULT}"
                 ;;
               github-hosted)
                 selected_job="rust-small-github"
                 selected_result="${GITHUB_RESULT}"
+                unselected_job="rust-small-self-hosted"
+                unselected_result="${SELF_HOSTED_RESULT}"
                 ;;
               none)
                 selected_job="none"
                 selected_result="none"
+                unselected_job="none"
+                unselected_result="none"
                 message="No execution lane selected (reason=${REASON}). Rerun via workflow_dispatch with force_target=github-hosted if a hosted diagnostic run is needed."
                 ;;
               *)
                 selected_job="unknown"
                 selected_result="unknown"
+                unselected_job="unknown"
+                unselected_result="unknown"
                 message="router produced unknown target: ${TARGET}"
                 ;;
             esac
 
-            if [ "${selected_result}" = "success" ]; then
+            if [ "${selected_job}" != "none" ] && [ "${selected_job}" != "unknown" ] && [ "${selected_result}" != "success" ]; then
+              message="selected target ${TARGET} but ${selected_job} result was ${selected_result}"
+            elif [ "${unselected_job}" != "none" ] && [ "${unselected_job}" != "unknown" ] && [ "${unselected_result}" != "skipped" ]; then
+              message="selected target ${TARGET} succeeded but unselected ${unselected_job} result was ${unselected_result}; expected exactly one implementation job"
+            elif [ "${selected_result}" = "success" ]; then
               ok="true"
               status="success"
-              message="selected target ${TARGET} succeeded"
-            elif [ "${selected_job}" != "none" ] && [ "${selected_job}" != "unknown" ]; then
-              message="selected target ${TARGET} but ${selected_job} result was ${selected_result}"
+              message="selected target ${TARGET} succeeded and unselected ${unselected_job} stayed skipped"
             fi
           fi
 
@@ -659,6 +671,7 @@ jobs:
               echo "| selected runner label | \`${SELECTED_RUNNER_LABEL:-<empty>}\` |"
               echo "| selected job | \`${selected_job:-<empty>}\` |"
               echo "| selected result | \`${selected_result:-<empty>}\` |"
+              echo "| result basis | \`${message:-<empty>}\` |"
               echo "| selected duration seconds | \`${SELECTED_DURATION_SECONDS:-unavailable}\` |"
               echo "| selected queue seconds | \`${SELECTED_QUEUE_SECONDS:-unavailable}\` |"
               echo "| selected runner name | \`${SELECTED_RUNNER_NAME:-unavailable}\` |"

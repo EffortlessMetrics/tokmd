@@ -439,7 +439,10 @@ run.rerun_count      derived rerun count for rerun-storm accounting
 
 If `selected.result` failed, inspect the selected implementation job log next.
 If the selected job succeeded but the normalized result failed, inspect the
-result job message and router fields first.
+result job message and router fields first. A selected implementation can pass
+while the normalized result still fails when the unselected implementation job
+also ran or did not report `skipped`; routed Rust Small expects exactly one
+implementation path per run.
 
 CPX42 uses the pinned Rust 1.95 toolchain directly on the host, with
 `/mnt/ci-scratch` `TMPDIR` prepared before the toolchain action runs. CX43 and

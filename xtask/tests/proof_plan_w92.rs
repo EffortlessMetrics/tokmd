@@ -624,6 +624,18 @@ fn routed_rust_small_result_uploads_normalized_receipt() {
         "routed result receipt should record the selected implementation"
     );
     assert!(
+        workflow.contains("unselected_job=\"rust-small-github\"")
+            && workflow.contains("unselected_result=\"${GITHUB_RESULT}\"")
+            && workflow.contains("unselected_job=\"rust-small-self-hosted\"")
+            && workflow.contains("unselected_result=\"${SELF_HOSTED_RESULT}\""),
+        "routed result job should track the unselected implementation path for fail-closed aggregation"
+    );
+    assert!(
+        workflow.contains("[ \"${unselected_result}\" != \"skipped\" ]")
+            && workflow.contains("expected exactly one implementation job"),
+        "routed result job should fail when both implementation jobs run or the unselected path is not skipped"
+    );
+    assert!(
         workflow.contains("\"selected_runner_label\": env(\"ROUTER_SELECTED_RUNNER_LABEL\")"),
         "routed result receipt should preserve the selected runner label"
     );
@@ -663,8 +675,9 @@ fn routed_rust_small_result_uploads_normalized_receipt() {
     assert!(
         workflow.contains("| selected duration seconds |")
             && workflow.contains("| selected queue seconds |")
+            && workflow.contains("| result basis |")
             && workflow.contains("| cache note |"),
-        "routed result summary should expose timing and cache telemetry"
+        "routed result summary should expose basis, timing, and cache telemetry"
     );
     assert!(
         workflow.contains("python -m json.tool target/ci/routed-rust-small-result.json"),
