@@ -1,0 +1,12 @@
+{
+  "outcome": "proof_patch",
+  "title": "librarian: add doctests for core settings structures \ud83d\udcda",
+  "summary": "Added executable doctests for `TomlConfig`, `ScanConfig`, `ModuleConfig`, `UserConfig`, and `Profile` to ensure configuration parsing is correct and verifiable.",
+  "target_paths": ["crates/tokmd-settings/src/config.rs", "crates/tokmd-settings/src/profile.rs"],
+  "proof_summary": "Doctests assert successful parsing and verify data layout.",
+  "gates_run": ["cargo test -p tokmd-settings --doc"],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd-settings/src/config.rs crates/tokmd-settings/src/profile.rs",
+  "follow_ups": []
+}
