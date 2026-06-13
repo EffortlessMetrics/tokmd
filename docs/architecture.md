@@ -254,7 +254,7 @@ Host-backed enrichers remain explicit capability misses in browser mode. Git-his
 
 ### Current browser constraints
 
-- Broaden browser analysis only where the preset can stay rootless and capability-honest.
+- Broaden browser analysis only where the preset can stay rootless and capability-honest; building on the polish delivered in `v1.11.0`.
 
 ### Current browser non-goals
 

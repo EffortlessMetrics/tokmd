@@ -1,0 +1,13 @@
+--- docs/architecture.md
++++ docs/architecture.md
+@@ -254,9 +254,9 @@
+
+ ### Current browser constraints
+
+-- Broaden browser analysis only where the preset can stay rootless and capability-honest.
++- Broaden browser analysis only where the preset can stay rootless and capability-honest; building on the polish delivered in `v1.11.0`.
+
+ ### Current browser non-goals
+
+ - No browser-side git-history churn/hotspot metrics or other heavy host tooling.
+ - No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy.

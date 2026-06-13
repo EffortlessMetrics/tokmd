@@ -1,0 +1,10 @@
+--- docs/NOW.md
++++ docs/NOW.md
+@@ -23,6 +23,6 @@
+
+ ## LATER (roadmap)
+
+-- **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led.
++- **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led; in-browser analysis shipped and was polished in `v1.11.0`.
+ - **MCP/server mode**: expose stable read-only receipt resources before adding long-lived execution surfaces.
+ - **AST shadow evidence**: continue only behind shadow/developer-facing evidence until comparison data justifies public behavior or schema changes.
