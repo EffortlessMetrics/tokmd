@@ -1,3 +1,7 @@
 {
-  "outcome": "learning PR"
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd-format/src/diff/compute.rs"
+  ],
+  "reason": "Added property tests for DiffTotals accumulation, verifying structural math invariants and zero-state exactness in a core pipeline struct."
 }

@@ -7,14 +7,8 @@
     "crates/tokmd-types/**",
     "crates/tokmd-scan/**",
     "crates/tokmd-model/**",
-    "crates/tokmd-format/**",
-    "docs/schema.json",
-    "docs/SCHEMA.md",
-    "crates/tokmd/tests/**"
+    "crates/tokmd-format/**"
   ],
   "gate_profile": "mutation",
-  "allowed_outcomes": [
-    "proof-improvement patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
 }

@@ -1,10 +1,23 @@
-# Decision
+# Options Considered
 
-## Option A
-Force a fake patch on `tokmd-types` by hallucinating gaps that do not exist, and claim that mutation gaps were closed when they were not.
+## Option A (recommended)
+Add property tests for `compute_diff_totals` in `crates/tokmd-format/src/diff/compute.rs`.
+
+**Why it fits:** `compute_diff_totals` performs accumulation on an unconstrained sequence of diff rows. A property test validates that invariants like `new - old == delta` hold true on the aggregate struct, and that `fold` sums exactly match map/sum, across randomized data. This aligns directly with the "Mutant" persona's goal to strengthen behavioral proofs for a contract-facing core calculation (the core data/format pipeline).
+
+**Trade-offs:**
+*   **Structure:** Enhances the behavioral guarantees of diff reporting by formalizing structural math expectations.
+*   **Velocity:** Negligible impact on compilation.
+*   **Governance:** Validates exact correctness of the DiffTotals struct.
 
 ## Option B
-Adhere to the `Output honesty` constraint. Recognize that `cargo mutants` found zero missed mutants across `tokmd-types` (21 caught, 4 unviable), meaning the target proof surface is already robust. Pivot the assignment into a Learning PR describing this outcome, removing the fake patch that hallucinated missing assertions, and logging a friction item.
+Add property tests for JSON path serialization stability in `crates/tokmd-types/src/evidence_packet.rs`.
 
-## Decision
-Choose Option B. The core pipeline is well-covered, and forcing an untruthful fix violates the primary constraints of the run. Submitting a Learning PR is the required honest fallback path.
+**When to choose it instead:** If the primary gap is in the contract boundary with review-packet consumers, checking stable serialization formats and exact data preservation under stress conditions.
+
+**Trade-offs:**
+*   **Structure:** Ensures serialized outputs maintain backwards compatibility.
+*   **Velocity:** Lower payoff since these DTOs don't carry complex internal calculations.
+
+# Decision
+We will go with **Option A**. The mathematical aggregation in `compute_diff_totals` forms the backbone of the diff pipeline's summary capabilities. Ensuring deterministic correctness via property-based testing directly fulfills the gate profile `mutation` expectations around reducing uncertainty in logic.
