@@ -166,3 +166,123 @@ pub fn compute_diff_totals(rows: &[DiffRow]) -> DiffTotals {
 
     totals
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use tokmd_types::DiffRow;
+
+    fn arb_diff_row() -> impl Strategy<Value = DiffRow> {
+        (
+            0usize..10000,
+            0usize..10000,
+            0usize..10000,
+            0usize..10000,
+            0usize..1000,
+            0usize..1000,
+            0usize..1000000,
+            0usize..1000000,
+            0usize..100000,
+            0usize..100000,
+        )
+            .prop_map(
+                |(
+                    old_code,
+                    new_code,
+                    old_lines,
+                    new_lines,
+                    old_files,
+                    new_files,
+                    old_bytes,
+                    new_bytes,
+                    old_tokens,
+                    new_tokens,
+                )| {
+                    DiffRow {
+                        lang: "TestLang".into(),
+                        old_code,
+                        new_code,
+                        delta_code: new_code as i64 - old_code as i64,
+                        old_lines,
+                        new_lines,
+                        delta_lines: new_lines as i64 - old_lines as i64,
+                        old_files,
+                        new_files,
+                        delta_files: new_files as i64 - old_files as i64,
+                        old_bytes,
+                        new_bytes,
+                        delta_bytes: new_bytes as i64 - old_bytes as i64,
+                        old_tokens,
+                        new_tokens,
+                        delta_tokens: new_tokens as i64 - old_tokens as i64,
+                    }
+                },
+            )
+    }
+
+    proptest! {
+        #[test]
+        fn diff_totals_preserves_row_sums(rows in prop::collection::vec(arb_diff_row(), 0..10)) {
+            let totals = compute_diff_totals(&rows);
+
+            let sum_old_code: usize = rows.iter().map(|r| r.old_code).sum();
+            let sum_new_code: usize = rows.iter().map(|r| r.new_code).sum();
+            let sum_delta_code: i64 = rows.iter().map(|r| r.delta_code).sum();
+
+            let sum_old_lines: usize = rows.iter().map(|r| r.old_lines).sum();
+            let sum_new_lines: usize = rows.iter().map(|r| r.new_lines).sum();
+            let sum_delta_lines: i64 = rows.iter().map(|r| r.delta_lines).sum();
+
+            let sum_old_files: usize = rows.iter().map(|r| r.old_files).sum();
+            let sum_new_files: usize = rows.iter().map(|r| r.new_files).sum();
+            let sum_delta_files: i64 = rows.iter().map(|r| r.delta_files).sum();
+
+            let sum_old_bytes: usize = rows.iter().map(|r| r.old_bytes).sum();
+            let sum_new_bytes: usize = rows.iter().map(|r| r.new_bytes).sum();
+            let sum_delta_bytes: i64 = rows.iter().map(|r| r.delta_bytes).sum();
+
+            let sum_old_tokens: usize = rows.iter().map(|r| r.old_tokens).sum();
+            let sum_new_tokens: usize = rows.iter().map(|r| r.new_tokens).sum();
+            let sum_delta_tokens: i64 = rows.iter().map(|r| r.delta_tokens).sum();
+
+            prop_assert_eq!(totals.old_code, sum_old_code);
+            prop_assert_eq!(totals.new_code, sum_new_code);
+            prop_assert_eq!(totals.delta_code, sum_delta_code);
+
+            prop_assert_eq!(totals.old_lines, sum_old_lines);
+            prop_assert_eq!(totals.new_lines, sum_new_lines);
+            prop_assert_eq!(totals.delta_lines, sum_delta_lines);
+
+            prop_assert_eq!(totals.old_files, sum_old_files);
+            prop_assert_eq!(totals.new_files, sum_new_files);
+            prop_assert_eq!(totals.delta_files, sum_delta_files);
+
+            prop_assert_eq!(totals.old_bytes, sum_old_bytes);
+            prop_assert_eq!(totals.new_bytes, sum_new_bytes);
+            prop_assert_eq!(totals.delta_bytes, sum_delta_bytes);
+
+            prop_assert_eq!(totals.old_tokens, sum_old_tokens);
+            prop_assert_eq!(totals.new_tokens, sum_new_tokens);
+            prop_assert_eq!(totals.delta_tokens, sum_delta_tokens);
+        }
+
+        #[test]
+        fn diff_totals_maintains_delta_invariants(rows in prop::collection::vec(arb_diff_row(), 0..10)) {
+            let totals = compute_diff_totals(&rows);
+
+            prop_assert_eq!(totals.delta_code, totals.new_code as i64 - totals.old_code as i64);
+            prop_assert_eq!(totals.delta_lines, totals.new_lines as i64 - totals.old_lines as i64);
+            prop_assert_eq!(totals.delta_files, totals.new_files as i64 - totals.old_files as i64);
+            prop_assert_eq!(totals.delta_bytes, totals.new_bytes as i64 - totals.old_bytes as i64);
+            prop_assert_eq!(totals.delta_tokens, totals.new_tokens as i64 - totals.old_tokens as i64);
+        }
+
+        #[test]
+        fn diff_totals_empty_is_zero(_dummy in 0..1u8) {
+            let totals = compute_diff_totals(&[]);
+            let zero = DiffTotals::default();
+            prop_assert_eq!(totals, zero);
+        }
+    }
+}
