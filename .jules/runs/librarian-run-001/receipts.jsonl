@@ -1,0 +1,12 @@
+{"cmd": "ls -la"}
+{"cmd": "mkdir -p .jules/runs/librarian-run-001"}
+{"cmd": "cat << EOF > .jules/runs/librarian-run-001/decision.md"}
+{"cmd": "git diff xtask/src/tasks/docs.rs"}
+{"cmd": "cargo xtask docs --update"}
+{"cmd": "git diff docs/reference-cli.md"}
+{"cmd": "cat << EOF > .jules/runs/librarian-run-001/result.json"}
+{"cmd": "cat << EOF > .jules/runs/librarian-run-001/pr_body.md"}
+{"cmd": "cargo xtask docs --check"}
+{"cmd": "cargo fmt -- --check"}
+{"cmd": "cargo clippy -- -D warnings"}
+{"cmd": "cargo test --doc"}
