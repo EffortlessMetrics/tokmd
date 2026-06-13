@@ -5,8 +5,8 @@
 use std::path::PathBuf;
 
 use tokmd_analysis::{
-    AnalysisContext, AnalysisLimits, AnalysisRequest, PresetKind, AnalysisPreset,
-    analyze, ImportGranularity, NearDupScope,
+    AnalysisContext, AnalysisLimits, AnalysisPreset, AnalysisRequest, ImportGranularity,
+    NearDupScope, PresetKind, analyze,
 };
 use tokmd_analysis_types::{AnalysisArgsMeta, AnalysisSource};
 use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow, ScanStatus};
@@ -91,7 +91,10 @@ fn file_row(path: &str, module: &str, lang: &str, code: usize) -> FileRow {
     }
 }
 
-fn run_analysis(export: ExportData, preset: AnalysisPreset) -> tokmd_analysis_types::AnalysisReceipt {
+fn run_analysis(
+    export: ExportData,
+    preset: AnalysisPreset,
+) -> tokmd_analysis_types::AnalysisReceipt {
     let mut req = make_req(preset);
     req.git = Some(false);
     analyze(make_ctx(export), req).expect("analysis failed")
@@ -144,7 +147,8 @@ fn given_empty_repository_when_analyzing_receipt_preset_then_valid_receipt_with_
 }
 
 #[test]
-fn given_multi_module_project_when_analyzing_receipt_preset_then_modules_represented_in_breakdown() {
+fn given_multi_module_project_when_analyzing_receipt_preset_then_modules_represented_in_breakdown()
+{
     // Given
     let export = ExportData {
         rows: vec![
