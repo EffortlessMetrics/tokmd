@@ -1,0 +1,5 @@
+{
+  "outcome": "proof-improvement patch",
+  "reason": "Found missing BDD/scenario test coverage for `gate` and `cockpit` interfaces. I created Given/When/Then scenarios to lock in edge-case behaviour without touching the implementation.",
+  "diff_summary": "Added crates/tokmd/tests/bdd_gate_scenarios_w50.rs and bdd_cockpit_scenarios_w50.rs"
+}

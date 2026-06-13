@@ -1,0 +1,2 @@
+{"cmd": "cargo test -p tokmd --test bdd_gate_scenarios_w50", "status": "ok. 3 passed; 0 failed"}
+{"cmd": "cargo test -p tokmd --test bdd_cockpit_scenarios_w50", "status": "ok. 2 passed; 0 failed"}
