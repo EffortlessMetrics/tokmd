@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "chosen_option": "A",
+  "files_changed": ["policy/non-rust-allowlist.toml"]
+}

@@ -1,0 +1,4 @@
+{"command": "cargo xtask check-file-policy --strict", "outcome": "failed initially, files not in allowlist. Passed after updating allowlist."}
+{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed."}
+{"command": "cargo xtask docs --check", "outcome": "Documentation is up to date."}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Publish plan generated successfully."}
