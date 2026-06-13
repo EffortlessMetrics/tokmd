@@ -1,0 +1,5 @@
+{
+  "outcome": "success",
+  "patch_type": "compat",
+  "description": "Removed `ast` feature from `tokmd` default features to fix wasm32-unknown-unknown build failure."
+}
