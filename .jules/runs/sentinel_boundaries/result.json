@@ -1,5 +1,4 @@
 {
-  "outcome": "learning",
-  "patch_type": "docs",
-  "reason": "No direct boundary-leakage was found in operations for tokmd-core. Most usages of bare Command::new(\"git\") were in test setups, not operational paths. FFI boundary hardening is well-contained. Producing a learning PR and friction item."
+  "outcome": "learning PR",
+  "reason": "The strongest target found (un-isolated `cargo` subprocess executions) is in `crates/tokmd-cockpit`, which is outside the assigned shard paths. Recorded as a friction item per the prompt instructions."
 }
