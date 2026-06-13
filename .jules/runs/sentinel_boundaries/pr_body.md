@@ -1,52 +1,42 @@
 ## 💡 Summary
-This is a learning PR. I investigated `tokmd-core` and adjacent interfaces for subprocess boundary leakage (specifically bare `Command::new("git")` usage). While I found several instances, they were strictly contained within test setups rather than operational production paths.
+This is a learning PR. Investigated subprocess execution boundaries in the `interfaces` shard. Found that the strongest trust-boundary target (unescaped `cargo` invocations that inherit execution wrappers) resides in `tokmd-cockpit`, which falls outside the allowed paths. Therefore, no code patch was made, and the finding was escalated as friction.
 
 ## 🎯 Why
-The mission was to land a security-significant hardening improvement. Hardening test setup code is not a production security improvement and forcing a fix there would violate the constraint against "fake fixes". FFI and environment boundaries in operational paths appear well-hardened and correctly utilize `tokmd_git::git_cmd()`.
+Subprocesses must explicitly drop execution-shaping environment variables (like `RUSTC_WRAPPER` for cargo, or `GIT_SSH` for git) so that ambient hooks cannot execute arbitrary host binaries or poison the build output. `tokmd-cockpit` currently calls `Command::new("cargo")` directly, ignoring this security boundary.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/context_git/mod.rs`
-- Found 9 usages of raw `Command::new("git")` but they are isolated within `#[cfg(all(test, feature = "git"))] mod tests`.
-- `crates/tokmd/tests/sensor_integration.rs` uses `Command::new("git")` for test repo scaffolding.
-- Operational code already relies on the secure `tokmd_git` abstractions.
+- `crates/tokmd-cockpit/src/supply_chain.rs`
+- `crates/tokmd-cockpit/src/gates/contracts.rs`
+- The `cargo audit` and `cargo semver-checks` commands are invoked directly.
 
 ## 🧭 Options considered
-### Option A (recommended)
-- Produce a learning PR.
-- Records the findings and adds a friction item regarding test-path hygiene without forcing a low-value code patch.
-- Trade-offs: Structure is preserved without unnecessary diffs.
+### Option A
+- what it is: Create a `cargo_cmd` factory function to harden cargo subprocess execution by unsetting wrappers like `RUSTC_WRAPPER` to avoid environment poisoning, then update `tokmd-cockpit/src/supply_chain.rs` and `gates/contracts.rs` to use it.
+- why it fits this repo and shard: It provides real trust boundary hardening for subprocess execution which matches the Gate Profile. However, it violates the Shard path constraints (modifying `crates/tokmd-cockpit` which is out of bounds).
+- trade-offs: Structure: Better security / Velocity: Quick fix / Governance: Violates shard boundary rules.
 
-### Option B
-- Refactor test setups to use `tokmd_git::git_cmd()`.
-- Trade-offs: This is tool cargo-culting for test scaffolding and does not materially improve the trust boundary of the actual system.
+### Option B (recommended)
+- what it is: Instead of modifying `tokmd-cockpit` and violating the shard constraint, or implementing a fake/weak fix inside `tokmd-core`, produce a learning PR. The finding regarding Cargo subprocesses in `tokmd-cockpit` is recorded as a friction item.
+- when to choose it instead: When the strongest target found is outside the assigned shard and no honest code patch is justified inside the shard.
+- trade-offs: Doesn't ship a code fix, but accurately aligns with constraints and correctly escalates the issue via friction item.
 
 ## ✅ Decision
-Chosen Option A. No honest production code boundary patch was justified by the findings. Falling back to a learning PR as instructed.
+Option B. The strongest hardening target discovered (un-isolated `cargo` subprocesses) is located in `crates/tokmd-cockpit`, which falls outside the allowed shard paths (`tokmd-core`, `tokmd-config`, `tokmd`). According to strict instructions, we must not chase out-of-shard targets. Since no stronger, viable boundary-hardening target exists inside the primary shard (test-only panic cleanup is anti-drift unless no other target exists), we will produce a Learning PR and record the friction.
 
 ## 🧱 Changes made (SRP)
-- Added a friction item regarding `Command::new("git")` in test surfaces.
-- Recorded the learning PR run packet.
+- None. Generated learning PR.
 
 ## 🧪 Verification receipts
 ```text
-$ grep -rn "Command::new(\"git\")" crates/tokmd-core/src/context_git/
-crates/tokmd-core/src/context_git/mod.rs:129:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:134:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:139:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:147:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:152:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:159:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:164:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:172:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
+{"command": "grep -rI \"Command::new\" crates/tokmd*", "output": "crates/tokmd-cockpit/src/supply_chain.rs:    let check = Command::new(\"cargo\").arg(\"audit\").arg(\"--version\").output();\ncrates/tokmd-cockpit/src/supply_chain.rs:    let audit_output = Command::new(\"cargo\")\ncrates/tokmd-cockpit/src/gates/contracts.rs:    let available = Command::new(\"cargo\")\ncrates/tokmd-cockpit/src/gates/contracts.rs:    let output = match Command::new(\"cargo\")"}
 ```
 
 ## 🧭 Telemetry
 - Change shape: Learning PR
-- Blast radius: None (documentation / learning only)
-- Risk class: Zero risk
+- Blast radius: None (API / IO / docs / schema / concurrency / compatibility / dependencies)
+- Risk class: Low
 - Rollback: N/A
-- Gates run: `cargo check -p tokmd-core --all-features`
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_boundaries/envelope.json`
@@ -54,7 +44,7 @@ crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
 - `.jules/runs/sentinel_boundaries/receipts.jsonl`
 - `.jules/runs/sentinel_boundaries/result.json`
 - `.jules/runs/sentinel_boundaries/pr_body.md`
-- `.jules/friction/open/sentinel_git_command_tests.md`
+- Friction item added: `.jules/friction/open/FRIC-20231024-001.md`
 
 ## 🔜 Follow-ups
-- Discuss whether `Command::new("git")` should be entirely forbidden via clippy or an anti-pattern rule to prevent future leakage, even in tests.
+- Address FRIC-20231024-001: Extract a `cargo_cmd` utility (analogous to `tokmd_git::git_cmd`) to securely execute cargo subprocesses across `tokmd-cockpit` without breaking structural environment expectations like `CARGO_HOME`.
