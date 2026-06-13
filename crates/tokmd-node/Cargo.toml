@@ -18,7 +18,7 @@ crate-type = ["cdylib"]
 [dependencies]
 napi = { version = "3", features = ["async", "serde-json"] }
 napi-derive = "3"
-tokio = { version = "1", features = ["rt-multi-thread"] }
+tokio = "1"
 serde_json.workspace = true
 serde.workspace = true
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
