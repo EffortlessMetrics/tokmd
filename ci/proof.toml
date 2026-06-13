@@ -1064,6 +1064,7 @@ paths = [
   "crates/tokmd/src/commands/gate.rs",
   "crates/tokmd/src/commands/gate/**",
   "crates/tokmd/tests/gate_integration.rs",
+  "crates/tokmd/tests/bdd_gate_scenarios_w50.rs",
 ]
 packages = ["tokmd-gate", "tokmd"]
 proof = [
@@ -1089,6 +1090,7 @@ paths = [
   "crates/tokmd/schemas/review-packet-evidence.schema.json",
   "crates/tokmd/schemas/review-packet-manifest.schema.json",
   "crates/tokmd/tests/cockpit_*.rs",
+  "crates/tokmd/tests/bdd_cockpit_scenarios_w50.rs",
   "docs/cockpit-proof-evidence.md",
   "docs/review-packet.md",
   "docs/review-map.schema.json",
