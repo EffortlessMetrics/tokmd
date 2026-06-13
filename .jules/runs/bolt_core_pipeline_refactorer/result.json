@@ -1,0 +1,12 @@
+{
+  "outcome_type": "patch",
+  "title": "bolt: Use sort_unstable_by for model receipts ⚡",
+  "summary": "Optimizes aggregation sorting in tokmd-model by replacing `sort_by` with `sort_unstable_by`. Ties are already broken correctly by path/name, ensuring determinism.",
+  "target_paths": ["crates/tokmd-model/src/sorting.rs"],
+  "proof_summary": "Replaced sort_by with sort_unstable_by in crates/tokmd-model/src/sorting.rs. The sorting rules break ties deterministically (using lang, module, or path). Cargo bench shows sorting remains correct.",
+  "gates_run": ["cargo bench -p tokmd-model", "cargo test -p tokmd-model", "cargo test -p tokmd"],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout -- crates/tokmd-model/src/sorting.rs",
+  "follow_ups": []
+}

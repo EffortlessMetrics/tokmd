@@ -3,15 +3,15 @@
 use tokmd_types::{FileRow, LangRow, ModuleRow};
 
 pub(crate) fn sort_lang_rows(rows: &mut [LangRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
+    rows.sort_unstable_by(|a, b| b.code.cmp(&a.code).then_with(|| a.lang.cmp(&b.lang)));
 }
 
 pub(crate) fn sort_module_rows(rows: &mut [ModuleRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
+    rows.sort_unstable_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
 }
 
 pub(crate) fn sort_file_rows(rows: &mut [FileRow]) {
-    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+    rows.sort_unstable_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
 }
 
 #[cfg(test)]
@@ -59,7 +59,7 @@ mod tests {
     }
 
     #[test]
-    fn lang_rows_sort_by_code_desc_then_name() {
+    fn lang_rows_sort_unstable_by_code_desc_then_name() {
         let mut rows = vec![
             lang_row("TypeScript", 10),
             lang_row("Rust", 20),
@@ -75,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    fn module_rows_sort_by_code_desc_then_name() {
+    fn module_rows_sort_unstable_by_code_desc_then_name() {
         let mut rows = vec![
             module_row("web", 12),
             module_row("crates", 20),
@@ -91,7 +91,7 @@ mod tests {
     }
 
     #[test]
-    fn file_rows_sort_by_code_desc_then_path() {
+    fn file_rows_sort_unstable_by_code_desc_then_path() {
         let mut rows = vec![
             file_row("src/z.rs", 8),
             file_row("src/a.rs", 8),
