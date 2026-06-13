@@ -1,0 +1,7 @@
+{"cmd": "mkdir -p .jules/runs/run-librarian-docs-1", "status": 0, "summary": "Create run dir"}
+{"cmd": "cargo tree --depth 1", "status": 0, "summary": "Inspect crates"}
+{"cmd": "cargo test -p tokmd-settings --doc", "status": 0, "summary": "Run doctests on tokmd-settings"}
+{"cmd": "cargo test -p tokmd-core --doc", "status": 0, "summary": "Run doctests on tokmd-core"}
+{"cmd": "cargo test -p tokmd --doc", "status": 0, "summary": "Run doctests on tokmd"}
+{"cmd": "echo decision.md written", "status": 0, "summary": "Wrote decision.md"}
+{"cmd": "git diff", "status": 0, "summary": "Verify added doctests"}

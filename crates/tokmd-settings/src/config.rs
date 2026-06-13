@@ -6,6 +6,19 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 /// Root TOML configuration structure.
+///
+/// # Example
+/// ```rust
+/// use tokmd_settings::TomlConfig;
+///
+/// let toml_str = r#"
+/// [scan]
+/// paths = ["src"]
+/// exclude = ["tests"]
+/// "#;
+/// let config: TomlConfig = toml::from_str(toml_str).unwrap();
+/// assert_eq!(config.scan.paths, Some(vec!["src".to_string()]));
+/// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct TomlConfig {
@@ -36,6 +49,18 @@ pub struct TomlConfig {
 }
 
 /// Scan settings shared by all commands.
+///
+/// # Example
+/// ```rust
+/// use tokmd_settings::ScanConfig;
+///
+/// let toml_str = r#"
+/// paths = ["crates"]
+/// exclude = ["target"]
+/// "#;
+/// let scan: ScanConfig = toml::from_str(toml_str).unwrap();
+/// assert_eq!(scan.paths, Some(vec!["crates".to_string()]));
+/// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ScanConfig {
@@ -68,6 +93,20 @@ pub struct ScanConfig {
 }
 
 /// Module command settings.
+///
+/// # Example
+/// ```rust
+/// use tokmd_settings::ModuleConfig;
+///
+/// let toml_str = r#"
+/// roots = ["crates"]
+/// depth = 2
+/// children = "collapse"
+/// "#;
+/// let module: ModuleConfig = toml::from_str(toml_str).unwrap();
+/// assert_eq!(module.depth, Some(2));
+/// assert_eq!(module.children.as_deref(), Some("collapse"));
+/// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ModuleConfig {
