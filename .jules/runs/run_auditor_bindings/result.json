@@ -1,0 +1,7 @@
+{
+  "outcome": "success",
+  "type": "patch",
+  "story": "Removed redundant `rt-multi-thread` feature from the `tokio` dependency in `crates/tokmd-node/Cargo.toml`.",
+  "diff_stat": "1 file changed, 1 insertion(+), 1 deletion(-)",
+  "gates_passed": ["deps-hygiene fallbacks"]
+}

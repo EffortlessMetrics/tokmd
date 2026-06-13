@@ -1,0 +1,2 @@
+{"command": "cargo tree -p tokmd-node -e features", "outcome": "Verified napi feature async pulls in tokio_rt"}
+{"command": "sed -i 's/tokio = { version = \"1\", features = \\[\"rt-multi-thread\"\\] }/tokio = \"1\"/g' crates/tokmd-node/Cargo.toml", "outcome": "Removed redundant rt-multi-thread feature from tokio in tokmd-node"}
