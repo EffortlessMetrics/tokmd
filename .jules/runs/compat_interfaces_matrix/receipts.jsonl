@@ -1,0 +1,10 @@
+{"command": "cargo check -p tokmd --target wasm32-unknown-unknown", "outcome": "failed with fatal error: 'stdlib.h' file not found for tree-sitter-python"}
+{"command": "replace_with_git_merge_diff crates/tokmd/Cargo.toml", "outcome": "successfully replaced 'ast' from default features"}
+{"command": "cat crates/tokmd/Cargo.toml | grep -A 2 -B 2 \"\\[features\\]\"", "outcome": "verified feature change"}
+{"command": "cargo check -p tokmd --target wasm32-unknown-unknown", "outcome": "passed successfully"}
+{"command": "cargo check -p tokmd --all-features", "outcome": "passed successfully"}
+{"command": "cargo test -p tokmd --no-default-features", "outcome": "passed successfully"}
+{"command": "cargo test -p tokmd --all-features", "outcome": "passed successfully"}
+{"command": "cargo fmt -- --check", "outcome": "passed successfully"}
+{"command": "cargo clippy -- -D warnings", "outcome": "passed successfully"}
+{"command": "cargo build -p tokmd --verbose", "outcome": "passed successfully"}
