@@ -415,6 +415,30 @@ modules, and keep proof observations advisory while artifacts mature.
 
 ---
 
+## Phase 5e: Bun UB & Workbench (v1.12.0) ✅ Complete
+
+**Goal**: Deliver a thin on-diff review preset (`bun-ub`) and evidence workbench for native-boundary review.
+
+### Work Items
+- [x] Add `tokmd analyze --preset bun-ub` as a scoped review preset
+- [x] Integrate `tokmd-swarm` workbench and publication-graph tooling
+- [x] Fix complexity metric trust repairs, doc density math, and context token reconciliation
+- [x] Document `bun-ub` artifacts and `ub-review` recipes
+
+---
+
+## Phase 5f: Syntax Evidence Packets (v1.13.0) ✅ Complete
+
+**Goal**: Turn the Bun UB evidence path into a manifest-first packet that can include scoped analysis and context.
+
+### Work Items
+- [x] Add `tokmd evidence-packet` to write scoped evidence packet manifests
+- [x] Add feature-gated `tokmd syntax` command to emit Tree-sitter syntax receipts
+- [x] Integrate cockpit/handoff artifact references
+- [x] Execute dogfood runs and pre-release proof verification
+
+---
+
 ## Phase 6: MCP Server Mode (v2.0)
 
 **Goal**: Native integration with Claude and MCP clients.
