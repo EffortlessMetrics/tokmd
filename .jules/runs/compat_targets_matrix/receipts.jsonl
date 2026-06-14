@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd-node --no-default-features", "output": "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"}
+{"command": "cargo test -p tokmd-node --all-features", "output": "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"}
+{"command": "cargo clippy -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s)"}
+{"command": "cargo fmt -- --check", "output": ""}
