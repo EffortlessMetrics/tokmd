@@ -76,7 +76,10 @@ pub(super) fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Res
 
 pub(super) fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
     let bytes = read_head(path, max_bytes)?;
-    Ok(String::from_utf8_lossy(&bytes).to_string())
+    match String::from_utf8(bytes) {
+        Ok(s) => Ok(s),
+        Err(e) => Ok(String::from_utf8_lossy(&e.into_bytes()).into_owned()),
+    }
 }
 
 #[cfg(test)]
