@@ -1,58 +1,47 @@
 ## 💡 Summary
-Removed manual markdown parameter tables from `docs/reference-cli.md` and replaced them with `<!-- HELP: <command> -->` markers. This delegates documentation generation to `cargo xtask docs`, locks in deterministic CLI usage tracking, and closes the silent-skip case where a missing marker pair could make docs checks pass without checking a command.
-
-The restack also updates the xtask gate regression test to match the current queue policy: Jules provenance under `.jules/**` can be intentional PR state, so gate should not blanket-block `.jules/runs/**` while still guarding actual runtime/cache/transcript directories.
+Added `BASELINE_VERSION` and `SENSOR_REPORT_SCHEMA` to the workspace version bumping tool (`xtask bump`). This fixes drift during releases where schema versions for baselines and sensor reports could be missed.
 
 ## 🎯 Why
-Manual parameter tables in documentation frequently become outdated when CLI arguments change. `tokmd` provides `cargo xtask docs --update` which relies on `<!-- HELP: <command> -->` markers. Several commands were still using hand-maintained markdown tables, meaning updates to CLI args could easily be missed by the xtask check. The final patch also makes missing marker pairs an explicit docs-check failure.
+The `xtask bump` tool tracks known schema locations to increment them alongside `tokmd` updates, but it was missing the `BASELINE_VERSION` constant (used in `tokmd-analysis-types`) and `SENSOR_REPORT_SCHEMA` (used in `tokmd-envelope`). This gap posed a risk of version drift during publishing.
 
 ## 🔎 Evidence
-- File: `docs/reference-cli.md`
-- Observation: Many subcommands like `module`, `export`, `run`, `handoff` did not have `<!-- HELP: <command> -->` markers and used manual `| Argument | Description |` tables.
-- Verification: Running `cargo xtask docs --check` before the change ignored drift in these subcommands because they had no markers.
+- `xtask/src/tasks/bump.rs` did not include `BASELINE_VERSION` or `SENSOR_REPORT_SCHEMA` in its `SCHEMA_LOCATIONS` registry.
+- Testing `cargo run -p xtask bump 1.13.2 --schema BASELINE_VERSION=2` previously failed with `Unknown schema constant`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Replace manual parameter tables with `<!-- HELP: <command> -->` markers for all commands, letting `cargo xtask docs --update` populate them correctly from the clap help output. Also fail `cargo xtask docs --check` when an expected marker pair is absent.
-- Trade-offs:
-  - **Structure**: Eliminates duplication of parameter details.
-  - **Velocity**: Developers no longer have to manually edit markdown tables when updating CLI parameters.
-  - **Governance**: Fits perfectly within the `tooling-governance` shard.
+- what it is: Add the missing schema constants to the `xtask` registry.
+- why it fits this repo and shard: It protects contract-bearing surfaces (schema versions) via standard governance tooling (`tooling-governance`).
+- trade-offs: Small maintainability cost in keeping `bump.rs` aligned with the codebase.
 
 ### Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand.
-- When to choose it: Only if custom columns are needed that clap does not output.
-- Trade-offs: Extreme risk of drift and maintenance burden.
+- what it is: Update versions manually during releases.
+- when to choose it instead: Never.
+- trade-offs: High risk of drift and forgotten updates.
 
 ## ✅ Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables. The final patch keeps all synchronization in `cargo xtask docs --update` / `cargo xtask docs --check` and verifies that every expected command marker exists.
+Option A. It's an honest patch that closes a tooling gap in how we govern schema version bumps.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Removed manual parameter tables for the CLI command surface and replaced them with `<!-- HELP: <command> -->` markers.
-- `xtask/src/tasks/docs.rs`: Treats missing marker pairs as documentation drift instead of silently skipping those commands.
-- `xtask/src/tasks/gate.rs`, `xtask/tests/xtask_deep_w74.rs`: Document and test that `.jules/runs/**` is not treated as forbidden runtime state because it may be intentional PR provenance.
+- `xtask/src/tasks/bump.rs`
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --update
-Updated docs/reference-cli.md
+cargo xtask bump 1.13.2 --schema BASELINE_VERSION=2 --schema SENSOR_REPORT_SCHEMA=2 --dry-run | tail -n 10
 
-$ cargo xtask docs --check
-Documentation is up to date.
+Schema version updates:
+  - BASELINE_VERSION: 1 -> 2 (in crates/tokmd-analysis-types/src/baseline.rs)
+  - SENSOR_REPORT_SCHEMA: 1 -> 2 (in crates/tokmd-envelope/src/lib.rs)
 
-$ cargo test -p tokmd --test docs
-test result: ok
-
-$ cargo test -p xtask
-test result: ok
+[DRY RUN] No changes written.
 ```
 
 ## 🧭 Telemetry
-- Change shape: Replacement of manual documentation content with auto-generated sync blocks plus docs-check and provenance-policy guardrails.
-- Blast radius: Docs and xtask validation only.
-- Risk class: Low - Does not change application runtime behavior.
+- Change shape: Tooling registry extension
+- Blast radius: Internal release automation only
+- Risk class + why: Very low; only affects local developer release flows.
 - Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --update`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo test -p tokmd --test docs`, `cargo fmt-check`, `git diff --check`
+- Gates run: `cargo test -p xtask`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -62,4 +51,4 @@ test result: ok
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
 
 ## 🔜 Follow-ups
-None. All CLI references are now correctly managed via xtask.
+None.
