@@ -61,6 +61,16 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
         constant: "HANDOFF_SCHEMA_VERSION",
         current: 5,
     },
+    SchemaVersionLocation {
+        path: "crates/tokmd-analysis-types/src/baseline.rs",
+        constant: "BASELINE_VERSION",
+        current: 1,
+    },
+    SchemaVersionLocation {
+        path: "crates/tokmd-envelope/src/lib.rs",
+        constant: "SENSOR_REPORT_SCHEMA",
+        current: 1,
+    },
 ];
 
 const NODE_PACKAGE_MANIFESTS: &[&str] = &[

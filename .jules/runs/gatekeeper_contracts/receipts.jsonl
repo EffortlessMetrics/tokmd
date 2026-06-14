@@ -1,4 +1,1 @@
-{"command": "cargo xtask docs --update", "result": "updated docs/reference-cli.md from tokmd help markers"}
-{"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
-{"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
-{"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "cargo xtask bump 1.13.2 --schema BASELINE_VERSION=2 --schema SENSOR_REPORT_SCHEMA=2 --dry-run | tail -n 10", "output": "Schema version updates:\n  - BASELINE_VERSION: 1 -> 2 (in crates/tokmd-analysis-types/src/baseline.rs)\n  - SENSOR_REPORT_SCHEMA: 1 -> 2 (in crates/tokmd-envelope/src/lib.rs)\n\n[DRY RUN] No changes written."}
