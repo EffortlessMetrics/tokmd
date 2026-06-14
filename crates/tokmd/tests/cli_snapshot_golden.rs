@@ -213,3 +213,81 @@ fn snapshot_help() {
     // Normalize the version in the help header.
     assert_snapshot_normalized(snapshot_name, &stdout);
 }
+
+// ---------------------------------------------------------------------------
+// 9. Diff output snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+fn snapshot_diff_json() {
+    let temp = tempfile::tempdir().unwrap();
+
+    // Generate old receipt
+    let old_receipt = tokmd_cmd()
+        .args(["lang", "--format", "json"])
+        .output()
+        .expect("lang old");
+    std::fs::write(temp.path().join("old.json"), old_receipt.stdout).unwrap();
+
+    // Generate new receipt (different)
+    let new_receipt = tokmd_cmd()
+        .args(["lang", "--format", "json", "--exclude", "tests"])
+        .output()
+        .expect("lang new");
+    std::fs::write(temp.path().join("new.json"), new_receipt.stdout).unwrap();
+
+    // Diff them
+    let old_path = temp.path().join("old.json");
+    let new_path = temp.path().join("new.json");
+    let stdout = run_tokmd(&[
+        "diff",
+        old_path.to_str().unwrap(),
+        new_path.to_str().unwrap(),
+        "--format",
+        "json",
+    ]);
+
+    // Additional normalization specific to diff mode
+    let re_source = regex::Regex::new(r#""(from_source|to_source)":\s*"[^"]*""#).unwrap();
+    let stdout_norm = re_source
+        .replace_all(&stdout, r#""$1":"<ROOT>""#)
+        .to_string();
+
+    assert_snapshot_normalized("diff_json", &stdout_norm);
+}
+
+#[test]
+fn snapshot_diff_markdown() {
+    let temp = tempfile::tempdir().unwrap();
+
+    // Generate old receipt
+    let old_receipt = tokmd_cmd()
+        .args(["lang", "--format", "json"])
+        .output()
+        .expect("lang old");
+    std::fs::write(temp.path().join("old.json"), old_receipt.stdout).unwrap();
+
+    // Generate new receipt (different)
+    let new_receipt = tokmd_cmd()
+        .args(["lang", "--format", "json", "--exclude", "tests"])
+        .output()
+        .expect("lang new");
+    std::fs::write(temp.path().join("new.json"), new_receipt.stdout).unwrap();
+
+    // Diff them
+    let old_path = temp.path().join("old.json");
+    let new_path = temp.path().join("new.json");
+    let stdout = run_tokmd(&[
+        "diff",
+        old_path.to_str().unwrap(),
+        new_path.to_str().unwrap(),
+    ]);
+
+    // Additional normalization specific to diff mode (markdown)
+    let re_source = regex::Regex::new(r#"## Diff:\s+[^\s]+\s+→\s+[^\s]+"#).unwrap();
+    let stdout_norm = re_source
+        .replace_all(&stdout, "## Diff: <ROOT> → <ROOT>")
+        .to_string();
+
+    assert_snapshot_normalized("diff_markdown", &stdout_norm);
+}

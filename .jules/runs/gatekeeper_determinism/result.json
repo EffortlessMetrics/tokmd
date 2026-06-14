@@ -1,0 +1,16 @@
+{
+  "outcome": "proof_patch",
+  "title": "gatekeeper: lock in diff output format with golden snapshots ✅",
+  "summary": "Added missing golden snapshot tests for the CLI `diff` command in both Markdown and JSON formats to protect against output regressions.",
+  "target_paths": [
+    "crates/tokmd/tests/cli_snapshot_golden.rs",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__diff_json.snap",
+    "crates/tokmd/tests/snapshots/cli_snapshot_golden__diff_markdown.snap"
+  ],
+  "proof_summary": "Tests generate receipts, run diff, and successfully match `insta` snapshots.",
+  "gates_run": ["contracts-determinism", "snapshot_review", "cargo_test"],
+  "friction_items_created": 0,
+  "persona_notes_created": 0,
+  "rollback": null,
+  "follow_ups": []
+}
