@@ -1,48 +1,58 @@
 ## 💡 Summary
-Reduced repeated string allocations and BTreeMap lookups inside the hot-path duplicate file analysis loop by utilizing the `Entry` API with `&str` keys instead of `String`.
+Removed redundant UTF-8 validation and string allocation in the analysis and content enrichers. Files that passed `is_text_like` (which internally does a UTF-8 check) were being re-checked and allocated via `String::from_utf8_lossy`.
 
 ## 🎯 Why
-In `build_duplicate_report`, every duplicate file iteration was performing redundant `BTreeMap::get_mut` followed by `BTreeMap::insert` allocations for `module.to_string()`. This caused unnecessary string building and double lookups.
+To reduce hot-path work and unnecessary string building. `String::from_utf8_lossy` unconditionally scans the string for invalid UTF-8 and allocates a `Cow`, even when the caller just proved the bytes were valid UTF-8 via `is_text_like()`.
 
 ## 🔎 Evidence
-- File: `crates/tokmd-analysis/src/content/mod.rs`
-- Finding: Redundant `String` copies in the hot loop counting duplicates by module.
-- Receipt: Cargo tests passed successfully without allocations.
+- `crates/tokmd-analysis/src/api_surface/report.rs`
+- `crates/tokmd-analysis/src/halstead/mod.rs`
+- `crates/tokmd-analysis/src/content/mod.rs`
+- `crates/tokmd-analysis/src/complexity/mod.rs`
+- `crates/tokmd-analysis/src/content/io/read.rs`
+- Observed behavior: `is_text_like` returns `true` only for valid utf-8 strings without null bytes. Following this check with `String::from_utf8_lossy` forces an unnecessary secondary pass over the same file buffers.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Use `&str` bound to the `ExportData` row lifetime and the `Entry` API.
-- Why it fits: Aligns perfectly with Bolt's focus on hot-path work reduction and removing unnecessary allocations inside analysis loops.
-- Trade-offs: Structure is cleaner; no velocity or governance impact.
+- what it is: Replace `is_text_like` + `from_utf8_lossy` with a single `std::str::from_utf8` that guards against nulls and returns a `&str` directly without allocating.
+- why it fits this repo and shard: It achieves the Bolt persona's goal of removing hot-path validation and redundant allocations while maintaining deterministic structural proof in analysis.
+- trade-offs: Structure / Velocity / Governance - slightly changes code shape (using a `match`), but clearly aligns with performance and zero-cost abstraction goals.
 
 ### Option B
-- What it is: Sort vectors partially in `build_top_offenders`.
-- When to choose it instead: When memory footprints in the top offenders map dwarf duplicated metrics building.
-- Trade-offs: Harder to prove performance improvements and limits dataset size optimizations.
+- what it is: Try to avoid reading files to bytes at all by reading into a `String` directly.
+- when to choose it instead: If all files were known to be text.
+- trade-offs: Fails gracefully handling binary blobs.
 
 ## ✅ Decision
-Chose Option A to cleanly eliminate repetitive string building and duplicate map lookups in a hot loop.
+Option A. It optimizes the hot paths directly with minimal structural impact.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/content/mod.rs`
+- `crates/tokmd-analysis/src/api_surface/report.rs`: Replaced `is_text_like` + `from_utf8_lossy` with `from_utf8`.
+- `crates/tokmd-analysis/src/halstead/mod.rs`: Replaced `is_text_like` + `from_utf8_lossy` with `from_utf8`.
+- `crates/tokmd-analysis/src/content/mod.rs`: Replaced `is_text_like` + `from_utf8_lossy` with `from_utf8`.
+- `crates/tokmd-analysis/src/complexity/mod.rs`: Replaced `is_text_like` + `from_utf8_lossy` with `from_utf8`.
+- `crates/tokmd-analysis/src/content/io/read.rs`: Optimized `read_text_capped` to use `from_utf8` instead of unconditional `from_utf8_lossy`.
 
 ## 🧪 Verification receipts
-cargo test -p tokmd-analysis --verbose
-cargo fmt -- --check
+```text
+cargo check -p tokmd-analysis
+cargo test -p tokmd-analysis
+cargo clippy -- -D warnings
+```
 
 ## 🧭 Telemetry
-- Change shape: Performance optimization
-- Blast radius: None
+- Change shape: Optimization
+- Blast radius: `crates/tokmd-analysis`
 - Risk class: Low
-- Rollback: `git checkout crates/tokmd-analysis/src/content/mod.rs`
-- Gates run: perf-proof, core-rust
+- Rollback: Revert the PR
+- Gates run: `cargo build --verbose`, `CI=true cargo test --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
-- `envelope.json`
-- `decision.md`
-- `receipts.jsonl`
-- `result.json`
-- `pr_body.md`
+- `.jules/runs/bolt_analysis_stack_builder/envelope.json`
+- `.jules/runs/bolt_analysis_stack_builder/decision.md`
+- `.jules/runs/bolt_analysis_stack_builder/receipts.jsonl`
+- `.jules/runs/bolt_analysis_stack_builder/result.json`
+- `.jules/runs/bolt_analysis_stack_builder/pr_body.md`
 
 ## 🔜 Follow-ups
-None
+None.

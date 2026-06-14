@@ -1,12 +1,18 @@
-## Options Considered
+## Options considered
+### Option A (recommended)
+- **What it is**: Avoid redundant UTF-8 validation and string allocation using `from_utf8` directly.
+  The code currently checks if byte arrays read from files are valid text using `is_text_like`, which calls `std::str::from_utf8`. Right after that, the code unconditionally uses `String::from_utf8_lossy(&bytes)`, which allocates a new `String` or `Cow::Owned` for valid utf8 and performs the utf8 checking again. Since we already proved the bytes are valid utf8 (as `is_text_like` returns `true` only if `std::str::from_utf8(bytes).is_ok()` and has no null bytes), we can convert `bytes` to a `&str` directly via `std::str::from_utf8(&bytes).unwrap()`.
+  This improves the hot paths in `api_surface`, `halstead`, `content`, and `complexity` analyzers, reducing repeated parsing and unnecessary allocations.
+- **Why it fits this repo and shard**: The shard is `analysis-stack` and persona is `Bolt ⚡`. We need to optimize for "unnecessary allocations / cloning / string building" and "repeated parsing/formatting that can be reused". Changing `String::from_utf8_lossy(&bytes)` (which yields `Cow<str>` and validates UTF-8) to `from_utf8(&bytes)` removes redundant UTF-8 validation passes across all scanned files.
+- **Trade-offs**:
+  - Structure: slightly more boilerplate match blocks.
+  - Velocity: minimal changes required.
+  - Governance: minimal risk, retains same deterministic behavior.
 
-### Option A: Remove String allocations in duplicate analysis hot loop
-- **What it is:** Change `BTreeMap<String, ...>` to `BTreeMap<&str, ...>` in `build_duplicate_report` (inside `tokmd-analysis/src/content/mod.rs`). Replace redundant `get_mut` / `insert` blocks with `entry(module).or_default()`.
-- **Trade-offs:** Clean win. Reduces repeated hashing/lookups and removes string copying completely during the hot loop of counting duplicate and wasted files by module. Very aligned with Bolt's "hot-path work reduction" and "unnecessary string building".
+### Option B
+- **What it is**: Cache `String` reading.
+- **When to choose it instead**: If files were mostly already parsed as `String` in IO buffers.
+- **Trade-offs**: The initial check `is_text_like` uses bytes anyway to safely detect binary files without allocation, so reading as `String` directly would lose this protection.
 
-### Option B: Partial sorting in `build_top_offenders`
-- **What it is:** Use `select_nth_unstable` in `tokmd-analysis/src/derived/files.rs` to avoid full `O(N log N)` sorting on large file trees.
-- **Trade-offs:** `select_nth_unstable` requires mutable, owned vectors, so we'd still have to allocate vectors. And while it saves sorting time, the duplicate report string building happens per duplicate file group, which can be significant.
-
-## ✅ Decision
-We will proceed with Option A because `tokmd-analysis/src/content/mod.rs` does repetitive `to_string()` allocations and double map lookups in a hot loop (iterating every duplicate file). By binding the module strings to the lifetime of the input `ExportData` and using the `Entry` API natively, we remove the string allocations and halve the map lookups.
+## Decision
+Option A. I have implemented a match block over `std::str::from_utf8(&bytes)` instead of calling `String::from_utf8_lossy` on paths that already checked `is_text_like` or similar. I've also implemented `read_text_capped` to not re-allocate `String` through `from_utf8_lossy` if it's already valid UTF-8.
