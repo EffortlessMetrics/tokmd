@@ -1,0 +1,8 @@
+{"command":"sed -i 's/serde.workspace = true//g' crates/tokmd-model/Cargo.toml","status":0}
+{"command":"sed -i '/\\[dev-dependencies\\]/a serde.workspace = true' crates/tokmd-model/Cargo.toml","status":0}
+{"command":"cargo check -p tokmd-model --all-targets --all-features","status":0}
+{"command":"cargo fmt -- --check","status":0}
+{"command":"cargo clippy -- -D warnings","status":0}
+{"command":"cargo test -p tokmd-model","status":0}
+{"command":"cargo build --verbose","status":0}
+{"command":"cargo check --verbose","status":0}

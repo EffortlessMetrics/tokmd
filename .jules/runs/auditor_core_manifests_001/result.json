@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "patch_applied": true,
+  "description": "Moved `serde` from `[dependencies]` to `[dev-dependencies]` in `crates/tokmd-model/Cargo.toml` because the core library does not use `serde` directly (it uses types from `tokmd-types` which handles serialization/deserialization logic). However, `serde` is needed in the test suite."
+}
