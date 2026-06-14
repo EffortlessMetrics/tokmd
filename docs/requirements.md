@@ -39,6 +39,8 @@ tokmd produces deterministic code inventory receipts and PR-focused context for:
 | `cockpit` | PR metrics with evidence gates |
 | `gate` | Policy evaluation over receipts |
 | `sensor` | Conforming sensor report (`sensor.report.v1` envelope) |
+| `syntax` | Emit feature-gated Tree-sitter syntax receipts |
+| `evidence-packet` | Write a scoped evidence packet manifest |
 | `context` | LLM context packing within budget |
 | `baseline` | Capture complexity baseline for trend tracking |
 | `handoff` | Bundle codebase for LLM handoff with intelligence presets |

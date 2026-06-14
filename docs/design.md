@@ -164,6 +164,7 @@ Presets bundle enrichers for common use cases:
 |--------|-----------|
 | `receipt` | derived + dup + git + complexity + API surface |
 | `estimate` | `receipt` + effort estimation and optional base/head delta |
+| `bun-ub` | scoped bun-ub review evidence |
 | `health` | derived + content (TODOs) + complexity + Halstead |
 | `risk` | `health` + git (hotspots, coupling, freshness) |
 | `supply` | derived + walk (assets) + content (deps) |
