@@ -262,3 +262,5 @@ fn second() {
         assert_eq!(analysis.max_complexity, 3);
     }
 }
+#[path = "source_complexity/properties.rs"]
+mod properties;
