@@ -71,7 +71,7 @@ where
     F: FnOnce() -> String + Send + 'static,
 {
     // Run in a blocking task to not block the event loop
-    tokio::task::spawn_blocking(f)
+    napi::tokio::task::spawn_blocking(f)
         .await
         .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))
 }
@@ -275,7 +275,7 @@ mod tests {
     use std::path::Path;
 
     fn block_on<T>(future: impl Future<Output = Result<T>>) -> Result<T> {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
+        let runtime = napi::tokio::runtime::Builder::new_multi_thread()
             .worker_threads(2)
             .build()
             .expect("build tokio runtime");
