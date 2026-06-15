@@ -1,0 +1,8 @@
+{
+  "prompt_id": "run_perf_cockpit_entry",
+  "persona": "Bolt",
+  "style": "Refactorer",
+  "primary_shard": "core-pipeline",
+  "gate_profile": "perf-proof",
+  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+}
