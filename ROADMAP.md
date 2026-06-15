@@ -39,6 +39,8 @@ context for humans, machines, CI, and agents.
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
 | **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and `tokmd-swarm` workbench. |
+| **v1.13.0** | ✅ Complete | Syntax-aware evidence packets, `tokmd syntax` command, and bounding complexity analysis. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
@@ -50,10 +52,10 @@ The historical roadmap remains useful as a record of shipped milestones and
 longer-term horizons. The active planning state is now selection-first:
 
 - v1.11 browser runtime polish is complete.
+- v1.12 Bun UB evidence-readiness and `tokmd-swarm` workbench is complete.
+- v1.13 Syntax-aware evidence packets are complete. The `ast` feature is now included by default in the `tokmd` crate, enabling `tokmd syntax`.
 - Cockpit/review evidence is stable as the current PR-review surface.
 - Proof observation remains advisory, not promoted to required gates.
-- AST remains shadow-only until broader comparison evidence justifies public
-  schema or behavior changes.
 - There is no selected implementation lane by default.
 
 New work should start from one of:
@@ -80,6 +82,32 @@ rules.
 ---
 
 ## Completed Milestones
+
+### ✅ v1.13.0 — Syntax-Aware Evidence Packets
+
+**Goal:** Provide a manifest-first evidence packet that can include scoped analysis, context, optional syntax receipts, and artifact references in one bot-readable contract.
+
+- [x] Feature-gated `tokmd syntax` command (now included by default in `1.13.1`).
+- [x] History-preserving swarm import for the syntax/evidence lane.
+- [x] Packet manifest wiring and cockpit/handoff artifact references.
+- [x] File-backed complexity scan bounds with `partial` status and explicit warnings.
+
+### ✅ v1.12.0 — Evidence Workbench
+
+**Goal:** Deliver the Bun UB evidence-readiness and `tokmd-swarm` workbench release.
+
+- [x] `tokmd analyze --preset bun-ub` as a thin on-diff review preset.
+- [x] Routed-proof/CI actuals feedback loop.
+- [x] Publication-graph tooling for shared swarm development history.
+
+### ✅ v1.11.0 — Browser Runtime Polish
+
+**Goal:** Deliver explicit cache semantics, visible progress, resilient fetch UX, and safe authenticated-fetch boundaries.
+
+- [x] Browser cache key/invalidation semantics.
+- [x] Browser worker and repo-load progress visibility.
+- [x] Retry and rate-limit UX with retry-after guidance.
+- [x] Auth-safe fetch/cache boundaries with session-only token state.
 
 ### ✅ v1.0.0 — Stability Release
 
@@ -592,30 +620,10 @@ back into single-responsibility owner modules.
 - [x] Determinism and proof coverage for analyze snapshots, run/diff receipts, effort serde, and core CLI behavior.
 - [x] CLI reference docs generated through checked HELP markers.
 
-## v1.11.0 — Browser Runtime Polish
 
-**Goal:** Deliver the browser runtime polish deferred from the v1.10 release fence: explicit cache semantics, visible progress, resilient fetch UX, and safe authenticated-fetch boundaries.
-
-### What shipped for v1.11.0
-
-- [x] Browser cache key/invalidation semantics.
-- [x] Browser worker and repo-load progress visibility.
-- [x] Retry and rate-limit UX with retry-after guidance.
-- [x] Auth-safe fetch/cache boundaries with session-only token state.
 
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
-
-_Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
-
-Potential lanes:
-
-- Release/distribution verification.
-- CLI and adoption UX.
-- Review evidence consumption.
-- Measured performance and CI feedback.
-- Browser/WASM rootless capability expansion.
 - AST shadow evidence expansion.
 
 Architecture consolidation is paused unless fresh product or proof evidence
