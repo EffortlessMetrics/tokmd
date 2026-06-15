@@ -1,16 +1,14 @@
-## 💡 Options A and B
+# Decision
 
-### Option A: Improve error message formatting and guidance for Unrecognized subcommand
-- The current message is:
-  `Error: Unrecognized subcommand 'abc'`
-  `Hints:`
-  `- Verify the input path exists and is readable.`
-  `- Use an absolute path to avoid working-directory confusion.`
-- The hints are confusing because they refer to paths, not subcommands. The subcommand logic was added as a fallback to catch mis-parsed subcommands vs paths.
-- I will improve the hint to include listing available subcommands via `tokmd --help` instead of showing path hints when it is definitively interpreted as a subcommand.
+## Option A (recommended)
+Fix `tokmd check-ignore <nonexistent-path>` to report "Error: Path not found: <nonexistent-path>" instead of "Error: Path '<nonexistent-path>' does not exist". This aligns the error wording for `check-ignore` with all the other subcommands which report `Error: Path not found:` when a file doesn't exist. This also enables our general hint generator for "Path not found" to suggest to verify if the path exists, rather than just returning a plain error.
 
-### Option B: Fix enum value validation error messages
-- `error: invalid value 'xyz' for '--format <FORMAT>'` could provide better hints on how to list all options.
-- This is primarily handled by clap, so changing it might be more involved.
+- **Structure**: This requires updating `crates/tokmd/src/commands/check_ignore.rs` and the tests that verify the exact error text.
+- **Velocity**: This is a simple fix.
+- **Governance**: Low risk, improves CLI UX consistency.
 
-Decision: Option A.
+## Option B
+Do not fix `check-ignore` error messages and find another target.
+
+## ✅ Decision
+Option A. It's a small change but directly addresses the goal of improving "unclear or low-context error messages" by aligning the error output to a standard form that benefits from existing hint logic.

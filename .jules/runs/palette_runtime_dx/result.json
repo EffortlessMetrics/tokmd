@@ -1,4 +1,5 @@
 {
   "status": "success",
-  "outcome": "pr-ready patch"
+  "reason": "Aligned check-ignore missing path error to use 'Path not found' format, fixing issue where the general hints for missing path were not being shown.",
+  "outcome_type": "PR-ready patch"
 }

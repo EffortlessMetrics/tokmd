@@ -160,7 +160,7 @@ fn check_ignore_nonexistent_path_reports_not_ignored() {
         .arg(&missing)
         .assert()
         .code(1)
-        .stderr(predicate::str::contains("does not exist"));
+        .stderr(predicate::str::contains("Path not found"));
 }
 
 #[test]
@@ -173,5 +173,5 @@ fn check_ignore_verbose_shows_detail() {
         .arg(&missing)
         .assert()
         .code(1)
-        .stderr(predicate::str::contains("does not exist"));
+        .stderr(predicate::str::contains("Path not found"));
 }

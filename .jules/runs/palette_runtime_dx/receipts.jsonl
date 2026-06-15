@@ -1,5 +1,2 @@
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- abc", "output": "Error: Unrecognized subcommand 'abc'\n\nHints:\n- Run `tokmd --help` to see a list of available subcommands."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- missing-command", "output": "Error: Unrecognized subcommand 'missing-command'\n\nHints:\n- Run `tokmd --help` to see a list of available subcommands."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- missing/path/to/file", "output": "Error: Path not found: missing/path/to/file\n\nHints:\n- Verify the input path exists and is readable.\n- Use an absolute path to avoid working-directory confusion."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- anolyze", "output": "Error: Unrecognized subcommand 'anolyze'\n\nHints:\n- Did you mean the subcommand `analyze`?"}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo test -p tokmd", "output": "test result: ok. 506 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s"}
+{"command":"cargo run -- check-ignore non-exist.rs","outcome":"Error: Path not found: non-exist.rs\n\nHints:\n- Verify the input path exists and is readable.\n- Use an absolute path to avoid working-directory confusion.\n"}
+{"command":"cargo test -p tokmd --test cli_error_paths_w51","outcome":"test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s"}
