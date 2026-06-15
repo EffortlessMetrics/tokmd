@@ -256,6 +256,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd export
+  tokmd export --format jsonl --output inventory.jsonl
+  tokmd export crates/tokmd
 ```
 <!-- /HELP: export -->
 
@@ -320,6 +325,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd run
+  tokmd run --analysis receipt --output-dir .runs/current
+  tokmd run src/runtime/api
 ```
 <!-- /HELP: run -->
 
@@ -719,6 +729,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd diff .runs/baseline .runs/current
+  tokmd diff --from main --to HEAD
 ```
 <!-- /HELP: diff -->
 
@@ -1226,6 +1240,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd tools --format openai --pretty
+  tokmd tools --format anthropic > tools.json
 ```
 <!-- /HELP: tools -->
 
@@ -1746,6 +1764,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd gate
+  tokmd gate --policy policy.toml
+  tokmd gate --baseline .tokmd/baseline.json
 ```
 <!-- /HELP: gate -->
 
