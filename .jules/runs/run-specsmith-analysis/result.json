@@ -1,0 +1,8 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd-analysis/tests/bdd.rs"
+  ],
+  "reason": "Added missing BDD-style scenario coverage for tokmd-analysis orchestration, particularly around multi-module aggregation, limit guardrails, and feature-gate interactions.",
+  "receipts_collected": 3
+}
