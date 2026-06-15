@@ -2,8 +2,10 @@
 //! Since sorting functions are private, we test them through the public reports.
 
 use proptest::prelude::*;
-use tokmd_model::{create_lang_report_from_rows, create_module_report_from_rows, create_export_data_from_rows};
-use tokmd_types::{FileKind, FileRow, ChildrenMode, ChildIncludeMode};
+use tokmd_model::{
+    create_export_data_from_rows, create_lang_report_from_rows, create_module_report_from_rows,
+};
+use tokmd_types::{ChildIncludeMode, ChildrenMode, FileKind, FileRow};
 
 fn arb_file_row() -> impl Strategy<Value = FileRow> {
     (
