@@ -226,7 +226,7 @@ jobs:
 
       - name: Upload scoped coverage to Codecov
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_codecov == 'true' }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: target/proof/coverage/*.lcov
