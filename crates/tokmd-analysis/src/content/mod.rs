@@ -48,11 +48,11 @@ pub(crate) fn build_todo_report(
         let path = root.join(rel);
         let bytes = crate::content::io::read_head(&path, per_file_limit)?;
         total_bytes += bytes.len() as u64;
-        if !crate::content::io::is_text_like(&bytes) {
-            continue;
-        }
-        let text = String::from_utf8_lossy(&bytes);
-        for (tag, count) in crate::content::io::count_delimited_tags(&text, &tags) {
+        let text = match std::str::from_utf8(&bytes) {
+            Ok(s) if !bytes.contains(&0) => s,
+            _ => continue,
+        };
+        for (tag, count) in crate::content::io::count_delimited_tags(text, &tags) {
             *counts.entry(tag).or_insert(0) += count;
         }
     }
