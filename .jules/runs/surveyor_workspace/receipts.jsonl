@@ -1,0 +1,8 @@
+{"command": "cargo build --target wasm32-unknown-unknown -p tokmd --no-default-features", "status": "success", "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 08s"}
+{"command": "cargo check -p tokmd --target wasm32-unknown-unknown", "status": "failure", "stdout": "error: failed to run custom build command for `tree-sitter-python v0.25.0`\nfatal error: 'stdlib.h' file not found"}
+{"command": "sed -i 's/\"analysis\", \"ast\"/\"analysis\"/' crates/tokmd/Cargo.toml", "status": "success"}
+{"command": "cargo check -p tokmd --target wasm32-unknown-unknown", "status": "success", "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.47s"}
+{"command": "cargo build --verbose", "status": "success"}
+{"command": "CI=true cargo test --verbose -p tokmd", "status": "success", "stdout": "test result: ok. 12 passed; 0 failed"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -- -D warnings -p tokmd", "status": "success"}
