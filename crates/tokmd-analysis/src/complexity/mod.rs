@@ -85,19 +85,18 @@ pub(crate) fn build_complexity_report(
         };
         total_bytes += bytes.len() as u64;
 
-        if !crate::content::io::is_text_like(&bytes) {
-            continue;
-        }
-
-        let text = String::from_utf8_lossy(&bytes);
+        let text = match std::str::from_utf8(&bytes) {
+            Ok(s) if !bytes.contains(&0) => s,
+            _ => continue,
+        };
         let lang_mapped = map_language_for_complexity(&row.lang);
-        let (function_count, max_function_length) = count_functions(&row.lang, &text);
-        let cyclomatic = estimate_cyclomatic(&row.lang, &text);
+        let (function_count, max_function_length) = count_functions(&row.lang, text);
+        let cyclomatic = estimate_cyclomatic(&row.lang, text);
 
         // Compute cognitive complexity and nesting depth
         let cognitive_result =
-            crate::content::complexity::estimate_cognitive_complexity(&text, lang_mapped);
-        let nesting_result = crate::content::complexity::analyze_nesting_depth(&text, lang_mapped);
+            crate::content::complexity::estimate_cognitive_complexity(text, lang_mapped);
+        let nesting_result = crate::content::complexity::analyze_nesting_depth(text, lang_mapped);
 
         let cognitive_complexity = if cognitive_result.function_count > 0 {
             Some(cognitive_result.total)
@@ -119,7 +118,7 @@ pub(crate) fn build_complexity_report(
         );
 
         let functions = if detail_functions {
-            Some(extract_function_details(&row.lang, &text))
+            Some(extract_function_details(&row.lang, text))
         } else {
             None
         };
