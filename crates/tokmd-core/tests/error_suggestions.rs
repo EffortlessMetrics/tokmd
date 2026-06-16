@@ -1,5 +1,5 @@
-use tokmd_core::ffi::run_json;
 use serde_json::Value;
+use tokmd_core::ffi::run_json;
 
 #[test]
 fn missing_git_includes_suggestions_in_envelope() {

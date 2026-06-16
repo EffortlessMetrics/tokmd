@@ -1,5 +1,5 @@
-use tokmd_envelope::ffi::format_error_message;
 use serde_json::json;
+use tokmd_envelope::ffi::format_error_message;
 
 #[test]
 fn format_error_message_includes_suggestions() {
