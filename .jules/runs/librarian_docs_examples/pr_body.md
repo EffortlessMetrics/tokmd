@@ -1,53 +1,59 @@
 ## 💡 Summary
-This fixes a minor factual drift in `docs/SCHEMA.md`. The document incorrectly listed `BASELINE_VERSION` as being defined in `crates/tokmd-analysis-types/src/lib.rs`. It is actually defined in `crates/tokmd-analysis-types/src/baseline.rs`.
+Updated `docs/debugging.md` to fix outdated CLI arguments in the example bash commands. The examples now use the correct positional path argument and updated output directory flags (`--output-dir` and `--artifacts-dir`).
 
 ## 🎯 Why
-The `Librarian` persona prioritizes fixing factual docs drift. The README and memory point to `docs/SCHEMA.md` keeping truth with Rust constants. A search revealed that `docs/SCHEMA.md` incorrectly points to `lib.rs` for `BASELINE_VERSION`, while the Rust source defines it in `baseline.rs`. This factual drift violates the "docs/schema/help text mismatch" constraint and needs correction.
+The examples in `docs/debugging.md` demonstrated factual drift from actual behavior. Running `cargo run -p tokmd -- run --path . --out target/tokmd-debug` fails with `error: unexpected argument '--path' found`. This breaks executable documentation for new contributors trying to debug the application locally.
 
 ## 🔎 Evidence
-- File: `docs/SCHEMA.md`
-- Observed behavior: Points to incorrect source file.
-- Receipt: `grep -rn "pub const BASELINE_VERSION" crates/` shows it is in `crates/tokmd-analysis-types/src/baseline.rs:20`.
+- File path: `docs/debugging.md`
+- Observed behavior: `cargo run -p tokmd -- run --path .` fails because `--path` is no longer a valid named argument.
+- Receipt:
+```text
+$ cargo run -p tokmd -- run --path . --out target/tokmd-debug
+error: unexpected argument '--path' found
+  tip: to pass '--path' as a value, use '-- --path'
+Usage: tokmd run [OPTIONS] [PATH]...
+```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Update `docs/SCHEMA.md` to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
-- Why it fits this repo and shard: Fixes a clear documentation drift regarding schema versioning. It's a quick, factual doc fix that complies with Librarian's constraints.
-- Trade-offs: Structure / Velocity / Governance. Minimal risk, corrects truth without changing logic.
+- what it is: Fix the CLI flags directly in `docs/debugging.md`.
+- why it fits this repo and shard: Fixes explicit factual drift in the `docs` target space, aligning executable documentation with current CLI contract.
+- trade-offs: Structure (low risk), Velocity (high), Governance (maintains accuracy).
 
 ### Option B
-- What it is: Do nothing and record learning.
-- When to choose it instead: If the drift wasn't verifiable or wasn't part of the shard.
-- Trade-offs: Misses an opportunity to fix a small but clear piece of factual drift.
+- what it is: Change the CLI parser to accept `--path` and `--out` as aliases.
+- when to choose it instead: If the goal was to avoid breaking old scripts or to preserve back-compat for scripts not covered by existing snapshot tests.
+- trade-offs: Increases parser surface area unnecessarily when the goal is to guide contributors correctly via documentation.
 
 ## ✅ Decision
-Option A. I updated `docs/SCHEMA.md` to fix the file path for `BASELINE_VERSION`.
+Chosen Option A. Updating the documentation directly is the fastest, lowest-risk approach to fixing the factual drift without altering the current CLI interface.
 
 ## 🧱 Changes made (SRP)
-- `docs/SCHEMA.md`
+- `docs/debugging.md`: Replaced `--path .` with positional argument `.`.
+- `docs/debugging.md`: Replaced `--out` with `--output-dir` for `tokmd run`.
+- `docs/debugging.md`: Replaced `--out` with `--artifacts-dir` for `tokmd cockpit`.
 
 ## 🧪 Verification receipts
 ```text
-$ rg -n "pub const BASELINE_VERSION" crates/tokmd-analysis-types/src
-crates/tokmd-analysis-types/src/baseline.rs:20:pub const BASELINE_VERSION: u32 = 1;
-$ cargo xtask doc-artifacts --check
-doc artifacts ok
+$ cargo run -p tokmd -- run . --output-dir target/tokmd-debug
+Writing run artifacts to: target/tokmd-debug
+$ cargo run -p tokmd -- analyze . --format json
+[JSON output omitted]
+$ cargo run -p tokmd -- cockpit --base origin/main --head HEAD --artifacts-dir target/cockpit-debug
+[JSON output omitted]
 $ cargo xtask docs --check
 Documentation is up to date.
-$ cargo xtask proof-policy --check
-proof policy ok
-$ cargo xtask proof --profile affected --base origin/main --head HEAD --run-required --allow-local-required-execution --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-required affected proof passed
-$ cargo xtask proof-run-artifacts-check --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-Proof run artifacts OK: 6 executed required command(s), guard local_explicit_required_opt_in_enabled
+$ cargo fmt -- --check
+$ cargo clippy -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: Docs only
-- Risk class: Low
-- Rollback: `git restore docs/SCHEMA.md`
-- Gates run: `cargo xtask doc-artifacts --check`, `cargo xtask docs --check`, `cargo xtask proof-policy --check`, `cargo fmt-check`, affected required proof, proof-run artifact check
+- Change shape: Docs patch
+- Blast radius: docs
+- Risk class: low (no behavior change)
+- Rollback: git revert
+- Gates run: cargo xtask docs --check, cargo fmt, cargo clippy, cargo test, targeted command execution
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`
