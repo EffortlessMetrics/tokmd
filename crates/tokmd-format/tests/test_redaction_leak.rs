@@ -13,6 +13,18 @@ fn test_redact_path_leak() {
 }
 
 #[test]
+fn test_redact_path_parent_traversal() {
+    // Normalization should ensure that logically equivalent paths hash to the same value
+    // and don't leak information via differing hashes for the same target.
+    let p1 = redact_path("a/b/../c/secret.txt");
+    let p2 = redact_path("a/c/secret.txt");
+    assert_eq!(
+        p1, p2,
+        "Path redaction failed to normalize parent directory traversal"
+    );
+}
+
+#[test]
 fn redaction_preserves_known_compound_archive_suffix() {
     let redacted = redact_path("archive.tar.gz");
     assert!(redacted.ends_with(".tar.gz"));
