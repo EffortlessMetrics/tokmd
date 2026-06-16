@@ -603,9 +603,32 @@ back into single-responsibility owner modules.
 - [x] Retry and rate-limit UX with retry-after guidance.
 - [x] Auth-safe fetch/cache boundaries with session-only token state.
 
+## Completed: v1.12.0 — Bun UB Evidence-Readiness & Swarm Workbench
+
+**Goal:** Turn the Bun UB evidence path into a manifest-first packet without turning the result into a UB detector or whole-repo health claim.
+
+### What shipped in v1.12.0
+
+- [x] Swarm workbench and publication-graph tooling
+- [x] Bun-focused analyzer work and UB review preset
+- [x] Routed-proof/CI actuals feedback loop
+- [x] Emitting `sensors/tokmd/analyze.md`, `sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md` from explicit refs
+
+## Completed: v1.13.0/v1.13.1 — Syntax-Aware Evidence Packet Release
+
+**Goal:** Provide a syntax-aware evidence packet release and bot-readable contract.
+
+### What shipped in v1.13.x
+
+- [x] `tokmd evidence-packet` emitting versioned manifests
+- [x] Feature-gated `tokmd syntax` command and registry
+- [x] Syntax extraction for Rust, TypeScript, TSX, and Python
+- [x] Default `ast` feature enabled for CLI distributions (`v1.13.1` correction)
+- [x] Explicit bounded-complexity scan warnings and receipts
+
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
+### v1.14.x — Selection-First Product and Evidence Work
 
 _Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 

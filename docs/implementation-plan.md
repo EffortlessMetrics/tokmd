@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.11.0` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.13.1` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -412,6 +412,31 @@ modules, and keep proof observations advisory while artifacts mature.
       remain advisory until a separate promotion decision is made
 - [x] Add source-of-truth, user-path, handoff, release-readiness, and AST-shadow
       planning/evidence surfaces without changing default product behavior
+
+---
+
+## Phase 5e: Bun UB Evidence-Readiness & Swarm Workbench (v1.12.0) ✅ Complete
+
+**Goal**: Deliver the Bun UB evidence-readiness and `tokmd-swarm` workbench.
+
+### Work Items
+- [x] Integrate history-preserving swarm imports
+- [x] Add Bun-focused analyzer work (`bun-ub` preset)
+- [x] Build routed-proof/CI actuals feedback loop
+- [x] Emit explicitly scoped `analyze.md`, `analyze.json`, and `context.md` artifacts
+
+---
+
+## Phase 5f: Syntax-Aware Evidence Packet Release (v1.13.0/v1.13.1) ✅ Complete
+
+**Goal**: Deliver a manifest-first evidence packet that can include scoped analysis, context, optional syntax receipts, and artifact references in one bot-readable contract.
+
+### Work Items
+- [x] Emitting `sensors/tokmd/manifest.json` via `tokmd evidence-packet`
+- [x] Feature-gated `tokmd syntax` command with parser registry
+- [x] Syntax extraction for Rust, TypeScript, and Python
+- [x] Ship `1.13.1` correction to make `tokmd syntax` available by default on installs
+- [x] Fix complexity bounding receipts to mark explicitly `partial`
 
 ---
 
