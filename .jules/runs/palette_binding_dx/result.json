@@ -1,4 +1,1 @@
-{
-  "status": "success",
-  "summary": "Updated `invalid_field` to embed exact field paths into the FFI error response payload under `error.details`. This makes invalid FFI config parameters immediately understandable for Py/Node/WASM bindings."
-}
+{"status": "success", "outcome": "proof-improvement patch", "story": "Expose `suggestions` field in `TokmdError` across language bindings via JSON envelope."}

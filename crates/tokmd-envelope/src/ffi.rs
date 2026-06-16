@@ -92,6 +92,16 @@ pub fn format_error_message(error_obj: Option<&Value>) -> String {
         format!("[{code}] {message}")
     };
 
+    if let Some(suggestions) = error_obj.get("suggestions").and_then(Value::as_array).filter(|a| !a.is_empty()) {
+        formatted.push_str("\n\nSuggestions:");
+        for suggestion in suggestions {
+            if let Some(s) = suggestion.as_str() {
+                use std::fmt::Write;
+                let _ = write!(formatted, "\n  - {s}");
+            }
+        }
+    }
+
     if is_rate_limit_code(code) {
         if let Some(seconds) = retry_after_seconds(error_obj) {
             formatted.push_str(&format!(
