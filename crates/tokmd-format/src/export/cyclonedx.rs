@@ -52,7 +52,7 @@ struct CycloneDxComponent {
 
 #[derive(Debug, Clone, Serialize)]
 struct CycloneDxProperty {
-    name: String,
+    name: &'static str,
     value: String,
 }
 
@@ -81,38 +81,38 @@ pub(super) fn write_export_cyclonedx_impl<W: Write>(
         .map(|row| {
             let mut properties = vec![
                 CycloneDxProperty {
-                    name: "tokmd:lang".to_string(),
+                    name: "tokmd:lang",
                     value: row.lang.clone(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:code".to_string(),
+                    name: "tokmd:code",
                     value: row.code.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:comments".to_string(),
+                    name: "tokmd:comments",
                     value: row.comments.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:blanks".to_string(),
+                    name: "tokmd:blanks",
                     value: row.blanks.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:lines".to_string(),
+                    name: "tokmd:lines",
                     value: row.lines.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:bytes".to_string(),
+                    name: "tokmd:bytes",
                     value: row.bytes.to_string(),
                 },
                 CycloneDxProperty {
-                    name: "tokmd:tokens".to_string(),
+                    name: "tokmd:tokens",
                     value: row.tokens.to_string(),
                 },
             ];
 
             if row.kind == FileKind::Child {
                 properties.push(CycloneDxProperty {
-                    name: "tokmd:kind".to_string(),
+                    name: "tokmd:kind",
                     value: "child".to_string(),
                 });
             }

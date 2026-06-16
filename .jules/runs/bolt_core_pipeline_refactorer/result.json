@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "changed_files": [
+    "crates/tokmd-format/src/export/cyclonedx.rs"
+  ],
+  "message": "Replaced unnecessary String allocations with &'static str in CycloneDX properties."
+}
