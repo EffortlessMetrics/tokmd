@@ -105,7 +105,11 @@ fn resolve_lang_report(input: &str, global: &cli::GlobalArgs) -> Result<LangRepo
         return load_lang_report_from_path(&path);
     }
     if looks_like_missing_path(input, &path) {
-        bail!("invalid reference or path '{}': path does not exist", input);
+        bail!(
+            "invalid reference or path '{}': Path not found: {}",
+            input,
+            input
+        );
     }
 
     lang_report_from_git_ref(input, global)

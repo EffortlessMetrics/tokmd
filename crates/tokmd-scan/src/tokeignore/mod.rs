@@ -54,7 +54,7 @@ pub fn init_tokeignore(args: &InitArgs) -> Result<Option<PathBuf>> {
 
     let dir: PathBuf = args.dir.clone();
     if !dir.exists() {
-        bail!("Directory does not exist: {}", dir.display());
+        bail!("Path not found: {}", dir.display());
     }
 
     let path = dir.join(".tokeignore");
@@ -144,6 +144,6 @@ mod tests {
         );
         let result = init_tokeignore(&args);
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("does not exist"));
+        assert!(result.unwrap_err().to_string().contains("Path not found"));
     }
 }
