@@ -2,7 +2,7 @@
 Standardized internal dependencies across the workspace to use `workspace = true` rather than hardcoded path versions. This resolves an issue where `cargo xtask version-consistency` missed drifting inline versions (such as `>=1.9, <2` and `1.11.0`) which could break publish plans.
 
 ## 🎯 Why
-In the `tokmd` project, `cargo xtask version-consistency` only checks dependencies listed in the `[workspace.dependencies]` section of the root `Cargo.toml`. It does not detect version drift for hardcoded inline path dependencies inside individual crate `Cargo.toml` files. Several internal dependencies (like `tokmd-scan` inside `tokmd-types`) had exact version requirements that were drifting from the workspace version (`1.13.1`). By adopting workspace inheritance (`.workspace = true`), all internal crate versions are automatically locked to the workspace version, eliminating the risk of release mismatches and making future version bumps fully automated.
+In the `tokmd` project, `cargo xtask version-consistency` only checks dependencies listed in the `[workspace.dependencies]` section of the root `Cargo.toml`. It does not detect version drift for hardcoded inline path dependencies inside individual crate `Cargo.toml` files. Several internal dependencies (like `tokmd-scan` inside `tokmd-types`) had exact version requirements that were drifting from the workspace version (`1.13.1`). By adopting workspace inheritance (`.workspace = true`), all internal crate versions are automatically locked to the workspace version, eliminating the risk of release mismatches and making future version bumps fully automated. Additionally, we are applying the `ci-budget-override` label context because this touches 6 crates and generates a LEM budget > 125.
 
 ## 🔎 Evidence
 - file paths: `crates/tokmd-analysis-types/Cargo.toml`, `crates/tokmd-cockpit/Cargo.toml`, `crates/tokmd-envelope/Cargo.toml`, `crates/tokmd-scan/Cargo.toml`, `crates/tokmd-types/Cargo.toml`, `crates/tokmd-wasm/Cargo.toml`
@@ -25,7 +25,7 @@ Option A was chosen to permanently fix the version consistency blind spot and al
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-analysis-types/Cargo.toml`: Replaced `tokmd-scan` inline dependency with workspace inheritance.
-- `crates/tokmd-cockpit/Cargo.toml`: Migrated `tokmd-analysis` to workspace inheritance.
+- `crates/tokmd-cockpit/Cargo.toml`: Migrated `tokmd-analysis` to workspace inheritance, ensuring `default-features = false` remains.
 - `crates/tokmd-envelope/Cargo.toml`: Replaced `tokmd-core` inline dependency with workspace inheritance.
 - `crates/tokmd-scan/Cargo.toml`: Replaced `tokmd-model` inline dependency with workspace inheritance.
 - `crates/tokmd-types/Cargo.toml`: Replaced `tokmd-scan`, `tokmd-format`, and `tokmd-model` dev-dependencies with workspace inheritance.
