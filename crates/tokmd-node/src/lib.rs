@@ -80,7 +80,12 @@ where
 pub async fn run_json(mode: String, args_json: String) -> Result<String> {
     if let Ok(value) = serde_json::from_str::<serde_json::Value>(&args_json) {
         if !value.is_object() {
-            let error_envelope = tokmd_core::error::ResponseEnvelope::error(&tokmd_core::error::TokmdError::invalid_json("Top-level JSON value must be an object")).to_json();
+            let error_envelope = tokmd_core::error::ResponseEnvelope::error(
+                &tokmd_core::error::TokmdError::invalid_json(
+                    "Top-level JSON value must be an object",
+                ),
+            )
+            .to_json();
             return Ok(error_envelope);
         }
     }
@@ -336,7 +341,12 @@ mod tests {
         let env: serde_json::Value = serde_json::from_str(&output).expect("parse json");
         assert!(!env["ok"].as_bool().unwrap_or(true));
         assert_eq!(env["error"]["code"].as_str().unwrap_or(""), "invalid_json");
-        assert!(env["error"]["message"].as_str().unwrap_or("").contains("Top-level JSON value must be an object"));
+        assert!(
+            env["error"]["message"]
+                .as_str()
+                .unwrap_or("")
+                .contains("Top-level JSON value must be an object")
+        );
     }
 
     #[test]

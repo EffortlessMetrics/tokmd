@@ -5,7 +5,7 @@
   "files_changed": [
     "crates/tokmd-wasm/src/lib.rs",
     "crates/tokmd-python/src/runtime.rs",
-    "crates/tokmd-python/src/tests.rs",
+    "crates/tokmd-python/tests/test_basic.py",
     "crates/tokmd-node/src/lib.rs"
   ]
 }
