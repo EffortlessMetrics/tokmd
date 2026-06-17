@@ -1,0 +1,11 @@
+{
+  "outcome": "PR-ready patch",
+  "chosen_option": "A",
+  "rationale": "Aligning FFI bindings to strictly validate top-level JSON objects eliminates behavioral drift with tokmd-core and allows bindings to fail fast with native errors before crossing into core logic.",
+  "files_changed": [
+    "crates/tokmd-wasm/src/lib.rs",
+    "crates/tokmd-python/src/runtime.rs",
+    "crates/tokmd-python/src/tests.rs",
+    "crates/tokmd-node/src/lib.rs"
+  ]
+}

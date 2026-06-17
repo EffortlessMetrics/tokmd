@@ -60,8 +60,11 @@ fn js_args_to_json(args: JsValue) -> Result<String, JsValue> {
 }
 
 fn normalize_raw_json_args(raw_json: &str) -> Result<String, String> {
-    serde_json::from_str::<serde_json::Value>(raw_json)
+    let value = serde_json::from_str::<serde_json::Value>(raw_json)
         .map_err(|err| format!("failed to parse JSON string arguments: {err}"))?;
+    if !value.is_object() {
+        return Err("Invalid JSON: Top-level JSON value must be an object".to_string());
+    }
     Ok(raw_json.to_string())
 }
 
@@ -281,6 +284,15 @@ mod tests {
         let err = normalize_raw_json_args("{not json").expect_err("invalid raw args");
 
         assert!(err.contains("failed to parse JSON string arguments"));
+    }
+
+    #[test]
+    fn normalize_raw_json_args_rejects_top_level_scalar_payload() {
+        let err = normalize_raw_json_args("0").expect_err("invalid raw args");
+        assert_eq!(err, "Invalid JSON: Top-level JSON value must be an object");
+
+        let err = normalize_raw_json_args("[]").expect_err("invalid raw args");
+        assert_eq!(err, "Invalid JSON: Top-level JSON value must be an object");
     }
 
     #[test]

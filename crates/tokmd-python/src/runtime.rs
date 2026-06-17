@@ -82,11 +82,19 @@ pub(crate) fn run_json(py: Python<'_>, mode: &str, args_json: &str) -> PyResult<
     //
     // NOTE: This validation is intentionally synchronous with the GIL held
     // because parsing a small JSON string is fast and provides immediate feedback.
-    if let Err(e) = serde_json::from_str::<serde_json::Value>(args_json) {
-        return Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "Invalid JSON in args_json: {}",
-            e
-        )));
+    match serde_json::from_str::<serde_json::Value>(args_json) {
+        Ok(value) if !value.is_object() => {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Invalid JSON: Top-level JSON value must be an object".to_string(),
+            ));
+        }
+        Err(e) => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Invalid JSON in args_json: {}",
+                e
+            )));
+        }
+        _ => {}
     }
 
     // Release the GIL during the potentially long-running scan.
