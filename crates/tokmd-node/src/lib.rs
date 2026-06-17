@@ -71,7 +71,7 @@ where
     F: FnOnce() -> String + Send + 'static,
 {
     // Run in a blocking task to not block the event loop
-    tokio::task::spawn_blocking(f)
+    napi::tokio::task::spawn_blocking(f)
         .await
         .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))
 }
