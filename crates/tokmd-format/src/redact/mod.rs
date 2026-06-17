@@ -21,33 +21,31 @@ mod extensions;
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
 fn clean_path(s: &str) -> String {
-    let mut normalized = String::with_capacity(s.len());
-    let mut last_was_slash = false;
-    for ch in s.chars() {
-        let ch = if ch == '\\' { '/' } else { ch };
-        if ch == '/' {
-            if last_was_slash {
-                continue;
+    let s = s.replace('\\', "/");
+    let mut stack = Vec::new();
+
+    // Preserve leading slash if any
+    let is_absolute = s.starts_with('/');
+
+    for part in s.split('/') {
+        if part.is_empty() || part == "." {
+            continue;
+        } else if part == ".." {
+            if !stack.is_empty() && stack.last() != Some(&"..") {
+                stack.pop();
+            } else if !is_absolute {
+                stack.push(part);
             }
-            last_was_slash = true;
         } else {
-            last_was_slash = false;
+            stack.push(part);
         }
-        normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    let mut res = stack.join("/");
+    if is_absolute {
+        res.insert(0, '/');
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
-    }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
-    }
-    normalized
+    res
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -156,6 +154,15 @@ pub fn redact_path(path: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_clean_path_parent_resolution() {
+        assert_eq!(clean_path("src/foo/../lib.rs"), "src/lib.rs");
+        assert_eq!(clean_path("crates/tokmd/src/../../tokmd-format/src/lib.rs"), "crates/tokmd-format/src/lib.rs");
+        assert_eq!(clean_path("/src/foo/../lib.rs"), "/src/lib.rs");
+        assert_eq!(clean_path("src/foo/../../lib.rs"), "lib.rs");
+        assert_eq!(clean_path("../lib.rs"), "../lib.rs");
+    }
+
     use super::*;
 
     #[test]

@@ -1,7 +1,8 @@
 {
+  "run_id": "mutant_high_value",
   "prompt_id": "mutant_high_value",
-  "persona": "Mutant",
-  "style": "Prover",
+  "persona": "mutant",
+  "style": "prover",
   "primary_shard": "core-pipeline",
   "allowed_paths": [
     "crates/tokmd-types/**",
