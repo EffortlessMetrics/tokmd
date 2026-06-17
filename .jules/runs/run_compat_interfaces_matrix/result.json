@@ -1,0 +1,26 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record compat learning on interfaces 🧷",
+  "summary": "Explored the `interfaces` shard for compatibility issues across `tokmd` and `tokmd-core` feature matrices. The test suites pass cleanly across all feature sets (`--no-default-features`, `--all-features`). A friction item was recorded regarding the non-existent `tokmd-config` path in the prompt's allowed paths.",
+  "target_paths": [
+    "crates/tokmd/src/config/",
+    "crates/tokmd/tests/config_resolution.rs"
+  ],
+  "proof_summary": "Ran extensive cargo check and test workflows with varying feature combinations on `tokmd` and `tokmd-core`. Both test suites succeeded completely with no errors.",
+  "gates_run": [
+    "cargo check --no-default-features",
+    "cargo check --all-features",
+    "cargo test --no-default-features",
+    "cargo test --all-features"
+  ],
+  "friction_items_created": [
+    ".jules/friction/open/FRIC-20250101-001.md"
+  ],
+  "persona_notes_created": [
+    ".jules/personas/compat/notes/interfaces_matrix_healthy.md"
+  ],
+  "rollback": "None",
+  "follow_ups": [
+    "Update shard definitions to point config work to `crates/tokmd/src/config/**`."
+  ]
+}

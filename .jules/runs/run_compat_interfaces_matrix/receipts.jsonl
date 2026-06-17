@@ -1,0 +1,2 @@
+{"ts_utc": "2026-06-17T12:59:34Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo check -p tokmd-core --no-default-features", "status": 0}
+{"ts_utc": "2026-06-17T12:59:42Z", "phase": "investigation", "cwd": "/app", "cmd": "cargo test -p tokmd --no-default-features --test config_resolution", "status": 0}
