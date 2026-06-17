@@ -1,0 +1,25 @@
+{
+  "prompt_id": "steward_release",
+  "persona": "Steward",
+  "style": "Stabilizer",
+  "primary_shard": "tooling-governance",
+  "allowed_paths": [
+    "xtask/**",
+    ".github/workflows/**",
+    "docs/**",
+    "ROADMAP.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/**/Cargo.toml"
+  ],
+  "gate_profile": "governance-release",
+  "allowed_outcomes": ["patch", "learning_pr"],
+  "artifacts": [
+    ".jules/runs/steward_release/envelope.json",
+    ".jules/runs/steward_release/decision.md",
+    ".jules/runs/steward_release/receipts.jsonl",
+    ".jules/runs/steward_release/result.json",
+    ".jules/runs/steward_release/pr_body.md"
+  ]
+}

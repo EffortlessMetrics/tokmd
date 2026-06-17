@@ -1,0 +1,9 @@
+{"cmd": "cargo xtask version-consistency", "status": "passed but incomplete check"}
+{"cmd": "git grep 'version =' crates/*/Cargo.toml | grep path", "status": "found inline versions"}
+{"cmd": "sed replacement (python equivalent) to use workspace=true", "status": "success"}
+{"cmd": "cargo xtask version-consistency", "status": "passed"}
+{"cmd": "cargo xtask publish --plan --verbose", "status": "passed"}
+{"cmd": "cargo xtask docs --check", "status": "passed"}
+{"cmd": "cargo build --verbose", "status": "passed"}
+{"cmd": "cargo fmt -- --check", "status": "passed"}
+{"cmd": "cargo clippy -- -D warnings", "status": "passed"}
