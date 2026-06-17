@@ -1,0 +1,7 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd/tests/bdd_analyze_scenarios_w50.rs"
+  ],
+  "reason": "Successfully added 7 BDD scenario tests covering the remaining analyze presets."
+}
