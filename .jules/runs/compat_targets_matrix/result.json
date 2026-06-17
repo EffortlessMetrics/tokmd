@@ -1,0 +1,21 @@
+{
+  "outcome_type": "learning_pr",
+  "title": "jules: record compat learning on bindings-targets \ud83d\udcce",
+  "summary": "All bindings targets tested cleanly across capability matrices.",
+  "target_paths": [
+    "crates/tokmd-wasm/**",
+    "crates/tokmd-node/**",
+    "crates/tokmd-python/**",
+    "web/runner/**"
+  ],
+  "proof_summary": "Executed no-default-features and all-features for all bindings crates; verified wasm-pack capability.",
+  "gates_run": [
+    "cargo test/check --no-default-features",
+    "cargo test/check --all-features",
+    "wasm-pack test --node"
+  ],
+  "friction_items_created": ["FRIC-20231027-001.md"],
+  "persona_notes_created": ["compat-matrix.md"],
+  "rollback": "None",
+  "follow_ups": ["Add a local test script to build and copy tokmd-wasm to web/runner/vendor before testing."]
+}
