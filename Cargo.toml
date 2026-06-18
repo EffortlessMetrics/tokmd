@@ -219,6 +219,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 tempfile = "3.27.0"
 insta = { version = "1.47.0", features = ["json"] }
+toml = "1.1.2"
 
 [profile.release]
 lto = true

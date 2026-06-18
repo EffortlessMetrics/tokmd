@@ -1,0 +1,1 @@
+{"command": "cargo xtask version-consistency", "outcome": "Checking version consistency against workspace version 1.13.1\n\n  ✓ Cargo crate versions match 1.13.1.\n  ✓ Cargo workspace dependency versions match 1.13.1.\n  ✓ Node package manifest versions match 1.13.1.\n  ✓ No case-insensitive tracked-path collisions detected.\nVersion consistency checks passed."}
