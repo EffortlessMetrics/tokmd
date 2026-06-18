@@ -1,0 +1,4 @@
+{"command": "cd crates/tokmd-node && cargo tree -p napi --edges features"}
+{"command": "sed -i 's/tokio = { version = \"1\", features = \\[\"rt-multi-thread\"\\] }/tokio = \"1\"/' crates/tokmd-node/Cargo.toml"}
+{"command": "cd crates/tokmd-node && cargo tree -p tokmd-node | grep tokio"}
+{"command": "cargo build -p tokmd-node --verbose"}
