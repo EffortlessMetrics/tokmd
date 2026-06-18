@@ -1,45 +1,52 @@
 ## 💡 Summary
-This is a Learning PR. I explored the `tokmd-types` crate to close mutant gaps and improve tests, but found that the core type math was already fully covered.
+Updated `clean_path` in `tokmd-format::redact` to correctly resolve parent directory segments (`..`), handling empty segments from double slashes and respecting absolute paths. This ensures path determinism and prevents directory structure leakage via logical bypass paths.
 
 ## 🎯 Why
-The Mutant persona assignment `mutant_high_value` requested targeted mutation-style proofs on high-value core surfaces. However, running `cargo mutants -p tokmd-types` revealed zero missed mutants (21 caught, 4 unviable out of 25). Forcing a patch here would violate the `Output honesty` rule by claiming a win that was not proven.
+The previous implementation of `clean_path` only normalized separators and stripped `.` segments but did not resolve `..` segments. This allowed identical physical paths like `src/main.rs` and `src/../src/main.rs` or `foo//../main.rs` to produce entirely different hashes. This breaks the determinism contract, bypassing redaction rules and risking directory structure leakage. Initial attempts to fix this missed edge cases with absolute paths and double slashes which the revised implementation solves correctly.
 
 ## 🔎 Evidence
-Minimal proof:
-- file path(s): `crates/tokmd-types/src/lib.rs`
-- observed finding: The mutation suite successfully caught or marked unviable all 25 mutants tested. No gap exists.
-- command: `cargo mutants -p tokmd-types`
+- **File:** `crates/tokmd-format/src/redact/mod.rs`
+- **Finding:** A `short_hash("src/../src/main.rs")` output differed from `short_hash("src/main.rs")`.
+- **Receipt:** Tests added to `crates/tokmd-format/src/redact/mod.rs` failed prior to this change.
 
 ## 🧭 Options considered
-### Option A
-- Force a fake patch on `tokmd-types` by hallucinating gaps that do not exist, and claim that mutation gaps were closed when they were not.
-- Trade-offs: Directly violates hard prompt constraints ("Hallucinated work is failure").
+### Option A (recommended)
+- Implement a robust stack-based loop inside `clean_path` to handle `..` natively, accounting for double slashes and absolute paths.
+- **Why it fits:** Keeps path handling strictly isolated within string manipulation avoiding OS-specific logic from `std::path::Path`. This guarantees identical outcomes across Unix/Windows for identical paths.
+- **Trade-offs:**
+  - Structure: Path normalization stays within the target file.
+  - Velocity: Extremely fast execution with predictable cross-platform string logic.
+  - Governance: Satisfies `contracts-determinism` fallback validation profile and prevents path traversal edge cases safely.
 
-### Option B (recommended)
-- Adhere to the `Output honesty` constraint. Pivot to a Learning PR.
-- Fits this repo and shard: It respects the pipeline's request to surface a friction item when no honest code patch is justified.
-- Trade-offs: No production logic changed, but keeps the history clean.
+### Option B
+- Use standard `std::path::Path::components()`.
+- **Why it fits:** Relies on standardized algorithms.
+- **Trade-offs:** OS-specific path parsing can lead to hash drift across platforms for identical file names, which breaks cross-platform determinism contracts.
 
 ## ✅ Decision
-Choose Option B. The core pipeline is well-covered, and forcing an untruthful fix violates the primary constraints of the run. Submitting a Learning PR is the required honest fallback path.
+Option A was chosen. Handling string manipulation directly ensures consistency across Unix and Windows and aligns exactly with `tokmd`'s determinism requirements, whilst addressing all edge cases raised during review.
 
 ## 🧱 Changes made (SRP)
-- Created learning PR packet artifacts. No code files were modified.
+- `crates/tokmd-format/src/redact/mod.rs`
+  - Added parent directory resolution logic to `clean_path` resolving `..` securely while ignoring double slashes.
+  - Handled absolute paths ensuring leading `/` is preserved during evaluation.
+  - Appended explicit regression tests verifying paths handle `..` appropriately, alongside absolute path tests.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo mutants -p tokmd-types
-Found 25 mutants to test
-ok       Unmutated baseline in 79s build + 4s test
-25 mutants tested in 5m: 21 caught, 4 unviable
+cargo test -p tokmd-format
+CI=true cargo test -p tokmd-format --verbose
+cargo build
+cargo fmt -- --check
+cargo clippy -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Learning PR packet
-- Blast radius: None (No code changes)
-- Risk class: Zero - No production behavior changed
-- Rollback: Safely revert `.jules` artifacts
-- Gates run: `cargo mutants`, `cargo test`
+- Change shape: Implementation Fix + Proof Tests.
+- Blast radius: Output Formatting & Path Hashing Logic.
+- Risk class: Low, path hashes remain correct and predictable but are now fully resilient against `..` exploits.
+- Rollback: Revert the PR safely.
+- Gates run: `cargo build --verbose`, `CI=true cargo test -p tokmd-format --verbose`, `cargo clippy`, `cargo fmt`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`
@@ -47,7 +54,6 @@ ok       Unmutated baseline in 79s build + 4s test
 - `.jules/runs/mutant_high_value/receipts.jsonl`
 - `.jules/runs/mutant_high_value/result.json`
 - `.jules/runs/mutant_high_value/pr_body.md`
-- `.jules/friction/open/mutant_high_value.md`
 
 ## 🔜 Follow-ups
-I have filed `.jules/friction/open/mutant_high_value.md` noting that attempting to force a patch on a structurally tight crate causes friction against the `Output honesty` constraint.
+None.
