@@ -179,6 +179,27 @@ mod tests {
     }
 
     #[test]
+    fn skips_allowlisted_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+
+        for rel_path in [".claude/fixture.pem", ".jules/key.pem"] {
+            let path = dir.path().join(rel_path);
+            fs::create_dir_all(
+                path.parent()
+                    .expect("parent dir should exist"),
+            )
+            .expect("create allowlist prefix parent");
+            fs::write(&path, "BEGIN PRIVATE KEY").expect("write allowlisted file");
+
+            let violation = evaluate_candidate(dir.path(), rel_path).expect("check");
+            assert!(
+                violation.is_none(),
+                "{rel_path} should be allowlisted and not flagged"
+            );
+        }
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
