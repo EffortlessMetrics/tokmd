@@ -1,27 +1,14 @@
-# Decision
-
-## Context
-The Archivist persona focuses on improving Jules itself by consolidating learnings and sharing scaffolding. Target ranking #2 is "summarize per-run packets into generated indexes/rollups", and target #1 is "consolidate recurring friction themes into better templates/policy/docs".
-
-Looking at the generated indexes (`.jules/index/generated/RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md`), they are currently out-of-date and missing some metadata, which is exposed by running `cargo xtask jules-index`. Also, the `FRICTION_ROLLUP.md` shows missing or "Unknown" metadata for friction items like `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` because they don't conform precisely to the metadata schema in `.jules/runbooks/FRICTION_ITEM.md`.
-
 ## Options considered
 
-### Option A: Clean up friction items metadata and regenerate the indexes (Recommended)
-1. Fix the metadata frontmatter in the `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` friction items so they match the expected schema from the runbook.
-2. Run `cargo xtask jules-index` to update the generated `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` files.
-3. Commit these changes.
+### Option A: Update `jules-index` to include friction items from `.jules/friction/done/` in `FRICTION_ROLLUP.md` (recommended)
+- What it is: Modify `xtask/src/tasks/jules_index.rs` to collect friction items from `.jules/friction/done/` (in addition to `.jules/friction/open/`) and include them in the generated rollup index. We can either combine them into one index with a "Status" column or generate a separate `.jules/index/generated/FRICTION_DONE_ROLLUP.md` index or just append them to the existing rollup. Based on current code, the `FRICTION_ROLLUP.md` explicitly has a "Status" column and the summary says "It rolls up active friction metadata from `.jules/friction/open/`." Changing it to roll up both active and closed friction makes the history visible, matching the persona directive to "summarize per-run packets into generated indexes/rollups" and handle friction.
+- Why it fits this repo and shard: It improves Jules itself by consolidating learnings (resolved friction). The index generation is workspace-wide tooling governance. Currently, closed friction items disappear from the rollup entirely.
+- Trade-offs: Structure - The rollup might get long, but the table format is readable. Velocity - Simple change. Governance - Provides complete visibility into resolved issues.
 
-- **Structure**: High. Brings disparate friction items into compliance with the official runbook.
-- **Velocity**: Low impact on product code velocity, but improves Jules system health.
-- **Governance**: High. The generated indexes will now correctly track all friction items and run statuses.
-
-### Option B: Only regenerate the indexes without fixing the friction metadata
-1. Just run `cargo xtask jules-index`.
-
-- **Structure**: Low. The indexes will still show "Unknown" values for important metadata.
-- **Velocity**: Low.
-- **Governance**: Low. We leave broken metadata in the repo.
+### Option B: Add a new command `xtask jules-index-done` to generate a separate closed friction index
+- What it is: A separate generator for done items.
+- When to choose it instead: If the active friction index must strictly remain small and only show open items.
+- Trade-offs: Adds duplicate logic for a separate file.
 
 ## Decision
-**Option A**. By fixing the friction item metadata frontmatter to align with `.jules/runbooks/FRICTION_ITEM.md` and then regenerating the indexes, we accomplish both target #1 (consolidate friction themes/docs) and target #2 (summarize into generated indexes/rollups).
+Option A. I will modify `write_or_check_friction_rollup` to collect friction items from both `.jules/friction/open` and `.jules/friction/done`, combine them, and sort them so they all appear in `FRICTION_ROLLUP.md`. I will update the generator's header text to reflect this ("active and closed friction metadata"). This fulfills the concrete assignment: "summarize per-run packets into generated indexes/rollups" and "consolidate run packets, friction, learnings".
