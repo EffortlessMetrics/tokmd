@@ -1,5 +1,7 @@
 {
-  "status": "success",
   "outcome": "PR-ready patch",
-  "codex_restack": "tightened policy to explicit compound suffixes plus final-extension fallback"
+  "learning_pr": false,
+  "summary": "Fixed a directory structure leakage vulnerability in path redaction by safely resolving `..` parent traversal segments.",
+  "receipts_collected": 2,
+  "friction_items_added": 0
 }

@@ -1,6 +1,2 @@
-{"timestamp": "2026-05-13T01:15:00Z", "command": "cargo test -p tokmd-format --test test_redaction_double_ext", "output": "superseded by Codex restack; tests moved into test_redaction_leak.rs and redact module tests"}
-{"timestamp": "2026-05-13T02:10:00Z", "command": "cargo test -p tokmd-format redact --verbose", "output": "test result: ok"}
-{"timestamp": "2026-05-13T02:11:00Z", "command": "cargo test -p tokmd-format redaction --verbose", "output": "test result: ok"}
-{"timestamp": "2026-05-13T02:11:00Z", "command": "cargo test -p tokmd-format scan_args --verbose", "output": "test result: ok"}
-{"timestamp": "2026-05-13T02:12:00Z", "command": "cargo clippy -p tokmd-format --all-targets -- -D warnings", "output": "finished successfully"}
-{"timestamp": "2026-05-13T02:12:00Z", "command": "cargo xtask proof-policy --check", "output": "Proof policy OK"}
+{"command": "cargo test -p tokmd-format --lib", "outcome": "ok. 145 passed; 0 failed"}
+{"command": "cargo test --test test_redaction_leak", "outcome": "ok. 7 passed; 0 failed"}
