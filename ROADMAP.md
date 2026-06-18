@@ -130,22 +130,20 @@ and publishing surface.
 | 0    | `tokmd-analysis-types`  | Analysis receipt types                |
 | 0    | `tokmd-settings`        | Clap-free settings types              |
 | 0    | `tokmd-envelope`        | Cross-fleet sensor report contract    |
-| 1    | `tokmd-sensor::substrate` | Shared repo context (`RepoSubstrate`) |
+| 0    | `tokmd-io-port`         | IO abstraction boundaries             |
 | 1    | `tokmd-scan`            | tokei wrapper                         |
 | 1    | `tokmd-model`           | Aggregation logic                     |
-| 1    | `tokmd-scan` owner modules | Template generation and walk/path helpers |
-| 2    | `tokmd-format::redact`  | BLAKE3-based path redaction utilities |
 | 1    | `tokmd-sensor`          | `EffortlessSensor` trait + builder    |
-| 1    | `tokmd-scan::walk`      | File system traversal helpers         |
 | 2    | `tokmd-format`          | Output rendering                      |
-| 2    | `tokmd-analysis::content` | File content scanning helpers       |
 | 2    | `tokmd-git`             | Git history analysis                  |
 | 3    | `tokmd-analysis`        | Analysis orchestration                |
+| 3    | `tokmd-cockpit`         | Human/PR orchestration surfaces       |
 | 3    | `tokmd-gate`            | Policy evaluation with JSON pointer   |
 | 4    | `tokmd-core`            | Library facade with FFI layer         |
 | 5    | `tokmd`                 | CLI binary                            |
 | 5    | `tokmd-python`          | Python bindings (PyO3)                |
 | 5    | `tokmd-node`            | Node.js bindings (napi-rs)            |
+| 5    | `tokmd-wasm`            | WASM browser bindings                 |
 
 ### v1.2.0 Features Delivered
 
