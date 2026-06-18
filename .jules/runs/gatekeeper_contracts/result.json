@@ -1,17 +1,4 @@
 {
-  "summary": "Fixed documentation drift by replacing manual parameter tables with `<!-- HELP: <command> -->` markers and failing docs checks when expected marker pairs are missing",
-  "files_changed": [
-    "docs/reference-cli.md",
-    "xtask/src/tasks/docs.rs",
-    "xtask/src/tasks/gate.rs",
-    "xtask/tests/xtask_deep_w74.rs"
-  ],
-  "gates_run": [
-    "cargo xtask docs --update",
-    "cargo xtask docs --check",
-    "cargo test -p xtask",
-    "cargo test -p tokmd --test docs",
-    "cargo fmt-check",
-    "git diff --check"
-  ]
+  "outcome": "pr_ready_patch",
+  "primary_target": "policy/non-rust-allowlist.toml"
 }

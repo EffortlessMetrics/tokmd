@@ -1,4 +1,7 @@
-{"command": "cargo xtask docs --update", "result": "updated docs/reference-cli.md from tokmd help markers"}
-{"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
-{"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
-{"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "cargo xtask docs --check", "output": "Documentation is up to date."}
+{"command": "cargo xtask check-file-policy", "output": "file-policy findings (4):\n  - file fixtures/syntax/python/native_boundary.py does not match any non-Rust allowlist glob\n  - file fixtures/syntax/typescript/component.tsx does not match any non-Rust allowlist glob\n  - file fixtures/syntax/typescript/native_boundary.ts does not match any non-Rust allowlist glob\n  - file scripts/check-no-bare-self-hosted.sh does not match any non-Rust allowlist glob"}
+{"command": "cargo xtask check-file-policy --strict", "output": "file-policy OK: 85 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
+{"command": "cargo test -p xtask --verbose", "output": "test result: ok."}
+{"command": "cargo clippy -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 48.15s"}
+{"command": "cargo xtask check-file-policy --strict", "output": "file-policy findings (11):\n  - file xtask/target/test-proof-observation-status/aggregate/affected.json does not match any non-Rust allowlist glob\n..."}
+{"command": "cargo xtask check-file-policy --strict", "output": "file-policy OK: 86 entries, 1168 non-Rust files covered, 1309 Rust files skipped"}
