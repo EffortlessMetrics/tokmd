@@ -1,0 +1,1 @@
+{"cmd": "cargo test -p tokmd-settings --test properties", "status": "success", "summary": "43 passed; toml_config_parse_no_panic ... ok"}
