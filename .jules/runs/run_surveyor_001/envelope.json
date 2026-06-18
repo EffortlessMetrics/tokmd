@@ -1,0 +1,19 @@
+{
+  "prompt_id": "surveyor_workspace",
+  "persona": "Surveyor",
+  "style": "Explorer",
+  "primary_shard": "workspace-wide",
+  "allowed_paths": ["**"],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["patch", "learning_pr"],
+  "options_considered": [],
+  "decision": "",
+  "artifact_paths": [
+    ".jules/runs/run_surveyor_001/envelope.json",
+    ".jules/runs/run_surveyor_001/decision.md",
+    ".jules/runs/run_surveyor_001/receipts.jsonl",
+    ".jules/runs/run_surveyor_001/result.json",
+    ".jules/runs/run_surveyor_001/pr_body.md"
+  ],
+  "commands": []
+}
