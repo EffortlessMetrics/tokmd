@@ -33,12 +33,27 @@ fn normalize_rel_path(path: &str) -> String {
         path.to_string()
     };
 
-    let mut normalized = normalized.as_str();
-    while let Some(rest) = normalized.strip_prefix("./") {
-        normalized = rest;
+    let mut normalized_str = normalized.as_str();
+    while let Some(rest) = normalized_str.strip_prefix("./") {
+        normalized_str = rest;
     }
 
-    normalized.to_string()
+    // Resolve parent directory segments (..)
+    let mut parts: Vec<&str> = Vec::new();
+    for part in normalized_str.split('/') {
+        if part == ".." {
+            let last = parts.last().copied().unwrap_or("");
+            if last != ".." && !last.is_empty() {
+                parts.pop();
+                continue;
+            }
+        }
+        if !part.is_empty() || parts.is_empty() {
+            parts.push(part);
+        }
+    }
+
+    parts.join("/")
 }
 
 /// Construct `ScanArgs` with optional path and exclusion redaction.
@@ -75,6 +90,12 @@ pub fn scan_args(paths: &[PathBuf], global: &ScanOptions, redact: Option<RedactM
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    #[test]
+    fn normalize_scan_input_parent_directory() {
+        assert_eq!(normalize_scan_input(Path::new("foo/../bar")), "bar");
+        assert_eq!(normalize_scan_input(Path::new("foo/../bar/baz")), "bar/baz");
+    }
 
     #[test]
     fn normalize_scan_input_strips_repeated_dot_slash() {

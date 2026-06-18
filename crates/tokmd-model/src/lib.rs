@@ -129,11 +129,28 @@ pub fn normalize_path(path: &Path, strip_prefix: Option<&Path>) -> String {
     }
     slice = slice.trim_start_matches('/');
 
-    if slice.len() == s.len() {
+    let result_str = if slice.len() == s.len() {
         s.into_owned()
     } else {
         slice.to_string()
+    };
+
+    // Resolve parent directory segments (..)
+    let mut parts: Vec<&str> = Vec::new();
+    for part in result_str.split('/') {
+        if part == ".." {
+            let last = parts.last().copied().unwrap_or("");
+            if last != ".." && !last.is_empty() {
+                parts.pop();
+                continue;
+            }
+        }
+        if !part.is_empty() || parts.is_empty() {
+            parts.push(part);
+        }
     }
+
+    parts.join("/")
 }
 
 fn strip_path_prefix<'a>(path: &'a str, prefix: &str) -> Option<&'a str> {
@@ -210,6 +227,14 @@ mod tests {
             module_key("crates/foo/src/lib.rs", &roots, 10),
             "crates/foo/src"
         );
+    }
+
+    #[test]
+    fn normalize_path_parent_directory() {
+        let p1 = PathBuf::from("foo/../bar");
+        assert_eq!(normalize_path(&p1, None), "bar");
+        let p2 = PathBuf::from("foo/../bar/baz");
+        assert_eq!(normalize_path(&p2, None), "bar/baz");
     }
 
     #[test]
