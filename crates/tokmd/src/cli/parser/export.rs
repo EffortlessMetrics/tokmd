@@ -10,6 +10,9 @@ use clap::Args;
 use super::{ChildIncludeMode, ExportFormat, RedactMode};
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd export --format jsonl --out export.jsonl\n  tokmd export crates/ --format csv"
+)]
 pub struct CliExportArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."
     #[arg(value_name = "PATH")]
