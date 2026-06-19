@@ -111,99 +111,8 @@ export function createErrorMessage(requestId, code, message) {
     };
 }
 
-export function isInMemoryInput(value) {
-    if (!value || typeof value !== "object") {
-        return false;
-    }
-
-    if (typeof value.path !== "string" || value.path.trim().length === 0) {
-        return false;
-    }
-
-    const hasText = typeof value.text === "string";
-    const hasBase64 = typeof value.base64 === "string";
-
-    return (hasText && !hasBase64) || (!hasText && hasBase64);
-}
-
-function hasOnlyKeys(value, allowedKeys) {
-    return Object.keys(value).every((key) => allowedKeys.includes(key));
-}
-
-function isAnalyzeOptions(value) {
-    return Boolean(
-        value &&
-            typeof value === "object" &&
-            !Array.isArray(value) &&
-            hasOnlyKeys(value, ["preset"]) &&
-            (value.preset === undefined || typeof value.preset === "string")
-    );
-}
-
 function isPlainObject(value) {
     return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
-
-export function resolveRunInputs(args) {
-    if (!isPlainObject(args)) {
-        return null;
-    }
-
-    const hasRootInputs = args.inputs !== undefined;
-    const hasScan = args.scan !== undefined;
-
-    if (hasScan && !isPlainObject(args.scan)) {
-        return null;
-    }
-
-    const hasScanInputs = hasScan && args.scan.inputs !== undefined;
-
-    if (hasRootInputs && hasScanInputs) {
-        return null;
-    }
-
-    if (hasRootInputs) {
-        return Array.isArray(args.inputs) ? args.inputs : null;
-    }
-
-    if (hasScanInputs) {
-        return Array.isArray(args.scan.inputs) ? args.scan.inputs : null;
-    }
-
-    return null;
-}
-
-function isScanOptions(value) {
-    return value === undefined || (isPlainObject(value) && hasOnlyKeys(value, ["inputs"]));
-}
-
-function isRunArgsForMode(mode, args) {
-    if (!isPlainObject(args)) {
-        return false;
-    }
-
-    const inputs = resolveRunInputs(args);
-
-    if (!inputs || !inputs.every(isInMemoryInput) || !isScanOptions(args.scan)) {
-        return false;
-    }
-
-    if (mode === "analyze") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "scan", "preset", "analyze"]) &&
-                (args.preset === undefined || typeof args.preset === "string") &&
-                (args.analyze === undefined || isAnalyzeOptions(args.analyze))
-        );
-    }
-
-    if (mode === "lang") {
-        return Boolean(
-            hasOnlyKeys(args, ["inputs", "scan", "files"]) &&
-                (args.files === undefined || typeof args.files === "boolean")
-        );
-    }
-
-    return hasOnlyKeys(args, ["inputs", "scan"]);
 }
 
 export function isRunMessage(value) {
@@ -212,7 +121,7 @@ export function isRunMessage(value) {
             value.type === MESSAGE_TYPES.RUN &&
             typeof value.requestId === "string" &&
             typeof value.mode === "string" &&
-            isRunArgsForMode(value.mode, value.args)
+            (!value.args || isPlainObject(value.args))
     );
 }
 
