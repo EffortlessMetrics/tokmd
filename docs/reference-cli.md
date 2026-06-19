@@ -256,6 +256,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd export --format jsonl --out export.jsonl
+  tokmd export crates/ --format csv
 ```
 <!-- /HELP: export -->
 
@@ -320,6 +324,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd run . --name my-scan
+  tokmd run crates/ --analysis risk
 ```
 <!-- /HELP: run -->
 
@@ -719,6 +727,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd diff --from HEAD~1 --to HEAD
+  tokmd diff .runs/old.json .runs/new.json --compact
 ```
 <!-- /HELP: diff -->
 
@@ -1746,6 +1758,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd gate .runs/receipt.json --policy gate.toml
+  tokmd gate . --preset risk --fail-fast
 ```
 <!-- /HELP: gate -->
 

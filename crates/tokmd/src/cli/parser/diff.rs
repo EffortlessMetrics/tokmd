@@ -7,6 +7,9 @@ use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd diff --from HEAD~1 --to HEAD\n  tokmd diff .runs/old.json .runs/new.json --compact"
+)]
 pub struct DiffArgs {
     /// Base receipt/run or git ref to compare from.
     #[arg(long)]

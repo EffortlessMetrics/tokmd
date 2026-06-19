@@ -1,21 +1,5 @@
 {
-  "outcome": "patch",
-  "title": "librarian: fix factual path drift for BASELINE_VERSION in SCHEMA.md \ud83d\udcda",
-  "summary": "Updated docs/SCHEMA.md to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.",
-  "target_paths": [
-    "docs/SCHEMA.md"
-  ],
-  "proof_summary": "rg confirms BASELINE_VERSION is defined in baseline.rs, not lib.rs",
-  "gates_run": [
-    "cargo xtask doc-artifacts --check",
-    "cargo xtask docs --check",
-    "cargo xtask proof-policy --check",
-    "cargo fmt-check",
-    "cargo xtask proof --profile affected --run-required",
-    "cargo xtask proof-run-artifacts-check"
-  ],
-  "friction_items": [],
-  "persona_notes": [],
-  "rollback": "git restore docs/SCHEMA.md",
-  "follow_ups": []
+  "status": "success",
+  "outcome": "pr_ready_patch",
+  "diff_stat": "Updated 4 files with CLI after_help examples and updated 1 generated doc."
 }

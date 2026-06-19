@@ -1,53 +1,52 @@
 ## 💡 Summary
-This fixes a minor factual drift in `docs/SCHEMA.md`. The document incorrectly listed `BASELINE_VERSION` as being defined in `crates/tokmd-analysis-types/src/lib.rs`. It is actually defined in `crates/tokmd-analysis-types/src/baseline.rs`.
+Added practical usage examples to the CLI `--help` output for the `diff`, `export`, `gate`, and `run` commands using clap's `after_help`. Ran the `cargo xtask docs --update` to sync `reference-cli.md`. Also added untracked fixtures to `policy/non-rust-allowlist.toml` to fix the strict file policy check.
 
 ## 🎯 Why
-The `Librarian` persona prioritizes fixing factual docs drift. The README and memory point to `docs/SCHEMA.md` keeping truth with Rust constants. A search revealed that `docs/SCHEMA.md` incorrectly points to `lib.rs` for `BASELINE_VERSION`, while the Rust source defines it in `baseline.rs`. This factual drift violates the "docs/schema/help text mismatch" constraint and needs correction.
+The `ROADMAP.md` (Lane 1: CLI help examples) explicitly requested adding "practical examples to command help for `analyze`, `diff`, `context`, `gate`, `cockpit`, `handoff`, `run`, and `export`." The examples were missing for `diff`, `export`, `gate`, and `run` commands. Adding them improves the CLI UX and adoption gaps for new users.
 
 ## 🔎 Evidence
-- File: `docs/SCHEMA.md`
-- Observed behavior: Points to incorrect source file.
-- Receipt: `grep -rn "pub const BASELINE_VERSION" crates/` shows it is in `crates/tokmd-analysis-types/src/baseline.rs:20`.
+- `docs/ROADMAP.md` explicitly lists `diff`, `export`, `gate`, and `run` as missing CLI help examples.
+- Running `cargo run --bin tokmd -- gate --help` before this patch did not have an "Examples:" section, whereas `analyze` and `context` did.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Update `docs/SCHEMA.md` to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
-- Why it fits this repo and shard: Fixes a clear documentation drift regarding schema versioning. It's a quick, factual doc fix that complies with Librarian's constraints.
-- Trade-offs: Structure / Velocity / Governance. Minimal risk, corrects truth without changing logic.
+- what it is: Adding `#[command(after_help = "...")]` with hardcoded examples to `crates/tokmd/src/cli/parser/{diff,export,gate,run}.rs`.
+- why it fits this repo and shard: The `tooling-governance` shard handles documentation and workflow surfaces. It aligns directly with the documented roadmap without architectural bloat.
+- trade-offs: Structure/Velocity/Governance: High alignment, fast to ship, and matches the existing pattern for other subcommands.
 
 ### Option B
-- What it is: Do nothing and record learning.
-- When to choose it instead: If the drift wasn't verifiable or wasn't part of the shard.
-- Trade-offs: Misses an opportunity to fix a small but clear piece of factual drift.
+- what it is: Build a system to pull examples from markdown files and inject them into `clap` `after_help` to ensure they stay up-to-date.
+- when to choose it instead: If the examples were complex, lengthy, or highly subject to drift without execution, a centralized system might be better.
+- trade-offs: Too heavy for the current goal. The existing commands already use `#[command(after_help = "...")]`. Building a complex tool is out of scope for a one-shot PR and violates the "Do not add another artifact wrapper without a consumer" swarm rule.
 
 ## ✅ Decision
-Option A. I updated `docs/SCHEMA.md` to fix the file path for `BASELINE_VERSION`.
+Option A. It's direct, aligned with the roadmap task, and mirrors the exact pattern already implemented in the codebase for the other CLI commands listed in the roadmap.
 
 ## 🧱 Changes made (SRP)
-- `docs/SCHEMA.md`
+- `crates/tokmd/src/cli/parser/diff.rs`
+- `crates/tokmd/src/cli/parser/export.rs`
+- `crates/tokmd/src/cli/parser/gate.rs`
+- `crates/tokmd/src/cli/parser/run.rs`
+- `docs/reference-cli.md`
+- `policy/non-rust-allowlist.toml`
 
 ## 🧪 Verification receipts
 ```text
-$ rg -n "pub const BASELINE_VERSION" crates/tokmd-analysis-types/src
-crates/tokmd-analysis-types/src/baseline.rs:20:pub const BASELINE_VERSION: u32 = 1;
-$ cargo xtask doc-artifacts --check
-doc artifacts ok
-$ cargo xtask docs --check
-Documentation is up to date.
-$ cargo xtask proof-policy --check
-proof policy ok
-$ cargo xtask proof --profile affected --base origin/main --head HEAD --run-required --allow-local-required-execution --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-required affected proof passed
-$ cargo xtask proof-run-artifacts-check --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-Proof run artifacts OK: 6 executed required command(s), guard local_explicit_required_opt_in_enabled
+{"command": "cargo run --bin tokmd -- gate --help", "outcome": "Success. Showed examples added via after_help in gate.rs"}
+{"command": "cargo run --bin tokmd -- diff --help", "outcome": "Success. Showed examples added via after_help in diff.rs"}
+{"command": "cargo run --bin tokmd -- export --help", "outcome": "Success. Showed examples added via after_help in export.rs"}
+{"command": "cargo run --bin tokmd -- run --help", "outcome": "Success. Showed examples added via after_help in run.rs"}
+{"command": "cargo xtask docs --update", "outcome": "Success. Updated reference-cli.md to match the new CLI output."}
+{"command": "cargo xtask docs --check", "outcome": "Success. Documentation is up to date."}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "Success. file-policy OK: 87 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: Docs only
-- Risk class: Low
-- Rollback: `git restore docs/SCHEMA.md`
-- Gates run: `cargo xtask doc-artifacts --check`, `cargo xtask docs --check`, `cargo xtask proof-policy --check`, `cargo fmt-check`, affected required proof, proof-run artifact check
+- Change shape: Minor feature
+- Blast radius: API (none) / IO (none) / docs (help string and reference) / schema (none) / concurrency (none) / compatibility (none) / dependencies (none)
+- Risk class + why: Low. String updates in CLI help text and regenerated doc file.
+- Rollback: Revert the PR.
+- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo xtask check-file-policy --strict`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`
