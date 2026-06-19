@@ -1,0 +1,4 @@
+{
+  "outcome": "proof-improvement patch",
+  "summary": "Improved determinism and prevented directory leakage by normalizing `..` path segments in redact.rs."
+}

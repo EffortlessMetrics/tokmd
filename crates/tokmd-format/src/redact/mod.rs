@@ -21,32 +21,31 @@ mod extensions;
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
 fn clean_path(s: &str) -> String {
-    let mut normalized = String::with_capacity(s.len());
-    let mut last_was_slash = false;
-    for ch in s.chars() {
-        let ch = if ch == '\\' { '/' } else { ch };
-        if ch == '/' {
-            if last_was_slash {
-                continue;
+    let mut parts = Vec::new();
+    let s = s.replace('\\', "/");
+    let is_absolute = s.starts_with('/');
+
+    for part in s.split('/') {
+        if part.is_empty() || part == "." {
+            continue;
+        } else if part == ".." {
+            if parts.is_empty() || parts.last() == Some(&"..") {
+                if !is_absolute {
+                    parts.push("..");
+                }
+            } else {
+                parts.pop();
             }
-            last_was_slash = true;
         } else {
-            last_was_slash = false;
+            parts.push(part);
         }
-        normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    let mut normalized = parts.join("/");
+    if is_absolute {
+        normalized.insert(0, '/');
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
-    }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
-    }
+
     normalized
 }
 
