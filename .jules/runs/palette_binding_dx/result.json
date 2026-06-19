@@ -1,4 +1,5 @@
 {
-  "status": "success",
-  "summary": "Updated `invalid_field` to embed exact field paths into the FFI error response payload under `error.details`. This makes invalid FFI config parameters immediately understandable for Py/Node/WASM bindings."
+  "outcome": "success",
+  "receipts_path": ".jules/runs/palette_binding_dx/receipts.jsonl",
+  "pr_body_path": ".jules/runs/palette_binding_dx/pr_body.md"
 }

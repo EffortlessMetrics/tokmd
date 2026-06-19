@@ -32,9 +32,19 @@ fn extract_mode_data_json(mode: &str, args_json: &str) -> Result<String, String>
     extract_mode_data_json_after_validation(mode, args_json)
 }
 
+fn map_envelope_error_string(err: tokmd_envelope::ffi::EnvelopeExtractError) -> String {
+    use tokmd_envelope::ffi::EnvelopeExtractError::*;
+    match err {
+        JsonParse(e) => format!("[invalid_json] JSON parse error: {e}"),
+        JsonSerialize(e) => format!("[internal_error] JSON serialize error: {e}"),
+        InvalidResponseFormat => "[internal_error] Invalid response format".to_string(),
+        Upstream(msg) => msg,
+    }
+}
+
 fn extract_mode_data_json_after_validation(mode: &str, args_json: &str) -> Result<String, String> {
     let result_json = tokmd_core::ffi::run_json(mode, args_json);
-    tokmd_envelope::ffi::extract_data_json(&result_json).map_err(|err| err.to_string())
+    tokmd_envelope::ffi::extract_data_json(&result_json).map_err(map_envelope_error_string)
 }
 
 #[cfg(test)]
@@ -54,21 +64,22 @@ fn js_args_to_json(args: JsValue) -> Result<String, JsValue> {
     }
 
     JSON::stringify(&args)
-        .map_err(|_| to_js_error("failed to serialize JS arguments"))?
+        .map_err(|_| to_js_error("[invalid_json] failed to serialize JS arguments"))?
         .as_string()
-        .ok_or_else(|| to_js_error("failed to serialize JS arguments"))
+        .ok_or_else(|| to_js_error("[invalid_json] failed to serialize JS arguments"))
 }
 
 fn normalize_raw_json_args(raw_json: &str) -> Result<String, String> {
     serde_json::from_str::<serde_json::Value>(raw_json)
-        .map_err(|err| format!("failed to parse JSON string arguments: {err}"))?;
+        .map_err(|err| format!("[invalid_json] failed to parse JSON string arguments: {err}"))?;
     Ok(raw_json.to_string())
 }
 
 fn run_mode_js(mode: &str, args: JsValue) -> Result<JsValue, JsValue> {
     let args_json = js_args_to_json(args)?;
     let data_json = extract_mode_data_json(mode, &args_json).map_err(to_js_error)?;
-    JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
+    JSON::parse(&data_json)
+        .map_err(|_| to_js_error("[internal_error] failed to parse tokmd result JSON"))
 }
 
 #[cfg(feature = "analysis")]
@@ -102,7 +113,8 @@ fn run_analyze_js(args: JsValue) -> Result<JsValue, JsValue> {
     validate_analyze_args_json(&args_json).map_err(|err| to_js_error(err.to_string()))?;
     let data_json =
         extract_mode_data_json_after_validation("analyze", &args_json).map_err(to_js_error)?;
-    JSON::parse(&data_json).map_err(|_| to_js_error("failed to parse tokmd result JSON"))
+    JSON::parse(&data_json)
+        .map_err(|_| to_js_error("[internal_error] failed to parse tokmd result JSON"))
 }
 
 /// Return the tokmd package version.
@@ -148,7 +160,7 @@ fn capabilities_json() -> String {
 #[wasm_bindgen(js_name = capabilities)]
 pub fn capabilities() -> Result<JsValue, JsValue> {
     JSON::parse(&capabilities_json())
-        .map_err(|_| to_js_error("failed to parse tokmd wasm capabilities JSON"))
+        .map_err(|_| to_js_error("[internal_error] failed to parse tokmd wasm capabilities JSON"))
 }
 
 /// Run a tokmd mode and return the raw JSON response envelope.
