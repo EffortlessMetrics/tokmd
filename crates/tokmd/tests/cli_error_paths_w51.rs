@@ -250,7 +250,7 @@ fn unknown_subcommand_fails() {
         .assert()
         .failure()
         .stderr(predicate::str::contains(
-            "Error: Unrecognized subcommand 'nonexistent-subcommand'",
+            "Error: Path not found: nonexistent-subcommand",
         ));
 }
 
@@ -260,9 +260,7 @@ fn typo_subcommand_suggests_correction() {
         .arg("anolyze")
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "Error: Unrecognized subcommand 'anolyze'",
-        ))
+        .stderr(predicate::str::contains("Error: Path not found: anolyze"))
         .stderr(predicate::str::contains(
             "Did you mean the subcommand `analyze`?",
         ));
