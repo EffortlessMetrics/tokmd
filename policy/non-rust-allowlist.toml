@@ -800,3 +800,21 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "fixtures/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "General workspace fixtures."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "scripts/**"
+kind = "script"
+owner = "release/build"
+surface = "build"
+classification = "tooling"
+reason = "Bash and JS scripts used for CI or maintenance tasks."
+covered_by = []

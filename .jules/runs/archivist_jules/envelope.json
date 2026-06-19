@@ -1,9 +1,9 @@
 {
   "prompt_id": "archivist_jules",
-  "persona": "Archivist",
-  "style": "Builder",
+  "persona": "archivist",
+  "style": "builder",
   "primary_shard": "workspace-wide",
   "allowed_paths": ["**"],
   "gate_profile": "governance-release",
-  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+  "allowed_outcomes": ["pr-ready patch", "learning pr"]
 }
