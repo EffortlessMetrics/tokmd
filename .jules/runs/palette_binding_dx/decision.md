@@ -1036,3 +1036,30 @@ I will submit ONLY the `tokmd-node` changes in this PR.
 
 I already committed `tokmd-wasm` in a stash / separate commit and then `git reset --hard HEAD~1` it. Wait, I ran `git commit --amend --no-edit`. So the `WIP` commit has everything except `tokmd-wasm`.
 Let me fix `pr_body.md` to reflect that this PR only covers `tokmd-node` (and I will state the `tokmd-wasm` fix will be a follow-up) to fit within the `ci-budget-override` limit.
+
+The failure is:
+`Error: affected proof scope discovery found 1 unknown file(s)`
+`Affected proof scopes: 7 changed file(s), 2 scope(s), 1 unknown file(s)`
+`- unknown: update_pr.py`
+
+Ah! I left the script `update_pr.py` in the workspace and checked it into Git (`git commit --amend --no-edit` without deleting it, or it was in the workspace). Wait, `git add .` added it to the commit!
+The `tokmd` project has a deterministic file policy check (`cargo xtask check-file-policy --strict`). Non-Rust files not registered in `policy/non-rust-allowlist.toml` will fail.
+Also, `cargo xtask affected` fails if there are unknown files.
+
+I need to delete `update_pr.py` from the Git index and commit, and also delete it from disk.
+
+Wait, `cargo xtask check-file-policy --strict` fails with existing files:
+`fixtures/syntax/python/native_boundary.py`, `fixtures/syntax/typescript/component.tsx`, `fixtures/syntax/typescript/native_boundary.ts`, `scripts/check-no-bare-self-hosted.sh`.
+Wait, did I create those? No. Those were existing in the codebase and they fail the file policy check?
+Maybe it's an existing bug in `tokmd`. The CI that failed was `Scoped Coverage Executor (Non-Required)`.
+It runs:
+`cargo xtask affected --base origin/main --head HEAD --json-output target/proof/affected.json`
+
+Let's test `cargo xtask affected`.
+
+The error was exactly: `Error: affected proof scope discovery found 1 unknown file(s)`
+`- unknown: update_pr.py`
+Because I successfully removed it, the error is gone.
+`cargo xtask affected` now passes with 0 unknown files.
+
+I am ready to submit!
