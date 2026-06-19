@@ -800,3 +800,39 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "fixtures/syntax/python/native_boundary.py"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Syntax fixture for testing python native boundary parsing."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "fixtures/syntax/typescript/component.tsx"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Syntax fixture for testing typescript TSX parsing."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "fixtures/syntax/typescript/native_boundary.ts"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Syntax fixture for testing typescript native boundary parsing."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "scripts/check-no-bare-self-hosted.sh"
+kind = "script"
+owner = "release/build"
+surface = "build"
+classification = "tooling"
+reason = "Script for checking GitHub actions self-hosted usage."
+covered_by = ["cargo xtask check-file-policy --strict"]

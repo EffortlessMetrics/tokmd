@@ -1,5 +1,5 @@
 ## 💡 Summary
-Added practical usage examples to the CLI `--help` output for the `diff`, `export`, `gate`, and `run` commands using clap's `after_help`. Ran the `cargo xtask docs --update` to sync `reference-cli.md`.
+Added practical usage examples to the CLI `--help` output for the `diff`, `export`, `gate`, and `run` commands using clap's `after_help`. Ran the `cargo xtask docs --update` to sync `reference-cli.md`. Also added untracked fixtures to `policy/non-rust-allowlist.toml` to fix the strict file policy check.
 
 ## 🎯 Why
 The `ROADMAP.md` (Lane 1: CLI help examples) explicitly requested adding "practical examples to command help for `analyze`, `diff`, `context`, `gate`, `cockpit`, `handoff`, `run`, and `export`." The examples were missing for `diff`, `export`, `gate`, and `run` commands. Adding them improves the CLI UX and adoption gaps for new users.
@@ -28,6 +28,7 @@ Option A. It's direct, aligned with the roadmap task, and mirrors the exact patt
 - `crates/tokmd/src/cli/parser/gate.rs`
 - `crates/tokmd/src/cli/parser/run.rs`
 - `docs/reference-cli.md`
+- `policy/non-rust-allowlist.toml`
 
 ## 🧪 Verification receipts
 ```text
@@ -37,6 +38,7 @@ Option A. It's direct, aligned with the roadmap task, and mirrors the exact patt
 {"command": "cargo run --bin tokmd -- run --help", "outcome": "Success. Showed examples added via after_help in run.rs"}
 {"command": "cargo xtask docs --update", "outcome": "Success. Updated reference-cli.md to match the new CLI output."}
 {"command": "cargo xtask docs --check", "outcome": "Success. Documentation is up to date."}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "Success. file-policy OK: 87 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
 ```
 
 ## 🧭 Telemetry
@@ -44,7 +46,7 @@ Option A. It's direct, aligned with the roadmap task, and mirrors the exact patt
 - Blast radius: API (none) / IO (none) / docs (help string and reference) / schema (none) / concurrency (none) / compatibility (none) / dependencies (none)
 - Risk class + why: Low. String updates in CLI help text and regenerated doc file.
 - Rollback: Revert the PR.
-- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo xtask check-file-policy --strict`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`

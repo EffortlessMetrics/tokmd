@@ -4,3 +4,4 @@
 {"command": "cargo run --bin tokmd -- run --help", "outcome": "Success. Showed examples added via after_help in run.rs"}
 {"command": "cargo xtask docs --update", "outcome": "Success. Updated reference-cli.md to match the new CLI output."}
 {"command": "cargo xtask docs --check", "outcome": "Success. Documentation is up to date."}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "Success. file-policy OK: 87 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
