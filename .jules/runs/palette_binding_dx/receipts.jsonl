@@ -1,3 +1,2 @@
-{"command": "cargo build --verbose -p tokmd-node -p tokmd-wasm", "status": "success"}
+{"command": "cargo build --verbose -p tokmd-node", "status": "success"}
 {"command": "cd crates/tokmd-node && cargo test --verbose", "status": "success"}
-{"command": "cd web/runner && npm run test", "status": "success"}

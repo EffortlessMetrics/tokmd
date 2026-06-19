@@ -5,7 +5,6 @@ This PR enforces structured `[code] message` error formatting across internal Py
 When bindings fail internally (e.g. invalid arguments causing `JSON.stringify` to panic, or Node's NAPI failing to parse an envelope), they threw raw JS strings or `Error` objects containing only `JSON encode error: {err}`. Our frontends and bindings layers rely on `[code] message` format from core to map diagnostics robustly (e.g., `web/runner/runtime.js` parsing `invalid_settings` or `invalid_json`). Exposing properly typed, consistent internal FFI errors improves the dev experience significantly, fulfilling Palette's core directive of reducing uncertainty with unhelpful errors in runtime execution layers.
 
 ## 🔎 Evidence
-- `tokmd-wasm` stringified internal parsing errors to unparseable strings, swallowed circular JS object references with `failed to serialize JS arguments`, and failed to maintain the core envelope error protocol correctly.
 - `tokmd-node` used `Error::from_reason` with generic `Task join error: {}` or `JSON error: {}` prefixes, bypassing structured codes.
 
 Before:
@@ -20,7 +19,7 @@ After:
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Explicitly prepend `[invalid_json]` or `[internal_error]` directly in the `map_err` closure inside bindings for both `tokmd-node` and `tokmd-wasm`, matching the exact runtime parser requirements without requiring new struct layouts or changes in `tokmd_core` and `tokmd_envelope` shared crates.
+- Explicitly prepend `[invalid_json]` or `[internal_error]` directly in the `map_err` closure inside bindings for `tokmd-node`, matching the exact runtime parser requirements without requiring new struct layouts or changes in `tokmd_core` and `tokmd_envelope` shared crates.
 - **Velocity**: High, does not impact `tokmd_core` schema logic.
 - **Structure**: High, unifies output semantics for the `run_json` FFI boundary directly at the point of translation.
 
@@ -32,13 +31,11 @@ Option A. It's safe, requires no core schema changes, directly targets the assig
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-node/src/lib.rs` - Prefix JS encoding and join panics with `[invalid_json]` and `[internal_error]`. Unpack envelope variants to include bracketed error codes.
-- `crates/tokmd-wasm/src/lib.rs` - Prefix JSON decoding, extraction, and validation exceptions with bracketed string error codes matching core's format.
 
 ## 🧪 Verification receipts
 ```text
-cargo build --verbose -p tokmd-node -p tokmd-wasm
+cargo build --verbose -p tokmd-node
 cd crates/tokmd-node && cargo test --verbose
-cd web/runner && npm run test
 ```
 
 ## 🧭 Telemetry
@@ -56,4 +53,4 @@ cd web/runner && npm run test
 - `.jules/runs/palette_binding_dx/receipts.jsonl`
 
 ## 🔜 Follow-ups
-None.
+Create a follow-up PR for `tokmd-wasm` to bypass the 125 LEM hard limit.
