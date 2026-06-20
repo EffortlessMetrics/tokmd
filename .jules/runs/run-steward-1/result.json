@@ -1,0 +1,7 @@
+{
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    "ROADMAP.md"
+  ],
+  "reasoning": "ROADMAP.md Status Summary table drifted from CHANGELOG.md; updated it to include 1.12.0, 1.13.0, and 1.13.1 releases."
+}

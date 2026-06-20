@@ -39,6 +39,9 @@ context for humans, machines, CI, and agents.
 | **v1.10.0-rc.1** | ✅ Complete | Release-candidate proof for CI control plane, bounded trust hardening, WASM truth, and proof stability. |
 | **v1.10.0** | ✅ Complete | Stable CI control plane, trust hardening, WASM truth, Action release, and proof stability. |
 | **v1.11.0** | ✅ Complete | Browser runtime polish: explicit cache behavior, progress events, retry/rate-limit UX, and authenticated fetch. |
+| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and tokmd-swarm workbench. |
+| **v1.13.0** | ✅ Complete | Syntax-aware evidence packet surface. |
+| **v1.13.1** | ✅ Complete | Correction release for the syntax-aware evidence packet surface. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 

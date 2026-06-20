@@ -1,0 +1,6 @@
+{"command": "cargo xtask publish --plan --verbose", "status": "success"}
+{"command": "cargo xtask version-consistency", "status": "success"}
+{"command": "cargo xtask docs --check", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy --workspace --all-features --tests --benches -- -D warnings", "status": "success"}
+{"command": "awk '/\\| \\*\\*v1.11.0\\*\\*/ {print; print \"| **v1.12.0** | ✅ Complete | Bun UB evidence-readiness and tokmd-swarm workbench. |\\n| **v1.13.0** | ✅ Complete | Syntax-aware evidence packet surface. |\\n| **v1.13.1** | ✅ Complete | Correction release for the syntax-aware evidence packet surface. |\"; next} 1' ROADMAP.md > tmp_roadmap.md && mv tmp_roadmap.md ROADMAP.md", "status": "success"}
