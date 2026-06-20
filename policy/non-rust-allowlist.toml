@@ -800,3 +800,25 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[entry]]
+paths = [
+  "fixtures/syntax/python/native_boundary.py",
+  "fixtures/syntax/typescript/component.tsx",
+  "fixtures/syntax/typescript/native_boundary.ts",
+]
+owner = "interfaces/analysis"
+surface = "tests/fixtures"
+classification = "testing"
+reason = "Syntax boundary and complexity validation fixtures"
+covered_by = ["cargo test -p tokmd-analysis --features ast ast"]
+
+[[entry]]
+paths = [
+  "scripts/check-no-bare-self-hosted.sh"
+]
+owner = "release/infrastructure"
+surface = "scripts"
+classification = "ci"
+reason = "Pre-commit and CI validation scripts"
+covered_by = ["cargo xtask pre-commit"]
