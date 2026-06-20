@@ -1,0 +1,17 @@
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "write envelope.json", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "write decision.md", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "sed -i to patch jules_index.rs code", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "sed -i to patch jules_index.rs metadata text", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "git diff xtask/src/tasks/jules_index.rs", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "rm patch_friction.sh", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "git commit -m \"archivist: fix missing done items in friction rollup index 🗃️\"", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo xtask publish --plan --verbose", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo xtask version-consistency", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo xtask docs --check", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo build --verbose", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo fmt -- --check", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo clippy -- -D warnings", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cargo xtask jules-index", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "cat .jules/index/generated/FRICTION_ROLLUP.md", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "write result.json artifact", "outcome": "success"}
+{"timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)", "command": "write pr_body.md artifact", "outcome": "success"}
