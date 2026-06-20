@@ -1863,10 +1863,10 @@ tokmd gate
 tokmd gate analysis.json --policy policy.toml
 
 # Compute then gate with specific preset
-tokmd gate --preset health
+tokmd gate --preset health --policy policy.toml
 
 # Gate with JSON output for CI parsing
-tokmd gate --format json
+tokmd gate --format json --policy policy.toml
 
 # Fail fast on first error
 tokmd gate --fail-fast
