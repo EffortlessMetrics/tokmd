@@ -1,0 +1,5 @@
+{"command":"git diff crates/tokmd-analysis/src/content/mod.rs","output":""}
+{"command":"cargo test -p tokmd-analysis --test bdd","output":"test result: ok. 167 passed; 0 failed"}
+{"command":"cargo test -p tokmd-analysis","output":"test result: ok."}
+{"command":"cargo build --verbose","output":"Finished `dev` profile"}
+{"command":"cargo clippy -- -D warnings","output":"Finished `dev` profile"}
