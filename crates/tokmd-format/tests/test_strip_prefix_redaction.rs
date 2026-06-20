@@ -33,10 +33,7 @@ fn strip_prefix_is_redacted_when_mode_is_paths_or_all() {
     let json: serde_json::Value = serde_json::from_slice(&buf).unwrap();
     let strip_prefix = json["args"]["strip_prefix"].as_str().unwrap();
     assert_ne!(strip_prefix, "my/secret/prefix", "Redaction failed");
-    assert_eq!(
-        json["args"]["strip_prefix_redacted"].as_bool().unwrap(),
-        true
-    );
+    assert!(json["args"]["strip_prefix_redacted"].as_bool().unwrap());
 }
 
 #[test]
@@ -71,10 +68,7 @@ fn strip_prefix_is_redacted_for_jsonl_when_mode_is_paths_or_all() {
     let json: serde_json::Value = serde_json::from_str(out.lines().next().unwrap()).unwrap();
     let strip_prefix = json["args"]["strip_prefix"].as_str().unwrap();
     assert_ne!(strip_prefix, "my/secret/prefix", "Redaction failed");
-    assert_eq!(
-        json["args"]["strip_prefix_redacted"].as_bool().unwrap(),
-        true
-    );
+    assert!(json["args"]["strip_prefix_redacted"].as_bool().unwrap());
 }
 
 #[test]
@@ -108,5 +102,5 @@ fn strip_prefix_is_preserved_when_mode_is_none() {
     let json: serde_json::Value = serde_json::from_slice(&buf).unwrap();
     let strip_prefix = json["args"]["strip_prefix"].as_str().unwrap();
     assert_eq!(strip_prefix, "my/secret/prefix");
-    assert_eq!(json["args"].get("strip_prefix_redacted"), None);
+    assert!(json["args"].get("strip_prefix_redacted").is_none());
 }

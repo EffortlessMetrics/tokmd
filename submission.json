@@ -1,5 +1,0 @@
-{
-  "title": "mutant: add deterministic behavioral tests for strip_prefix redaction 🧬",
-  "commit_message": "mutant: add deterministic behavioral tests for strip_prefix redaction 🧬\n\nAdded an integration test to assert that `strip_prefix` in the export meta envelope is properly redacted (hashed) when `RedactMode` is `Paths` or `All`, and correctly signals the `strip_prefix_redacted` flag. This closes a behavioral testing gap without modifying production code.",
-  "branch_name": "mutant-strip-prefix-redaction"
-}
