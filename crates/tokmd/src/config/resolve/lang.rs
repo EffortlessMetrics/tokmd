@@ -13,7 +13,8 @@ use super::parse::{parse_children_mode, parse_table_format};
 ///
 /// ```
 /// use std::path::PathBuf;
-/// use tokmd::cli::{CliLangArgs, Profile};
+/// use tokmd::cli::CliLangArgs;
+/// use tokmd_settings::Profile;
 /// use tokmd::resolve_lang;
 ///
 /// let cli_args = CliLangArgs {
@@ -64,7 +65,7 @@ pub fn resolve_lang(
 ///
 /// ```
 /// use tokmd::cli::CliLangArgs;
-/// use tokmd::{resolve_lang_with_config, ConfigContext};
+/// use tokmd::config::{resolve_lang_with_config, ConfigContext};
 /// use tokmd_settings::{TomlConfig, ViewProfile};
 ///
 /// // Create a config with a TOML view specifying top = 10
