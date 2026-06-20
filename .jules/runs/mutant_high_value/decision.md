@@ -1,10 +1,13 @@
-# Decision
+## 🧭 Options considered
+### Option A (recommended)
+- Add a new integration test file `crates/tokmd-format/tests/test_strip_prefix_redaction.rs` to assert that `strip_prefix` is correctly redacted in JSON/JSONL output when `redact` is `Paths` or `All`, and preserved when `redact` is `None`.
+- This targets a key security/redaction path, ensuring the `strip_prefix` field in the meta envelope cannot leak sensitive internal directory structures.
+- Trade-offs: Structure is solid as it lives in integration tests; Velocity is fast since the test already passes against the current logic, closing an assertion gap without refactoring; Governance is unaffected.
 
-## Option A
-Force a fake patch on `tokmd-types` by hallucinating gaps that do not exist, and claim that mutation gaps were closed when they were not.
+### Option B
+- Modify `format_tests.rs` or `snapshot_golden_w54.rs` to include strip_prefix redaction tests.
+- When to choose: If we prefer fewer test files and want to pile more assertions into the massive existing snapshot or format tests.
+- Trade-offs: Makes the existing monolithic test files harder to read. A standalone test file clearly signals the intent and boundary of the security/redaction check.
 
-## Option B
-Adhere to the `Output honesty` constraint. Recognize that `cargo mutants` found zero missed mutants across `tokmd-types` (21 caught, 4 unviable), meaning the target proof surface is already robust. Pivot the assignment into a Learning PR describing this outcome, removing the fake patch that hallucinated missing assertions, and logging a friction item.
-
-## Decision
-Choose Option B. The core pipeline is well-covered, and forcing an untruthful fix violates the primary constraints of the run. Submitting a Learning PR is the required honest fallback path.
+## ✅ Decision
+Option A. Adding `test_strip_prefix_redaction.rs` provides direct, behavioral proof that the `strip_prefix_redacted` flag and `strip_prefix` payload are handled correctly under different redaction modes. It meets the Mutant persona goal of strengthening behavioral assertions around meaningful code paths without polluting existing test monolithic suites.

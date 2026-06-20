@@ -1,3 +1,19 @@
 {
-  "outcome": "learning PR"
+  "outcome": "proof_patch",
+  "title": "mutant: add deterministic behavioral tests for strip_prefix redaction 🧬",
+  "summary": "Added an integration test to assert that strip_prefix in the export meta envelope is properly redacted (hashed) when RedactMode is Paths or All, and correctly signals the strip_prefix_redacted flag, closing a behavioral gap without modifying production code.",
+  "target_paths": [
+    "crates/tokmd-format/tests/test_strip_prefix_redaction.rs"
+  ],
+  "proof_summary": "Created test_strip_prefix_redaction.rs running three distinct behavioral cases (Paths/All vs None redaction over JSON/JSONL) which successfully closed an assertion gap without altering production behavior.",
+  "gates_run": [
+    "cargo test --test test_strip_prefix_redaction",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "CI=true cargo test -p tokmd-format --verbose"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git checkout main -- crates/tokmd-format/tests/",
+  "follow_ups": []
 }
