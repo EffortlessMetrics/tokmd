@@ -281,7 +281,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ steps.coverage_run.outputs.overall_status == '0' && steps.codecov-token.outputs.present == 'true' }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
