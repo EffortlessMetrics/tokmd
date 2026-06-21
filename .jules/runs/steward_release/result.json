@@ -1,0 +1,5 @@
+{
+  "outcome": "patch",
+  "coherent_story": true,
+  "evidence": "crates/tokmd-cockpit/Cargo.toml referenced version = \"1.11.0\" instead of relying on workspace versioning, causing drift. Replaced it with the workspace dependency standard."
+}
