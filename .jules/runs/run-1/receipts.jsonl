@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd-core --test ffi_contract", "outcome": "ok"}
+{"command": "cargo test -p tokmd-core", "outcome": "ok"}
+{"command": "cargo fmt -- --check", "outcome": "ok"}
+{"command": "cargo clippy -- -D warnings", "outcome": "ok"}

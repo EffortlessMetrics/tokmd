@@ -8,8 +8,15 @@ use serde_json::Value;
 use crate::error::TokmdError;
 use crate::settings::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
-pub(super) fn scan_arg_object(args: &Value) -> &Value {
-    args.get("scan").unwrap_or(args)
+pub(super) fn get_settings_object<'a>(
+    args: &'a Value,
+    field: &str,
+) -> Result<&'a Value, TokmdError> {
+    match args.get(field) {
+        None | Some(Value::Null) => Ok(args),
+        Some(v) if v.is_object() => Ok(v),
+        Some(_) => Err(TokmdError::invalid_field(field, "an object")),
+    }
 }
 
 /// Parse a boolean field strictly: missing/null -> default, non-bool -> error.
@@ -262,20 +269,27 @@ mod tests {
     use crate::error::ErrorCode;
     use serde_json::json;
 
-    // ---- scan_arg_object --------------------------------------------------
+    // ---- get_settings_object ----------------------------------------------
 
     #[test]
-    fn scan_arg_object_returns_nested_when_present() {
+    fn get_settings_object_returns_nested_when_present() {
         let args = json!({"scan": {"root": "."}, "other": 1});
-        let inner = scan_arg_object(&args);
+        let inner = get_settings_object(&args, "scan").unwrap();
         assert_eq!(inner, &json!({"root": "."}));
     }
 
     #[test]
-    fn scan_arg_object_returns_args_when_missing() {
+    fn get_settings_object_returns_args_when_missing() {
         let args = json!({"root": "."});
-        let inner = scan_arg_object(&args);
+        let inner = get_settings_object(&args, "scan").unwrap();
         assert_eq!(inner, &args);
+    }
+
+    #[test]
+    fn get_settings_object_errors_when_not_object() {
+        let args = json!({"scan": "not-an-object"});
+        let err = get_settings_object(&args, "scan").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
     }
 
     // ---- parse_bool -------------------------------------------------------
