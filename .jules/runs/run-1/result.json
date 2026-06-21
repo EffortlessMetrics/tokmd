@@ -1,0 +1,8 @@
+{
+  "outcome": "patch",
+  "files_modified": [
+    "crates/tokmd-core/src/ffi/parse.rs",
+    "crates/tokmd-core/src/ffi/settings_parse.rs",
+    "crates/tokmd-core/tests/ffi_contract.rs"
+  ]
+}

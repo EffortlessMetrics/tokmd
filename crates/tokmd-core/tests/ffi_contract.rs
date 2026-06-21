@@ -183,3 +183,22 @@ fn error_envelope_never_has_data_field() {
         "error envelope must not have 'data'"
     );
 }
+use serde_json::Value;
+
+#[test]
+fn test_scan_object_validation() {
+    let result =
+        tokmd_core::ffi::run_json("lang", r#"{"scan": "not an object", "paths": ["src"]}"#);
+    println!("{}", result);
+    let v: Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(v["ok"], false);
+    assert_eq!(v["error"]["code"], "invalid_settings");
+}
+
+#[test]
+fn test_lang_object_validation() {
+    let result = tokmd_core::ffi::run_json("lang", r#"{"lang": "not an object", "top": 10}"#);
+    let v: Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(v["ok"], false);
+    assert_eq!(v["error"]["code"], "invalid_settings");
+}

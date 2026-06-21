@@ -6,11 +6,11 @@
 use serde_json::Value;
 
 use super::parse::{
-    parse_analyze_preset, parse_bool, parse_child_include_mode, parse_children_mode,
-    parse_config_mode, parse_effort_layer, parse_effort_model, parse_export_format,
-    parse_import_granularity, parse_optional_bool, parse_optional_redact_mode,
+    get_settings_object, parse_analyze_preset, parse_bool, parse_child_include_mode,
+    parse_children_mode, parse_config_mode, parse_effort_layer, parse_effort_model,
+    parse_export_format, parse_import_granularity, parse_optional_bool, parse_optional_redact_mode,
     parse_optional_string, parse_optional_u64, parse_optional_usize, parse_redact_mode,
-    parse_required_string, parse_string, parse_string_array, parse_usize, scan_arg_object,
+    parse_required_string, parse_string, parse_string_array, parse_usize,
 };
 use crate::error::TokmdError;
 use crate::settings::{
@@ -19,7 +19,7 @@ use crate::settings::{
 };
 
 pub(super) fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
-    let obj = scan_arg_object(args);
+    let obj = get_settings_object(args, "scan")?;
     if obj.get("paths").is_some_and(Value::is_null) {
         return Err(TokmdError::invalid_field("paths", "an array of strings"));
     }
@@ -40,7 +40,7 @@ pub(super) fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdErr
 }
 
 pub(super) fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdError> {
-    let obj = args.get("lang").unwrap_or(args);
+    let obj = get_settings_object(args, "lang")?;
 
     Ok(LangSettings {
         top: parse_usize(obj, "top", 0)?,
@@ -51,7 +51,7 @@ pub(super) fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdErr
 }
 
 pub(super) fn parse_module_settings(args: &Value) -> Result<ModuleSettings, TokmdError> {
-    let obj = args.get("module").unwrap_or(args);
+    let obj = get_settings_object(args, "module")?;
 
     Ok(ModuleSettings {
         top: parse_usize(obj, "top", 0)?,
@@ -67,7 +67,7 @@ pub(super) fn parse_module_settings(args: &Value) -> Result<ModuleSettings, Tokm
 }
 
 pub(super) fn parse_export_settings(args: &Value) -> Result<ExportSettings, TokmdError> {
-    let obj = args.get("export").unwrap_or(args);
+    let obj = get_settings_object(args, "export")?;
 
     Ok(ExportSettings {
         format: parse_export_format(obj, ExportFormat::Jsonl)?,
@@ -88,7 +88,7 @@ pub(super) fn parse_export_settings(args: &Value) -> Result<ExportSettings, Tokm
 
 #[allow(dead_code)]
 pub(super) fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
-    let obj = args.get("analyze").unwrap_or(args);
+    let obj = get_settings_object(args, "analyze")?;
 
     let effort_base_ref = parse_optional_string(obj, "effort_base_ref")?;
     let effort_head_ref = parse_optional_string(obj, "effort_head_ref")?;
@@ -133,7 +133,7 @@ pub(super) fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, To
 pub(super) fn parse_cockpit_settings(
     args: &Value,
 ) -> Result<crate::settings::CockpitSettings, TokmdError> {
-    let obj = args.get("cockpit").unwrap_or(args);
+    let obj = get_settings_object(args, "cockpit")?;
 
     Ok(crate::settings::CockpitSettings {
         base: parse_string(obj, "base", "main")?,
@@ -144,7 +144,7 @@ pub(super) fn parse_cockpit_settings(
 }
 
 pub(super) fn parse_diff_settings(args: &Value) -> Result<DiffSettings, TokmdError> {
-    let obj = args.get("diff").unwrap_or(args);
+    let obj = get_settings_object(args, "diff")?;
 
     let from = parse_required_string(obj, "from")?;
     let to = parse_required_string(obj, "to")?;
