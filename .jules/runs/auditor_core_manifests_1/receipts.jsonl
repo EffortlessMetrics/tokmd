@@ -1,0 +1,4 @@
+{"command": "mkdir and write envelope.json", "status": "success"}
+{"command": "cargo fmt", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}
+{"command": "cargo test -p tokmd-format --no-default-features", "status": "success"}
