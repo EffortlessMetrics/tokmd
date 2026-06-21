@@ -9,6 +9,9 @@ use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd init --template rust\n  tokmd init --non-interactive --template node --force"
+)]
 pub struct InitArgs {
     /// Target directory (defaults to ".").
     #[arg(long, value_name = "DIR", default_value = ".")]

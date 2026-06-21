@@ -164,6 +164,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd module --depth 3 --top 10
+  tokmd module crates --format json
 ```
 <!-- /HELP: module -->
 
@@ -320,6 +324,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd run --name baseline
+  tokmd run crates --analysis health --output-dir .runs/tokmd
 ```
 <!-- /HELP: run -->
 
@@ -785,6 +793,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd init --template rust
+  tokmd init --non-interactive --template node --force
 ```
 <!-- /HELP: init -->
 
