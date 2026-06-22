@@ -225,6 +225,7 @@ lto = true
 codegen-units = 1
 strip = true
 
-# Temporary until upstream `home` grows a non-Unix/non-Windows fallback.
+# Vendored until crates.io `home` compiles on non-Unix/non-Windows targets.
+# Tracking: docs/specs/dependency-maintenance.md#vendored-home-patch
 [patch.crates-io]
 home = { path = "vendor/home-0.5.12" }
