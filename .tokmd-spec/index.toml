@@ -76,6 +76,12 @@ path = "docs/specs/handoff-work-order.md"
 status = "active"
 
 [[artifact]]
+id = "evidence-packet-workflow-spec"
+kind = "spec"
+path = "docs/specs/evidence-packet-workflow.md"
+status = "active"
+
+[[artifact]]
 id = "ast-shadow-artifacts-spec"
 kind = "spec"
 path = "docs/specs/ast-shadow.md"

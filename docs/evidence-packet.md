@@ -230,6 +230,8 @@ A `bun-ub` evidence packet does not:
 
 ## Related Docs
 
+- [Evidence packet workflow spec](specs/evidence-packet-workflow.md) — normative
+  contract for `sensors/tokmd/` layout, support model, and verifier semantics
 - [PR evidence packet workflows](packet-workflows.md)
 - [Bun UB analysis preset](analyze/bun-ub.md)
 - [ub-review tokmd sensor recipe](integrations/ub-review.md)

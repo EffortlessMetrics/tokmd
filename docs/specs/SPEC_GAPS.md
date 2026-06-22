@@ -59,6 +59,7 @@ require deleting or rewriting user-facing docs in the same change.
 | PR disposition lifecycle rules near release | `docs/adr/0011-pr-disposition-lifecycle.md`, `docs/specs/pr-disposition.md`, `AGENTS.md`, `docs/source-of-truth.md` | specified | keep agent guidance, PR bodies, release ledgers, and disposition rationale aligned |
 | Dependency maintenance classification and validation | `docs/specs/dependency-maintenance.md`, `deny.toml`, CI/proof scopes | specified | keep advisory exceptions and dependency proof aligned with the spec |
 | Dual-repo publication/workbench topology | `docs/specs/repo-topology.md`, `docs/ci/swarm-routing.md`, `cargo xtask repo-graph` | specified | keep graph verifier semantics, workflow guards, merge policy, and import/fast-forward runbook aligned |
+| PR evidence packet workflow (`sensors/tokmd/`) | `docs/specs/evidence-packet-workflow.md`, `docs/evidence-packet.md`, `docs/packet-workflows.md`, `docs/integrations/ub-review.md`, `crates/tokmd/tests/evidence_packet_integration.rs` | specified | keep schema, verifier, Action/GHCR support model, and user docs aligned with the spec |
 
 ## Classification Vocabulary
 

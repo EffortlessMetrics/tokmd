@@ -279,6 +279,8 @@ A packet workflow does not:
 
 ## Related Docs
 
+- [Evidence packet workflow spec](specs/evidence-packet-workflow.md) — normative
+  contract for layout, status semantics, support model, and verifier behavior
 - [Evidence packet contract](evidence-packet.md)
 - [Bun UB analysis preset](analyze/bun-ub.md)
 - [ub-review tokmd sensor recipe](integrations/ub-review.md)
