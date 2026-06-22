@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "patch_type": "code",
+  "evidence": [
+    "Found inline version and path references for workspace crates in dev-dependencies across tokmd-analysis-types, tokmd-scan, and tokmd-types."
+  ]
+}
