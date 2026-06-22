@@ -44,7 +44,7 @@ jobs:
       receipt_path: ${{ steps.route.outputs.receipt_path }}
     steps:
       - name: Checkout route helper from protected base
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -322,7 +322,7 @@ jobs:
           mkdir -p "$TMPDIR" "$CARGO_TARGET_DIR" "$CARGO_HOME"
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 1
@@ -370,7 +370,7 @@ jobs:
       CARGO_INCREMENTAL: "0"
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 1

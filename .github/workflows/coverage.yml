@@ -47,7 +47,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'full-ci')
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -281,7 +281,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ steps.coverage_run.outputs.overall_status == '0' && steps.codecov-token.outputs.present == 'true' }}
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
