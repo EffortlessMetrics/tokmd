@@ -128,6 +128,15 @@
       "requires_host_clock": true,
       "requires_validated_root": true
     },
+    "packet": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": true,
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
     "baseline": {
       "browser_safe": false,
       "rootless_safe": false,

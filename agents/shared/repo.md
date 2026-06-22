@@ -128,6 +128,7 @@ Dependency rule:
 - `tokmd diff` - compare runs or receipts
 - `tokmd cockpit` - PR metrics and evidence gates
 - `tokmd sensor` - sensor envelope output
+- `tokmd packet` - one-command evidence packet workflow (`packet generate`)
 - `tokmd gate` - policy evaluation
 - `tokmd tools` - LLM tool definitions
 - `tokmd context` - context packing under token budget

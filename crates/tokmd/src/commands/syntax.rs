@@ -29,7 +29,7 @@ pub(crate) fn handle(args: cli::SyntaxArgs) -> Result<()> {
     Ok(())
 }
 
-fn build_syntax_packet(args: &cli::SyntaxArgs) -> Result<Value> {
+pub(crate) fn build_syntax_packet(args: &cli::SyntaxArgs) -> Result<Value> {
     let cwd = std::env::current_dir().context("failed to resolve current directory")?;
     let requested_paths = args
         .paths

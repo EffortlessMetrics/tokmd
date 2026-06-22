@@ -18,6 +18,8 @@ pub(crate) mod init;
 pub(crate) mod lang;
 pub(crate) mod module;
 #[cfg(feature = "analysis")]
+pub(crate) mod packet;
+#[cfg(feature = "analysis")]
 pub(crate) mod run;
 pub(crate) mod sensor;
 #[cfg(feature = "ast")]
@@ -57,6 +59,8 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         #[cfg(feature = "ast")]
         cli::Commands::Syntax(args) => syntax::handle(args),
         cli::Commands::EvidencePacket(args) => evidence_packet::handle(args),
+        #[cfg(feature = "analysis")]
+        cli::Commands::Packet(args) => packet::handle(args, global),
         #[cfg(not(feature = "analysis"))]
         _ => anyhow::bail!("analysis feature is not enabled"),
     }

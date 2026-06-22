@@ -1,10 +1,11 @@
 # PR Evidence Packet Workflows
 
-Status: planned workflow contract. `tokmd` already has the underlying
-`analyze`, `context`, `syntax`, and `evidence-packet` surfaces. This page
-defines the one-command CLI and GitHub Action user paths for the next workflow
-lane without claiming that the orchestration command or dedicated Action already
-exist.
+Status: CLI orchestration implemented; Action path planned. `tokmd` has the
+underlying `analyze`, `context`, `syntax`, and `evidence-packet` surfaces, and
+`tokmd packet generate` now coordinates them into one `sensors/tokmd/` packet
+from a single command. This page defines that one-command CLI path and the
+still-planned GitHub Action user path; it does not claim the dedicated Action
+already exists.
 
 ## Purpose
 
@@ -49,9 +50,9 @@ build `tokmd` in every repository.
 GHCR is useful when a workflow needs a pinned Linux container runtime, but the
 normal user-facing entrypoint should be an Action step, not `docker run`.
 
-## Target Local CLI
+## Local CLI
 
-The planned CLI orchestration should be thin:
+The CLI orchestration is thin:
 
 ```bash
 tokmd packet generate \
@@ -63,7 +64,7 @@ tokmd packet generate \
   src/runtime/api src/bun.js/bindings
 ```
 
-It should coordinate the existing receipt-producing commands and write:
+It coordinates the existing receipt-producing commands and writes:
 
 - `sensors/tokmd/analyze.md`;
 - `sensors/tokmd/analyze.json`;
@@ -71,13 +72,28 @@ It should coordinate the existing receipt-producing commands and write:
 - `sensors/tokmd/syntax.json` when syntax is requested and available;
 - `sensors/tokmd/manifest.json`.
 
-The command should not add a new analysis model. It should keep the same
-base/head refs and path scope across every generated artifact, then use the
-existing evidence packet status rules for `complete`, `partial`, and `failed`.
+The command adds no new analysis model. It keeps the same base/head refs and
+path scope across every generated artifact, runs one analysis pass rendered to
+both the JSON and Markdown artifacts, then applies the existing evidence packet
+status rules for `complete`, `partial`, and `failed`.
 
-### Current Manual Equivalent
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--preset` | `bun-ub` | Analysis preset for `analyze.md`/`analyze.json`. |
+| `--base` | `origin/main` | Base ref shared by every artifact. |
+| `--head` | `HEAD` | Head ref shared by every artifact. |
+| `--out` | `sensors/tokmd` | Packet output directory. |
+| `--syntax` / `--no-syntax` | on | Request or skip optional `syntax.json`. |
+| `--context-budget` | `64000` | Token budget for `context.md`. |
 
-Until the orchestration command exists, use the manual recipe:
+Optional syntax evidence is best-effort: when it cannot be produced the packet
+degrades to `partial` with a named missing-artifact warning rather than failing.
+Unresolved `--base`/`--head` refs fail the command before artifacts are written.
+
+### Manual Equivalent
+
+The orchestrator is equivalent to this manual recipe, which remains useful when
+a workflow needs to customize individual steps:
 
 ```bash
 BASE="${BASE:-origin/main}"
@@ -252,9 +268,10 @@ A packet workflow does not:
 
 ## Implementation Order
 
-1. Document this support model before implementation grows.
-2. Add the thin CLI orchestration command over existing receipts.
-3. Lock packet generation status behavior with integration tests.
+1. ~~Document this support model before implementation grows.~~ (done)
+2. ~~Add the thin CLI orchestration command over existing receipts.~~ (done:
+   `tokmd packet generate`)
+3. ~~Lock packet generation status behavior with integration tests.~~ (done)
 4. Build the Action with binary runtime as the default.
 5. Add Action examples and job-summary behavior.
 6. Harden GHCR as a secondary runtime with public-pull verification.

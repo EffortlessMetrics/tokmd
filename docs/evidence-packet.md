@@ -128,7 +128,18 @@ readiness.
 }
 ```
 
-Generate the manifest after the analysis and context artifacts exist:
+To produce the whole packet (artifacts plus manifest) in one step, use the
+[`tokmd packet generate`](packet-workflows.md) orchestrator:
+
+```bash
+tokmd packet generate \
+  --base origin/main \
+  --head HEAD \
+  src/runtime/api
+```
+
+To write just the manifest after the analysis and context artifacts already
+exist, use `evidence-packet` directly:
 
 ```bash
 tokmd evidence-packet \

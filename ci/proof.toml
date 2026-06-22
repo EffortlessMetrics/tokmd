@@ -993,6 +993,7 @@ paths = [
   "crates/tokmd/src/error_hints.rs",
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
+  "crates/tokmd/tests/packet_*.rs",
   "crates/tokmd/tests/snapshots/cli_*.snap",
   "crates/tokmd/tests/config_resolution.rs",
   "crates/tokmd/tests/error_handling.rs",
@@ -1006,6 +1007,7 @@ proof = [
   "cargo test -p tokmd --test cli_e2e --verbose",
   "cargo test -p tokmd --test cli_parser_properties --verbose",
   "cargo test -p tokmd --test config_resolution --verbose",
+  "cargo test -p tokmd --test packet_generate_integration --verbose",
 ]
 mutation = true
 coverage = true
