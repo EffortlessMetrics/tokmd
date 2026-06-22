@@ -256,6 +256,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd export --format jsonl --out inventory.jsonl
+  tokmd export crates/tokmd --min-code 10
+  tokmd export --format csv --redact hash
 ```
 <!-- /HELP: export -->
 
@@ -320,6 +325,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd run
+  tokmd run crates/tokmd --name rust-core
+  tokmd run --analysis receipt --output-dir .runs/baseline
 ```
 <!-- /HELP: run -->
 
@@ -719,6 +729,11 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd diff HEAD~1 HEAD
+  tokmd diff .runs/baseline .runs/current
+  tokmd diff --format json .runs/baseline .runs/current
 ```
 <!-- /HELP: diff -->
 
@@ -1746,6 +1761,14 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd gate
+  tokmd gate analysis.json --policy policy.toml
+  tokmd gate --preset health
+  tokmd gate --format json
+  tokmd gate --fail-fast
+  tokmd gate --baseline baseline.json
 ```
 <!-- /HELP: gate -->
 

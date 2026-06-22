@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 use super::AnalysisPreset;
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd gate\n  tokmd gate analysis.json --policy policy.toml\n  tokmd gate --preset health\n  tokmd gate --format json\n  tokmd gate --fail-fast\n  tokmd gate --baseline baseline.json"
+)]
 pub struct CliGateArgs {
     /// Input analysis receipt or path to scan.
     #[arg(value_name = "INPUT")]
