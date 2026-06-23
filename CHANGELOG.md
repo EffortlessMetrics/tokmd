@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- Recorded the `v1.13.1` GHCR public visibility caveat while preserving the
-  verified crates.io and GitHub release install paths.
+- Resolved the `v1.13.1` publication GHCR visibility caveat: maintainer
+  verification on 2026-06-21 records `ghcr.io/effortlessmetrics/tokmd` as
+  **verified-public**; swarm GHCR visibility remains undecided (issue #264).
 - Defined the routed Rust Small CI policy for trust, self-hosted eligibility,
   hosted fallback, route receipts, anti-thrash concurrency, and the normalized
   `Tokmd Rust Small Result` required check.

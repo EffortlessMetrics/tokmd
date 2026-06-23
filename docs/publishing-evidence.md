@@ -128,14 +128,70 @@ requires an explicit release decision.
 
 ## Post-Release GHCR Visibility Checks
 
+### GHCR Registry Scope
+
+tokmd publishes one consumer-facing GHCR image from the **publication repository**
+(`EffortlessMetrics/tokmd`):
+
+- `ghcr.io/effortlessmetrics/tokmd` — supported public secondary runtime for
+  stable releases from the publication repo.
+
+The **swarm workbench** (`EffortlessMetrics/tokmd-swarm`) does not currently
+publish a supported public GHCR consumer path. Under the dual-repo topology
+(`docs/specs/repo-topology.md`), release and Docker publication are owned by
+`tokmd`. Swarm-associated GHCR package visibility is **undecided** and tracked
+in issue #264. Do not document swarm GHCR as permanently private, as a
+non-goal, or as a supported install or workflow runtime without an accepted
+spec.
+
+As of **2026-06-21**, maintainer verification records
+`ghcr.io/effortlessmetrics/tokmd` as **verified-public** for `v1.13.1`. New
+stable releases still require the post-release checklist and ledger update below.
+
 The release workflow's Docker job proves that the release run attempted the
 configured build and push. It does not, by itself, prove that unauthenticated or
 intended downstream consumers can pull the published GHCR tags.
 
-After an intentional stable release that should publish Docker images, verify
-the expected semver tags separately from an unauthenticated Docker client. Use a
-temporary Docker config so the check does not accidentally reuse a local GHCR
-login:
+After an intentional stable release, the hosted release workflow also runs an
+**advisory** unauthenticated manifest check. That step records pass or pending
+in the job log but does not fail the release, change package visibility, or
+replace maintainer verification.
+
+### In-Repo vs Maintainer-Only
+
+| Action | Owner | Notes |
+| --- | --- | --- |
+| Build and push Docker image to GHCR | Release workflow (`.github/workflows/release.yml`) | Uses `GITHUB_TOKEN` with `packages: write`. |
+| Advisory unauthenticated manifest inspect after push | Release workflow | Uses an empty temporary `DOCKER_CONFIG`; `continue-on-error: true`. |
+| Set GHCR package visibility to public | Maintainer with org package admin access | GitHub org/package settings; not writable from repo YAML alone. |
+| Link container package to repository | Maintainer with org package admin access | Required when visibility is misconfigured or package linkage is wrong. |
+| Record verification receipt in release ledger | Maintainer | Save the template below under `target/publishing/` and copy the outcome into the release ledger. |
+| Rewrite tags or rerun release mutation | Maintainer only, explicit decision | Do not do this as the first response to `denied`. |
+
+For each new stable tag, record `verified-public`, `pending`, or `private-only`
+in the release ledger. Do not claim GHCR is a supported public runtime for that
+tag in README, install, or workflow docs until the receipt exists. Historical
+`v1.13.1` caveat: unauthenticated manifest inspect returned `denied` immediately
+after release; maintainer verification on 2026-06-21 resolved publication GHCR
+to `verified-public`.
+
+### Verification Checklist
+
+Run after a stable release when Docker publication is expected:
+
+1. Confirm the hosted `Build and Push Docker Image` job succeeded.
+2. Read the advisory `Advisory public GHCR manifest visibility` step in the
+   same workflow run.
+3. From an unauthenticated Docker client, inspect the expected semver tags.
+4. If manifest inspect passes, optionally run anonymous pull, `--version`, and
+   mounted-repository packet smokes before calling the container path verified.
+5. If manifest inspect returns `denied`, inspect package visibility and linkage
+   with maintainer package access; do not rewrite the release tag by default.
+6. Save a verification receipt (template below) and update the release ledger
+   with `verified-public`, `pending`, or `private-only`.
+
+Use a temporary Docker config so the check does not accidentally reuse a local
+GHCR login:
 
 ```bash
 VERSION=1.13.1
@@ -153,8 +209,9 @@ Keep the temporary `DOCKER_CONFIG` for the packet smoke below if you are
 verifying container runtime support; otherwise remove it after the visibility
 checks.
 
-For releases where GHCR is advertised as a supported secondary runtime, also run
-a mounted-repository packet smoke before calling the container path verified:
+For releases where GHCR would be advertised as a supported secondary runtime,
+also run a mounted-repository packet smoke before calling the container path
+verified:
 
 ```bash
 mkdir -p sensors/tokmd
@@ -187,6 +244,48 @@ successful hosted `Build and Push Docker Image` job plus denied public manifest
 inspection is a release-verification audit item: confirm the package
 visibility, container package linkage, and semver aliases before deciding
 whether any repair is needed.
+
+### Verification Receipt Template
+
+Save maintainer verification to:
+
+```text
+target/publishing/ghcr-visibility-<version>.md
+```
+
+Copy this template and fill every field. Do not mark `outcome: verified-public`
+unless unauthenticated manifest inspect passes for the stable patch tag.
+
+```markdown
+# GHCR Visibility Verification Receipt
+
+- release_tag: vX.Y.Z
+- verified_at: YYYY-MM-DDTHH:MM:SSZ
+- verifier: <maintainer handle>
+- image: ghcr.io/effortlessmetrics/tokmd
+- workflow_run_url: <hosted release workflow run URL>
+- docker_push_job: pass | fail
+- advisory_manifest_step: pass | pending | skipped
+- manifest_inspect_<version>: pass | denied | not_run
+- manifest_inspect_<major>.<minor>: pass | denied | not_run
+- manifest_inspect_<major>: pass | denied | not_run
+- anonymous_pull: pass | denied | skipped
+- container_version: pass | fail | skipped
+- packet_smoke: pass | fail | skipped
+- package_visibility: public | private | unknown (maintainer-only)
+- package_api_checked: yes | no
+- outcome: verified-public | pending | private-only
+- notes: <linkage fix, scope limitation, or follow-up>
+```
+
+Outcome meanings:
+
+- `verified-public` — unauthenticated manifest inspect passed for the stable
+  patch tag; optional pull/version/packet smokes recorded if run.
+- `pending` — push succeeded but public consumer visibility is still unverified
+  or denied; GHCR must stay marked pending in user-facing docs.
+- `private-only` — maintainers intentionally keep GHCR private; install and
+  workflow docs must not claim a public container runtime.
 
 ## Next Action
 

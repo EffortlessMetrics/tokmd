@@ -241,3 +241,20 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Advisory public GHCR manifest visibility
+        continue-on-error: true
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          IMAGE="ghcr.io/effortlessmetrics/tokmd"
+          DOCKER_CONFIG="$(mktemp -d)"
+          export DOCKER_CONFIG
+
+          echo "Checking unauthenticated manifest visibility for ${IMAGE}:${VERSION}"
+          if docker manifest inspect "${IMAGE}:${VERSION}"; then
+            echo "ghcr_public_visibility=pass tag=${VERSION}"
+          else
+            echo "::warning title=GHCR public visibility pending::Unauthenticated docker manifest inspect denied for ${IMAGE}:${VERSION}. Verify GHCR package visibility with org package admin access. See docs/publishing-evidence.md."
+            echo "ghcr_public_visibility=pending tag=${VERSION}"
+            exit 1
+          fi

@@ -16,9 +16,10 @@
 
 ## NEXT (short horizon)
 
-- **Packet workflow support model**: define the CLI, Action, GHCR, and Cargo
-  fallback paths before implementation grows.
-- **Release/distribution verification**: resolve or explicitly record current GHCR visibility uncertainty without rewriting releases or moving release mutation into the swarm.
+- **Packet workflow support model**: define the CLI, Action, publication GHCR,
+  and Cargo fallback paths before implementation grows. Publication GHCR
+  (`ghcr.io/effortlessmetrics/tokmd`) is verified-public for `v1.13.1`; swarm
+  GHCR visibility remains undecided (issue #264).
 - **CLI friction**: continue practical help examples, actionable errors, progress, and config explainability where current command use shows a real user gap.
 - **Review evidence consumption**: improve cockpit/review packet reading, hosted-comment, or missing-evidence behavior only when current evidence shows a concrete product or verifier gap.
 - **Measured CI feedback**: improve CI/proof routing and telemetry from receipts; do not weaken proof to make CI look faster.

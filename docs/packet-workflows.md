@@ -44,11 +44,12 @@ build `tokmd` in every repository.
 | --- | --- |
 | GitHub Action | Default pull request workflow UX. |
 | Prebuilt binary | Fast default runtime for the Action. |
-| GHCR image | Optional pinned Linux/container runtime. |
+| GHCR image (`ghcr.io/effortlessmetrics/tokmd`) | Optional pinned Linux/container runtime from the publication repo only. |
 | Cargo install | Local and development fallback, not the default CI path. |
 
-GHCR is useful when a workflow needs a pinned Linux container runtime, but the
-normal user-facing entrypoint should be an Action step, not `docker run`.
+GHCR is useful when a workflow needs a pinned Linux container runtime from the
+publication image, but the normal user-facing entrypoint should be an Action
+step, not `docker run`. Swarm workbench GHCR is not a supported consumer path today; package visibility remains **undecided** (issue #264).
 
 ## Local CLI
 
@@ -213,16 +214,18 @@ required in a later contract.
 
 ## GHCR Runtime
 
-GHCR is the intended secondary Linux/container runtime, not the primary user
-experience. The primary PR path should be a GitHub Action that downloads a
-prebuilt binary. Cargo install remains the local/dev fallback.
+GHCR is the intended secondary Linux/container runtime for the **publication
+image** (`ghcr.io/effortlessmetrics/tokmd`), not the primary user experience.
+The primary PR path should be a GitHub Action that downloads a prebuilt binary.
+Cargo install remains the local/dev fallback. Swarm workbench GHCR is not a
+supported consumer path today; public visibility remains an open decision
+(issue #264).
 
-Current support status: GHCR is pending public visibility verification. Do not
-document it as a supported install path or default runtime until anonymous
-manifest inspection, pull, `--version`, and mounted-repository packet smokes all
-pass for the published tag.
+Current support status: publication GHCR is **verified-public** for `v1.13.1` as
+of 2026-06-21. New stable tags still need post-release verification before
+calling container runtime support verified for that tag.
 
-Target Action shape after verification:
+Target Action shape:
 
 ```yaml
 with:
@@ -249,10 +252,11 @@ consumer visibility. A release gate should verify:
 - the container reports the expected `tokmd --version`;
 - the container can generate a packet against a mounted repository.
 
-If any public-pull check returns `denied`, keep GHCR marked pending and do not
-rewrite tags, rerun release mutation, or advertise container runtime support as
-available. Fix package visibility or linkage first, then rerun the verification
-checklist.
+If any public-pull check returns `denied` for a new stable tag, keep that tag's
+GHCR marked pending and do not rewrite tags, rerun release mutation, or advertise
+container runtime support as available. Fix package visibility or linkage first,
+then rerun the verification checklist. This applies only to
+`ghcr.io/effortlessmetrics/tokmd` from the publication repo, not swarm GHCR.
 
 ## Non-Claims
 
@@ -274,7 +278,8 @@ A packet workflow does not:
 3. ~~Lock packet generation status behavior with integration tests.~~ (done)
 4. Build the Action with binary runtime as the default.
 5. Add Action examples and job-summary behavior.
-6. Harden GHCR as a secondary runtime with public-pull verification.
+6. Harden publication GHCR as a secondary runtime; re-verify on each stable
+   release.
 7. Wire downstream `ub-review` consumption after the Action path is stable.
 
 ## Related Docs
