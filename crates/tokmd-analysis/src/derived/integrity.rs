@@ -141,3 +141,64 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod properties {
+    use super::*;
+    use proptest::prelude::*;
+    use tokmd_types::FileKind;
+
+    fn arb_file_row() -> impl Strategy<Value = FileRow> {
+        ("[a-zA-Z0-9_/\\.]{1,50}", 0usize..1000000, 0usize..100000).prop_map(
+            |(path, bytes, lines)| FileRow {
+                path,
+                module: "mod".to_string(),
+                lang: "rust".to_string(),
+                kind: FileKind::Parent,
+                code: 0,
+                comments: 0,
+                blanks: 0,
+                lines,
+                bytes,
+                tokens: 0,
+            },
+        )
+    }
+
+    proptest! {
+        #[test]
+        fn prop_compare_integrity_rows_matches_string_sort(
+            a in arb_file_row(),
+            b in arb_file_row(),
+        ) {
+            let s1 = format!("{}:{}:{}", a.path, a.bytes, a.lines);
+            let s2 = format!("{}:{}:{}", b.path, b.bytes, b.lines);
+            let expected = s1.cmp(&s2);
+            let actual = compare_integrity_rows(&a, &b);
+            prop_assert_eq!(actual, expected, "Failed for {} vs {}", s1, s2);
+        }
+
+        #[test]
+        fn prop_write_usize_pair_ascii_matches_format(
+            bytes in 0usize..usize::MAX,
+            lines in 0usize..usize::MAX,
+        ) {
+            let mut buf = [0_u8; 64];
+            let len = write_usize_pair_ascii(&mut buf, bytes, lines);
+            let actual = std::str::from_utf8(&buf[..len]).unwrap();
+            let expected = format!("{}:{}", bytes, lines);
+            prop_assert_eq!(actual, expected);
+        }
+
+        #[test]
+        fn prop_write_usize_ascii_matches_format(
+            val in 0usize..usize::MAX,
+        ) {
+            let mut buf = [0_u8; 64];
+            let len = write_usize_ascii(&mut buf, val);
+            let actual = std::str::from_utf8(&buf[..len]).unwrap();
+            let expected = format!("{}", val);
+            prop_assert_eq!(actual, expected);
+        }
+    }
+}

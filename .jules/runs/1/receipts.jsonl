@@ -1,0 +1,3 @@
+{"cmd": "cargo test -p tokmd-analysis", "status": "success"}
+{"cmd": "cargo fmt -- --check", "status": "success"}
+{"cmd": "cargo clippy -p tokmd-analysis -- -D warnings", "status": "success"}

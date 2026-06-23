@@ -1,0 +1,10 @@
+{
+  "gate_passed": true,
+  "telemetry": {
+    "change_shape": "test additions",
+    "blast_radius": "tests",
+    "risk_class": "low",
+    "risk_reason": "test code only",
+    "gates_run": "cargo test, cargo clippy, cargo fmt, blake3 algorithm invariant tested"
+  }
+}
