@@ -8,8 +8,12 @@ use serde_json::Value;
 use crate::error::TokmdError;
 use crate::settings::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
-pub(super) fn scan_arg_object(args: &Value) -> &Value {
-    args.get("scan").unwrap_or(args)
+pub(super) fn get_config_block<'a>(args: &'a Value, field: &str) -> Result<&'a Value, TokmdError> {
+    match args.get(field) {
+        None => Ok(args),
+        Some(v) if v.is_object() => Ok(v),
+        _ => Err(TokmdError::invalid_field(field, "a JSON object")),
+    }
 }
 
 /// Parse a boolean field strictly: missing/null -> default, non-bool -> error.
@@ -262,20 +266,27 @@ mod tests {
     use crate::error::ErrorCode;
     use serde_json::json;
 
-    // ---- scan_arg_object --------------------------------------------------
+    // ---- get_config_block --------------------------------------------------
 
     #[test]
-    fn scan_arg_object_returns_nested_when_present() {
+    fn get_config_block_returns_nested_when_present() {
         let args = json!({"scan": {"root": "."}, "other": 1});
-        let inner = scan_arg_object(&args);
+        let inner = get_config_block(&args, "scan").unwrap();
         assert_eq!(inner, &json!({"root": "."}));
     }
 
     #[test]
-    fn scan_arg_object_returns_args_when_missing() {
+    fn get_config_block_returns_args_when_missing() {
         let args = json!({"root": "."});
-        let inner = scan_arg_object(&args);
+        let inner = get_config_block(&args, "scan").unwrap();
         assert_eq!(inner, &args);
+    }
+
+    #[test]
+    fn get_config_block_rejects_non_object() {
+        let args = json!({"scan": "not-an-object"});
+        let err = get_config_block(&args, "scan").unwrap_err();
+        assert_eq!(err.code, ErrorCode::InvalidSettings);
     }
 
     // ---- parse_bool -------------------------------------------------------
