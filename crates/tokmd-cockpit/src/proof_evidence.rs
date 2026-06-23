@@ -5,8 +5,6 @@
 //! packet wiring can classify proof evidence without duplicating the `xtask`
 //! JSON contracts.
 
-#![allow(dead_code)]
-
 use std::path::PathBuf;
 
 use anyhow::Result;

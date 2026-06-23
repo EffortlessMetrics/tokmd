@@ -57,3 +57,39 @@ classification = "production"
 owner = "core/analysis"
 reason = "Preset slug parsing keeps infallible Option API separate from FromStr."
 expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0006"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 lang() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0007"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 module() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0008"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 export() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0009"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 analyze() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"

@@ -86,7 +86,10 @@ pyo3::create_exception!(tokmd, TokmdError, pyo3::exceptions::PyException);
     not(test),
     pyo3(signature = (paths=None, top=0, files=false, children=None, redact=None, excluded=None, hidden=false))
 )]
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0006 PyO3 lang() mirrors CLI keyword surface"
+)]
 fn lang(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -144,7 +147,10 @@ fn lang(
     not(test),
     pyo3(signature = (paths=None, top=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false))
 )]
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0007 PyO3 module() mirrors CLI keyword surface"
+)]
 fn module(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -203,7 +209,10 @@ fn module(
     not(test),
     pyo3(signature = (paths=None, format=None, min_code=0, max_rows=0, module_roots=None, module_depth=2, children=None, redact=None, excluded=None, hidden=false, meta=true, strip_prefix=None))
 )]
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0008 PyO3 export() mirrors CLI keyword surface"
+)]
 fn export(
     py: Python<'_>,
     paths: Option<Vec<String>>,
@@ -281,7 +290,10 @@ fn export(
     not(test),
     pyo3(signature = (paths=None, preset=None, window=None, git=None, max_files=None, max_bytes=None, max_commits=None, excluded=None, hidden=false, effort_model=None, effort_layer=None, effort_base_ref=None, effort_head_ref=None, effort_monte_carlo=None, effort_mc_iterations=None, effort_mc_seed=None))
 )]
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0009 PyO3 analyze() mirrors CLI keyword surface"
+)]
 fn analyze(
     py: Python<'_>,
     paths: Option<Vec<String>>,
