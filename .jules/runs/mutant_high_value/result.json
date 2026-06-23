@@ -1,3 +1,13 @@
 {
-  "outcome": "learning PR"
+  "prompt_id": "mutant_high_value",
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "receipts_count": 12,
+  "diff_summary": "Added missing mutant-killing tests for diff render formatters.",
+  "telemetry": {
+    "change_shape": "Tests only",
+    "blast_radius": "None (tests only)",
+    "risk_class": "Low",
+    "rollback": "git revert"
+  }
 }

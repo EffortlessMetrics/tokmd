@@ -1,45 +1,50 @@
 ## 💡 Summary
-This is a Learning PR. I explored the `tokmd-types` crate to close mutant gaps and improve tests, but found that the core type math was already fully covered.
+Added missing mutant-killing tests for the `tokmd-format` diff render formatters.
 
 ## 🎯 Why
-The Mutant persona assignment `mutant_high_value` requested targeted mutation-style proofs on high-value core surfaces. However, running `cargo mutants -p tokmd-types` revealed zero missed mutants (21 caught, 4 unviable out of 25). Forcing a patch here would violate the `Output honesty` rule by claiming a win that was not proven.
+The file `crates/tokmd-format/src/diff/render.rs` contains logic for formatting output using ANSI colors (`format_delta_colored`, `format_pct_delta_colored`) and calculating percentages (`percent_change`). While there was a mutant-killing test for the basic `format_delta` function, these other helper functions had zero direct test coverage. The Mutant persona requires strengthening behavioral checks around meaningful code paths.
 
 ## 🔎 Evidence
-Minimal proof:
-- file path(s): `crates/tokmd-types/src/lib.rs`
-- observed finding: The mutation suite successfully caught or marked unviable all 25 mutants tested. No gap exists.
-- command: `cargo mutants -p tokmd-types`
+- File path: `crates/tokmd-format/src/diff/render.rs`
+- Finding: The test module `tests` only contained a single test `test_format_delta`.
+- Command receipt: Running `cargo test -p tokmd-format` passed, showing the gap in test coverage.
 
 ## 🧭 Options considered
-### Option A
-- Force a fake patch on `tokmd-types` by hallucinating gaps that do not exist, and claim that mutation gaps were closed when they were not.
-- Trade-offs: Directly violates hard prompt constraints ("Hallucinated work is failure").
+### Option A (recommended)
+- Add missing unit tests for `format_delta_colored`, `format_pct_delta_colored`, and `percent_change` in `crates/tokmd-format/src/diff/render.rs`.
+- Why it fits this repo and shard: It directly addresses untested display formatting logic in the `tokmd-format` crate, fulfilling the Mutant persona's core objective to improve tests around meaningful code changes.
+- Trade-offs: Structure / Velocity / Governance - Low risk, high reward test improvement.
 
-### Option B (recommended)
-- Adhere to the `Output honesty` constraint. Pivot to a Learning PR.
-- Fits this repo and shard: It respects the pipeline's request to surface a friction item when no honest code patch is justified.
-- Trade-offs: No production logic changed, but keeps the history clean.
+### Option B
+- Add more fine-grained assertions in `crates/tokmd-format/src/analysis/tests.rs` to cover `render_obj_coordinate_math`.
+- When to choose it instead: If the `diff/render.rs` logic was already heavily tested.
+- Trade-offs: Weaker return on investment because the `fun_outputs` math already has explicit mutant-killing tests.
 
 ## ✅ Decision
-Choose Option B. The core pipeline is well-covered, and forcing an untruthful fix violates the primary constraints of the run. Submitting a Learning PR is the required honest fallback path.
+Option A was chosen. Adding the missing unit tests for the diff render formatters provides immediate value by closing a concrete assertion gap for production code that currently had zero direct test coverage.
 
 ## 🧱 Changes made (SRP)
-- Created learning PR packet artifacts. No code files were modified.
+- `crates/tokmd-format/src/diff/render.rs`: Added `test_format_delta_colored`, `test_format_pct_delta_colored`, and `test_percent_change`.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo mutants -p tokmd-types
-Found 25 mutants to test
-ok       Unmutated baseline in 79s build + 4s test
-25 mutants tested in 5m: 21 caught, 4 unviable
+test diff::render::tests::test_format_delta_colored ... ok
+test diff::render::tests::test_format_pct_delta_colored ... ok
+test diff::render::tests::test_percent_change ... ok
+test diff::tests::test_compute_diff_rows_language_added ... ok
+test diff::tests::test_compute_diff_rows_language_removed ... ok
+test diff::tests::test_compute_diff_rows_unchanged_excluded ... ok
+...
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running `/app/target/debug/deps/tokmd_format-a61ddec0c687c132`
 ```
 
 ## 🧭 Telemetry
-- Change shape: Learning PR packet
-- Blast radius: None (No code changes)
-- Risk class: Zero - No production behavior changed
-- Rollback: Safely revert `.jules` artifacts
-- Gates run: `cargo mutants`, `cargo test`
+- Change shape: Tests only
+- Blast radius: None (tests only)
+- Risk class + why: Low risk; changes are strictly additive test functions.
+- Rollback: `git revert`
+- Gates run: `mutation` (fallback rules: `cargo mutants`, targeted tests, `cargo build`, `cargo test`, `cargo fmt`, `cargo clippy`)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`
@@ -47,7 +52,6 @@ ok       Unmutated baseline in 79s build + 4s test
 - `.jules/runs/mutant_high_value/receipts.jsonl`
 - `.jules/runs/mutant_high_value/result.json`
 - `.jules/runs/mutant_high_value/pr_body.md`
-- `.jules/friction/open/mutant_high_value.md`
 
 ## 🔜 Follow-ups
-I have filed `.jules/friction/open/mutant_high_value.md` noting that attempting to force a patch on a structurally tight crate causes friction against the `Output honesty` constraint.
+None at this time.

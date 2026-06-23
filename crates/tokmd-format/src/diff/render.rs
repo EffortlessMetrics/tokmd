@@ -271,4 +271,55 @@ mod tests {
         assert_eq!(format_delta(0), "0");
         assert_eq!(format_delta(-3), "-3");
     }
+
+    #[test]
+    fn test_format_delta_colored() {
+        use super::{DiffColorMode, format_delta_colored};
+        assert_eq!(format_delta_colored(5, DiffColorMode::Off), "+5");
+        assert_eq!(format_delta_colored(-3, DiffColorMode::Off), "-3");
+        assert_eq!(format_delta_colored(0, DiffColorMode::Off), "0");
+
+        assert_eq!(
+            format_delta_colored(5, DiffColorMode::Ansi),
+            "\x1b[32m+5\x1b[0m"
+        );
+        assert_eq!(
+            format_delta_colored(-3, DiffColorMode::Ansi),
+            "\x1b[31m-3\x1b[0m"
+        );
+        assert_eq!(
+            format_delta_colored(0, DiffColorMode::Ansi),
+            "\x1b[33m0\x1b[0m"
+        );
+    }
+
+    #[test]
+    fn test_format_pct_delta_colored() {
+        use super::{DiffColorMode, format_pct_delta_colored};
+        assert_eq!(format_pct_delta_colored(5.5, DiffColorMode::Off), "+5.5%");
+        assert_eq!(format_pct_delta_colored(-3.2, DiffColorMode::Off), "-3.2%");
+        assert_eq!(format_pct_delta_colored(0.0, DiffColorMode::Off), "+0.0%");
+
+        assert_eq!(
+            format_pct_delta_colored(5.5, DiffColorMode::Ansi),
+            "\x1b[32m+5.5%\x1b[0m"
+        );
+        assert_eq!(
+            format_pct_delta_colored(-3.2, DiffColorMode::Ansi),
+            "\x1b[31m-3.2%\x1b[0m"
+        );
+        assert_eq!(
+            format_pct_delta_colored(0.0, DiffColorMode::Ansi),
+            "\x1b[33m+0.0%\x1b[0m"
+        );
+    }
+
+    #[test]
+    fn test_percent_change() {
+        use super::percent_change;
+        assert_eq!(percent_change(100, 150), 50.0);
+        assert_eq!(percent_change(100, 50), -50.0);
+        assert_eq!(percent_change(0, 100), 100.0);
+        assert_eq!(percent_change(0, 0), 0.0);
+    }
 }
