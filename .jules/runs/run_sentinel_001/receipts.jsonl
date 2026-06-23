@@ -1,0 +1,4 @@
+{"command": "cargo test --test ffi_trust_boundary", "outcome": "Failed before patch, succeeded after patch."}
+{"command": "cargo test -p tokmd-core", "outcome": "All tests pass successfully."}
+{"command": "cargo fmt -- --check", "outcome": "Formatted correctly."}
+{"command": "cargo clippy -- -D warnings", "outcome": "No warnings or errors."}
