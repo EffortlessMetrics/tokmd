@@ -1,0 +1,8 @@
+{
+  "diff_stat": "topics/mod.rs (2 insertions, 2 deletions), ast/facts.rs (12 insertions, 12 deletions)",
+  "changes": [
+    "crates/tokmd-analysis/src/topics/mod.rs",
+    "crates/tokmd-analysis/src/ast/facts.rs"
+  ],
+  "outcome": "PR-ready patch"
+}

@@ -46,10 +46,10 @@ impl SyntaxSymbol {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "kind": self.kind,
-            "name": self.name,
+            "kind": &self.kind,
+            "name": &self.name,
             "span": self.span.to_value(),
-            "exported": self.exported,
+            "exported": &self.exported,
             "public_surface": self.public_surface,
         })
     }
@@ -68,9 +68,9 @@ impl SyntaxImport {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "kind": self.kind,
-            "module": self.module,
-            "imported": self.imported,
+            "kind": &self.kind,
+            "module": &self.module,
+            "imported": &self.imported,
             "dynamic": self.dynamic,
             "span": self.span.to_value(),
         })
@@ -88,8 +88,8 @@ impl SyntaxExport {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "kind": self.kind,
-            "name": self.name,
+            "kind": &self.kind,
+            "name": &self.name,
             "span": self.span.to_value(),
         })
     }
@@ -107,8 +107,8 @@ impl SyntaxCallSite {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "kind": self.kind,
-            "callee": self.callee,
+            "kind": &self.kind,
+            "callee": &self.callee,
             "dynamic": self.dynamic,
             "span": self.span.to_value(),
         })
@@ -126,8 +126,8 @@ impl SyntaxRiskSeam {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "kind": self.kind,
-            "evidence": self.evidence,
+            "kind": &self.kind,
+            "evidence": &self.evidence,
             "span": self.span.to_value(),
         })
     }
@@ -174,12 +174,12 @@ impl SyntaxReviewSignal {
     #[must_use]
     pub fn to_value(&self) -> Value {
         json!({
-            "category": self.category,
+            "category": &self.category,
             "severity": self.severity.as_str(),
             "score": self.severity.score(),
-            "kind": self.kind,
-            "reason": self.reason,
-            "evidence": self.evidence,
+            "kind": &self.kind,
+            "reason": &self.reason,
+            "evidence": &self.evidence,
             "span": self.span.to_value(),
         })
     }

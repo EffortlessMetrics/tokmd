@@ -1,0 +1,3 @@
+{"command": "topic_bench.rs", "outcome": "borrow took 1.51s, clone took 1.65s"}
+{"command": "topic_bench_final.rs", "outcome": "split-fn took 388ms, replace+split took 586ms"}
+{"command": "topic_bench_json.rs", "outcome": "borrow string instead of clone during to_value took 1.67s vs 1.60s (no difference due to json! macro)"}
