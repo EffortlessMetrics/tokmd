@@ -90,7 +90,7 @@ GHCR registry ownership is split by repository role:
 | Image | Repository | Status |
 | --- | --- | --- |
 | `ghcr.io/effortlessmetrics/tokmd` | publication `tokmd` | Supported public secondary runtime when release ledgers record `verified-public` (see `docs/specs/publishing-evidence.md`). |
-| `ghcr.io/effortlessmetrics/tokmd-swarm` | workbench `tokmd-swarm` | Reserved name; **not published**; visibility **undecided** (issue #264). See `docs/specs/swarm-ghcr-image.md`. |
+| `ghcr.io/effortlessmetrics/tokmd-swarm` | workbench `tokmd-swarm` | Publish workflow on swarm `main`; visibility **undecided** (issue #264). See `docs/specs/swarm-ghcr-image.md`. |
 
 Publication release workflows must not push the swarm image name. Swarm publish
 workflows must not push publication semver tags or mutate publication release

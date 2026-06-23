@@ -121,6 +121,7 @@ paths = [
   ".github/workflows/droid.yml",
   ".github/workflows/droid-security-scan.yml",
   ".github/workflows/release.yml",
+  ".github/workflows/swarm-ghcr.yml",
   ".github/workflows/ripr.yml",
   ".github/workflows/sync-labels.yml",
   ".github/workflows/test-action.yml",
@@ -1456,6 +1457,21 @@ proof = [
   "cargo xtask proof-policy --check",
 ]
 reason = "PR Plan policy data: risk-pack routing and the LEM-aware advisory plan."
+mutation = false
+coverage = false
+
+[[scope]]
+name = "swarm_ghcr_publish"
+kind = "non_rust"
+paths = [
+  ".github/workflows/swarm-ghcr.yml",
+]
+proof = [
+  "cargo xtask ci-lane-whitelist --strict",
+  "cargo xtask docs --check",
+  "cargo xtask proof-policy --check",
+]
+reason = "Swarm workbench GHCR publish workflow is a distribution surface; lane whitelist and docs must stay aligned with swarm-ghcr-image.md."
 mutation = false
 coverage = false
 

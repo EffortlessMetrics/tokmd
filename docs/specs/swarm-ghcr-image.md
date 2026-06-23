@@ -44,24 +44,25 @@ The swarm image does **not** replace:
 
 ### Visibility and support status
 
-As of this spec, the swarm image is **not published** and **visibility is
-undecided**. Consumers must treat `ghcr.io/effortlessmetrics/tokmd-swarm` as
-unsupported until a maintainer records one of:
+As of this spec, the swarm publish workflow (`.github/workflows/swarm-ghcr.yml`)
+may push `main` and `sha-*` tags from `tokmd-swarm/main`, but **visibility is
+still undecided** until a maintainer records verification. Consumers must treat
+`ghcr.io/effortlessmetrics/tokmd-swarm` as unsupported until a maintainer
+records one of:
 
 | State | Meaning for consumers |
 | --- | --- |
 | `verified-public` | Unauthenticated manifest inspect and pull succeed for the documented tags. |
 | `private-only` | Image exists but is maintainer/org-private; docs must not advertise public pull. |
-| `not-published` | No image or workflow yet; default until a publish workflow lands. |
+| `not-published` | No image pushed yet; default before the first successful swarm-ghcr workflow run. |
 
 Publication GHCR (`ghcr.io/effortlessmetrics/tokmd`) is tracked separately in
 `docs/specs/publishing-evidence.md` and release ledgers. Resolving publication
 visibility does not decide swarm visibility.
 
-### Tag contract (proposed, not yet enforced)
+### Tag contract
 
-When a swarm publish workflow is added in a later PR, tags must remain distinct
-from publication semver aliases:
+The swarm publish workflow enforces tags distinct from publication semver aliases:
 
 | Tag pattern | Owner | Intended use |
 | --- | --- | --- |
@@ -79,7 +80,7 @@ policy update redefine that boundary.
 | Dimension | Publication `ghcr.io/effortlessmetrics/tokmd` | Swarm `ghcr.io/effortlessmetrics/tokmd-swarm` |
 | --- | --- | --- |
 | Repository role | `EffortlessMetrics/tokmd` publication | `EffortlessMetrics/tokmd-swarm` workbench |
-| Publish workflow | `.github/workflows/release.yml` on tagged publication releases | Future workbench-only workflow; **not in scope for this spec PR** |
+| Publish workflow | `.github/workflows/release.yml` on tagged publication releases | `.github/workflows/swarm-ghcr.yml` on `tokmd-swarm/main` (advisory visibility check) |
 | Binary source | Tagged release commit after publication import | `tokmd-swarm/main` (or PR head for `sha-*` tags) |
 | Tag semantics | Semver + major/minor aliases | `main` + `sha-*` only (proposed) |
 | Primary consumer | End users, GitHub Actions, container runtime for released versions | Agents, workbench CI, dogfood, workflow development |
@@ -125,8 +126,9 @@ This spec produces routing clarity only:
 - explicit claim boundary vs `ghcr.io/effortlessmetrics/tokmd`;
 - visibility states and verification commands for a future publish workflow.
 
-It does not push images, change GHCR package settings, or modify
-`.github/workflows/release.yml`.
+It does not change GHCR package visibility settings or modify
+`.github/workflows/release.yml`. Image push is owned by
+`.github/workflows/swarm-ghcr.yml` on `EffortlessMetrics/tokmd-swarm` only.
 
 ## Compatibility
 
@@ -138,9 +140,10 @@ This spec does not change:
 - install docs, Action defaults, or README claims;
 - crates.io or GitHub release surfaces.
 
-Follow-on PRs that add a swarm publish workflow must cite this spec, stay
-repository-guarded to `EffortlessMetrics/tokmd-swarm`, and land only after
-maintainers decide public vs private visibility in #264.
+Changes to `.github/workflows/swarm-ghcr.yml` must cite this spec, stay
+repository-guarded to `EffortlessMetrics/tokmd-swarm`, and keep the advisory
+manifest visibility step until maintainers record `verified-public` or
+`private-only` in #264.
 
 ## Proof Requirements
 

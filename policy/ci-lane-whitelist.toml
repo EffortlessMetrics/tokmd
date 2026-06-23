@@ -956,6 +956,26 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
+id               = "swarm_ghcr_publish"
+workflow         = ".github/workflows/swarm-ghcr.yml"
+job              = "Build and Push Swarm GHCR Image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 25
+owner            = "distribution/swarm-ghcr"
+intent           = "Build and push the workbench GHCR image for tokmd-swarm main."
+failure_mode     = "Swarm workbench image missing or stale on ghcr.io/effortlessmetrics/tokmd-swarm."
+proof_obligation = "Run docker buildx build and push with main and sha-* tags."
+evidence         = ["swarm-ghcr workflow logs", "registry tag or manifest visibility check"]
+allowed_triggers = ["push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-07-22"
+expires          = "2026-12-22"
+
+[[lane]]
 id               = "ci_required"
 workflow         = ".github/workflows/ci.yml"
 job              = "CI (Required)"
