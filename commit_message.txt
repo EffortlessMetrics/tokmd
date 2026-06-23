@@ -1,0 +1,3 @@
+bolt: optimize topics and ast JSON serialization ⚡
+
+Avoid string allocations by using array closure character split and borrowing AST struct fields during json! macro serialization.

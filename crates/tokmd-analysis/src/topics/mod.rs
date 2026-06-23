@@ -123,7 +123,7 @@ fn weight_for_row(row: &FileRow) -> u32 {
 
 fn tokenize_path(path: &str, stopwords: &BTreeSet<String>) -> Vec<String> {
     let mut out = Vec::new();
-    for part in path.replace('\\', "/").split('/') {
+    for part in path.split(['\\', '/']) {
         if part.is_empty() {
             continue;
         }
