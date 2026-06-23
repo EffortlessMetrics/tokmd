@@ -102,6 +102,7 @@ name = "proof_control_plane"
 kind = "rust"
 paths = [
   ".github/workflows/badge-endpoints.yml",
+  ".github/workflows/bindings-parity.yml",
   ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
   ".github/workflows/cockpit.yml",
@@ -141,6 +142,7 @@ paths = [
   "xtask/src/proof/**",
   "xtask/src/tasks/mod.rs",
   "xtask/src/tasks/affected.rs",
+  "xtask/src/tasks/bindings_parity.rs",
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/bump.rs",
   "xtask/src/tasks/ci_actuals.rs",
@@ -306,6 +308,25 @@ paths = [
 ]
 packages = ["tokmd-node"]
 proof = ["cargo check -p tokmd-node --all-targets"]
+mutation = false
+coverage = false
+
+[[scope]]
+name = "bindings_parity"
+kind = "rust"
+paths = [
+  ".github/agents/bindings-parity-keeper.agent.md",
+  ".github/workflows/bindings-parity.yml",
+  "docs/specs/bindings-parity.md",
+  "fixtures/bindings-parity/**",
+  "xtask/src/tasks/bindings_parity.rs",
+]
+packages = ["xtask", "tokmd-core", "tokmd-python", "tokmd-node"]
+proof = [
+  "cargo xtask bindings-parity --check",
+  "cargo xtask proof-policy --check",
+]
+reason = "Shared FFI envelope parity across tokmd-core, tokmd-python, and tokmd-node is guarded by fixture manifest cases and binding integration tests."
 mutation = false
 coverage = false
 

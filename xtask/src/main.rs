@@ -62,6 +62,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::ReviewPacketCheck(args)) => tasks::review_packet_check::run(args),
         Some(cli::Commands::VersionConsistency(args)) => tasks::version_consistency::run(args),
         Some(cli::Commands::BoundariesCheck(args)) => tasks::boundaries_check::run(args),
+        Some(cli::Commands::BindingsParity(args)) => tasks::bindings_parity::run(args),
         Some(cli::Commands::FixtureBlobsCheck(args)) => tasks::fixture_blobs_check::run(args),
         Some(cli::Commands::Gate(args)) => tasks::gate::run(args),
         Some(cli::Commands::CiPlan(args)) => tasks::ci_plan::run(args),

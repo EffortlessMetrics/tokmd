@@ -2,6 +2,7 @@ pub mod affected;
 pub mod ast_shadow_check;
 pub mod ast_shadow_compare;
 pub mod badges;
+pub mod bindings_parity;
 pub mod boundaries_check;
 pub mod build_guard;
 pub mod bump;

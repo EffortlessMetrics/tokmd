@@ -607,6 +607,26 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
+id               = "bindings_parity"
+workflow         = ".github/workflows/bindings-parity.yml"
+job              = "Bindings Parity (advisory)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 8
+owner            = "bindings"
+intent           = "Verify tokmd-core FFI envelope parity against shared fixtures and binding guard tests."
+failure_mode     = "Python/Node bindings drift from Rust FFI envelope without detection."
+proof_obligation = "Run cargo xtask bindings-parity --check."
+evidence         = ["target/tokmd/reports/bindings-parity-report.json"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
 id               = "clippy_exceptions"
 workflow         = ".github/workflows/clippy-exceptions-policy.yml"
 job              = "Clippy Exceptions"

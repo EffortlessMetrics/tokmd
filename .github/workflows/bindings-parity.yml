@@ -1,0 +1,96 @@
+name: Bindings Parity
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "crates/tokmd-core/**"
+      - "crates/tokmd-python/**"
+      - "crates/tokmd-node/**"
+      - "crates/tokmd-envelope/**"
+      - "fixtures/bindings-parity/**"
+      - "xtask/src/tasks/bindings_parity.rs"
+      - "xtask/src/cli.rs"
+      - "xtask/src/main.rs"
+      - "xtask/src/tasks/mod.rs"
+      - "docs/specs/bindings-parity.md"
+      - ".github/workflows/bindings-parity.yml"
+      - ".github/agents/bindings-parity-keeper.agent.md"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "crates/tokmd-core/**"
+      - "crates/tokmd-python/**"
+      - "crates/tokmd-node/**"
+      - "crates/tokmd-envelope/**"
+      - "fixtures/bindings-parity/**"
+      - "xtask/src/tasks/bindings_parity.rs"
+      - "xtask/src/cli.rs"
+      - "xtask/src/main.rs"
+      - "xtask/src/tasks/mod.rs"
+      - "docs/specs/bindings-parity.md"
+      - ".github/workflows/bindings-parity.yml"
+      - ".github/agents/bindings-parity-keeper.agent.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bindings-parity-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -C debuginfo=0
+
+jobs:
+  bindings-parity:
+    name: Bindings Parity (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run bindings parity checker (advisory)
+        run: |
+          set +e
+          mkdir -p target/tokmd/reports
+          cargo xtask bindings-parity --check \
+            --receipt target/tokmd/reports/bindings-parity-report.json \
+            2> target/tokmd/reports/bindings-parity-stderr.txt
+          status=$?
+
+          {
+            echo "## Bindings parity"
+            echo ""
+            echo "Agent charter: [.github/agents/bindings-parity-keeper.agent.md](.github/agents/bindings-parity-keeper.agent.md)"
+            echo "Spec: [docs/specs/bindings-parity.md](docs/specs/bindings-parity.md)"
+            echo ""
+            if [ "$status" -eq 0 ]; then
+              echo "Advisory check completed."
+            else
+              echo "Advisory check exited with status $status."
+            fi
+            echo ""
+            echo '```'
+            cat target/tokmd/reports/bindings-parity-stderr.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit "$status"
+
+      - name: Upload bindings parity report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bindings-parity-report
+          path: target/tokmd/reports/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -65,6 +65,8 @@ pub enum Commands {
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
+    /// Verify tokmd-core FFI envelope parity against shared fixtures and binding tests
+    BindingsParity(BindingsParityArgs),
     /// Reject committed crypto fixture blobs outside approved paths
     FixtureBlobsCheck(FixtureBlobsCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
@@ -1782,6 +1784,25 @@ pub struct BumpArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct BoundariesCheckArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BindingsParityArgs {
+    /// Verify fixture expectations and run binding parity cargo tests
+    #[arg(long)]
+    pub check: bool,
+
+    /// Repo-relative manifest path (default: fixtures/bindings-parity/manifest.json)
+    #[arg(long, value_name = "PATH")]
+    pub manifest: Option<std::path::PathBuf>,
+
+    /// Skip `cargo test` steps for tokmd-core/tokmd-node/tokmd-python
+    #[arg(long)]
+    pub skip_cargo_tests: bool,
+
+    /// Write a machine-readable verification receipt to this path
+    #[arg(long, value_name = "PATH")]
+    pub receipt: Option<std::path::PathBuf>,
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct FixtureBlobsCheckArgs {}
