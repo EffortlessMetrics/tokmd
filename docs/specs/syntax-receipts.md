@@ -244,7 +244,14 @@ Review signals are deterministic, derived from the fact arrays, and may be
 empty. They are advisory ordering hints for later evidence packets and review
 priority summaries, not semantic reachability or bug claims. Signal categories
 are intentionally language-agnostic so consumers can rank review targets without
-knowing every parser-specific seam kind:
+knowing every parser-specific seam kind.
+
+For panic/native review presets such as `bun-ub`, syntax ranking deprioritizes
+`panic_seam` signals tagged with `test_context: true`. These come from Rust
+`#[cfg(test)]` modules, `mod tests` blocks, `#[test]` functions, or equivalent
+test-only regions where assertion macros would otherwise crowd production panic
+seams. Deprioritized signals keep their original kind and evidence but surface
+with lower effective `severity`/`score` and an explicit reason suffix.
 
 | Category | Typical source |
 | --- | --- |

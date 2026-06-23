@@ -79,9 +79,11 @@ fields are missing.
 
 When `syntax_json` includes `review_signals`, `tokmd evidence-packet` may add a
 `review_priority` array. These items are sorted first by syntax signal score,
-then severity and path. They are advisory first-read hints for reviewers and
-agents. They do not prove reachability, bug presence, safety, or merge
-readiness.
+then severity and path. For `bun-ub` and other panic/native review presets,
+syntax receipts may already lower effective scores for `test_context` panic seams;
+the manifest preserves those scores when ranking `review_priority`. They are
+advisory first-read hints for reviewers and agents. They do not prove
+reachability, bug presence, safety, or merge readiness.
 
 ## Example
 

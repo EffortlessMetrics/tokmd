@@ -164,6 +164,7 @@ fn push_risk(kind: &str, evidence: &str, node: Node<'_>, facts: &mut SyntaxFacts
         kind: kind.to_owned(),
         evidence: compact_text(evidence),
         span: SyntaxSpan::from_node(node),
+        test_context: false,
     });
 }
 
@@ -175,6 +176,7 @@ fn push_guard_evidence(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
         kind: "guard_evidence".to_owned(),
         evidence: compact_text(node_text(source, guard)),
         span: SyntaxSpan::from_node(guard),
+        test_context: false,
     });
 }
 

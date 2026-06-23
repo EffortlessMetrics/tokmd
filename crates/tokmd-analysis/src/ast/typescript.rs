@@ -91,6 +91,7 @@ fn push_named_symbol(
             kind: "native_boundary_hint".to_owned(),
             evidence: name,
             span,
+            test_context: false,
         });
     }
 }
@@ -176,6 +177,7 @@ fn push_risk(kind: &str, evidence: &str, node: Node<'_>, facts: &mut SyntaxFacts
         kind: kind.to_owned(),
         evidence: compact_text(evidence),
         span: SyntaxSpan::from_node(node),
+        test_context: false,
     });
 }
 
