@@ -18,7 +18,7 @@ git = ["dep:tokmd-git"]
 [dependencies]
 anyhow.workspace = true
 blake3.workspace = true
-ignore = "0.4.23"
+ignore.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 time = { version = "0.3.41", features = ["formatting"] }
