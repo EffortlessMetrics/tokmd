@@ -1,5 +1,9 @@
 {
-  "outcome": "learning",
-  "patch_type": "docs",
-  "reason": "No direct boundary-leakage was found in operations for tokmd-core. Most usages of bare Command::new(\"git\") were in test setups, not operational paths. FFI boundary hardening is well-contained. Producing a learning PR and friction item."
+  "outcome": "PR-ready patch",
+  "files_changed": [
+    "crates/tokmd-core/src/ffi/parse.rs",
+    "crates/tokmd-core/src/ffi/settings_parse.rs",
+    "crates/tokmd-core/src/ffi/inputs.rs",
+    "crates/tokmd-core/tests/ffi_trust_boundary_w80.rs"
+  ]
 }

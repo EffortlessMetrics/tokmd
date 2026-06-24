@@ -1,52 +1,49 @@
 ## 💡 Summary
-This is a learning PR. I investigated `tokmd-core` and adjacent interfaces for subprocess boundary leakage (specifically bare `Command::new("git")` usage). While I found several instances, they were strictly contained within test setups rather than operational production paths.
+Hardens the FFI trust boundary in `tokmd-core` by strictly validating that nested configuration payloads (e.g., `lang`, `scan`) are valid JSON objects. Previously, malformed types like strings were silently ignored and fell back to the root `args` object.
 
 ## 🎯 Why
-The mission was to land a security-significant hardening improvement. Hardening test setup code is not a production security improvement and forcing a fix there would violate the constraint against "fake fixes". FFI and environment boundaries in operational paths appear well-hardened and correctly utilize `tokmd_git::git_cmd()`.
+Untrusted JSON payloads hitting the FFI layer were silently bypassing nested property validation due to a liberal `unwrap_or(args)` pattern. If a user provided `"lang": "string"`, the parser would silently ignore the string, drop the nested configuration attempt, and fall back to scanning the root arguments. This is a vulnerability in boundary determinism. Explicitly validating `is_object()` before extracting properties ensures that the parsing layer predictably enforces contract requirements.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/context_git/mod.rs`
-- Found 9 usages of raw `Command::new("git")` but they are isolated within `#[cfg(all(test, feature = "git"))] mod tests`.
-- `crates/tokmd/tests/sensor_integration.rs` uses `Command::new("git")` for test repo scaffolding.
-- Operational code already relies on the secure `tokmd_git` abstractions.
+- File paths: `crates/tokmd-core/src/ffi/parse.rs`, `crates/tokmd-core/src/ffi/settings_parse.rs`
+- Finding: `args.get("lang").unwrap_or(args)` returns the root object if `"lang"` is a string, completely bypassing the intended configuration and any type enforcement for the nested field.
+- Proof: `cargo test -p tokmd-core --test ffi_trust_boundary_w80` passes, demonstrating that providing `"lang": "string"` now returns a strict `invalid_field` error rather than silently succeeding.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Produce a learning PR.
-- Records the findings and adds a friction item regarding test-path hygiene without forcing a low-value code patch.
-- Trade-offs: Structure is preserved without unnecessary diffs.
+- Strictly validate nested JSON objects at the FFI boundary using an explicit `extract_nested_object` helper that verifies `is_object()`.
+- Replaces the unsafe `unwrap_or` pattern across all FFI settings parsers.
+- Trade-offs: Structure is improved by centralizing validation; Velocity is slightly impacted by deeper parsing checks; Governance enforces strict deterministic schema behavior.
 
 ### Option B
-- Refactor test setups to use `tokmd_git::git_cmd()`.
-- Trade-offs: This is tool cargo-culting for test scaffolding and does not materially improve the trust boundary of the actual system.
+- Ignore the loose validation and assume callers provide correct structures.
+- When to choose: Never, untrusted inputs must be validated.
+- Trade-offs: Leaves a gap where clients might think their configuration applied, but it silently fell back to defaults.
 
 ## ✅ Decision
-Chosen Option A. No honest production code boundary patch was justified by the findings. Falling back to a learning PR as instructed.
+Option A. Enforcing strict JSON type boundaries on untrusted payloads prevents unpredictable fallback behavior.
 
 ## 🧱 Changes made (SRP)
-- Added a friction item regarding `Command::new("git")` in test surfaces.
-- Recorded the learning PR run packet.
+- `crates/tokmd-core/src/ffi/parse.rs`: Added `extract_nested_object` to strictly validate nested JSON objects.
+- `crates/tokmd-core/src/ffi/settings_parse.rs`: Migrated all config parsers (`lang`, `scan`, `module`, etc.) to use the strict object extraction.
+- `crates/tokmd-core/src/ffi/inputs.rs`: Updated `nested_inputs` logical checks to safely interact with the new bounded parsing logic.
+- `crates/tokmd-core/tests/ffi_trust_boundary_w80.rs`: Added a targeted test proving the silent failure has been mitigated.
 
 ## 🧪 Verification receipts
 ```text
-$ grep -rn "Command::new(\"git\")" crates/tokmd-core/src/context_git/
-crates/tokmd-core/src/context_git/mod.rs:129:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:134:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:139:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:147:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:152:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:159:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:164:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:172:        Command::new("git")
-crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
+cargo test -p tokmd-core --test ffi_trust_boundary_w80
+cargo test -p tokmd-core --test ffi_in_memory_w81
+cargo build --verbose -p tokmd-core
+cargo fmt -- --check
+cargo clippy -p tokmd-core -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Learning PR
-- Blast radius: None (documentation / learning only)
-- Risk class: Zero risk
-- Rollback: N/A
-- Gates run: `cargo check -p tokmd-core --all-features`
+- Change shape: Hardening
+- Blast radius: FFI payload parsing boundary
+- Risk class: Low - strengthens validation, but requires callers emitting malformed strings in config blocks (which was previously ignored) to fix their inputs.
+- Rollback: Revert the PR
+- Gates run: `security-boundary` fallback expectations (cargo test, fmt, clippy, build)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/sentinel_boundaries/envelope.json`
@@ -54,7 +51,6 @@ crates/tokmd-core/src/context_git/mod.rs:177:        Command::new("git")
 - `.jules/runs/sentinel_boundaries/receipts.jsonl`
 - `.jules/runs/sentinel_boundaries/result.json`
 - `.jules/runs/sentinel_boundaries/pr_body.md`
-- `.jules/friction/open/sentinel_git_command_tests.md`
 
 ## 🔜 Follow-ups
-- Discuss whether `Command::new("git")` should be entirely forbidden via clippy or an anti-pattern rule to prevent future leakage, even in tests.
+None.

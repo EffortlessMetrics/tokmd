@@ -1,10 +1,19 @@
-# Decision
+# Sentinel Boundaries Decision
 
 ## Option A (recommended)
-Produce a learning PR. The instances of bare `Command::new("git")` found in the `interfaces` shard (specifically `tokmd-core` and tests) are contained entirely within test setups. Hardening these does not provide a production security improvement and forcing a patch would be a "fake fix". We will record this finding as a friction item instead.
+**Strict Type Boundary Enforcement in FFI**
+- **What it is:** Implement an `extract_nested_object` helper in `parse.rs` that explicitly validates that nested JSON configuration properties (like `lang`, `scan`, `module`) are strictly JSON objects (or null/omitted). Replace all uses of `unwrap_or(args)` that silently swallowed validation errors.
+- **Why it fits this repo and shard:** The FFI boundary in `tokmd-core` receives untrusted string payloads. The previous implementation silently parsed strings or arrays as fallback root configurations rather than rejecting them, bypassing trust-boundary type validation. This aligns perfectly with the `interfaces` shard and the `Sentinel` persona's mandate to harden trust boundaries and ensure deterministic safety.
+- **Trade-offs:**
+  - Structure: Centralizes strict parsing, which is much cleaner.
+  - Velocity: Tiny overhead on parsing due to explicit validation, but FFI payloads are small.
+  - Governance: Improves API safety and prevents silent configuration fallback exploits.
 
 ## Option B
-Refactor the test code to use `tokmd_git::git_cmd()`. This is low-value and misrepresents a test refactor as a security fix.
+**Ignore the silent failover**
+- **What it is:** Let the parser continue using `unwrap_or(args)` and leave the FFI payload validation slightly ambiguous.
+- **When to choose it instead:** Never, this is a clear boundary violation.
+- **Trade-offs:** Reduces parsing code size, but allows malformed untrusted inputs to bypass explicit parsing layers and fall back to the root namespace, creating confusion and potentially insecure API surface behavior.
 
 ## Decision
-I choose **Option A**. The prompt strictly forbids forcing a fake fix if no honest patch is justified. We will fall back to a learning PR and output the full per-run packet alongside a friction item.
+**Option A**. Stricter trust boundaries at the untrusted JSON boundary are a core responsibility for the Sentinel persona, and explicitly checking `is_object()` guarantees predictability.
