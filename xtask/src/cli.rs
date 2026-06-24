@@ -103,6 +103,8 @@ pub enum Commands {
     NoPanicBaseline(NoPanicBaselineArgs),
     /// Verify CI lane whitelist coverage and exception receipts
     CiLaneWhitelist(CiLaneWhitelistArgs),
+    /// Verify single-tight ub-review CI gate contract markers in a workflow file
+    CiGateContract(CiGateContractArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -977,6 +979,26 @@ impl Default for CiLaneWhitelistArgs {
             exceptions: std::path::PathBuf::from("policy/ci-whitelist-exceptions.toml"),
             report_dir: None,
             strict: false,
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct CiGateContractArgs {
+    /// Workflow YAML to validate against the single-tight gate contract
+    #[arg(long, default_value = ".github/workflows/ci.yml")]
+    pub workflow: std::path::PathBuf,
+
+    /// Treat contract violations as a hard error
+    #[arg(long)]
+    pub check: bool,
+}
+
+impl Default for CiGateContractArgs {
+    fn default() -> Self {
+        Self {
+            workflow: std::path::PathBuf::from(".github/workflows/ci.yml"),
+            check: false,
         }
     }
 }

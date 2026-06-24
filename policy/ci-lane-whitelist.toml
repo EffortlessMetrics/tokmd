@@ -567,6 +567,46 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
+id               = "ci_gate_contract_reference"
+workflow         = ".github/workflows/ci-policy.yml"
+job              = "CI Gate Contract (reference)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "release/ci"
+intent           = "Verify the reference single-tight CI gate fixture matches contract markers."
+failure_mode     = "Reference fixture drifts from the ub-review gate contract before live migration."
+proof_obligation = "Run cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml."
+evidence         = ["job logs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
+id               = "ci_gate_contract_live_gap"
+workflow         = ".github/workflows/ci-policy.yml"
+job              = "CI Gate Contract (live gap)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "release/ci"
+intent           = "Report live ci.yml migration gap against the single-tight gate contract until phase 2."
+failure_mode     = "Live workflow migration gap is invisible during phased rollout."
+proof_obligation = "Run cargo xtask ci-gate-contract --check --workflow .github/workflows/ci.yml (advisory)."
+evidence         = ["GITHUB_STEP_SUMMARY"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["ci_gate_contract_reference"]
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
 id               = "pr_cockpit_report"
 workflow         = ".github/workflows/cockpit.yml"
 job              = "PR Cockpit Report"

@@ -1,0 +1,165 @@
+# Reference single-tight CI gate for tokmd-swarm (#226).
+# Enforced by: cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml
+# Normative spec: docs/specs/ub-review-ci-gate.md
+
+name: CI (reference fixture)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  route:
+    name: Route CI runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      runner: ${{ steps.route.outputs.runner }}
+      runner_kind: ${{ steps.route.outputs.runner_kind }}
+    steps:
+      - name: Decide gate runner (self-hosted primary, gh-hosted overflow)
+        id: route
+        env:
+          GH_TOKEN: ${{ secrets.EM_RUNNER_READ_TOKEN }}
+        run: |
+          set -uo pipefail
+          GH='"ubuntu-latest"'
+          SELF_HOSTED='["self-hosted","linux","x64","em-ci","trusted-pr","rust-small"]'
+          emit() {
+            echo "runner=$1" >> "$GITHUB_OUTPUT"
+            echo "runner_kind=$2" >> "$GITHUB_OUTPUT"
+          }
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
+            emit "$GH" github "fork PR"
+            exit 0
+          fi
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            emit "$GH" github "missing token"
+            exit 0
+          fi
+          set +e
+          RESP="$(gh api "orgs/EffortlessMetrics/actions/runners?per_page=100" 2>route.err)"
+          CODE=$?
+          set -e
+          if [[ $CODE -ne 0 ]]; then
+            emit "$GH" github "api failed"
+            exit 0
+          fi
+          if jq -e '[.runners[] | select(.status=="online" and .busy==false) | .labels[].name] | index("trusted-pr")' <<<"$RESP" >/dev/null; then
+            emit "$SELF_HOSTED" self-hosted "idle trusted runner"
+          else
+            emit "$GH" github "no idle capacity"
+          fi
+
+  tokmd-rust-result:
+    name: Tokmd Rust Result
+    needs: route
+    runs-on: ${{ fromJSON(needs.route.outputs.runner) }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Fast precontext and launch core gate
+        env:
+          RUNNER_KIND: ${{ needs.route.outputs.runner_kind }}
+        run: |
+          set +e
+          mkdir -p target/ci-core
+          if [ "${RUNNER_KIND}" = "self-hosted" ]; then
+            df -h . || true
+          else
+            df -h /
+          fi
+          {
+            echo "# Deterministic precontext for ub-review"
+            echo
+            echo "- core gate (gates the merge; running concurrently): cargo xtask gate --check"
+            echo "- runner: ${RUNNER_KIND:-github} event: ${GITHUB_EVENT_NAME}"
+          } > target/ci-core/precontext.md
+          (
+            cargo xtask gate --check
+            echo "$?" > target/ci-core/core_exit
+          ) > target/ci-core/core.log 2>&1 &
+          echo "launched background core gate"
+
+      - name: UB Review (advisory)
+        id: ubreview
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
+        continue-on-error: true
+        uses: EffortlessMetrics/ub-review@e1e41124e0468b3714827fd32574c8c583803b72
+        with:
+          preset: bun-ub
+          mode: intelligent-ci
+          posting: review
+          fail-on-gate: false
+          setup-rust: false
+          tool-bundle: core
+          provider-policy: primary-with-fallback
+          minimax-api-key: ${{ secrets.MINIMAX_API_KEY }}
+          minimax-model: MiniMax-M3
+          opencode-api-key: ${{ secrets.OPENCODE }}
+          opencode-model: deepseek-v4-flash
+          base: origin/${{ github.base_ref }}
+          pr-thread-context: target/ci-core/precontext.md
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-summary: true
+
+      - name: UB Review advisory status
+        if: ${{ always() }}
+        env:
+          UB_OUTCOME: ${{ steps.ubreview.outcome }}
+        run: |
+          case "${UB_OUTCOME}" in
+            success)
+              echo "ub-review advisory lane completed; see the grouped PR review." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            skipped|"")
+              echo "ub-review advisory lane skipped (fork PR or non-PR event); deterministic gate verdict stands." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *)
+              echo "ub-review advisory lane failed (${UB_OUTCOME}): check provider secrets and model availability, then re-run. Deterministic gate verdict stands." >> "$GITHUB_STEP_SUMMARY"
+              ;;
+          esac
+
+      - name: Assert core gate verdict
+        if: ${{ always() }}
+        run: |
+          set -uo pipefail
+          deadline=$((SECONDS + 3000))
+          while [ ! -f target/ci-core/core_exit ]; do
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "124" > target/ci-core/core_exit
+              break
+            fi
+            sleep 5
+          done
+          core_exit="$(cat target/ci-core/core_exit)"
+          {
+            echo "## Deterministic core gate"
+            if [ "${core_exit}" = "0" ]; then
+              echo "Result: PASS (cargo xtask gate --check exit 0)"
+            else
+              echo "Result: FAIL (exit ${core_exit})"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "${core_exit}" = "0"

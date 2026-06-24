@@ -72,3 +72,48 @@ jobs:
               cat target/tokmd/reports/ci-lane-whitelist-report.txt
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+  ci-gate-contract-reference:
+    name: CI Gate Contract (reference)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Verify reference single-tight gate fixture
+        run: |
+          cargo xtask ci-gate-contract --check \
+            --workflow fixtures/ci-gate-contract/reference-ci.yml
+
+  ci-gate-contract-live-gap:
+    name: CI Gate Contract (live gap)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Report live ci.yml migration gap (advisory until phase 2)
+        run: |
+          set +e
+          cargo xtask ci-gate-contract --check --workflow .github/workflows/ci.yml
+          status=$?
+          {
+            echo "## CI gate contract (live migration gap)"
+            echo ""
+            if [ "${status}" -eq 0 ]; then
+              echo "Live \`.github/workflows/ci.yml\` satisfies the single-tight ub-review gate contract."
+            else
+              echo "Live \`.github/workflows/ci.yml\` does not yet match the phase-2 target."
+              echo "Normative spec: \`docs/specs/ub-review-ci-gate.md\`."
+              echo "Reference fixture: \`fixtures/ci-gate-contract/reference-ci.yml\`."
+              echo "Tracking: issue #226."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0

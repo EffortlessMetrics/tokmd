@@ -62,6 +62,7 @@ require deleting or rewriting user-facing docs in the same change.
 | Swarm workbench GHCR image name, tags, and claim boundary vs publication `tokmd` | `docs/specs/swarm-ghcr-image.md`, `docs/specs/repo-topology.md`, `.github/workflows/swarm-ghcr.yml`, issue #264 (closed) | specified (`verified-public` for `:main` bootstrap amd64-only; workbench/experimental tier) | keep bootstrap phase, receipt, and claim boundary aligned when multiarch or support tier changes |
 | Machine-readable CLI progress events (`TOKMD_PROGRESS_EVENTS`) | `docs/specs/progress-events.md`, `crates/tokmd/src/progress.rs`, `fixtures/progress-events/`, `docs/progress-events.md` | specified | keep env activation rules, stderr boundary, fixtures, and tests aligned with the spec |
 | PR evidence packet workflow (`sensors/tokmd/`) | `docs/specs/evidence-packet-workflow.md`, `docs/evidence-packet.md`, `docs/packet-workflows.md`, `docs/integrations/ub-review.md`, `crates/tokmd/tests/evidence_packet_integration.rs` | specified | keep schema, verifier, Action/GHCR support model, and user docs aligned with the spec |
+| Single-tight ub-review CI gate shape (#226) | `docs/specs/ub-review-ci-gate.md`, `fixtures/ci-gate-contract/reference-ci.yml`, `cargo xtask ci-gate-contract` | specified (phase 1: contract + checker; live `ci.yml` migration deferred) | phase 2: collapse `ci.yml` to target shape; phase 3: retire duplicate Rust Small workflow |
 
 ## Classification Vocabulary
 

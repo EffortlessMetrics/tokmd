@@ -86,6 +86,11 @@ route without counting every skipped implementation target.
 The routed Rust Small trust, fallback, concurrency, route receipt, and
 required-check contract is defined in `docs/ci/routed-ci-policy.md`.
 
+Phase-2 target for issue #226 is a single tight gate documented in
+`docs/specs/ub-review-ci-gate.md`, with `cargo xtask ci-gate-contract`
+enforcing the reference fixture and reporting the live `ci.yml` gap
+advisory until migration lands.
+
 ## Anti-patterns
 
 - Don't use `full-ci` to dodge a real failure; the deep lanes catch

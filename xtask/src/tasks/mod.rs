@@ -7,6 +7,7 @@ pub mod boundaries_check;
 pub mod build_guard;
 pub mod bump;
 pub mod ci_actuals;
+pub mod ci_gate_contract;
 pub mod ci_lane_whitelist;
 pub mod ci_plan;
 pub mod ci_route;

@@ -130,6 +130,7 @@ paths = [
   "AGENTS.md",
   "ci/proof.toml",
   "codecov.yml",
+  "fixtures/ci-gate-contract/**",
   "docs/external-services.md",
   "docs/NEXT.md",
   "docs/ci/ci-actuals.md",
@@ -147,6 +148,7 @@ paths = [
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/bump.rs",
   "xtask/src/tasks/ci_actuals.rs",
+  "xtask/src/tasks/ci_gate_contract.rs",
   "xtask/src/tasks/ci_lane_whitelist.rs",
   "xtask/src/tasks/ci_plan.rs",
   "xtask/src/tasks/ci_route.rs",
@@ -178,6 +180,7 @@ paths = [
   "xtask/tests/docs_schema_w72.rs",
   "xtask/tests/docs_w43.rs",
   "xtask/tests/fixture_blobs_w83.rs",
+  "xtask/tests/ci_gate_contract_w102.rs",
   "xtask/tests/proof_policy_w90.rs",
   "xtask/tests/proof_plan_w92.rs",
   "xtask/tests/proof_workflow_status_w98.rs",
@@ -187,7 +190,9 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask proof-policy --check",
+  "cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml",
   "cargo xtask ci-lane-whitelist",
+  "cargo test -p xtask ci_gate_contract --verbose",
   "cargo test -p xtask bump --verbose",
   "cargo test -p xtask --test deep_w71 --verbose",
   "cargo test -p xtask --test xtask_contract_w65 --verbose",

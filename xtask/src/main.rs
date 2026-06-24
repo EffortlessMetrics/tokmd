@@ -78,6 +78,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::CiRoute(args)) => tasks::ci_route::run(args),
         Some(cli::Commands::CiRunnerHealth(args)) => tasks::ci_runner_health::run(args),
         Some(cli::Commands::CiLaneWhitelist(args)) => tasks::ci_lane_whitelist::run(args),
+        Some(cli::Commands::CiGateContract(args)) => tasks::ci_gate_contract::run(args),
         Some(cli::Commands::CheckNoPanicFamily(args)) => tasks::no_panic::run_check(args),
         Some(cli::Commands::NoPanicPropose(args)) => tasks::no_panic::run_propose(args),
         Some(cli::Commands::NoPanicBaseline(args)) => tasks::no_panic::run_baseline(args),
