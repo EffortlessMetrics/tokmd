@@ -46,8 +46,7 @@ branches:
       required_status_checks:
         strict: true
         contexts:
-          # Admin (#226 phase 2): after merge, replace with "Tokmd Rust Result" via Settings Probot sync or GitHub UI.
-          - "CI (Required)"
+          - "Tokmd Rust Result"
       enforce_admins: false
       required_linear_history: true
       allow_force_pushes: false
