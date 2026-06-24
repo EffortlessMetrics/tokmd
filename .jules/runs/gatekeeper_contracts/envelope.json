@@ -17,7 +17,6 @@
   "gate_profile": "contracts-determinism",
   "allowed_outcomes": [
     "PR-ready patch",
-    "proof-improvement patch",
     "learning PR"
   ]
 }
