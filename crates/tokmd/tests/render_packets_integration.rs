@@ -67,6 +67,32 @@ fn render_absent_preset_inputs_emits_limitation() {
 }
 
 #[test]
+fn render_rejects_invalid_manifest_schema() {
+    let dir = tempfile::tempdir().unwrap();
+    let manifest = serde_json::json!({
+        "schema": "tokmd.packets/v0",
+        "non_claims": ["Does not prove UB."]
+    });
+    std::fs::write(
+        dir.path().join("tokmd-packets.json"),
+        serde_json::to_string_pretty(&manifest).unwrap(),
+    )
+    .unwrap();
+
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.args([
+        "render",
+        "--from-packets",
+        dir.path().to_str().unwrap(),
+        "--preset",
+        "bun-ub-handoff",
+    ]);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("failed schema validation"));
+}
+
+#[test]
 fn render_rejects_unknown_preset() {
     let bundle = workspace_fixture_bundle();
     let mut cmd = Command::cargo_bin("tokmd").unwrap();

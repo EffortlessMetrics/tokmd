@@ -93,9 +93,14 @@ cargo test -p tokmd render_packets
 
 Fixture bundle: `fixtures/tokmd-packets/minimal/`.
 
+## Phase 2 (partial)
+
+- JSON Schema validation at CLI boundary (`jsonschema` crate) — implemented in
+  `tokmd render --from-packets` manifest load path
+
 ## Deferred (phase 2+)
 
-- JSON Schema validation at CLI boundary (jsonschema crate)
 - Direct consumption of sibling bundle files when `preset_inputs` is partial
+- unsafe-review export migration off de-facto schema ownership (producer repo)
 - ripr repair-packet preset family (shape-adjacent per #222 cross-links)
 - Schema ownership migration on unsafe-review export path (#222 comment)
