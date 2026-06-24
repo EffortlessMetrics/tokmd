@@ -4,8 +4,11 @@ use std::fmt::Write as _;
 
 use anyhow::{Context, Result, bail};
 use tokmd_types::{
-    BUN_UB_PACKET_PRESETS, PacketPresetInput, TOKMD_PACKETS_SCHEMA, TokmdPacketsManifest,
+    BUN_UB_PACKET_PRESETS, PacketPresetInput, PacketRenderBundle, TOKMD_PACKETS_SCHEMA,
+    TokmdPacketsManifest,
 };
+
+use crate::packet_siblings::resolve_preset_input;
 
 /// Human-readable title for a packet preset.
 pub fn preset_title(preset: &str) -> &str {
@@ -36,15 +39,13 @@ pub fn validate_manifest(manifest: &TokmdPacketsManifest, preset: &str) -> Resul
     Ok(())
 }
 
-/// Render Markdown for `preset` from a validated manifest.
+/// Render Markdown for `preset` from a loaded bundle (manifest + sibling inputs).
 ///
 /// Missing `preset_inputs` or sections produce explicit limitation notes — never
-/// an empty or all-clear document.
-pub fn render_packet_preset_markdown(
-    manifest: &TokmdPacketsManifest,
-    preset: &str,
-) -> Result<String> {
-    validate_manifest(manifest, preset)?;
+/// an empty or all-clear document. When manifest sections are absent, sibling
+/// bundle files listed in `inputs_present` may supply partial sections.
+pub fn render_packet_bundle_markdown(bundle: &PacketRenderBundle, preset: &str) -> Result<String> {
+    validate_manifest(&bundle.manifest, preset)?;
 
     let mut out = String::new();
     writeln!(out, "# {}", preset_title(preset)).context("format title")?;
@@ -52,23 +53,42 @@ pub fn render_packet_preset_markdown(
     writeln!(out, "Preset: `{preset}`").context("format preset id")?;
     writeln!(out).context("format blank line")?;
 
-    match manifest.preset_inputs.get(preset) {
-        Some(input) => render_preset_input(&mut out, input)?,
+    let (resolved_input, resolution_notes) =
+        resolve_preset_input(&bundle.manifest, &bundle.siblings, preset);
+
+    match resolved_input {
+        Some(input) => render_preset_input(&mut out, &input)?,
         None => {
             writeln!(out, "## Limitations").context("format limitations heading")?;
             writeln!(out).context("format blank line")?;
             writeln!(
                 out,
-                "- `preset_inputs` for `{preset}` is absent from the bundle; no formatted sections are available."
+                "- `preset_inputs` for `{preset}` is absent from the bundle and no sibling files supplied derivable sections."
             )
             .context("format absent preset_inputs limitation")?;
         }
     }
 
-    render_bundle_absent_inputs(&mut out, manifest)?;
-    render_non_claims(&mut out, manifest)?;
+    render_resolution_notes(&mut out, &resolution_notes)?;
+    render_sibling_load_notes(&mut out, &bundle.siblings)?;
+    render_bundle_absent_inputs(&mut out, &bundle.manifest)?;
+    render_non_claims(&mut out, &bundle.manifest)?;
 
     Ok(out)
+}
+
+/// Render Markdown for `preset` from a validated manifest only.
+///
+/// Prefer [`render_packet_bundle_markdown`] when sibling bundle files may be present.
+pub fn render_packet_preset_markdown(
+    manifest: &TokmdPacketsManifest,
+    preset: &str,
+) -> Result<String> {
+    let bundle = PacketRenderBundle {
+        manifest: manifest.clone(),
+        siblings: tokmd_types::PacketSiblingInputs::default(),
+    };
+    render_packet_bundle_markdown(&bundle, preset)
 }
 
 fn render_preset_input(out: &mut String, input: &PacketPresetInput) -> Result<()> {
@@ -107,6 +127,35 @@ fn render_preset_input(out: &mut String, input: &PacketPresetInput) -> Result<()
         writeln!(out).context("format blank line")?;
     }
 
+    Ok(())
+}
+
+fn render_resolution_notes(out: &mut String, notes: &[String]) -> Result<()> {
+    if notes.is_empty() {
+        return Ok(());
+    }
+    writeln!(out, "## Bundle source inputs").context("format source heading")?;
+    writeln!(out).context("format blank line")?;
+    for note in notes {
+        writeln!(out, "- {note}").context("format source note")?;
+    }
+    writeln!(out).context("format blank line")?;
+    Ok(())
+}
+
+fn render_sibling_load_notes(
+    out: &mut String,
+    siblings: &tokmd_types::PacketSiblingInputs,
+) -> Result<()> {
+    if siblings.load_notes.is_empty() {
+        return Ok(());
+    }
+    writeln!(out, "## Limitations").context("format limitations heading")?;
+    writeln!(out).context("format blank line")?;
+    for note in &siblings.load_notes {
+        writeln!(out, "- {note}").context("format sibling load note")?;
+    }
+    writeln!(out).context("format blank line")?;
     Ok(())
 }
 

@@ -1,0 +1,24 @@
+{
+  "schema": "tokmd.packets/v1",
+  "producer": {
+    "name": "unsafe-review",
+    "version": "fixture",
+    "tokmd_run": false
+  },
+  "inputs_present": [
+    "tokmd-packets.json",
+    "manual-candidates.json",
+    "cards.json"
+  ],
+  "inputs_absent": [
+    "comment-plan.json",
+    "witness-plan.md"
+  ],
+  "non_claims": [
+    "Does not prove undefined behavior.",
+    "Does not prove memory safety.",
+    "Does not prove Miri-clean status.",
+    "Does not provide a merge verdict."
+  ],
+  "preset_inputs": {}
+}

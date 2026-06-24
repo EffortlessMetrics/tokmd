@@ -12,6 +12,13 @@ fn workspace_fixture_bundle() -> PathBuf {
         .expect("workspace fixture bundle exists")
 }
 
+fn sibling_derived_fixture_bundle() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../fixtures/tokmd-packets/sibling-derived")
+        .canonicalize()
+        .expect("sibling-derived fixture bundle exists")
+}
+
 #[test]
 fn render_handoff_preset_from_fixture_bundle() {
     let bundle = workspace_fixture_bundle();
@@ -35,6 +42,45 @@ fn render_handoff_preset_from_fixture_bundle() {
         .stdout(predicate::str::contains(
             "Does not prove undefined behavior.",
         ));
+}
+
+#[test]
+fn render_handoff_derives_sections_from_sibling_bundle_files() {
+    let bundle = sibling_derived_fixture_bundle();
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.args([
+        "render",
+        "--from-packets",
+        bundle.to_str().expect("utf-8 bundle path"),
+        "--preset",
+        "bun-ub-handoff",
+    ]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("## Candidate Identity"))
+        .stdout(predicate::str::contains("seed-42"))
+        .stdout(predicate::str::contains("## Bundle source inputs"))
+        .stdout(predicate::str::contains("manual-candidates.json"))
+        .stdout(predicate::str::contains("## Limitations"))
+        .stdout(predicate::str::contains("## Non-claims"));
+}
+
+#[test]
+fn render_review_map_ingests_cards_json() {
+    let bundle = sibling_derived_fixture_bundle();
+    let mut cmd = Command::cargo_bin("tokmd").unwrap();
+    cmd.args([
+        "render",
+        "--from-packets",
+        bundle.to_str().expect("utf-8 bundle path"),
+        "--preset",
+        "bun-ub-review-map",
+    ]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("ReviewCard rc-17"))
+        .stdout(predicate::str::contains("Explicit No Posting Boundary"))
+        .stdout(predicate::str::contains("## Limitations"));
 }
 
 #[test]

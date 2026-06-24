@@ -945,6 +945,7 @@ paths = [
   "crates/tokmd-format/src/summary/**",
   "crates/tokmd-format/src/summary.rs",
   "crates/tokmd-format/src/tokmd_packets.rs",
+  "crates/tokmd-format/src/packet_siblings.rs",
   "crates/tokmd-format/tests/format_*.rs",
   "crates/tokmd-format/tests/snapshot*.rs",
   "crates/tokmd-format/tests/snapshots/**",
@@ -952,6 +953,7 @@ paths = [
 packages = ["tokmd-format"]
 proof = [
   "cargo test -p tokmd-format tokmd_packets --verbose",
+  "cargo test -p tokmd-format packet_siblings --verbose",
   "cargo test -p tokmd-format --test snapshots --verbose",
   "cargo test -p tokmd-format --test snapshot_golden_w54 --verbose",
 ]
@@ -1267,6 +1269,7 @@ paths = [
   "docs/evidencebus-integration.md",
   "docs/implementation-plan.md",
   "docs/install.md",
+  "docs/interop/**",
   "docs/adr/**",
   "docs/audits/**",
   "docs/README.md",
@@ -1513,6 +1516,7 @@ paths = [
   "crates/tokmd-types/src/diff.rs",
   "crates/tokmd-types/src/evidence_packet.rs",
   "crates/tokmd-types/src/tokmd_packets.rs",
+  "crates/tokmd-types/src/packet_siblings.rs",
   "crates/tokmd-types/src/inventory.rs",
   "crates/tokmd-types/src/lib.rs",
   "crates/tokmd-types/tests/schema*.rs",
@@ -1531,6 +1535,7 @@ paths = [
 packages = ["tokmd-types", "tokmd"]
 proof = [
   "cargo test -p tokmd-types tokmd_packets --verbose",
+  "cargo test -p tokmd-types packet_siblings --verbose",
   "cargo test -p tokmd-types schema --verbose",
   "cargo test -p tokmd --test schema_sync --verbose",
   "cargo test -p tokmd --test schema_doc_sync --verbose",

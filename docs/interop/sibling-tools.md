@@ -129,7 +129,7 @@ live in the ledger below; this table is the local orientation row.
 | Adopting | `<tool>-gate.json` manifest envelope routing | consumer alignment pending family gate manifests | open |
 | Adopting | Ledger evidence taxonomy + dialect marker | policy ledgers, `docs/POLICY_ALLOWLISTS.md` | partial |
 | Adopting | Coverage-movement vocabulary (`new` / `worsened` / `resolved` / `inherited`) | baseline/trend surfaces | open |
-| Teaching | `tokmd.packets/v1` input-schema ownership + `tokmd render --from-packets` | `docs/specs/tokmd-packets-render.md`, PR #300 | partial (phase 2 jsonschema validation landed; sibling ingestion #301) |
+| Teaching | `tokmd.packets/v1` input-schema ownership + `tokmd render --from-packets` | `docs/specs/tokmd-packets-render.md`, PR #300 | partial (phase 2 sibling ingestion landed; unsafe-review producer migration #301) |
 | Teaching | Integer vs string schema identity split (receipt vs cross-tool manifest) | `docs/adr/0014-schema-identity-idioms.md`, PR #303 | landed (#224 closed) |
 | Teaching | Per-family integer `schema_version` versioning | `docs/adr/0007-schema-family-versioning.md`, `docs/SCHEMA.md` | shipped |
 | Teaching | `sensor.report.v1` fleet envelope for conforming sensor mode | `docs/sensor-report-v1.md`, `tokmd sensor` | shipped |
@@ -152,7 +152,7 @@ canonical copy in unsafe-review-swarm).
 | No-finding wording-contract verifier | unsafe-review | ripr | ripr-swarm #1040 | open |
 | Diff-first consumer contract alignment | unsafe-review | ripr | ripr-swarm #1041 | open |
 | Coverage-movement vocabulary (new/worsened/resolved/inherited) | unsafe-review | cargo-allow | cargo-allow #1471 | open |
-| tokmd-packets input-schema ownership + `--from-packets` consumer | unsafe-review (producer) ↔ tokmd (consumer) | tokmd | tokmd-swarm #222, #301 | partial (phase 1 #300; phase 2 jsonschema CLI validation; sibling ingestion + producer migration remain) |
+| tokmd-packets input-schema ownership + `--from-packets` consumer | unsafe-review (producer) ↔ tokmd (consumer) | tokmd | tokmd-swarm #222, #301 | partial (phase 2 jsonschema + sibling ingestion landed; producer migration to `tokmd.packets/v1` remains in unsafe-review-swarm) |
 | `check-local-context` / limited-runtime vocabulary — `downstream_consumable` operator field shipped; `has_unix_absolute_machine_path` / `has_session_state_marker` predicates shipped | ripr | unsafe-review | unsafe-review-swarm #1520 | closed |
 | Pre-guard scratch GC for shared CI runners | ripr | unsafe-review | unsafe-review-swarm #1519 | open |
 

@@ -6,8 +6,11 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use serde_json::Value;
-use tokmd_format::render_packet_preset_markdown;
-use tokmd_types::TokmdPacketsManifest;
+use tokmd_format::render_packet_bundle_markdown;
+use tokmd_types::{
+    CARDS_FILE, CardsFile, MANUAL_CANDIDATES_FILE, ManualCandidatesFile, PacketRenderBundle,
+    PacketSiblingInputs, TokmdPacketsManifest,
+};
 
 use crate::cli;
 
@@ -15,9 +18,9 @@ const MANIFEST_NAME: &str = "tokmd-packets.json";
 const TOKMD_PACKETS_SCHEMA_JSON: &str = include_str!("../../schemas/tokmd-packets.schema.json");
 
 pub(crate) fn handle(args: cli::RenderArgs) -> Result<()> {
-    let manifest = load_manifest(&args.from_packets)?;
+    let bundle = load_bundle(&args.from_packets)?;
     let preset = args.preset.as_str();
-    let markdown = render_packet_preset_markdown(&manifest, preset)
+    let markdown = render_packet_bundle_markdown(&bundle, preset)
         .with_context(|| format!("failed to render preset {preset}"))?;
 
     if let Some(output) = args.output {
@@ -42,6 +45,12 @@ pub(crate) fn handle(args: cli::RenderArgs) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn load_bundle(bundle_dir: &Path) -> Result<PacketRenderBundle> {
+    let manifest = load_manifest(bundle_dir)?;
+    let siblings = load_sibling_inputs(bundle_dir, &manifest)?;
+    Ok(PacketRenderBundle { manifest, siblings })
 }
 
 fn load_manifest(bundle_dir: &Path) -> Result<TokmdPacketsManifest> {
@@ -73,6 +82,70 @@ fn load_manifest(bundle_dir: &Path) -> Result<TokmdPacketsManifest> {
         );
     }
     Ok(manifest)
+}
+
+fn load_sibling_inputs(
+    bundle_dir: &Path,
+    manifest: &TokmdPacketsManifest,
+) -> Result<PacketSiblingInputs> {
+    let mut siblings = PacketSiblingInputs::default();
+
+    if manifest
+        .inputs_present
+        .iter()
+        .any(|name| name == MANUAL_CANDIDATES_FILE)
+    {
+        load_manual_candidates(bundle_dir, &mut siblings)?;
+    }
+    if manifest
+        .inputs_present
+        .iter()
+        .any(|name| name == CARDS_FILE)
+    {
+        load_cards(bundle_dir, &mut siblings)?;
+    }
+
+    Ok(siblings)
+}
+
+fn load_manual_candidates(bundle_dir: &Path, siblings: &mut PacketSiblingInputs) -> Result<()> {
+    let path = bundle_dir.join(MANUAL_CANDIDATES_FILE);
+    let raw = match fs::read_to_string(&path) {
+        Ok(raw) => raw,
+        Err(err) => {
+            siblings.load_notes.push(format!(
+                "`{MANUAL_CANDIDATES_FILE}` is listed in `inputs_present` but could not be read from the bundle ({err})"
+            ));
+            return Ok(());
+        }
+    };
+    let parsed: ManualCandidatesFile = serde_json::from_str(&raw)
+        .with_context(|| format!("failed to parse sibling bundle file {}", path.display()))?;
+    if !parsed.schema_matches() {
+        siblings.load_notes.push(format!(
+            "unsupported schema {:?} in `{MANUAL_CANDIDATES_FILE}`; expected manual-candidates/v1",
+            parsed.schema_version
+        ));
+    }
+    siblings.manual_candidates = Some(parsed);
+    Ok(())
+}
+
+fn load_cards(bundle_dir: &Path, siblings: &mut PacketSiblingInputs) -> Result<()> {
+    let path = bundle_dir.join(CARDS_FILE);
+    let raw = match fs::read_to_string(&path) {
+        Ok(raw) => raw,
+        Err(err) => {
+            siblings.load_notes.push(format!(
+                "`{CARDS_FILE}` is listed in `inputs_present` but could not be read from the bundle ({err})"
+            ));
+            return Ok(());
+        }
+    };
+    let parsed: CardsFile = serde_json::from_str(&raw)
+        .with_context(|| format!("failed to parse sibling bundle file {}", path.display()))?;
+    siblings.cards = Some(parsed);
+    Ok(())
 }
 
 fn validate_manifest_json(document: &Value, manifest_path: &Path) -> Result<()> {
@@ -141,5 +214,31 @@ mod tests {
         .unwrap();
         let loaded = load_manifest(dir.path()).unwrap();
         assert_eq!(loaded.schema, TOKMD_PACKETS_SCHEMA);
+    }
+
+    #[test]
+    fn load_bundle_ingests_manual_candidates_when_present() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = TokmdPacketsManifest {
+            schema: TOKMD_PACKETS_SCHEMA.into(),
+            producer: None,
+            inputs_present: vec![MANUAL_CANDIDATES_FILE.into()],
+            inputs_absent: vec![],
+            non_claims: vec![],
+            preset_inputs: BTreeMap::new(),
+        };
+        fs::write(
+            dir.path().join(MANIFEST_NAME),
+            serde_json::to_string(&manifest).unwrap(),
+        )
+        .unwrap();
+        fs::write(
+            dir.path().join(MANUAL_CANDIDATES_FILE),
+            r#"{"schema_version":"manual-candidates/v1","candidates":[{"id":"seed-9","title":"fixture"}]}"#,
+        )
+        .unwrap();
+
+        let bundle = load_bundle(dir.path()).unwrap();
+        assert!(bundle.siblings.manual_candidates.is_some());
     }
 }
