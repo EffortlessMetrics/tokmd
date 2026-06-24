@@ -1,0 +1,10 @@
+{
+  "outcome": "proof_improvement_patch",
+  "commits": 1,
+  "files_changed": 2,
+  "test_results": {
+    "passed": true,
+    "total": 33,
+    "failed": 0
+  }
+}

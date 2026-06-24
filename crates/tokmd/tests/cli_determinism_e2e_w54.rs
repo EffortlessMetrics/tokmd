@@ -453,3 +453,35 @@ fn children_separate_deterministic() {
         "children separate",
     );
 }
+
+#[test]
+fn export_children_separate_deterministic() {
+    assert_deterministic(
+        &["export", "--format", "json", "--children", "separate"],
+        "export children separate",
+    );
+}
+
+#[test]
+fn export_children_parents_only_deterministic() {
+    assert_deterministic(
+        &["export", "--format", "json", "--children", "parents-only"],
+        "export children parents-only",
+    );
+}
+
+#[test]
+fn module_children_separate_deterministic() {
+    assert_deterministic(
+        &["module", "--format", "json", "--children", "separate"],
+        "module children separate",
+    );
+}
+
+#[test]
+fn module_children_parents_only_deterministic() {
+    assert_deterministic(
+        &["module", "--format", "json", "--children", "parents-only"],
+        "module children parents-only",
+    );
+}
