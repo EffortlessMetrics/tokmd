@@ -1,4 +1,8 @@
-{"command": "cargo xtask docs --update", "result": "updated docs/reference-cli.md from tokmd help markers"}
-{"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
-{"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
-{"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "cargo xtask docs --check", "output_contains": "Documentation is up to date"}
+{"command": "cargo xtask boundaries-check", "output_contains": "All analysis microcrate boundaries OK"}
+{"command": "cargo xtask publish --plan", "output_contains": "Publish order"}
+{"command": "cargo xtask version-consistency", "output_contains": "Version consistency checks passed."}
+{"command": "CI=true cargo test -p xtask", "output_contains": "test result: ok. 50 passed; 0 failed"}
+{"command": "CI=true cargo test -p tokmd-types", "output_contains": "test result: ok. 62 passed"}
+{"command": "cargo xtask check-file-policy --strict", "output_contains": "file-policy findings (18)"}
+{"command": "cargo xtask check-file-policy --strict", "output_contains": "file-policy OK: 93 entries"}

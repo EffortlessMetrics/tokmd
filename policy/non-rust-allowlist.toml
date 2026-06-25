@@ -800,3 +800,93 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "fixtures/bindings-parity/golden/*.json"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "Binding parity test outputs"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/bindings-parity/manifest.json"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "Binding parity test manifest"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/ci-gate-contract/reference-ci.yml"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "CI gate contract fixture"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/progress-events/*.json"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "Progress event test fixtures"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/syntax/python/*.py"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "Python syntax test fixtures"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/syntax/typescript/*.ts*"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "TypeScript syntax test fixtures"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "fixtures/tokmd-packets/**/*.json"
+kind = "fixture"
+owner = "test/integration"
+surface = "tests"
+classification = "test"
+reason = "Packet analysis test fixtures"
+covered_by = ["cargo test -p xtask"]
+
+[[allow]]
+glob = "policy/clippy-exceptions-baseline-receipt.json"
+kind = "policy"
+owner = "governance/policy"
+surface = "policy"
+classification = "policy"
+reason = "Clippy exceptions policy receipt"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "policy/no-panic-baseline-receipt.json"
+kind = "policy"
+owner = "governance/policy"
+surface = "policy"
+classification = "policy"
+reason = "No panic policy receipt"
+covered_by = ["cargo xtask check-file-policy"]
+
+[[allow]]
+glob = "scripts/check-no-bare-self-hosted.sh"
+kind = "script"
+owner = "tooling/ci"
+surface = "scripts"
+classification = "tooling"
+reason = "CI check script"
+covered_by = ["shellcheck"]
