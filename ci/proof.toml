@@ -82,6 +82,7 @@ kind = "rust"
 paths = [
   ".github/workflows/fuzz.yml",
   "docs/testing.md",
+  "fuzz/build.rs",
   "fuzz/Cargo.toml",
   "fuzz/README.md",
   "fuzz/corpus/**",
@@ -149,6 +150,7 @@ paths = [
   "xtask/src/tasks/affected.rs",
   "xtask/src/tasks/bindings_parity.rs",
   "xtask/src/tasks/boundaries_check.rs",
+  "xtask/src/tasks/build_guard.rs",
   "xtask/src/tasks/bump.rs",
   "xtask/src/tasks/ci_actuals.rs",
   "xtask/src/tasks/ci_gate_contract.rs",
@@ -160,6 +162,7 @@ paths = [
   "xtask/src/tasks/doc_artifacts.rs",
   "xtask/src/tasks/file_policy.rs",
   "xtask/src/tasks/fixture_blobs_check.rs",
+  "xtask/src/tasks/gate.rs",
   "xtask/src/tasks/jules_index.rs",
   "xtask/src/tasks/mutation_scope.rs",
   "xtask/src/tasks/mutation_summary.rs",
@@ -400,6 +403,7 @@ coverage = false
 name = "analysis_orchestration"
 kind = "rust"
 paths = [
+  "crates/tokmd-analysis/build.rs",
   "crates/tokmd-analysis/Cargo.toml",
   "crates/tokmd-analysis/src/analysis.rs",
   "crates/tokmd-analysis/src/analysis/**",
@@ -437,6 +441,7 @@ paths = [
   "crates/tokmd-analysis-types/src/findings.rs",
   "crates/tokmd-analysis-types/src/receipt.rs",
   "crates/tokmd-analysis-types/src/util.rs",
+  "crates/tokmd-analysis-types/src/util/**",
   "crates/tokmd-analysis-types/tests/**",
   "docs/SCHEMA.md",
 ]
@@ -1030,6 +1035,7 @@ paths = [
   "crates/tokmd/src/config/**",
   "crates/tokmd/src/error_hints.rs",
   "crates/tokmd/src/progress.rs",
+  "fixtures/progress-events/**",
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
   "crates/tokmd/tests/packet_*.rs",
