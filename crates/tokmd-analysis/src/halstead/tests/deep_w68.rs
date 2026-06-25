@@ -249,7 +249,10 @@ fn zero_vocabulary_yields_zero_volume() {
 // ---------------------------------------------------------------------------
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0025 halstead deep test uses literal float operands"
+)]
 fn round_f64_basic() {
     assert_eq!(round_f64(3.14159, 2), 3.14);
     assert_eq!(round_f64(2.005, 2), 2.01); // banker's rounding in IEEE 754

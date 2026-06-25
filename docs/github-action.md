@@ -71,7 +71,7 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 
 | Input | Required | Default | Purpose |
 | :---- | :------- | :------ | :------ |
-| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, or `baseline`. Omit it for the default module plus export flow. |
+| `mode` | no | `(omitted)` | `tokmd` mode to run: `module`, `export`, `gate`, `cockpit`, `sensor`, `baseline`, or `packet`. Omit it for the default module plus export flow. |
 | `version` | no | `latest` | `tokmd` release to install. Use an explicit version when you want the Action ref and binary version to stay aligned. |
 | `paths` | no | `.` | Paths to scan. Values are split on whitespace and passed as separate path arguments. |
 | `module-roots` | no | `crates,packages` | Module root prefixes for `module`, `export`, and the default flow. |
@@ -82,6 +82,12 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `artifact` | no | `true` | Upload generated tokmd files as workflow artifacts. |
 | `comment` | no | `true` | Post the generated Markdown summary as a pull request comment when running on `pull_request` events. |
 | `review-packet` | no | `false` | For `mode: cockpit`, also emit the cockpit review packet directory. The packet-local `comment.md` remains the `summary` output; hosted pull request comments use a copied summary when metadata is added. |
+| `preset` | no | `bun-ub` | For `mode: packet`, the analysis preset for `analyze.md` and `analyze.json`. |
+| `output-dir` | no | `sensors/tokmd` | For `mode: packet`, the packet output directory. |
+| `syntax` | no | `true` | For `mode: packet`, whether to request optional `syntax.json` evidence. |
+| `context-budget` | no | `64000` | For `mode: packet`, the token budget for `context.md`. |
+| `fail-on` | no | `failed` | For `mode: packet`, the packet status failure policy: `failed`, `partial`, or `never`. |
+| `runtime` | no | `binary` | Runtime used to obtain `tokmd`: `binary` (default). `container` is reserved for a future GHCR runtime and currently fails fast. |
 
 ## Outputs
 
@@ -94,6 +100,14 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `review-packet` | Path to `.tokmd/review` when `mode: cockpit` and `review-packet: 'true'` are used. |
 | `sensor-report` | Path to `tokmd-sensor-report.json` when `mode: sensor` is used. |
 | `baseline-report` | Path to `tokmd-baseline.json` when `mode: baseline` is used. |
+| `packet-status` | Evidence packet status (`complete`, `partial`, or `failed`) when `mode: packet` is used. |
+| `packet-manifest` | Path to the packet `manifest.json` when `mode: packet` is used. |
+| `packet-dir` | Packet output directory when `mode: packet` is used. |
+| `review-priority-count` | Count of manifest `review_priority` entries when `mode: packet` is used. |
+| `warnings-count` | Count of manifest warnings when `mode: packet` is used. |
+| `errors-count` | Count of manifest errors when `mode: packet` is used. |
+| `artifact-name` | Uploaded workflow artifact name when artifact upload is enabled. |
+| `tokmd-version` | Version reported by the resolved `tokmd` runtime binary. |
 
 ## Modes
 
@@ -164,6 +178,46 @@ Runs `tokmd baseline --force` and writes `tokmd-baseline.json`.
 
 `baseline` accepts exactly one path.
 
+### `packet`
+
+Runs `tokmd packet generate` and writes a complete `sensors/tokmd/` evidence
+packet:
+
+- `manifest.json`
+- `analyze.md`
+- `analyze.json`
+- `context.md`
+- `syntax.json` (when `syntax: 'true'` and syntax evidence is available)
+
+`packet` coordinates the existing `analyze`, `context`, `syntax`, and
+`evidence-packet` surfaces over one shared base/head ref and path scope. It
+adds no new analysis model. Set `output-dir` to write the packet somewhere
+other than `sensors/tokmd`.
+
+Like `cockpit` and `sensor`, `packet` infers a repository-aware base ref when
+`base` is omitted. Use `actions/checkout` with `fetch-depth: 0` so the base and
+head commits are available.
+
+The Action reads `manifest.json` and exposes `packet-status`,
+`packet-manifest`, `packet-dir`, `review-priority-count`, `warnings-count`,
+`errors-count`, `artifact-name`, and `tokmd-version` outputs. It also writes a
+job summary with the packet status, top review priority, warnings, errors,
+artifact paths, the reproduction command, and the packet non-claims.
+
+The `fail-on` input maps packet status to workflow failure:
+
+| `fail-on` | Behavior |
+| :-------- | :------- |
+| `failed` | Fail only when packet status is `failed` (default). |
+| `partial` | Fail when packet status is `partial` or `failed`. |
+| `never` | Never fail only because of packet status; still fail on runtime errors such as unresolved refs. |
+
+A run that cannot resolve `base`/`head` or otherwise fails before writing a
+manifest is a runtime error and fails regardless of `fail-on`.
+
+For the full packet workflow model, including the planned GHCR container
+runtime, see [PR evidence packet workflows](packet-workflows.md).
+
 ## Artifacts
 
 When `artifact: 'true'`, generated files are uploaded as a workflow artifact.
@@ -179,6 +233,7 @@ Artifact candidates include:
 - `.tokmd/review`
 - `tokmd-sensor-report.json`
 - `tokmd-baseline.json`
+- `sensors/tokmd/` (or the configured `output-dir` for `mode: packet`)
 - `comment.md`
 - `extras/`
 
@@ -214,7 +269,7 @@ The default, `module`, `export`, `gate`, and `baseline` modes can usually use a 
 - uses: actions/checkout@v6
 ```
 
-For `cockpit` and `sensor` in external pull request workflows, prefer full history so compare refs are available:
+For `cockpit`, `sensor`, and `packet` in external pull request workflows, prefer full history so compare refs are available:
 
 ```yaml
 - uses: actions/checkout@v6
@@ -277,9 +332,15 @@ The Action fails early for:
 - unresolved release assets
 - checksum mismatches
 - invalid `gate` or `baseline` path counts
-- unresolved `cockpit` or `sensor` base refs
+- unresolved `cockpit`, `sensor`, or `packet` base refs
+- an invalid `mode: packet` `fail-on` or `syntax` value
+- `runtime: container`, which is reserved for a future GHCR runtime
 
 `mode: gate` preserves `tokmd-gate-verdict.json` before failing when the policy verdict fails.
+
+`mode: packet` maps packet status to failure through `fail-on` (`failed` by
+default). A packet that fails before writing `manifest.json` is a runtime error
+and fails regardless of `fail-on`.
 
 ## Release Assets And Checksums
 
@@ -372,6 +433,28 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
     version: '1.11.0'
     mode: baseline
     paths: .
+    artifact: 'true'
+    comment: 'false'
+```
+
+### Packet
+
+```yaml
+- uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
+
+- uses: EffortlessMetrics/tokmd@v1
+  with:
+    version: '1.13.1'
+    mode: packet
+    preset: bun-ub
+    base: origin/main
+    head: HEAD
+    paths: |
+      src/runtime/api
+      src/bun.js/bindings
+    fail-on: failed
     artifact: 'true'
     comment: 'false'
 ```

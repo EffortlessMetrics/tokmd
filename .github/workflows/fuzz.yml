@@ -59,7 +59,7 @@ jobs:
             dict: path.dict
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - name: Set up Rust nightly
         uses: dtolnay/rust-toolchain@nightly
@@ -70,7 +70,7 @@ jobs:
         run: cargo install cargo-fuzz
 
       - name: Restore corpus cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: fuzz/corpus/${{ matrix.target }}
           key: fuzz-corpus-${{ matrix.target }}-${{ github.ref_name }}

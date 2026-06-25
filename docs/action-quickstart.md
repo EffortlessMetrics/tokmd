@@ -7,9 +7,9 @@ comment.
 This page is the adoption path. For every input, output, and mode, use the
 [GitHub Action reference](github-action.md).
 
-For the planned `sensors/tokmd/` evidence packet Action path, see
+For the `sensors/tokmd/` evidence packet Action path (`mode: packet`), see
 [PR evidence packet workflows](packet-workflows.md). This page documents the
-currently implemented root Action modes.
+currently implemented root Action modes, including a packet quickstart below.
 
 ## Minimal Receipt Workflow
 
@@ -94,11 +94,56 @@ Set `comment: 'true'` only when you want the Action to post the packet summary
 back to the pull request. The posted comment is still review evidence, not a
 merge verdict.
 
+## Evidence Packet Workflow
+
+Use this when reviewers should start from a bounded `sensors/tokmd/` evidence
+packet that indexes analysis, context, and syntax receipts:
+
+```yaml
+name: tokmd packet
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tokmd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: EffortlessMetrics/tokmd@v1
+        with:
+          version: '1.13.1'
+          mode: packet
+          preset: bun-ub
+          base: origin/main
+          head: HEAD
+          paths: |
+            src/runtime/api
+            src/bun.js/bindings
+          fail-on: failed
+          artifact: 'true'
+          comment: 'false'
+```
+
+Open first: the `tokmd-receipts` artifact, then `sensors/tokmd/manifest.json`,
+then the `analyze.md`, `context.md`, and `syntax.json` artifacts it indexes.
+
+The Action writes a job summary with the packet status, the top review
+priority, warnings, errors, the reproduction command, and the packet
+non-claims. The `fail-on` input controls whether a `partial` or `failed`
+packet fails the job. A packet remains review evidence, not a merge verdict.
+
 ## Base And Head
 
 For pull request events, the Action can infer the base ref. Use
-`fetch-depth: 0` for cockpit review packets so the base and head commits are
-available.
+`fetch-depth: 0` for cockpit review packets and evidence packets so the base
+and head commits are available.
 
 Set `base` only when you need an explicit compare ref:
 
@@ -137,5 +182,7 @@ It does not prove:
 
 - For local first-run usage, use [Install and try tokmd](install-and-try.md).
 - For every Action input and output, use [GitHub Action reference](github-action.md).
+- For machine-readable CLI progress on stderr, set `TOKMD_PROGRESS_EVENTS` and
+  see [Progress events spec](specs/progress-events.md).
 - For review-packet artifact meanings, use [Review packet contract](review-packet.md).
 - For proof planning and evidence reading order, use [Copy-Ready Workflows](workflows.md).

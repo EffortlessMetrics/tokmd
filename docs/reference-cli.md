@@ -17,7 +17,7 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | `--no-ignore-vcs` | Do not read `.gitignore` files. |
 | `--treat-doc-strings-as-comments` | Treat doc strings (e.g., `///`) as comments instead of code. |
 | `-v, --verbose` | Enable verbose logging. |
-| `--no-progress` | Disable progress spinners (useful for CI/non-TTY). |
+| `--no-progress` | Disable progress spinners (useful for CI/non-TTY). Does not disable machine-readable progress events; see [`docs/specs/progress-events.md`](specs/progress-events.md). |
 | `--format <FORMAT>` | Output format (`md`, `tsv`, `json`). Default is `md`. |
 | `--top <TOP>` | Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows. |
 | `--files` | Include file counts and average lines per file. |
@@ -164,6 +164,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd module --depth 3 --top 10
+  tokmd module crates --format json
 ```
 <!-- /HELP: module -->
 
@@ -320,6 +324,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd run --name baseline
+  tokmd run crates --analysis health --output-dir .runs/tokmd
 ```
 <!-- /HELP: run -->
 
@@ -785,6 +793,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd init --template rust
+  tokmd init --non-interactive --template node --force
 ```
 <!-- /HELP: init -->
 
@@ -1683,6 +1695,118 @@ tokmd evidence-packet \
   --head "$HEAD" \
   "$@"
 ```
+
+### `tokmd packet`
+
+Thin orchestrator that generates a complete `sensors/tokmd/` evidence packet
+over the existing receipt commands.
+
+<!-- HELP: packet -->
+```text
+Generate evidence packets over the existing receipt commands
+
+Usage: tokmd packet [OPTIONS] <COMMAND>
+
+Commands:
+  generate  Generate a complete evidence packet over the existing receipts
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: packet -->
+
+**Usage**: `tokmd packet generate [OPTIONS] <PATH>...`
+
+`tokmd packet generate` coordinates `analyze`, `context`, `syntax`, and
+`evidence-packet` so one command produces `analyze.md`, `analyze.json`,
+`context.md`, optional `syntax.json`, and `manifest.json` under `--out`
+(default `sensors/tokmd`). It runs a single analysis pass rendered to both the
+JSON and Markdown artifacts, keeps the same `--base`/`--head` refs and path
+scope across every artifact, and applies the evidence packet `complete` /
+`partial` / `failed` status rules. Optional syntax evidence is best-effort:
+when it cannot be produced the packet degrades to `partial`. Unresolved refs
+fail the command before artifacts are written.
+
+**Examples**:
+```bash
+tokmd packet generate --base origin/main --head HEAD src/runtime/api
+
+tokmd packet generate \
+  --preset bun-ub \
+  --base origin/main \
+  --head HEAD \
+  --out sensors/tokmd \
+  --no-syntax \
+  src/runtime/api src/bun.js/bindings
+```
+
+See [PR evidence packet workflows](packet-workflows.md) for the full workflow
+support model.
+
+### `tokmd render`
+
+Render audience-specific Markdown from cross-tool packet bundles (for example
+unsafe-review `tokmd-packets.json` exports). Formatting only: preserves producer
+`non_claims` and emits explicit limitations for absent inputs.
+
+<!-- HELP: render -->
+```text
+Render audience-specific Markdown from cross-tool packet bundles
+
+Usage: tokmd render [OPTIONS] --from-packets <DIR> --preset <PRESET>
+
+Options:
+      --from-packets <DIR>
+          Packet bundle directory containing `tokmd-packets.json`
+
+      --preset <PRESET>
+          Audience-specific packet preset to render
+          
+          [possible values: bun-ub-handoff, bun-ub-pr-body, bun-ub-ledger-note, bun-ub-review-map, bun-ub-next-pick]
+
+  -o, --output <PATH>
+          Optional output file. Prints to stdout when omitted
+
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!-- /HELP: render -->
+
+**Usage**: `tokmd render --from-packets <DIR> --preset <PRESET>`
+
+Reads `tokmd-packets.json` from the bundle directory, validates
+`tokmd.packets/v1`, and renders Markdown for one Bun UB audience preset.
+Missing `preset_inputs` or sections produce explicit `## Limitations` notes;
+`non_claims` are reproduced verbatim.
+
+**Examples**:
+```bash
+tokmd render --from-packets ./bundle --preset bun-ub-handoff
+
+tokmd render \
+  --from-packets ./bundle \
+  --preset bun-ub-pr-body \
+  --output pr-body.md
+```
+
+See [packet preset renderer spec](specs/tokmd-packets-render.md).
 
 ### `tokmd gate`
 

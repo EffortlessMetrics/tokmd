@@ -38,6 +38,19 @@ reason. That state is acceptable as a tracked mitigation, but it does not close
 the underlying dependency issue until upstream removes the dependency or tokmd
 adopts a deliberate local replacement strategy.
 
+The vendored `home` 0.5.12 patch is the second model case. `home` reaches tokmd
+transitively through `tokei -> etcetera -> home`. Upstream `home` 0.5.12 on
+crates.io does not define `home_dir_inner()` on non-Unix/non-Windows targets, so
+those targets fail to compile. The Cargo team has closed
+[rust-lang/cargo#12297](https://github.com/rust-lang/cargo/issues/12297) as
+*not planned* for general-purpose fallback work; broader `std::env::home_dir`
+replacement is tracked separately in
+[rust-lang/libs-team#372](https://github.com/rust-lang/libs-team/issues/372).
+tokmd vendors a minimal patch at `vendor/home-0.5.12` via `[patch.crates-io]`
+that adds `#[cfg(not(any(unix, windows)))] home_dir_inner() -> None` so uncommon
+targets can compile while returning an explicit absent home directory. See
+`vendor/home-0.5.12/README.tokmd.md` for the local delta and removal criteria.
+
 ## Inputs
 
 Dependency-maintenance evidence comes from checked repository state and
@@ -127,6 +140,79 @@ When an advisory ignore is added or retained, proof should include:
 - the package and version that still carries the finding;
 - why a direct repository fix is unavailable or not selected;
 - the command or upstream event that should trigger reassessment.
+
+## Vendored `home` patch
+
+### Supported platform matrix
+
+| Tier | Targets | Home-directory behavior | tokmd support |
+| --- | --- | --- | --- |
+| Supported | Linux, macOS, other Unix (`cfg(unix)`), Windows (`cfg(windows)`) | `home::home_dir()` uses platform APIs or `HOME` / `USERPROFILE` as documented upstream | First-class: release binaries, default CI, documented install paths |
+| Best-effort | WASM, embedded, and other non-Unix/non-Windows Rust targets | Patched `home_dir_inner()` returns `None`; no platform home API | Compiles for exploration; user config under XDG/AppData may be unavailable |
+| Unsupported | Hosts without a working Rust toolchain or file I/O expected by CLI workflows | n/a | Out of scope |
+
+Product requirements list Linux, macOS, and Windows as the cross-platform
+contract (`docs/requirements.md`). Best-effort targets are compile-only debt
+tracked here, not release promises.
+
+### Patch rationale
+
+- **Dependency path:** `cargo tree -i home --edges normal` shows
+  `home <- etcetera <- tokei <- tokmd-scan` (and downstream crates).
+- **Upstream gap:** crates.io `home` 0.5.12 omits `home_dir_inner` on
+  `not(any(unix, windows))`, producing a compile error on targets such as
+  `wasm32-unknown-unknown`.
+- **Local delta:** tokmd's vendor copy adds a single fallback that returns
+  `None` instead of failing compilation. Windows `src/windows.rs` is otherwise
+  upstream 0.5.12 with audit comments only.
+- **Why not replace `tokei`:** removing the transitive `home` edge would require
+  forking or replacing `tokei`, which is broader than this tracked mitigation.
+
+### Upstream tracking
+
+| Link | Status | Relevance |
+| --- | --- | --- |
+| [rust-lang/cargo#12297](https://github.com/rust-lang/cargo/issues/12297) | Closed (*not planned*, Oct 2025) | Documents that `home` is internal to Cargo/rustup; no general wasm/other-target fallback is planned upstream |
+| [rust-lang/libs-team#372](https://github.com/rust-lang/libs-team/issues/372) | Open ACP | Possible future `std::env::home_dir` direction; does not unblock dropping this patch by itself |
+| [rust-lang/cargo home crate](https://github.com/rust-lang/cargo/tree/master/crates/home) | Active internal crate | Source of truth for upstream `home`; watch for a published release that includes a `None` fallback on uncommon targets |
+
+### Removal criteria
+
+Remove `vendor/home-0.5.12` and the `[patch.crates-io]` entry when **all** of
+the following are true:
+
+1. A crates.io `home` release used by `etcetera`/`tokei` defines
+   `home_dir_inner()` on non-Unix/non-Windows targets (returning `None` is
+   sufficient).
+2. `cargo tree -i home --edges normal` resolves to that crates.io version with
+   no workspace patch.
+3. `ci/proof.toml` scope `vendored_home_patch` proof commands pass against the
+   unpatched dependency graph.
+4. `vendor/home-0.5.12/README.tokmd.md` and this section are deleted or
+   replaced with a closure note in the changelog.
+
+If upstream never ships the fallback, acceptable long-term exits are: `tokei`
+stops depending on `home`, tokmd adopts a maintained `tokei` fork, or tokmd
+documents a permanent vendor exception with refreshed review dates in
+`policy/non-rust-allowlist.toml`.
+
+### tokmd call-site audit (`home_dir` / config paths)
+
+tokmd does not call `home::home_dir()` directly. User-path resolution in the CLI
+uses the `dirs` crate:
+
+| Location | API | Absent-home behavior |
+| --- | --- | --- |
+| `crates/tokmd/src/config.rs` `find_toml_config` | `dirs::config_dir()` | Skips user config lookup; cwd and `TOKMD_CONFIG` still apply |
+| `crates/tokmd/src/config.rs` `load_json_config` | `dirs::config_dir()?` | Returns `None` for legacy JSON config (optional path) |
+| `crates/tokmd/src/commands/run.rs` | `dirs::state_dir().or_else(dirs::data_local_dir)` | Falls back to `std::env::temp_dir()` for run artifacts |
+
+On the **supported tier**, `dirs` resolves config/state paths through normal OS
+APIs. On **best-effort** targets, commands remain usable when config is supplied
+via cwd, `TOKMD_CONFIG`, or CLI flags; only implicit user-directory discovery is
+degraded. No code change is required for the supported tier. Actionable errors
+for missing home on best-effort targets remain a follow-up only if product policy
+promotes those targets beyond compile-only.
 
 ## Open Questions
 

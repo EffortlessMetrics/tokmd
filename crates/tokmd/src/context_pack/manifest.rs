@@ -20,7 +20,10 @@ use super::{CountingWriter, SelectResult, write_bundle_output};
 ///
 /// Streams bundle.txt directly to avoid memory blowup and returns the total
 /// bytes of bundle.txt (the main output).
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0002 bundle directory writer threads manifest fields at one boundary"
+)]
 pub(crate) fn write_bundle_directory(
     dir: &Path,
     args: &cli::CliContextArgs,

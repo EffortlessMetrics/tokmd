@@ -302,3 +302,73 @@ fn w73_handoff_artifacts_have_integrity_hashes() {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Numeric flag validation (clear errors instead of silent degradation)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn context_rejects_zero_max_file_pct() {
+    let dir = tempdir().unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["context", "--max-file-pct", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("out of range"));
+}
+
+#[test]
+fn context_rejects_above_one_max_file_pct() {
+    let dir = tempdir().unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["context", "--max-file-pct", "1.5"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("out of range"));
+}
+
+#[test]
+fn context_accepts_in_range_max_file_pct() {
+    let dir = tempdir().unwrap();
+    fs::write(dir.path().join("lib.rs"), "pub fn add() {}\n").unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["context", "--mode", "list", "--max-file-pct", "0.25"])
+        .assert()
+        .success();
+}
+
+#[test]
+fn context_rejects_zero_max_commits() {
+    let dir = tempdir().unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["context", "--max-commits", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("at least 1"));
+}
+
+#[test]
+fn context_rejects_zero_max_file_tokens() {
+    let dir = tempdir().unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["context", "--max-file-tokens", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("at least 1"));
+}
+
+#[test]
+fn handoff_rejects_zero_max_file_pct() {
+    let dir = tempdir().unwrap();
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["handoff", "--max-file-pct", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("out of range"));
+}

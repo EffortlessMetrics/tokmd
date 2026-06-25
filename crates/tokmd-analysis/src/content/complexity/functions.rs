@@ -10,6 +10,7 @@ pub(super) use spans::{
 };
 
 /// Metrics about functions in a source file.
+#[cfg(test)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionMetrics {
     /// Total number of functions detected.
@@ -22,6 +23,7 @@ pub struct FunctionMetrics {
     pub functions_over_threshold: usize,
 }
 
+#[cfg(test)]
 impl Default for FunctionMetrics {
     fn default() -> Self {
         Self {
@@ -34,6 +36,7 @@ impl Default for FunctionMetrics {
 }
 
 /// Default threshold for "long" functions.
+#[cfg(test)]
 const LONG_FUNCTION_THRESHOLD: usize = 100;
 
 /// Analyze functions in source code content.
@@ -66,6 +69,7 @@ const LONG_FUNCTION_THRESHOLD: usize = 100;
 /// let metrics = analyze_functions(rust_code, "rust");
 /// assert_eq!(metrics.function_count, 2);
 /// ```
+#[cfg(test)]
 pub fn analyze_functions(content: &str, language: &str) -> FunctionMetrics {
     let lang = language.to_lowercase();
     let lines: Vec<&str> = content.lines().collect();
@@ -80,6 +84,7 @@ pub fn analyze_functions(content: &str, language: &str) -> FunctionMetrics {
 }
 
 /// Compute metrics from detected function spans.
+#[cfg(test)]
 fn compute_metrics(spans: &[spans::FunctionSpan]) -> FunctionMetrics {
     if spans.is_empty() {
         return FunctionMetrics::default();

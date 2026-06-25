@@ -40,7 +40,6 @@ fn is_spine_file(path: &str) -> bool {
 }
 
 /// Options for file selection with smart excludes and spine reservation.
-#[allow(dead_code)]
 pub struct SelectOptions {
     pub no_smart_exclude: bool,
     /// Maximum fraction of budget a single file may consume (default 0.15).
@@ -48,6 +47,10 @@ pub struct SelectOptions {
     /// Hard cap on tokens per file (default: None → computed as min(16_000, budget * pct)).
     pub max_file_tokens: Option<usize>,
     /// Error if git scores are unavailable and a git-based metric is requested.
+    #[expect(
+        dead_code,
+        reason = "reserved SelectOptions flag; callers inspect fallback_reason on SelectResult"
+    )]
     pub require_git_scores: bool,
     /// Tokens-per-line threshold above which a file is classified as DataBlob (default 50.0).
     pub dense_threshold: f64,
@@ -142,7 +145,7 @@ pub fn assign_policy(
 }
 
 /// Select files based on strategy (no smart excludes, no spine reservation).
-#[allow(dead_code)]
+#[cfg(test)]
 pub fn select_files(
     rows: &[FileRow],
     budget: usize,

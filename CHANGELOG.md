@@ -7,16 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `mode: packet` to the `EffortlessMetrics/tokmd` GitHub Action. It runs
+  `tokmd packet generate` with the prebuilt-binary runtime as the default,
+  shares the cockpit/sensor base-ref inference, uploads the `sensors/tokmd/`
+  packet, writes a job summary (status, top review priority, warnings, errors,
+  artifact paths, reproduction command, non-claims), and exposes
+  `packet-status`, `packet-manifest`, `packet-dir`, `review-priority-count`,
+  `warnings-count`, `errors-count`, `artifact-name`, and `tokmd-version`
+  outputs.
+- Added `preset`, `output-dir`, `syntax`, `context-budget`, `fail-on`, and
+  `runtime` Action inputs for `mode: packet`. `fail-on` maps packet status to
+  workflow failure (`failed`, `partial`, `never`); `runtime: container` is
+  reserved for the pending GHCR runtime and fails fast for now.
+
+### Changed
+
+- CI phase 3 (#226, #299): retired the duplicate routed Rust Small frontdoor
+  workflow (`em-routed-rust-small.yml`) and its `tokmd_rust_small_*` lane
+  catalogue entries. Runner routing is now the advisory `Route CI runner` job of
+  `ci.yml` (self-hosted primary, GitHub-hosted overflow) feeding the single
+  required `Tokmd Rust Result` gate. Branch protection already required only
+  `Tokmd Rust Result`, so no required check changed.
+
 ### Documentation
 
-- Recorded the `v1.13.1` GHCR public visibility caveat while preserving the
-  verified crates.io and GitHub release install paths.
+- Resolved the `v1.13.1` publication GHCR visibility caveat: maintainer
+  verification on 2026-06-21 records `ghcr.io/effortlessmetrics/tokmd` as
+  **verified-public**; swarm GHCR visibility remains undecided (issue #264).
 - Defined the routed Rust Small CI policy for trust, self-hosted eligibility,
   hosted fallback, route receipts, anti-thrash concurrency, and the normalized
   `Tokmd Rust Small Result` required check.
-- Defined the planned PR evidence packet workflow paths for local CLI use,
-  GitHub Actions, optional GHCR runtime, Cargo fallback, packet status, and
-  fail-on behavior.
+- Documented the PR evidence packet workflow paths for local CLI use, the
+  implemented `mode: packet` GitHub Action, the planned GHCR runtime, Cargo
+  fallback, packet status, and fail-on behavior.
 
 ## [1.13.1] - 2026-06-11
 

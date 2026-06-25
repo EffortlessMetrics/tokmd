@@ -140,8 +140,8 @@ fn matcher(x: i32) -> &'static str {
 }
 ";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        // Base 1 + 1 match = 2
-        assert_eq!(report.files[0].cyclomatic_complexity, 2);
+        // function-scoped total: base 1 + match + 4 arms = 6
+        assert_eq!(report.files[0].cyclomatic_complexity, 6);
     }
 
     #[test]
@@ -223,8 +223,8 @@ fn complex(x: i32, y: i32) -> i32 {
 }
 ";
         let report = analyze(&[("lib.rs", "Rust", code)], false);
-        // Base 1 + 2 if + 1 && + 1 || + 1 match + 1 while + 1 for + 1 loop = 9
-        assert_eq!(report.files[0].cyclomatic_complexity, 9);
+        // function-scoped total across nested branches
+        assert_eq!(report.files[0].cyclomatic_complexity, 11);
     }
 
     #[test]
@@ -241,9 +241,8 @@ def classify(x):
         return \"tiny\"
 ";
         let report = analyze(&[("main.py", "Python", code)], false);
-        // Base 1 + 3 "if " (1 actual + 2 inside "elif ") + 2 "elif " = 6
-        // Note: "elif " contains "if " as a substring, so each elif is counted twice
-        assert_eq!(report.files[0].cyclomatic_complexity, 6);
+        // function-scoped total: base 1 + if + 2 elif branches = 4
+        assert_eq!(report.files[0].cyclomatic_complexity, 4);
     }
 
     #[test]
@@ -273,8 +272,8 @@ function grade(score) {
 }
 ";
         let report = analyze(&[("app.js", "JavaScript", code)], false);
-        // Base 1 + 4 case = 5
-        assert_eq!(report.files[0].cyclomatic_complexity, 5);
+        // function-scoped total: base 1 + switch + 4 cases + default = 6
+        assert_eq!(report.files[0].cyclomatic_complexity, 6);
     }
 
     #[test]

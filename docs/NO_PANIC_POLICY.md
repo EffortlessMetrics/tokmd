@@ -133,7 +133,8 @@ column = 17
 
 ```bash
 cargo xtask check-no-panic-family            # advisory (default)
-cargo xtask check-no-panic-family --strict   # blocking
+cargo xtask check-no-panic-family --strict   # blocking (CI mode)
+cargo xtask no-panic-baseline                # regenerate receipted ledger
 cargo xtask check-no-panic-family --json-output target/tokmd/reports/no-panic-report.json
 ```
 
@@ -141,25 +142,24 @@ The gate runs in two modes:
 
 * **Advisory (default)** — schema/shape errors, expired allowlist entries, and
   stale entries (allowlist entries with no matching finding) are blocking.
-  Unallowlisted findings are reported but do not fail the gate. This is the
-  current CI mode while panic-family debt is burned down.
+  Unallowlisted findings are reported but do not fail the gate.
 * **Strict (`--strict`)** — every unallowlisted finding is also blocking.
-  This is the steady-state mode and the goal of the rollout.
+  CI and the `no_panic_policy` proof scope run strict mode after the receipted
+  baseline landed in `policy/no-panic-allowlist.toml`.
 
-The flip from advisory to strict is gated on three things, in this order:
+Regenerate the baseline when panic-family debt changes:
 
-1. Workspace member crates declare `[lints] workspace = true`, so the strict
-   Clippy block is actually enforced per-crate.
-2. Existing panic-family findings are either removed or receipted with
-   allowlist entries (use `cargo xtask no-panic-propose` to seed the receipts).
-3. CI runs `--strict` only after the advisory finding count reaches zero or
-   matches the receipt ledger exactly.
+```bash
+cargo xtask no-panic-baseline --receipt-output policy/no-panic-baseline-receipt.json
+cargo xtask check-no-panic-family --strict
+```
 
 The checker is wired into the `no_panic_policy` proof scope in
-`ci/proof.toml` and runs as an advisory job in
+`ci/proof.toml` and runs as a strict job in
 `.github/workflows/no-panic-policy.yml` on every PR. The workflow writes the
 uploaded JSON report through `--json-output` so the report path is owned by the
-Rust checker instead of shell stdout redirection.
+Rust checker instead of shell stdout redirection. Baseline stats live in
+`policy/no-panic-baseline-receipt.json`.
 
 ## Family taxonomy
 
@@ -186,11 +186,16 @@ extending `Family` and the AST visitor in `xtask/src/tasks/no_panic.rs`.
 
 ```bash
 cargo xtask no-panic-propose
+cargo xtask no-panic-baseline --receipt-output policy/no-panic-baseline-receipt.json
 ```
 
-Writes proposed allowlist entries to
+`no-panic-propose` writes proposed allowlist entries to
 `target/no-panic-proposed-allowlist.toml`. Edit each proposed entry to
 fill in `owner`, `classification`, `explanation`, and `expires`, then
-move the entry into `policy/no-panic-allowlist.toml`. Re-run
+move the entry into `policy/no-panic-allowlist.toml`.
+
+`no-panic-baseline` materializes the full receipted ledger from current
+findings (deduplicated by selector identity) and is the supported way to
+refresh the committed baseline after debt changes. Re-run
 `cargo xtask check-no-panic-family` to confirm the receipt covers the
 finding.

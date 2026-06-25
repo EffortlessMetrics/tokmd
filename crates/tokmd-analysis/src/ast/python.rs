@@ -38,6 +38,8 @@ fn push_module_symbol(root: Node<'_>, facts: &mut SyntaxFacts) {
         span: SyntaxSpan::from_node(root),
         exported: true,
         public_surface: true,
+        parameters: Vec::new(),
+        ffi_entry: false,
     });
 }
 
@@ -57,6 +59,8 @@ fn push_named_symbol(node: Node<'_>, source: &str, kind: &str, facts: &mut Synta
         span,
         exported: public_surface,
         public_surface,
+        parameters: Vec::new(),
+        ffi_entry: false,
     });
 
     if public_surface {
@@ -164,6 +168,7 @@ fn push_risk(kind: &str, evidence: &str, node: Node<'_>, facts: &mut SyntaxFacts
         kind: kind.to_owned(),
         evidence: compact_text(evidence),
         span: SyntaxSpan::from_node(node),
+        test_context: false,
     });
 }
 
@@ -175,6 +180,7 @@ fn push_guard_evidence(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
         kind: "guard_evidence".to_owned(),
         evidence: compact_text(node_text(source, guard)),
         span: SyntaxSpan::from_node(guard),
+        test_context: false,
     });
 }
 

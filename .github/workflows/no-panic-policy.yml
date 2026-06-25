@@ -23,7 +23,7 @@ jobs:
     name: No-panic Family
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -31,32 +31,29 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Run no-panic family checker (advisory)
+      - name: Run no-panic family checker (strict)
         run: |
-          set +e
+          set -euo pipefail
           mkdir -p target/tokmd/reports
           cargo xtask check-no-panic-family \
+            --strict \
             --json-output target/tokmd/reports/no-panic-report.json \
             2> target/tokmd/reports/no-panic-stderr.txt
-          status=$?
 
           {
             echo "## No-panic policy"
             echo ""
-            if [ "$status" -eq 0 ]; then
-              echo "Advisory check completed."
-            else
-              echo "Advisory check exited with status $status."
-            fi
+            echo "Strict gate passed."
+            echo ""
+            echo "Baseline generation command (run when panic-family debt changes):"
+            echo '```'
+            echo "cargo xtask no-panic-baseline --receipt-output policy/no-panic-baseline-receipt.json"
+            echo '```'
             echo ""
             echo '```'
             cat target/tokmd/reports/no-panic-stderr.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-
-          # Schema/shape errors, expired entries, and stale entries are still
-          # blocking even in advisory mode.
-          exit "$status"
 
       - name: Upload no-panic policy report
         if: always()

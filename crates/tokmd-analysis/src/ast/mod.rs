@@ -7,6 +7,7 @@
 
 mod capability;
 mod facts;
+mod panic_seam;
 mod python;
 mod registry;
 mod rust;

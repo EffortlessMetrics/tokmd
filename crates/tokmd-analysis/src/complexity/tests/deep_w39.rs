@@ -95,8 +95,8 @@ fn cyclomatic_counts_if() {
 fn cyclomatic_counts_match_arms() {
     let code = "fn f(x: i32) {\n    match x {\n        1 => {},\n        _ => {},\n    }\n}\n";
     let r = analyze(&[("lib.rs", "Rust", code)], false);
-    // base 1 + 1 match = 2
-    assert_eq!(r.files[0].cyclomatic_complexity, 2);
+    // function-scoped total: base 1 + match + 2 arms = 4
+    assert_eq!(r.files[0].cyclomatic_complexity, 4);
 }
 
 #[test]
@@ -111,17 +111,16 @@ fn cyclomatic_counts_logical_operators() {
 fn cyclomatic_python_branches() {
     let code = "def f(x):\n    if x > 0:\n        return 1\n    elif x < 0:\n        return -1\n    else:\n        return 0\n";
     let r = analyze(&[("main.py", "Python", code)], false);
-    // base 1 + 1 if + 1 elif + "else" line contains "if " in "elif " = 4
-    // (the keyword scanner matches "if " occurrences inside "elif ")
-    assert_eq!(r.files[0].cyclomatic_complexity, 4);
+    // function-scoped total: base 1 + if + elif + else branch = 3
+    assert_eq!(r.files[0].cyclomatic_complexity, 3);
 }
 
 #[test]
 fn cyclomatic_js_switch_cases() {
     let code = "function f(x) {\n    switch (x) {\n        case 1: return 'a';\n        case 2: return 'b';\n    }\n}\n";
     let r = analyze(&[("index.js", "JavaScript", code)], false);
-    // base 1 + 2 case = 3
-    assert_eq!(r.files[0].cyclomatic_complexity, 3);
+    // function-scoped total: base 1 + switch + 2 cases = 4
+    assert_eq!(r.files[0].cyclomatic_complexity, 4);
 }
 
 // ── Cognitive complexity ────────────────────────────────────────

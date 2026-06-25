@@ -422,19 +422,18 @@ proptest! {
     ) {
         let path = format!("{}\\{}", parts.join("\\"), filename);
         let paths = vec![PathBuf::from(&path)];
-        #[allow(unused_variables)]
-        let result = license_candidates(&paths);
-
-        // On Windows, backslash is the separator, so file_name() works correctly
-        // On Unix, backslash is part of the filename, so this may or may not match
-        // The function should work correctly for the platform it's running on
         #[cfg(windows)]
         {
+            let result = license_candidates(&paths);
             prop_assert!(
                 result.license_files.contains(&PathBuf::from(&path)),
                 "License file at '{}' should be identified on Windows",
                 path
             );
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = license_candidates(&paths);
         }
     }
 }

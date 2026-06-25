@@ -128,6 +128,24 @@
       "requires_host_clock": true,
       "requires_validated_root": true
     },
+    "packet": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": true,
+      "requires_git_history": true,
+      "requires_host_clock": true,
+      "requires_validated_root": true
+    },
+    "render": {
+      "browser_safe": false,
+      "rootless_safe": false,
+      "native_only": true,
+      "requires_filesystem": "partial",
+      "requires_git_history": false,
+      "requires_host_clock": false,
+      "requires_validated_root": false
+    },
     "baseline": {
       "browser_safe": false,
       "rootless_safe": false,

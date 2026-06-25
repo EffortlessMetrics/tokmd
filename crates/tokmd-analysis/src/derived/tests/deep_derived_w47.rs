@@ -10,7 +10,10 @@ use tokmd_types::{ChildIncludeMode, ExportData, FileKind, FileRow};
 
 // ── Helpers ─────────────────────────────────────────────────────
 
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0015 derived test fixture builds FileRow in one call"
+)]
 fn row(
     path: &str,
     module: &str,

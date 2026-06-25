@@ -17,7 +17,11 @@ pub(super) struct ComplexitySummary {
     pub(super) high_risk_files: usize,
 }
 
-pub(super) fn summarize_file_complexities(files: &[FileComplexity]) -> ComplexitySummary {
+pub(super) fn summarize_file_complexities(
+    files: &[FileComplexity],
+    per_file_max_cyclomatic: &[usize],
+) -> ComplexitySummary {
+    debug_assert_eq!(files.len(), per_file_max_cyclomatic.len());
     let total_functions: usize = files.iter().map(|f| f.function_count).sum();
     let file_count = files.len();
 
@@ -49,11 +53,7 @@ pub(super) fn summarize_file_complexities(files: &[FileComplexity]) -> Complexit
         }
     };
 
-    let max_cyclomatic = files
-        .iter()
-        .map(|f| f.cyclomatic_complexity)
-        .max()
-        .unwrap_or(0);
+    let max_cyclomatic = per_file_max_cyclomatic.iter().copied().max().unwrap_or(0);
 
     let cognitive_values: Vec<usize> = files
         .iter()
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn empty_input_produces_zero_summary() {
-        let summary = summarize_file_complexities(&[]);
+        let summary = summarize_file_complexities(&[], &[]);
 
         assert_eq!(summary.total_functions, 0);
         assert_eq!(summary.avg_function_length, 0.0);
@@ -150,13 +150,14 @@ mod tests {
             file(0, 0, 1, None, None, ComplexityRisk::Critical),
         ];
 
-        let summary = summarize_file_complexities(&files);
+        let per_file_max = [2, 5, 0];
+        let summary = summarize_file_complexities(&files, &per_file_max);
 
         assert_eq!(summary.total_functions, 6);
         assert_eq!(summary.avg_function_length, 10.33);
         assert_eq!(summary.max_function_length, 21);
         assert_eq!(summary.avg_cyclomatic, 1.83);
-        assert_eq!(summary.max_cyclomatic, 8);
+        assert_eq!(summary.max_cyclomatic, 5);
         assert_eq!(summary.avg_cognitive, Some(6.5));
         assert_eq!(summary.max_cognitive, Some(9));
         assert_eq!(summary.avg_nesting_depth, Some(3.5));
@@ -171,10 +172,11 @@ mod tests {
             file(3, 12, 15, None, None, ComplexityRisk::Low),
         ];
 
-        let summary = summarize_file_complexities(&files);
+        let per_file_max = [7, 8];
+        let summary = summarize_file_complexities(&files, &per_file_max);
 
         assert_eq!(summary.avg_cyclomatic, 5.0);
-        assert_eq!(summary.max_cyclomatic, 15);
+        assert_eq!(summary.max_cyclomatic, 8);
         assert!(summary.avg_cyclomatic <= summary.max_cyclomatic as f64);
     }
 }

@@ -527,7 +527,7 @@ fn blocking_default_pr_static_lanes_stay_fork_safe_on_hosted_runners() {
     );
 
     assert!(
-        default_pr_gate.contains("| `Typos` | always |"),
+        default_pr_gate.contains("| `Typos` | always (satellite) |"),
         "default PR gate docs should keep Typos as an always-on lane"
     );
     assert!(
@@ -593,221 +593,13 @@ fn ci_detect_uses_parent_fallback_for_manual_receipts() {
     );
 }
 
-#[test]
-fn routed_rust_small_result_uploads_normalized_receipt() {
-    let workflow =
-        fs::read_to_string(workspace_root().join(".github/workflows/em-routed-rust-small.yml"))
-            .expect("routed Rust Small workflow should be readable");
-
-    assert!(
-        workflow.contains("actions: read"),
-        "routed result telemetry should have read access to the run-jobs API"
-    );
-    assert!(
-        workflow.contains("Collect routed Rust Small telemetry"),
-        "routed result job should collect selected-job telemetry before writing the result receipt"
-    );
-    assert!(
-        workflow.contains("actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100"),
-        "routed result telemetry should query current run jobs instead of guessing timing"
-    );
-    assert!(
-        workflow.contains("target/ci/routed-rust-small-result.json"),
-        "routed result job should write a stable JSON receipt"
-    );
-    assert!(
-        workflow.contains("\"schema\": \"tokmd.routed_rust_small_result.v1\""),
-        "routed result receipt should have a stable schema"
-    );
-    assert!(
-        workflow.contains("\"selected\": {"),
-        "routed result receipt should record the selected implementation"
-    );
-    assert!(
-        workflow.contains("unselected_job=\"rust-small-github\"")
-            && workflow.contains("unselected_result=\"${GITHUB_RESULT}\"")
-            && workflow.contains("unselected_job=\"rust-small-self-hosted\"")
-            && workflow.contains("unselected_result=\"${SELF_HOSTED_RESULT}\""),
-        "routed result job should track the unselected implementation path for fail-closed aggregation"
-    );
-    assert!(
-        workflow.contains("[ \"${unselected_result}\" != \"skipped\" ]")
-            && workflow.contains("expected exactly one implementation job"),
-        "routed result job should fail when both implementation jobs run or the unselected path is not skipped"
-    );
-    assert!(
-        workflow.contains("\"selected_runner_label\": env(\"ROUTER_SELECTED_RUNNER_LABEL\")"),
-        "routed result receipt should preserve the selected runner label"
-    );
-    assert!(
-        workflow.contains("\"receipt_path\": env(\"ROUTER_RECEIPT_PATH\")"),
-        "routed result receipt should preserve the route receipt path"
-    );
-    assert!(
-        workflow.contains("\"self_hosted\": env(\"SELF_HOSTED_RESULT\")"),
-        "routed result receipt should preserve the self-hosted implementation result"
-    );
-    assert!(
-        workflow.contains("\"rerun_count\": int(env(\"RERUN_COUNT\", \"0\"))"),
-        "routed result receipt should expose derived rerun accounting"
-    );
-    assert!(
-        workflow.contains("\"telemetry\": {"),
-        "routed result receipt should expose selected-job telemetry"
-    );
-    assert!(
-        workflow
-            .contains("\"duration_seconds\": optional_float(env(\"SELECTED_DURATION_SECONDS\"))"),
-        "routed result telemetry should preserve selected-job duration when available"
-    );
-    assert!(
-        workflow.contains("\"queue_seconds\": optional_float(env(\"SELECTED_QUEUE_SECONDS\"))"),
-        "routed result telemetry should preserve selected-job queue time when available"
-    );
-    assert!(
-        workflow.contains("\"cache_note\": env(\"CACHE_NOTE\")"),
-        "routed result telemetry should summarize cache policy"
-    );
-    assert!(
-        workflow.contains("\"health\",")
-            && workflow.contains("\"health_age_seconds\",")
-            && workflow.contains("\"disk_free_bytes\",")
-            && workflow.contains("\"scratch_free_bytes\",")
-            && workflow.contains("\"min_free_bytes\",")
-            && workflow.contains("\"fallback_allowed\","),
-        "route summary should expose health, disk/scratch, and fallback fields"
-    );
-    assert!(
-        workflow.contains("| rerun count |"),
-        "routed result summary should expose derived rerun accounting"
-    );
-    assert!(
-        workflow.contains("| selected duration seconds |")
-            && workflow.contains("| selected queue seconds |")
-            && workflow.contains("| result basis |")
-            && workflow.contains("| cache note |"),
-        "routed result summary should expose basis, timing, and cache telemetry"
-    );
-    assert!(
-        workflow.contains("python -m json.tool target/ci/routed-rust-small-result.json"),
-        "routed result job should validate the receipt as JSON"
-    );
-    assert!(
-        workflow.contains("name: routed-rust-small-result"),
-        "routed result job should upload the receipt with a stable artifact name"
-    );
-    assert!(
-        workflow.contains("if-no-files-found: error"),
-        "missing routed result receipt should fail artifact upload"
-    );
-    assert!(
-        workflow.contains("Receipt: `target/ci/routed-rust-small-result.json`"),
-        "step summary should point reviewers to the routed result receipt"
-    );
-}
-
-#[test]
-fn routed_rust_small_workflow_exposes_fallback_proof_modes() {
-    let workflow =
-        fs::read_to_string(workspace_root().join(".github/workflows/em-routed-rust-small.yml"))
-            .expect("routed Rust Small workflow should be readable");
-    let policy = fs::read_to_string(workspace_root().join("docs/ci/routed-ci-policy.md"))
-        .expect("routed CI policy should be readable");
-
-    for mode in [
-        "auto",
-        "force-github-hosted",
-        "force-self-hosted",
-        "simulate-full",
-        "simulate-unhealthy",
-        "simulate-api-unavailable",
-        "simulate-untrusted",
-    ] {
-        assert!(
-            workflow.contains(&format!("- {mode}")),
-            "workflow_dispatch should expose proof mode `{mode}`"
-        );
-        assert!(
-            policy.contains(&format!("`{mode}`")),
-            "routed CI policy should document proof mode `{mode}`"
-        );
-    }
-
-    for case_label in [
-        "simulate-full)",
-        "simulate-unhealthy)",
-        "simulate-api-unavailable)",
-        "simulate-untrusted)",
-    ] {
-        assert!(
-            workflow.contains(case_label),
-            "router script should handle `{case_label}`"
-        );
-    }
-
-    for expected_override in [
-        "busy_runners=\"2\"",
-        "route_health=\"degraded\"",
-        "runner_api_available=\"false\"",
-        "trusted_event=\"false\"",
-    ] {
-        assert!(
-            workflow.contains(expected_override),
-            "proof modes should set explicit route input `{expected_override}`"
-        );
-    }
-}
-
-#[test]
-fn routed_rust_small_runner_api_labels_are_case_normalized() {
-    let workflow =
-        fs::read_to_string(workspace_root().join(".github/workflows/em-routed-rust-small.yml"))
-            .expect("routed Rust Small workflow should be readable");
-
-    assert!(
-        workflow.contains("str(label.get(\"name\", \"\")).lower()"),
-        "GitHub runner API labels should be normalized before matching linux/x64 requirements"
-    );
-    assert!(
-        workflow.contains(
-            "required = {\"self-hosted\", \"linux\", \"x64\", \"em-ci\", \"trusted-pr\", \"rust-small\"}"
-        ),
-        "runner requirements should stay lowercase and match the Rust Small pool"
-    );
-    assert!(
-        workflow.contains("labels: [self-hosted, linux, x64, em-ci, trusted-pr, rust-small]"),
-        "self-hosted dispatch labels should match the Rust Small route predicate"
-    );
-}
-
-#[test]
-fn routed_rust_small_concurrency_is_pr_scoped() {
-    let workflow =
-        fs::read_to_string(workspace_root().join(".github/workflows/em-routed-rust-small.yml"))
-            .expect("routed Rust Small workflow should be readable");
-    let policy = fs::read_to_string(workspace_root().join("docs/ci/routed-ci-policy.md"))
-        .expect("routed CI policy should be readable");
-
-    let group = "${{ github.workflow }}-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}";
-    let cancel = "cancel-in-progress: ${{ github.event_name == 'pull_request' }}";
-
-    assert!(
-        workflow.contains(group),
-        "routed workflow should use a workflow-specific PR/ref concurrency group"
-    );
-    assert!(
-        workflow.contains(cancel),
-        "routed workflow should cancel in-progress work only for pull_request events"
-    );
-    assert!(
-        policy.contains(group) && policy.contains(cancel),
-        "routed CI policy should document the implemented concurrency contract"
-    );
-    assert!(
-        !workflow.contains("cancel-in-progress: true"),
-        "routed workflow must not cancel merge_group or workflow_dispatch runs unconditionally"
-    );
-}
+// Routed Rust Small workflow retired in phase 3 (#299): the
+// `em-routed-rust-small.yml` frontdoor was removed and its routing folded into
+// the `Route CI runner` job of `ci.yml` feeding the single required
+// `Tokmd Rust Result` gate. The receipt-shape tests that read the retired
+// workflow were removed with it. The doc-glossary test below is retained
+// because the routed result receipt remains documented for historical run
+// artifacts.
 
 #[test]
 fn routed_rust_small_docs_explain_result_receipt_fields() {
@@ -1136,10 +928,10 @@ fn proof_plan_json_writes_plan_report_artifact() {
 fn fast_proof_run_ci_job_is_advisory_and_verified() {
     let ci = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("ci workflow should be readable");
-    let required_section = ci
-        .split("  ci-required:")
+    let actuals_section = ci
+        .split("  ci-actuals:")
         .nth(1)
-        .expect("CI workflow should define required aggregate");
+        .expect("CI workflow should define advisory ci-actuals job");
 
     assert!(ci.contains("fast-proof-run:"), "fast proof job missing");
     assert!(
@@ -1287,8 +1079,8 @@ fn fast_proof_run_ci_job_is_advisory_and_verified() {
         "fast proof job should upload the policy-named artifact with a stable fallback"
     );
     assert!(
-        !required_section.contains("- fast-proof-run"),
-        "required CI aggregate must not depend on the advisory fast proof runner"
+        !actuals_section.contains("- fast-proof-run"),
+        "ci-actuals advisory job must not depend on the advisory fast proof runner"
     );
 }
 
@@ -1299,8 +1091,8 @@ fn ci_mutation_job_uses_rust_owned_mutation_scope_selector() {
     let mutation_section = ci
         .split("  mutation:")
         .nth(1)
-        .and_then(|section| section.split("  ci-required:").next())
-        .expect("CI workflow should define mutation and required aggregate jobs");
+        .and_then(|section| section.split("  ci-actuals:").next())
+        .expect("CI workflow should define mutation and ci-actuals jobs");
 
     assert!(
         mutation_section.contains("cargo xtask mutation-scope"),

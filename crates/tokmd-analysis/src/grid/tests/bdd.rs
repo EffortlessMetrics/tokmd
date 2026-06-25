@@ -427,7 +427,10 @@ fn preset_kind_debug_is_non_empty() {
 }
 
 #[test]
-#[allow(clippy::clone_on_copy)]
+#[expect(
+    clippy::clone_on_copy,
+    reason = "policy:clippy-0027 grid BDD test clones Copy preset keys for clarity"
+)]
 fn preset_kind_clone_and_copy() {
     let a = PresetKind::Receipt;
     let b = a;
@@ -437,7 +440,10 @@ fn preset_kind_clone_and_copy() {
 }
 
 #[test]
-#[allow(clippy::clone_on_copy)]
+#[expect(
+    clippy::clone_on_copy,
+    reason = "policy:clippy-0027 grid BDD test clones Copy preset keys for clarity"
+)]
 fn preset_plan_clone_and_copy() {
     let plan = preset_plan_for(PresetKind::Deep);
     let cloned = plan.clone();
@@ -447,7 +453,10 @@ fn preset_plan_clone_and_copy() {
 }
 
 #[test]
-#[allow(clippy::clone_on_copy)]
+#[expect(
+    clippy::clone_on_copy,
+    reason = "policy:clippy-0027 grid BDD test clones Copy preset keys for clarity"
+)]
 fn disabled_feature_clone_and_copy() {
     let a = DisabledFeature::GitMetrics;
     let b = a;

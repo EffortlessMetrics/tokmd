@@ -81,17 +81,20 @@ build `tokmd` in every repository.
 - local users can generate `sensors/tokmd/` with one command,
 - PR workflows can generate and upload the same packet with one Action step,
 - packet status drives documented `fail-on` behavior,
-- GHCR is either verified as a secondary runtime or explicitly marked pending.
+- GHCR is verified as a secondary runtime for the publication image
+  (`ghcr.io/effortlessmetrics/tokmd`, `verified-public` for `v1.13.1` as of
+  2026-06-21); swarm GHCR visibility remains undecided (issue #264).
 
 ### Lane 0: Release and Distribution Verification
 
 **Goal:** Make it easy for maintainers and users to verify that released
 artifacts are visible, installable, and mapped to the expected version.
 
-**Why now:** Recent release evidence is strong, but GHCR visibility for
-`v1.13.1` still needs maintainer-access verification. The crates.io and GitHub
-release install paths are verified; GHCR public visibility remains a concrete
-consumer-facing release gap, not speculative release automation.
+**Why now:** Recent release evidence is strong. The crates.io and GitHub release
+install paths are verified. Publication GHCR (`ghcr.io/effortlessmetrics/tokmd`)
+is **verified-public** for `v1.13.1` as of 2026-06-21. Swarm workbench GHCR
+visibility remains undecided (issue #264). Future stable releases still need
+per-tag post-release verification.
 
 **Candidate work packets:**
 
@@ -122,7 +125,9 @@ consumer-facing release gap, not speculative release automation.
 **Done when:**
 
 - maintainers can verify a release from one short guide,
-- current GHCR visibility uncertainty is resolved or explicitly recorded,
+- publication GHCR visibility is recorded per stable release (`verified-public`
+  for `v1.13.1` as of 2026-06-21; swarm GHCR visibility tracked separately in
+  issue #264),
 - future release checks have a durable path.
 
 ### Lane 1: User-Facing CLI Friction

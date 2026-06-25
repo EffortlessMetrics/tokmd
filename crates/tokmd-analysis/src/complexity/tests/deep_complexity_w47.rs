@@ -123,8 +123,8 @@ mod cyclomatic_known {
 }
 "#;
         let r = analyze(&[("describe.rs", "Rust", code)], false);
-        // Base 1 + 1 match = 2
-        assert_eq!(r.files[0].cyclomatic_complexity, 2);
+        // function-scoped total: base 1 + match + 3 arms = 5
+        assert_eq!(r.files[0].cyclomatic_complexity, 5);
     }
 
     #[test]
@@ -146,9 +146,8 @@ mod cyclomatic_known {
     fn python_complexity() {
         let code = "def f(x):\n    if x > 0:\n        return x\n    elif x == 0:\n        return 0\n    else:\n        return -x\n";
         let r = analyze(&[("f.py", "Python", code)], false);
-        // Base 1 + 1 if + 1 elif + " or " inside "return" keyword substring = 4
-        // The estimator counts keyword substrings in lowercased text
-        assert_eq!(r.files[0].cyclomatic_complexity, 4);
+        // function-scoped total: base 1 + if + elif + else = 3
+        assert_eq!(r.files[0].cyclomatic_complexity, 3);
     }
 }
 
@@ -208,7 +207,7 @@ mod edge_cases {
         let r = analyze(&[("empty.rs", "Rust", "")], false);
         assert_eq!(r.files.len(), 1);
         assert_eq!(r.files[0].function_count, 0);
-        assert_eq!(r.files[0].cyclomatic_complexity, 1); // base complexity
+        assert_eq!(r.files[0].cyclomatic_complexity, 0);
     }
 
     #[test]
@@ -216,7 +215,7 @@ mod edge_cases {
         let code = "// This is a comment\n// Another comment\n// Third line\n";
         let r = analyze(&[("comments.rs", "Rust", code)], false);
         assert_eq!(r.files[0].function_count, 0);
-        assert_eq!(r.files[0].cyclomatic_complexity, 1);
+        assert_eq!(r.files[0].cyclomatic_complexity, 0);
     }
 
     #[test]

@@ -95,6 +95,9 @@ impl SyntaxParseReceipt {
             "call_sites": self.facts.call_sites_value(),
             "risk_seams": self.facts.risk_seams_value(),
             "review_signals": self.facts.review_signals_value(),
+            "panic_seam_summary": self
+                .facts
+                .panic_seam_summary_value(self.language),
         })
     }
 }
@@ -307,6 +310,7 @@ mod tests {
         SyntaxParseOptions, SyntaxParseStatus, parse_syntax_receipt, syntax_capabilities,
         syntax_capability_for_path,
     };
+    use serde_json::json;
 
     #[test]
     fn registry_locks_supported_parsers_and_extensions() {
@@ -585,6 +589,36 @@ mod tests {
                 "{kind}"
             );
         }
+
+        let summary = value["panic_seam_summary"].as_object().expect("summary");
+        assert!(
+            summary["entries"]
+                .as_array()
+                .is_some_and(|entries| !entries.is_empty())
+        );
+        assert!(
+            summary["entries"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|entry| entry["guard_status"] == "guarded" && entry["kind"] == "indexing")
+        );
+        assert!(summary["entries"].as_array().unwrap().iter().any(|entry| {
+            entry["kind"] == "assert_macro"
+                && entry["entry_symbol"] == "ffi_entry"
+                && entry["input_source"] == "js_arg_suspect"
+        }));
+        assert_eq!(
+            summary["counts"]["unguarded"].as_u64(),
+            Some(
+                summary["entries"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|entry| entry["guard_status"] == "unguarded")
+                    .count() as u64
+            )
+        );
     }
 
     #[test]
@@ -708,6 +742,66 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn deprioritizes_test_assertion_noise_for_panic_review_ranking() {
+        let mixed = parse_syntax_receipt(
+            "src/runtime/mixed_panic_and_tests.rs",
+            include_str!("../../../../fixtures/syntax/rust/mixed_panic_and_tests.rs"),
+            SyntaxParseOptions::default(),
+        );
+        let mixed_value = mixed.to_value();
+        let mixed_signals = mixed_value["review_signals"].as_array().unwrap();
+        assert_eq!(mixed_signals[0]["category"], "panic_seam");
+        assert_ne!(mixed_signals[0]["kind"], "assert_macro");
+        assert_eq!(mixed_signals[0]["score"], 90);
+
+        let test_assert_index = mixed_signals
+            .iter()
+            .position(|signal| signal["kind"] == "assert_macro" && signal["test_context"] == true)
+            .expect("test assertion signal");
+        let production_expect_index = mixed_signals
+            .iter()
+            .position(|signal| {
+                signal["kind"] == "expect"
+                    && signal
+                        .get("test_context")
+                        .is_none_or(|value| value != &json!(true))
+            })
+            .expect("production expect signal");
+        assert!(
+            production_expect_index < test_assert_index,
+            "production panic seams should rank above test assertion noise"
+        );
+
+        let panic_seams = parse_syntax_receipt(
+            "src/runtime/panic_seams.rs",
+            include_str!("../../../../fixtures/syntax/rust/panic_seams.rs"),
+            SyntaxParseOptions::default(),
+        );
+        let panic_value = panic_seams.to_value();
+        let signals = panic_value["review_signals"].as_array().unwrap();
+        assert_eq!(signals[0]["severity"], "high");
+        assert_eq!(signals[0]["score"], 90);
+        assert!(
+            signals
+                .iter()
+                .all(|signal| signal.get("test_context") != Some(&json!(true)))
+        );
+
+        let parser = parse_syntax_receipt(
+            "crates/tokmd-analysis/src/ast/rust.rs",
+            include_str!("rust.rs"),
+            SyntaxParseOptions::default(),
+        );
+        let parser_value = parser.to_value();
+        let parser_signals = parser_value["review_signals"].as_array().unwrap();
+        assert_ne!(parser_signals[0]["kind"], "assert_macro");
+        assert!(
+            parser_signals[0]["score"].as_u64().unwrap() >= 60,
+            "parser source top rank should stay production-relevant"
+        );
     }
 
     #[test]

@@ -1,8 +1,8 @@
 schema_version = "1.0"
 policy = "clippy-exceptions"
 owner = "core/policy"
-status = "advisory"
-updated = "2026-05-07"
+status = "strict"
+updated = "2026-06-23"
 
 # AST-backed Clippy exception ledger.
 #
@@ -12,24 +12,282 @@ updated = "2026-05-07"
 # expiry, and uniqueness of each entry; in --strict mode it also fails
 # when a `#[expect(clippy::...)]` attribute does not link to a
 # `policy:clippy-NNNN` id present in this file.
-#
-# Required fields:
-#   id             - "clippy-NNNN" with zero-padded counter, unique.
-#   lint           - "clippy::<lint>" name.
-#   path           - file or glob the suppression covers.
-#   classification - generated_table | test_helper | fixture | tooling | production.
-#   owner          - team/role.
-#   reason         - why the exception is permitted (not what the lint says).
-#   expires        - ISO-8601 date; expired entries fail the gate.
-#
-# Optional:
-#   [exception.selector]
-#     kind            - expr | item | macro_invocation | impl_block | etc.
-#     container       - enclosing function or item path.
-#     text_contains   - textual fragment that must appear at the suppression site.
-#   [exception.last_seen]
-#     line / column - advisory only.
 
-# The ledger starts empty. Existing source `#[expect(clippy::...)]` use
-# is allowed during the rollout; --strict turns the link requirement on
-# once the source has been migrated.
+[[exception]]
+id = "clippy-0001"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd/src/context_pack/output.rs"
+classification = "production"
+owner = "core/cli"
+reason = "Context log append records receipt metadata in one call site."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0002"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd/src/context_pack/manifest.rs"
+classification = "production"
+owner = "core/cli"
+reason = "Bundle directory writer threads manifest fields at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0003"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/near_dup/mod.rs"
+classification = "production"
+owner = "core/analysis"
+reason = "Near-dup report builder threads scope, limits, and export inputs."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0004"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/effort/model.rs"
+classification = "production"
+owner = "core/analysis"
+reason = "Effort report aggregates optional enricher inputs at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0005"
+lint = "clippy::should_implement_trait"
+path = "crates/tokmd-analysis/src/grid/presets.rs"
+classification = "production"
+owner = "core/analysis"
+reason = "Preset slug parsing keeps infallible Option API separate from FromStr."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0006"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 lang() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0007"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 module() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0008"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 export() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0009"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-python/src/lib.rs"
+classification = "production"
+owner = "core/bindings"
+reason = "PyO3 analyze() exposes CLI-equivalent keyword arguments at one boundary."
+expires = "2027-06-22"
+
+[[exception]]
+id = "clippy-0010"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/bdd.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0011"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/integration_subreports.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0012"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/edge_cases.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0013"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/derived_contract_w65.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0014"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/deep_w38.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0015"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/deep_derived_w47.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0016"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/deep_derived_round2_w51.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0017"
+lint = "clippy::too_many_arguments"
+path = "crates/tokmd-analysis/src/derived/tests/deep.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Derived test fixture builds FileRow in one call."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0018"
+lint = "clippy::assertions_on_constants"
+path = "crates/tokmd-types/tests/schema_contract_w66.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Schema contract tests assert compile-time version constants."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0019"
+lint = "clippy::field_reassign_with_default"
+path = "crates/tokmd-scan/tests/properties.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Proptest builds ScanOptions via field reassignment."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0020"
+lint = "clippy::type_complexity"
+path = "crates/tokmd-format/src/analysis/tests.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "OBJ vertex parser tuple type in fun render test."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0021"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-cockpit/tests/integration_deep.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Cockpit deep test uses literal float thresholds."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0022"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-cockpit/tests/deep_w38.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Cockpit deep test uses literal float thresholds."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0023"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis/src/halstead/tests/unit.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Halstead unit test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0024"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis/src/halstead/tests/halstead_depth_w61.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Halstead depth test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0025"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis/src/halstead/tests/deep_w68.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Halstead deep test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0026"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis/src/halstead/tests/bdd.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Halstead BDD test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0027"
+lint = "clippy::clone_on_copy"
+path = "crates/tokmd-analysis/src/grid/tests/bdd.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Grid BDD test clones Copy preset keys for clarity."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0028"
+lint = "clippy::assertions_on_constants"
+path = "crates/tokmd-analysis-types/tests/schema_contract_w66.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Analysis schema contract tests assert version constants."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0029"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis-types/src/util/tests/util_depth_w61.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Util depth test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0030"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis-types/src/util/tests/deep_w70.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Util deep test uses literal float operands."
+expires = "2027-06-23"
+
+[[exception]]
+id = "clippy-0031"
+lint = "clippy::approx_constant"
+path = "crates/tokmd-analysis-types/src/util/tests/deep.rs"
+classification = "test_helper"
+owner = "core/testing"
+reason = "Util deep test uses literal float operands."
+expires = "2027-06-23"

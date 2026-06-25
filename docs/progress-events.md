@@ -1,5 +1,7 @@
 # Progress Events
 
+Normative contract: [`docs/specs/progress-events.md`](specs/progress-events.md).
+
 `tokmd` keeps normal command output on stdout. Progress output is stderr-only.
 
 When `TOKMD_PROGRESS_EVENTS` is set, the CLI progress helper emits one

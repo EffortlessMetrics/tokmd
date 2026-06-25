@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["code-analysis", "metrics", "cocomo", "hotspots", "enrichment"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-analysis"
+build = "build.rs"
 
 [features]
 default = ["fun", "topics", "archetype", "effort"]

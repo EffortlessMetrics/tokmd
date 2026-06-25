@@ -82,20 +82,29 @@ fn auto_color_enabled() -> bool {
     std::io::stdout().is_terminal()
 }
 
+/// Usage examples appended to `resolve_targets` errors so a misuse points at
+/// the two valid invocation shapes instead of only describing the rule.
+const DIFF_USAGE_HINT: &str =
+    "Examples: `tokmd diff <old> <new>` or `tokmd diff --from <old> --to <new>`";
+
 fn resolve_targets(args: &cli::DiffArgs) -> Result<(String, String)> {
     if !args.refs.is_empty() {
         if args.from.is_some() || args.to.is_some() {
-            bail!("Use either two positional refs/paths or --from/--to, not both.");
+            bail!(
+                "Use either two positional refs/paths or --from/--to, not both. {DIFF_USAGE_HINT}"
+            );
         }
-        if args.refs.len() != 2 {
-            bail!("Diff expects exactly two refs/paths.");
-        }
+        // `refs` is constrained to exactly 2 by clap's `num_args = 2`, so any
+        // other count is rejected before `handle` runs; the mutually-exclusive
+        // arm above and the no-args arm below cover the real misuse paths.
         return Ok((args.refs[0].clone(), args.refs[1].clone()));
     }
 
     match (&args.from, &args.to) {
         (Some(from), Some(to)) => Ok((from.clone(), to.clone())),
-        _ => bail!("Provide either two positional refs/paths or both --from and --to."),
+        _ => bail!(
+            "Provide either two positional refs/paths or both --from and --to. {DIFF_USAGE_HINT}"
+        ),
     }
 }
 

@@ -112,6 +112,28 @@ pub(crate) fn write_analysis_output(
     Ok(())
 }
 
+/// Render an analysis receipt and write it to an explicit file path.
+///
+/// Unlike [`write_analysis_output`], the caller controls the exact file name.
+/// The packet orchestrator uses this to write `analyze.md` and `analyze.json`
+/// from a single analysis pass.
+pub(crate) fn write_analysis_to_path(
+    receipt: &analysis_types::AnalysisReceipt,
+    out_path: &Path,
+    format: tokmd_types::AnalysisFormat,
+) -> Result<()> {
+    let rendered = render(receipt, format)?;
+    match rendered {
+        RenderedOutput::Text(text) => {
+            std::fs::write(out_path, text)?;
+        }
+        RenderedOutput::Binary(bytes) => {
+            std::fs::write(out_path, bytes)?;
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn write_analysis_stdout(
     receipt: &analysis_types::AnalysisReceipt,
     format: tokmd_types::AnalysisFormat,

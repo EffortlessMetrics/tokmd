@@ -1,0 +1,62 @@
+name: Clippy Exceptions Policy
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clippy-exceptions-policy-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: -C debuginfo=0
+
+jobs:
+  check-clippy-exceptions:
+    name: Clippy Exceptions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run clippy exceptions checker (strict)
+        run: |
+          set -euo pipefail
+          mkdir -p target/tokmd/reports
+          cargo xtask check-clippy-exceptions \
+            --strict \
+            --report-dir target/tokmd/reports \
+            2> target/tokmd/reports/clippy-exceptions-stderr.txt
+
+          {
+            echo "## Clippy exceptions policy"
+            echo ""
+            echo "Strict gate passed."
+            echo ""
+            echo "Baseline receipt: \`policy/clippy-exceptions-baseline-receipt.json\`"
+            echo ""
+            echo '```'
+            cat target/tokmd/reports/clippy-exceptions-stderr.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload clippy exceptions report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: clippy-exceptions-policy-report
+          path: target/tokmd/reports/
+          if-no-files-found: ignore
+          retention-days: 14

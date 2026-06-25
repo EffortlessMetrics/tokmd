@@ -49,7 +49,7 @@ fn is_interactive() -> bool {
 mod ui_impl {
     use super::{emit_progress_event, is_interactive};
     use indicatif::{ProgressBar, ProgressStyle};
-    use std::time::{Duration, Instant};
+    use std::time::Duration;
 
     /// A progress indicator that wraps indicatif.
     pub struct Progress {
@@ -110,19 +110,18 @@ mod ui_impl {
     }
 
     /// A progress bar with ETA support for long-running operations.
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub struct ProgressBarWithEta {
         bar: Option<indicatif::ProgressBar>,
-        start_time: Option<Instant>,
     }
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     impl ProgressBarWithEta {
         /// Create a new progress bar with ETA.
         pub fn new(enabled: bool, total: u64, message: &str) -> Self {
             let should_show = enabled && is_interactive();
 
-            let (bar, start_time) = if should_show {
+            let bar = if should_show {
                 let pb = indicatif::ProgressBar::new(total);
                 pb.set_style(
                     ProgressStyle::with_template(
@@ -132,12 +131,12 @@ mod ui_impl {
                 );
                 pb.set_message(message.to_string());
                 pb.enable_steady_tick(Duration::from_millis(100));
-                (Some(pb), Some(Instant::now()))
+                Some(pb)
             } else {
-                (None, None)
+                None
             };
 
-            Self { bar, start_time }
+            Self { bar }
         }
 
         /// Increment the progress by 1.
@@ -191,14 +190,9 @@ mod ui_impl {
                 bar.finish_and_clear();
             }
         }
-
-        /// Elapsed runtime since this bar was created.
-        #[allow(dead_code)]
-        pub fn elapsed(&self) -> Option<Duration> {
-            self.start_time.map(|t| t.elapsed())
-        }
     }
 
+    #[cfg(test)]
     impl Drop for ProgressBarWithEta {
         fn drop(&mut self) {
             if let Some(bar) = &self.bar {
@@ -234,10 +228,10 @@ mod ui_impl {
     }
 
     /// A no-op progress bar when `ui` feature is disabled.
-    #[allow(dead_code)]
+    #[cfg(test)]
     pub struct ProgressBarWithEta;
 
-    #[allow(dead_code)]
+    #[cfg(test)]
     impl ProgressBarWithEta {
         /// Create a new progress bar (no-op without `ui` feature).
         pub fn new(_enabled: bool, _total: u64, _message: &str) -> Self {
@@ -316,5 +310,25 @@ mod tests {
         assert!(!line.contains('\n'));
         let parsed: serde_json::Value = serde_json::from_str(&line).unwrap();
         assert_eq!(parsed["message"], "line one\nline two");
+    }
+
+    #[test]
+    fn progress_event_fixtures_match_emitted_json() {
+        let cases = [
+            (
+                include_str!("../../../fixtures/progress-events/update.json"),
+                "update",
+                "Scanning codebase...",
+            ),
+            (
+                include_str!("../../../fixtures/progress-events/finish.json"),
+                "finish",
+                "done",
+            ),
+        ];
+
+        for (fixture, kind, message) in cases {
+            assert_eq!(fixture.trim(), progress_event_json(kind, message));
+        }
     }
 }

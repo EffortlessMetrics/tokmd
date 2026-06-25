@@ -260,6 +260,10 @@ fn diff_missing_required_args_fails() {
         .failure()
         .stderr(predicate::str::contains(
             "Provide either two positional refs",
+        ))
+        // The error stays actionable by showing both valid invocation shapes.
+        .stderr(predicate::str::contains(
+            "tokmd diff --from <old> --to <new>",
         ));
 }
 

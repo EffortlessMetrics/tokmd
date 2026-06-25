@@ -32,11 +32,14 @@ mod global;
 mod init;
 mod lang;
 mod module;
+mod packet;
+mod render;
 mod run;
 mod sensor;
 #[cfg(feature = "ast")]
 mod syntax;
 mod tools;
+mod validate;
 mod value_enums;
 
 pub use analysis::{
@@ -58,6 +61,11 @@ pub use global::GlobalArgs;
 pub use init::{InitArgs, InitProfile};
 pub use lang::CliLangArgs;
 pub use module::CliModuleArgs;
+pub use packet::{
+    DEFAULT_PACKET_CONTEXT_BUDGET, DEFAULT_PACKET_DIR, PacketArgs, PacketCommand,
+    PacketGenerateArgs,
+};
+pub use render::{PacketRenderPreset, RenderArgs};
 pub use run::RunArgs;
 pub use sensor::{SensorArgs, SensorFormat};
 #[cfg(feature = "ast")]

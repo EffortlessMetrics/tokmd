@@ -55,23 +55,6 @@ const CANONICAL_KEYS: &[&str] = &[
     "context_window_fit",
 ];
 
-#[allow(dead_code)]
-fn random_separator_variant(key: &str) -> impl Strategy<Value = String> + '_ {
-    // Replace underscores with a random separator (_, -, ., space)
-    let parts: Vec<&str> = key.split('_').collect();
-    let n = parts.len().saturating_sub(1).max(1);
-    proptest::collection::vec(prop_oneof!["_", "-", ".", " "], n).prop_map(move |seps| {
-        let mut result = String::new();
-        for (i, part) in parts.iter().enumerate() {
-            if i > 0 {
-                result.push_str(&seps[i - 1]);
-            }
-            result.push_str(part);
-        }
-        result
-    })
-}
-
 proptest! {
     #[test]
     fn lookup_resolves_canonical_with_any_separator(

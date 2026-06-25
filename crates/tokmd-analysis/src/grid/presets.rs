@@ -36,7 +36,10 @@ impl PresetKind {
         }
     }
 
-    #[allow(clippy::should_implement_trait)]
+    #[expect(
+        clippy::should_implement_trait,
+        reason = "policy:clippy-0005 preset slug parsing keeps infallible Option API separate from FromStr"
+    )]
     pub fn from_str(value: &str) -> Option<Self> {
         match value {
             "receipt" => Some(Self::Receipt),

@@ -141,6 +141,26 @@ mod tests {
     }
 
     #[test]
+    fn evidence_packet_canonical_layout_matches_spec() {
+        // Keep aligned with docs/specs/evidence-packet-workflow.md.
+        const PACKET_DIR: &str = "sensors/tokmd";
+        const MANIFEST: &str = "sensors/tokmd/manifest.json";
+        const REQUIRED: &[&str] = &["analyze.md", "analyze.json", "context.md", "manifest.json"];
+        const OPTIONAL_SYNTAX: &str = "syntax.json";
+
+        assert_eq!(MANIFEST, "sensors/tokmd/manifest.json");
+        assert!(REQUIRED.contains(&"analyze.md"));
+        assert!(REQUIRED.contains(&"analyze.json"));
+        assert!(REQUIRED.contains(&"context.md"));
+        assert!(REQUIRED.contains(&"manifest.json"));
+        assert_eq!(OPTIONAL_SYNTAX, "syntax.json");
+        assert!(
+            MANIFEST.starts_with(PACKET_DIR),
+            "manifest path should live under the canonical packet directory"
+        );
+    }
+
+    #[test]
     fn evidence_packet_review_priority_item_serializes() {
         let item = EvidencePacketReviewPriorityItem {
             rank: 1,

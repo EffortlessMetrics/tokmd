@@ -28,7 +28,7 @@ paths = [
   "crates/tokmd-envelope/**",
   "crates/tokmd-format/**",
 ]
-lanes = ["build_test_linux", "proof_policy", "ripr_advisory"]
+lanes = ["tokmd_rust_result", "ripr_advisory"]
 deep_lanes = ["build_test_windows", "proptest_smoke"]
 
 [risk_pack.analysis]
@@ -38,7 +38,7 @@ paths = [
   "crates/tokmd-analysis-types/**",
   "crates/tokmd-model/**",
 ]
-lanes = ["build_test_linux", "affected_proof_plan", "ripr_advisory"]
+lanes = ["tokmd_rust_result", "affected_proof_plan", "ripr_advisory"]
 deep_lanes = ["proptest_smoke"]
 
 [risk_pack.gate_sensor]
@@ -48,7 +48,7 @@ paths = [
   "crates/tokmd-sensor/**",
   "crates/tokmd-cockpit/**",
 ]
-lanes = ["build_test_linux", "proof_policy", "ripr_advisory"]
+lanes = ["tokmd_rust_result", "ripr_advisory"]
 deep_lanes = ["publish_surface"]
 
 [risk_pack.git_io]
@@ -58,7 +58,7 @@ paths = [
   "crates/tokmd-io-port/**",
   "crates/tokmd-scan/**",
 ]
-lanes = ["build_test_linux", "ripr_advisory"]
+lanes = ["tokmd_rust_result", "ripr_advisory"]
 deep_lanes = ["build_test_windows"]
 
 [risk_pack.wasm]
@@ -93,7 +93,7 @@ paths = [
   "xtask/**",
   ".github/workflows/**",
 ]
-lanes = ["proof_policy", "quality_gate", "ci_lane_whitelist"]
+lanes = ["tokmd_rust_result", "ci_lane_whitelist"]
 deep_lanes = ["build_test_windows"]
 
 [risk_pack.handoff_review_packet]

@@ -5,12 +5,14 @@
 
 use serde_json::Value;
 
+#[cfg(feature = "cockpit")]
+use super::parse::parse_string;
 use super::parse::{
     parse_analyze_preset, parse_bool, parse_child_include_mode, parse_children_mode,
     parse_config_mode, parse_effort_layer, parse_effort_model, parse_export_format,
     parse_import_granularity, parse_optional_bool, parse_optional_redact_mode,
     parse_optional_string, parse_optional_u64, parse_optional_usize, parse_redact_mode,
-    parse_required_string, parse_string, parse_string_array, parse_usize, scan_arg_object,
+    parse_required_string, parse_string_array, parse_usize, scan_arg_object,
 };
 use crate::error::TokmdError;
 use crate::settings::{
@@ -86,7 +88,7 @@ pub(super) fn parse_export_settings(args: &Value) -> Result<ExportSettings, Tokm
     })
 }
 
-#[allow(dead_code)]
+#[cfg(feature = "analysis")]
 pub(super) fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
     let obj = args.get("analyze").unwrap_or(args);
 
@@ -129,7 +131,7 @@ pub(super) fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, To
     })
 }
 
-#[allow(dead_code)]
+#[cfg(feature = "cockpit")]
 pub(super) fn parse_cockpit_settings(
     args: &Value,
 ) -> Result<crate::settings::CockpitSettings, TokmdError> {

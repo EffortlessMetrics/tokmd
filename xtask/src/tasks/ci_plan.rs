@@ -994,6 +994,9 @@ pub(crate) fn actual_lane_keys(name: &str) -> Vec<String> {
 pub(crate) fn ci_needs_key_lane_alias(name: &str) -> Option<&'static str> {
     match name {
         "detect" => Some("ci_detect_risk_packs"),
+        "route" => Some("route_ci_runner"),
+        "tokmd-rust-result" => Some("tokmd_rust_result"),
+        "ci-actuals" => Some("ci_actuals_advisory"),
         "msrv" => Some("msrv_check"),
         "build" => Some("build_test_linux"),
         "build-windows" => Some("build_test_windows"),

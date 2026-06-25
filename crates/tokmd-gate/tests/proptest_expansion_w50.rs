@@ -107,25 +107,6 @@ fn arb_simple_json_doc() -> impl Strategy<Value = Value> {
         .prop_map(|(a, b, s)| json!({"a": a, "b": b, "c": s}))
 }
 
-#[allow(dead_code)]
-fn arb_ratchet_rule() -> impl Strategy<Value = RatchetRule> {
-    (
-        "/[a-z]{1,10}",
-        prop::option::of(0.0f64..100.0),
-        prop::option::of(0.0f64..1_000_000.0),
-        arb_rule_level(),
-    )
-        .prop_map(
-            |(pointer, max_increase_pct, max_value, level)| RatchetRule {
-                pointer,
-                max_increase_pct,
-                max_value,
-                level,
-                description: None,
-            },
-        )
-}
-
 // ── JSON Pointer tests ───────────────────────────────────────────────────────
 
 proptest! {

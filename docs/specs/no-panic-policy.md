@@ -146,15 +146,27 @@ entries are drafting material. They become policy only after a maintainer
 copies them into `policy/no-panic-allowlist.toml`, fills the required review
 fields, and validates the checker.
 
+The baseline helper:
+
+```bash
+cargo xtask no-panic-baseline --receipt-output policy/no-panic-baseline-receipt.json
+```
+
+materializes the full receipted ledger from current findings, deduplicated by
+selector identity. CI runs `cargo xtask check-no-panic-family --strict` against
+the committed baseline in `policy/no-panic-allowlist.toml`.
+
 ## Compatibility
 
-This spec is compatible with the current advisory rollout:
+Strict rollout is active as of 2026-06-22:
 
-- `cargo xtask check-no-panic-family` remains advisory by default;
-- `--strict` remains opt-in;
-- `policy/no-panic-allowlist.toml` remains empty when there are no receipted
-  exceptions;
-- `.github/workflows/no-panic-policy.yml` continues to publish advisory report
+- `cargo xtask check-no-panic-family` remains advisory by default for local
+  exploration;
+- CI and `ci/proof.toml` run `--strict`;
+- `policy/no-panic-allowlist.toml` holds the receipted baseline (21,783 unique
+  identities at rollout);
+- `policy/no-panic-baseline-receipt.json` records baseline generation stats;
+- `.github/workflows/no-panic-policy.yml` publishes strict JSON report
   artifacts;
 - `docs/NO_PANIC_POLICY.md` remains the contributor-facing guide;
 - no release, publish, signing, Nix, Codecov, or product CLI behavior changes.
@@ -182,7 +194,7 @@ For checker, workflow, or policy implementation changes, also run the focused
 current-behavior checks:
 
 ```bash
-cargo xtask check-no-panic-family
+cargo xtask check-no-panic-family --strict
 cargo test -p xtask no_panic --verbose
 cargo clippy -p xtask --all-targets -- -D warnings
 ```

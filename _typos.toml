@@ -4,6 +4,9 @@
 [files]
 # Extend default ignore list
 extend-exclude = [
+    # Receipted panic-family baseline contains source snippets and hash suffixes
+    # that trigger false positives (e.g. hex fragments like "beed", "withou").
+    "policy/no-panic-allowlist.toml",
     # Lock files
     "Cargo.lock",
     "*.lock",

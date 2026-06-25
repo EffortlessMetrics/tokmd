@@ -145,7 +145,7 @@ fn proof_policy_includes_current_product_scopes() {
         .filter_map(toml::Value::as_str)
         .collect::<BTreeSet<_>>();
 
-    assert!(no_panic_proof.contains("cargo xtask check-no-panic-family"));
+    assert!(no_panic_proof.contains("cargo xtask check-no-panic-family --strict"));
     assert!(no_panic_proof.contains("cargo test -p xtask no_panic --verbose"));
 
     let proof_control_plane = scopes

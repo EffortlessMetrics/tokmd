@@ -169,7 +169,10 @@ fn analysis_limits_default_all_none() {
 // -- Re-exported math helpers --
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0030 util deep test uses literal float operands"
+)]
 fn round_f64_basic() {
     assert!((round_f64(3.14159, 2) - 3.14).abs() < f64::EPSILON);
     assert!((round_f64(2.005, 2) - 2.01).abs() < 0.001);

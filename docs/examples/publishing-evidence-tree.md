@@ -48,11 +48,25 @@ What not to infer:
 - A clean publish-surface check is not approval to mutate release state.
 - Release workflow artifacts exist only after an explicit release run.
 
+Post-release layout when GHCR visibility is verified or recorded:
+
+```text
+target/publishing/
+  ghcr-visibility-1.13.1.md
+```
+
+The GHCR receipt is maintainer-written after an intentional stable release from
+the publication repo. It records `verified-public`, `pending`, or `private-only`
+for `ghcr.io/effortlessmetrics/tokmd` and belongs in the release ledger. For
+`v1.13.1`, the ledger records **verified-public** as of 2026-06-21. Swarm
+workbench GHCR visibility remains undecided (issue #264).
+
 Next action:
 
 - Use [Release readiness](../release-readiness.md) for the short pre-release
   evidence command sequence.
 - Fix publish-surface violations before release work.
 - Pair publishing evidence with affected proof when release metadata changes.
+- After stable release, follow [Post-Release GHCR Visibility Checks](../publishing-evidence.md#post-release-ghcr-visibility-checks).
 - Treat publish, tag, and release creation as separate explicit maintainer
   decisions.

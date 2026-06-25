@@ -477,3 +477,77 @@ function add(a, b) {
     assert_eq!(report.total_functions, 2);
     assert!(report.avg_cyclomatic > 0.0);
 }
+
+// ===========================================================================
+// Regression: issue #219 avg/max cyclomatic share per-function units
+// ===========================================================================
+
+#[test]
+#[expect(
+    clippy::assertions_on_constants,
+    reason = "test failure path when build_complexity_report returns Err"
+)]
+fn given_many_functions_and_one_branchy_fn_avg_le_max_cyclomatic() {
+    let mut code = String::from(
+        r#"
+fn branchy(x: i32, y: bool) -> i32 {
+    if x > 0 {
+        if y {
+            for i in 0..x {
+                if i % 2 == 0 {
+                    return i;
+                }
+            }
+        }
+    }
+    match x {
+        0 => 0,
+        1 => 1,
+        _ => x,
+    }
+}
+"#,
+    );
+    for idx in 0..40 {
+        code.push_str(&format!("fn trivial_{idx}() {{ let _ = {idx}; }}\n"));
+    }
+
+    let (dir, paths) = write_temp_files(&[("src/main.rs", &code)]);
+    let export = make_export(vec![make_row(
+        "src/main.rs",
+        "src",
+        "Rust",
+        code.lines().count(),
+    )]);
+    if let Ok(report) =
+        build_complexity_report(dir.path(), &paths, &export, &default_limits(), false)
+    {
+        assert!(
+            report.total_functions > 10,
+            "fixture should detect many functions"
+        );
+        if let Some(file) = report
+            .files
+            .iter()
+            .max_by_key(|entry| entry.cyclomatic_complexity)
+        {
+            assert!(
+                file.cyclomatic_complexity > file.function_count,
+                "file total cyclomatic should exceed per-function max for this fixture"
+            );
+        }
+
+        assert!(
+            report.avg_cyclomatic <= report.max_cyclomatic as f64,
+            "avg ({}) must be <= max ({}) in shared per-function units",
+            report.avg_cyclomatic,
+            report.max_cyclomatic
+        );
+        assert!(
+            report.avg_cyclomatic < report.max_cyclomatic as f64 * 2.0,
+            "avg should stay near per-function scale, not file-total scale"
+        );
+    } else {
+        assert!(false, "build_complexity_report failed");
+    }
+}

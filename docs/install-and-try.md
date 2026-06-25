@@ -165,11 +165,24 @@ See [Publishing evidence](publishing-evidence.md) for the release-facing
 reading order or [Release readiness](release-readiness.md) for the shorter
 pre-release evidence quickstart.
 
+## 8. Build A Scoped Evidence Packet (Windows Note)
+
+For Bun UB or other scoped sensor packets under `sensors/tokmd/`, see
+[Evidence packet contract](evidence-packet.md).
+
+On Windows PowerShell, never use bare `>` to capture JSON from `tokmd analyze`
+or `tokmd syntax`. PowerShell writes UTF-16LE, and `tokmd evidence-packet`
+rejects non-UTF-8 JSON. Prefer `tokmd analyze --output-dir`, `tokmd context
+--output`, `tokmd evidence-packet --output`, or `Out-File -Encoding utf8` as
+documented in [Evidence packet contract — Windows (PowerShell)](evidence-packet.md#windows-powershell).
+
 ## Where To Go Next
 
 - [User paths](user-paths.md) maps each job to the command, primary artifact,
   first file to open, meaning, non-meaning, and next action.
 - [Copy-Ready Workflows](workflows.md) gives complete command sequences.
 - [Artifact glossary](artifacts.md) explains receipt and packet names.
+- [Evidence packet contract](evidence-packet.md) explains scoped sensor packets
+  and Windows UTF-8 write guidance.
 - [Review packet contract](review-packet.md) explains cockpit review packets.
 - [Handoff bundles](handoff.md) explains coding-agent work orders.

@@ -32,6 +32,7 @@ CLI binary orchestrating all other crates. This is the **Tier 5** entry point fo
 | `tokmd context` | Pack files into LLM context window |
 | `tokmd baseline` | Capture complexity baseline for trend tracking |
 | `tokmd handoff` | Bundle codebase for LLM handoff |
+| `tokmd packet` | Orchestrate a full `sensors/tokmd/` evidence packet (`packet generate`) |
 | `tokmd init` | Generate .tokeignore template |
 | `tokmd check-ignore` | Explain why files are ignored |
 | `tokmd completions` | Generate shell completions |

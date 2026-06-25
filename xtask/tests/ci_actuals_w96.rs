@@ -145,35 +145,35 @@ fn ci_actuals_writes_schema_stable_receipt() {
 }
 
 #[test]
-fn ci_required_uploads_ci_actuals_before_status_check() {
+fn ci_actuals_uploads_receipt_before_advisory_summary() {
     let workflow = fs::read_to_string(workspace_root().join(".github/workflows/ci.yml"))
         .expect("read ci workflow");
-    let ci_required_idx = workflow
-        .find("  ci-required:")
-        .expect("CI required job should exist");
-    let ci_required = &workflow[ci_required_idx..];
+    let ci_actuals_idx = workflow
+        .find("  ci-actuals:")
+        .expect("CI actuals job should exist");
+    let ci_actuals = &workflow[ci_actuals_idx..];
 
-    let checkout_idx = ci_required
+    let checkout_idx = ci_actuals
         .find("actions/checkout@v6.0.2")
-        .expect("CI required checkout step");
-    let toolchain_idx = ci_required
+        .expect("CI actuals checkout step");
+    let toolchain_idx = ci_actuals
         .find("dtolnay/rust-toolchain@stable")
-        .expect("CI required toolchain step");
-    let cache_idx = ci_required
+        .expect("CI actuals toolchain step");
+    let cache_idx = ci_actuals
         .find("Swatinem/rust-cache@v2")
-        .expect("CI required cache step");
-    let timings_idx = ci_required
+        .expect("CI actuals cache step");
+    let timings_idx = ci_actuals
         .find("Generate CI timings sidecar")
         .expect("generate CI timings sidecar step");
-    let generate_idx = ci_required
+    let generate_idx = ci_actuals
         .find("Generate CI actuals receipt")
         .expect("generate CI actuals receipt step");
-    let upload_idx = ci_required
+    let upload_idx = ci_actuals
         .find("Upload CI actuals receipt")
         .expect("upload CI actuals receipt step");
-    let check_idx = ci_required
-        .find("Check overall status")
-        .expect("check overall status step");
+    let summary_idx = ci_actuals
+        .find("Publish advisory lane summary")
+        .expect("publish advisory lane summary step");
 
     assert!(
         checkout_idx < toolchain_idx && toolchain_idx < cache_idx && cache_idx < timings_idx,
@@ -188,14 +188,14 @@ fn ci_required_uploads_ci_actuals_before_status_check() {
         "upload must follow receipt generation"
     );
     assert!(
-        upload_idx < check_idx,
-        "receipt upload must happen before final failure"
+        upload_idx < summary_idx,
+        "receipt upload must happen before advisory summary"
     );
-    let setup_block = &ci_required[checkout_idx..timings_idx];
-    let timings_block = &ci_required[timings_idx..generate_idx];
-    let generate_block = &ci_required[generate_idx..upload_idx];
-    let upload_block = &ci_required[upload_idx..check_idx];
-    let check_block = &ci_required[check_idx..];
+    let setup_block = &ci_actuals[checkout_idx..timings_idx];
+    let timings_block = &ci_actuals[timings_idx..generate_idx];
+    let generate_block = &ci_actuals[generate_idx..upload_idx];
+    let upload_block = &ci_actuals[upload_idx..summary_idx];
+    let summary_block = &ci_actuals[summary_idx..];
 
     assert_eq!(
         setup_block.matches("continue-on-error: true").count(),
@@ -203,9 +203,10 @@ fn ci_required_uploads_ci_actuals_before_status_check() {
         "checkout, toolchain, and cache should be best-effort telemetry setup"
     );
     assert!(
-        ci_required.contains("permissions:\n      contents: read\n      actions: read"),
-        "CI required job should request only read permissions needed for checkout and job timing lookup"
+        ci_actuals.contains("permissions:\n      contents: read\n      actions: read"),
+        "CI actuals job should request only read permissions needed for checkout and job timing lookup"
     );
+    assert!(ci_actuals.contains("continue-on-error: true"));
     assert!(timings_block.contains("if: always()"));
     assert!(timings_block.contains("continue-on-error: true"));
     assert!(
@@ -221,8 +222,8 @@ fn ci_required_uploads_ci_actuals_before_status_check() {
         "timing sidecar should only collect successful job durations"
     );
     assert!(
-        timings_block.contains("\"Docs Check\": \"docs-check\"")
-            && timings_block.contains("\"Proof Policy\": \"proof-policy\""),
+        timings_block.contains("\"Tokmd Rust Result\": \"tokmd-rust-result\"")
+            && timings_block.contains("\"Docs Check\": \"docs-check\""),
         "timing lookup should map hosted job display names back to needs keys"
     );
     assert!(
@@ -273,11 +274,19 @@ fn ci_required_uploads_ci_actuals_before_status_check() {
     );
     assert!(
         upload_block.contains("if-no-files-found: warn"),
-        "receipt upload should not hide the existing aggregate failure summary"
+        "receipt upload should tolerate missing timing sidecars"
     );
     assert!(
-        !check_block.contains("continue-on-error: true"),
-        "final required-status arbitration must remain blocking"
+        summary_block.contains("continue-on-error: true"),
+        "advisory lane summary must not block merge"
+    );
+    assert!(
+        summary_block.contains("Branch protection uses `Tokmd Rust Result` only"),
+        "advisory summary should document the single required check"
+    );
+    assert!(
+        !summary_block.contains("sys.exit(1)"),
+        "advisory summary must not fail the job"
     );
 }
 
