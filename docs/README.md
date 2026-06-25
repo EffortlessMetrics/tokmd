@@ -38,6 +38,9 @@ schemas, and verification policy for `tokmd`.
 - [integrations/ub-review.md](integrations/ub-review.md) - copy-ready
   `ub-review` sensor recipe for `sensors/tokmd/analyze.md`,
   `sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md`.
+- [interop/sibling-tools.md](interop/sibling-tools.md) - sibling sensor-tool
+  family contracts, bidirectional learning ledger, and tokmd adoption/teaching row
+  (mirror of unsafe-review-swarm canonical).
 - [VERIFICATION.md](VERIFICATION.md) — README badge meanings, generated endpoints, and PR evidence boundaries.
 - [agent-workflows/handoff-prompt.md](agent-workflows/handoff-prompt.md) —
   copy-ready prompt template for coding agents consuming `.handoff/` bundles.

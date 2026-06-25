@@ -42,7 +42,10 @@ use super::uncertainty::apply_uncertainty;
 ///
 /// Callers should prefer passing the richest available context instead of
 /// backfilling values later in the formatting layer.
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0004 effort report aggregates optional enricher inputs at one boundary"
+)]
 pub fn build_effort_report(
     root: &Path,
     export: &ExportData,
@@ -200,12 +203,6 @@ fn avg_models(a: &EffortResults, b: &EffortResults) -> EffortResults {
     out.staff_low = (a.staff_low + b.staff_low) * 0.5;
     out.staff_p80 = (a.staff_p80 + b.staff_p80) * 0.5;
     out
-}
-
-#[allow(dead_code)]
-struct SizeContext {
-    size_basis: EffortSizeBasis,
-    basis_confidence: f64,
 }
 
 #[cfg(test)]

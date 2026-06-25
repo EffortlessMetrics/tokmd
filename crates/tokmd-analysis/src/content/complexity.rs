@@ -34,26 +34,18 @@
 //! - Closures and lambdas have limited support
 //! - Keywords in strings/comments may be counted (fast but imperfect)
 
-#![allow(dead_code)]
-
 mod cognitive;
 mod cyclomatic;
 mod functions;
 mod nesting;
 mod shared;
 
-#[allow(unused_imports)]
-pub use cognitive::{CognitiveComplexity, HighCognitiveFunction, estimate_cognitive_complexity};
-#[allow(unused_imports)]
-pub use cyclomatic::{
-    CyclomaticComplexity, HighComplexityFunction, estimate_cyclomatic_complexity,
-};
-#[allow(unused_imports)]
-pub use functions::{FunctionMetrics, analyze_functions};
-// Preserve the historical `content::complexity::NestingAnalysis` path even
-// though current callers only use `analyze_nesting_depth` directly.
-#[allow(unused_imports)]
-pub use nesting::{NestingAnalysis, analyze_nesting_depth};
+pub use cognitive::estimate_cognitive_complexity;
+pub use cyclomatic::estimate_cyclomatic_complexity;
+pub use nesting::analyze_nesting_depth;
+
+#[cfg(test)]
+pub use functions::analyze_functions;
 
 #[cfg(test)]
 #[path = "complexity/tests/unit.rs"]

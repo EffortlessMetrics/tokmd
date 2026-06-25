@@ -102,14 +102,18 @@ name = "proof_control_plane"
 kind = "rust"
 paths = [
   ".github/workflows/badge-endpoints.yml",
+  ".github/workflows/bindings-parity.yml",
   ".github/workflows/ci-policy.yml",
   ".github/workflows/ci.yml",
   ".github/workflows/cockpit.yml",
+  # Retired in phase 3 (#299); kept so the affected/proof planner attributes the
+  # workflow deletion to the control-plane scope. Prune in a later sweep.
   ".github/workflows/em-routed-rust-small.yml",
   ".github/workflows/fuzz.yml",
   ".github/workflows/mutants.yml",
   ".github/workflows/nix-full.yml",
   ".github/workflows/nix-macos.yml",
+  ".github/workflows/clippy-exceptions-policy.yml",
   ".github/workflows/no-panic-policy.yml",
   ".github/workflows/pr-plan.yml",
   ".github/workflows/proof-observation-collection.yml",
@@ -119,6 +123,7 @@ paths = [
   ".github/workflows/droid.yml",
   ".github/workflows/droid-security-scan.yml",
   ".github/workflows/release.yml",
+  ".github/workflows/swarm-ghcr.yml",
   ".github/workflows/ripr.yml",
   ".github/workflows/sync-labels.yml",
   ".github/workflows/test-action.yml",
@@ -127,6 +132,8 @@ paths = [
   "AGENTS.md",
   "ci/proof.toml",
   "codecov.yml",
+  "fixtures/ci-gate-contract/**",
+  "fixtures/tokmd-packets/**",
   "docs/external-services.md",
   "docs/NEXT.md",
   "docs/ci/ci-actuals.md",
@@ -140,9 +147,11 @@ paths = [
   "xtask/src/proof/**",
   "xtask/src/tasks/mod.rs",
   "xtask/src/tasks/affected.rs",
+  "xtask/src/tasks/bindings_parity.rs",
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/bump.rs",
   "xtask/src/tasks/ci_actuals.rs",
+  "xtask/src/tasks/ci_gate_contract.rs",
   "xtask/src/tasks/ci_lane_whitelist.rs",
   "xtask/src/tasks/ci_plan.rs",
   "xtask/src/tasks/ci_route.rs",
@@ -174,6 +183,7 @@ paths = [
   "xtask/tests/docs_schema_w72.rs",
   "xtask/tests/docs_w43.rs",
   "xtask/tests/fixture_blobs_w83.rs",
+  "xtask/tests/ci_gate_contract_w102.rs",
   "xtask/tests/proof_policy_w90.rs",
   "xtask/tests/proof_plan_w92.rs",
   "xtask/tests/proof_workflow_status_w98.rs",
@@ -183,7 +193,9 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask proof-policy --check",
+  "cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml",
   "cargo xtask ci-lane-whitelist",
+  "cargo test -p xtask ci_gate_contract --verbose",
   "cargo test -p xtask bump --verbose",
   "cargo test -p xtask --test deep_w71 --verbose",
   "cargo test -p xtask --test xtask_contract_w65 --verbose",
@@ -309,6 +321,25 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "bindings_parity"
+kind = "rust"
+paths = [
+  ".github/agents/bindings-parity-keeper.agent.md",
+  ".github/workflows/bindings-parity.yml",
+  "docs/specs/bindings-parity.md",
+  "fixtures/bindings-parity/**",
+  "xtask/src/tasks/bindings_parity.rs",
+]
+packages = ["xtask", "tokmd-core", "tokmd-python", "tokmd-node"]
+proof = [
+  "cargo xtask bindings-parity --check",
+  "cargo xtask proof-policy --check",
+]
+reason = "Shared FFI envelope parity across tokmd-core, tokmd-python, and tokmd-node is guarded by fixture manifest cases and binding integration tests."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "lint_policy"
 kind = "rust"
 paths = [
@@ -317,6 +348,7 @@ paths = [
   "docs/CLIPPY_POLICY.md",
   "policy/clippy-debt.toml",
   "policy/clippy-exceptions.toml",
+  "policy/clippy-exceptions-baseline-receipt.json",
   "policy/clippy-lints.toml",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
@@ -328,7 +360,7 @@ paths = [
 packages = ["xtask"]
 proof = [
   "cargo xtask check-lint-policy",
-  "cargo xtask check-clippy-exceptions",
+  "cargo xtask check-clippy-exceptions --strict",
   "cargo test -p xtask lint_policy --verbose",
   "cargo test -p xtask clippy_exceptions --verbose",
   "cargo clippy -p xtask --all-targets -- -D warnings",
@@ -341,7 +373,10 @@ name = "no_panic_policy"
 kind = "rust"
 paths = [
   "docs/NO_PANIC_POLICY.md",
+  "docs/specs/no-panic-policy.md",
   "policy/no-panic-allowlist.toml",
+  "policy/no-panic-baseline-receipt.json",
+  ".github/workflows/no-panic-policy.yml",
   "xtask/Cargo.toml",
   "xtask/src/cli.rs",
   "xtask/src/main.rs",
@@ -351,11 +386,10 @@ paths = [
 ]
 packages = ["xtask"]
 proof = [
-  # Advisory mode: blocks on schema/shape, expired, and stale entries; reports
-  # unallowlisted findings without failing while panic-family debt is burned
-  # down. Flip to `--strict` after `[lints] workspace = true` is enabled and
-  # the receipt ledger covers all remaining findings.
-  "cargo xtask check-no-panic-family",
+  # Strict mode: every panic-family finding must be receipted in
+  # policy/no-panic-allowlist.toml. Regenerate the baseline with
+  # `cargo xtask no-panic-baseline` when debt changes.
+  "cargo xtask check-no-panic-family --strict",
   "cargo test -p xtask no_panic --verbose",
   "cargo clippy -p xtask --all-targets -- -D warnings",
 ]
@@ -912,12 +946,16 @@ paths = [
   "crates/tokmd-format/src/lib.rs",
   "crates/tokmd-format/src/summary/**",
   "crates/tokmd-format/src/summary.rs",
+  "crates/tokmd-format/src/tokmd_packets.rs",
+  "crates/tokmd-format/src/packet_siblings.rs",
   "crates/tokmd-format/tests/format_*.rs",
   "crates/tokmd-format/tests/snapshot*.rs",
   "crates/tokmd-format/tests/snapshots/**",
 ]
 packages = ["tokmd-format"]
 proof = [
+  "cargo test -p tokmd-format tokmd_packets --verbose",
+  "cargo test -p tokmd-format packet_siblings --verbose",
   "cargo test -p tokmd-format --test snapshots --verbose",
   "cargo test -p tokmd-format --test snapshot_golden_w54 --verbose",
 ]
@@ -991,8 +1029,11 @@ paths = [
   "crates/tokmd/src/config.rs",
   "crates/tokmd/src/config/**",
   "crates/tokmd/src/error_hints.rs",
+  "crates/tokmd/src/progress.rs",
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
+  "crates/tokmd/tests/packet_*.rs",
+  "crates/tokmd/tests/render_*.rs",
   "crates/tokmd/tests/snapshots/cli_*.snap",
   "crates/tokmd/tests/config_resolution.rs",
   "crates/tokmd/tests/error_handling.rs",
@@ -1006,6 +1047,8 @@ proof = [
   "cargo test -p tokmd --test cli_e2e --verbose",
   "cargo test -p tokmd --test cli_parser_properties --verbose",
   "cargo test -p tokmd --test config_resolution --verbose",
+  "cargo test -p tokmd --test packet_generate_integration --verbose",
+  "cargo test -p tokmd --test render_packets_integration --verbose",
 ]
 mutation = true
 coverage = true
@@ -1228,6 +1271,7 @@ paths = [
   "docs/evidencebus-integration.md",
   "docs/implementation-plan.md",
   "docs/install.md",
+  "docs/interop/**",
   "docs/adr/**",
   "docs/audits/**",
   "docs/README.md",
@@ -1332,6 +1376,7 @@ kind = "non_rust"
 paths = [
   ".github/pull_request_template.md",
   ".github/labels.yml",
+  ".github/settings.yml",
   ".github/workflows/sync-labels.yml",
   "docs/POLICY_ALLOWLISTS.md",
   "docs/RIPR_EVIDENCE_POLICY.md",
@@ -1432,6 +1477,21 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "swarm_ghcr_publish"
+kind = "non_rust"
+paths = [
+  ".github/workflows/swarm-ghcr.yml",
+]
+proof = [
+  "cargo xtask ci-lane-whitelist --strict",
+  "cargo xtask docs --check",
+  "cargo xtask proof-policy --check",
+]
+reason = "Swarm workbench GHCR publish workflow is a distribution surface; lane whitelist and docs must stay aligned with swarm-ghcr-image.md."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "release_metadata"
 kind = "non_rust"
 paths = [
@@ -1457,6 +1517,8 @@ paths = [
   "crates/tokmd-types/src/context.rs",
   "crates/tokmd-types/src/diff.rs",
   "crates/tokmd-types/src/evidence_packet.rs",
+  "crates/tokmd-types/src/tokmd_packets.rs",
+  "crates/tokmd-types/src/packet_siblings.rs",
   "crates/tokmd-types/src/inventory.rs",
   "crates/tokmd-types/src/lib.rs",
   "crates/tokmd-types/tests/schema*.rs",
@@ -1474,6 +1536,8 @@ paths = [
 ]
 packages = ["tokmd-types", "tokmd"]
 proof = [
+  "cargo test -p tokmd-types tokmd_packets --verbose",
+  "cargo test -p tokmd-types packet_siblings --verbose",
   "cargo test -p tokmd-types schema --verbose",
   "cargo test -p tokmd --test schema_sync --verbose",
   "cargo test -p tokmd --test schema_doc_sync --verbose",
@@ -1524,6 +1588,9 @@ allow = [
   ".claude/**",
   ".jules/**",
   "ci/proof.toml",
+  # Receipted panic-family baseline embeds source snippets that mention crypto
+  # markers in test/fixture code paths; not committed key material.
+  "policy/no-panic-allowlist.toml",
   "vendor/**",
   "xtask/src/tasks/fixture_blobs_check.rs",
 ]

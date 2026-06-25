@@ -282,7 +282,10 @@ fn unsupported_lang_returns_empty_operators() {
 // ── 6. round_f64 edge cases ─────────────────────────────────────────
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0023 halstead unit test uses literal float operands"
+)]
 fn round_f64_various_precisions() {
     assert_eq!(round_f64(std::f64::consts::PI, 0), 3.0);
     assert_eq!(round_f64(std::f64::consts::PI, 2), 3.14);

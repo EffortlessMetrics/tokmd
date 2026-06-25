@@ -29,9 +29,11 @@ mod export;
 pub mod export_tree;
 #[cfg(feature = "fun")]
 pub mod fun;
+mod packet_siblings;
 pub mod redact;
 pub mod scan_args;
 mod summary;
+pub mod tokmd_packets;
 
 pub use badge::badge_svg;
 pub use diff::{
@@ -44,11 +46,15 @@ pub use export::{
     write_export_jsonl_to_file,
 };
 pub use export_tree::{render_analysis_tree, render_handoff_tree};
+pub use packet_siblings::resolve_preset_input;
 pub use redact::{redact_path, short_hash};
 pub use scan_args::{normalize_scan_input, scan_args};
 pub use summary::{
     print_lang_report, print_module_report, write_lang_json_to_file, write_lang_report_to,
     write_module_json_to_file, write_module_report_to,
+};
+pub use tokmd_packets::{
+    preset_title, render_packet_bundle_markdown, render_packet_preset_markdown, validate_manifest,
 };
 
 fn redact_module_roots(roots: &[String], redact: RedactMode) -> Vec<String> {

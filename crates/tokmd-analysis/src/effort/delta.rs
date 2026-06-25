@@ -2,7 +2,10 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use tokmd_analysis_types::{EffortDeltaClassification, EffortDeltaReport, GitReport};
+use tokmd_analysis_types::{EffortDeltaReport, GitReport};
+
+#[cfg(feature = "git")]
+use tokmd_analysis_types::EffortDeltaClassification;
 use tokmd_types::ExportData;
 
 #[cfg(feature = "git")]
@@ -163,7 +166,7 @@ pub fn build_delta(
     }
 }
 
-#[allow(dead_code)]
+#[cfg(feature = "git")]
 fn classify_blast(blast_radius: f64) -> EffortDeltaClassification {
     if blast_radius < 10.0 {
         EffortDeltaClassification::Low
@@ -180,6 +183,7 @@ fn classify_blast(blast_radius: f64) -> EffortDeltaClassification {
 mod tests {
     use super::*;
 
+    #[cfg(feature = "git")]
     #[test]
     fn classify_blast_boundaries() {
         // Each bucket boundary is exclusive on the high end of the lower band.

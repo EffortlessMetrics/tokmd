@@ -39,7 +39,7 @@ pub(super) enum ClassKind {
 }
 
 impl ClassKind {
-    #[allow(dead_code)]
+    #[cfg(test)]
     fn confidence_boost(self) -> f64 {
         match self {
             Self::Generated | Self::Vendored => 1.0,
@@ -113,7 +113,6 @@ mod tests {
         let rules = vec![GitAttrRule {
             pattern: "src/lib.rs".to_string(),
             kind: ClassKind::Generated,
-            source: "test".to_string(),
         }];
         let row = make_row("src/lib.rs");
         let (class, kind) = classify_row(Path::new(""), "src/lib.rs", &rules, &row);
@@ -126,7 +125,6 @@ mod tests {
         let rules = vec![GitAttrRule {
             pattern: "vendor/foo.rs".to_string(),
             kind: ClassKind::Vendored,
-            source: "test".to_string(),
         }];
         let row = make_row("vendor/foo.rs");
         let (class, kind) = classify_row(Path::new(""), "vendor/foo.rs", &rules, &row);
@@ -141,7 +139,6 @@ mod tests {
         let rules = vec![GitAttrRule {
             pattern: "src/lib.rs".to_string(),
             kind: ClassKind::Unknown,
-            source: "test".to_string(),
         }];
         let row = make_row("src/lib.rs");
         let (class, kind) = classify_row(Path::new(""), "src/lib.rs", &rules, &row);

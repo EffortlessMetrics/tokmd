@@ -205,9 +205,9 @@ Preset: `receipt`
 |Path|CC|Functions|Max fn length|
 |---|---:|---:|---:|
 |large.rs|1|1|11|
-|script.js|1|0|0|
 |space file.rs|1|1|1|
 |src/main.rs|1|1|3|
+|script.js|0|0|0|
 
 ## API surface
 

@@ -527,7 +527,10 @@ proptest! {
     /// Enabling *only* no_ignore_dot should not touch the other ignore fields.
     #[test]
     fn no_ignore_dot_alone_does_not_set_others(_dummy in 0..50u8) {
-        #[allow(clippy::field_reassign_with_default)]
+        #[expect(
+            clippy::field_reassign_with_default,
+            reason = "policy:clippy-0019 proptest builds ScanOptions via field reassignment"
+        )]
         let cfg = {
             let mut cfg = tokei::Config::default();
             cfg.no_ignore_dot = Some(true);
@@ -544,7 +547,10 @@ proptest! {
     /// Enabling *only* no_ignore_vcs should not touch the other ignore fields.
     #[test]
     fn no_ignore_vcs_alone_does_not_set_others(_dummy in 0..50u8) {
-        #[allow(clippy::field_reassign_with_default)]
+        #[expect(
+            clippy::field_reassign_with_default,
+            reason = "policy:clippy-0019 proptest builds ScanOptions via field reassignment"
+        )]
         let cfg = {
             let mut cfg = tokei::Config::default();
             cfg.no_ignore_vcs = Some(true);

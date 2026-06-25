@@ -29,6 +29,32 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         );
     }
 
+    let format = args
+        .format
+        .map(Into::into)
+        .unwrap_or(tokmd_types::AnalysisFormat::Md);
+    let receipt = build_receipt(&args, global)?;
+
+    if let Some(output_dir) = args.output_dir {
+        std::fs::create_dir_all(&output_dir)
+            .context("Failed to create analysis output directory")?;
+        analysis_utils::write_analysis_output(&receipt, &output_dir, format)?;
+    } else {
+        analysis_utils::write_analysis_stdout(&receipt, format)?;
+    }
+
+    Ok(())
+}
+
+/// Build an analysis receipt from CLI arguments without emitting it.
+///
+/// This is the shared analysis core used by `tokmd analyze` and by the
+/// `tokmd packet generate` orchestrator, which renders the same receipt to
+/// several artifact files.
+pub(crate) fn build_receipt(
+    args: &cli::CliAnalyzeArgs,
+    global: &cli::GlobalArgs,
+) -> Result<analysis_types::AnalysisReceipt> {
     let progress = Progress::new(!global.no_progress);
 
     let preset = args.preset.unwrap_or(cli::AnalysisPreset::Receipt);
@@ -80,7 +106,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
         Some(cli::NearDupScope::Global) => analysis::NearDupScope::Global,
     };
     let effort = parse_effort_request(
-        &args,
+        args,
         matches!(
             preset,
             cli::AnalysisPreset::Estimate | cli::AnalysisPreset::BunUb
@@ -120,15 +146,7 @@ pub(crate) fn handle(args: cli::CliAnalyzeArgs, global: &cli::GlobalArgs) -> Res
 
     progress.finish_and_clear();
 
-    if let Some(output_dir) = args.output_dir {
-        std::fs::create_dir_all(&output_dir)
-            .context("Failed to create analysis output directory")?;
-        analysis_utils::write_analysis_output(&receipt, &output_dir, format)?;
-    } else {
-        analysis_utils::write_analysis_stdout(&receipt, format)?;
-    }
-
-    Ok(())
+    Ok(receipt)
 }
 
 fn parse_effort_request(

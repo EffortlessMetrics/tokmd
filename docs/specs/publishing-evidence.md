@@ -31,6 +31,12 @@ The evidence set must not publish crates, tag releases, move version aliases,
 create GitHub releases, push Docker images, change release workflow behavior,
 change public receipt schemas, or authorize a release by itself.
 
+GHCR consumer visibility evidence applies to the publication image
+`ghcr.io/effortlessmetrics/tokmd` from `EffortlessMetrics/tokmd`. Swarm workbench GHCR (`ghcr.io/effortlessmetrics/tokmd-swarm`) is tracked in
+`docs/specs/swarm-ghcr-image.md`. Maintainer verification on **2026-06-24**
+records `:main` as **verified-public** (workbench/experimental tier; bootstrap
+amd64-only). It is not a publication release artifact.
+
 The first publishing evidence artifact is the existing
 `cargo xtask publish-surface --json --verify-publish` output. A separate
 Rust-owned wrapper receipt is deferred until a consumer needs one. The current
@@ -70,7 +76,9 @@ The current evidence outputs are:
 | CI lane whitelist release entries | `policy/ci-lane-whitelist.toml` | Release and publishing lane owner, trigger, blocking status, evidence, and proof obligation. | It is not a workflow run result. | Inspect the checked policy and validate with `cargo xtask proof-policy --check`. |
 | CI risk-pack plan | `cargo xtask ci-plan --json-out target/ci/ci-plan.json --github-output target/ci/ci-plan.outputs` | PR risk-pack and lane-selection routing, including release-facing lanes when matched. | It does not replace the selected CI jobs. | Run the command for the PR range and labels. |
 | Release workflow jobs | `.github/workflows/release.yml` and hosted workflow artifacts | Build, GitHub release, crates.io publish, and Docker publication behavior for tagged releases. | They are mutation surfaces, not pre-release approval receipts. | Review workflow YAML and hosted release-run artifacts after an intentional release run. |
-| GHCR manifest visibility | `docker manifest inspect ghcr.io/effortlessmetrics/tokmd:<tag>` plus GHCR package API state when needed | Consumer-visible Docker tag state after an intentional release. | It does not authorize release reruns, tag rewrites, or alias movement. | Check the expected stable semver tags and, on `denied`, verify package visibility with maintainer package access. |
+| GHCR manifest visibility | `docker manifest inspect ghcr.io/effortlessmetrics/tokmd:<tag>` plus GHCR package API state when needed | Consumer-visible Docker tag state for the publication image after an intentional release from `EffortlessMetrics/tokmd`. | It does not cover swarm workbench GHCR (visibility undecided), authorize release reruns, tag rewrites, or alias movement. | Check the expected stable semver tags and, on `denied`, verify package visibility with maintainer package access. |
+| GHCR visibility verification receipt | `target/publishing/ghcr-visibility-<version>.md` when saved by a maintainer | Maintainer-recorded post-release outcome (`verified-public`, `pending`, or `private-only`). | It does not change GHCR package visibility or approve release mutation. | Fill the template in `docs/publishing-evidence.md` and copy the outcome into the release ledger. |
+| Advisory GHCR manifest step | Hosted release workflow job log for `Advisory public GHCR manifest visibility` | Early signal that unauthenticated manifest inspect passed or is still pending after Docker push. | It does not fail the release, set package visibility, or replace the maintainer receipt. | Read the step output in the intentional release run; follow the maintainer checklist when the step reports pending. |
 
 `publish-surface --json --verify-publish` remains the machine-readable
 authority for package surface and closure readiness. Its important top-level

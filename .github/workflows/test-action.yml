@@ -25,7 +25,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - name: Run tokmd-receipt action
         id: tokmd
@@ -81,7 +81,7 @@ jobs:
         format: [json, jsonl, csv]
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - name: Run tokmd-receipt with ${{ matrix.format }} format
         uses: ./
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - name: Run module mode
         id: module
@@ -632,5 +632,203 @@ jobs:
         run: |
           if [ "${{ steps.baseline_multiline_paths.outcome }}" != "failure" ]; then
             echo "::error::baseline mode should reject multiline multi-path input"
+            exit 1
+          fi
+
+  test-packet:
+    name: Test packet mode
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust for local packet binary
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install local tokmd for packet mode
+        shell: bash
+        run: |
+          cargo install --path crates/tokmd --locked --force --root "$HOME/.local"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/tokmd" packet generate --help >/dev/null
+
+      - name: Run packet mode
+        id: packet
+        uses: ./
+        with:
+          mode: packet
+          base: HEAD
+          head: HEAD
+          paths: crates/tokmd-types/src
+          fail-on: never
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify packet mode
+        shell: bash
+        run: |
+          for path in \
+            sensors/tokmd/manifest.json \
+            sensors/tokmd/analyze.md \
+            sensors/tokmd/analyze.json \
+            sensors/tokmd/context.md; do
+            if [ ! -f "$path" ]; then
+              echo "::error::$path not generated in packet mode"
+              exit 1
+            fi
+          done
+          grep -q '"schema": "tokmd.evidence-packet/v1"' sensors/tokmd/manifest.json
+          if [ "${{ steps.packet.outputs['packet-manifest'] }}" != "sensors/tokmd/manifest.json" ]; then
+            echo "::error::packet-manifest output did not point to sensors/tokmd/manifest.json"
+            exit 1
+          fi
+          if [ "${{ steps.packet.outputs['packet-dir'] }}" != "sensors/tokmd" ]; then
+            echo "::error::packet-dir output did not point to sensors/tokmd"
+            exit 1
+          fi
+          case "${{ steps.packet.outputs['packet-status'] }}" in
+            complete|partial) ;;
+            *)
+              echo "::error::unexpected packet-status '${{ steps.packet.outputs['packet-status'] }}'"
+              exit 1
+              ;;
+          esac
+          if [ -z "${{ steps.packet.outputs['tokmd-version'] }}" ]; then
+            echo "::error::tokmd-version output should be set"
+            exit 1
+          fi
+          if [ -z "${{ steps.packet.outputs['warnings-count'] }}" ]; then
+            echo "::error::warnings-count output should be set"
+            exit 1
+          fi
+          if [ -z "${{ steps.packet.outputs['review-priority-count'] }}" ]; then
+            echo "::error::review-priority-count output should be set"
+            exit 1
+          fi
+          if [ -z "${{ steps.packet.outputs['errors-count'] }}" ]; then
+            echo "::error::errors-count output should be set"
+            exit 1
+          fi
+          if [ -n "${{ steps.packet.outputs['artifact-name'] }}" ]; then
+            echo "::error::artifact-name output should be empty when artifact upload is disabled"
+            exit 1
+          fi
+          if [ -n "${{ steps.packet.outputs.summary }}" ]; then
+            echo "::error::summary output should be empty in packet mode"
+            exit 1
+          fi
+
+      - name: Run packet mode with custom output dir
+        id: packet_custom
+        uses: ./
+        with:
+          mode: packet
+          base: HEAD
+          head: HEAD
+          paths: crates/tokmd-types/src
+          output-dir: review/packet
+          syntax: 'false'
+          fail-on: never
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify packet custom output dir
+        shell: bash
+        run: |
+          if [ ! -f review/packet/manifest.json ]; then
+            echo "::error::review/packet/manifest.json not generated"
+            exit 1
+          fi
+          if [ -f review/packet/syntax.json ]; then
+            echo "::error::syntax.json should be absent when syntax=false"
+            exit 1
+          fi
+          if [ "${{ steps.packet_custom.outputs['packet-dir'] }}" != "review/packet" ]; then
+            echo "::error::packet-dir output did not point to review/packet"
+            exit 1
+          fi
+
+      - name: Run packet mode with invalid fail-on
+        id: packet_bad_fail_on
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: packet
+          base: HEAD
+          head: HEAD
+          paths: crates/tokmd-types/src
+          fail-on: sometimes
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify invalid fail-on rejects
+        shell: bash
+        run: |
+          if [ "${{ steps.packet_bad_fail_on.outcome }}" != "failure" ]; then
+            echo "::error::packet mode should reject an invalid fail-on value"
+            exit 1
+          fi
+
+      - name: Run packet mode with traversal output-dir
+        id: packet_bad_output_dir
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: packet
+          base: HEAD
+          head: HEAD
+          paths: crates/tokmd-types/src
+          output-dir: ../escape
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify traversal output-dir rejects
+        shell: bash
+        run: |
+          if [ "${{ steps.packet_bad_output_dir.outcome }}" != "failure" ]; then
+            echo "::error::packet mode should reject an output-dir with '..' segments"
+            exit 1
+          fi
+
+      - name: Run packet mode with unresolved base
+        id: packet_unresolved_base
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: packet
+          base: refs/heads/__tokmd_missing_base__
+          head: HEAD
+          paths: crates/tokmd-types/src
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify unresolved packet base rejects
+        shell: bash
+        run: |
+          if [ "${{ steps.packet_unresolved_base.outcome }}" != "failure" ]; then
+            echo "::error::packet mode should reject an unresolved base ref"
+            exit 1
+          fi
+
+      - name: Run packet mode with container runtime
+        id: packet_container
+        continue-on-error: true
+        uses: ./
+        with:
+          mode: packet
+          base: HEAD
+          head: HEAD
+          paths: crates/tokmd-types/src
+          runtime: container
+          comment: 'false'
+          artifact: 'false'
+
+      - name: Verify container runtime rejects
+        shell: bash
+        run: |
+          if [ "${{ steps.packet_container.outcome }}" != "failure" ]; then
+            echo "::error::runtime=container should be rejected as pending"
             exit 1
           fi

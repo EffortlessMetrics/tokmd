@@ -76,6 +76,12 @@ path = "docs/specs/handoff-work-order.md"
 status = "active"
 
 [[artifact]]
+id = "evidence-packet-workflow-spec"
+kind = "spec"
+path = "docs/specs/evidence-packet-workflow.md"
+status = "active"
+
+[[artifact]]
 id = "ast-shadow-artifacts-spec"
 kind = "spec"
 path = "docs/specs/ast-shadow.md"
@@ -109,6 +115,18 @@ status = "active"
 id = "dual-repo-topology-spec"
 kind = "spec"
 path = "docs/specs/repo-topology.md"
+status = "active"
+
+[[artifact]]
+id = "swarm-ghcr-image-spec"
+kind = "spec"
+path = "docs/specs/swarm-ghcr-image.md"
+status = "draft"
+
+[[artifact]]
+id = "progress-events-spec"
+kind = "spec"
+path = "docs/specs/progress-events.md"
 status = "active"
 
 [[artifact]]

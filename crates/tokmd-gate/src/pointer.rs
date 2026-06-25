@@ -94,8 +94,8 @@ fn parse_array_index(token: &str) -> Option<usize> {
 /// Escape a string for use in a JSON Pointer.
 /// / -> ~1
 /// ~ -> ~0
-#[allow(dead_code)]
-pub fn escape_token(s: &str) -> String {
+#[cfg(test)]
+fn escape_token(s: &str) -> String {
     s.replace('~', "~0").replace('/', "~1")
 }
 

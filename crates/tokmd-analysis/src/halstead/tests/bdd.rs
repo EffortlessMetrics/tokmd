@@ -422,7 +422,10 @@ fn scenario_zero_distinct_operands_yields_zero_difficulty() {
 // ── Scenario: round_f64 ─────────────────────────────────────────────
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0026 halstead BDD test uses literal float operands"
+)]
 fn scenario_round_f64_basic() {
     assert_eq!(round_f64(std::f64::consts::PI, 2), 3.14);
     assert_eq!(round_f64(std::f64::consts::PI, 4), 3.1416);

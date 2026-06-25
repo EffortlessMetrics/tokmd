@@ -48,44 +48,44 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
-id               = "quality_gate"
+id               = "route_ci_runner"
 workflow         = ".github/workflows/ci.yml"
-job              = "Quality Gate"
-kind             = "policy"
+job              = "Route CI runner"
+kind             = "planner"
 tier             = "frontdoor"
 default_pr       = true
-blocking         = true
+blocking         = false
 runner           = "ubuntu_latest"
-base_lem         = 8
-owner            = "core/policy"
-intent           = "Run repo quality gate through xtask."
-failure_mode     = "Formatting, lint, policy, or product gate drift reaches main."
-proof_obligation = "Run cargo xtask gate --check."
-evidence         = ["job logs", "future policy reports"]
+base_lem         = 1
+owner            = "release/ci"
+intent           = "Choose self-hosted primary vs GitHub-hosted overflow for the single tight gate."
+failure_mode     = "Gate job lands on the wrong runner class without a receipt."
+proof_obligation = "Emit runner and runner_kind outputs from org runner discovery."
+evidence         = ["job outputs"]
 allowed_triggers = ["pull_request", "push"]
 duplicate_of     = []
-review_after     = "2026-06-07"
-expires          = "2026-11-07"
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
 
 [[lane]]
-id               = "proof_policy"
+id               = "tokmd_rust_result"
 workflow         = ".github/workflows/ci.yml"
-job              = "Proof Policy"
-kind             = "policy"
+job              = "Tokmd Rust Result"
+kind             = "rust"
 tier             = "frontdoor"
 default_pr       = true
 blocking         = true
-runner           = "ubuntu_latest"
-base_lem         = 3
-owner            = "proof"
-intent           = "Validate proof policy configuration."
-failure_mode     = "Proof policy config drifts or becomes internally inconsistent."
-proof_obligation = "Run cargo xtask proof-policy --check."
-evidence         = ["job logs"]
+runner           = "mixed"
+base_lem         = 25
+owner            = "release/ci"
+intent           = "Single required check: concurrent gate, tests, proof-policy, and advisory ub-review."
+failure_mode     = "Deterministic static floor or core tests reach main without the required gate passing."
+proof_obligation = "Run cargo xtask gate --check, cargo test --all-features, and cargo xtask proof-policy --check concurrently; assert before job exit."
+evidence         = ["target/ci-core/core.log", "target/ci-core/test.log", "target/ci-core/proof_policy.log", "job logs"]
 allowed_triggers = ["pull_request", "push"]
 duplicate_of     = []
-review_after     = "2026-06-07"
-expires          = "2026-11-07"
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
 
 [[lane]]
 id               = "affected_proof_plan"
@@ -149,7 +149,7 @@ failure_mode     = "Fast proof-run regressions lose visibility before required p
 proof_obligation = "Run cargo xtask proof --profile fast --run-required --allow-ci-required-execution."
 evidence         = ["target/proof-run/proof-run-summary.json", "target/proof-run/proof-run-observation.json"]
 allowed_triggers = ["pull_request"]
-duplicate_of     = ["proof_policy", "affected_proof_plan"]
+duplicate_of     = ["tokmd_rust_result", "affected_proof_plan"]
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
@@ -257,25 +257,10 @@ expires          = "2026-11-07"
 # Build and risk-gated CI lanes
 # -----------------------------------------------------------------------
 
-[[lane]]
-id               = "build_test_linux"
-workflow         = ".github/workflows/ci.yml"
-job              = "Build & Test (Linux)"
-kind             = "rust"
-tier             = "frontdoor"
-default_pr       = true
-blocking         = true
-runner           = "ubuntu_latest"
-base_lem         = 12
-owner            = "core/build"
-intent           = "Run full all-features tests on Ubuntu."
-failure_mode     = "All-features Linux test failure reaches main."
-proof_obligation = "Run cargo test --all-features on Linux."
-evidence         = ["job logs"]
-allowed_triggers = ["pull_request", "push"]
-duplicate_of     = ["quality_gate"]
-review_after     = "2026-06-07"
-expires          = "2026-11-07"
+# Retired phase 1 lanes (folded into tokmd_rust_result, #226 phase 2):
+# - quality_gate (Quality Gate job)
+# - proof_policy (Proof Policy job)
+# - build_test_linux (Build & Test (Linux) job)
 
 [[lane]]
 id               = "build_test_windows"
@@ -295,7 +280,7 @@ evidence         = ["job logs"]
 allowed_triggers = ["pull_request", "push"]
 expensive        = true
 labels           = ["windows"]
-duplicate_of     = ["build_test_linux"]
+duplicate_of     = ["tokmd_rust_result"]
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
@@ -410,85 +395,15 @@ expires                = "2026-08-07"
 # Swarm routed frontdoor lanes
 # -----------------------------------------------------------------------
 
-[[lane]]
-id               = "tokmd_rust_small_route"
-workflow         = ".github/workflows/em-routed-rust-small.yml"
-job              = "Route Tokmd Rust Small"
-kind             = "planner"
-tier             = "frontdoor"
-default_pr       = true
-blocking         = false
-runner           = "ubuntu_latest"
-base_lem         = 1
-owner            = "release/ci"
-intent           = "Select the trusted Rust Small runner for tokmd-swarm PRs and dispatches."
-failure_mode     = "Swarm PRs cannot choose a safe runner or fall back to GitHub-hosted."
-proof_obligation = "Inspect trusted event shape and runner availability, then emit the selected target."
-evidence         = ["job outputs", "router_target log line"]
-allowed_triggers = ["pull_request", "merge_group", "workflow_dispatch"]
-duplicate_of     = []
-review_after     = "2026-06-21"
-expires          = "2026-11-21"
-
-[[lane]]
-id               = "tokmd_rust_small_self_hosted"
-workflow         = ".github/workflows/em-routed-rust-small.yml"
-job              = "Tokmd Rust Small on Self Hosted"
-kind             = "rust"
-tier             = "frontdoor"
-default_pr       = false
-blocking         = false
-runner           = "em_ci_small"
-base_lem         = 12
-owner            = "release/ci"
-intent           = "Run the tokmd Rust Small check/test lane on the trusted self-hosted pool when selected."
-failure_mode     = "Self-hosted routed CI regressions are not caught before swarm merge."
-proof_obligation = "Run cargo check and cargo test for the workspace with all features."
-evidence         = ["job logs", "toolchain preflight"]
-allowed_triggers = ["pull_request", "merge_group", "workflow_dispatch"]
-duplicate_of     = ["build_test_linux"]
-review_after     = "2026-06-21"
-expires          = "2026-11-21"
-
-[[lane]]
-id               = "tokmd_rust_small_github"
-workflow         = ".github/workflows/em-routed-rust-small.yml"
-job              = "Tokmd Rust Small on GitHub Hosted"
-kind             = "rust"
-tier             = "frontdoor"
-default_pr       = false
-blocking         = false
-runner           = "ubuntu_latest"
-base_lem         = 20
-owner            = "release/ci"
-intent           = "Run the tokmd Rust Small check/test lane on GitHub-hosted fallback when no trusted runner is selected."
-failure_mode     = "Fallback routed CI regresses and swarm PRs lose a safe hosted path."
-proof_obligation = "Run cargo check and cargo test for the workspace with all features."
-evidence         = ["job logs"]
-allowed_triggers = ["pull_request", "merge_group", "workflow_dispatch"]
-duplicate_of     = ["build_test_linux"]
-review_after     = "2026-06-21"
-expires          = "2026-11-21"
-
-[[lane]]
-id               = "tokmd_rust_small_result"
-workflow         = ".github/workflows/em-routed-rust-small.yml"
-job              = "Tokmd Rust Small Result"
-kind             = "summary"
-tier             = "summary"
-default_pr       = true
-blocking         = true
-runner           = "ubuntu_latest"
-base_lem         = 20
-owner            = "release/ci"
-intent           = "Normalize the selected routed Rust Small implementation job into one branch-protection check and carry its conservative PR Plan budget."
-failure_mode     = "Swarm branch protection fragments across conditional runner jobs."
-proof_obligation = "Fail unless the router and the selected implementation job succeeded; budget as one selected implementation path, not every conditional job."
-evidence         = ["target/ci/routed-rust-small-result.json", "GITHUB_STEP_SUMMARY", "selected target result"]
-allowed_triggers = ["pull_request", "merge_group", "workflow_dispatch"]
-duplicate_of     = []
-review_after     = "2026-06-21"
-expires          = "2026-11-21"
+# Retired phase 3 lanes (#299): the duplicate `em-routed-rust-small.yml`
+# frontdoor was removed. Its routing now lives in the `Route CI runner`
+# (route_ci_runner) job of `ci.yml`, and its check/test work is the single
+# required `Tokmd Rust Result` (tokmd_rust_result) gate. Branch protection
+# already required only `Tokmd Rust Result`, so no required check changed.
+# - tokmd_rust_small_route        (Route Tokmd Rust Small)
+# - tokmd_rust_small_self_hosted  (Tokmd Rust Small on Self Hosted)
+# - tokmd_rust_small_github       (Tokmd Rust Small on GitHub Hosted)
+# - tokmd_rust_small_result       (Tokmd Rust Small Result)
 
 # -----------------------------------------------------------------------
 # Push / main-only lanes
@@ -567,6 +482,46 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
+id               = "ci_gate_contract_reference"
+workflow         = ".github/workflows/ci-policy.yml"
+job              = "CI Gate Contract (reference)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "release/ci"
+intent           = "Verify the reference single-tight CI gate fixture matches contract markers."
+failure_mode     = "Reference fixture drifts from the ub-review gate contract before live migration."
+proof_obligation = "Run cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml."
+evidence         = ["job logs"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
+id               = "ci_gate_contract_live_gap"
+workflow         = ".github/workflows/ci-policy.yml"
+job              = "CI Gate Contract (live gap)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 2
+owner            = "release/ci"
+intent           = "Verify live ci.yml keeps the single-tight ub-review gate contract shape."
+failure_mode     = "Live workflow drifts from the phase-2 gate contract without detection."
+proof_obligation = "Run cargo xtask ci-gate-contract --check --workflow .github/workflows/ci.yml."
+evidence         = ["GITHUB_STEP_SUMMARY"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["ci_gate_contract_reference"]
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
 id               = "pr_cockpit_report"
 workflow         = ".github/workflows/cockpit.yml"
 job              = "PR Cockpit Report"
@@ -602,7 +557,47 @@ failure_mode     = "Schema, stale-entry, or expired panic-family policy drift re
 proof_obligation = "Run cargo xtask check-no-panic-family --json."
 evidence         = ["target/tokmd/reports/no-panic-report.json"]
 allowed_triggers = ["pull_request", "push"]
-duplicate_of     = ["quality_gate"]
+duplicate_of     = ["tokmd_rust_result"]
+review_after     = "2026-06-07"
+expires          = "2026-11-07"
+
+[[lane]]
+id               = "bindings_parity"
+workflow         = ".github/workflows/bindings-parity.yml"
+job              = "Bindings Parity (advisory)"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 8
+owner            = "bindings"
+intent           = "Verify tokmd-core FFI envelope parity against shared fixtures and binding guard tests."
+failure_mode     = "Python/Node bindings drift from Rust FFI envelope without detection."
+proof_obligation = "Run cargo xtask bindings-parity --check."
+evidence         = ["target/tokmd/reports/bindings-parity-report.json"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-07-07"
+expires          = "2026-12-07"
+
+[[lane]]
+id               = "clippy_exceptions"
+workflow         = ".github/workflows/clippy-exceptions-policy.yml"
+job              = "Clippy Exceptions"
+kind             = "policy"
+tier             = "frontdoor"
+default_pr       = true
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 3
+owner            = "core/policy"
+intent           = "Verify the clippy exception ledger and ledger-linked expect attributes."
+failure_mode     = "Schema, stale-entry, or expired clippy-exception policy drift reaches main."
+proof_obligation = "Run cargo xtask check-clippy-exceptions --strict."
+evidence         = ["target/tokmd/reports/clippy-exceptions-stderr.txt"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = ["tokmd_rust_result"]
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
@@ -916,21 +911,61 @@ review_after     = "2026-06-07"
 expires          = "2026-11-07"
 
 [[lane]]
-id               = "ci_required"
-workflow         = ".github/workflows/ci.yml"
-job              = "CI (Required)"
-kind             = "summary"
-tier             = "summary"
-default_pr       = true
-blocking         = true
+id               = "test_action_packet"
+workflow         = ".github/workflows/test-action.yml"
+job              = "Test packet mode"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
 runner           = "ubuntu_latest"
-base_lem         = 1
-owner            = "release/ci"
-intent           = "Aggregate required CI jobs into a single branch-protection target."
-failure_mode     = "Branch protection fragments across many required jobs and drifts."
-proof_obligation = "Read needs context and fail if any required job failed or was cancelled."
-evidence         = ["GITHUB_STEP_SUMMARY", "target/ci/needs.json", "target/ci/timings.json", "target/ci/ci-actuals.json"]
-allowed_triggers = ["pull_request", "push"]
+base_lem         = 6
+owner            = "release/action"
+intent           = "Verify the action's packet mode generates a sensors/tokmd packet."
+failure_mode     = "The packet mode silently regresses for downstream consumers."
+proof_obligation = "Drive the action with mode=packet, fail-on, output-dir, and runtime permutations."
+evidence         = ["action job logs"]
+allowed_triggers = ["pull_request", "push", "workflow_dispatch"]
 duplicate_of     = []
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
+
+[[lane]]
+id               = "swarm_ghcr_publish"
+workflow         = ".github/workflows/swarm-ghcr.yml"
+job              = "Build and Push Swarm GHCR Image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 25
+owner            = "distribution/swarm-ghcr"
+intent           = "Build and push the workbench GHCR image for tokmd-swarm main."
+failure_mode     = "Swarm workbench image missing or stale on ghcr.io/effortlessmetrics/tokmd-swarm."
+proof_obligation = "Run docker buildx build and push with main and sha-* tags."
+evidence         = ["swarm-ghcr workflow logs", "registry tag or manifest visibility check"]
+allowed_triggers = ["push", "workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-07-22"
+expires          = "2026-12-22"
+
+[[lane]]
+id               = "ci_actuals_advisory"
+workflow         = ".github/workflows/ci.yml"
+job              = "CI Actuals (Advisory)"
+kind             = "summary"
+tier             = "summary"
+default_pr       = true
+blocking         = false
+runner           = "ubuntu_latest"
+base_lem         = 1
+owner            = "release/ci"
+intent           = "Emit CI actuals and LEM timing receipts without aggregating branch protection."
+failure_mode     = "Learned LEM estimates and lane receipts disappear after gate consolidation."
+proof_obligation = "Read needs context, optional timing sidecar, and write target/ci/ci-actuals.json."
+evidence         = ["GITHUB_STEP_SUMMARY", "target/ci/needs.json", "target/ci/timings.json", "target/ci/ci-actuals.json"]
+allowed_triggers = ["pull_request", "push"]
+duplicate_of     = []
+review_after     = "2026-07-07"
+expires          = "2026-12-07"

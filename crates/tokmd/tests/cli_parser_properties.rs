@@ -30,6 +30,8 @@ const PARSER_SUBCOMMANDS: &[&str] = &[
     #[cfg(feature = "ast")]
     "syntax",
     "evidence-packet",
+    "packet",
+    "render",
 ];
 
 fn parser_subcommands() -> impl Strategy<Value = &'static str> {

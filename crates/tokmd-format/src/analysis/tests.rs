@@ -500,7 +500,10 @@ fn test_render_obj_coordinate_math() {
 
     // Parse the OBJ output into objects with their vertices
     // Each object starts with "o <name>" followed by 8 vertices
-    #[allow(clippy::type_complexity)]
+    #[expect(
+        clippy::type_complexity,
+        reason = "policy:clippy-0020 OBJ vertex parser tuple type in fun render test"
+    )]
     let objects: Vec<(&str, Vec<(f32, f32, f32)>)> = result
         .split("o ")
         .skip(1)
@@ -1552,121 +1555,4 @@ fn test_render_html() {
     receipt.derived = Some(sample_derived());
     let result = render_html(&receipt);
     assert!(result.contains("<!DOCTYPE html>") || result.contains("<html"));
-}
-
-/// Markdown rendering.
-#[allow(dead_code)]
-fn test_derived_report_for_effort(code_lines: usize) -> DerivedReport {
-    let ratio_zero = RatioReport {
-        total: RatioRow {
-            key: "total".into(),
-            numerator: 0,
-            denominator: code_lines,
-            ratio: 0.0,
-        },
-        by_lang: vec![],
-        by_module: vec![],
-    };
-
-    let rate_zero = RateReport {
-        total: RateRow {
-            key: "total".into(),
-            numerator: 0,
-            denominator: code_lines,
-            rate: 0.0,
-        },
-        by_lang: vec![],
-        by_module: vec![],
-    };
-
-    DerivedReport {
-        totals: DerivedTotals {
-            files: 10,
-            code: code_lines,
-            comments: 100,
-            blanks: 50,
-            lines: code_lines + 150,
-            bytes: code_lines * 40,
-            tokens: code_lines * 3,
-        },
-        doc_density: ratio_zero.clone(),
-        whitespace: ratio_zero,
-        verbosity: rate_zero,
-        max_file: MaxFileReport {
-            overall: FileStatRow {
-                path: "src/main.rs".into(),
-                module: "src".into(),
-                lang: "Rust".into(),
-                code: code_lines,
-                comments: 0,
-                blanks: 0,
-                lines: code_lines,
-                bytes: code_lines * 40,
-                tokens: code_lines * 3,
-                doc_pct: None,
-                bytes_per_line: Some(40.0),
-                depth: 1,
-            },
-            by_lang: vec![],
-            by_module: vec![],
-        },
-        lang_purity: LangPurityReport { rows: vec![] },
-        nesting: NestingReport {
-            max: 1,
-            avg: 1.0,
-            by_module: vec![],
-        },
-        test_density: TestDensityReport {
-            test_lines: 0,
-            prod_lines: code_lines,
-            test_files: 0,
-            prod_files: 10,
-            ratio: 0.0,
-        },
-        boilerplate: BoilerplateReport {
-            infra_lines: 0,
-            logic_lines: code_lines,
-            ratio: 0.0,
-            infra_langs: vec![],
-        },
-        polyglot: PolyglotReport {
-            lang_count: 1,
-            entropy: 0.0,
-            dominant_lang: "Rust".into(),
-            dominant_lines: code_lines,
-            dominant_pct: 1.0,
-        },
-        distribution: DistributionReport {
-            count: 10,
-            min: 10,
-            max: code_lines,
-            mean: code_lines as f64 / 10.0,
-            median: code_lines as f64 / 10.0,
-            p90: code_lines as f64,
-            p99: code_lines as f64,
-            gini: 0.0,
-        },
-        histogram: vec![],
-        top: TopOffenders {
-            largest_lines: vec![],
-            largest_tokens: vec![],
-            largest_bytes: vec![],
-            least_documented: vec![],
-            most_dense: vec![],
-        },
-        tree: None,
-        reading_time: ReadingTimeReport {
-            minutes: 1.0,
-            lines_per_minute: 200,
-            basis_lines: code_lines,
-        },
-        context_window: None,
-        cocomo: None,
-        todo: None,
-        integrity: IntegrityReport {
-            algo: "blake3".into(),
-            hash: "test".into(),
-            entries: 10,
-        },
-    }
 }

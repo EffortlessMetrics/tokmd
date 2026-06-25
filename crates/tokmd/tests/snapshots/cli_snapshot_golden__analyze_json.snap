@@ -1,6 +1,7 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
-expression: normalize(&stdout)
+assertion_line: 35
+expression: normalize(stdout)
 ---
 {
   "schema_version": 9,
@@ -841,8 +842,8 @@ expression: normalize(&stdout)
       "grade": "A"
     },
     "technical_debt": {
-      "ratio": 153.85,
-      "complexity_points": 4,
+      "ratio": 115.38,
+      "complexity_points": 3,
       "code_kloc": 0.026,
       "level": "critical"
     },
@@ -855,14 +856,6 @@ expression: normalize(&stdout)
         "cyclomatic_complexity": 1,
         "cognitive_complexity": 0,
         "max_nesting": 2,
-        "risk_level": "low"
-      },
-      {
-        "path": "script.js",
-        "module": "(root)",
-        "function_count": 0,
-        "max_function_length": 0,
-        "cyclomatic_complexity": 1,
         "risk_level": "low"
       },
       {
@@ -883,6 +876,14 @@ expression: normalize(&stdout)
         "cyclomatic_complexity": 1,
         "cognitive_complexity": 0,
         "max_nesting": 1,
+        "risk_level": "low"
+      },
+      {
+        "path": "script.js",
+        "module": "(root)",
+        "function_count": 0,
+        "max_function_length": 0,
+        "cyclomatic_complexity": 0,
         "risk_level": "low"
       }
     ]

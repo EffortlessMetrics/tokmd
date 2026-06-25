@@ -53,11 +53,11 @@ pub struct CliContextArgs {
     pub no_git: bool,
 
     /// Maximum commits to scan for git metrics.
-    #[arg(long, default_value = "1000")]
+    #[arg(long, default_value = "1000", value_parser = super::validate::positive_usize)]
     pub max_commits: usize,
 
     /// Maximum files per commit to process.
-    #[arg(long, default_value = "100")]
+    #[arg(long, default_value = "100", value_parser = super::validate::positive_usize)]
     pub max_commit_files: usize,
 
     /// Write output to file instead of stdout.
@@ -81,11 +81,11 @@ pub struct CliContextArgs {
     pub log: Option<PathBuf>,
 
     /// Maximum fraction of budget a single file may consume (0.0–1.0).
-    #[arg(long, default_value = "0.15")]
+    #[arg(long, default_value = "0.15", value_parser = super::validate::budget_fraction)]
     pub max_file_pct: f64,
 
     /// Hard cap on tokens per file (overrides percentage-based cap).
-    #[arg(long)]
+    #[arg(long, value_parser = super::validate::positive_usize)]
     pub max_file_tokens: Option<usize>,
 
     /// Error if git scores are unavailable when using churn/hotspot ranking.
@@ -183,19 +183,19 @@ pub struct HandoffArgs {
     pub no_git: bool,
 
     /// Maximum commits to scan for git metrics.
-    #[arg(long, default_value = "1000")]
+    #[arg(long, default_value = "1000", value_parser = super::validate::positive_usize)]
     pub max_commits: usize,
 
     /// Maximum files per commit to process.
-    #[arg(long, default_value = "100")]
+    #[arg(long, default_value = "100", value_parser = super::validate::positive_usize)]
     pub max_commit_files: usize,
 
     /// Maximum fraction of budget a single file may consume (0.0–1.0).
-    #[arg(long, default_value = "0.15")]
+    #[arg(long, default_value = "0.15", value_parser = super::validate::budget_fraction)]
     pub max_file_pct: f64,
 
     /// Hard cap on tokens per file (overrides percentage-based cap).
-    #[arg(long)]
+    #[arg(long, value_parser = super::validate::positive_usize)]
     pub max_file_tokens: Option<usize>,
 
     /// Link an existing cockpit review packet directory from the handoff bundle.

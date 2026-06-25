@@ -69,7 +69,10 @@ pub(crate) fn write_to_destination(
 }
 
 /// Append a context JSONL log record.
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0001 context log record captures receipt metadata in one append call"
+)]
 pub(crate) fn append_context_log_record(
     path: &Path,
     args: &cli::CliContextArgs,

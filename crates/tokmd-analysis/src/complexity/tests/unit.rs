@@ -1,3 +1,4 @@
+use super::risk::estimate_cyclomatic;
 use super::*;
 
 #[test]

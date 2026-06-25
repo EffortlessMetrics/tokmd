@@ -380,7 +380,7 @@ mod edge_cases {
         let r =
             build_complexity_report(dir.path(), &files, &data, &default_limits(), false).unwrap();
         if !r.files.is_empty() {
-            assert_eq!(r.files[0].cyclomatic_complexity, 1);
+            assert_eq!(r.files[0].cyclomatic_complexity, 0);
         }
     }
 

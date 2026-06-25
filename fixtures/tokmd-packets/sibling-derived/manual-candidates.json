@@ -1,0 +1,15 @@
+{
+  "schema_version": "manual-candidates/v1",
+  "candidates": [
+    {
+      "id": "seed-42",
+      "title": "MarkdownObject UTF-8 boundary",
+      "invariant": "UTF-8 bounds on malformed input",
+      "safe_caller": "TextDecoder.decode",
+      "location_text": "src/runtime/api/MarkdownObject.rs:120",
+      "proof_mode": "manual witness required",
+      "fix_boundary": "narrow UTF-8 validation at JS seam only",
+      "test_targets": ["utf8-boundary-fixture"]
+    }
+  ]
+}

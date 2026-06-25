@@ -34,6 +34,8 @@ mod context;
 mod diff;
 mod evidence_packet;
 mod inventory;
+mod packet_siblings;
+mod tokmd_packets;
 
 pub use context::{
     ArtifactEntry, ArtifactHash, CONTEXT_BUNDLE_SCHEMA_VERSION, CONTEXT_SCHEMA_VERSION,
@@ -54,6 +56,14 @@ pub use inventory::{
     LangArgsMeta, LangReceipt, LangReport, LangRow, ModuleArgs, ModuleArgsMeta, ModuleReceipt,
     ModuleReport, ModuleRow, RedactMode, RunReceipt, ScanArgs, ScanStatus, TableFormat, ToolInfo,
     Totals,
+};
+pub use packet_siblings::{
+    CARDS_FILE, CardsFile, MANUAL_CANDIDATES_FILE, MANUAL_CANDIDATES_SCHEMA, ManualCandidateRecord,
+    ManualCandidatesFile, PacketRenderBundle, PacketSiblingInputs, ReviewCardRecord,
+};
+pub use tokmd_packets::{
+    BUN_UB_PACKET_PRESETS, PacketPresetInput, TOKMD_PACKETS_SCHEMA, TokmdPacketsManifest,
+    TokmdPacketsProducer,
 };
 
 #[cfg(test)]

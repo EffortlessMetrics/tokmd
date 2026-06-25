@@ -52,7 +52,9 @@ carveouts such as `allow-unwrap-in-tests`, `allow-expect-in-tests`,
 - `policy/clippy-exceptions.toml` is the AST-backed Clippy exception ledger.
   Every `#[expect(clippy::<lint>, reason = "policy:clippy-NNNN ...")]` attribute
   in source must link to an entry here. Validated by
-  `cargo xtask check-clippy-exceptions`.
+  `cargo xtask check-clippy-exceptions --strict` (see
+  `policy/clippy-exceptions-baseline-receipt.json` for the current rollout
+  scope).
 - `clippy.toml` is reserved for repo-specific `disallowed-*` policy. It must not
   weaken the workspace baseline.
 

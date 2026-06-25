@@ -2,7 +2,8 @@
 
 - Status: draft
 - Schema family, if any: `tokmd.syntax_receipt.v1`
-- Related ADRs: `docs/adr/0008-ast-foundation.md`
+- Related ADRs: `docs/adr/0008-ast-foundation.md`,
+  `docs/adr/0014-schema-identity-idioms.md`
 - Related proof scopes: `analysis_ast_shadow`
 
 ## Contract
@@ -219,9 +220,53 @@ A syntax parse receipt uses schema family `tokmd.syntax_receipt.v1`:
         "end_column": 3
       }
     }
-  ]
+  ],
+  "panic_seam_summary": null
 }
 ```
+
+When a file contains parser-detected panic seams, `panic_seam_summary` is an object:
+
+```json
+{
+  "non_claims": [
+    "syntax-only seam inventory; does not prove public reachability, interprocedural paths, runtime guard correctness, or bug presence"
+  ],
+  "entries": [
+    {
+      "kind": "expect",
+      "evidence": "raw.expect(\"caller checked raw input\")",
+      "span": { "start_line": 8, "start_column": 5, "end_line": 8, "end_column": 45 },
+      "entry_symbol": "load_packet",
+      "public_surface": true,
+      "guard_status": "unguarded",
+      "input_source": "parameter",
+      "input_hints": ["raw"],
+      "failure_mode": "abort"
+    }
+  ],
+  "counts": {
+    "total": 1,
+    "unguarded": 1,
+    "guarded": 0,
+    "public_surface": 1,
+    "js_arg_suspect": 0
+  }
+}
+```
+
+`panic_seam_summary` fields:
+
+| Field | Meaning |
+| --- | --- |
+| `entry_symbol` | Lexically containing public/API-ish symbol, when detectable. |
+| `public_surface` | Seam sits inside a public/API-ish symbol. Not interprocedural reachability. |
+| `guard_status` | `guarded` when nearby `if`/`match` guard evidence wraps the seam line; otherwise `unguarded`. |
+| `input_source` | `parameter`, `constant`, `internal`, `js_arg_suspect` (FFI/export entry + parameter hint), or `unknown`. |
+| `input_hints` | Parameter or identifier hints extracted from syntax evidence. |
+| `failure_mode` | Advisory abort/OOB/capacity/assertion classification. |
+
+Files without panic seams set `panic_seam_summary` to `null`.
 
 Supported statuses:
 
@@ -244,7 +289,14 @@ Review signals are deterministic, derived from the fact arrays, and may be
 empty. They are advisory ordering hints for later evidence packets and review
 priority summaries, not semantic reachability or bug claims. Signal categories
 are intentionally language-agnostic so consumers can rank review targets without
-knowing every parser-specific seam kind:
+knowing every parser-specific seam kind.
+
+For panic/native review presets such as `bun-ub`, syntax ranking deprioritizes
+`panic_seam` signals tagged with `test_context: true`. These come from Rust
+`#[cfg(test)]` modules, `mod tests` blocks, `#[test]` functions, or equivalent
+test-only regions where assertion macros would otherwise crowd production panic
+seams. Deprioritized signals keep their original kind and evidence but surface
+with lower effective `severity`/`score` and an explicit reason suffix.
 
 | Category | Typical source |
 | --- | --- |
@@ -336,5 +388,6 @@ The `tokmd syntax` command is the first explicit producer for these receipts.
 Default analysis, cockpit, context, handoff, FFI, Python, Node, and WASM outputs
 remain unchanged. Evidence packet manifests may index `syntax.json` and surface
 its `review_signals` as advisory `review_priority` items with refs back to the
-syntax receipt. Specialized panic-seam receipts remain a later, separate
-contract.
+syntax receipt. The `panic_seam_summary` field on `tokmd.syntax_receipt.v1` derives
+guard status, input-source hints, and FFI/JS-arg suspects from syntax facts for
+crash-hunting agents. It remains advisory and does not prove reachability.

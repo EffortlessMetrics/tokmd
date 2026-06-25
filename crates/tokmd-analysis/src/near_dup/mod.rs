@@ -36,13 +36,15 @@ mod moved_tests;
 /// Limits controlling file scope for near-duplicate fingerprinting.
 #[derive(Debug, Clone, Copy, Default)]
 pub(crate) struct NearDupLimits {
-    #[allow(dead_code)]
     pub(crate) max_bytes: Option<u64>,
     pub(crate) max_file_bytes: Option<u64>,
 }
 
 /// Build a near-duplicate report for the given export data.
-#[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_arguments,
+    reason = "policy:clippy-0003 near-dup report builder threads scope, limits, and export inputs"
+)]
 pub(crate) fn build_near_dup_report(
     root: &Path,
     export: &ExportData,

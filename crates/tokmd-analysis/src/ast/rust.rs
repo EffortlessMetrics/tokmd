@@ -102,7 +102,7 @@ fn visit_syntax_node(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
         "call_expression" => push_rust_call(node, source, facts),
         "macro_invocation" => push_rust_macro(node, source, facts),
         "index_expression" => {
-            push_rust_risk("indexing", node_text(source, node), node, facts);
+            push_rust_risk("indexing", node_text(source, node), node, source, facts);
             push_guard_evidence(node, source, facts);
         }
         _ => {}
@@ -130,6 +130,8 @@ fn push_rust_symbol(node: Node<'_>, source: &str, kind: &str, facts: &mut Syntax
         span,
         exported,
         public_surface: exported,
+        parameters: function_parameters(node, source),
+        ffi_entry: is_ffi_entry(node, source),
     });
 
     if exported {
@@ -176,23 +178,29 @@ fn push_rust_call(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
     });
 
     if is_capacity_callee(&callee) {
-        push_rust_risk("capacity_allocation", callee.as_str(), node, facts);
+        push_rust_risk("capacity_allocation", callee.as_str(), node, source, facts);
         push_guard_evidence(node, source, facts);
     }
     if is_fallible_conversion_callee(&callee) {
-        push_rust_risk("fallible_conversion", callee.as_str(), node, facts);
+        push_rust_risk("fallible_conversion", callee.as_str(), node, source, facts);
     }
     if let Some(method) = method_name_from_callee(&callee) {
         match method.as_str() {
             "unwrap" | "unwrap_unchecked" => {
-                push_rust_risk("unwrap", callee.as_str(), node, facts);
+                push_rust_risk("unwrap", callee.as_str(), node, source, facts);
                 push_guard_evidence(node, source, facts);
             }
             "expect" => {
                 if callee.contains("try_from") || callee.contains("try_into") {
-                    push_rust_risk("fallible_conversion_expect", callee.as_str(), node, facts);
+                    push_rust_risk(
+                        "fallible_conversion_expect",
+                        callee.as_str(),
+                        node,
+                        source,
+                        facts,
+                    );
                 } else {
-                    push_rust_risk("expect", callee.as_str(), node, facts);
+                    push_rust_risk("expect", callee.as_str(), node, source, facts);
                 }
                 push_guard_evidence(node, source, facts);
             }
@@ -219,16 +227,23 @@ fn push_rust_macro(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
     });
 
     if let Some(kind) = risky_macro_kind(macro_name.as_str()) {
-        push_rust_risk(kind, node_text(source, node), node, facts);
+        push_rust_risk(kind, node_text(source, node), node, source, facts);
         push_guard_evidence(node, source, facts);
     }
 }
 
-fn push_rust_risk(kind: &str, evidence: &str, node: Node<'_>, facts: &mut SyntaxFacts) {
+fn push_rust_risk(
+    kind: &str,
+    evidence: &str,
+    node: Node<'_>,
+    source: &str,
+    facts: &mut SyntaxFacts,
+) {
     facts.risk_seams.push(SyntaxRiskSeam {
         kind: kind.to_owned(),
         evidence: compact_text(evidence),
         span: SyntaxSpan::from_node(node),
+        test_context: is_rust_test_context(node, source),
     });
 }
 
@@ -240,7 +255,83 @@ fn push_guard_evidence(node: Node<'_>, source: &str, facts: &mut SyntaxFacts) {
         kind: "guard_evidence".to_owned(),
         evidence: compact_text(node_text(source, guard)),
         span: SyntaxSpan::from_node(guard),
+        test_context: is_rust_test_context(node, source),
     });
+}
+
+fn is_rust_test_context(mut node: Node<'_>, source: &str) -> bool {
+    loop {
+        if is_rust_test_container(node, source) {
+            return true;
+        }
+        node = match node.parent() {
+            Some(parent) => parent,
+            None => return false,
+        };
+    }
+}
+
+fn is_rust_test_container(node: Node<'_>, source: &str) -> bool {
+    match node.kind() {
+        "mod_item" => {
+            is_tests_module(node, source)
+                || outer_attributes_match(node, source, attribute_text_is_cfg_test)
+        }
+        "function_item" => {
+            outer_attributes_match(node, source, |source, attribute| {
+                attribute_text_is_test(source, attribute)
+                    || attribute_text_is_cfg_test(source, attribute)
+            }) || node_has_test_attribute(node, source)
+        }
+        _ => false,
+    }
+}
+
+fn outer_attributes_match(
+    node: Node<'_>,
+    source: &str,
+    predicate: impl Fn(&str, Node<'_>) -> bool,
+) -> bool {
+    let Some(parent) = node.parent() else {
+        return false;
+    };
+    let mut cursor = parent.walk();
+    let mut attributes = Vec::new();
+    for child in parent.children(&mut cursor) {
+        if child.start_byte() == node.start_byte() && child.kind() == node.kind() {
+            return !attributes.is_empty()
+                && attributes
+                    .iter()
+                    .all(|attribute| predicate(source, *attribute));
+        }
+        if child.kind() == "attribute_item" {
+            attributes.push(child);
+        } else {
+            attributes.clear();
+        }
+    }
+    false
+}
+
+fn is_tests_module(node: Node<'_>, source: &str) -> bool {
+    node.child_by_field_name("name")
+        .is_some_and(|name| node_text(source, name) == "tests")
+}
+
+fn node_has_test_attribute(node: Node<'_>, source: &str) -> bool {
+    let mut cursor = node.walk();
+    node.children(&mut cursor)
+        .any(|child| child.kind() == "attribute_item" && attribute_text_is_test(source, child))
+}
+
+fn attribute_text_is_test(source: &str, attribute: Node<'_>) -> bool {
+    let text = compact_text(node_text(source, attribute));
+    text == "#[test]" || text.starts_with("#[test(") || text.starts_with("#[test,")
+}
+
+fn attribute_text_is_cfg_test(source: &str, attribute: Node<'_>) -> bool {
+    let compact: String = node_text(source, attribute).split_whitespace().collect();
+    compact.contains("cfg(test)") || compact.contains("cfg(all(test")
 }
 
 fn nearest_guard(mut node: Node<'_>) -> Option<Node<'_>> {
@@ -371,6 +462,57 @@ fn is_public_surface(node: Node<'_>, source: &str) -> bool {
         || text.contains("extern \"")
         || text.contains("#[no_mangle]")
         || text.contains("#[export_name")
+}
+
+fn is_ffi_entry(node: Node<'_>, source: &str) -> bool {
+    let text = node_text(source, node);
+    text.contains("extern \"C\"")
+        || text.contains("extern \"system\"")
+        || text.contains("#[no_mangle]")
+        || text.contains("#[export_name")
+}
+
+fn function_parameters(node: Node<'_>, source: &str) -> Vec<String> {
+    let Some(parameters) = node.child_by_field_name("parameters") else {
+        return Vec::new();
+    };
+
+    let mut names = Vec::new();
+    let mut cursor = parameters.walk();
+    for child in parameters.named_children(&mut cursor) {
+        if let Some(name) = parameter_name(child, source) {
+            names.push(name);
+        }
+    }
+    names.sort();
+    names.dedup();
+    names
+}
+
+fn parameter_name(node: Node<'_>, source: &str) -> Option<String> {
+    match node.kind() {
+        "parameter" => {
+            if let Some(pattern) = node.child_by_field_name("pattern") {
+                return parameter_pattern_name(pattern, source);
+            }
+            first_identifier_text(node, source)
+        }
+        "self_parameter" => Some("self".to_owned()),
+        _ => None,
+    }
+}
+
+fn parameter_pattern_name(node: Node<'_>, source: &str) -> Option<String> {
+    match node.kind() {
+        "identifier" | "field_identifier" | "type_identifier" => {
+            Some(compact_text(node_text(source, node)))
+        }
+        "ref_pattern" | "mut_pattern" => node
+            .named_child(0)
+            .and_then(|child| parameter_pattern_name(child, source)),
+        "tuple_pattern" | "tuple_struct_pattern" => None,
+        _ => first_identifier_text(node, source),
+    }
 }
 
 fn is_capacity_callee(callee: &str) -> bool {
@@ -588,6 +730,39 @@ fn main() {
                 .iter()
                 .any(|risk| risk.kind == "panic_macro")
         );
+    }
+
+    #[test]
+    fn marks_test_module_assertions_as_test_context() {
+        let facts = parse_facts(
+            r#"
+pub fn production() {
+    None.unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn unit_test() {
+        assert!(true);
+    }
+}
+"#,
+        );
+
+        let production = facts
+            .risk_seams
+            .iter()
+            .find(|risk| risk.kind == "unwrap")
+            .expect("production unwrap seam");
+        assert!(!production.test_context);
+
+        let assertion = facts
+            .risk_seams
+            .iter()
+            .find(|risk| risk.kind == "assert_macro")
+            .expect("test assertion seam");
+        assert!(assertion.test_context);
     }
 
     fn parse_facts(source: &str) -> super::SyntaxFacts {

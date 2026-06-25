@@ -312,10 +312,9 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::approx_constant)]
     fn test_round_f64() {
-        assert_eq!(round_f64(3.14159, 2), 3.14);
-        assert_eq!(round_f64(3.14159, 4), 3.1416);
+        assert_eq!(round_f64(1.234567, 2), 1.23);
+        assert_eq!(round_f64(1.234567, 4), 1.2346);
         assert_eq!(round_f64(100.0, 2), 100.0);
     }
 

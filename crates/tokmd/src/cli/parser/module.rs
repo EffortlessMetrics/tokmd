@@ -10,6 +10,9 @@ use clap::Args;
 use super::{ChildIncludeMode, TableFormat};
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd module --depth 3 --top 10\n  tokmd module crates --format json"
+)]
 pub struct CliModuleArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."
     #[arg(value_name = "PATH")]

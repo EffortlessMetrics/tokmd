@@ -103,11 +103,29 @@ fn check_no_panic_family_help_mentions_json_output() {
 }
 
 #[test]
-fn no_panic_workflow_uses_json_output_artifact() {
+fn check_no_panic_family_strict_mode_passes() {
+    let (stdout, stderr, success) = run_xtask(&["check-no-panic-family", "--strict"]);
+
+    assert!(
+        success,
+        "strict check-no-panic-family failed.\nstdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("0 unallowlisted"),
+        "strict gate should have zero unallowlisted findings: {stdout}"
+    );
+}
+
+#[test]
+fn no_panic_workflow_uses_strict_json_output_artifact() {
     let root = workspace_root();
     let workflow = fs::read_to_string(root.join(".github/workflows/no-panic-policy.yml"))
         .expect("no-panic workflow should be readable");
 
+    assert!(
+        workflow.contains("--strict"),
+        "workflow should run the no-panic checker in strict mode"
+    );
     assert!(
         workflow.contains("--json-output target/tokmd/reports/no-panic-report.json"),
         "workflow should write the no-panic JSON artifact through xtask"
@@ -119,10 +137,16 @@ fn no_panic_workflow_uses_json_output_artifact() {
 }
 
 #[test]
+fn no_panic_workflow_uses_json_output_artifact() {
+    no_panic_workflow_uses_strict_json_output_artifact();
+}
+
+#[test]
 fn xtask_help_mentions_no_panic_gate() {
     let (stdout, stderr, success) = run_xtask(&["--help"]);
 
     assert!(success, "xtask --help failed. stderr: {stderr}");
     assert!(stdout.contains("check-no-panic-family"), "stdout: {stdout}");
     assert!(stdout.contains("no-panic-propose"), "stdout: {stdout}");
+    assert!(stdout.contains("no-panic-baseline"), "stdout: {stdout}");
 }

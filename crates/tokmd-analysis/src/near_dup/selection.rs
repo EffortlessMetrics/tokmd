@@ -23,6 +23,7 @@ pub(super) fn select_files<'a>(
     limits: &NearDupLimits,
     exclude_patterns: &[String],
 ) -> Result<SelectedFiles<'a>> {
+    let _total_budget = limits.max_bytes;
     let max_file_bytes = limits.max_file_bytes.unwrap_or(512_000);
     let glob_set = build_glob_set(exclude_patterns)?;
 

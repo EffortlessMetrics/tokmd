@@ -68,7 +68,10 @@ fn make_analysis_receipt() -> AnalysisReceipt {
 
 #[test]
 fn analysis_schema_version_is_positive() {
-    #[allow(clippy::assertions_on_constants)]
+    #[expect(
+        clippy::assertions_on_constants,
+        reason = "policy:clippy-0028 analysis schema contract tests assert version constants"
+    )]
     {
         assert!(ANALYSIS_SCHEMA_VERSION > 0);
     }
@@ -81,7 +84,10 @@ fn analysis_schema_version_value() {
 
 #[test]
 fn baseline_version_is_positive() {
-    #[allow(clippy::assertions_on_constants)]
+    #[expect(
+        clippy::assertions_on_constants,
+        reason = "policy:clippy-0028 analysis schema contract tests assert version constants"
+    )]
     {
         assert!(BASELINE_VERSION > 0);
     }

@@ -65,6 +65,8 @@ pub enum Commands {
     VersionConsistency(VersionConsistencyArgs),
     /// Verify dependency boundaries for analysis microcrates
     BoundariesCheck(BoundariesCheckArgs),
+    /// Verify tokmd-core FFI envelope parity against shared fixtures and binding tests
+    BindingsParity(BindingsParityArgs),
     /// Reject committed crypto fixture blobs outside approved paths
     FixtureBlobsCheck(FixtureBlobsCheckArgs),
     /// Run pre-merge quality gate (fmt, check, clippy, test-compile)
@@ -97,8 +99,12 @@ pub enum Commands {
     CheckNoPanicFamily(NoPanicArgs),
     /// Propose new no-panic allowlist entries from current findings
     NoPanicPropose(NoPanicProposeArgs),
+    /// Materialize a receipted no-panic allowlist baseline from current findings
+    NoPanicBaseline(NoPanicBaselineArgs),
     /// Verify CI lane whitelist coverage and exception receipts
     CiLaneWhitelist(CiLaneWhitelistArgs),
+    /// Verify single-tight ub-review CI gate contract markers in a workflow file
+    CiGateContract(CiGateContractArgs),
     /// Auto-fix lint issues (fmt + clippy --fix) then verify
     LintFix(LintFixArgs),
     /// Run Cargo through an opt-in local sccache wrapper
@@ -977,6 +983,26 @@ impl Default for CiLaneWhitelistArgs {
     }
 }
 
+#[derive(Args, Debug, Clone)]
+pub struct CiGateContractArgs {
+    /// Workflow YAML to validate against the single-tight gate contract
+    #[arg(long, default_value = ".github/workflows/ci.yml")]
+    pub workflow: std::path::PathBuf,
+
+    /// Treat contract violations as a hard error
+    #[arg(long)]
+    pub check: bool,
+}
+
+impl Default for CiGateContractArgs {
+    fn default() -> Self {
+        Self {
+            workflow: std::path::PathBuf::from(".github/workflows/ci.yml"),
+            check: false,
+        }
+    }
+}
+
 #[derive(Args, Debug, Clone, Default)]
 pub struct NoPanicArgs {
     /// Emit a machine-readable JSON report instead of human output
@@ -1008,6 +1034,31 @@ impl Default for NoPanicProposeArgs {
     fn default() -> Self {
         Self {
             output: std::path::PathBuf::from("target/no-panic-proposed-allowlist.toml"),
+        }
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+pub struct NoPanicBaselineArgs {
+    /// Output path for the receipted allowlist baseline
+    #[arg(long, default_value = "policy/no-panic-allowlist.toml")]
+    pub write: std::path::PathBuf,
+
+    /// Write a machine-readable baseline receipt JSON artifact
+    #[arg(long, value_name = "PATH")]
+    pub receipt_output: Option<std::path::PathBuf>,
+
+    /// ISO-8601 expiry date applied to every generated baseline entry
+    #[arg(long, default_value = "2026-12-31")]
+    pub expires: String,
+}
+
+impl Default for NoPanicBaselineArgs {
+    fn default() -> Self {
+        Self {
+            write: std::path::PathBuf::from("policy/no-panic-allowlist.toml"),
+            receipt_output: None,
+            expires: "2026-12-31".to_string(),
         }
     }
 }
@@ -1755,6 +1806,25 @@ pub struct BumpArgs {
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct BoundariesCheckArgs {}
+
+#[derive(Args, Debug, Clone, Default)]
+pub struct BindingsParityArgs {
+    /// Verify fixture expectations and run binding parity cargo tests
+    #[arg(long)]
+    pub check: bool,
+
+    /// Repo-relative manifest path (default: fixtures/bindings-parity/manifest.json)
+    #[arg(long, value_name = "PATH")]
+    pub manifest: Option<std::path::PathBuf>,
+
+    /// Skip `cargo test` steps for tokmd-core/tokmd-node/tokmd-python
+    #[arg(long)]
+    pub skip_cargo_tests: bool,
+
+    /// Write a machine-readable verification receipt to this path
+    #[arg(long, value_name = "PATH")]
+    pub receipt: Option<std::path::PathBuf>,
+}
 
 #[derive(Args, Debug, Clone, Default)]
 pub struct FixtureBlobsCheckArgs {}

@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://effortlessmetrics.dev/schemas/tokmd/packets.v1.schema.json",
+  "title": "tokmd packet bundle manifest",
+  "description": "Schema for tokmd-packets.json consumed by tokmd render --from-packets.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "tokmd.packets/v1"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string" },
+        "tokmd_run": { "type": "boolean" }
+      },
+      "required": ["name"]
+    },
+    "inputs_present": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "inputs_absent": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "non_claims": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "preset_inputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "sections": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "limitations": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "missing_sections": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

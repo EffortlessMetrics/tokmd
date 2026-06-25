@@ -3,6 +3,8 @@
 - Status: active
 - Schema family, if any: `tokmd.repo_graph.v1`
 - Related ADRs: n/a
+- Related specs: `docs/specs/swarm-ghcr-image.md`,
+  `docs/specs/publishing-evidence.md`
 - Related proof scopes: `project_truth_docs`, `proof_control_plane`
 
 ## Contract
@@ -83,6 +85,17 @@ behavior in `tokmd-swarm`. This includes CI package gates such as
 Swarm-routed workbench workflows must not become required publication release
 gates unless a future ADR and policy update explicitly move that boundary.
 
+GHCR registry ownership is split by repository role:
+
+| Image | Repository | Status |
+| --- | --- | --- |
+| `ghcr.io/effortlessmetrics/tokmd` | publication `tokmd` | Supported public secondary runtime when release ledgers record `verified-public` (see `docs/specs/publishing-evidence.md`). |
+| `ghcr.io/effortlessmetrics/tokmd-swarm` | workbench `tokmd-swarm` | Publish workflow on swarm `main`; **verified-public** for `:main` (2026-06-24, bootstrap amd64-only). Workbench/experimental tier. See `docs/specs/swarm-ghcr-image.md`. |
+
+Publication release workflows must not push the swarm image name. Swarm publish
+workflows must not push publication semver tags or mutate publication release
+records.
+
 This spec does not change product receipts, public CLI behavior, release
 workflow behavior, proof promotion, Codecov defaults, AST behavior, or
 evidencebus runtime behavior.
@@ -133,6 +146,8 @@ cargo xtask proof-policy --check
 
 ## Open Questions
 
+- When to add `linux/arm64` for swarm GHCR after bootstrap amd64-only publish
+  (see `docs/specs/swarm-ghcr-image.md`).
 - Whether future publication-import automation should write a dedicated
   closeout receipt that bundles the pre-publication, merge-commit, and
   post-fast-forward `repo-graph` receipts.

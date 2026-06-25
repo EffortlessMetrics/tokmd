@@ -7,7 +7,7 @@ branding:
 
 inputs:
   mode:
-    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline.'
+    description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline, packet.'
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the latest release.'
@@ -39,6 +39,24 @@ inputs:
   review-packet:
     description: 'Whether mode: cockpit should emit a review packet directory and prepare a hosted comment copy'
     default: 'false'
+  preset:
+    description: 'Analysis preset for mode: packet (analyze.md / analyze.json).'
+    default: 'bun-ub'
+  output-dir:
+    description: 'Output directory for mode: packet artifacts and manifest.json.'
+    default: 'sensors/tokmd'
+  syntax:
+    description: 'Whether mode: packet should request optional syntax.json evidence.'
+    default: 'true'
+  context-budget:
+    description: 'Token budget for the mode: packet context.md artifact.'
+    default: '64000'
+  fail-on:
+    description: 'Failure policy for mode: packet status: failed, partial, or never.'
+    default: 'failed'
+  runtime:
+    description: 'Runtime used to obtain tokmd: binary (default) or container. Container is pending GHCR public-pull verification.'
+    default: 'binary'
 
 outputs:
   receipt:
@@ -62,14 +80,54 @@ outputs:
   baseline-report:
     description: 'Path to the generated baseline JSON file'
     value: ${{ steps.generate.outputs['baseline-report'] }}
+  packet-status:
+    description: 'Evidence packet status from manifest.json for mode: packet (complete, partial, or failed)'
+    value: ${{ steps.generate.outputs['packet-status'] }}
+  packet-manifest:
+    description: 'Path to the generated evidence packet manifest.json for mode: packet'
+    value: ${{ steps.generate.outputs['packet-manifest'] }}
+  packet-dir:
+    description: 'Evidence packet output directory for mode: packet'
+    value: ${{ steps.generate.outputs['packet-dir'] }}
+  review-priority-count:
+    description: 'Count of manifest review_priority entries for mode: packet'
+    value: ${{ steps.generate.outputs['review-priority-count'] }}
+  warnings-count:
+    description: 'Count of manifest warnings for mode: packet'
+    value: ${{ steps.generate.outputs['warnings-count'] }}
+  errors-count:
+    description: 'Count of manifest errors for mode: packet'
+    value: ${{ steps.generate.outputs['errors-count'] }}
+  artifact-name:
+    description: 'Uploaded workflow artifact name when artifact upload is enabled'
+    value: ${{ steps.generate.outputs['artifact-name'] }}
+  tokmd-version:
+    description: 'Version reported by the resolved tokmd runtime binary'
+    value: ${{ steps.generate.outputs['tokmd-version'] }}
 
 runs:
   using: "composite"
   steps:
     - name: Install tokmd
       shell: bash
+      env:
+        TOKMD_ACTION_RUNTIME: ${{ inputs.runtime }}
       run: |
         set -euo pipefail
+
+        runtime="${TOKMD_ACTION_RUNTIME:-binary}"
+        case "$runtime" in
+          binary) ;;
+          container)
+            echo "::error::runtime=container is pending GHCR public-pull verification and is not yet supported. Use runtime=binary (the default). See docs/packet-workflows.md."
+            exit 1
+            ;;
+          *)
+            echo "::error::runtime must be 'binary' or 'container'; received '$runtime'"
+            exit 1
+            ;;
+        esac
+
         if command -v tokmd &> /dev/null; then
           tokmd --version
           exit 0
@@ -166,13 +224,19 @@ runs:
       id: generate
       shell: bash
       env:
+        TOKMD_ACTION_ARTIFACT: ${{ inputs.artifact }}
         TOKMD_ACTION_BASE: ${{ inputs.base }}
+        TOKMD_ACTION_CONTEXT_BUDGET: ${{ inputs.context-budget }}
+        TOKMD_ACTION_FAIL_ON: ${{ inputs.fail-on }}
         TOKMD_ACTION_FORMAT: ${{ inputs.format }}
         TOKMD_ACTION_HEAD: ${{ inputs.head }}
         TOKMD_ACTION_MODE: ${{ inputs.mode }}
         TOKMD_ACTION_MODULE_ROOTS: ${{ inputs.module-roots }}
+        TOKMD_ACTION_OUTPUT_DIR: ${{ inputs.output-dir }}
         TOKMD_ACTION_PATHS: ${{ inputs.paths }}
+        TOKMD_ACTION_PRESET: ${{ inputs.preset }}
         TOKMD_ACTION_REVIEW_PACKET: ${{ inputs.review-packet }}
+        TOKMD_ACTION_SYNTAX: ${{ inputs.syntax }}
         TOKMD_ACTION_TOP: ${{ inputs.top }}
       run: |
         set -euo pipefail
@@ -209,6 +273,12 @@ runs:
         review_packet_dir=""
         sensor_report_file=""
         baseline_report_file=""
+        packet_status=""
+        packet_manifest_file=""
+        packet_dir=""
+        review_priority_count=""
+        warnings_count=""
+        errors_count=""
         command_status=0
         review_packet="${TOKMD_ACTION_REVIEW_PACKET}"
 
@@ -359,11 +429,94 @@ runs:
               --force \
               --no-progress
             ;;
+          packet)
+            fail_on="${TOKMD_ACTION_FAIL_ON:-failed}"
+            case "$fail_on" in
+              failed|partial|never) ;;
+              *)
+                echo "::error::fail-on must be 'failed', 'partial', or 'never'; received '$fail_on'"
+                exit 1
+                ;;
+            esac
+
+            packet_dir="${TOKMD_ACTION_OUTPUT_DIR:-sensors/tokmd}"
+            # Keep the packet directory inside the workspace: reject absolute
+            # paths and any `..` segment so output-dir cannot write or upload
+            # files from outside the checkout.
+            case "$packet_dir" in
+              /* | "")
+                echo "::error::output-dir must be a relative path inside the workspace; received '$packet_dir'"
+                exit 1
+                ;;
+            esac
+            case "/$packet_dir/" in
+              */../*)
+                echo "::error::output-dir must not contain '..' segments; received '$packet_dir'"
+                exit 1
+                ;;
+            esac
+            packet_manifest_file="$packet_dir/manifest.json"
+            compare_base="$(resolve_base_ref packet)"
+
+            packet_args=(
+              generate
+              --preset "$TOKMD_ACTION_PRESET"
+              --base "$compare_base"
+              --head "$TOKMD_ACTION_HEAD"
+              --out "$packet_dir"
+              --context-budget "$TOKMD_ACTION_CONTEXT_BUDGET"
+            )
+
+            case "$TOKMD_ACTION_SYNTAX" in
+              true) packet_args+=(--syntax) ;;
+              false) packet_args+=(--no-syntax) ;;
+              *)
+                echo "::error::syntax must be 'true' or 'false'; received '$TOKMD_ACTION_SYNTAX'"
+                exit 1
+                ;;
+            esac
+
+            packet_args+=(--no-progress "${scan_paths[@]}")
+
+            # `tokmd packet generate` writes manifest.json before it exits
+            # nonzero on a failed packet, so a nonzero exit with a manifest
+            # present is a status failure (governed by fail-on), while a missing
+            # manifest is a hard runtime error that must always fail the Action.
+            set +e
+            tokmd packet "${packet_args[@]}"
+            packet_cmd_status=$?
+            set -e
+
+            if [ ! -f "$packet_manifest_file" ]; then
+              echo "::error::tokmd packet generate failed before writing $packet_manifest_file (exit $packet_cmd_status)"
+              exit "${packet_cmd_status:-1}"
+            fi
+
+            # Parse the manifest once and emit the fields the Action reports,
+            # using .get fallbacks so a missing optional key never raises.
+            mapfile -t packet_fields < <(python3 -c 'import json, sys; d = json.load(open(sys.argv[1], encoding="utf-8")); print(d.get("status") or "unknown"); print(len(d.get("review_priority") or [])); print(len(d.get("warnings") or [])); print(len(d.get("errors") or []))' "$packet_manifest_file")
+
+            if [ "${#packet_fields[@]}" -lt 4 ]; then
+              echo "::error::failed to parse packet manifest $packet_manifest_file"
+              exit 1
+            fi
+
+            packet_status="${packet_fields[0]}"
+            review_priority_count="${packet_fields[1]}"
+            warnings_count="${packet_fields[2]}"
+            errors_count="${packet_fields[3]}"
+            ;;
           *)
-            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline. Omit mode for the default module + export flow."
+            echo "::error::Unsupported tokmd action mode '$mode'. Supported values: module, export, gate, cockpit, sensor, baseline, packet. Omit mode for the default module + export flow."
             exit 1
             ;;
         esac
+
+        tokmd_version="$(tokmd --version 2>/dev/null | awk 'NR==1{print $NF}')"
+        artifact_name=""
+        if [ "${TOKMD_ACTION_ARTIFACT:-false}" = "true" ]; then
+          artifact_name="tokmd-receipts"
+        fi
 
         {
           echo "receipt=$receipt_file"
@@ -373,6 +526,14 @@ runs:
           echo "review-packet=$review_packet_dir"
           echo "sensor-report=$sensor_report_file"
           echo "baseline-report=$baseline_report_file"
+          echo "packet-status=$packet_status"
+          echo "packet-manifest=$packet_manifest_file"
+          echo "packet-dir=$packet_dir"
+          echo "review-priority-count=$review_priority_count"
+          echo "warnings-count=$warnings_count"
+          echo "errors-count=$errors_count"
+          echo "artifact-name=$artifact_name"
+          echo "tokmd-version=$tokmd_version"
           echo "command-status=$command_status"
         } >> "$GITHUB_OUTPUT"
 
@@ -506,6 +667,7 @@ runs:
           ${{ steps.review_packet_check.outputs.receipt }}
           ${{ steps.generate.outputs['sensor-report'] }}
           ${{ steps.generate.outputs['baseline-report'] }}
+          ${{ steps.generate.outputs['packet-dir'] }}
           extras/
 
     - name: Comment on PR
@@ -570,6 +732,127 @@ runs:
             echo "</details>"
           } >> "$GITHUB_STEP_SUMMARY"
         fi
+
+    - name: Publish packet summary
+      if: always() && steps.generate.outputs['packet-manifest'] != ''
+      shell: bash
+      env:
+        PACKET_MANIFEST: ${{ steps.generate.outputs['packet-manifest'] }}
+        PACKET_DIR: ${{ steps.generate.outputs['packet-dir'] }}
+        ARTIFACT_NAME: ${{ steps.generate.outputs['artifact-name'] }}
+      run: |
+        set -euo pipefail
+
+        if [ -z "${GITHUB_STEP_SUMMARY:-}" ] || [ ! -f "$PACKET_MANIFEST" ]; then
+          exit 0
+        fi
+
+        python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import json
+        import os
+
+        manifest_path = os.environ["PACKET_MANIFEST"]
+        packet_dir = os.environ.get("PACKET_DIR", "")
+        artifact_name = os.environ.get("ARTIFACT_NAME", "")
+
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = json.load(f)
+
+        status = manifest.get("status", "unknown")
+        warnings = manifest.get("warnings", []) or []
+        errors = manifest.get("errors", []) or []
+        review_priority = manifest.get("review_priority", []) or []
+        non_claims = manifest.get("non_claims", []) or []
+        reproduce = manifest.get("reproduce", []) or []
+        artifacts = manifest.get("artifacts", {}) or {}
+
+        print("## tokmd evidence packet")
+        print()
+        print(f"- Status: `{status}`")
+        print(f"- Packet directory: `{packet_dir or '(unknown)'}`")
+        print(f"- Manifest: `{manifest_path}`")
+        if artifact_name:
+            print(f"- Workflow artifact: `{artifact_name}`")
+        print(f"- Review priority entries: {len(review_priority)}")
+        print(f"- Warnings: {len(warnings)}")
+        print(f"- Errors: {len(errors)}")
+        print()
+
+        if review_priority:
+            top = review_priority[0]
+            print("### Top review priority")
+            print()
+            print(f"- `{top.get('path', '(unknown path)')}`"
+                  f" — {top.get('category', 'review')} / {top.get('severity', 'n/a')}"
+                  f" (score {top.get('score', 'n/a')})")
+            reason = top.get("reason")
+            if reason:
+                print(f"  - {reason}")
+            print()
+
+        def render_list(title, items):
+            if not items:
+                return
+            print(f"### {title}")
+            print()
+            for item in items:
+                print(f"- {item}")
+            print()
+
+        render_list("Errors", errors)
+        render_list("Warnings", warnings)
+
+        if artifacts:
+            print("### Artifacts")
+            print()
+            for key, value in artifacts.items():
+                if value:
+                    print(f"- `{value}`")
+            print()
+
+        if reproduce:
+            print("### Reproduce")
+            print()
+            print("```bash")
+            for line in reproduce:
+                print(line)
+            print("```")
+            print()
+
+        render_list("Non-claims", non_claims)
+        PY
+
+    - name: Enforce packet failure policy
+      if: steps.generate.outputs['packet-status'] != ''
+      shell: bash
+      env:
+        PACKET_STATUS: ${{ steps.generate.outputs['packet-status'] }}
+        FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        set -euo pipefail
+
+        fail_on="${FAIL_ON:-failed}"
+        status="$PACKET_STATUS"
+
+        case "$status" in
+          failed)
+            if [ "$fail_on" != "never" ]; then
+              echo "::error::Evidence packet status is 'failed'"
+              exit 1
+            fi
+            echo "::warning::Evidence packet status is 'failed' but fail-on=never; not failing the job"
+            ;;
+          partial)
+            if [ "$fail_on" = "partial" ]; then
+              echo "::error::Evidence packet status is 'partial' and fail-on=partial"
+              exit 1
+            fi
+            ;;
+          complete) ;;
+          *)
+            echo "::warning::Unexpected evidence packet status '$status'"
+            ;;
+        esac
 
     - name: Fail on gate verdict
       if: steps.generate.outputs['command-status'] != '0'

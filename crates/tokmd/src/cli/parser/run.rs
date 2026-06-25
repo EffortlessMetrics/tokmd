@@ -10,6 +10,9 @@ use clap::Args;
 use super::{AnalysisPreset, RedactMode};
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd run --name baseline\n  tokmd run crates --analysis health --output-dir .runs/tokmd"
+)]
 pub struct RunArgs {
     /// Paths to scan.
     #[arg(value_name = "PATH", default_value = ".")]

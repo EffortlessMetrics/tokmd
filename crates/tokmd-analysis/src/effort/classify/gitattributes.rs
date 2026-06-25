@@ -12,8 +12,6 @@ use super::ClassKind;
 pub(in crate::effort) struct GitAttrRule {
     pub(in crate::effort) kind: ClassKind,
     pub(in crate::effort) pattern: String,
-    #[allow(dead_code)]
-    pub(in crate::effort) source: String,
 }
 
 pub(in crate::effort) fn load_gitattributes(root: &Path) -> Vec<GitAttrRule> {
@@ -51,11 +49,7 @@ pub(in crate::effort) fn load_gitattributes(root: &Path) -> Vec<GitAttrRule> {
         };
 
         if !matches!(kind, ClassKind::Unknown) {
-            rules.push(GitAttrRule {
-                kind,
-                pattern,
-                source: raw.to_string(),
-            });
+            rules.push(GitAttrRule { kind, pattern });
         }
     }
 

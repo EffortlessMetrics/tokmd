@@ -20,6 +20,7 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 edition = "2024"
+build = "build.rs"
 
 [package.metadata]
 cargo-fuzz = true

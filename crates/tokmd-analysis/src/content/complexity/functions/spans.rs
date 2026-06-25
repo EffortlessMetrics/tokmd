@@ -24,6 +24,7 @@ pub(in crate::content::complexity) struct FunctionSpan {
 }
 
 impl FunctionSpan {
+    #[cfg(test)]
     pub(super) fn length(&self) -> usize {
         self.end_line.saturating_sub(self.start_line) + 1
     }

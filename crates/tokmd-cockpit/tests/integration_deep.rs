@@ -1010,7 +1010,10 @@ fn format_signed_positive() {
 }
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0021 cockpit deep test uses literal float thresholds"
+)]
 fn format_signed_negative() {
     assert_eq!(format_signed_f64(-3.14), "-3.14");
 }
@@ -1042,7 +1045,10 @@ fn trend_label_degrading() {
 }
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0021 cockpit deep test uses literal float thresholds"
+)]
 fn round_pct_basic() {
     assert!((round_pct(3.14159) - 3.14).abs() < 0.01);
 }

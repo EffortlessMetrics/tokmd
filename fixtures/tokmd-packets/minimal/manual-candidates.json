@@ -1,0 +1,32 @@
+{
+  "schema_version": "manual-candidates/v1",
+  "tool": "unsafe-review",
+  "tool_version": "fixture",
+  "mode": "manual_candidate_index",
+  "source": "fixture",
+  "summary": {
+    "manual_candidates": 1,
+    "external_evidence_refs": 0,
+    "analyzer_discovered": 0
+  },
+  "candidates": [
+    {
+      "id": "seed-42",
+      "title": "MarkdownObject UTF-8 boundary",
+      "invariant": "UTF-8 bounds on malformed input",
+      "safe_caller": "TextDecoder.decode",
+      "unsafe_operation": "slice materialization",
+      "operation_family": "MarkdownObject UTF-8 boundary",
+      "location_text": "src/runtime/api/MarkdownObject.rs:120",
+      "proof_mode": "manual witness required",
+      "fix_boundary": "narrow UTF-8 validation at JS seam only",
+      "pr_aperture": "src/runtime/api/MarkdownObject.rs only",
+      "test_targets": ["utf8-boundary-fixture"],
+      "do_not_touch": ["unrelated native seams"],
+      "manual_candidate": true,
+      "analyzer_discovered": false,
+      "source": "manual"
+    }
+  ],
+  "trust_boundary": "Fixture manual candidate index for tokmd render sibling-ingestion tests."
+}

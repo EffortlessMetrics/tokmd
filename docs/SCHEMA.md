@@ -17,6 +17,21 @@ All JSON outputs share a common envelope structure.
 
 tokmd uses **separate schema versions** for different receipt families. Each receipt type declares its own `schema_version` in the JSON output.
 
+### Integer vs string schema identity
+
+tokmd uses **two deliberate identity idioms** (see
+`docs/adr/0014-schema-identity-idioms.md`):
+
+- **Integer `schema_version`** on tokmd receipt envelopes (`lang`, `module`,
+  `export`, `analyze`, `cockpit`, `context`, handoff, and related families).
+- **String `schema` ids** on cross-tool manifests and orchestration artifacts
+  (`tokmd.evidence-packet/v1`, `tokmd.packets/v1`, syntax receipt packets,
+  `sensor.report.v1`, xtask/CI proof receipts).
+
+Manifests and bundles index integer-versioned receipts; they do not replace
+them. Consumers should match the top-level `schema` string first, then read nested
+`schema_version` only inside the referenced receipt file.
+
 ### Current Versions
 
 | Receipt Family | Current Version | Constant | Applies To |

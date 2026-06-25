@@ -179,6 +179,42 @@ fn optional_artifact(label: &str, path: &Path, warnings: &mut Vec<String>) {
     }
 }
 
+fn read_utf8_text(label: &str, path: &Path) -> Result<String, String> {
+    let bytes = match std::fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            return Err(format!(
+                "failed to read {label} {}: {err}",
+                display_path(path)
+            ));
+        }
+    };
+    if bytes.starts_with(&[0xFF, 0xFE]) {
+        return Err(format!(
+            "{label} {} appears to be UTF-16LE (PowerShell `>` redirect writes UTF-16 on Windows); \
+             prefer tokmd --output-dir / --output, or Out-File -Encoding utf8; \
+             see docs/evidence-packet.md#windows-powershell",
+            display_path(path)
+        ));
+    }
+    if bytes.starts_with(&[0xFE, 0xFF]) {
+        return Err(format!(
+            "{label} {} appears to be UTF-16BE; tokmd JSON inputs must be UTF-8; \
+             see docs/evidence-packet.md#windows-powershell",
+            display_path(path)
+        ));
+    }
+    match std::str::from_utf8(&bytes) {
+        Ok(text) => Ok(text.to_string()),
+        Err(_) => Err(format!(
+            "{label} {} is not valid UTF-8; on Windows PowerShell, bare `>` redirect writes UTF-16LE — \
+             use tokmd --output-dir / --output or Out-File -Encoding utf8; \
+             see docs/evidence-packet.md#windows-powershell",
+            display_path(path)
+        )),
+    }
+}
+
 fn inspect_analyze_json(
     path: &Path,
     expected_preset: &str,
@@ -186,13 +222,10 @@ fn inspect_analyze_json(
     warnings: &mut Vec<String>,
     errors: &mut Vec<String>,
 ) {
-    let content = match std::fs::read_to_string(path) {
+    let content = match read_utf8_text("analyze_json", path) {
         Ok(content) => content,
-        Err(err) => {
-            push_unique(
-                errors,
-                &format!("failed to read analyze_json {}: {err}", display_path(path)),
-            );
+        Err(message) => {
+            push_unique(errors, &message);
             return;
         }
     };
@@ -278,13 +311,10 @@ fn inspect_syntax_json(
     warnings: &mut Vec<String>,
     review_priority: &mut Vec<EvidencePacketReviewPriorityItem>,
 ) {
-    let content = match std::fs::read_to_string(path) {
+    let content = match read_utf8_text("syntax_json", path) {
         Ok(content) => content,
-        Err(err) => {
-            push_unique(
-                warnings,
-                &format!("failed to read syntax_json {}: {err}", display_path(path)),
-            );
+        Err(message) => {
+            push_unique(warnings, &message);
             return;
         }
     };
@@ -623,21 +653,28 @@ fn reproduce_commands(
     packet_command.push(' ');
     packet_command.push_str(&joined_paths);
 
+    let sensor_dir = manifest_path(
+        artifact_paths
+            .analyze_json
+            .parent()
+            .unwrap_or_else(|| Path::new(".")),
+        cwd,
+    );
     let mut commands = vec![
         format!(
-            "tokmd analyze --preset {preset} --format md --effort-base-ref {} --effort-head-ref {} --no-progress {joined_paths} > {}",
+            "tokmd analyze --preset {preset} --format md --effort-base-ref {} --effort-head-ref {} --no-progress --output-dir {} {joined_paths}",
             quote_arg(&args.base),
             quote_arg(&args.head),
-            quote_arg(&manifest_path(artifact_paths.analyze_md, cwd)),
+            quote_arg(&sensor_dir),
         ),
         format!(
-            "tokmd analyze --preset {preset} --format json --effort-base-ref {} --effort-head-ref {} --no-progress {joined_paths} > {}",
+            "tokmd analyze --preset {preset} --format json --effort-base-ref {} --effort-head-ref {} --no-progress --output-dir {} {joined_paths}",
             quote_arg(&args.base),
             quote_arg(&args.head),
-            quote_arg(&manifest_path(artifact_paths.analyze_json, cwd)),
+            quote_arg(&sensor_dir),
         ),
         format!(
-            "tokmd context --budget {} {joined_paths} > {}",
+            "tokmd context --budget {} --output {} {joined_paths}",
             quote_arg(&args.context_budget),
             quote_arg(&manifest_path(artifact_paths.context_md, cwd)),
         ),
@@ -719,5 +756,26 @@ mod tests {
             normalize_manifest_path(".\\src\\runtime\\api"),
             "src/runtime/api"
         );
+    }
+
+    #[test]
+    fn read_utf8_text_rejects_utf16le_bom() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("analyze.json");
+        std::fs::write(&path, [0xFF_u8, 0xFE, b'{', b'}']).unwrap();
+
+        let err = read_utf8_text("analyze_json", &path).unwrap_err();
+        assert!(err.contains("UTF-16LE"));
+        assert!(err.contains("PowerShell"));
+    }
+
+    #[test]
+    fn read_utf8_text_accepts_utf8_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("analyze.json");
+        std::fs::write(&path, r#"{"status":"complete"}"#).unwrap();
+
+        let text = read_utf8_text("analyze_json", &path).unwrap();
+        assert!(text.contains("complete"));
     }
 }

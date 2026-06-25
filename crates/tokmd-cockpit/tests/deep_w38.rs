@@ -409,7 +409,10 @@ fn round_pct_negative() {
 // =============================================================================
 
 #[test]
-#[allow(clippy::approx_constant)]
+#[expect(
+    clippy::approx_constant,
+    reason = "policy:clippy-0022 cockpit deep test uses literal float thresholds"
+)]
 fn format_signed_positive() {
     assert_eq!(format_signed_f64(3.14), "+3.14");
 }

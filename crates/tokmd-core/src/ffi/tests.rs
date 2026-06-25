@@ -1,5 +1,6 @@
 #[cfg(feature = "analysis")]
 use super::settings_parse::parse_analyze_settings;
+#[cfg(feature = "cockpit")]
 use super::settings_parse::parse_cockpit_settings;
 use super::settings_parse::{parse_export_settings, parse_lang_settings, parse_module_settings};
 use super::*;
@@ -450,6 +451,7 @@ fn cockpit_without_feature_returns_not_implemented() -> Result<(), Box<dyn std::
     Ok(())
 }
 
+#[cfg(feature = "cockpit")]
 #[test]
 fn parse_cockpit_settings_defaults() -> Result<(), Box<dyn std::error::Error>> {
     let args: Value = serde_json::json!({});

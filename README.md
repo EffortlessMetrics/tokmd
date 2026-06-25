@@ -214,6 +214,8 @@ Representative summary output:
 | `tokmd baseline` | Capture a baseline for later ratchet comparisons |
 | `tokmd sensor` | Emit a `sensor.report.v1` envelope |
 | `tokmd evidence-packet` | Emit a manifest for sensor artifacts such as analyze and context output |
+| `tokmd packet` | Orchestrate a full `sensors/tokmd/` evidence packet in one command (`packet generate`) |
+| `tokmd render` | Render audience-specific Markdown from cross-tool packet bundles |
 | `tokmd tools` | Generate tool definitions for OpenAI, Anthropic, and JSON Schema consumers |
 | `tokmd init` | Generate a `.tokeignore` template |
 | `tokmd check-ignore` | Explain why a path is being ignored |

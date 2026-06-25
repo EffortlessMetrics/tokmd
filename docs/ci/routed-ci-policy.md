@@ -1,6 +1,18 @@
 # Routed CI policy
 
-Status: policy contract for the Rust Small routed frontdoor.
+Status: **Retired (phase 3, #299)** — historical routing contract.
+
+The dedicated routed Rust Small frontdoor workflow (`em-routed-rust-small.yml`)
+was removed in phase 3 of the single-tight-gate migration (#226). Runner
+routing now lives in the advisory `Route CI runner` job of
+`.github/workflows/ci.yml` (self-hosted primary, GitHub-hosted overflow), and
+the check/test work is the single required `Tokmd Rust Result` gate. Branch
+protection already required only `Tokmd Rust Result`, so no required check
+changed. The normative gate contract is `docs/specs/ub-review-ci-gate.md`.
+
+This document is retained as the historical contract for the routed model.
+References below to `Tokmd Rust Small Result` as the required check describe the
+retired frontdoor, not current branch protection.
 
 This document defines how `tokmd-swarm` should choose between self-hosted and
 GitHub-hosted execution for routine PR proof. It is intentionally a routing

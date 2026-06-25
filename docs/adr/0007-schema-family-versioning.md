@@ -39,6 +39,11 @@ make compatibility harder to reason about.
 - Bump the affected family version when changing a required field, field type,
   field meaning, or envelope shape.
 
+## Related ADRs
+
+- `docs/adr/0014-schema-identity-idioms.md` — when to use integer
+  `schema_version` vs namespaced string `schema` ids on cross-tool surfaces
+
 ## Related specs
 
 - `docs/specification.md`

@@ -580,3 +580,37 @@ fn evidence_packet_manifest_failed_when_analyze_preset_mismatches() {
             .contains("does not match requested preset")
     }));
 }
+
+#[test]
+fn evidence_packet_manifest_failed_when_analyze_json_is_utf16le() {
+    if !common::git_available() {
+        return;
+    }
+
+    let dir = init_repo_with_scope();
+    let sensor_dir = dir.path().join("sensors").join("tokmd");
+    std::fs::create_dir_all(&sensor_dir).unwrap();
+    std::fs::write(sensor_dir.join("analyze.md"), "# Bun UB analyze\n").unwrap();
+    std::fs::write(sensor_dir.join("context.md"), "# Context\n").unwrap();
+    std::fs::write(sensor_dir.join("analyze.json"), [0xFF_u8, 0xFE, b'{', b'}']).unwrap();
+
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args([
+            "evidence-packet",
+            "--base",
+            "main",
+            "--head",
+            "HEAD",
+            "src/runtime/api/MarkdownObject.rs",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("evidence packet failed"));
+
+    let manifest = read_manifest(dir.path());
+    assert_eq!(manifest["status"], "failed");
+    assert!(manifest["errors"].as_array().unwrap().iter().any(|err| {
+        err.as_str().unwrap().contains("UTF-16LE") && err.as_str().unwrap().contains("PowerShell")
+    }));
+}
