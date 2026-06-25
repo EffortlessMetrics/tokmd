@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
         with:
           persist-credentials: false
 
@@ -36,7 +36,7 @@ jobs:
     name: CI Lane Whitelist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -77,7 +77,7 @@ jobs:
     name: CI Gate Contract (reference)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -94,7 +94,7 @@ jobs:
     name: CI Gate Contract (live gap)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7.0.0
 
       - uses: dtolnay/rust-toolchain@stable
 
