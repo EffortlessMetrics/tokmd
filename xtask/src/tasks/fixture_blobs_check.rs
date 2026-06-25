@@ -179,6 +179,25 @@ mod tests {
     }
 
     #[test]
+    fn skips_allowlisted_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+        for path in &[".claude/runtime/fixture.pem", ".jules/run/fixture.pk8"] {
+            let path = dir.path().join(path);
+            fs::create_dir_all(path.parent().unwrap()).expect("prefix dir");
+            fs::write(&path, "BEGIN PRIVATE KEY").expect("write");
+
+            let rel_path = path
+                .strip_prefix(dir.path())
+                .expect("relative")
+                .to_str()
+                .expect("utf8");
+
+            let violation = evaluate_candidate(dir.path(), rel_path).expect("check");
+            assert!(violation.is_none(), "prefix path was flagged: {rel_path}");
+        }
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
