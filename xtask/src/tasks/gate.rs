@@ -1,6 +1,6 @@
 use crate::cli::FixtureBlobsCheckArgs;
 use crate::cli::GateArgs;
-use crate::tasks::build_guard::{ScopedTempDir, ensure_min_free_space};
+use crate::tasks::build_guard::{ScopedTempDir, cleanup_stale_scoped_dirs, ensure_min_free_space};
 use crate::tasks::fixture_blobs_check;
 use crate::tasks::workspace::run_workspace_fmt;
 use anyhow::{Result, bail};
@@ -123,6 +123,18 @@ pub fn run(args: GateArgs) -> Result<()> {
     fixture_blobs_check::run(FixtureBlobsCheckArgs::default())?;
 
     let ephemeral_target = if std::env::var_os("CARGO_TARGET_DIR").is_none() {
+        // Reclaim space from prior runs that were killed before their
+        // ScopedTempDir could drop, so accumulated orphans do not trip the
+        // free-space guard on long-lived self-hosted runners (#309).
+        let removed = cleanup_stale_scoped_dirs("gate-target");
+        if !removed.is_empty() {
+            println!(
+                "gate: removed {} stale disposable target dir(s) from {}",
+                removed.len(),
+                std::env::temp_dir().display()
+            );
+        }
+
         let dir = ScopedTempDir::new("gate-target")?;
         println!("gate: using disposable target dir {}", dir.path().display());
         Some(dir)

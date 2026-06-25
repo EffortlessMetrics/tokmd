@@ -89,6 +89,14 @@ jobs:
         if: needs.route.outputs.runner_kind == 'github'
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
 
+      - name: Use workspace gate target on self-hosted
+        if: needs.route.outputs.runner_kind == 'self-hosted'
+        run: |
+          echo "CARGO_TARGET_DIR=${GITHUB_WORKSPACE}/target/ci-gate" >> "$GITHUB_ENV"
+          mkdir -p target/ci-gate
+          # Best-effort reclaim of legacy /tmp orphans from pre-fix disposable gate runs (#309).
+          find /tmp -maxdepth 1 -type d -name 'tokmd-gate-target-*' -mmin +30 -exec rm -rf {} + 2>/dev/null || true
+
       - uses: Swatinem/rust-cache@v2
         with:
           cache-directories: ${{ runner.temp }}/target

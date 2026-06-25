@@ -1,9 +1,12 @@
 use anyhow::{Context, Result, bail};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::{Duration, SystemTime};
 
 const BYTES_PER_GIB: u64 = 1024 * 1024 * 1024;
 const DEFAULT_MIN_FREE_GIB: u64 = 8;
+const SECONDS_PER_HOUR: u64 = 60 * 60;
+const DEFAULT_STALE_TARGET_AGE_HOURS: u64 = 3;
 
 pub struct ScopedTempDir {
     path: PathBuf,
@@ -33,6 +36,86 @@ impl Drop for ScopedTempDir {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.path);
     }
+}
+
+/// Remove stale prior-run scoped temp directories for `label` from the system
+/// temp dir.
+///
+/// `ScopedTempDir::drop` only fires on a clean process exit. When a gate run is
+/// SIGKILLed or the runner cancels the job, the multi-GiB disposable target
+/// directory survives under `/tmp`. On long-lived self-hosted runners these
+/// orphans accumulate and eventually push free space below the
+/// `ensure_min_free_space` floor, producing false gate failures (see #309).
+///
+/// This is best-effort: any directory matching the `tokmd-{label}-` prefix and
+/// older than the configured age is removed. Age gating keeps a concurrently
+/// running job's freshly written target directory untouched, so cleanup never
+/// races an active sibling run. Errors are swallowed because reclaiming space is
+/// an optimization, not a correctness requirement.
+pub fn cleanup_stale_scoped_dirs(label: &str) -> Vec<PathBuf> {
+    cleanup_stale_scoped_dirs_in(
+        &std::env::temp_dir(),
+        label,
+        configured_stale_age(),
+        SystemTime::now(),
+    )
+}
+
+fn cleanup_stale_scoped_dirs_in(
+    base: &Path,
+    label: &str,
+    max_age: Duration,
+    now: SystemTime,
+) -> Vec<PathBuf> {
+    let prefix = format!("tokmd-{label}-");
+    let mut removed = Vec::new();
+
+    let Ok(entries) = std::fs::read_dir(base) else {
+        return removed;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !name.starts_with(&prefix) {
+            continue;
+        }
+        if !entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false) {
+            continue;
+        }
+        if !is_older_than(&entry, max_age, now) {
+            continue;
+        }
+        if std::fs::remove_dir_all(&path).is_ok() {
+            removed.push(path);
+        }
+    }
+
+    removed
+}
+
+fn is_older_than(entry: &std::fs::DirEntry, max_age: Duration, now: SystemTime) -> bool {
+    entry
+        .metadata()
+        .and_then(|meta| meta.modified())
+        .ok()
+        .and_then(|modified| now.duration_since(modified).ok())
+        .map(|age| age >= max_age)
+        .unwrap_or(false)
+}
+
+fn configured_stale_age() -> Duration {
+    let hours = configured_stale_age_hours(std::env::var("TOKMD_GATE_STALE_HOURS").ok().as_deref());
+    Duration::from_secs(hours.saturating_mul(SECONDS_PER_HOUR))
+}
+
+fn configured_stale_age_hours(value: Option<&str>) -> u64 {
+    value
+        .and_then(|value| value.trim().parse::<u64>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(DEFAULT_STALE_TARGET_AGE_HOURS)
 }
 
 pub fn ensure_min_free_space(path: &Path, label: &str) -> Result<()> {
@@ -119,9 +202,11 @@ fn human_bytes(bytes: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        BYTES_PER_GIB, configured_min_free_bytes, configured_min_free_gib,
-        parse_df_pk_available_bytes,
+        BYTES_PER_GIB, DEFAULT_STALE_TARGET_AGE_HOURS, SECONDS_PER_HOUR,
+        cleanup_stale_scoped_dirs_in, configured_min_free_bytes, configured_min_free_gib,
+        configured_stale_age_hours, parse_df_pk_available_bytes,
     };
+    use std::time::{Duration, SystemTime};
 
     #[test]
     fn parse_df_pk_available_bytes_extracts_available_column() {
@@ -152,5 +237,85 @@ Filesystem 1024-blocks Used Available Capacity Mounted on
         let expected = configured_min_free_gib(std::env::var("TOKMD_MIN_FREE_GB").ok().as_deref())
             * BYTES_PER_GIB;
         assert_eq!(configured_min_free_bytes(), expected);
+    }
+
+    #[test]
+    fn configured_stale_age_hours_defaults_when_env_is_missing() {
+        assert_eq!(
+            configured_stale_age_hours(None),
+            DEFAULT_STALE_TARGET_AGE_HOURS
+        );
+    }
+
+    #[test]
+    fn configured_stale_age_hours_honors_env_override() {
+        assert_eq!(configured_stale_age_hours(Some("6")), 6);
+        assert_eq!(
+            configured_stale_age_hours(Some("0")),
+            DEFAULT_STALE_TARGET_AGE_HOURS
+        );
+        assert_eq!(
+            configured_stale_age_hours(Some("bogus")),
+            DEFAULT_STALE_TARGET_AGE_HOURS
+        );
+    }
+
+    #[test]
+    fn cleanup_removes_only_old_matching_dirs() -> anyhow::Result<()> {
+        let base = tempfile::tempdir()?;
+        let base_path = base.path();
+
+        let stale_one = base_path.join("tokmd-gate-target-111-222");
+        let stale_two = base_path.join("tokmd-gate-target-333-444");
+        let other_label = base_path.join("tokmd-other-label-1-2");
+        let unrelated = base_path.join("some-other-dir");
+        for dir in [&stale_one, &stale_two, &other_label, &unrelated] {
+            std::fs::create_dir(dir)?;
+        }
+
+        // Treat "now" as far in the future so the just-created dirs read as old.
+        let future = SystemTime::now() + Duration::from_secs(10 * SECONDS_PER_HOUR);
+        let max_age = Duration::from_secs(DEFAULT_STALE_TARGET_AGE_HOURS * SECONDS_PER_HOUR);
+
+        let mut removed = cleanup_stale_scoped_dirs_in(base_path, "gate-target", max_age, future);
+        removed.sort();
+
+        assert_eq!(removed, vec![stale_one.clone(), stale_two.clone()]);
+        assert!(!stale_one.exists());
+        assert!(!stale_two.exists());
+        assert!(other_label.exists(), "non-matching label must be preserved");
+        assert!(unrelated.exists(), "unrelated dir must be preserved");
+        Ok(())
+    }
+
+    #[test]
+    fn cleanup_keeps_recent_dirs() -> anyhow::Result<()> {
+        let base = tempfile::tempdir()?;
+        let base_path = base.path();
+
+        let recent = base_path.join("tokmd-gate-target-555-666");
+        std::fs::create_dir(&recent)?;
+
+        let max_age = Duration::from_secs(DEFAULT_STALE_TARGET_AGE_HOURS * SECONDS_PER_HOUR);
+        let removed =
+            cleanup_stale_scoped_dirs_in(base_path, "gate-target", max_age, SystemTime::now());
+
+        assert!(removed.is_empty(), "freshly created dir must be kept");
+        assert!(recent.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn cleanup_returns_empty_for_missing_base() -> anyhow::Result<()> {
+        let base = tempfile::tempdir()?;
+        let missing = base.path().join("does-not-exist");
+        let removed = cleanup_stale_scoped_dirs_in(
+            &missing,
+            "gate-target",
+            Duration::from_secs(SECONDS_PER_HOUR),
+            SystemTime::now(),
+        );
+        assert!(removed.is_empty());
+        Ok(())
     }
 }
