@@ -142,6 +142,31 @@ Maintainer outcomes are recorded as publication GHCR visibility receipts under
 `target/publishing/ghcr-visibility-<version>.md` and copied into the matching
 release ledger, per `docs/specs/publishing-evidence.md`.
 
+### Verification Status
+
+| Tag | Visibility (steps 1-5) | Runtime exec (steps 6-7) | Container runtime |
+| --- | --- | --- | --- |
+| `1.14.0` (and `1.14` / `1` / `latest`) | verified-public (2026-06-26) | not run | **pending** |
+
+On **2026-06-26**, anonymous registry-API verification (no Docker on the
+verification host) confirmed gate steps 1-4 and the registry-level portion of
+step 5 for `1.14.0` and its `1.14` / `1` / `latest` aliases: an unauthenticated
+pull token resolved every tag to HTTP 200 with one shared OCI image index
+digest `sha256:bd214464…b914b096`, and the `linux/amd64` config blob was
+fetched anonymously (public package; `image.revision` matches the `v1.14.0`
+release tag commit, `image.version` is `1.14.0`). Receipt:
+`target/publishing/ghcr-visibility-1.14.0.md`; ledger copy in
+`docs/releases/1.14-ledger.md`.
+
+Gate steps 6 (container `tokmd --version`) and 7 (mounted-repository `complete`
+packet smoke) were **not run** because they require a Docker exec unavailable on
+the verification host. The OCI `image.version` label is image-declared metadata,
+not a runtime exec, so it does not discharge step 6. The container runtime for
+`1.14.0` therefore stays **pending** under this gate: `action.yml` keeps the
+`runtime: container` hard error until a Docker-capable host completes steps 6-7
+for the tag. Public visibility being verified does not by itself make the
+container runtime supported.
+
 ## Claim Boundary
 
 When implemented and verified for a tag, the container runtime proves only that:
