@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Enabled `runtime: container` in the `EffortlessMetrics/tokmd` GitHub Action.
+  It anonymously pulls the publication GHCR image
+  (`ghcr.io/effortlessmetrics/tokmd`) and runs it against the mounted workspace
+  through a `docker run` wrapper, matching the binary runtime's repo-relative
+  scoped-path and base/head behavior. It requires a Linux runner with Docker and
+  accepts only verification-gated tags (currently `1.14.0`); mutable tags such
+  as `latest` and any non-gated tag are hard errors pointing at
+  `docs/specs/packet-ghcr-runtime.md`. The default `binary` runtime is
+  unchanged. No version bump, tag, or publish accompanies this change.
+
 ## [1.14.0] - 2026-06-25
 
 1.14 expands the PR evidence surface into a first-class local and CI workflow.

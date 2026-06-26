@@ -7,7 +7,8 @@ into one `sensors/tokmd/` packet from a single command. The root
 `EffortlessMetrics/tokmd` Action exposes that orchestration through
 `mode: packet`, downloading a prebuilt `tokmd` binary by default. This page
 defines the one-command CLI path and the `mode: packet` Action path. The GHCR
-container runtime and downstream `ub-review` consumption remain planned.
+container runtime is implemented for verification-gated tags (currently
+`1.14.0`); downstream `ub-review` consumption remains planned.
 
 ## Purpose
 
@@ -195,8 +196,8 @@ These are the `mode: packet` inputs. See the
 | `context-budget` | `64000` | Token budget for `context.md`. |
 | `artifact` | `true` | Upload the packet directory as a workflow artifact. |
 | `fail-on` | `failed` | Failure policy: `failed`, `partial`, or `never`. |
-| `runtime` | `binary` | Runtime mode: `binary`, or `container` (pending GHCR verification). |
-| `image` | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. The container runtime stays a hard error until the verification gate passes. |
+| `runtime` | `binary` | Runtime mode: `binary` (default), or `container` (anonymous GHCR pull + mounted run; Linux+Docker only; verification-gated tags only). |
+| `image` | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. Only verification-gated tags are accepted; mutable tags such as `latest` are rejected. |
 
 ### Outputs
 
@@ -241,24 +242,32 @@ Current support status: publication GHCR is **verified-public** for `v1.13.1`
 gate steps 6-7 in `docs/specs/packet-ghcr-runtime.md` also passed on 2026-06-26
 via the `GHCR Container Smoke` lane (anonymous pull, `tokmd 1.14.0`, and a
 `complete` mounted-repository packet); see `docs/releases/1.14-ledger.md` and
-`docs/ci/ghcr-container-smoke.md`. The container runtime is gate-verified for
-`1.14.0`, but the `runtime: container` Action path is still a hard error in
-`action.yml` until a separate change wires the pull path. New stable tags still
-need post-release verification before calling container runtime support verified
-for that tag.
+`docs/ci/ghcr-container-smoke.md`. The container runtime is gate-verified **and
+wired** for `1.14.0`: the `runtime: container` Action path now anonymously pulls
+that tag and runs it against the mounted workspace. New stable tags still need
+post-release verification (gate steps 1-7) and must be added to the Action's
+supported-tag set before their container runtime is called supported.
 
-The Action exposes the `runtime` and `image` inputs, and resolves the image
-reference it would pull (`<image>:<normalized-version>`), but `runtime:
-container` remains a hard error until the verification gate passes. It does not
-silently fall back to the binary runtime.
+The Action's `runtime: container` path:
 
-Target Action shape (once the gate passes for a tag):
+- requires a Linux runner with Docker available;
+- accepts only verification-gated tags (currently `1.14.0`); any other tag,
+  including mutable aliases such as `latest`, `1.14`, and `1`, is a hard error
+  pointing at the spec;
+- anonymously pulls `<image>:<normalized-version>` with an isolated docker config
+  (no ambient ghcr.io credentials);
+- runs `tokmd` via a wrapper that bind-mounts `$GITHUB_WORKSPACE` and runs as the
+  host user so repo-relative scoped paths and base/head refs resolve identically
+  to the binary runtime and written artifacts stay host-readable;
+- never silently falls back to the binary runtime.
+
+Action shape (for a verification-gated tag):
 
 ```yaml
 with:
   runtime: container
   image: ghcr.io/effortlessmetrics/tokmd
-  version: 1.13.1
+  version: 1.14.0
 ```
 
 The image should include:
@@ -308,8 +317,9 @@ A packet workflow does not:
    `mode: packet` on `EffortlessMetrics/tokmd`)
 5. ~~Add Action examples and job-summary behavior.~~ (done: see
    [GitHub Action reference](github-action.md) and the packet job summary)
-6. Harden publication GHCR as a secondary runtime; re-verify on each stable
-   release.
+6. ~~Harden publication GHCR as a secondary runtime.~~ (done: `runtime:
+   container` wired in `action.yml` for verification-gated tags, currently
+   `1.14.0`.) Re-verify on each stable release and extend the supported-tag set.
 7. Wire downstream `ub-review` consumption after the Action path is stable.
 
 ## Related Docs

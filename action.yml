@@ -55,10 +55,10 @@ inputs:
     description: 'Failure policy for mode: packet status: failed, partial, or never.'
     default: 'failed'
   runtime:
-    description: 'Runtime used to obtain tokmd: binary (default) or container. Container is pending GHCR public-pull verification.'
+    description: 'Runtime used to obtain tokmd: binary (default) or container. The container runtime anonymously pulls the publication GHCR image and runs it against the mounted workspace; it requires a Linux runner with Docker and is only supported for verification-gated tags (see docs/specs/packet-ghcr-runtime.md). Pin version to a verified tag; mutable tags such as latest are rejected for the container runtime.'
     default: 'binary'
   image:
-    description: 'Container image reference (without tag) for runtime: container. Defaults to the publication registry. The tag is derived from the version input. The container runtime is pending the verification gate in docs/specs/packet-ghcr-runtime.md and is not yet supported.'
+    description: 'Container image reference (without tag) for runtime: container. Defaults to the publication registry. The tag is derived from the version input. Only verification-gated tags are accepted; see docs/specs/packet-ghcr-runtime.md.'
     default: 'ghcr.io/effortlessmetrics/tokmd'
 
 outputs:
@@ -124,20 +124,89 @@ runs:
         case "$runtime" in
           binary) ;;
           container)
-            # The container runtime is reserved and stays a hard error until the
-            # verification gate in docs/specs/packet-ghcr-runtime.md passes for
-            # the requested tag (anonymous public pull + container packet
-            # equivalence). Publication GHCR is advisory-only today, so do not
-            # pull, do not silently fall back to binary, and do not advertise
-            # container support. We still resolve and report the image reference
-            # the implemented path would use so the gate has a fixed target.
+            # runtime: container obtains tokmd from the pinned publication OCI
+            # image instead of a prebuilt release binary. Only tags whose full
+            # verification gate (docs/specs/packet-ghcr-runtime.md steps 1-7) has
+            # passed are supported; every other tag (including mutable aliases
+            # such as 'latest') stays a hard error pointing at the spec, and the
+            # runtime never silently falls back to binary.
+            if [ "${RUNNER_OS:-Linux}" != "Linux" ]; then
+              echo "::error::runtime=container requires a Linux runner with Docker; received RUNNER_OS='${RUNNER_OS:-}'. Use runtime=binary on this runner. See docs/specs/packet-ghcr-runtime.md."
+              exit 1
+            fi
+            if ! command -v docker &> /dev/null; then
+              echo "::error::runtime=container requires Docker on the runner, but 'docker' was not found. Use runtime=binary. See docs/specs/packet-ghcr-runtime.md."
+              exit 1
+            fi
+
             image_ref="${TOKMD_ACTION_IMAGE:-ghcr.io/effortlessmetrics/tokmd}"
             requested_version="${TOKMD_ACTION_VERSION:-latest}"
             # Normalize to the published tag form (strip a leading 'v').
             normalized_version="${requested_version#v}"
             resolved_image="${image_ref}:${normalized_version}"
-            echo "::error::runtime=container is reserved and pending the GHCR verification gate in docs/specs/packet-ghcr-runtime.md; it is not yet a supported runtime. It would resolve image '${resolved_image}', but anonymous public-pull and container packet-equivalence verification for that tag have not passed. Use runtime=binary (the default). See docs/packet-workflows.md and docs/specs/packet-ghcr-runtime.md."
-            exit 1
+
+            # Verification-gated container-runtime tags. A tag is added here only
+            # after its anonymous pull + `tokmd --version` + mounted-repository
+            # `complete` packet smoke have passed for that exact tag (gate steps
+            # 1-7 via the GHCR Container Smoke lane). Mutable tags ('latest',
+            # major/minor aliases) are intentionally excluded so the recorded
+            # tokmd-version output stays reproducible.
+            container_supported_tags="1.14.0"
+            tag_supported="false"
+            for supported in $container_supported_tags; do
+              if [ "$normalized_version" = "$supported" ]; then
+                tag_supported="true"
+                break
+              fi
+            done
+
+            if [ "$tag_supported" != "true" ]; then
+              echo "::error::runtime=container is only supported for verification-gated tags (${container_supported_tags// /, }); '${normalized_version}' has not passed the gate in docs/specs/packet-ghcr-runtime.md. It would resolve image '${resolved_image}'. Pin 'version' to a verified tag or use runtime=binary (the default). Mutable tags such as 'latest' are not accepted for the container runtime."
+              exit 1
+            fi
+
+            # Isolated docker config so the pull is genuinely anonymous and does
+            # not reuse ambient ghcr.io credentials on the runner (matches the
+            # GHCR Container Smoke lane mount pattern).
+            docker_config="$(mktemp -d)"
+            echo "Pulling ${resolved_image} from an anonymous (logged-out) context"
+            if ! docker --config "$docker_config" pull "$resolved_image"; then
+              echo "::error::Failed to anonymously pull ${resolved_image}. Confirm the tag is published and the package is public per docs/specs/packet-ghcr-runtime.md."
+              exit 1
+            fi
+
+            # Install a tokmd wrapper that runs the pinned image against the
+            # mounted workspace so every mode resolves repo-relative scoped paths
+            # and base/head refs identically to the binary runtime. Run as the
+            # host user with HOME set so the bind-mounted checkout is not flagged
+            # for dubious git ownership and written artifacts stay host-readable.
+            wrapper_dir="$HOME/.tokmd-container-bin"
+            mkdir -p "$wrapper_dir"
+            # Build the wrapper with printf (not a heredoc) so the script body is
+            # immune to YAML block-scalar indentation. The pulled image ref and
+            # the isolated docker config dir are expanded now; the runtime values
+            # ($GITHUB_WORKSPACE, the host uid/gid, and "$@") stay literal.
+            {
+              printf '%s\n' '#!/usr/bin/env bash'
+              printf '%s\n' 'set -euo pipefail'
+              printf 'exec docker --config %q run --rm \\\n' "$docker_config"
+              printf '%s\n' '  --user "$(id -u):$(id -g)" \'
+              printf '%s\n' '  -e HOME="$GITHUB_WORKSPACE" \'
+              printf '%s\n' '  -v "$GITHUB_WORKSPACE":"$GITHUB_WORKSPACE" \'
+              printf '%s\n' '  -w "$GITHUB_WORKSPACE" \'
+              printf '  %q "$@"\n' "$resolved_image"
+            } > "$wrapper_dir/tokmd"
+            chmod +x "$wrapper_dir/tokmd"
+            echo "$wrapper_dir" >> "$GITHUB_PATH"
+
+            reported="$("$wrapper_dir/tokmd" --version 2>/dev/null | head -n1 || true)"
+            echo "container reported: ${reported}"
+            if ! printf '%s' "$reported" | grep -qF "$normalized_version"; then
+              echo "::error::container ${resolved_image} reported '${reported}', which does not contain the expected version '${normalized_version}'."
+              exit 1
+            fi
+            echo "runtime=container ready using ${resolved_image}"
+            exit 0
             ;;
           *)
             echo "::error::runtime must be 'binary' or 'container'; received '$runtime'"

@@ -87,8 +87,8 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `syntax` | no | `true` | For `mode: packet`, whether to request optional `syntax.json` evidence. |
 | `context-budget` | no | `64000` | For `mode: packet`, the token budget for `context.md`. |
 | `fail-on` | no | `failed` | For `mode: packet`, the packet status failure policy: `failed`, `partial`, or `never`. |
-| `runtime` | no | `binary` | Runtime used to obtain `tokmd`: `binary` (default). `container` is reserved for a future GHCR runtime and currently fails fast with a spec-aligned error. |
-| `image` | no | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. The container runtime stays a hard error until the verification gate in `docs/specs/packet-ghcr-runtime.md` passes. |
+| `runtime` | no | `binary` | Runtime used to obtain `tokmd`: `binary` (default) or `container`. `container` anonymously pulls the publication GHCR image and runs it against the mounted workspace; it requires a Linux runner with Docker and only accepts verification-gated tags (currently `1.14.0`). Pin `version` to a verified tag — mutable tags such as `latest` are rejected. See `docs/specs/packet-ghcr-runtime.md`. |
+| `image` | no | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. Only verification-gated tags are accepted (see `docs/specs/packet-ghcr-runtime.md`). |
 
 ## Outputs
 
@@ -216,8 +216,8 @@ The `fail-on` input maps packet status to workflow failure:
 A run that cannot resolve `base`/`head` or otherwise fails before writing a
 manifest is a runtime error and fails regardless of `fail-on`.
 
-For the full packet workflow model, including the planned GHCR container
-runtime, see [PR evidence packet workflows](packet-workflows.md).
+For the full packet workflow model, including the GHCR container runtime, see
+[PR evidence packet workflows](packet-workflows.md).
 
 ## Artifacts
 
@@ -335,7 +335,7 @@ The Action fails early for:
 - invalid `gate` or `baseline` path counts
 - unresolved `cockpit`, `sensor`, or `packet` base refs
 - an invalid `mode: packet` `fail-on` or `syntax` value
-- `runtime: container`, which is reserved for a future GHCR runtime and fails with a spec-aligned error naming the resolved image reference (see `docs/specs/packet-ghcr-runtime.md`)
+- `runtime: container` with a non-verified or mutable tag (such as `latest`), on a non-Linux runner, or without Docker — these fail with a spec-aligned error naming the resolved image reference (see `docs/specs/packet-ghcr-runtime.md`)
 
 `mode: gate` preserves `tokmd-gate-verdict.json` before failing when the policy verdict fails.
 

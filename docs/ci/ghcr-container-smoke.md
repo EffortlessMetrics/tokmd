@@ -11,9 +11,10 @@ a stable tag of the **publication** image
    repository.
 
 It is a `workflow_dispatch`-only lane. It only **pulls** and **runs** an already
-published image. It performs no release mutation, no push, no tag or alias
-change, and it does not enable `runtime: container` in `action.yml` (that is a
-separate change once the gate passes).
+published image. It performs no release mutation, no push, and no tag or alias
+change. This lane is the runtime-exec evidence (gate steps 6-7) that a tag must
+pass before it is added to the `runtime: container` supported-tag set in
+`action.yml`; the lane itself does not modify `action.yml`.
 
 ## When To Run
 
