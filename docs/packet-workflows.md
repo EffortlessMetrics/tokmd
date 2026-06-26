@@ -236,13 +236,16 @@ Cargo install remains the local/dev fallback. Swarm workbench GHCR is
 verified-public for `:main` (issue #264 closed 2026-06-24) but remains a
 workbench/experimental runtime, not a supported consumer path.
 
-Current support status: publication GHCR is **verified-public** for `v1.13.1` as
-of 2026-06-21. The `1.14.0` tag has only an **advisory** unauthenticated
-manifest fetch (see `docs/releases/1.14-ledger.md`); the formal
-`verified-public` maintainer receipt and the container packet-equivalence check
-in `docs/specs/packet-ghcr-runtime.md` are not yet recorded. New stable tags
-still need post-release verification before calling container runtime support
-verified for that tag.
+Current support status: publication GHCR is **verified-public** for `v1.13.1`
+(2026-06-21) and for `v1.14.0` (2026-06-26). For `1.14.0`, the container-runtime
+gate steps 6-7 in `docs/specs/packet-ghcr-runtime.md` also passed on 2026-06-26
+via the `GHCR Container Smoke` lane (anonymous pull, `tokmd 1.14.0`, and a
+`complete` mounted-repository packet); see `docs/releases/1.14-ledger.md` and
+`docs/ci/ghcr-container-smoke.md`. The container runtime is gate-verified for
+`1.14.0`, but the `runtime: container` Action path is still a hard error in
+`action.yml` until a separate change wires the pull path. New stable tags still
+need post-release verification before calling container runtime support verified
+for that tag.
 
 The Action exposes the `runtime` and `image` inputs, and resolves the image
 reference it would pull (`<image>:<normalized-version>`), but `runtime:

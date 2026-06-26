@@ -146,7 +146,7 @@ release ledger, per `docs/specs/publishing-evidence.md`.
 
 | Tag | Visibility (steps 1-5) | Runtime exec (steps 6-7) | Container runtime |
 | --- | --- | --- | --- |
-| `1.14.0` (and `1.14` / `1` / `latest`) | verified-public (2026-06-26) | not run | **pending** |
+| `1.14.0` (and `1.14` / `1` / `latest`) | verified-public (2026-06-26) | verified (2026-06-26) | **gate-passed**; `action.yml` wiring deferred to PR B |
 
 On **2026-06-26**, anonymous registry-API verification (no Docker on the
 verification host) confirmed gate steps 1-4 and the registry-level portion of
@@ -173,8 +173,22 @@ that anonymously pulls the published image, runs `tokmd --version`, and
 generates a `complete` packet against a mounted git fixture. See
 [GHCR container smoke runbook](../ci/ghcr-container-smoke.md). The lane only
 pulls and runs the already-published image; it does not enable
-`runtime: container` in `action.yml`. Update this table and the release ledger
-with the runtime-exec receipt only after a green run is captured.
+`runtime: container` in `action.yml`.
+
+On **2026-06-26**, that lane ran on `ubuntu-latest`
+([run 28262553040](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/28262553040))
+and discharged gate steps 6-7 for `1.14.0` from an anonymous context: anonymous
+`docker pull` resolved the image to digest `sha256:bd214464…b914b096` (matching
+the verified-public visibility digest), the container reported `tokmd 1.14.0`
+(step 6), and a mounted-repository `tokmd packet generate --no-syntax` produced a
+`status: complete` `tokmd.evidence-packet/v1` manifest with
+`tokmd_version: 1.14.0` (step 7). All seven gate steps now pass for `1.14.0`, so
+the container runtime is gate-verified for that tag. Receipt:
+`target/publishing/ghcr-visibility-1.14.0-runtime-exec.md` (under the gitignored
+`target/` tree, uploaded as the `ghcr-container-smoke-receipt-1.14.0` artifact);
+summary copied into `docs/releases/1.14-ledger.md`. The `runtime: container`
+hard error in `action.yml` is still in place; replacing it with the implemented
+pull path is the separate PR B.
 
 ## Claim Boundary
 
