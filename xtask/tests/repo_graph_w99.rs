@@ -66,6 +66,22 @@ fn write_file(repo: &std::path::Path, path: &str, body: &str) {
     std::fs::write(repo.join(path), body).expect("fixture file should be writable");
 }
 
+fn git_capture(repo: &std::path::Path, args: &[&str]) -> String {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(repo)
+        .output()
+        .unwrap_or_else(|_| panic!("failed to run git {}", args.join(" ")));
+
+    assert!(
+        output.status.success(),
+        "git {} failed\nstderr:\n{}",
+        args.join(" "),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8_lossy(&output.stdout).trim().to_string()
+}
+
 fn commit(repo: &std::path::Path, message: &str) {
     git(repo, &["add", "."]);
     git(repo, &["commit", "-m", message]);
@@ -418,6 +434,38 @@ fn repo_graph_rejects_unrelated_refs_in_real_git_repo() {
         "stderr: {stderr}"
     );
     assert!(stderr.contains("admin realignment"), "stderr: {stderr}");
+}
+
+#[test]
+fn repo_graph_default_publication_falls_back_to_publication_remote_name() {
+    let temp = init_repo();
+    let repo = temp.path();
+
+    // Simulate a publication remote-tracking ref named `publication/main`
+    // (remote named `publication`, not `public`), with no `public/main` ref.
+    let head = git_capture(repo, &["rev-parse", "main"]);
+    git(
+        repo,
+        &["update-ref", "refs/remotes/publication/main", &head],
+    );
+
+    // Omit --publication so the default `public/main` is used and the fallback
+    // to `publication/main` is exercised.
+    let (stdout, stderr, success) = run_xtask_in_dir(
+        &["repo-graph", "--swarm", "main", "--expect", "aligned"],
+        repo,
+    );
+
+    assert!(
+        success,
+        "default publication should fall back to publication/main. stderr: {stderr}"
+    );
+    assert!(stdout.contains("Aligned"), "stdout: {stdout}");
+    assert!(stdout.contains("ok=true"), "stdout: {stdout}");
+    assert!(
+        stdout.contains("publication publication/main"),
+        "stdout should report the resolved publication ref: {stdout}"
+    );
 }
 
 #[test]

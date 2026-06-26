@@ -57,6 +57,9 @@ inputs:
   runtime:
     description: 'Runtime used to obtain tokmd: binary (default) or container. Container is pending GHCR public-pull verification.'
     default: 'binary'
+  image:
+    description: 'Container image reference (without tag) for runtime: container. Defaults to the publication registry. The tag is derived from the version input. The container runtime is pending the verification gate in docs/specs/packet-ghcr-runtime.md and is not yet supported.'
+    default: 'ghcr.io/effortlessmetrics/tokmd'
 
 outputs:
   receipt:
@@ -112,6 +115,8 @@ runs:
       shell: bash
       env:
         TOKMD_ACTION_RUNTIME: ${{ inputs.runtime }}
+        TOKMD_ACTION_IMAGE: ${{ inputs.image }}
+        TOKMD_ACTION_VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
 
@@ -119,7 +124,19 @@ runs:
         case "$runtime" in
           binary) ;;
           container)
-            echo "::error::runtime=container is pending GHCR public-pull verification and is not yet supported. Use runtime=binary (the default). See docs/packet-workflows.md."
+            # The container runtime is reserved and stays a hard error until the
+            # verification gate in docs/specs/packet-ghcr-runtime.md passes for
+            # the requested tag (anonymous public pull + container packet
+            # equivalence). Publication GHCR is advisory-only today, so do not
+            # pull, do not silently fall back to binary, and do not advertise
+            # container support. We still resolve and report the image reference
+            # the implemented path would use so the gate has a fixed target.
+            image_ref="${TOKMD_ACTION_IMAGE:-ghcr.io/effortlessmetrics/tokmd}"
+            requested_version="${TOKMD_ACTION_VERSION:-latest}"
+            # Normalize to the published tag form (strip a leading 'v').
+            normalized_version="${requested_version#v}"
+            resolved_image="${image_ref}:${normalized_version}"
+            echo "::error::runtime=container is reserved and pending the GHCR verification gate in docs/specs/packet-ghcr-runtime.md; it is not yet a supported runtime. It would resolve image '${resolved_image}', but anonymous public-pull and container packet-equivalence verification for that tag have not passed. Use runtime=binary (the default). See docs/packet-workflows.md and docs/specs/packet-ghcr-runtime.md."
             exit 1
             ;;
           *)
