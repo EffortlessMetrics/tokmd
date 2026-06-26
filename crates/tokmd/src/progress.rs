@@ -26,6 +26,29 @@ fn emit_progress_event(kind: &str, message: &str) {
     }
 }
 
+/// Emit a single orchestrator-stage progress event without managing an
+/// interactive spinner.
+///
+/// Multi-step orchestrators such as `packet generate` delegate the live spinner
+/// to the sub-commands they call (each sub-command owns its own [`Progress`]).
+/// They still frame each stage for `tokmd.progress` consumers, so this emits one
+/// `update` event to stderr (subject to `TOKMD_PROGRESS_EVENTS`) without drawing
+/// a second spinner that would conflict with the active sub-command's spinner.
+#[cfg(feature = "analysis")]
+pub(crate) fn emit_stage(message: &str) {
+    emit_progress_event("update", message);
+}
+
+/// Emit the orchestrator completion event (a `finish` event to stderr, subject
+/// to `TOKMD_PROGRESS_EVENTS`).
+///
+/// Pairs with [`emit_stage`] for orchestrators that do not own an interactive
+/// spinner. The default completion message matches the spinner-based finish.
+#[cfg(feature = "analysis")]
+pub(crate) fn emit_stage_finish() {
+    emit_progress_event("finish", "done");
+}
+
 /// Check if we should show interactive output.
 #[cfg(feature = "ui")]
 fn is_interactive() -> bool {
@@ -292,6 +315,15 @@ mod tests {
         progress.set_length(20);
         progress.finish_with_message("done");
         progress.finish_and_clear();
+    }
+
+    #[cfg(feature = "analysis")]
+    #[test]
+    fn stage_event_helpers_do_not_panic_when_disabled() {
+        // Stage helpers are gated by TOKMD_PROGRESS_EVENTS like the spinner
+        // emitters; calling them without the env var set must be a no-op.
+        emit_stage("Generating analysis receipt...");
+        emit_stage_finish();
     }
 
     #[test]
