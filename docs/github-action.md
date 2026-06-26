@@ -87,7 +87,8 @@ If `version` does not start with `v`, the Action prepends it before downloading 
 | `syntax` | no | `true` | For `mode: packet`, whether to request optional `syntax.json` evidence. |
 | `context-budget` | no | `64000` | For `mode: packet`, the token budget for `context.md`. |
 | `fail-on` | no | `failed` | For `mode: packet`, the packet status failure policy: `failed`, `partial`, or `never`. |
-| `runtime` | no | `binary` | Runtime used to obtain `tokmd`: `binary` (default). `container` is reserved for a future GHCR runtime and currently fails fast. |
+| `runtime` | no | `binary` | Runtime used to obtain `tokmd`: `binary` (default). `container` is reserved for a future GHCR runtime and currently fails fast with a spec-aligned error. |
+| `image` | no | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. The container runtime stays a hard error until the verification gate in `docs/specs/packet-ghcr-runtime.md` passes. |
 
 ## Outputs
 
@@ -334,7 +335,7 @@ The Action fails early for:
 - invalid `gate` or `baseline` path counts
 - unresolved `cockpit`, `sensor`, or `packet` base refs
 - an invalid `mode: packet` `fail-on` or `syntax` value
-- `runtime: container`, which is reserved for a future GHCR runtime
+- `runtime: container`, which is reserved for a future GHCR runtime and fails with a spec-aligned error naming the resolved image reference (see `docs/specs/packet-ghcr-runtime.md`)
 
 `mode: gate` preserves `tokmd-gate-verdict.json` before failing when the policy verdict fails.
 

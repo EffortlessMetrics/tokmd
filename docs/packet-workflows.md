@@ -196,6 +196,7 @@ These are the `mode: packet` inputs. See the
 | `artifact` | `true` | Upload the packet directory as a workflow artifact. |
 | `fail-on` | `failed` | Failure policy: `failed`, `partial`, or `never`. |
 | `runtime` | `binary` | Runtime mode: `binary`, or `container` (pending GHCR verification). |
+| `image` | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) for `runtime: container`. The tag is derived from `version`. The container runtime stays a hard error until the verification gate passes. |
 
 ### Outputs
 
@@ -236,15 +237,25 @@ verified-public for `:main` (issue #264 closed 2026-06-24) but remains a
 workbench/experimental runtime, not a supported consumer path.
 
 Current support status: publication GHCR is **verified-public** for `v1.13.1` as
-of 2026-06-21. New stable tags still need post-release verification before
-calling container runtime support verified for that tag.
+of 2026-06-21. The `1.14.0` tag has only an **advisory** unauthenticated
+manifest fetch (see `docs/releases/1.14-ledger.md`); the formal
+`verified-public` maintainer receipt and the container packet-equivalence check
+in `docs/specs/packet-ghcr-runtime.md` are not yet recorded. New stable tags
+still need post-release verification before calling container runtime support
+verified for that tag.
 
-Target Action shape:
+The Action exposes the `runtime` and `image` inputs, and resolves the image
+reference it would pull (`<image>:<normalized-version>`), but `runtime:
+container` remains a hard error until the verification gate passes. It does not
+silently fall back to the binary runtime.
+
+Target Action shape (once the gate passes for a tag):
 
 ```yaml
 with:
   runtime: container
-  image: ghcr.io/effortlessmetrics/tokmd:1.13.1
+  image: ghcr.io/effortlessmetrics/tokmd
+  version: 1.13.1
 ```
 
 The image should include:

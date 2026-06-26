@@ -67,10 +67,10 @@ pub fn run(args: RepoGraphArgs) -> Result<()> {
 }
 
 fn repo_graph_report(args: &RepoGraphArgs) -> Result<RepoGraphReport> {
-    let publication_sha = rev_parse(&args.publication)?;
+    let (publication_ref, publication_sha) = resolve_publication_revision(&args.publication)?;
     let swarm_sha = rev_parse(&args.swarm)?;
-    let merge_base = merge_base(&args.publication, &args.swarm)?;
-    let ahead_behind = ahead_behind(&args.publication, &args.swarm)?;
+    let merge_base = merge_base(&publication_ref, &args.swarm)?;
+    let ahead_behind = ahead_behind(&publication_ref, &args.swarm)?;
     let relation = classify_relation(merge_base.as_deref(), ahead_behind);
     let ok = expectation_matches(args.expect, relation);
     let expectation = expectation_name(args.expect).to_string();
@@ -83,7 +83,7 @@ fn repo_graph_report(args: &RepoGraphArgs) -> Result<RepoGraphReport> {
         relation,
         next_action,
         publication: RefReport {
-            name: args.publication.clone(),
+            name: publication_ref,
             sha: publication_sha,
         },
         swarm: RefReport {
@@ -93,6 +93,37 @@ fn repo_graph_report(args: &RepoGraphArgs) -> Result<RepoGraphReport> {
         merge_base,
         ahead_behind,
     })
+}
+
+/// Resolve the publication revision, returning the ref name actually used and
+/// its SHA.
+///
+/// The default publication ref is `public/main`, which assumes the publication
+/// remote is named `public`. Some clones name that remote `publication`
+/// instead. When the requested `public/<branch>` ref does not resolve but the
+/// equivalent `publication/<branch>` ref does, fall back to it so the check
+/// works without forcing an explicit `--publication` override. A genuinely
+/// missing ref still surfaces the original git error.
+fn resolve_publication_revision(requested: &str) -> Result<(String, String)> {
+    match rev_parse(requested) {
+        Ok(sha) => Ok((requested.to_string(), sha)),
+        Err(first_err) => {
+            if let Some(alternate) = alternate_publication_ref(requested)
+                && let Ok(sha) = rev_parse(&alternate)
+            {
+                return Ok((alternate, sha));
+            }
+            Err(first_err)
+        }
+    }
+}
+
+/// Map a `public/<branch>` ref to the `publication/<branch>` equivalent used
+/// when the publication remote is named `publication`.
+fn alternate_publication_ref(requested: &str) -> Option<String> {
+    requested
+        .strip_prefix("public/")
+        .map(|branch| format!("publication/{branch}"))
 }
 
 fn rev_parse(revision: &str) -> Result<String> {
@@ -302,8 +333,8 @@ fn print_human_report(report: &RepoGraphReport) {
 #[cfg(test)]
 mod tests {
     use super::{
-        AheadBehind, GraphRelation, RefReport, RepoGraphReport, classify_relation,
-        expectation_failure_hint, expectation_matches,
+        AheadBehind, GraphRelation, RefReport, RepoGraphReport, alternate_publication_ref,
+        classify_relation, expectation_failure_hint, expectation_matches,
     };
     use crate::cli::RepoGraphExpectation;
 
@@ -312,6 +343,25 @@ mod tests {
             publication_ahead,
             swarm_ahead,
         }
+    }
+
+    #[test]
+    fn alternate_publication_ref_maps_public_prefix_to_publication() {
+        assert_eq!(
+            alternate_publication_ref("public/main").as_deref(),
+            Some("publication/main")
+        );
+        assert_eq!(
+            alternate_publication_ref("public/release").as_deref(),
+            Some("publication/release")
+        );
+    }
+
+    #[test]
+    fn alternate_publication_ref_ignores_non_public_refs() {
+        assert_eq!(alternate_publication_ref("publication/main"), None);
+        assert_eq!(alternate_publication_ref("origin/main"), None);
+        assert_eq!(alternate_publication_ref("HEAD"), None);
     }
 
     #[test]
