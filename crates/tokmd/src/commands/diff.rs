@@ -1,4 +1,5 @@
 use crate::cli;
+use crate::progress::Progress;
 use anyhow::{Context, Result, bail};
 use tokmd_format::{
     DiffColorMode, DiffRenderOptions, compute_diff_rows, compute_diff_totals, create_diff_receipt,
@@ -17,13 +18,26 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn handle(args: cli::DiffArgs, global: &cli::GlobalArgs) -> Result<()> {
     let (from, to) = resolve_targets(&args)?;
+
+    // Diff can resolve git refs by creating a worktree and scanning it, which is
+    // the slow path. The spinner stays on stderr and machine-readable progress
+    // events are emitted alongside it when TOKMD_PROGRESS_EVENTS is set; stdout
+    // stays reserved for the diff report/receipt.
+    let progress = Progress::new(!global.no_progress);
+
+    progress.set_message(format!("Loading diff source '{}'...", from));
     let from_report = resolve_lang_report(&from, global)
         .with_context(|| format!("Failed to load diff source '{}'", from))?;
+    progress.set_message(format!("Loading diff source '{}'...", to));
     let to_report = resolve_lang_report(&to, global)
         .with_context(|| format!("Failed to load diff source '{}'", to))?;
 
+    progress.set_message("Computing diff...");
     let diff_rows = compute_diff_rows(&from_report, &to_report);
     let totals = compute_diff_totals(&diff_rows);
+
+    // Clear the stderr spinner before the report is written to stdout.
+    progress.finish_and_clear();
 
     match args.format {
         cli::DiffFormat::Md => {

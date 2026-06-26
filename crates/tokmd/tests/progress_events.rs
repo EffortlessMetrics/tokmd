@@ -1,6 +1,7 @@
 //! Integration tests for machine-readable progress events on the scan-summary
-//! command family (`lang`, `module`, `export`) and the multi-step orchestrators
-//! (`cockpit`, `packet generate`).
+//! command family (`lang`, `module`, `export`), the git-backed comparison
+//! commands (`diff`, `sensor`), and the multi-step orchestrators (`cockpit`,
+//! `packet generate`).
 //!
 //! See `docs/specs/progress-events.md` for the behavior contract. These tests
 //! assert that, when `TOKMD_PROGRESS_EVENTS` is set, each command emits
@@ -173,6 +174,87 @@ fn cockpit_emits_no_progress_events_when_unset() -> TestResult {
     Command::new(env!("CARGO_BIN_EXE_tokmd"))
         .current_dir(dir.path())
         .args(["cockpit", "--base", "main", "--head", "HEAD"])
+        .env_remove("TOKMD_PROGRESS_EVENTS")
+        .env_remove("TOKMD_NO_PROGRESS")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("tokmd.progress").not());
+    Ok(())
+}
+
+#[cfg(feature = "git")]
+#[test]
+fn diff_emits_progress_events_on_stderr() -> TestResult {
+    let Some(dir) = cockpit_repo()? else {
+        return Ok(());
+    };
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["diff", "main", "feature", "--no-progress"])
+        .env("TOKMD_PROGRESS_EVENTS", "1")
+        .env_remove("TOKMD_NO_PROGRESS")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains(r#""event":"tokmd.progress""#))
+        .stderr(predicate::str::contains("Computing diff"))
+        .stderr(predicate::str::contains(FINISH_LINE))
+        .stdout(predicate::str::contains("tokmd.progress").not());
+    Ok(())
+}
+
+#[cfg(feature = "git")]
+#[test]
+fn diff_emits_no_progress_events_when_unset() -> TestResult {
+    let Some(dir) = cockpit_repo()? else {
+        return Ok(());
+    };
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["diff", "main", "feature"])
+        .env_remove("TOKMD_PROGRESS_EVENTS")
+        .env_remove("TOKMD_NO_PROGRESS")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("tokmd.progress").not());
+    Ok(())
+}
+
+#[cfg(feature = "git")]
+#[test]
+fn sensor_emits_progress_events_on_stderr() -> TestResult {
+    let Some(dir) = cockpit_repo()? else {
+        return Ok(());
+    };
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args([
+            "sensor",
+            "--base",
+            "main",
+            "--head",
+            "HEAD",
+            "--no-progress",
+        ])
+        .env("TOKMD_PROGRESS_EVENTS", "1")
+        .env_remove("TOKMD_NO_PROGRESS")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains(r#""event":"tokmd.progress""#))
+        .stderr(predicate::str::contains("Computing cockpit metrics"))
+        .stderr(predicate::str::contains(FINISH_LINE))
+        .stdout(predicate::str::contains("tokmd.progress").not());
+    Ok(())
+}
+
+#[cfg(feature = "git")]
+#[test]
+fn sensor_emits_no_progress_events_when_unset() -> TestResult {
+    let Some(dir) = cockpit_repo()? else {
+        return Ok(());
+    };
+    Command::new(env!("CARGO_BIN_EXE_tokmd"))
+        .current_dir(dir.path())
+        .args(["sensor", "--base", "main", "--head", "HEAD"])
         .env_remove("TOKMD_PROGRESS_EVENTS")
         .env_remove("TOKMD_NO_PROGRESS")
         .assert()

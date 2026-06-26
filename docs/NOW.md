@@ -26,7 +26,7 @@
   `verified-public` maintainer receipt recorded for `v1.13.1`). Swarm GHCR
   is verified-public for `:main` (workbench/experimental tier; issue #264
   closed 2026-06-24, see `docs/specs/swarm-ghcr-image.md`).
-- **CLI friction**: continue practical help examples, actionable errors, progress, and config explainability where current command use shows a real user gap.
+- **CLI friction lane complete**: the Lane 1 CLI-friction packets (help examples, actionable errors, `--show-config`, and stderr progress events) shipped through #316-#323 (see `docs/ROADMAP.md` Lane 1). Reopen only from fresh evidence of a concrete, unaddressed CLI usability gap.
 - **Review evidence consumption**: improve cockpit/review packet reading, hosted-comment, or missing-evidence behavior only when current evidence shows a concrete product or verifier gap.
 - **Measured CI feedback**: improve CI/proof routing and telemetry from receipts; do not weaken proof to make CI look faster.
 
