@@ -77,6 +77,104 @@ verdict and does not promote advisory proof, coverage, mutation, or Codecov
 upload into a required gate. For proof imports and hosted Action artifacts,
 see [tokmd in Cockpit](tokmd-in-cockpit.md).
 
+### Worked Examples by Evidence State
+
+The reading order above stays the same in every state; what changes is which
+line stops you and what you do next. The three packets below are illustrative,
+not literal output. Field names match the `evidence.json` availability values in
+[Evidence Semantics](#evidence-semantics) (`available`, `missing`, `skipped`,
+`stale`, `degraded`, `unavailable`) and the cockpit gate statuses (`pass`,
+`fail`, `warn`, `skipped`, `pending`). Open the named artifact to confirm before
+making a review claim.
+
+#### Passed: required evidence present and fresh
+
+`comment.md` opens with available required evidence and no missing-required
+line:
+
+```text
+Review packet: 7 files to review
+Evidence: 4 available, 1 advisory skipped, 0 missing
+Doc artifacts: verified
+```
+
+`evidence.json` shows the required gates as available for the reviewed commit:
+
+```json
+{
+  "gates": [
+    { "id": "complexity", "status": "pass", "availability": "available" },
+    { "id": "doc_artifacts", "status": "pass", "availability": "available" }
+  ]
+}
+```
+
+Reading order in this state: skim `comment.md` to confirm nothing is missing,
+then work `review-map.md` top-to-bottom on the changed files. You only need
+`evidence.json` if a summary line needs an exact freshness or source detail.
+Do not read a clean packet as merge approval; it means the named required
+evidence existed for this commit, not that the change is correct.
+
+#### Advisory-missing: optional evidence did not run
+
+`comment.md` distinguishes advisory gaps from required ones:
+
+```text
+Review packet: 5 files to review
+Evidence: 2 available, 2 advisory missing, 0 required missing
+```
+
+`evidence.json` marks the optional gate as not-passing without inventing a
+result:
+
+```json
+{
+  "gates": [
+    { "id": "complexity", "status": "pass", "availability": "available" },
+    { "id": "coverage", "status": "skipped", "availability": "skipped" },
+    { "id": "mutation", "status": "unavailable", "availability": "unavailable" }
+  ]
+}
+```
+
+Reading order in this state: confirm in `comment.md` that the gaps are advisory,
+then use `review-map.md` normally. Do not call an advisory gap a failure unless
+policy made that proof required. If the PR genuinely needs the missing signal,
+run the reproduction command from the matching `review-map.md` item or
+`cockpit-proof-evidence.md`; importing it later refreshes the packet rather than
+flipping a gate.
+
+#### Failed: required evidence missing, stale, degraded, or failing
+
+`comment.md` surfaces the required gap first so it is not mistaken for advisory
+noise:
+
+```text
+Review packet: 9 files to review
+Evidence: 1 available, 3 required missing/stale, 1 degraded
+Required evidence is incomplete; do not treat this packet as complete.
+```
+
+`evidence.json` names exactly what is wrong:
+
+```json
+{
+  "gates": [
+    { "id": "complexity", "status": "fail", "availability": "available" },
+    { "id": "doc_artifacts", "status": "pending", "availability": "stale" },
+    { "id": "tests", "status": "pending", "availability": "missing" }
+  ]
+}
+```
+
+Reading order in this state: start from `evidence.json` (or the `comment.md`
+required-gap line) to identify the untrustworthy gates, then regenerate or
+repair the named proof before reviewing further. A `fail` gate is a real signal
+to act on; `stale`, `degraded`, and `missing` mean the evidence cannot be
+trusted for this commit, not that the surface passed. Re-run
+`cargo xtask review-packet-check` after repairing so the manifest hashes and the
+verifier receipt reflect the repaired packet.
+
 ## Existing Cockpit Artifacts
 
 `tokmd cockpit --artifacts-dir <dir>` writes:

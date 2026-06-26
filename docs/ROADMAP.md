@@ -134,6 +134,22 @@ post-release verification.
 
 ### Lane 1: User-Facing CLI Friction
 
+**Status:** complete (2026-06-26). All four candidate work packets shipped to
+swarm `main` with default stdout/JSON behavior and receipt schemas unchanged:
+
+| Packet | Shipped in |
+| --- | --- |
+| 1. CLI help examples | #316 (`diff`, `gate`, `export`), #317 (`badge`, `tools`, `baseline`, `sensor`, `lang`) |
+| 2. Error context pass | #318 (JSON receipt parse-failure recovery hint) |
+| 3. Config explainability | #320 (`--show-config` resolved-configuration surface) |
+| 4. Progress consistency | #321 (`lang`, `module`, `export`), #322 (`cockpit`, `packet generate`), #323 (`diff`, `sensor`) |
+
+The "Done when" criteria below are met: common commands carry `--help`
+examples, common failure modes give recovery hints, long operations emit
+stderr progress events (see `docs/specs/progress-events.md`), and machine
+stdout/JSON output remains script-safe. Reopen this lane only from fresh
+evidence of a concrete, unaddressed CLI usability gap.
+
 **Goal:** Improve the experience of running `tokmd` directly: help text,
 actionable errors, progress, config explainability, and command discovery.
 
