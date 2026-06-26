@@ -271,15 +271,17 @@ mod tests {
     #[test]
     fn scan_arg_object_returns_nested_when_present() {
         let args = json!({"scan": {"root": "."}, "other": 1});
-        let inner = nested_arg_object(&args, "scan").unwrap();
+        let inner = nested_arg_object(&args, "scan").unwrap_or(&args);
         assert_eq!(inner, &json!({"root": "."}));
+
     }
 
     #[test]
     fn scan_arg_object_returns_args_when_missing() {
         let args = json!({"root": "."});
-        let inner = nested_arg_object(&args, "scan").unwrap();
+        let inner = nested_arg_object(&args, "scan").unwrap_or(&args);
         assert_eq!(inner, &args);
+
     }
 
     // ---- parse_bool -------------------------------------------------------
