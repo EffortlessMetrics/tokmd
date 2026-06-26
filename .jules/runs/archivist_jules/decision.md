@@ -1,27 +1,35 @@
 # Decision
 
 ## Context
-The Archivist persona focuses on improving Jules itself by consolidating learnings and sharing scaffolding. Target ranking #2 is "summarize per-run packets into generated indexes/rollups", and target #1 is "consolidate recurring friction themes into better templates/policy/docs".
+As Archivist 🗃️ in the `workspace-wide` shard, my task is to improve Jules by consolidating run learnings and scaffolding.
+I have been provided a target ranking:
+1) consolidate recurring friction themes into better templates/policy/docs
+2) summarize per-run packets into generated indexes/rollups
+3) clean up prompt/runtime documentation so future runs improve
+4) move duplicated persona-local conventions into neutral shared guidance
 
-Looking at the generated indexes (`.jules/index/generated/RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md`), they are currently out-of-date and missing some metadata, which is exposed by running `cargo xtask jules-index`. Also, the `FRICTION_ROLLUP.md` shows missing or "Unknown" metadata for friction items like `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` because they don't conform precisely to the metadata schema in `.jules/runbooks/FRICTION_ITEM.md`.
+In `.jules/index/generated/RUNS_ROLLUP.md`, we see that the run rollup lacks summary information or links to actual run ids, and some fields are listed as `Unknown`.
 
-## Options considered
+Looking at `xtask/src/tasks/jules_index.rs`, the generation code currently pulls run ids from directory names, persona/style from `envelope.json`, and outputs them into a markdown table.
 
-### Option A: Clean up friction items metadata and regenerate the indexes (Recommended)
-1. Fix the metadata frontmatter in the `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` friction items so they match the expected schema from the runbook.
-2. Run `cargo xtask jules-index` to update the generated `RUNS_ROLLUP.md` and `FRICTION_ROLLUP.md` files.
-3. Commit these changes.
+In `.jules/friction/done/`, we have 13 files. In `.jules/index/generated/FRICTION_ROLLUP.md`, we have 0 files because it only reads from `.jules/friction/open/`. According to memory "In the Jules indexing system, `cargo xtask jules-index` parses both `.jules/friction/open/` and `.jules/friction/done/` to generate `FRICTION_ROLLUP.md`" but this memory was explicitly stating a goal or rule, whereas the current implementation of `jules_index.rs` only does:
+```rust
+    let friction_rollup = render_friction_rollup(&collect_friction(&friction_open)?);
+```
 
-- **Structure**: High. Brings disparate friction items into compliance with the official runbook.
-- **Velocity**: Low impact on product code velocity, but improves Jules system health.
-- **Governance**: High. The generated indexes will now correctly track all friction items and run statuses.
+Let's look closer at `jules_index.rs`.
 
-### Option B: Only regenerate the indexes without fixing the friction metadata
-1. Just run `cargo xtask jules-index`.
+## Options
 
-- **Structure**: Low. The indexes will still show "Unknown" values for important metadata.
-- **Velocity**: Low.
-- **Governance**: Low. We leave broken metadata in the repo.
+### Option A: Fix `jules-index` to include `.jules/friction/done/`
+- What it is: Update `xtask/src/tasks/jules_index.rs` to process both `.jules/friction/open/` and `.jules/friction/done/` into the Friction Index, adding a "Status" column value of "done" for the completed ones.
+- Why it fits this repo and shard: Directly aligns with the memory: "In the Jules indexing system, `cargo xtask jules-index` parses both `.jules/friction/open/` and `.jules/friction/done/` to generate `FRICTION_ROLLUP.md`" and with target ranking #2 (summarize per-run packets into generated indexes/rollups).
+- Trade-offs: Low risk, high value for tracking resolved friction items.
+
+### Option B: Write a script to convert `envelope.json` formats
+- What it is: Normalize `legacy_envelope.json` vs `envelope.json` across all runs.
+- When to choose it instead: If the priority is data cleanup rather than fixing a known feature gap.
+- Trade-offs: Might break older tools expecting specific formats, requires modifying historical data which the README says we should avoid ("Never rewrite history").
 
 ## Decision
-**Option A**. By fixing the friction item metadata frontmatter to align with `.jules/runbooks/FRICTION_ITEM.md` and then regenerating the indexes, we accomplish both target #1 (consolidate friction themes/docs) and target #2 (summarize into generated indexes/rollups).
+I choose **Option A**. The memory specifically mentioned that `cargo xtask jules-index` parses both open and done friction directories, but the current code only parses `open`. Fixing this directly addresses target #2 (summarize into generated indexes/rollups) and fixes an actual bug in the workspace-wide scaffolding.
