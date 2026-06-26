@@ -1,0 +1,20 @@
+{
+  "outcome": "patch",
+  "title": "fuzzer: enforce strict object types for FFI setting payloads \ud83c\udf2a\ufe0f",
+  "summary": "Replaced silent fallback logic for FFI settings boundaries with strict object type checks, throwing a proper error instead of silently falling back to the parent args object.",
+  "target_paths": [
+    "crates/tokmd-core/src/ffi/parse.rs",
+    "crates/tokmd-core/src/ffi/settings_parse.rs",
+    "crates/tokmd-core/tests/ffi_settings_parse.rs"
+  ],
+  "proof_summary": "Added an integration test `ffi_settings_parse.rs` that explicitly verifies we reject non-object payloads gracefully as well.",
+  "gates_run": [
+    "cargo test -p tokmd-core --all-features",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Revert the parse.rs and settings_parse.rs file changes to re-enable unwrap_or fallback.",
+  "follow_ups": []
+}

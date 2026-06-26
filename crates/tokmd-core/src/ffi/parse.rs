@@ -8,8 +8,12 @@ use serde_json::Value;
 use crate::error::TokmdError;
 use crate::settings::{ChildIncludeMode, ChildrenMode, ConfigMode, ExportFormat, RedactMode};
 
-pub(super) fn scan_arg_object(args: &Value) -> &Value {
-    args.get("scan").unwrap_or(args)
+pub(super) fn nested_arg_object<'a>(args: &'a Value, key: &str) -> Result<&'a Value, TokmdError> {
+    match args.get(key) {
+        Some(v) if !v.is_object() => Err(TokmdError::invalid_field(key, "a JSON object")),
+        Some(v) => Ok(v),
+        None => Ok(args),
+    }
 }
 
 /// Parse a boolean field strictly: missing/null -> default, non-bool -> error.
@@ -267,14 +271,14 @@ mod tests {
     #[test]
     fn scan_arg_object_returns_nested_when_present() {
         let args = json!({"scan": {"root": "."}, "other": 1});
-        let inner = scan_arg_object(&args);
+        let inner = nested_arg_object(&args, "scan").unwrap();
         assert_eq!(inner, &json!({"root": "."}));
     }
 
     #[test]
     fn scan_arg_object_returns_args_when_missing() {
         let args = json!({"root": "."});
-        let inner = scan_arg_object(&args);
+        let inner = nested_arg_object(&args, "scan").unwrap();
         assert_eq!(inner, &args);
     }
 
