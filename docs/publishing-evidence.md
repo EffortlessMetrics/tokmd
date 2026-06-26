@@ -140,10 +140,10 @@ The **swarm workbench** (`EffortlessMetrics/tokmd-swarm`) publishes a separate
 image at `ghcr.io/effortlessmetrics/tokmd-swarm` via
 `.github/workflows/swarm-ghcr.yml` (`main` and `sha-*` tags only). Under the
 dual-repo topology (`docs/specs/repo-topology.md`), publication semver Docker
-tags remain owned by `tokmd`. Swarm GHCR package visibility is **undecided**
-and tracked in issue #264. Do not document swarm GHCR as a supported install or
-workflow runtime until a maintainer records `verified-public` in
-`docs/specs/swarm-ghcr-image.md`.
+tags remain owned by `tokmd`. Swarm GHCR is **verified-public** for `:main` as
+of 2026-06-24 (issue #264 closed), recorded in `docs/specs/swarm-ghcr-image.md`.
+It remains a workbench/experimental runtime: do not document swarm GHCR as a
+supported end-user install or publication release runtime.
 
 As of **2026-06-21**, maintainer verification records
 `ghcr.io/effortlessmetrics/tokmd` as **verified-public** for `v1.13.1`. New

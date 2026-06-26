@@ -59,7 +59,8 @@ The GHCR receipt is maintainer-written after an intentional stable release from
 the publication repo. It records `verified-public`, `pending`, or `private-only`
 for `ghcr.io/effortlessmetrics/tokmd` and belongs in the release ledger. For
 `v1.13.1`, the ledger records **verified-public** as of 2026-06-21. Swarm
-workbench GHCR visibility remains undecided (issue #264).
+workbench GHCR is verified-public for `:main` as of 2026-06-24 (issue #264
+closed; workbench/experimental tier).
 
 Next action:
 

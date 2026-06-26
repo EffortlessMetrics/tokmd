@@ -68,6 +68,10 @@ schemas, and verification policy for `tokmd`.
   note for syntax-aware evidence packet release readiness.
 - [releases/1.13-readiness.md](releases/1.13-readiness.md) - command-backed
   pre-release readiness report for the 1.13 syntax evidence packet release.
+- [releases/1.14-ledger.md](releases/1.14-ledger.md) - maintainer release and
+  distribution record for the 1.14 PR evidence-packet workflow release.
+- [releases/1.14-readiness.md](releases/1.14-readiness.md) - command-backed
+  pre-release readiness report for the 1.14 PR evidence-packet workflow release.
 - [releases/1.11.md](releases/1.11.md) — user-facing release notes for the 1.11
   evidence-consumption release.
 - [releases/1.11-ledger.md](releases/1.11-ledger.md) — lane-by-lane maintainer

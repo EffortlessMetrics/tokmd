@@ -51,7 +51,7 @@ build `tokmd` in every repository.
 
 GHCR is useful when a workflow needs a pinned Linux container runtime from the
 publication image, but the normal user-facing entrypoint should be an Action
-step, not `docker run`. Swarm workbench GHCR is not a supported consumer path today; package visibility remains **undecided** (issue #264).
+step, not `docker run`. Swarm workbench GHCR is verified-public for `:main` (issue #264 closed 2026-06-24) but remains a workbench/experimental runtime, not a supported consumer path.
 
 ## Local CLI
 
@@ -231,9 +231,9 @@ required in a later contract.
 GHCR is the intended secondary Linux/container runtime for the **publication
 image** (`ghcr.io/effortlessmetrics/tokmd`), not the primary user experience.
 The primary PR path should be a GitHub Action that downloads a prebuilt binary.
-Cargo install remains the local/dev fallback. Swarm workbench GHCR is not a
-supported consumer path today; public visibility remains an open decision
-(issue #264).
+Cargo install remains the local/dev fallback. Swarm workbench GHCR is
+verified-public for `:main` (issue #264 closed 2026-06-24) but remains a
+workbench/experimental runtime, not a supported consumer path.
 
 Current support status: publication GHCR is **verified-public** for `v1.13.1` as
 of 2026-06-21. New stable tags still need post-release verification before
