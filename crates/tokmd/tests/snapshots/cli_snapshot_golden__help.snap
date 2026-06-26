@@ -103,6 +103,9 @@ Options:
           
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 

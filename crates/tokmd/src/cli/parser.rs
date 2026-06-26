@@ -110,6 +110,10 @@ pub struct Cli {
     /// Configuration profile to use (e.g., "llm_safe", "ci").
     #[arg(long, visible_alias = "view", global = true)]
     pub profile: Option<String>,
+
+    /// Print the resolved configuration sources and values, then exit.
+    #[arg(long = "show-config", global = true)]
+    pub show_config: bool,
 }
 
 // =============================================================================

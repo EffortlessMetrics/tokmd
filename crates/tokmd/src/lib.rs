@@ -52,6 +52,19 @@ pub fn run() -> Result<()> {
     let config_ctx = config::load_config();
     let profile_name = config::get_profile_name(cli.profile.as_ref());
     let resolved = config::resolve_config(&config_ctx, profile_name.as_deref());
+    if cli.show_config {
+        let source = match (cli.profile.as_ref(), profile_name.as_ref()) {
+            (Some(_), Some(_)) => config::explain::ProfileSource::Cli,
+            (None, Some(_)) => config::explain::ProfileSource::Env,
+            _ => config::explain::ProfileSource::None,
+        };
+        return config::explain::print_config_report(
+            &config_ctx,
+            profile_name.as_deref(),
+            source,
+            &resolved,
+        );
+    }
     commands::dispatch(cli, &resolved)
 }
 

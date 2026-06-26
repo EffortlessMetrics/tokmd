@@ -130,6 +130,12 @@ path = "docs/specs/progress-events.md"
 status = "active"
 
 [[artifact]]
+id = "config-explainability-spec"
+kind = "spec"
+path = "docs/specs/config-explainability.md"
+status = "active"
+
+[[artifact]]
 id = "spec-rails-contributor-guide"
 kind = "contributor-guide"
 path = "docs/contributing/spec-rails.md"
