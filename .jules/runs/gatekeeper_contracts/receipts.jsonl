@@ -1,4 +1,4 @@
-{"command": "cargo xtask docs --update", "result": "updated docs/reference-cli.md from tokmd help markers"}
-{"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
-{"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
-{"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "failed with 18 findings"}
+{"command": "git clean -fd xtask/target", "outcome": "success"}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "failed with 18 findings"}
+{"command": "cargo xtask check-file-policy --strict (after updating toml)", "outcome": "success"}
