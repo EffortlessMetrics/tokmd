@@ -53,6 +53,8 @@ context for humans, machines, CI, and agents.
 The historical roadmap remains useful as a record of shipped milestones and
 longer-term horizons. The active planning state is now selection-first:
 
+- PR evidence packet workflows (v1.14) are complete.
+
 - v1.11 browser runtime polish is complete.
 - Cockpit/review evidence is stable as the current PR-review surface.
 - Proof observation remains advisory, not promoted to required gates.

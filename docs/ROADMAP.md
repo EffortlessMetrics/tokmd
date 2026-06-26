@@ -18,8 +18,7 @@ scoped coverage, mutation, coverage telemetry, and Codecov upload remain
 advisory unless maintainers deliberately promote them with fresh verified
 decision evidence.
 
-The active product lane is PR evidence packet workflows: make the
-`sensors/tokmd/` packet easy to generate from one local CLI command and one
+The active product lane is parked. The `1.14` release completed the PR evidence packet workflow.
 GitHub Action step before adding more analysis.
 
 ## Roadmap Principles
@@ -42,7 +41,7 @@ GitHub Action step before adding more analysis.
 
 ## Near-Term Roadmap
 
-### Active Lane: PR Evidence Packet Workflows
+### Closed Lane: PR Evidence Packet Workflows (Completed in v1.14.0)
 
 **Goal:** Make `tokmd` useful in pull request workflows and local review by
 producing the same bounded evidence packet from a one-command CLI path and a
@@ -81,10 +80,7 @@ build `tokmd` in every repository.
 - local users can generate `sensors/tokmd/` with one command,
 - PR workflows can generate and upload the same packet with one Action step,
 - packet status drives documented `fail-on` behavior,
-- GHCR is verified as a secondary runtime for the publication image
-  (`ghcr.io/effortlessmetrics/tokmd`, `verified-public` for `v1.13.1` as of
-  2026-06-21); swarm GHCR is verified-public for `:main` as of 2026-06-24
-  (issue #264 closed, workbench/experimental tier).
+- GHCR is verified as a secondary runtime for the publication image (`ghcr.io/effortlessmetrics/tokmd`, `verified-public` for `v1.14.0` as of 2026-06-25).
 
 ### Lane 0: Release and Distribution Verification
 
@@ -93,7 +89,7 @@ artifacts are visible, installable, and mapped to the expected version.
 
 **Why now:** Recent release evidence is strong. The crates.io and GitHub release
 install paths are verified. Publication GHCR (`ghcr.io/effortlessmetrics/tokmd`)
-is **verified-public** for `v1.13.1` as of 2026-06-21. Swarm workbench GHCR is
+is **verified-public** for `v1.14.0` as of 2026-06-25. Swarm workbench GHCR is
 **verified-public** for `:main` as of 2026-06-24 (issue #264 closed,
 workbench/experimental tier). Future stable releases still need per-tag
 post-release verification.
@@ -128,7 +124,7 @@ post-release verification.
 
 - maintainers can verify a release from one short guide,
 - publication GHCR visibility is recorded per stable release (`verified-public`
-  for `v1.13.1` as of 2026-06-21; swarm GHCR is verified-public for `:main` as
+  for `v1.14.0` as of 2026-06-25; swarm GHCR is verified-public for `:main` as
   of 2026-06-24, issue #264 closed),
 - future release checks have a durable path.
 
