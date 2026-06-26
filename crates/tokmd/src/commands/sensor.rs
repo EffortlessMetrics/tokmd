@@ -9,6 +9,8 @@
 
 use crate::cli;
 #[cfg(feature = "git")]
+use crate::progress::Progress;
+#[cfg(feature = "git")]
 use anyhow::Context;
 use anyhow::{Result, bail};
 #[cfg(feature = "git")]
@@ -36,11 +38,15 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
 
     #[cfg(feature = "git")]
     {
-        let _ = global; // scan opts not needed for cockpit path
-
         if !tokmd_git::git_available() {
             bail!("git is not available on PATH");
         }
+
+        // Sensor is a multi-step orchestrator (git diff + scan + render) like
+        // cockpit. The spinner stays on stderr and machine-readable progress
+        // events are emitted alongside it when TOKMD_PROGRESS_EVENTS is set;
+        // stdout stays reserved for the sensor report.
+        let progress = Progress::new(!global.no_progress);
 
         let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
         let repo_root = tokmd_git::repo_root(&cwd)
@@ -49,6 +55,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         // Use two-dot range for sensor (same convention as cockpit)
         let range_mode = tokmd_git::GitRangeMode::TwoDot;
 
+        progress.set_message("Resolving base reference...");
         let resolved_base =
             tokmd_git::resolve_base_ref(&repo_root, &args.base).ok_or_else(|| {
                 anyhow::anyhow!(
@@ -59,6 +66,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
             })?;
 
         // Run cockpit computation (sensor mode has no baseline path)
+        progress.set_message("Computing cockpit metrics (git diff + scan)...");
         let cockpit_receipt = super::cockpit::compute_cockpit(
             &repo_root,
             &resolved_base,
@@ -68,6 +76,7 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         )?;
 
         // Build the sensor report envelope
+        progress.set_message("Building sensor report...");
         let generated_at = now_iso8601();
         let verdict = map_verdict(cockpit_receipt.evidence.overall_status);
 
@@ -83,6 +92,11 @@ pub(crate) fn handle(args: cli::SensorArgs, global: &cli::GlobalArgs) -> Result<
         emit_contract_findings(&mut report, &cockpit_receipt.contracts);
         emit_complexity_findings(&mut report, &cockpit_receipt.evidence);
         emit_gate_findings(&mut report, &cockpit_receipt.evidence);
+
+        // Clear the spinner before any stdout/file output so progress noise on
+        // stderr never interleaves with the machine-readable report.
+        progress.set_message("Writing sensor artifacts...");
+        progress.finish_and_clear();
 
         output::write_outputs(&args, report, &cockpit_receipt)
     }
