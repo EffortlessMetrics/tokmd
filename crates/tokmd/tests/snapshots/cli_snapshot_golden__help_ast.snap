@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
-assertion_line: 35
 expression: normalize(stdout)
 ---
 tokmd — code awareness for AI contexts
@@ -105,6 +104,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
           
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')

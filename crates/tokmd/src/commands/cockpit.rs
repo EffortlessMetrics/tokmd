@@ -10,6 +10,8 @@ use std::path::{Path, PathBuf};
 
 use crate::cli;
 #[cfg(feature = "git")]
+use crate::progress::Progress;
+#[cfg(feature = "git")]
 use anyhow::Context;
 use anyhow::{Result, bail};
 
@@ -22,10 +24,11 @@ pub use tokmd_types::cockpit::*;
 pub use tokmd_cockpit::compute_cockpit;
 
 /// Handle the cockpit command.
-pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Result<()> {
+pub(crate) fn handle(args: cli::CockpitArgs, global: &cli::GlobalArgs) -> Result<()> {
     #[cfg(not(feature = "git"))]
     {
         let _ = &args; // Silence unused warning
+        let _ = global;
         bail!("The cockpit command requires the 'git' feature. Rebuild with --features git");
     }
 
@@ -35,9 +38,16 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             bail!("git is not available on PATH");
         }
 
+        // Cockpit is a multi-step orchestrator (git diff + scan + render). The
+        // spinner stays on stderr and machine-readable progress events are
+        // emitted alongside it when TOKMD_PROGRESS_EVENTS is set; stdout stays
+        // reserved for the cockpit receipt/report.
+        let progress = Progress::new(!global.no_progress);
+
         let cwd = std::env::current_dir().context("Failed to resolve current directory")?;
         let repo_root = tokmd_git::repo_root(&cwd)
             .ok_or_else(|| anyhow::anyhow!("not inside a git repository"))?;
+        progress.set_message("Loading proof evidence inputs...");
         let proof_evidence_inputs = load_proof_evidence_inputs(&args)?;
         let doc_artifacts_evidence = load_doc_artifacts_evidence_input(&args)?;
 
@@ -46,6 +56,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
             cli::DiffRangeMode::ThreeDot => tokmd_git::GitRangeMode::ThreeDot,
         };
 
+        progress.set_message("Resolving base reference...");
         let resolved_base =
             tokmd_git::resolve_base_ref(&repo_root, &args.base).ok_or_else(|| {
                 anyhow::anyhow!(
@@ -55,6 +66,7 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
                 )
             })?;
 
+        progress.set_message("Computing cockpit metrics (git diff + scan)...");
         let mut receipt = tokmd_cockpit::compute_cockpit(
             &repo_root,
             &resolved_base,
@@ -65,11 +77,17 @@ pub(crate) fn handle(args: cli::CockpitArgs, _global: &cli::GlobalArgs) -> Resul
 
         // Load baseline and compute trend if provided
         if let Some(baseline_path) = &args.baseline {
+            progress.set_message("Computing trend comparison...");
             receipt.trend = Some(tokmd_cockpit::load_and_compute_trend(
                 baseline_path,
                 &receipt,
             )?);
         }
+
+        // Clear the spinner before any stdout/file output so progress noise on
+        // stderr never interleaves with the machine-readable receipt.
+        progress.set_message("Rendering report...");
+        progress.finish_and_clear();
 
         // In sensor mode, write envelope to artifacts_dir
         if args.sensor_mode {

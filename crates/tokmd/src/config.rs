@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use tokmd_settings::{Profile, TomlConfig, UserConfig, ViewProfile};
 
+pub mod explain;
 mod resolve;
 
 pub use resolve::{

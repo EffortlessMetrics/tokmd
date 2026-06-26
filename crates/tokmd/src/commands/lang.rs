@@ -6,6 +6,7 @@ use tokmd_scan as scan;
 use tokmd_settings::ScanOptions;
 
 use crate::config::{self, ResolvedConfig};
+use crate::progress::Progress;
 
 pub(crate) fn handle(
     cli_args: cli::CliLangArgs,
@@ -14,8 +15,14 @@ pub(crate) fn handle(
 ) -> Result<()> {
     let args = config::resolve_lang_with_config(&cli_args, resolved);
     let scan_opts = ScanOptions::from(global);
+
+    let progress = Progress::new(!global.no_progress);
+    progress.set_message("Scanning codebase...");
     let languages = scan::scan(&args.paths, &scan_opts)?;
     let report = model::create_lang_report(&languages, args.top, args.files, args.children);
+    // Clear the stderr spinner before the report is written to stdout.
+    progress.finish_and_clear();
+
     format::print_lang_report(&report, &scan_opts, &args)?;
     Ok(())
 }

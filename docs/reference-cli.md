@@ -23,6 +23,7 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | `--files` | Include file counts and average lines per file. |
 | `--children <CHILDREN>` | How to handle embedded languages (`collapse`, `separate`). Default is `collapse`. |
 | `--profile <PROFILE>` | Configuration profile to use (e.g., `llm_safe`, `ci`). Alias: `--view`. |
+| `--show-config` | Print the resolved configuration sources and profile-layered values, then exit without scanning. See [`docs/specs/config-explainability.md`](specs/config-explainability.md). |
 
 > **Note**: Paths to scan are specified as positional arguments on each subcommand (e.g., `tokmd lang ./src`), not as global flags.
 
@@ -80,6 +81,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -165,6 +169,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -262,6 +269,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -329,6 +339,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -491,6 +504,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -579,6 +595,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -662,6 +681,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -741,6 +763,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -810,6 +835,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -973,6 +1001,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -1135,6 +1166,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -1191,6 +1225,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -1255,6 +1292,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -1379,6 +1419,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -1410,6 +1453,7 @@ Examples:
 | `--sensor-mode` | Run in sensor mode for CI integration (see below). | `false` |
 | `--no-progress` | Disable progress spinners. | `false` |
 | `--profile <PROFILE>` | Configuration profile to use. | `(none)` |
+| `--show-config` | Print resolved config sources and values, then exit. | `false` |
 
 **Output Formats**:
 
@@ -1517,6 +1561,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -1693,6 +1740,9 @@ Options:
 
           [aliases: --view]
 
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
 
@@ -1754,6 +1804,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -1895,6 +1948,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -2081,6 +2137,9 @@ Options:
           Configuration profile to use (e.g., "llm_safe", "ci")
 
           [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')

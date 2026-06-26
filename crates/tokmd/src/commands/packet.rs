@@ -12,6 +12,7 @@ use anyhow::{Context, Result};
 use crate::analysis_utils;
 use crate::cli;
 use crate::commands::{analyze, context, evidence_packet};
+use crate::progress;
 
 pub(crate) fn handle(args: cli::PacketArgs, global: &cli::GlobalArgs) -> Result<()> {
     match args.command {
@@ -41,8 +42,15 @@ fn generate_packet(args: cli::PacketGenerateArgs, global: &cli::GlobalArgs) -> R
             .with_context(|| format!("failed to clear stale {}", syntax_json.display()))?;
     }
 
+    // Orchestrator-level progress: the live spinner is owned by each delegated
+    // sub-command (analyze/context each create their own), so the packet frames
+    // every stage with machine-readable `tokmd.progress` events on stderr only
+    // (subject to TOKMD_PROGRESS_EVENTS) without drawing a competing spinner.
+    // stdout stays reserved for the evidence-packet manifest.
+
     // 1. analyze: one analysis pass, rendered to both the JSON and Markdown
     //    artifacts so the receipts cannot disagree.
+    progress::emit_stage("Generating analysis receipt...");
     let analyze_args = analyze_args(&args);
     let receipt = analyze::build_receipt(&analyze_args, global)
         .context("failed to build analysis receipt for packet")?;
@@ -56,6 +64,7 @@ fn generate_packet(args: cli::PacketGenerateArgs, global: &cli::GlobalArgs) -> R
         .with_context(|| format!("failed to write {}", analyze_md.display()))?;
 
     // 2. context: reuse the context command with output redirected to the packet.
+    progress::emit_stage("Generating context artifact...");
     context::handle(context_args(&args, &context_md), global)
         .context("failed to generate packet context artifact")?;
 
@@ -66,6 +75,7 @@ fn generate_packet(args: cli::PacketGenerateArgs, global: &cli::GlobalArgs) -> R
     //    `complete`. The stale-clear above guarantees the referenced file
     //    reflects only this run.
     let syntax_arg = if args.want_syntax() {
+        progress::emit_stage("Generating syntax evidence...");
         if let Err(err) = write_syntax(&args, &syntax_json) {
             eprintln!("warning: syntax evidence unavailable: {err}");
         }
@@ -76,6 +86,7 @@ fn generate_packet(args: cli::PacketGenerateArgs, global: &cli::GlobalArgs) -> R
 
     // 4. evidence-packet: index and validate the artifacts. This prints the
     //    manifest JSON and exits nonzero when the packet status is `failed`.
+    progress::emit_stage("Indexing evidence packet...");
     let packet_args = cli::EvidencePacketArgs {
         preset: args.preset,
         base: args.base.clone(),
@@ -88,7 +99,9 @@ fn generate_packet(args: cli::PacketGenerateArgs, global: &cli::GlobalArgs) -> R
         context_budget: args.context_budget.clone(),
         paths: args.paths.clone(),
     };
-    evidence_packet::handle(packet_args)
+    evidence_packet::handle(packet_args)?;
+    progress::emit_stage_finish();
+    Ok(())
 }
 
 /// Build analyze arguments scoped to the packet request.
