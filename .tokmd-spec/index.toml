@@ -124,6 +124,12 @@ path = "docs/specs/swarm-ghcr-image.md"
 status = "draft"
 
 [[artifact]]
+id = "packet-ghcr-runtime-spec"
+kind = "spec"
+path = "docs/specs/packet-ghcr-runtime.md"
+status = "draft"
+
+[[artifact]]
 id = "progress-events-spec"
 kind = "spec"
 path = "docs/specs/progress-events.md"
