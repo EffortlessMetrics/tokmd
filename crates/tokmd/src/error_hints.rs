@@ -267,6 +267,26 @@ fn suggestions(err: &Error) -> Vec<String> {
         );
     }
 
+    // JSON receipt / baseline parse failures (gate, diff, analyze, badge,
+    // baseline) surface a bare serde error. Point the user at a valid source
+    // instead of leaving them to guess what shape the file should have. Scoped
+    // away from TOML so the two parse hints do not both fire.
+    if haystack.contains("failed to parse")
+        && !haystack.contains("toml")
+        && (haystack.contains("receipt")
+            || haystack.contains("json")
+            || haystack.contains("export rows"))
+    {
+        push_hint(
+            &mut out,
+            "Ensure the file is a tokmd JSON receipt (produced by `tokmd run`, `tokmd export`, or `tokmd analyze`).",
+        );
+        push_hint(
+            &mut out,
+            "If it was hand-edited or truncated, regenerate the receipt and retry.",
+        );
+    }
+
     out
 }
 
@@ -458,6 +478,45 @@ mod tests {
         assert!(hints.iter().any(|h| h.contains("limiting requests")));
         assert!(hints.iter().any(|h| h.contains("Retry-After")));
         assert!(hints.iter().any(|h| h.contains("smaller input scope")));
+    }
+
+    #[test]
+    fn suggests_for_json_receipt_parse_failure() {
+        let err = anyhow!("Failed to parse JSON from receipt.json: expected value at line 1");
+        let hints = suggestions(&err);
+        assert!(
+            hints.iter().any(|h| h.contains("tokmd JSON receipt")),
+            "expected receipt-source guidance, got: {hints:?}"
+        );
+        assert!(
+            hints.iter().any(|h| h.contains("regenerate the receipt")),
+            "expected regenerate guidance, got: {hints:?}"
+        );
+    }
+
+    #[test]
+    fn suggests_for_lang_receipt_parse_failure() {
+        let err = anyhow!("Failed to parse lang receipt");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("tokmd JSON receipt")));
+    }
+
+    #[test]
+    fn suggests_for_baseline_json_parse_failure() {
+        let err = anyhow!("Failed to parse baseline JSON from baseline.json");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("tokmd JSON receipt")));
+    }
+
+    #[test]
+    fn toml_parse_failure_does_not_get_receipt_hint() {
+        let err = anyhow!("invalid TOML: failed to parse key at line 3");
+        let hints = suggestions(&err);
+        assert!(hints.iter().any(|h| h.contains("tokmd.toml")));
+        assert!(
+            !hints.iter().any(|h| h.contains("tokmd JSON receipt")),
+            "TOML parse errors must not get the JSON receipt hint, got: {hints:?}"
+        );
     }
 
     #[test]
