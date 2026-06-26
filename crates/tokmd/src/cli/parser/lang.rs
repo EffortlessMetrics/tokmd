@@ -10,6 +10,9 @@ use clap::Args;
 use super::{ChildrenMode, TableFormat};
 
 #[derive(Args, Debug, Clone, Default)]
+#[command(
+    after_help = "Examples:\n  tokmd lang --top 10 --files\n  tokmd lang crates --format json"
+)]
 pub struct CliLangArgs {
     /// Paths to scan (directories, files, or globs). Defaults to "."
     #[arg(value_name = "PATH")]

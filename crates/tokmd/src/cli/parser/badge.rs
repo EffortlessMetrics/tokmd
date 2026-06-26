@@ -11,6 +11,9 @@ use serde::{Deserialize, Serialize};
 use super::AnalysisPreset;
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd badge --metric lines\n  tokmd badge --metric hotspot --preset risk --output badge.svg"
+)]
 pub struct BadgeArgs {
     /// Inputs to analyze (run dir, receipt.json, export.jsonl, or paths).
     #[arg(value_name = "INPUT", default_value = ".")]

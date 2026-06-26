@@ -9,6 +9,9 @@ use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 #[derive(Args, Debug, Clone, Serialize, Deserialize)]
+#[command(
+    after_help = "Examples:\n  tokmd sensor --base main --head HEAD\n  tokmd sensor --format md --output report.md"
+)]
 pub struct SensorArgs {
     /// Base reference to compare from (default: main).
     #[arg(long, default_value = "main")]

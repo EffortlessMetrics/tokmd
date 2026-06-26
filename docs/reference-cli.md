@@ -83,6 +83,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd lang --top 10 --files
+  tokmd lang crates --format json
 ```
 <!-- /HELP: lang -->
 
@@ -577,6 +581,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd baseline
+  tokmd baseline crates --output .tokmd/baseline.json --force
 ```
 <!-- /HELP: baseline -->
 
@@ -656,6 +664,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd badge --metric lines
+  tokmd badge --metric hotspot --preset risk --output badge.svg
 ```
 <!-- /HELP: badge -->
 
@@ -1246,6 +1258,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd tools --format openai --pretty
+  tokmd tools --format anthropic
 ```
 <!-- /HELP: tools -->
 
@@ -1504,6 +1520,10 @@ Options:
 
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd sensor --base main --head HEAD
+  tokmd sensor --format md --output report.md
 ```
 <!-- /HELP: sensor -->
 

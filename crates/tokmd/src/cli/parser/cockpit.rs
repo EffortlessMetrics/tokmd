@@ -77,6 +77,9 @@ pub struct CockpitArgs {
 }
 
 #[derive(Args, Debug, Clone)]
+#[command(
+    after_help = "Examples:\n  tokmd baseline\n  tokmd baseline crates --output .tokmd/baseline.json --force"
+)]
 pub struct BaselineArgs {
     /// Target path to analyze.
     #[arg(default_value = ".")]

@@ -137,6 +137,19 @@ fn help_lang_mentions_format_and_children() {
 }
 
 #[test]
+fn help_lang_mentions_practical_examples() {
+    tokmd_cmd()
+        .args(["lang", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Examples:")
+                .and(predicate::str::contains("tokmd lang --top 10 --files"))
+                .and(predicate::str::contains("tokmd lang crates --format json")),
+        );
+}
+
+#[test]
 fn help_module_mentions_depth_and_format() {
     tokmd_cmd()
         .args(["module", "--help"])
@@ -328,6 +341,21 @@ fn help_badge_exists() {
 }
 
 #[test]
+fn help_badge_mentions_practical_examples() {
+    tokmd_cmd()
+        .args(["badge", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Examples:")
+                .and(predicate::str::contains("tokmd badge --metric lines"))
+                .and(predicate::str::contains(
+                    "tokmd badge --metric hotspot --preset risk --output badge.svg",
+                )),
+        );
+}
+
+#[test]
 fn help_run_exists() {
     tokmd_cmd()
         .args(["run", "--help"])
@@ -364,6 +392,21 @@ fn help_tools_exists() {
 }
 
 #[test]
+fn help_tools_mentions_practical_examples() {
+    tokmd_cmd()
+        .args(["tools", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Examples:")
+                .and(predicate::str::contains(
+                    "tokmd tools --format openai --pretty",
+                ))
+                .and(predicate::str::contains("tokmd tools --format anthropic")),
+        );
+}
+
+#[test]
 fn help_cockpit_exists() {
     tokmd_cmd()
         .args(["cockpit", "--help"])
@@ -395,12 +438,44 @@ fn help_sensor_exists() {
 }
 
 #[test]
+fn help_sensor_mentions_practical_examples() {
+    tokmd_cmd()
+        .args(["sensor", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Examples:")
+                .and(predicate::str::contains(
+                    "tokmd sensor --base main --head HEAD",
+                ))
+                .and(predicate::str::contains(
+                    "tokmd sensor --format md --output report.md",
+                )),
+        );
+}
+
+#[test]
 fn help_baseline_exists() {
     tokmd_cmd()
         .args(["baseline", "--help"])
         .assert()
         .success()
         .stdout(predicate::str::is_empty().not());
+}
+
+#[test]
+fn help_baseline_mentions_practical_examples() {
+    tokmd_cmd()
+        .args(["baseline", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Examples:")
+                .and(predicate::str::contains("tokmd baseline"))
+                .and(predicate::str::contains(
+                    "tokmd baseline crates --output .tokmd/baseline.json --force",
+                )),
+        );
 }
 
 // =========================================================================

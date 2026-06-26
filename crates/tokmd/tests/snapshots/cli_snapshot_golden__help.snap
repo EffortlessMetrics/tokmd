@@ -108,3 +108,7 @@ Options:
 
   -V, --version
           Print version
+
+Examples:
+  tokmd lang --top 10 --files
+  tokmd lang crates --format json
