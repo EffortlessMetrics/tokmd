@@ -1,0 +1,3 @@
+{"command": "cat fuzz/fuzz_targets/fuzz_run_json.rs", "outcome": "Observed that fuzz_run_json.rs passes arbitrary json values but does not explicitly test nested inputs edge cases. Discovered missing explicit fuzz target for `ffi/inputs.rs` parsing."}
+{"command": "cargo check --manifest-path fuzz/Cargo.toml --all-features", "outcome": "New fuzz_in_memory_inputs binary builds successfully."}
+{"command": "cargo check --manifest-path fuzz/Cargo.toml --bin fuzz_in_memory_inputs --features core", "outcome": "Success. Fuzz target builds."}

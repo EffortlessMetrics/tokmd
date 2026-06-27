@@ -343,3 +343,15 @@ path = "fuzz_targets/fuzz_badge_svg.rs"
 test = false
 doc = false
 required-features = ["badge"]
+
+# ============================================================================
+# Fuzz Targets - In-Memory Inputs
+# ============================================================================
+# Tests validation of in-memory inputs.
+
+[[bin]]
+name = "fuzz_in_memory_inputs"
+path = "fuzz_targets/fuzz_in_memory_inputs.rs"
+test = false
+doc = false
+required-features = ["core"]
