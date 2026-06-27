@@ -1,0 +1,18 @@
+{
+  "outcome": "learning_pr",
+  "title": "jules: record gatekeeper learning on baseline schema drift ✅",
+  "summary": "This is a learning PR. Recorded a friction item identifying schema version drift for `BASELINE_VERSION` missing from the workspace schema bump task.",
+  "target_paths": [
+    ".jules/friction/open/FRIC-20240615-001.md"
+  ],
+  "proof_summary": "Identified schema version drift between `crates/tokmd-analysis-types/src/baseline.rs` and `xtask/src/tasks/bump.rs`. Created friction item because `xtask` is outside the allowed shard.",
+  "gates_run": [],
+  "friction_items_created": [
+    ".jules/friction/open/FRIC-20240615-001.md"
+  ],
+  "persona_notes_created": [],
+  "rollback": "none",
+  "follow_ups": [
+    "Address FRIC-20240615-001"
+  ]
+}

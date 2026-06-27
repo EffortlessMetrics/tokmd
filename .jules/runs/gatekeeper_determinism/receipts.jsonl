@@ -1,0 +1,2 @@
+{"command": "grep -rn \"BASELINE_VERSION\" crates/tokmd-analysis-types/src/baseline.rs", "output": "20:pub const BASELINE_VERSION: u32 = 1;"}
+{"command": "grep -rn \"SCHEMA_LOCATIONS\" xtask/src/tasks/bump.rs", "output": "const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &["}
