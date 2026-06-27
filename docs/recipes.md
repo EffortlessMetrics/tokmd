@@ -222,10 +222,10 @@ tokmd gate
 tokmd gate --policy policy.toml
 
 # Compute analysis then gate
-tokmd gate --preset health
+tokmd gate --preset health --policy policy.toml
 
 # JSON output for CI parsing
-tokmd gate --format json
+tokmd gate --format json --policy policy.toml
 ```
 
 **Example policy.toml**:
