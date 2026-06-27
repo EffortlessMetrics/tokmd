@@ -1,0 +1,7 @@
+{"command": "cargo xtask jules-index", "outcome": "Jules indexes written under /app/.jules/index/generated"}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "file-policy OK"}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Workspace version: 1.13.1\nPublish order (16 crates)"}
+{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed"}
+{"command": "cargo xtask docs --check", "outcome": "Documentation is up to date"}
+{"command": "cargo fmt -- --check && cargo clippy -- -D warnings", "outcome": "Clean run (after applying cargo fmt to modified files)"}
+{"command": "cargo test -p xtask", "outcome": "All tests passed"}

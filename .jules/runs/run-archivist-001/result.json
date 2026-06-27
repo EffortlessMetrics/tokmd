@@ -1,0 +1,13 @@
+{
+  "outcome": "PR-ready patch",
+  "reasoning": "Successfully updated jules-index to parse .jules/friction/done/ in addition to .jules/friction/open/ as instructed by the memory directives, and regenerated the index.",
+  "gates_run": [
+    "cargo xtask jules-index",
+    "cargo xtask check-file-policy --strict",
+    "cargo xtask publish --plan --verbose",
+    "cargo xtask version-consistency",
+    "cargo xtask docs --check",
+    "cargo fmt -- --check && cargo clippy -- -D warnings",
+    "cargo test -p xtask"
+  ]
+}
