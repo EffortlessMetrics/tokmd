@@ -1,2 +1,8 @@
-{"timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "command": "echo envelope written", "output": "envelope written"}
-{"timestamp": "2026-05-08T19:43:12Z", "command": "cargo test -p tokmd --test config_resolution", "output": "test test_resolve_lang_with_config ... ok\n13 passed; 0 failed"}
+{"command": "cargo test -p tokmd", "outcome": "Failed on missing 'not found' / 'does not exist' match"}
+{"command": "sed ... check_ignore.rs diff.rs init.rs", "outcome": "Updated error messages"}
+{"command": "cargo test -p tokmd --test init_cli_w76", "outcome": "Passed"}
+{"command": "cargo test -p tokmd --test cli_error_paths_w51", "outcome": "Passed"}
+{"command": "CI=true cargo test -p tokmd --verbose", "outcome": "Passed"}
+{"command": "cargo clippy -- -D warnings", "outcome": "Passed"}
+{"command": "cargo fmt -- --check", "outcome": "Passed"}
+{"command": "cargo build --verbose", "outcome": "Passed"}

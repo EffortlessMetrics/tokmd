@@ -68,7 +68,7 @@ fn check_path(path: &Path, global: &cli::GlobalArgs, verbose: bool) -> Result<Ch
     // keeps access errors distinct from true missing paths.
     match path.try_exists() {
         Ok(true) => {}
-        Ok(false) => return Err(anyhow::anyhow!("Path '{}' does not exist", path_str)),
+        Ok(false) => return Err(anyhow::anyhow!("Path not found: {}", path_str)),
         Err(err) => {
             return Err(err).with_context(|| format!("failed to access path '{}'", path_str));
         }
@@ -366,7 +366,7 @@ mod tests {
             Ok(_) => panic!("missing path should error"),
             Err(err) => err,
         };
-        assert!(err.to_string().contains("does not exist"));
+        assert!(err.to_string().contains("not found"));
         Ok(())
     }
 
