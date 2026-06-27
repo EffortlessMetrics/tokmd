@@ -16,10 +16,12 @@
 
 mod extensions;
 
-/// Clean a path by normalizing separators and resolving `.` and `./` segments.
+/// Clean a path by normalizing separators and resolving `.` and `..` segments.
 ///
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
+/// Path traversal sequences like `a/../b` are also resolved to `b` to prevent
+/// directory structure leakage.
 fn clean_path(s: &str) -> String {
     let mut normalized = String::with_capacity(s.len());
     let mut last_was_slash = false;
@@ -35,19 +37,46 @@ fn clean_path(s: &str) -> String {
         }
         normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    let is_absolute = normalized.starts_with('/');
+    let mut segments: Vec<&str> = Vec::new();
+
+    for segment in normalized.split('/') {
+        if segment.is_empty() && !is_absolute {
+            continue;
+        }
+        if segment == "." {
+            continue;
+        }
+        if segment == ".." {
+            if let Some(last) = segments.last() {
+                #[allow(clippy::collapsible_if)]
+                if *last != ".." && !last.is_empty() {
+                    segments.pop();
+                    continue;
+                }
+            }
+            if !is_absolute {
+                segments.push("..");
+            }
+            continue;
+        }
+        segments.push(segment);
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
+
+    if segments.is_empty() {
+        if is_absolute {
+            return "/".to_string();
+        } else {
+            return "".to_string();
+        }
     }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
+
+    let mut result = segments.join("/");
+    if is_absolute && !result.starts_with('/') {
+        result.insert(0, '/');
     }
-    normalized
+    result
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -293,5 +322,13 @@ mod tests {
     #[test]
     fn test_redact_path_normalizes_dot_prefix() {
         assert_eq!(redact_path("src/main.rs"), redact_path("./src/main.rs"));
+    }
+
+    #[test]
+    fn test_short_hash_resolves_parent_segments() {
+        assert_eq!(
+            short_hash("crates/foo/../bar/src/lib.rs"),
+            short_hash("crates/bar/src/lib.rs")
+        );
     }
 }

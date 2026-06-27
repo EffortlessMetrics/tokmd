@@ -46,3 +46,14 @@ fn redaction_normalizes_known_compound_archive_suffix_case() {
     assert!(redacted.ends_with(".tar.gz"));
     assert!(!redacted.ends_with(".TAR.GZ"));
 }
+
+#[test]
+fn redaction_directory_traversal() {
+    let path = "src/../secrets/db.json";
+    let cleaned = tokmd_format::redact::short_hash(path);
+    let resolved = tokmd_format::redact::short_hash("secrets/db.json");
+    assert_eq!(
+        cleaned, resolved,
+        "Directory traversal wasn't correctly resolved"
+    );
+}
