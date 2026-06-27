@@ -1,17 +1,10 @@
 {
-  "outcome_type": "patch",
-  "title": "archivist: fix friction metadata and regenerate indexes 🗃️",
-  "summary": "Fixed schema non-compliance in two friction items and ran `cargo xtask jules-index` to successfully update the generated run and friction rollups.",
-  "target_paths": [
-    ".jules/friction/open/librarian_doctest_git_dependency.md",
-    ".jules/friction/open/steward-release-clean-state.md",
-    ".jules/index/generated/RUNS_ROLLUP.md",
-    ".jules/index/generated/FRICTION_ROLLUP.md"
-  ],
-  "proof_summary": "The FRICTION_ROLLUP.md no longer shows 'Unknown' metadata for librarian and steward friction items.",
-  "gates_run": ["cargo xtask jules-index"],
-  "friction_items_created": [],
-  "persona_notes_created": [],
-  "rollback": "git restore .jules/friction/open/ .jules/index/generated/",
-  "follow_ups": []
+  "status": "completed",
+  "gates_run": [
+    "cargo xtask jules-index",
+    "cargo build --verbose -p xtask",
+    "cargo test -p xtask",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
 }
