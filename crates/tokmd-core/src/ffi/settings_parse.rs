@@ -21,7 +21,7 @@ use crate::settings::{
 };
 
 pub(super) fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdError> {
-    let obj = scan_arg_object(args);
+    let obj = scan_arg_object(args)?;
     if obj.get("paths").is_some_and(Value::is_null) {
         return Err(TokmdError::invalid_field("paths", "an array of strings"));
     }
@@ -43,6 +43,9 @@ pub(super) fn parse_scan_settings(args: &Value) -> Result<ScanSettings, TokmdErr
 
 pub(super) fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdError> {
     let obj = args.get("lang").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("lang", "an object"));
+    }
 
     Ok(LangSettings {
         top: parse_usize(obj, "top", 0)?,
@@ -54,6 +57,9 @@ pub(super) fn parse_lang_settings(args: &Value) -> Result<LangSettings, TokmdErr
 
 pub(super) fn parse_module_settings(args: &Value) -> Result<ModuleSettings, TokmdError> {
     let obj = args.get("module").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("module", "an object"));
+    }
 
     Ok(ModuleSettings {
         top: parse_usize(obj, "top", 0)?,
@@ -70,6 +76,9 @@ pub(super) fn parse_module_settings(args: &Value) -> Result<ModuleSettings, Tokm
 
 pub(super) fn parse_export_settings(args: &Value) -> Result<ExportSettings, TokmdError> {
     let obj = args.get("export").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("export", "an object"));
+    }
 
     Ok(ExportSettings {
         format: parse_export_format(obj, ExportFormat::Jsonl)?,
@@ -91,6 +100,9 @@ pub(super) fn parse_export_settings(args: &Value) -> Result<ExportSettings, Tokm
 #[cfg(feature = "analysis")]
 pub(super) fn parse_analyze_settings(args: &Value) -> Result<AnalyzeSettings, TokmdError> {
     let obj = args.get("analyze").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("analyze", "an object"));
+    }
 
     let effort_base_ref = parse_optional_string(obj, "effort_base_ref")?;
     let effort_head_ref = parse_optional_string(obj, "effort_head_ref")?;
@@ -136,6 +148,9 @@ pub(super) fn parse_cockpit_settings(
     args: &Value,
 ) -> Result<crate::settings::CockpitSettings, TokmdError> {
     let obj = args.get("cockpit").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("cockpit", "an object"));
+    }
 
     Ok(crate::settings::CockpitSettings {
         base: parse_string(obj, "base", "main")?,
@@ -147,6 +162,9 @@ pub(super) fn parse_cockpit_settings(
 
 pub(super) fn parse_diff_settings(args: &Value) -> Result<DiffSettings, TokmdError> {
     let obj = args.get("diff").unwrap_or(args);
+    if !obj.is_object() {
+        return Err(TokmdError::invalid_field("diff", "an object"));
+    }
 
     let from = parse_required_string(obj, "from")?;
     let to = parse_required_string(obj, "to")?;

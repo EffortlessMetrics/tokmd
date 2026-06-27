@@ -1,0 +1,4 @@
+{
+  "status": "success",
+  "reason": "successfully hardened ffi config inputs against non-object json"
+}
