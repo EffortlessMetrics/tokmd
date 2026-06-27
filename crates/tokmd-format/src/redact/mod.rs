@@ -35,19 +35,36 @@ fn clean_path(s: &str) -> String {
         }
         normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    // Split into components and resolve . and ..
+    let mut parts = Vec::new();
+    let is_absolute = normalized.starts_with('/');
+
+    for part in normalized.split('/') {
+        if part.is_empty() || part == "." {
+            continue;
+        } else if part == ".." {
+            if !parts.is_empty() && parts.last() != Some(&"..") {
+                parts.pop();
+            } else {
+                parts.push("..");
+            }
+        } else {
+            parts.push(part);
+        }
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
+
+    let mut res = parts.join("/");
+    if is_absolute {
+        res.insert(0, '/');
     }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
+
+    // If it was empty or became empty after resolution
+    if res.is_empty() && !s.is_empty() && s != "/" && (s.starts_with("./") || s == ".") {
+        return ".".to_string();
     }
-    normalized
+
+    res
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
