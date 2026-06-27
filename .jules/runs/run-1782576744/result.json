@@ -1,0 +1,22 @@
+{
+  "outcome_type": "patch",
+  "reviewer_facing_title": "archivist: fix malformed metadata in historical friction items \ud83d\uddc3\ufe0f",
+  "summary": "Fixed missing frontmatter in old closed friction items and regenerated Jules indexes to properly track them.",
+  "target_paths": [
+    ".jules/friction/done/cargo_fuzz_asan_linker_failure.md",
+    ".jules/friction/done/cargo_mutants_schema_drift.md",
+    ".jules/friction/done/surveyor_workspace_learning.md",
+    ".jules/index/generated/RUNS_ROLLUP.md"
+  ],
+  "proof_summary": "cargo xtask jules-index completes cleanly and successfully updates RUNS_ROLLUP.md, and `cargo xtask jules-index --check` returns 0.",
+  "gates_run": [
+    "cargo xtask jules-index",
+    "cargo xtask jules-index --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git restore .jules/friction/done/ .jules/index/generated/",
+  "follow_ups": []
+}
