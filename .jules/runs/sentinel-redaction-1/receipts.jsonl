@@ -1,0 +1,5 @@
+{"command": "grep -ri redact crates/tokmd-types crates/tokmd-scan crates/tokmd-model crates/tokmd-format", "status": "ok"}
+{"command": "cat crates/tokmd-format/tests/test_redaction_leak.rs", "status": "ok"}
+{"command": "cargo test --test test_redaction_leak", "status": "ok"}
+{"command": "cat crates/tokmd-format/src/redact/mod.rs", "status": "ok"}
+{"command": "cat crates/tokmd-format/src/redact/extensions.rs", "status": "ok"}
