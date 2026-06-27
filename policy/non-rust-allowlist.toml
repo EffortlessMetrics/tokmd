@@ -800,3 +800,30 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "fixtures/**"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "General workspace fixtures."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "policy/*-baseline-receipt.json"
+kind = "policy"
+owner = "core/policy"
+surface = "build"
+classification = "config"
+reason = "Baseline receipts for static analysis checks."
+covered_by = ["cargo xtask check-no-panic-family"]
+
+[[allow]]
+glob = "scripts/**"
+kind = "tooling"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Internal dev/ci scripts."
+covered_by = []
