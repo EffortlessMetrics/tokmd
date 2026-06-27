@@ -356,6 +356,9 @@ pub struct ErrorDetails {
     /// Optional additional details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<String>,
+    /// Optional helpful suggestions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suggestions: Option<Vec<String>>,
 }
 
 impl From<&TokmdError> for ErrorDetails {
@@ -364,6 +367,7 @@ impl From<&TokmdError> for ErrorDetails {
             code: err.code.to_string(),
             message: err.message.clone(),
             details: err.details.clone(),
+            suggestions: err.suggestions.clone(),
         }
     }
 }
