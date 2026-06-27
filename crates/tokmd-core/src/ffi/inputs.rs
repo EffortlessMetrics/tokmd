@@ -14,12 +14,18 @@ pub(super) const MAX_IN_MEMORY_INPUT_PATH_BYTES: usize = 4096;
 pub(super) fn parse_in_memory_inputs(
     args: &Value,
 ) -> Result<Option<Vec<InMemoryFile>>, TokmdError> {
-    let scan_obj = args.get("scan");
+    let scan_obj = super::parse::extract_nested_object(args, "scan")?;
+
+    // We only consider the root `inputs` if `scan` wasn't actually present as a nested object.
     let root_inputs = args.get("inputs").filter(|value| !value.is_null());
-    let nested_inputs = scan_obj
-        .and_then(Value::as_object)
-        .and_then(|scan| scan.get("inputs"))
-        .filter(|value| !value.is_null());
+
+    // Check if the nested scan object has inputs (since extract_nested_object returns `args` if `scan` isn't found,
+    // we only check for nested_inputs if `scan_obj` is not `args`).
+    let nested_inputs = if !std::ptr::eq(scan_obj, args) {
+        scan_obj.get("inputs").filter(|value| !value.is_null())
+    } else {
+        None
+    };
 
     let raw_inputs = match (root_inputs, nested_inputs) {
         (Some(_), Some(_)) => {
@@ -34,10 +40,11 @@ pub(super) fn parse_in_memory_inputs(
     };
 
     let root_has_paths = args.get("paths").is_some_and(|value| !value.is_null());
-    let scan_has_paths = scan_obj
-        .and_then(Value::as_object)
-        .and_then(|scan| scan.get("paths"))
-        .is_some_and(|value| !value.is_null());
+    let scan_has_paths = if !std::ptr::eq(scan_obj, args) {
+        scan_obj.get("paths").is_some_and(|value| !value.is_null())
+    } else {
+        false
+    };
 
     if root_has_paths || scan_has_paths {
         return Err(TokmdError::invalid_field(
