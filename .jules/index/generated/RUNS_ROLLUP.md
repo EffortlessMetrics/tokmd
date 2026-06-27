@@ -10,14 +10,12 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Explorer | docs | completed | 3 | live |
 | `37581ca1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 1 | live |
-| `auditor_bindings_manifests` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `bolt-run-001` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
 | `bolt_analysis_stack_builder` | Bolt ⚡ | Builder | analysis-stack | in-progress | 1 | live |
 | `carto-roadmap-design-1` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design_1` | cartographer | builder | tooling-governance | in-progress | 0 | live |
-| `compat_interfaces_matrix_01` | Unknown | Unknown | Unknown | in-progress | 0 | live |
-| `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Unknown | quality | completed | 0 | live |
+| `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Builder | quality | completed | 0 | live |
 | `fuzzer_input_hardening_1` | Fuzzer 🌪️ | Prover | interfaces | in-progress | 1 | live |
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
 | `invariant_model_analysis` | invariant | prover | analysis-stack | in-progress | 0 | live |
@@ -29,7 +27,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `palette_runtime_dx_interfaces` | Palette 🎨 | Builder | interfaces | in-progress | 0 | live |
 | `run-sentinel-redact-1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
-| `run_perf_cockpit_entry` | Unknown | Unknown | Unknown | in-progress | 0 | live |
+| `run_perf_cockpit_entry` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
 | `sentinel_boundaries` | Sentinel | Builder | interfaces | in-progress | 0 | live |
 | `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 0 | live |
