@@ -266,8 +266,10 @@ Do not attach a packet marked `complete` when the real state is `partial` or
 5. Use `analyze.json` for bot, ledger, and agent ingestion.
 6. Use `context.md` to check which source files were included, truncated, or
    skipped before handing the packet to an agent.
-7. Use `syntax_json` only as advisory parser evidence; missing or degraded
-   syntax evidence is not a proof failure unless your workflow requires it.
+7. Use `syntax_json` only as advisory parser evidence. When syntax is optional
+   and missing or degraded, read the manifest warning as a bounded `partial`
+   packet—not as a required proof failure unless your workflow explicitly
+   requires syntax outside the evidence-packet contract.
 8. Use `review_priority` as a reading order, not as a verdict. Open the
    referenced receipt entries before making a review claim.
 9. Do not infer CI proof, safety, or whole-repo coverage from this packet.
@@ -286,6 +288,8 @@ A `bun-ub` evidence packet does not:
 
 ## Related Docs
 
+- [Packet consumption guide](packet-consumption.md) — reading order, evidence-state
+  glossary, and worked examples for maintainers and agents
 - [Evidence packet workflow spec](specs/evidence-packet-workflow.md) — normative
   contract for `sensors/tokmd/` layout, support model, and verifier semantics
 - [PR evidence packet workflows](packet-workflows.md)

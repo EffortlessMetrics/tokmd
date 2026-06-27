@@ -275,6 +275,10 @@ Verifier behavior:
 Consumers re-running verification should invoke `tokmd evidence-packet` with the
 same scope and artifact paths recorded in `manifest.json` `reproduce` commands.
 
+For a maintainer-facing reading order, evidence-state glossary, and worked
+examples that distinguish required, advisory, missing, stale, and unavailable
+evidence, see [Packet consumption guide](../packet-consumption.md).
+
 Integration tests in `crates/tokmd/tests/evidence_packet_integration.rs` and
 schema validation against `docs/evidence-packet.schema.json` are the current
 automated proof for verifier behavior.
