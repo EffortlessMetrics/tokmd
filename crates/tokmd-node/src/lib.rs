@@ -54,11 +54,19 @@ pub fn schema_version() -> u32 {
 /// const data = JSON.parse(result);
 /// ```
 fn encode_args<T: Serialize>(args: &T) -> Result<String> {
-    serde_json::to_string(args).map_err(|e| Error::from_reason(format!("JSON error: {}", e)))
+    serde_json::to_string(args)
+        .map_err(|e| Error::from_reason(format!("[invalid_json] JSON error: {}", e)))
 }
 
 fn map_envelope_error(err: tokmd_envelope::ffi::EnvelopeExtractError) -> Error {
-    Error::from_reason(err.to_string())
+    use tokmd_envelope::ffi::EnvelopeExtractError::*;
+    let msg = match err {
+        JsonParse(e) => format!("[invalid_json] JSON parse error: {e}"),
+        JsonSerialize(e) => format!("[internal_error] JSON serialize error: {e}"),
+        InvalidResponseFormat => "[internal_error] Invalid response format".to_string(),
+        Upstream(msg) => msg,
+    };
+    Error::from_reason(msg)
 }
 
 #[cfg(test)]
@@ -73,7 +81,7 @@ where
     // Run in a blocking task to not block the event loop
     tokio::task::spawn_blocking(f)
         .await
-        .map_err(|e| Error::from_reason(format!("Task join error: {}", e)))
+        .map_err(|e| Error::from_reason(format!("[internal_error] Task join error: {}", e)))
 }
 
 #[cfg_attr(not(test), napi)]
