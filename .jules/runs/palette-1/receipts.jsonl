@@ -1,0 +1,1 @@
+{"command":"cargo test -p tokmd --verbose","exit_code":0}

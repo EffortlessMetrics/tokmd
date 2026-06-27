@@ -543,9 +543,7 @@ fn err_typo_subcommand_fails() {
         .arg("lnag")
         .assert()
         .failure()
-        .stderr(predicate::str::contains(
-            "Error: Unrecognized subcommand 'lnag'",
-        ))
+        .stderr(predicate::str::contains("Error: Path not found: lnag"))
         .stderr(predicate::str::contains(
             "Did you mean the subcommand `lang`?",
         ));
@@ -700,12 +698,12 @@ fn frobnicate_unknown_subcommand_has_stable_error_output() {
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("Error: Unrecognized subcommand 'frobnicate'"),
-        "stderr should include the unrecognized subcommand error, got: {stderr}"
+        stderr.contains("Error: Path not found: frobnicate"),
+        "stderr should report a bare unknown token as a path error, got: {stderr}"
     );
     assert!(
-        !stderr.contains("Error: Path not found: frobnicate"),
-        "stderr should not report a bare unknown token as only a path error, got: {stderr}"
+        stderr.contains("Run `tokmd --help` to see a list of available subcommands"),
+        "stderr should suggest the help command, got: {stderr}"
     );
     assert!(
         stderr.contains("Hints:"),

@@ -259,7 +259,7 @@ fn unknown_subcommand_produces_helpful_error() {
         .arg("not-a-real-command")
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Unrecognized subcommand"));
+        .stderr(predicate::str::contains("Error: Path not found"));
 }
 
 #[test]

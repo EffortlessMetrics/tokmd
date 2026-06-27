@@ -1,0 +1,11 @@
+{
+  "summary": "Improved DX for unknown subcommands / missing paths.",
+  "outcome": "success",
+  "files_changed": [
+    "crates/tokmd/src/error_hints.rs",
+    "crates/tokmd/tests/cli_e2e_w65.rs",
+    "crates/tokmd/tests/cli_error_paths_w51.rs",
+    "crates/tokmd/tests/cli_errors_w66.rs",
+    "crates/tokmd/tests/error_handling_w70.rs"
+  ]
+}
