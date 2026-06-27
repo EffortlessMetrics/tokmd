@@ -1,3 +1,4 @@
 {
-  "outcome": "learning PR"
+  "outcome": "proof-improvement patch",
+  "summary": "Fixed `tokmd-format::redact::clean_path` to resolve parent directory components (`..`) properly, handling absolute paths and double slashes, closing a logical bypass vulnerability when path redacting. Added robust tests ensuring normalisation works consistently and paths properly resolve."
 }
