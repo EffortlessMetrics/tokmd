@@ -1,0 +1,3 @@
+{"step": "envelope", "command": "write_envelope", "result": "ok"}
+{"step": "decision", "command": "write_decision", "result": "ok"}
+{"step": "result", "command": "write_result_and_pr_body", "result": "ok"}

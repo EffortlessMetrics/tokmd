@@ -1038,6 +1038,7 @@ paths = [
   "crates/tokmd/src/progress.rs",
   "fixtures/progress-events/**",
   "crates/tokmd/tests/cli_*.rs",
+  "crates/tokmd/tests/bdd_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
   "crates/tokmd/tests/packet_*.rs",
   "crates/tokmd/tests/render_*.rs",
