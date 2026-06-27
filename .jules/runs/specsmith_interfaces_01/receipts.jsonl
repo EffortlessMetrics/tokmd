@@ -1,0 +1,6 @@
+{"command": "cargo build -p tokmd --verbose", "status": "success"}
+{"command": "CI=true cargo test -p tokmd --verbose", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -p tokmd -- -D warnings", "status": "success"}
+{"command": "cargo test -p tokmd --test bdd_export_scenarios_w50", "status": "success"}
+{"command": "cargo test -p tokmd --test cli_determinism_e2e_w54", "status": "success"}

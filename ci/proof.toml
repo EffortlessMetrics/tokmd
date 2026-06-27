@@ -420,6 +420,7 @@ paths = [
   "crates/tokmd/src/commands/analyze.rs",
   "crates/tokmd/tests/analyze_integration.rs",
   "crates/tokmd/tests/bdd_analyze_scenarios_w50.rs",
+  "crates/tokmd/tests/bdd_export_scenarios_w50.rs",
 ]
 packages = ["tokmd-analysis", "tokmd"]
 proof = [
@@ -429,6 +430,7 @@ proof = [
   "cargo test -p tokmd-analysis --all-features feature --verbose",
   "cargo test -p tokmd --test analyze_integration --verbose",
   "cargo test -p tokmd --test bdd_analyze_scenarios_w50 --verbose",
+  "cargo test -p tokmd --test bdd_export_scenarios_w50 --verbose",
 ]
 mutation = true
 coverage = true
