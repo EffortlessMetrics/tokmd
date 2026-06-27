@@ -447,7 +447,7 @@ Stable release tags update the `v1` major tag. Release-candidate tags such as `v
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.13.1'
+    version: '1.14.0'
     mode: packet
     preset: bun-ub
     base: origin/main
