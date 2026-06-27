@@ -12,4 +12,4 @@ Only fix the `scan` settings parser, as it's the most foundational block, and le
 - **Trade-offs**: Leaves a gap in the FFI surface where other modes (`lang`, `export`, etc.) could still misbehave or silently ignore malformed non-object inputs by falling back to defaults via `unwrap_or(args)` instead of returning a strict error.
 
 ## Decision
-Option A. The anti-pattern of using `args.get(field).unwrap_or(args)` allows non-object inputs (like strings or arrays) to silently bypass validation or cause unexpected behavior when nested fields are subsequently queried. Enforcing `is_object()` explicitly hardens the trust boundary as requested by the fuzzer persona guidelines, preventing deterministic bugs or fuzzing failures.
+Work stopped because this issue is already solved in #2713.

@@ -1,4 +1,4 @@
 {
-  "status": "success",
-  "reason": "successfully hardened ffi config inputs against non-object json"
+  "status": "learning",
+  "reason": "Superseded by #2713, which used a nested_arg_object helper that correctly handled None | null -> default semantics."
 }

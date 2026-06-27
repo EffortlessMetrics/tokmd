@@ -1,13 +1,1 @@
-{"cmd": "mkdir -p .jules/runs/fuzzer_input_hardening", "status": "success"}
-{"cmd": "grep -rnw \"is_object\" crates/tokmd-core/src/ || true", "status": "success"}
-{"cmd": "cargo test -p tokmd-core --test regression_settings_fuzz", "status": "success"}
-{"cmd": "cargo test -p tokmd-core", "status": "success"}
-{"cmd": "cargo clippy -- -D warnings", "status": "success"}
-{"cmd": "cargo fmt -- --check", "status": "success"}
-{"cmd": "cargo fmt", "status": "success"}
-{"cmd": "echo 'Wrote decision.md'", "status": "success"}
-{"cmd": "cargo build --verbose", "status": "success"}
-{"cmd": "CI=true cargo test -p tokmd-core --verbose", "status": "success"}
-{"cmd": "echo 'Wrote pr_body.md and result.json'", "status": "success"}
-{"cmd": "git add crates/tokmd-core/src/ffi/parse.rs crates/tokmd-core/src/ffi/settings_parse.rs crates/tokmd-core/tests/regression_settings_fuzz.rs .jules/runs/fuzzer_input_hardening/ && git clean -fd", "status": "success"}
-{"cmd": "echo 'Wrote plan.md'", "status": "success"}
+{"cmd": "git reset --hard HEAD", "status": "success"}
