@@ -55,10 +55,10 @@ Interpret common states this way:
 | Required proof available and fresh | The named required evidence exists for this commit or scope. | Continue reviewing the changed files; do not treat the packet itself as merge approval. |
 | Advisory proof missing or skipped | Optional evidence did not run or was intentionally not requested. | Not a required failure. Use the reproduction command only if the PR needs that optional signal. |
 | Required proof missing, stale, degraded, or failed | The packet lacks trustworthy required evidence for the relevant surface. | Regenerate or repair the named proof before claiming the packet is complete. |
+| Evidence unavailable | The runtime, checkout, or packet inputs could not support that evidence source. | Treat it as an explicit gap, not as passing evidence. |
 
 For extended glossary entries, proof metadata fields, and worked examples across
 both packet families, see [Packet consumption guide](packet-consumption.md).
-| Evidence unavailable | The runtime, checkout, or packet inputs could not support that evidence source. | Treat it as an explicit gap, not as passing evidence. |
 
 If the PR changes `.tokmd-spec/**`, source-of-truth docs, the swarm routing
 topology, agent workflow rails, plans, ADRs, templates, `.jules/goals/**`, or
