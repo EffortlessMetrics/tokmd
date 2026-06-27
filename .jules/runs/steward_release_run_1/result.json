@@ -1,0 +1,19 @@
+{
+  "outcome": "learning PR",
+  "files_written": [
+    ".jules/runs/steward_release_run_1/envelope.json",
+    ".jules/runs/steward_release_run_1/decision.md",
+    ".jules/runs/steward_release_run_1/receipts.jsonl",
+    ".jules/runs/steward_release_run_1/result.json",
+    ".jules/runs/steward_release_run_1/pr_body.md",
+    ".jules/friction/open/steward-release-verification-pass.md"
+  ],
+  "proof_summary": "All local tooling-governance checks (publish, versions, docs, clippy) run locally show a flawless state. Outputting a learning PR.",
+  "gates_run": [
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
+    "cargo xtask docs --check",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}
