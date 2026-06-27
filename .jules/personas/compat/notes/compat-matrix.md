@@ -1,0 +1,1 @@
+The bindings-targets shard currently exhibits 100% matrix health for Node, Python, and Wasm (including browser runner). All combinations of `--no-default-features` and `--all-features` pass out of the box. No major MSRV or platform issues were found.

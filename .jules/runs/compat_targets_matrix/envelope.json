@@ -1,0 +1,16 @@
+{
+  "prompt_id": "compat_targets_matrix",
+  "persona": "compat",
+  "style": "Builder",
+  "primary_shard": "bindings-targets",
+  "allowed_paths": [
+    "crates/tokmd-python/**",
+    "crates/tokmd-node/**",
+    "crates/tokmd-wasm/**",
+    "web/runner/**",
+    "crates/tokmd-core/**",
+    "docs/**"
+  ],
+  "gate_profile": "compat-matrix",
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"]
+}

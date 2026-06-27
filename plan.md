@@ -1,15 +1,6 @@
-1. **Remove unwraps from `xtask/src/tasks/publish.rs`**:
-   - In `xtask/src/tasks/publish.rs`, there's a `.unwrap()` around line 254: `let pkg = workspace_packages.iter().find(|p| p.name == *name).unwrap();`. I will change it to return an error properly using `context` or `ok_or_else`.
-   - In `xtask/src/tasks/publish.rs` tests (around line 1180), change `.unwrap()` to `expect("...")`.
-
-2. **Remove unwraps from `xtask/src/tasks/bump.rs`**:
-   - Change `.unwrap()` in tests in `xtask/src/tasks/bump.rs` to `.expect("...")`.
-
-3. **Verify tests and format**:
-   - Run `cargo test -p xtask`
-   - Run `cargo fmt`
-   - Run `cargo clippy -p xtask`
-
-4. **Complete Pre-commit Steps**: Ensure proper testing, verification, review, and reflection are done using `pre_commit_instructions`.
-
-5. **Commit and Submit**: Update envelope and ledger, then submit PR.
+1. Verify matrix compatibility for `tokmd-wasm`, `tokmd-node`, `tokmd-python` and `web/runner`. All target configurations (`--no-default-features`, `--all-features`, `wasm-pack test`) passed locally.
+2. Note that `web/runner` test skipped `tokmd-wasm` integration test because it wasn't built in the `vendor` folder.
+3. Write `envelope.json`, `decision.md`, `receipts.jsonl`, `result.json`, and `pr_body.md` to `.jules/runs/compat_targets_matrix/`.
+4. Create a friction item `FRIC-20231027-001.md` about `web/runner` skipping WASM test and a note in `compat-matrix.md`.
+5. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+6. Submit the change.
