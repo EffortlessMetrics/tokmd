@@ -167,6 +167,19 @@ mod tests {
     }
 
     #[test]
+    fn separate_drops_parent_when_child_subsumes_all_code() {
+        let rows = [
+            row("docs/mixed.md", "Markdown", FileKind::Parent, 10, 20),
+            row("docs/mixed.md", "Rust", FileKind::Child, 15, 25), // exceeds parent
+        ];
+
+        let aggregated = aggregate_lang_rows(&rows, ChildrenMode::Separate);
+
+        // The parent code becomes 0 due to saturating_sub, so the parent is filtered out entirely.
+        assert!(aggregated.iter().find(|r| r.lang == "Markdown").is_none());
+    }
+
+    #[test]
     fn collapse_preserves_orphan_child_without_parent() {
         let rows = [row("orphan.template", "Rust", FileKind::Child, 4, 5)];
 
