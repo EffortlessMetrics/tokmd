@@ -1,1 +1,4 @@
-{"status": "success", "outcome": "learning"}
+{
+  "outcome": "proof-improvement patch",
+  "learning_pr": false
+}

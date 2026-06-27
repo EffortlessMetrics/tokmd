@@ -1,44 +1,43 @@
 ## 💡 Summary
-This is a learning PR. I investigated adding executable doctests to the config resolver interfaces (`crates/tokmd/src/config/resolve/`) but found they already have comprehensive, passing doctest coverage.
+Added executable integration tests for the CLI examples documented in `docs/reference-cli.md`. This ensures that the examples for the `context`, `analyze`, and `gate` commands will not silently drift from the application's actual behavior.
 
 ## 🎯 Why
-The goal was to improve factual docs quality and executable examples for public interfaces to prevent silent drift.
+The documentation in `docs/reference-cli.md` provides crucial examples for end-users, but without test coverage, these examples are vulnerable to becoming outdated when CLI flags or behaviors change. This addresses the "missing executable coverage for common usage" requirement for the `Librarian` persona.
 
 ## 🔎 Evidence
-- `crates/tokmd/src/config/resolve/export.rs`
-- `crates/tokmd/src/config/resolve/module.rs`
-- `crates/tokmd/src/config/resolve/lang.rs`
-- The `resolve_*` and `resolve_*_with_config` functions all have `/// # Examples` sections containing executable ````rust` doctests.
+- `docs/reference-cli.md` contains examples for `context`, `analyze`, and `gate` commands.
+- We added `crates/tokmd/tests/cli_docs_examples.rs` to execute exactly those commands via `assert_cmd`.
+- Execution receipt: `cargo test --test cli_docs_examples` resulted in `5 passed`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add doctests to config resolvers (`resolve_lang`, `resolve_export`, etc.).
-- This fits the shard by directly targeting the core CLI configuration interfaces.
-- Trade-offs: Structure is improved by ensuring public APIs have executable examples. Velocity is unaffected. Governance is improved by preventing silent drift.
+- Add integration tests mirroring CLI docs examples.
+- **Why**: High velocity using existing `assert_cmd` infrastructure, strong guarantees against drift.
+- **Trade-offs**: Requires manual synchronization if documentation examples are updated, but ensures failure if they diverge.
 
 ### Option B
-- Add doctests to `tokmd_core::workflows`.
-- Choose this if the config layer is already fully covered.
-- Trade-offs: Might duplicate existing integration tests, focusing less on public APIs than the configuration layer.
+- Custom markdown parser/executor.
+- **When to choose**: When parsing arbitrary markdown blocks as shell scripts across the entire repo is desired.
+- **Trade-offs**: High complexity and fragility.
 
 ## ✅ Decision
-Option A was chosen to investigate the config resolvers. Upon investigation, the config resolvers already have comprehensive doctest coverage. Therefore, this is submitted as a learning PR instead of forcing a fake fix.
+Chosen Option A. It provides the highest signal-to-noise ratio and immediately solves the missing test coverage for public interface examples.
 
 ## 🧱 Changes made (SRP)
-- None. This is a learning PR.
+- Added `crates/tokmd/tests/cli_docs_examples.rs` containing executable tests for `docs/reference-cli.md` examples.
 
 ## 🧪 Verification receipts
 ```text
-cargo xtask docs --check
-cargo test --doc
+cargo test --test cli_docs_examples
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
 ```
 
 ## 🧭 Telemetry
-- Change shape: learning PR
-- Blast radius: none
-- Risk class: none (learning PR)
-- Rollback: none
-- Gates run: docs-executable (cargo xtask docs --check, cargo test --doc)
+- Change shape: Added integration tests.
+- Blast radius: None (test addition only).
+- Risk class: Low (no production code changed).
+- Rollback: Revert the added test file.
+- Gates run: docs-executable (cargo test)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -46,7 +45,6 @@ cargo test --doc
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
-- `.jules/friction/open/config_resolver_doctests.md`
 
 ## 🔜 Follow-ups
 None.
