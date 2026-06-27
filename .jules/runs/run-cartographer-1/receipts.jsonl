@@ -1,0 +1,6 @@
+- Updated `ROADMAP.md` crate hierarchy table
+- Replaced outdated module listing with actual Tier 0/1/2/3/5 crates
+{"command": "cargo xtask docs --check", "outcome": "Documentation is up to date."}
+{"command": "cargo xtask version-consistency", "outcome": "Version consistency checks passed."}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Publish order (16 crates) validated."}
+{"command": "cargo xtask check-file-policy --strict", "outcome": "file-policy OK: 85 entries, 1162 non-Rust files covered, 1309 Rust files skipped"}
