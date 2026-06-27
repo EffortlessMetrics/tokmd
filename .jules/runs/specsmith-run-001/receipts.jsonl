@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd --test bdd_export_scenarios_w50", "status": "success"}
+{"command": "cargo test -p tokmd --test cli_e2e_w58", "status": "success"}
+{"command": "cargo test -p tokmd --test cli_pipeline_e2e_w54", "status": "success"}

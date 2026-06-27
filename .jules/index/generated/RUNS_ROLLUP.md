@@ -10,13 +10,11 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Explorer | docs | completed | 3 | live |
 | `37581ca1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 1 | live |
-| `auditor_bindings_manifests` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `bolt-run-001` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
 | `bolt_analysis_stack_builder` | Bolt ⚡ | Builder | analysis-stack | in-progress | 1 | live |
 | `carto-roadmap-design-1` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |
 | `cartographer_roadmap_design_1` | cartographer | builder | tooling-governance | in-progress | 0 | live |
-| `compat_interfaces_matrix_01` | Unknown | Unknown | Unknown | in-progress | 0 | live |
 | `d657338a-caa9-4ccf-93a1-4733ada7154c` | Gatekeeper | Unknown | quality | completed | 0 | live |
 | `fuzzer_input_hardening_1` | Fuzzer 🌪️ | Prover | interfaces | in-progress | 1 | live |
 | `gatekeeper_contracts` | Gatekeeper | Builder | tooling-governance | in-progress | 6 | live |
@@ -33,6 +31,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `run_sentinel_redaction_1` | Sentinel | Stabilizer | core-pipeline | success | 3 | live |
 | `sentinel_boundaries` | Sentinel | Builder | interfaces | in-progress | 0 | live |
 | `sentinel_redaction` | Sentinel | Stabilizer | core-pipeline | success | 0 | live |
+| `specsmith-run-001` | Specsmith | Explorer | interfaces | in-progress | 0 | live |
 | `specsmith_interfaces` | Specsmith | Explorer | interfaces | success | 0 | live |
 | `steward_1` | Steward | Stabilizer | tooling-governance | success | 0 | live |
 | `steward_1778084540` | Steward | Stabilizer | tooling-governance | learning_pr | 4 | live |

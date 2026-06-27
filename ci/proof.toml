@@ -1601,3 +1601,17 @@ allow = [
   "xtask/src/tasks/fixture_blobs_check.rs",
 ]
 reason = "Crypto material should be generated at runtime or explicitly documented in an allowlisted workspace area."
+
+[[scope]]
+name = "cli_export"
+kind = "rust"
+paths = [
+  "crates/tokmd/src/cli/parser/export.rs",
+  "crates/tokmd/tests/bdd_export_scenarios_w50.rs",
+]
+packages = ["tokmd"]
+proof = [
+  "cargo test -p tokmd --test bdd_export_scenarios_w50 --verbose",
+]
+mutation = true
+coverage = true
