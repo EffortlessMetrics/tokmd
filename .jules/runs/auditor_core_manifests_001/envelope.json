@@ -1,0 +1,17 @@
+{
+  "prompt_id": "auditor_core_manifests",
+  "persona": "Auditor \ud83e\uddfe",
+  "style": "Builder",
+  "primary_shard": "core-pipeline",
+  "allowed_paths": [
+    "crates/tokmd-types/**",
+    "crates/tokmd-scan/**",
+    "crates/tokmd-model/**",
+    "crates/tokmd-format/**",
+    "docs/schema.json",
+    "docs/SCHEMA.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "deps-hygiene",
+  "allowed_outcomes": ["PR-ready patch", "learning PR"]
+}
