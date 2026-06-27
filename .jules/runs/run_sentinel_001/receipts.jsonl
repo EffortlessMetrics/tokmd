@@ -1,0 +1,5 @@
+{"command": "cargo test -p tokmd-format", "outcome": "Success. 238+ tests passed initially showing current behavior"}
+{"command": "cargo run --example test_parent", "outcome": "Showed hash leak: `../src/lib.rs` and `src/../src/lib.rs` produced different hashes (fd6a3d2bf9e43131.rs vs 068192f9dd7b6cd0.rs)"}
+{"command": "cargo build --verbose", "outcome": "Success"}
+{"command": "cargo fmt -- --check", "outcome": "Success"}
+{"command": "cargo clippy -- -D warnings", "outcome": "Success"}
