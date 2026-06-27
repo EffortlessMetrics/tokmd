@@ -1,0 +1,21 @@
+{
+  "outcome": "patch",
+  "title": "steward: fix publish-plan version drift by adopting workspace inheritance 🚢",
+  "summary": "Fixed version drift in inline path dependencies by changing them to use workspace inheritance. This resolves an issue where `cargo xtask version-consistency` missed these inline dependencies.",
+  "target_paths": [
+    "crates/tokmd-analysis-types/Cargo.toml",
+    "crates/tokmd-cockpit/Cargo.toml",
+    "crates/tokmd-envelope/Cargo.toml",
+    "crates/tokmd-scan/Cargo.toml",
+    "crates/tokmd-types/Cargo.toml",
+    "crates/tokmd-wasm/Cargo.toml"
+  ],
+  "gates_run": [
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
+    "cargo xtask docs --check",
+    "cargo build --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
+}
