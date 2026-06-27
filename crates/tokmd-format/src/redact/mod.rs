@@ -21,33 +21,52 @@ mod extensions;
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
 fn clean_path(s: &str) -> String {
-    let mut normalized = String::with_capacity(s.len());
-    let mut last_was_slash = false;
-    for ch in s.chars() {
-        let ch = if ch == '\\' { '/' } else { ch };
-        if ch == '/' {
-            if last_was_slash {
-                continue;
+    let mut stack = Vec::new();
+    let mut is_absolute = false;
+
+    if s.is_empty() {
+        return String::new();
+    }
+
+    let s = s.replace('\\', "/");
+    if s.starts_with('/') {
+        is_absolute = true;
+    }
+
+    for part in s.split('/') {
+        if part.is_empty() || part == "." {
+            continue;
+        } else if part == ".." {
+            if let Some(last) = stack.last() {
+                if *last != ".." {
+                    stack.pop();
+                    continue;
+                }
             }
-            last_was_slash = true;
+            if !is_absolute {
+                stack.push("..");
+            }
         } else {
-            last_was_slash = false;
+            stack.push(part);
         }
-        normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    if stack.is_empty() {
+        if is_absolute {
+            return "/".to_string();
+        } else if s == "." {
+            return ".".to_string();
+        } else {
+            return "".to_string();
+        }
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
+
+    let mut result = stack.join("/");
+    if is_absolute {
+        result.insert(0, '/');
     }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
-    }
-    normalized
+
+    result
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -252,6 +271,18 @@ mod tests {
         assert_eq!(short_hash("src/lib.rs"), short_hash("src///lib.rs"));
         assert_eq!(short_hash("src/lib.rs"), short_hash("src\\\\lib.rs"));
         assert_eq!(short_hash("src/lib.rs"), short_hash("src\\\\/lib.rs"));
+    }
+
+    #[test]
+    fn test_short_hash_normalizes_parent_directories() {
+        assert_eq!(
+            short_hash("src/../secret/passwords.txt"),
+            short_hash("secret/passwords.txt")
+        );
+        assert_eq!(
+            short_hash("a/b/../../c/d"),
+            short_hash("c/d")
+        );
     }
 
     #[test]

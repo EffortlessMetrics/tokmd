@@ -46,3 +46,14 @@ fn redaction_normalizes_known_compound_archive_suffix_case() {
     assert!(redacted.ends_with(".tar.gz"));
     assert!(!redacted.ends_with(".TAR.GZ"));
 }
+
+#[test]
+fn redaction_resolves_parent_directory_leak() {
+    let base = "secret/passwords.txt";
+    let obfuscated = "src/../secret/passwords.txt";
+
+    let hash1 = tokmd_format::redact::short_hash(base);
+    let hash2 = tokmd_format::redact::short_hash(obfuscated);
+
+    assert_eq!(hash1, hash2, "Directory traversal leak: paths were not resolved properly");
+}
