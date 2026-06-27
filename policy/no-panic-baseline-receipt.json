@@ -1,6 +1,6 @@
 {
   "schema": "tokmd.no_panic_baseline.v1",
-  "generated_at": "2026-06-27T19:58:34.928448021+00:00",
+  "generated_at": "2026-06-27T20:42:13.471227420+00:00",
   "allowlist_path": "policy/no-panic-allowlist.toml",
   "finding_count": 21880,
   "entry_count": 21880,
