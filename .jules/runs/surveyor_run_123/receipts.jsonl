@@ -1,0 +1,11 @@
+{"command": "grep -rn 'tokio' crates/tokmd-node/src", "result": "Found explicit tokio dependencies and usage"}
+{"command": "sed -i 's/tokio::/napi::tokio::/g' crates/tokmd-node/src/lib.rs", "result": "Replaced explicit tokio with napi::tokio"}
+{"command": "sed -i '/tokio = { version = \"1\", features = \\[\"rt-multi-thread\"\\] }/d' crates/tokmd-node/Cargo.toml", "result": "Removed explicit tokio dependency"}
+{"command": "cargo check -p tokmd-node", "result": "Success"}
+{"command": "cargo test -p tokmd-node", "result": "Success"}
+{"command": "cargo xtask check-file-policy --strict", "result": "Failed with un-whitelisted non-rust files"}
+{"command": "echo '...' >> policy/non-rust-allowlist.toml", "result": "Added missing globs"}
+{"command": "cargo xtask check-file-policy --strict", "result": "Success"}
+{"command": "cargo build --verbose", "result": "Success"}
+{"command": "cargo xtask check-file-policy --strict", "result": "Success"}
+{"command": "cargo clippy --workspace -- -D warnings", "result": "Success"}

@@ -1,0 +1,10 @@
+{
+  "outcome": "patch",
+  "files_touched": [
+    "crates/tokmd-node/Cargo.toml",
+    "crates/tokmd-node/src/lib.rs",
+    "policy/non-rust-allowlist.toml"
+  ],
+  "validation_passed": true,
+  "tests_passed": true
+}
