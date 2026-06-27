@@ -1,0 +1,4 @@
+{
+  "summary": "Improved property tests for deterministic sorting logic in `tokmd-model`.",
+  "outcome": "proof-improvement patch"
+}
