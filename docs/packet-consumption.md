@@ -174,6 +174,36 @@ PR evidence packet manifest:
 Read as: the packet is invalid evidence. Do not use it for merge or agent
 handoff claims until regeneration succeeds.
 
+## Hosted-comment troubleshooting
+
+Cockpit review packets can be posted as hosted PR comments by the composite
+Action (`mode: cockpit`, `review-packet: true`, `comment: true`). Comment
+posting is optional and fork-safe: a missing comment does **not** mean packet
+generation failed. The implementation surface remains `tokmd cockpit`; there is
+no separate `tokmd review` command.
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| Workflow succeeded but no PR comment | Event is not `pull_request`, or `comment: false` | Expected for `push`, `schedule`, and `workflow_dispatch`. Download the `tokmd-receipts` artifact or read `.tokmd/review/` from the job log path. |
+| Fork PR has artifacts but no comment | Fork-safe comment posting is skipped | Treat the uploaded packet as the source of truth. Do not infer packet failure from the absent comment. |
+| Comment says the packet was not uploaded | `artifact: false` while `comment: true` | Set `artifact: true` when reviewers need hosted links, or run `tokmd cockpit --review-packet-dir .tokmd/review` locally. |
+| Hosted comment text differs from `.tokmd/review/comment.md` | Action copies to `tokmd-review-packet-comment.md` and appends run/artifact links | Normal. Packet-local `comment.md` stays unchanged so `manifest.json` hashes remain valid. |
+| `review-packet-check` rejects a file in `.tokmd/review/` | A hosted comment copy was placed inside the packet directory | Keep hosted copies outside the packet tree. The verifier rejects hosted comment copies in the manifest path set. |
+| Comment posting fails with permissions error | Workflow lacks `pull-requests: write` | Add the permissions block from [GitHub Action](github-action.md#permissions). |
+| Comment shows verifier failure | Packet failed `cargo xtask review-packet-check` after the hosted copy was prepared | Read `target/tokmd/review-packet-check.json` and regenerate the packet before trusting the summary. |
+
+Reproduce packet generation and verification locally without posting a comment:
+
+```bash
+tokmd cockpit --base "$BASE" --head "$HEAD" --review-packet-dir .tokmd/review
+cargo xtask review-packet-check \
+  --dir .tokmd/review \
+  --json target/tokmd/review-packet-check.json
+```
+
+See [Review packet contract](review-packet.md#github-action-behavior) and
+[GitHub Action](github-action.md) for the hosted copy and artifact upload flow.
+
 ## Common Mistakes
 
 | Mistake | Correct reading |
