@@ -1249,3 +1249,25 @@ fn check_ignore_help_shows_usage() {
         .success()
         .stdout(predicate::str::is_empty().not());
 }
+
+#[test]
+fn nonexistent_file_path_keeps_path_not_found_error_output() {
+    let output = tokmd_bare().arg("missing/file.rs").output().expect("run");
+
+    assert!(!output.status.success());
+    assert!(output.stdout.is_empty(), "stdout should be empty");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Error: Path not found: missing/file.rs"),
+        "stderr should include the path not found error, got: {stderr}"
+    );
+    assert!(
+        !stderr.contains("Unrecognized subcommand"),
+        "stderr should not report a path-like token as an unrecognized subcommand, got: {stderr}"
+    );
+    assert!(
+        stderr.contains("Hints:"),
+        "stderr should include the stable hints block, got: {stderr}"
+    );
+}

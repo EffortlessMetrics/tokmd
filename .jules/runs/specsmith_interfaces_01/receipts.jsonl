@@ -1,0 +1,2 @@
+{"command": "cargo test --test cli_e2e_w65 nonexistent_file_path_keeps_path_not_found_error_output", "output": "test nonexistent_file_path_keeps_path_not_found_error_output ... ok"}
+{"command": "cargo test --test cli_error_paths_w51 implicit_lang_mode_with_nonexistent_file_path_shows_path_not_found", "output": "test implicit_lang_mode_with_nonexistent_file_path_shows_path_not_found ... ok"}

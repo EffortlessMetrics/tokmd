@@ -300,3 +300,15 @@ fn cockpit_subcommand_responds_to_help() {
         .success()
         .stdout(predicate::str::contains("Usage"));
 }
+
+#[test]
+fn implicit_lang_mode_with_nonexistent_file_path_shows_path_not_found() {
+    tokmd_cmd()
+        .arg("missing/file.rs")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "Error: Path not found: missing/file.rs",
+        ))
+        .stderr(predicate::str::contains("Unrecognized subcommand").not());
+}
