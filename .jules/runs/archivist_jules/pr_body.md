@@ -1,46 +1,48 @@
 ## 💡 Summary
-Fixed malformed metadata frontmatter in two existing friction items and regenerated the Jules indexes. This ensures the `.jules/index/generated/FRICTION_ROLLUP.md` accurately tracks personas, styles, and shards for open friction rather than listing them as "Unknown", and updates the `RUNS_ROLLUP.md` with missing runs.
+I updated `cargo xtask jules-index` to parse both active friction from `.jules/friction/open/` and historical friction from `.jules/friction/done/`. This generates a more complete `FRICTION_ROLLUP.md` that keeps completed learnings accessible, fulfilling the Archivist mandate to consolidate friction and generated indexes without dropping history. I also fixed strict file policy omissions for `fixtures/**` and `scripts/**`.
 
 ## 🎯 Why
-The Archivist persona is responsible for consolidating recurring friction themes into better templates and summarizing run packets into generated indexes. Because `librarian_doctest_git_dependency.md` and `steward-release-clean-state.md` lacked standard `id/persona/style/shard/status` frontmatter, the `cargo xtask jules-index` aggregator could not properly identify them.
+The `jules-index` command was previously only rolling up `open` friction items. However, system memory and intent explicitly dictate that `cargo xtask jules-index` should parse both `.jules/friction/open/` and `.jules/friction/done/` to generate `FRICTION_ROLLUP.md`. Excluding historical items drops valuable context from the rollup. Furthermore, `cargo xtask check-file-policy --strict` was failing due to unlisted `fixtures/` and `scripts/` directories, preventing clean validation.
 
 ## 🔎 Evidence
-- files: `.jules/index/generated/FRICTION_ROLLUP.md`
-- observed behavior before: `librarian_doctest_git_dependency` showed `Unknown` persona and style.
-- command receipt: `cargo xtask jules-index` successfully regenerates with corrected metadata.
+- file path: `xtask/src/tasks/jules_index.rs` only parsed `root.join(".jules/friction/open")`.
+- `cargo xtask jules-index` output missing `done` entries.
+- `cargo xtask check-file-policy --strict` failed on un-allowlisted files.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Fix the metadata frontmatter in the friction items and run `cargo xtask jules-index`.
-- why it fits this repo and shard: It directly satisfies Archivist targets #1 and #2 (consolidating friction templates and generating indexes) in the `workspace-wide` shard.
-- trade-offs: Structure: High. Governance: High. Velocity: Neutral.
+- Update `cargo xtask jules-index` to collect and extend items from both `open` and `done` directories.
+- Fix the policy gaps in `policy/non-rust-allowlist.toml` for `fixtures/` and `scripts/`.
+- Fits the repo and shard because it improves Jules scaffolding directly and resolves a policy validation blocker cleanly.
+- Trade-offs: Structure is improved, Governance is tightened via proper index generation and file policy alignment.
 
 ### Option B
-- what it is: Only regenerate the indexes without fixing metadata.
-- when to choose it instead: If the metadata formats were intentionally non-standard (they weren't).
-- trade-offs: We would leave broken metadata rendering as "Unknown" in the generated docs.
+- Only edit the `.jules/friction/done/` markdown files to merge them.
+- when to choose it instead: If the goal was simply content cleanup.
+- trade-offs: Misses the core structural gap in `jules-index` and fails to fix the strict file policy blocker.
 
 ## ✅ Decision
-Option A. It's an honest patch that directly improves the Jules scaffolding and indexing health by fixing the root cause of the "Unknown" rows.
+Option A. It's a proper fix for the scaffolding toolchain that fulfills the Archivist mission to consolidate run learnings into shared indexes, strictly complies with system memory regarding `jules-index` behavior, and ensures the repo passes the `core-rust`/strict policy checks cleanly.
 
 ## 🧱 Changes made (SRP)
-- Re-formatted `.jules/friction/open/librarian_doctest_git_dependency.md` to include valid frontmatter.
-- Re-formatted `.jules/friction/open/steward-release-clean-state.md` to include valid frontmatter.
-- Ran `cargo xtask jules-index` to update `.jules/index/generated/RUNS_ROLLUP.md` and `.jules/index/generated/FRICTION_ROLLUP.md`.
+- `xtask/src/tasks/jules_index.rs`
+- `policy/non-rust-allowlist.toml`
 
 ## 🧪 Verification receipts
 ```text
-{"ts_utc": "2024-05-08T20:55:00Z", "phase": "investigation", "cwd": "/app", "cmd": "cat .jules/index/generated/FRICTION_ROLLUP.md", "status": 0, "summary": "Found that friction items librarian_doctest_git_dependency and steward-release-clean-state had Unknown metadata in the rollup."}
-{"ts_utc": "2024-05-08T20:56:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cat << 'EOF' > .jules/friction/open/librarian_doctest_git_dependency.md ...", "status": 0, "summary": "Fixed frontmatter for librarian_doctest_git_dependency.md and steward-release-clean-state.md to match schema."}
-{"ts_utc": "2024-05-08T20:57:00Z", "phase": "implementation", "cwd": "/app", "cmd": "cargo xtask jules-index", "status": 0, "summary": "Regenerated the indexes, which correctly updated FRICTION_ROLLUP.md and RUNS_ROLLUP.md"}
+cargo xtask jules-index
+Jules indexes written under /app/.jules/index/generated
+
+cargo xtask check-file-policy --strict
+file-policy OK: 85 entries, 1157 non-Rust files covered, 1309 Rust files skipped
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation and metadata indexing
-- Blast radius: Jules documentation / scaffolding
-- Risk class: Low
-- Rollback: `git restore .jules/friction/open/ .jules/index/generated/`
-- Gates run: `cargo xtask jules-index`
+- Change shape: Tooling & Scaffold Improvement
+- Blast radius: Jules `.jules` artifacts generation and internal strict file policy.
+- Risk class: Low - Does not affect production code, only helper commands and indexes.
+- Rollback: Revert the PR safely.
+- Gates run: `cargo xtask check-file-policy --strict`, `cargo xtask jules-index`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/archivist_jules/envelope.json`
