@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "summary": "Removed `ast` feature from `tokmd` default features to restore WASM compatibility.",
+  "outcome": "PR-ready patch"
+}
