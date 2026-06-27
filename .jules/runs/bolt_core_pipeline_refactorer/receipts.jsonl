@@ -1,0 +1,2 @@
+{"command": "python3 update_cyclonedx_struct.py", "stdout": ""}
+{"command": "cargo test -p tokmd-format", "stdout": "test result: ok. 144 passed; 0 failed"}
