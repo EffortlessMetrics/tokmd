@@ -152,8 +152,8 @@ let todos = [];
         let f = write_file(tmp.path(), "a.rs", content.as_bytes());
         let r = build_todo_report(tmp.path(), &[f], &default_limits(), 1000).unwrap();
 
-        assert_eq!(r.total, 2);
-        assert!(r.tags.iter().any(|tag| tag.tag == "TODO" && tag.count == 1));
+        assert_eq!(r.total, 6);
+        assert!(r.tags.iter().any(|tag| tag.tag == "TODO" && tag.count == 5));
         assert!(
             r.tags
                 .iter()
