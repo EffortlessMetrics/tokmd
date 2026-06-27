@@ -61,6 +61,16 @@ const SCHEMA_LOCATIONS: &[SchemaVersionLocation] = &[
         constant: "HANDOFF_SCHEMA_VERSION",
         current: 5,
     },
+    SchemaVersionLocation {
+        path: "crates/tokmd-analysis-types/src/baseline.rs",
+        constant: "BASELINE_VERSION",
+        current: 1,
+    },
+    SchemaVersionLocation {
+        path: "crates/tokmd-envelope/src/lib.rs",
+        constant: "SENSOR_REPORT_SCHEMA",
+        current: 1,
+    },
 ];
 
 const NODE_PACKAGE_MANIFESTS: &[&str] = &[
@@ -561,19 +571,39 @@ fn update_schema_version(
         .with_context(|| format!("Failed to read {}", location.path))?;
 
     // Find and replace the constant definition
-    let pattern = format!("pub const {}: u32 = ", constant_name);
+    let u32_pattern = format!("pub const {}: u32 = ", constant_name);
+    let str_pattern = format!("pub const {}: &str = \"", constant_name);
     let mut result = String::with_capacity(content.len());
     let mut found = false;
 
     for line in content.lines() {
-        if line.trim_start().starts_with(&pattern) {
-            // Replace this line
+        if line.trim_start().starts_with(&u32_pattern) {
             let indent = line.len() - line.trim_start().len();
             let spaces = &line[..indent];
             result.push_str(spaces);
             result.push_str(&format!(
                 "pub const {}: u32 = {};\n",
                 constant_name, new_version
+            ));
+            found = true;
+        } else if line.trim_start().starts_with(&str_pattern) {
+            let indent = line.len() - line.trim_start().len();
+            let spaces = &line[..indent];
+            result.push_str(spaces);
+
+            let current_str = location.current.to_string();
+            let new_str = new_version.to_string();
+
+            // Extract the string value part
+            let val_part = &line.trim_start()[str_pattern.len() - 1..];
+
+            // Just replace the current version string with the new one inside the quotes
+            let new_val_part =
+                val_part.replace(&format!("v{}", current_str), &format!("v{}", new_str));
+
+            result.push_str(&format!(
+                "pub const {}: &str = {}\n",
+                constant_name, new_val_part
             ));
             found = true;
         } else {

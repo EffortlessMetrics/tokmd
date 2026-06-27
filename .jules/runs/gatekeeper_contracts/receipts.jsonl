@@ -2,3 +2,8 @@
 {"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
 {"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
 {"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "grep -A 20 -n \"const SCHEMA_LOCATIONS\" xtask/src/tasks/bump.rs", "output": "..."}
+{"command": "grep -Rn \"BASELINE_VERSION\" crates/", "output": "..."}
+{"command": "grep -Rn \"SENSOR_REPORT_SCHEMA\" crates/", "output": "..."}
+{"command": "cargo fmt", "result": "formatted successfully"}
+{"command": "cargo clippy -- -D warnings", "result": "clippy ok"}

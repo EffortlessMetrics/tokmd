@@ -1,17 +1,4 @@
 {
-  "summary": "Fixed documentation drift by replacing manual parameter tables with `<!-- HELP: <command> -->` markers and failing docs checks when expected marker pairs are missing",
-  "files_changed": [
-    "docs/reference-cli.md",
-    "xtask/src/tasks/docs.rs",
-    "xtask/src/tasks/gate.rs",
-    "xtask/tests/xtask_deep_w74.rs"
-  ],
-  "gates_run": [
-    "cargo xtask docs --update",
-    "cargo xtask docs --check",
-    "cargo test -p xtask",
-    "cargo test -p tokmd --test docs",
-    "cargo fmt-check",
-    "git diff --check"
-  ]
+  "status": "success",
+  "story": "Added missing SCHEMA_LOCATIONS (BASELINE_VERSION and SENSOR_REPORT_SCHEMA) to xtask/src/tasks/bump.rs, enabling `cargo xtask bump --schema` to properly manage their versions and prevent contract drift. Also modified `bump.rs` string replacement logic to handle string literals (`&str` schemas like SENSOR_REPORT_SCHEMA) gracefully."
 }

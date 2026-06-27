@@ -1,58 +1,46 @@
 ## 💡 Summary
-Removed manual markdown parameter tables from `docs/reference-cli.md` and replaced them with `<!-- HELP: <command> -->` markers. This delegates documentation generation to `cargo xtask docs`, locks in deterministic CLI usage tracking, and closes the silent-skip case where a missing marker pair could make docs checks pass without checking a command.
-
-The restack also updates the xtask gate regression test to match the current queue policy: Jules provenance under `.jules/**` can be intentional PR state, so gate should not blanket-block `.jules/runs/**` while still guarding actual runtime/cache/transcript directories.
+Added missing `SCHEMA_LOCATIONS` (`BASELINE_VERSION` and `SENSOR_REPORT_SCHEMA`) to `xtask/src/tasks/bump.rs` to allow the workspace bump tool to manage them. Modified `bump.rs` to properly replace string schemas (like `SENSOR_REPORT_SCHEMA`) instead of just `u32` integers, fulfilling the memory directive and locking in determinism.
 
 ## 🎯 Why
-Manual parameter tables in documentation frequently become outdated when CLI arguments change. `tokmd` provides `cargo xtask docs --update` which relies on `<!-- HELP: <command> -->` markers. Several commands were still using hand-maintained markdown tables, meaning updates to CLI args could easily be missed by the xtask check. The final patch also makes missing marker pairs an explicit docs-check failure.
+The memory explicitly stated that new contract schema constants like `BASELINE_VERSION` and `SENSOR_REPORT_SCHEMA` must be registered in the `SCHEMA_LOCATIONS` array in `xtask/src/tasks/bump.rs` so they don't suffer version drift. Previously, `bump.rs` didn't track them, and its regex replacement only supported `u32` variables, making it fail on `&str` values.
 
 ## 🔎 Evidence
-- File: `docs/reference-cli.md`
-- Observation: Many subcommands like `module`, `export`, `run`, `handoff` did not have `<!-- HELP: <command> -->` markers and used manual `| Argument | Description |` tables.
-- Verification: Running `cargo xtask docs --check` before the change ignored drift in these subcommands because they had no markers.
+- `xtask/src/tasks/bump.rs` only handled `pub const {}: u32 = ...` replacements and lacked `BASELINE_VERSION` and `SENSOR_REPORT_SCHEMA` in its `SCHEMA_LOCATIONS` list.
+- `crates/tokmd-envelope/src/lib.rs` has `pub const SENSOR_REPORT_SCHEMA: &str = "sensor.report.v1";`.
+- I proved `cargo test -p xtask` works after my change, preventing test breakage.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-Replace manual parameter tables with `<!-- HELP: <command> -->` markers for all commands, letting `cargo xtask docs --update` populate them correctly from the clap help output. Also fail `cargo xtask docs --check` when an expected marker pair is absent.
-- Trade-offs:
-  - **Structure**: Eliminates duplication of parameter details.
-  - **Velocity**: Developers no longer have to manually edit markdown tables when updating CLI parameters.
-  - **Governance**: Fits perfectly within the `tooling-governance` shard.
+- Add `BASELINE_VERSION` and `SENSOR_REPORT_SCHEMA` to `SCHEMA_LOCATIONS` in `bump.rs`, and adjust string replacement logic to handle `&str` definitions.
+- Fits the `tooling-governance` shard because it fixes workflow contract-determinism issues.
+- Trade-offs: Requires a slight modification to the task string-replacement loop to support `&str` substitution natively.
 
 ### Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand.
-- When to choose it: Only if custom columns are needed that clap does not output.
-- Trade-offs: Extreme risk of drift and maintenance burden.
+- Ignore `SENSOR_REPORT_SCHEMA` since it's a string, or migrate it to an integer.
+- Trade-offs: Changing a major schema field type inside the contract might break dependents, while failing to track the string schema would leave it drifting.
 
 ## ✅ Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables. The final patch keeps all synchronization in `cargo xtask docs --update` / `cargo xtask docs --check` and verifies that every expected command marker exists.
+Option A. It explicitly fulfills the memory directive without breaking `SENSOR_REPORT_SCHEMA`'s expected `&str` format across downstream crates.
 
 ## 🧱 Changes made (SRP)
-- `docs/reference-cli.md`: Removed manual parameter tables for the CLI command surface and replaced them with `<!-- HELP: <command> -->` markers.
-- `xtask/src/tasks/docs.rs`: Treats missing marker pairs as documentation drift instead of silently skipping those commands.
-- `xtask/src/tasks/gate.rs`, `xtask/tests/xtask_deep_w74.rs`: Document and test that `.jules/runs/**` is not treated as forbidden runtime state because it may be intentional PR provenance.
+- `xtask/src/tasks/bump.rs`
 
 ## 🧪 Verification receipts
 ```text
-$ cargo xtask docs --update
-Updated docs/reference-cli.md
-
-$ cargo xtask docs --check
-Documentation is up to date.
-
-$ cargo test -p tokmd --test docs
-test result: ok
-
 $ cargo test -p xtask
-test result: ok
+test result: ok. 50 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.60s
+$ cargo xtask docs --check
+doc artifacts ok: 2 required doc(s), 54 family file(s), 1 active goal(s), 19 spec-index artifact(s), 0 spec-index lane(s)
+$ cargo clippy -- -D warnings
+Finished `dev` profile [unoptimized + debuginfo] target(s) in 32.32s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Replacement of manual documentation content with auto-generated sync blocks plus docs-check and provenance-policy guardrails.
-- Blast radius: Docs and xtask validation only.
-- Risk class: Low - Does not change application runtime behavior.
-- Rollback: Revert the commit.
-- Gates run: `cargo xtask docs --update`, `cargo xtask docs --check`, `cargo test -p xtask`, `cargo test -p tokmd --test docs`, `cargo fmt-check`, `git diff --check`
+- Change shape: Workspace script update
+- Blast radius: Internal release automation (workspace tooling/manifests)
+- Risk class: Low - it only affects `cargo xtask bump --schema` which is manually invoked during releases.
+- Rollback: `git revert`
+- Gates run: `cargo test -p xtask`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/gatekeeper_contracts/envelope.json`
@@ -62,4 +50,4 @@ test result: ok
 - `.jules/runs/gatekeeper_contracts/pr_body.md`
 
 ## 🔜 Follow-ups
-None. All CLI references are now correctly managed via xtask.
+None.
