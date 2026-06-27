@@ -12,7 +12,6 @@ categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-model"
 
 [dependencies]
-serde.workspace = true
 tokei = { version = "14.0.0", default-features = false }
 tokmd-types.workspace = true
 
@@ -22,3 +21,4 @@ proptest.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 
+serde.workspace = true

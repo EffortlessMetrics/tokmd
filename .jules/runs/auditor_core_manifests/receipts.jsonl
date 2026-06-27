@@ -1,0 +1,9 @@
+{"command": "Write envelope.json", "outcome": "Success"}
+{"command": "cargo check -p tokmd-model", "outcome": "Success"}
+{"command": "cargo test -p tokmd-model", "outcome": "Success"}
+{"command": "cargo fmt -- --check", "outcome": "Success"}
+{"command": "cargo clippy -- -D warnings", "outcome": "Success"}
+{"command": "cargo build --verbose", "outcome": "Success"}
+{"command": "CI=true cargo test -p tokmd-model --verbose", "outcome": "Success"}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Success"}
+{"command": "Write PR body and result", "outcome": "Success"}
