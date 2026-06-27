@@ -1,17 +1,17 @@
-# Option A (recommended)
-Use the `xtask docs --update` tool logic by replacing hardcoded command parameter tables in `docs/reference-cli.md` with auto-updating `<!-- HELP: <command> -->` markers. The xtask command automatically pulls the current `tokmd` help text.
+# Decision: Fix file policy strict drift
 
-- **Structure**: Automatically synchronizes docs with command changes, removing drift.
-- **Velocity**: Speeds up doc updates since CLI parameters will always stay in sync.
-- **Governance**: Ensures reference documentation acts as a deterministically correct reflection of the program options. Fits well within the 'Gatekeeper' persona and the `tooling-governance` shard.
+## Option A (recommended)
+- Add `fixtures/**` and `scripts/**` globs to the `policy/non-rust-allowlist.toml` file policy to cover the unmet files causing `cargo xtask check-file-policy --strict` to fail.
+- **Why it fits:** The Gatekeeper persona protects deterministic behavior and contract-bearing surfaces (like file policies). A failing strict file policy build is deterministic drift that breaks the deterministic verification.
+- **Trade-offs:**
+  - Structure: Better, ensures file policy runs cleanly.
+  - Velocity: Better, unblocks other strict checks.
+  - Governance: Aligns with the explicit file policy checker contract.
 
-# Option B
-Manually verify and keep parameter tables in `docs/reference-cli.md` in sync by hand, matching them against `cargo run --bin tokmd -- <cmd> --help`.
+## Option B
+- Ignore the failing strict policy and try to disable the strict check locally.
+- **When to choose:** Only if the failing files were actually unauthorized or we had no knowledge of their purpose.
+- **Trade-offs:** Reduces governance and allows further drift.
 
-- **When to choose it**: Only if you strictly want specialized tables with custom columns or manually edited parameter groups that rust `clap` output does not provide.
-- **Trade-offs**: Extreme risk of drift and maintenance burden. Requires a developer to manually verify changes on every new parameter addition.
-
-# Decision
-Option A. The `tokmd` codebase explicitly discourages manually maintaining parameter tables (from `.jules/policy/shards.json` or general run memory). The final restack replaces the remaining manual command tables with `<!-- HELP: <command> -->` markers, then makes `cargo xtask docs --check` fail if any expected marker pair is missing. This keeps the deterministic docs path inside `cargo xtask docs --update` / `cargo xtask docs --check` instead of relying on ad hoc post-processing scripts.
-
-The restack also aligns the xtask gate regression test with the current repository rule that Jules provenance under `.jules/**` may be intentional PR state. Gate still blocks cache/transcript/runtime/tmp paths, but it does not blanket-block `.jules/runs/**` provenance packets.
+## Decision
+Choosing Option A to fix the broken file policy checker by aligning the allowed globs with the existing files in `fixtures/` and `scripts/`.
