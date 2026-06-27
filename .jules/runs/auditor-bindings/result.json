@@ -1,0 +1,13 @@
+{
+  "outcome": "patch",
+  "files_changed": [
+    "crates/tokmd-node/Cargo.toml",
+    "crates/tokmd-node/src/lib.rs"
+  ],
+  "gates_run": [
+    "cargo build",
+    "CI=true cargo test",
+    "cargo fmt",
+    "cargo clippy"
+  ]
+}
