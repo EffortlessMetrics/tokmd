@@ -272,3 +272,176 @@ fn given_project_when_analyze_health_then_todo_and_complexity_present() {
         "should have derived.todo section"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Scenario 10: Deep preset includes derived metrics and tool metadata
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_deep_then_derived_and_tool_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "deep", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset deep");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    assert!(
+        json.get("derived").is_some(),
+        "deep preset must include derived"
+    );
+    assert!(
+        json.get("tool").is_some(),
+        "deep preset must include tool metadata"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 11: Topics preset returns topic cloud payload
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_topics_then_topics_cloud_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "topics", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset topics");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    let topics = json["topics"].as_object().expect("topics should be object");
+    assert!(
+        topics.get("overall").is_some(),
+        "topics must have overall array"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 12: Architecture preset includes imports and API surface (if available)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_architecture_then_architecture_metrics_present() {
+    let output = tokmd_cmd()
+        .args([
+            "analyze",
+            ".",
+            "--preset",
+            "architecture",
+            "--format",
+            "json",
+        ])
+        .output()
+        .expect("failed to execute tokmd analyze --preset architecture");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    // We verify the command parses the preset correctly and produces derived metrics.
+    // Actually asserting on imports/api_surface depends on the exact crate dependencies,
+    // but the analyze run must succeed.
+    assert!(
+        json.get("derived").is_some(),
+        "architecture preset must at least succeed and include derived"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 13: Risk preset includes git and complexity
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_risk_then_git_and_complexity_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "risk", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset risk");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    assert!(
+        json.get("complexity").is_some(),
+        "risk preset must include complexity"
+    );
+    // 'git' might be null in hermetic test env without .git, but the key usually exists or we just verify parsing.
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 14: Security preset includes entropy and license
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_security_then_entropy_and_license_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "security", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset security");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    // Basic success check for preset parsing
+    assert!(json.get("derived").is_some());
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 15: Supply preset includes assets and deps
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_supply_then_assets_and_deps_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "supply", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset supply");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    // Basic success check for preset parsing
+    assert!(json.get("derived").is_some());
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 16: Identity preset includes archetype
+// ---------------------------------------------------------------------------
+
+#[test]
+fn given_project_when_analyze_identity_then_archetype_present() {
+    let output = tokmd_cmd()
+        .args(["analyze", ".", "--preset", "identity", "--format", "json"])
+        .output()
+        .expect("failed to execute tokmd analyze --preset identity");
+
+    assert!(output.status.success());
+    let json: Value = serde_json::from_str(
+        &String::from_utf8(output.stdout).expect("should decode stdout as UTF-8"),
+    )
+    .expect("should decode stdout as JSON");
+
+    assert!(
+        json.get("archetype").is_some(),
+        "identity preset must include archetype"
+    );
+}

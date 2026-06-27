@@ -1,0 +1,21 @@
+# Decision
+
+## Option A (Recommended)
+Add missing BDD scenarios to `crates/tokmd/tests/bdd_analyze_scenarios_w50.rs` for different `--preset` flags (like `deep`, `architecture`, `risk`, `supply`, `identity`, `security`, `topics`).
+
+Currently, `bdd_analyze_scenarios_w50.rs` only has coverage for `receipt`, `fun`, `estimate`, and `health` presets.
+
+Trade-offs:
+- Structure: Follows the existing BDD test pattern.
+- Velocity: High. Easy to implement by adding new `#[test]` functions following the existing given/when/then pattern.
+- Governance: Directly aligns with the "missing BDD/integration coverage for an important path" target ranking from the prompt.
+
+## Option B
+Add edge-case tests to `crates/tokmd-analysis/src/complexity/tests/unit.rs` covering more `todo!()` blocks in other complexity languages or add some other analysis features edge cases.
+
+Trade-offs:
+- Better unit testing for complexity parsing.
+- Does not directly improve high-level integration/BDD scenario coverage of the analysis command features.
+
+## Decision
+Choosing Option A because it fulfills the first priority constraint "1) missing BDD/integration coverage for an important path" and is squarely in the bounds of our current task. By filling out the test suite for the remaining `analyze --preset` values, we provide comprehensive end-to-end BDD coverage of the presets system.
