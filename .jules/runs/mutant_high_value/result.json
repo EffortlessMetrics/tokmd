@@ -1,3 +1,4 @@
 {
-  "outcome": "learning PR"
+  "status": "success",
+  "patch_description": "Improved path redaction and normalization to handle parent paths correctly without directory structure leakage."
 }
