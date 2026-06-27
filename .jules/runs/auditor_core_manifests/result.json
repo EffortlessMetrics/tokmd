@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "outcome": "pr-ready patch",
+  "changed_files": [
+    "Cargo.toml",
+    "crates/tokmd-scan/Cargo.toml",
+    "crates/tokmd-model/Cargo.toml",
+    "crates/tokmd-cockpit/Cargo.toml"
+  ]
+}
