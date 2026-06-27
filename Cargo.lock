@@ -2713,7 +2713,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "tokio",
  "tokmd-core",
  "tokmd-envelope",
 ]

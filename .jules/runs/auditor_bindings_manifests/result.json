@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "outcome": "pr-ready-patch",
+  "patch_summary": "Removed redundant `tokio` dependency in `tokmd-node` crate. It now correctly uses `napi::tokio` re-exported by the napi crate."
+}
