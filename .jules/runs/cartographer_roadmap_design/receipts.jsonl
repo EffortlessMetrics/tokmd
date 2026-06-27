@@ -1,4 +1,4 @@
-{"command": "cargo xtask docs --check", "status": 0}
-{"command": "cargo xtask publish-surface --json --verify-publish", "status": 0}
-{"command": "cargo xtask version-consistency", "status": 0}
-{"command": "cargo test -p xtask", "status": 0}
+{"timestamp": "2024-05-11T12:05:00.000000Z", "command": "sed -n '255,265p' docs/architecture.md", "output": "- Broaden browser analysis only where the preset can stay rootless and capability-honest.\n\n### Current browser non-goals\n\n- No browser-side git-history churn/hotspot metrics or other heavy host tooling.\n- No browser zipball ingestion as the primary supported path while tree+contents is the stable browser-safe acquisition strategy."}
+{"timestamp": "2024-05-11T12:05:10.000000Z", "command": "cargo xtask docs --check", "output": "Documentation is up to date.\n     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.29s\n     Running `target/debug/xtask docs --check`"}
+{"timestamp": "2024-05-11T12:05:20.000000Z", "command": "cargo fmt -- --check", "output": ""}
+{"timestamp": "2024-05-11T12:05:30.000000Z", "command": "cargo clippy -- -D warnings", "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 38.34s"}

@@ -1,7 +1,0 @@
-{"command": "cargo test --test ffi_boundaries", "status": "passed"}
-{"command": "cargo build -p tokmd-core", "status": "passed"}
-{"command": "CI=true cargo test -p tokmd-core --verbose", "status": "passed"}
-{"command": "cargo fmt -- --check", "status": "passed"}
-{"command": "cargo clippy -- -D warnings", "status": "passed"}
-{"command": "cargo xtask docs --check", "status": "passed"}
-{"command": "cargo xtask version-consistency", "status": "passed"}

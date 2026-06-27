@@ -153,7 +153,7 @@ The packet path is implemented as `mode: packet` on the root
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: "1.14.0"
+    version: "1.13.1"
     mode: packet
     preset: bun-ub
     base: origin/main
@@ -268,6 +268,8 @@ with:
   runtime: container
   image: ghcr.io/effortlessmetrics/tokmd
   version: 1.14.0
+```
+
 The image should include:
 
 - `tokmd`;

@@ -1,0 +1,2 @@
+{"command": "grep -rn \"write_export_cyclonedx\" crates/tokmd/tests", "output": ""}
+{"command": "cargo test -p tokmd --test full_pipeline_w55 -- cyclonedx", "output": "test pipeline_export_cyclonedx_full ... ok"}

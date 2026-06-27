@@ -15,7 +15,8 @@ use serde_json::Value;
 use tokmd_analysis::derive_report;
 use tokmd_format::{
     badge_svg, compute_diff_rows, compute_diff_totals, create_diff_receipt, write_export_csv_to,
-    write_export_json_to, write_export_jsonl_to, write_lang_report_to, write_module_report_to,
+    write_export_cyclonedx_to, write_export_json_to, write_export_jsonl_to, write_lang_report_to,
+    write_module_report_to,
 };
 use tokmd_model::{create_export_data, create_lang_report, create_module_report};
 use tokmd_scan::scan;
@@ -413,6 +414,26 @@ fn cli_lang_json_full_pipeline() {
     assert!(json["rows"].is_array());
     assert!(json["total"].is_object());
     assert!(json["tool"]["version"].is_string());
+}
+
+#[test]
+fn pipeline_export_cyclonedx_full() {
+    let langs = scan(&[fixture_path()], &default_scan_options()).expect("scan");
+    let data = create_export_data(
+        &langs,
+        &[],
+        2,
+        ChildIncludeMode::Separate,
+        Some(fixture_path().as_path()),
+        0,
+        0,
+    );
+    let mut buf = Vec::new();
+    write_export_cyclonedx_to(&mut buf, &data, RedactMode::None).unwrap();
+    let v: Value = serde_json::from_slice(&buf).unwrap();
+    assert_eq!(v["bomFormat"], "CycloneDX");
+    assert_eq!(v["specVersion"], "1.6");
+    assert!(v["components"].is_array());
 }
 
 #[test]
