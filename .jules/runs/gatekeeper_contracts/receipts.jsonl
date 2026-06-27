@@ -2,3 +2,4 @@
 {"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
 {"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
 {"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "python3 patch_policy.py && cargo xtask check-file-policy --strict", "output": "file-policy OK: 85 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
