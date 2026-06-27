@@ -1,20 +1,15 @@
 {
-  "outcome": "patch",
-  "title": "fuzzer: enforce strict object types for FFI setting payloads \ud83c\udf2a\ufe0f",
-  "summary": "Replaced silent fallback logic for FFI settings boundaries with strict object type checks, throwing a proper error instead of silently falling back to the parent args object.",
+  "outcome": "learning_pr",
+  "title": "jules: record fuzzer learning on FFI input hardening 🌪️",
+  "summary": "Explored hardening the FFI setting payloads boundary in tokmd-core by replacing .unwrap_or(args) with strict object type checks. Discovered a duplicate/superseding PR already landed this exact fix, so concluding with a learning PR instead.",
   "target_paths": [
     "crates/tokmd-core/src/ffi/parse.rs",
-    "crates/tokmd-core/src/ffi/settings_parse.rs",
-    "crates/tokmd-core/tests/ffi_settings_parse.rs"
+    "crates/tokmd-core/src/ffi/settings_parse.rs"
   ],
-  "proof_summary": "Added an integration test `ffi_settings_parse.rs` that explicitly verifies we reject non-object payloads gracefully as well.",
-  "gates_run": [
-    "cargo test -p tokmd-core --all-features",
-    "cargo fmt -- --check",
-    "cargo clippy -- -D warnings"
-  ],
-  "friction_items_created": [],
-  "persona_notes_created": [],
-  "rollback": "Revert the parse.rs and settings_parse.rs file changes to re-enable unwrap_or fallback.",
-  "follow_ups": []
+  "proof_summary": "Documented the friction of silent type fallbacks (.unwrap_or(args)) in FFI settings parsing.",
+  "gates_run": [],
+  "friction_items_created": ["FRIC-20260626-001"],
+  "persona_notes_created": ["input_boundary_hardening"],
+  "rollback": "Delete the newly added friction and persona notes.",
+  "follow_ups": ["FRIC-20260626-001"]
 }
