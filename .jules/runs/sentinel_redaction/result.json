@@ -1,5 +1,1 @@
-{
-  "status": "success",
-  "outcome": "PR-ready patch",
-  "codex_restack": "tightened policy to explicit compound suffixes plus final-extension fallback"
-}
+{"outcome": "learning_pr"}

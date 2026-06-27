@@ -1,16 +1,18 @@
+# Option A
+
+Attempt to find another target for boundary hardening in the `core-pipeline` shard, specifically within `tokmd-types`, `tokmd-scan`, `tokmd-model`, or `tokmd-format`.
+
+*   **What it is:** Continuing to search for a bug, such as path traversal leaks, format serialization panics, etc.
+*   **When to choose it instead:** When there are actual verifiable boundary flaws.
+*   **Trade-offs:** We previously thought there was an overlapping path leak bug in `tokmd-format/src/redact/mod.rs` (the `clean_path` function), but it turned out the existing `while normalized.contains("/./")` already handled it perfectly. Spending more time searching might force a "fake fix" hallucination.
+
+# Option B (recommended)
+
+Create a Learning PR noting that path redaction is already solid and we should not force a hallucinated fix.
+
+*   **What it is:** Fallback to the allowed `learning_pr` outcome.
+*   **Why it fits this repo and shard:** The prompt explicitly states: "If no honest code/docs/test patch is justified, finish with a learning PR instead of forcing a fake fix." The boundary hardening on path redaction appears correct, and creating a learning PR satisfies the requirement to output a coherent reviewer story without hallucinated work.
+*   **Trade-offs (Structure / Velocity / Governance):** Saves velocity by failing fast and cleanly adhering to policy.
+
 # Decision
-
-## Option A (recommended)
-Preserve explicitly known safe compound suffixes such as `.tar.gz`, otherwise keep only the final allowlisted extension. Unsafe final extensions still suppress all suffix output.
-
-- **Structure:** Tightens boundary hardening by strictly adhering to the allowlist.
-- **Velocity:** Low risk, minimal code change.
-- **Governance:** Improves redaction safety.
-
-## Option B
-Use `Path::new().extension()`, which only retrieves the final extension.
-
-- **Trade-offs:** Keeps the old final-extension contract but drops useful compound archive suffix context such as `.tar.gz`.
-
-## Decision
-Option A. It preserves semantic archive suffixes like `.tar.gz` without preserving arbitrary safe-looking chains such as `.json.rs`, and it still hides unsafe suffixes like `.rs.bak`.
+Option B. We found that our initial assumption of a path leak was incorrect, and `clean_path` is correctly implemented. Forcing a fix violates the "output honesty" and "hallucinated work is failure" constraints. I will produce a learning PR.

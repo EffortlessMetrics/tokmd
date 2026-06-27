@@ -1,4 +1,5 @@
 {
+  "run_id": "sentinel_redaction",
   "prompt_id": "sentinel_redaction",
   "persona": "Sentinel",
   "style": "Stabilizer",
@@ -14,7 +15,7 @@
   ],
   "gate_profile": "security-boundary",
   "allowed_outcomes": [
-    "PR-ready patch",
-    "learning PR"
+    "pr_ready_patch",
+    "learning_pr"
   ]
 }
