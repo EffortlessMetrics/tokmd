@@ -1,45 +1,50 @@
 ## 💡 Summary
-This is a Learning PR. I explored the `tokmd-types` crate to close mutant gaps and improve tests, but found that the core type math was already fully covered.
+Added an integration test to assert that `strip_prefix` in the export meta envelope is properly redacted (hashed) when `RedactMode` is `Paths` or `All`, and correctly signals the `strip_prefix_redacted` flag. This closes a behavioral testing gap without modifying production code.
 
 ## 🎯 Why
-The Mutant persona assignment `mutant_high_value` requested targeted mutation-style proofs on high-value core surfaces. However, running `cargo mutants -p tokmd-types` revealed zero missed mutants (21 caught, 4 unviable out of 25). Forcing a patch here would violate the `Output honesty` rule by claiming a win that was not proven.
+The `strip_prefix` field in the meta envelope contains sensitive internal directory structures. While the production redaction logic was correctly covering this field across JSON and JSONL exports, there was no standalone behavioral integration test asserting that the meta envelope properties (`strip_prefix` and `strip_prefix_redacted`) were working in concert. Adding targeted tests prevents regressions on this security/redaction boundary.
 
 ## 🔎 Evidence
-Minimal proof:
-- file path(s): `crates/tokmd-types/src/lib.rs`
-- observed finding: The mutation suite successfully caught or marked unviable all 25 mutants tested. No gap exists.
-- command: `cargo mutants -p tokmd-types`
+- `crates/tokmd-format/tests/test_strip_prefix_redaction.rs`
+- Confirmed correct behavior and passing state via `cargo test --test test_strip_prefix_redaction` covering JSON/JSONL across `RedactMode::Paths`, `All`, and `None`.
 
 ## 🧭 Options considered
-### Option A
-- Force a fake patch on `tokmd-types` by hallucinating gaps that do not exist, and claim that mutation gaps were closed when they were not.
-- Trade-offs: Directly violates hard prompt constraints ("Hallucinated work is failure").
+### Option A (recommended)
+- Add a standalone integration test file `crates/tokmd-format/tests/test_strip_prefix_redaction.rs`.
+- Why it fits: Standalone behavioral integration tests are ideal for the `core-pipeline` shard's `mutation` gate, as they cleanly assert a specific sub-system contract without tangling up monolithic snapshot tests.
+- Trade-offs: Structure/Governance are unaffected. Velocity is high.
 
-### Option B (recommended)
-- Adhere to the `Output honesty` constraint. Pivot to a Learning PR.
-- Fits this repo and shard: It respects the pipeline's request to surface a friction item when no honest code patch is justified.
-- Trade-offs: No production logic changed, but keeps the history clean.
+### Option B
+- Shove the new test checks into existing massive monolithic test files like `format_tests.rs`.
+- When to choose: If file counts are heavily constrained.
+- Trade-offs: Degrades readability and hides the explicit purpose of the redaction test.
 
 ## ✅ Decision
-Choose Option B. The core pipeline is well-covered, and forcing an untruthful fix violates the primary constraints of the run. Submitting a Learning PR is the required honest fallback path.
+Option A. Adding a standalone test explicitly proves the `strip_prefix` and `strip_prefix_redacted` behaviors under different modes and perfectly fulfills the Mutant persona's mandate to strengthen testing around high-value surfaces.
 
 ## 🧱 Changes made (SRP)
-- Created learning PR packet artifacts. No code files were modified.
+- `crates/tokmd-format/tests/test_strip_prefix_redaction.rs`
 
 ## 🧪 Verification receipts
 ```text
-$ cargo mutants -p tokmd-types
-Found 25 mutants to test
-ok       Unmutated baseline in 79s build + 4s test
-25 mutants tested in 5m: 21 caught, 4 unviable
+cargo test --test test_strip_prefix_redaction
+running 3 tests
+test strip_prefix_is_preserved_when_mode_is_none ... ok
+test strip_prefix_is_redacted_for_jsonl_when_mode_is_paths_or_all ... ok
+test strip_prefix_is_redacted_when_mode_is_paths_or_all ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+cargo fmt -- --check
+cargo clippy -- -D warnings
+CI=true cargo test -p tokmd-format --verbose
 ```
 
 ## 🧭 Telemetry
-- Change shape: Learning PR packet
-- Blast radius: None (No code changes)
-- Risk class: Zero - No production behavior changed
-- Rollback: Safely revert `.jules` artifacts
-- Gates run: `cargo mutants`, `cargo test`
+- Change shape: New integration tests only.
+- Blast radius: Testing API. No production dependencies or implementations altered.
+- Risk class: Zero risk. Test-only addition.
+- Rollback: Revert the new test file addition.
+- Gates run: targeted `cargo test`, `cargo fmt`, `cargo clippy`, and `cargo test -p tokmd-format --verbose`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`
@@ -47,7 +52,6 @@ ok       Unmutated baseline in 79s build + 4s test
 - `.jules/runs/mutant_high_value/receipts.jsonl`
 - `.jules/runs/mutant_high_value/result.json`
 - `.jules/runs/mutant_high_value/pr_body.md`
-- `.jules/friction/open/mutant_high_value.md`
 
 ## 🔜 Follow-ups
-I have filed `.jules/friction/open/mutant_high_value.md` noting that attempting to force a patch on a structurally tight crate causes friction against the `Output honesty` constraint.
+None.

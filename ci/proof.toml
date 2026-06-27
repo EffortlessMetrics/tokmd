@@ -996,6 +996,7 @@ paths = [
   "crates/tokmd-format/src/scan_args/**",
   "crates/tokmd-format/tests/scan_args_reexport.rs",
   "crates/tokmd-format/tests/test_redaction_leak.rs",
+  "crates/tokmd-format/tests/test_strip_prefix_redaction.rs",
   "crates/tokmd-format/tests/test_cyclonedx_redaction.rs",
   "fuzz/fuzz_targets/fuzz_redact.rs",
   "fuzz/fuzz_targets/fuzz_scan_args.rs",
