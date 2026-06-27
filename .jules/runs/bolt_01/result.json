@@ -1,0 +1,10 @@
+{
+  "outcome": "pr-ready-patch",
+  "proven_wins": [
+    "Removed redundant string allocations in diff compute loop"
+  ],
+  "verification": [
+    "bench: cargo bench -p tokmd-format runtime decreased string allocation footprint",
+    "test: cargo test -p tokmd-format diff --verbose verified determinism and logic"
+  ]
+}

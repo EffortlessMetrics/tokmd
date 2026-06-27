@@ -1,0 +1,7 @@
+{"command": "grep -rn \".clone()\" crates/tokmd-format/src/"}
+{"command": "grep -rn \"to_string()\" crates/tokmd-format/src/diff/"}
+{"command": "cargo bench -p tokmd-format -- --nocapture"}
+{"command": "sed -i ... crates/tokmd-format/src/diff/compute.rs"}
+{"command": "cargo test -p tokmd-format diff"}
+{"command": "cargo clippy -p tokmd-format"}
+{"command": "cargo fmt -- --check"}
