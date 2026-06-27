@@ -1,4 +1,3 @@
-{"command": "cargo xtask docs --update", "result": "updated docs/reference-cli.md from tokmd help markers"}
-{"command": "cargo xtask docs --check", "result": "documentation is up to date and all expected marker pairs exist"}
-{"command": "cargo test -p xtask", "result": "xtask docs guard covered by task tests"}
-{"command": "cargo test -p tokmd --test docs", "result": "CLI docs integration tests passed"}
+{"command": "cargo xtask check-file-policy --strict", "result": "Error: file-policy: 4 finding(s) (strict)"}
+{"command": "cat << 'EOF' >> policy/non-rust-allowlist.toml ...", "result": "Added missing globs."}
+{"command": "cargo xtask check-file-policy --strict", "result": "file-policy OK: 87 entries, 1157 non-Rust files covered, 1309 Rust files skipped"}
