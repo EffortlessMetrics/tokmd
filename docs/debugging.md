@@ -89,9 +89,9 @@ terminal logs. Write artifacts to `target/` and inspect the machine-readable
 form first:
 
 ```bash
-cargo run -p tokmd -- run --path . --out target/tokmd-debug
-cargo run -p tokmd -- analyze --path . --format json
-cargo run -p tokmd -- cockpit --base origin/main --head HEAD --out target/cockpit-debug
+cargo run -p tokmd -- run . --output-dir target/tokmd-debug
+cargo run -p tokmd -- analyze . --format json
+cargo run -p tokmd -- cockpit --base origin/main --head HEAD --artifacts-dir target/cockpit-debug
 ```
 
 When changing a receipt shape, update the owning types, schema docs, and tests
@@ -129,7 +129,7 @@ Start from a fresh timing receipt before optimizing:
 
 ```bash
 cargo xtask perf-smoke
-cargo run -p tokmd -- run --path . --out target/perf-debug
+cargo run -p tokmd -- run . --output-dir target/perf-debug
 ```
 
 Compare like with like: same checkout, same feature set, same target directory
