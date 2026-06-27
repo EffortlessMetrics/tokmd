@@ -1,0 +1,7 @@
+{"command":"cargo test -p tokmd-model children"}
+{"command":"patch -p0 < fix_test.patch"}
+{"command":"cargo test -p tokmd-model children"}
+{"command":"cargo build"}
+{"command":"CI=true cargo test -p tokmd-model"}
+{"command":"cargo fmt -- --check"}
+{"command":"cargo clippy -- -D warnings"}

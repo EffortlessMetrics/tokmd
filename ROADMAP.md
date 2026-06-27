@@ -607,9 +607,41 @@ back into single-responsibility owner modules.
 - [x] Retry and rate-limit UX with retry-after guidance.
 - [x] Auth-safe fetch/cache boundaries with session-only token state.
 
+## Completed: v1.12.0 — Bun UB Evidence Readiness
+
+**Goal:** Provide the necessary runtime guards and proof surfaces to safely integrate tokmd evidence in untrusted Bun environments.
+
+### What shipped for v1.12.0
+
+- [x] Bun UB evidence-readiness release.
+- [x] Hardened runtime against untrusted environments.
+
+## Completed: v1.13.0 / v1.13.1 — Syntax-Aware Evidence Packets
+
+**Goal:** Turn the Bun UB evidence path into a manifest-first packet that can include scoped analysis, context, optional syntax receipts, review-priority rows, artifact references, reproduction commands, warnings, errors, and non-claims in one bot-readable contract.
+
+### What shipped for v1.13.x
+
+- [x] Manifest-first packet structure.
+- [x] Optional parser-backed syntax evidence (feature-gated).
+- [x] Cockpit/handoff artifact references.
+- [x] Default `ast` install and bounded complexity evidence status correction (1.13.1).
+
+## Completed: v1.14.0 — PR Evidence Packet Workflow
+
+**Goal:** Expand the PR evidence surface into a first-class local and CI workflow.
+
+### What shipped for v1.14.0
+
+- [x] `tokmd render` command for packet presets.
+- [x] `tokmd packet generate` evidence-packet orchestrator.
+- [x] `mode: packet` in the GitHub Action.
+- [x] Syntax evidence ranking improvements.
+- [x] Actionable `tokmd diff` and `tokmd context` errors.
+
 ## Future Horizons
 
-### v1.12.x — Selection-First Product and Evidence Work
+### v1.15.x — Selection-First Product and Evidence Work
 
 _Goal: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps._
 

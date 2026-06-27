@@ -415,6 +415,45 @@ modules, and keep proof observations advisory while artifacts mature.
 
 ---
 
+## Phase 5e: Bun UB Evidence Readiness (v1.12.0) ✅ Complete
+
+**Goal**: Provide the necessary runtime guards and proof surfaces to safely integrate tokmd evidence in untrusted Bun environments.
+
+### Work Items
+
+- [x] Land Bun UB evidence-readiness release.
+- [x] Add proof coverage and determinism checks.
+
+---
+
+## Phase 5f: Syntax-Aware Evidence Packets (v1.13.x) ✅ Complete
+
+**Goal**: Turn the Bun UB evidence path into a manifest-first packet that can include scoped analysis, context, optional syntax receipts, and review priorities.
+
+### Work Items
+
+- [x] Feature-gated syntax receipt command.
+- [x] Packet manifest wiring.
+- [x] Cockpit/handoff artifact references.
+- [x] Correct default install to include the `ast` feature (`v1.13.1`).
+- [x] Tighten bounded complexity evidence status (`v1.13.1`).
+
+---
+
+## Phase 5g: PR Evidence Packet Workflow (v1.14.0) ✅ Complete
+
+**Goal**: Expand the PR evidence surface into a first-class local and CI workflow with packet rendering, generation, and Action support.
+
+### Work Items
+
+- [x] Add `tokmd render` and `tokmd packet generate` CLIs.
+- [x] Ship `mode: packet` GitHub Action.
+- [x] Improve syntax evidence ranking to deprioritize test assertion noise.
+- [x] Add `runtime: container` Action support for the GHCR runtime.
+- [x] Fix and improve actionable CLI errors for `diff`, `context`, and `handoff`.
+
+---
+
 ## Phase 6: MCP Server Mode (v2.0)
 
 **Goal**: Native integration with Claude and MCP clients.

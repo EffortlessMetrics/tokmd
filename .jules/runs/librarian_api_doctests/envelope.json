@@ -5,7 +5,6 @@
   "primary_shard": "interfaces",
   "allowed_paths": [
     "crates/tokmd-config/**",
-    "crates/tokmd-settings/**",
     "crates/tokmd-core/**",
     "crates/tokmd/**",
     "docs/reference-cli.md",
@@ -13,8 +12,5 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "docs-executable",
-  "allowed_outcomes": [
-    "proof-improvement patch",
-    "learning PR"
-  ]
+  "allowed_outcomes": ["proof-improvement", "learning"]
 }
