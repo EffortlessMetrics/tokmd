@@ -1,0 +1,4 @@
+{"command": "cargo xtask publish --plan --verbose", "status": "passed"}
+{"command": "cargo xtask version-consistency", "status": "passed"}
+{"command": "cargo xtask docs --check", "status": "passed"}
+{"command": "cargo xtask check-file-policy --strict", "status": "failed initially, passed after fix"}

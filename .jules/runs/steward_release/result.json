@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed file policy tracking drift in policy/non-rust-allowlist.toml.",
+  "outcome": "PR-ready patch"
+}
