@@ -179,6 +179,20 @@ mod tests {
     }
 
     #[test]
+    fn skips_allowlisted_prefix_paths() {
+        let repo_root = std::path::Path::new(".");
+        let allowlisted_paths = [".claude/fixtures/key.pem", ".jules/keys/private.key"];
+
+        for path in allowlisted_paths {
+            let violation = evaluate_candidate(repo_root, path).expect("check");
+            assert!(
+                violation.is_none(),
+                "allowlisted path should be skipped: {path}"
+            );
+        }
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
