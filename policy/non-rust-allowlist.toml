@@ -800,3 +800,31 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+
+[[allow]]
+glob = "fixtures/syntax/python/*.py"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Syntax fixtures"
+covered_by = []
+
+[[allow]]
+glob = "fixtures/syntax/typescript/*.ts*"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Syntax fixtures"
+covered_by = []
+
+[[allow]]
+glob = "scripts/*.sh"
+kind = "tooling"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Build and validation scripts"
+covered_by = []
