@@ -1,7 +1,0 @@
-{
-  "ok": false,
-  "error": {
-    "code": "unknown_mode",
-    "message": "Unknown mode: bogus_mode"
-  }
-}
