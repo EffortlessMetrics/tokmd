@@ -1,0 +1,11 @@
+{"cmd":"mkdir -p .jules/runs/run-bolt-analysis-stack","exit_code":0}
+{"cmd":"git diff crates/tokmd-analysis/src/derived/files.rs","exit_code":0}
+{"cmd":"git diff crates/tokmd-analysis/src/derived/mod.rs","exit_code":0}
+{"cmd":"cargo test -p tokmd-analysis derived_alloc_reduction_proof -- --nocapture","exit_code":0}
+{"cmd":"cargo build --verbose","exit_code":0}
+{"cmd":"CI=true cargo test --verbose -p tokmd-analysis","exit_code":0}
+{"cmd":"cargo fmt -- --check","exit_code":0}
+{"cmd":"cargo clippy -- -D warnings","exit_code":0}
+{"cmd":"cargo fmt","exit_code":0}
+{"cmd":"cargo fmt -- --check","exit_code":0}
+{"cmd":"cargo clippy -- -D warnings","exit_code":0}

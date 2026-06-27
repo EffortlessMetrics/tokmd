@@ -11,5 +11,6 @@ mod derived_depth_w62;
 mod edge_cases;
 mod integration_subreports;
 mod integration_tree;
+mod perf_proof_test;
 mod properties;
 mod proptest_w40;
