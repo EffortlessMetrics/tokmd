@@ -1,0 +1,3 @@
+{"cmd":"cargo test -p tokmd --doc","result":"12 passed"}
+{"cmd":"git restore crates/tokmd/src/config/resolve/export.rs","result":"success"}
+{"cmd":"cargo test -p tokmd --doc","result":"12 passed"}

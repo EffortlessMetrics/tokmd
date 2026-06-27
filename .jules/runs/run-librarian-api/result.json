@@ -1,0 +1,9 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_touched": [
+    "crates/tokmd/src/config/resolve/export.rs",
+    "crates/tokmd/src/config/resolve/lang.rs",
+    "crates/tokmd/src/config/resolve/module.rs"
+  ],
+  "reasoning": "Doctests for config resolution logic were silently failing to compile when run due to unresolved imports (`Profile` mapped incorrectly to `tokmd::cli::Profile` instead of `tokmd_settings::Profile`, `tokmd::resolve_export_with_config` instead of `tokmd::config::resolve_export_with_config`, and an `ExportFormat` collision). Fixed the imports in all three resolve files (`export.rs`, `lang.rs`, `module.rs`), proving the fix via `cargo test -p tokmd --doc`."
+}
