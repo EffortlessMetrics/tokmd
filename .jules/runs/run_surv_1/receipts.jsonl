@@ -1,0 +1,8 @@
+{"cmd": "cargo tree --workspace --edges normal"}
+{"cmd": "git diff"}
+{"cmd": "cargo check --workspace"}
+{"cmd": "cargo fmt -- --check"}
+{"cmd": "cargo clippy --workspace -- -D warnings"}
+{"cmd": "cargo test -p tokmd-types -p tokmd-scan -p tokmd-analysis-types"}
+{"cmd": "cargo build --verbose"}
+{"cmd": "CI=true cargo test --verbose"}
