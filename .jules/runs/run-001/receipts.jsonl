@@ -1,0 +1,6 @@
+{"command": "cargo test -p tokmd-format", "status": "success"}
+{"command": "cargo test -p tokmd-model", "status": "success"}
+{"command": "cargo test -p tokmd-format", "status": "success"}
+{"command": "cargo test -p tokmd-model", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}

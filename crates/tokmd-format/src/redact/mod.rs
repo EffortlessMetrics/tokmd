@@ -47,7 +47,23 @@ fn clean_path(s: &str) -> String {
     if normalized.ends_with("/.") {
         normalized.truncate(normalized.len() - 2);
     }
-    normalized
+
+    // Resolve parent directory segments (..)
+    let mut parts: Vec<&str> = Vec::new();
+    for part in normalized.split('/') {
+        if part == ".." {
+            let last = parts.last().copied().unwrap_or("");
+            if last != ".." && !last.is_empty() {
+                parts.pop();
+                continue;
+            }
+        }
+        if !part.is_empty() || parts.is_empty() {
+            parts.push(part);
+        }
+    }
+
+    parts.join("/")
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -227,6 +243,13 @@ mod tests {
         let r1 = redact_path("src/main.rs");
         let r2 = redact_path("src/main.rs");
         assert_eq!(r1, r2);
+    }
+
+    #[test]
+    fn test_short_hash_parent_directory() {
+        assert_eq!(short_hash("foo/../bar"), short_hash("bar"));
+        assert_eq!(short_hash("foo/../bar/baz"), short_hash("bar/baz"));
+        assert_eq!(short_hash("foo/../../bar"), short_hash("../bar"));
     }
 
     #[test]
