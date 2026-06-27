@@ -1,0 +1,3 @@
+{"command": "cargo check -p tokmd-node", "exit_code": 0, "stdout": "Finished `dev` profile [unoptimized + debuginfo] target(s) in X.Xs"}
+{"command": "cargo test -p tokmd-node", "exit_code": 0, "stdout": "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out"}
+{"command": "cargo tree -e features -p tokmd-node | grep tokio", "exit_code": 0, "stdout": "napi feature \"tokio_rt\"\ntokio feature \"rt-multi-thread\""}

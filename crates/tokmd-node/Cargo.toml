@@ -16,9 +16,8 @@ categories = ["development-tools::ffi"]
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "3", features = ["async", "serde-json"] }
+napi = { version = "3", features = ["async", "serde-json", "tokio_rt"] }
 napi-derive = "3"
-tokio = { version = "1", features = ["rt-multi-thread"] }
 serde_json.workspace = true
 serde.workspace = true
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
@@ -29,3 +28,4 @@ napi-build = "2"
 
 [dev-dependencies]
 tempfile.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
