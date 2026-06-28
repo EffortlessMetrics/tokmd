@@ -1,0 +1,20 @@
+{
+  "prompt_id": "specsmith_interfaces",
+  "persona": "Specsmith",
+  "style": "Explorer",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "proof-improvement patch",
+    "learning PR"
+  ]
+}

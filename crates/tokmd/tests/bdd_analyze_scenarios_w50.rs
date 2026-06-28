@@ -246,9 +246,22 @@ fn given_project_when_analyze_estimate_then_effort_model_present() {
 
 #[test]
 fn given_project_when_analyze_health_then_todo_and_complexity_present() {
-    // Given: a project with source files
+    // Given: a project with source files containing TODOs
+    let dir = tempdir().expect("should create temp dir");
+    std::fs::write(
+        dir.path().join("main.rs"),
+        "// TODO: implement this
+// FIXME: bug here
+// HACK: temporary
+fn main() {}
+",
+    )
+    .expect("should write test file");
+
     // When: I analyze with `health` preset and JSON format
-    let output = tokmd_cmd()
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_tokmd"));
+    cmd.current_dir(dir.path());
+    let output = cmd
         .args(["analyze", ".", "--preset", "health", "--format", "json"])
         .output()
         .expect("failed to execute tokmd analyze --preset health");
@@ -267,8 +280,25 @@ fn given_project_when_analyze_health_then_todo_and_complexity_present() {
         json.get("complexity").is_some(),
         "should have complexity section"
     );
-    assert!(
-        json["derived"].get("todo").is_some(),
-        "should have derived.todo section"
-    );
+
+    // Verify TODO metrics are correctly calculated
+    let todo = json["derived"]["todo"]
+        .as_object()
+        .expect("should have derived.todo section");
+    assert_eq!(todo["total"], 3, "should find exactly 3 tags");
+
+    let tags = todo["tags"].as_array().expect("tags should be array");
+    let todo_count = tags.iter().find(|t| t["tag"] == "TODO").unwrap()["count"]
+        .as_u64()
+        .unwrap();
+    let fixme_count = tags.iter().find(|t| t["tag"] == "FIXME").unwrap()["count"]
+        .as_u64()
+        .unwrap();
+    let hack_count = tags.iter().find(|t| t["tag"] == "HACK").unwrap()["count"]
+        .as_u64()
+        .unwrap();
+
+    assert_eq!(todo_count, 1, "should find 1 TODO");
+    assert_eq!(fixme_count, 1, "should find 1 FIXME");
+    assert_eq!(hack_count, 1, "should find 1 HACK");
 }
