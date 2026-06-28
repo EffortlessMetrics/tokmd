@@ -49,6 +49,68 @@ Out of scope for this stub: directory walking/ignore semantics (those remain in
 `crates/tokmd-scan`), content analysis, and any serialized on-disk snapshot
 format.
 
+### Archive ingestion (proposed sub-seam)
+
+A primary motivation for a provider-agnostic snapshot is scanning a repository
+that arrives as a **compressed archive** (a downloaded ZIP/tarball, a CI
+artifact, or an upload to a browser/worker target) without first extracting it
+to the host filesystem. This sub-seam names that capability so the security
+boundary is fixed before any implementation lands.
+
+- **ArchiveProvider (proposed role)** — a `FileProvider` (`ReadFs`) backend that
+  adapts the entries of an in-memory or streamed archive into the same
+  read-only, normalized-path view that `HostFs` and `MemFs` already expose. An
+  `ArchiveProvider` is a `FileProvider`; it does not introduce a parallel
+  access contract. Conceptually it is `MemFs` populated from archive entries
+  rather than from explicit `add_file` calls.
+- **Supported container shape** — the first contemplated container is ZIP
+  (central-directory enumerable, per-entry uncompressed size known before
+  inflation). Tar-family containers are a later option behind the same role.
+  This stub fixes the role and its limits, not the concrete crate or container
+  matrix.
+
+Archive ingestion is **trust-boundary-crossing input**: the archive may be
+attacker-controlled. The contract below treats every entry as hostile until it
+passes normalization and the resource limits. Ingestion must **fail closed**:
+a single rejected entry fails the snapshot build with a named error rather than
+silently dropping the entry and producing a misleadingly "complete" view.
+
+#### Path safety limits
+
+Each archive entry name is untrusted and must be normalized and validated
+before it can become a `VirtualFile` path. An entry is **rejected** (not
+sanitized-and-kept) when it:
+
+- is absolute (leading `/`) or carries a drive/UNC prefix (e.g. `C:\`, `\\`);
+- contains a `..` parent-traversal component after slash normalization;
+- decodes to a non-UTF-8 or NUL-containing name;
+- is a symlink, hardlink, device, or other non-regular-file entry (only regular
+  file entries and the directories implied by them are admissible);
+- collides case-insensitively or post-normalization with an already-admitted
+  entry (ambiguous duplicate names are rejected, not last-write-wins).
+
+The resulting path must satisfy the same forward-slash normalization rule as
+`crates/tokmd-model` and must remain rooted inside the logical snapshot root.
+No admitted path may escape the root via normalization.
+
+#### Resource (zip-bomb) limits
+
+Because compressed archives can expand by orders of magnitude, ingestion must
+enforce explicit, caller-visible limits and reject (fail closed) on breach:
+
+- a **per-entry uncompressed size** cap;
+- a **total uncompressed size** cap across all admitted entries;
+- a **maximum entry count** cap;
+- a **maximum compression-ratio** guard per entry (declared/actual inflated
+  size vs. compressed size) to catch highly compressible bomb entries even when
+  individual caps are not yet hit.
+
+Limits are part of the ingestion inputs (below), have documented conservative
+defaults, and are recorded on rejection so a caller learns which bound tripped.
+Inflation must honor the per-entry cap **during** decompression (bounded
+reads), not only after, so a malicious declared size cannot force unbounded
+allocation.
+
 ## Inputs
 
 - A `FileProvider` (`ReadFs`) instance: `HostFs` for real runs, `MemFs` for
@@ -60,6 +122,22 @@ format.
 A future `RepoSnapshot` builder reads each in-scope path through the provider
 (`read_bytes` / `read_to_string`) and records a `VirtualFile` with a normalized
 path and byte length.
+
+For archive ingestion specifically, the inputs are:
+
+- The archive bytes (an in-memory buffer or a bounded reader). This stub does
+  not require streaming, but the limits must be enforceable without first
+  inflating the whole archive.
+- An ingestion limit set: per-entry uncompressed cap, total uncompressed cap,
+  maximum entry count, and maximum per-entry compression ratio. Each has a
+  documented conservative default; callers may tighten or (explicitly) relax
+  them.
+- The logical repository root the admitted entries are rooted under.
+
+The path-safety and resource limits above are validated as entries are read.
+The output of a successful archive ingestion is an `ArchiveProvider`
+(`FileProvider`) — or directly a `RepoSnapshot` — that is indistinguishable
+from the equivalent host-extracted scan for in-scope files.
 
 ## Outputs
 
@@ -74,6 +152,13 @@ No new serialized output (JSON/JSONL/CSV) is defined here. If a serialized
 snapshot format is later required, it must get its own schema version and a
 follow-on spec.
 
+For archive ingestion, the observable outputs are either a successful
+provider/snapshot whose in-scope receipts match a host-extracted run, or a
+named, fail-closed error identifying the first violated path-safety or resource
+limit. Rejected archives produce no partial snapshot. The error surface (which
+limit, which entry) is part of the contract; the concrete error type is left to
+the implementing PR.
+
 ## Compatibility
 
 - Additive only. The default CLI path keeps using `HostFs` and the existing
@@ -85,6 +170,18 @@ follow-on spec.
   or `pub(crate)` types behind a real boundary and only be promoted to a public
   support surface once a consumer needs it (see the crate/module boundary rules
   in `docs/architecture.md`).
+- Archive ingestion is optional and additive. It must sit behind a Cargo
+  feature so the default `crates/tokmd-io-port` surface (and the default CLI)
+  keeps zero archive/decompression dependencies. The host-backed path must not
+  gain an archive dependency by default.
+- Any archive/decompression dependency is a new trust surface. The implementing
+  PR must select an audited, maintained crate, record license and security
+  impact in the PR body (per the dependency rules), and route it through the
+  normal `deny.toml` / dependency-maintenance proof. This stub does not pick or
+  pin a crate.
+- The ingestion limits are part of the support promise: tightening a default
+  limit is a compatible hardening; loosening or removing one is a
+  security-relevant change that must update this spec and its proof.
 
 ## Proof Requirements
 
@@ -99,6 +196,22 @@ stub asserts none of them as already met.
   independent of insertion order.
 - Path normalization: snapshot paths must match the forward-slash rule enforced
   by `crates/tokmd-model`.
+
+Additional proof obligations for the archive-ingestion sub-seam, when
+implemented:
+
+- Path-traversal rejection: fixtures containing `../` escapes, absolute paths,
+  drive/UNC prefixes, NUL/non-UTF-8 names, and symlink/non-regular entries must
+  each be rejected with a named error; none may produce a path outside the
+  logical root.
+- Resource-limit rejection: a zip-bomb-style fixture (small compressed, huge
+  declared/inflated) must trip the per-entry, total, entry-count, or
+  compression-ratio guard and fail closed without unbounded allocation.
+- Archive/host parity: a benign archive fixture ingested through the
+  `ArchiveProvider` must yield the same normalized file set and aggregated
+  receipt as scanning the equivalent extracted tree through `HostFs`.
+- Fail-closed semantics: a single rejected entry fails the whole snapshot build
+  rather than silently dropping the entry and reporting `complete`.
 
 Doc-shape checks for this spec stub itself:
 
@@ -117,3 +230,15 @@ cargo xtask docs --check
   appears? The default promotion ladder favors an internal module first.
 - Does the seam need to carry per-file metadata (size is enough today) such as
   modified time or a content hash, or should that stay in the analysis layer?
+- Which archive crate (and container matrix: ZIP only first, or ZIP plus
+  tar/gzip) best balances audited security, maintenance, and a small dependency
+  surface for the optional feature?
+- What are the right default values for the ingestion limits (per-entry cap,
+  total cap, entry-count cap, compression-ratio guard), and should they scale
+  with an explicit caller "expected repo size" hint instead of fixed constants?
+- Should archive ingestion stream entries (lower peak memory, harder to bound)
+  or require a fully buffered archive (simpler limit enforcement) for the first
+  implementation?
+- Should rejected-entry diagnostics be aggregated (report all violations) or
+  fail on the first violation? Fail-fast is simpler and is the default this
+  stub assumes.
