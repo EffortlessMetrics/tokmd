@@ -1,0 +1,21 @@
+{
+  "outcome_type": "patch",
+  "title": "archivist: regenerate jules run and friction index rollups 🗃️",
+  "summary": "Updated the generated `RUNS_ROLLUP.md` to reflect recent per-run packets. This prevents index drift and surfaces the latest run outcomes to reviewers and tools.",
+  "target_paths": [
+    ".jules/index/generated/RUNS_ROLLUP.md"
+  ],
+  "gates_run": [
+    "cargo xtask jules-index",
+    "cargo xtask docs --check",
+    "cargo xtask version-consistency",
+    "cargo xtask publish --plan --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings",
+    "cargo build --verbose"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git reset HEAD~1 && git checkout -- .jules/index/generated/",
+  "follow_ups": []
+}
