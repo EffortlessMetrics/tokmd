@@ -88,19 +88,18 @@ pub(crate) fn build_complexity_report(
         };
         total_bytes += bytes.len() as u64;
 
-        if !crate::content::io::is_text_like(&bytes) {
-            continue;
-        }
-
-        let text = String::from_utf8_lossy(&bytes);
+        let text = match crate::content::io::as_text(&bytes) {
+            Some(t) => t,
+            None => continue,
+        };
         let lang_mapped = map_language_for_complexity(&row.lang);
-        let (function_count, max_function_length) = count_functions(&row.lang, &text);
+        let (function_count, max_function_length) = count_functions(&row.lang, text);
         let cyclomatic_analysis =
-            crate::content::complexity::estimate_cyclomatic_complexity(&text, lang_mapped);
+            crate::content::complexity::estimate_cyclomatic_complexity(text, lang_mapped);
         let (cyclomatic, max_function_cyclomatic) = if cyclomatic_analysis.function_count > 0 {
             (cyclomatic_analysis.total_cc, cyclomatic_analysis.max_cc)
         } else if function_count > 0 {
-            let file_level = estimate_cyclomatic(&row.lang, &text);
+            let file_level = estimate_cyclomatic(&row.lang, text);
             (file_level, file_level)
         } else {
             (0, 0)
@@ -108,8 +107,8 @@ pub(crate) fn build_complexity_report(
 
         // Compute cognitive complexity and nesting depth
         let cognitive_result =
-            crate::content::complexity::estimate_cognitive_complexity(&text, lang_mapped);
-        let nesting_result = crate::content::complexity::analyze_nesting_depth(&text, lang_mapped);
+            crate::content::complexity::estimate_cognitive_complexity(text, lang_mapped);
+        let nesting_result = crate::content::complexity::analyze_nesting_depth(text, lang_mapped);
 
         let cognitive_complexity = if cognitive_result.function_count > 0 {
             Some(cognitive_result.total)
@@ -131,7 +130,7 @@ pub(crate) fn build_complexity_report(
         );
 
         let functions = if detail_functions {
-            Some(extract_function_details(&row.lang, &text))
+            Some(extract_function_details(&row.lang, text))
         } else {
             None
         };

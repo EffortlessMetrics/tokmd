@@ -49,9 +49,10 @@ pub fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
     read::read_text_capped(path, max_bytes)
 }
 
-pub fn is_text_like(bytes: &[u8]) -> bool {
-    bytes::is_text_like(bytes)
+pub fn as_text(bytes: &[u8]) -> Option<&str> {
+    bytes::as_text(bytes)
 }
+
 
 #[cfg_attr(
     not(any(test, fuzzing)),

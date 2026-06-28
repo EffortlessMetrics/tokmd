@@ -63,13 +63,12 @@ pub(crate) fn build_halstead_report(
         };
         total_bytes += bytes.len() as u64;
 
-        if !crate::content::io::is_text_like(&bytes) {
-            continue;
-        }
-
-        let text = String::from_utf8_lossy(&bytes);
+        let text = match crate::content::io::as_text(&bytes) {
+            Some(t) => t,
+            None => continue,
+        };
         let lang_lower = row.lang.to_lowercase();
-        let counts = tokenize_for_halstead(&text, &lang_lower);
+        let counts = tokenize_for_halstead(text, &lang_lower);
 
         for (op, count) in counts.operators {
             *all_operators.entry(op).or_insert(0) += count;
