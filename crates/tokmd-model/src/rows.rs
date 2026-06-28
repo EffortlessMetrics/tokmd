@@ -326,7 +326,7 @@ pub fn collect_file_rows(
     }
 
     if children == ChildIncludeMode::Separate {
-        for (_lang_type, lang) in languages.iter() {
+        for lang in languages.values() {
             for (child_type, reports) in &lang.children {
                 for report in reports {
                     let path = normalize_path(&report.name, strip_prefix);
