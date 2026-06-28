@@ -143,4 +143,5 @@ It does **not** establish:
 - [Evidence packet workflow spec](specs/evidence-packet-workflow.md) — normative
   producer/verifier contract
 - [UB-Review single-tight CI gate](specs/ub-review-ci-gate.md) — advisory lane shape
+- [ADR-0015: ub-review partial packet consumption](adr/0015-ub-review-partial-packet-consumption.md) — durable decision for `partial` vs `failed`
 - [Bun UB analysis preset](analyze/bun-ub.md) — the `bun-ub` preset signals
