@@ -14,8 +14,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 
 // ============================================================================
@@ -153,7 +153,7 @@ fn test_given_nonexistent_file_when_hashed_then_error() {
 }
 
 // ============================================================================
-// Scenario: is_text_like with binary format headers
+// Scenario: as_text with binary format headers
 // ============================================================================
 
 #[test]
@@ -161,7 +161,7 @@ fn test_given_png_header_when_checked_then_not_text_like() {
     // PNG magic bytes: 0x89 P N G \r \n 0x1A \n
     let png_header: &[u8] = &[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
     assert!(
-        !is_text_like(png_header),
+        as_text(png_header).is_none(),
         "PNG header should not be text-like"
     );
 }
@@ -171,7 +171,7 @@ fn test_given_elf_header_when_checked_then_not_text_like() {
     // ELF magic bytes: 0x7F E L F
     let elf_header: &[u8] = &[0x7F, 0x45, 0x4C, 0x46, 0x00, 0x00];
     assert!(
-        !is_text_like(elf_header),
+        as_text(elf_header).is_none(),
         "ELF header should not be text-like"
     );
 }
@@ -181,7 +181,7 @@ fn test_given_zip_header_when_checked_then_not_text_like() {
     // ZIP magic bytes: P K 0x03 0x04 followed by binary
     let zip_header: &[u8] = &[0x50, 0x4B, 0x03, 0x04, 0x00, 0x00];
     assert!(
-        !is_text_like(zip_header),
+        as_text(zip_header).is_none(),
         "ZIP header should not be text-like"
     );
 }
@@ -189,7 +189,10 @@ fn test_given_zip_header_when_checked_then_not_text_like() {
 #[test]
 fn test_given_only_whitespace_when_checked_then_text_like() {
     let whitespace = b"   \t\n\r\n   ";
-    assert!(is_text_like(whitespace), "whitespace should be text-like");
+    assert!(
+        as_text(whitespace).is_some(),
+        "whitespace should be text-like"
+    );
 }
 
 // ============================================================================
@@ -448,23 +451,23 @@ fn test_given_file_when_read_lines_zero_max_then_empty() {
 }
 
 // ============================================================================
-// Scenario: is_text_like on edge cases
+// Scenario: as_text on edge cases
 // ============================================================================
 
 #[test]
 fn test_given_single_null_byte_when_checked_then_not_text_like() {
-    assert!(!is_text_like(&[0x00]));
+    assert!(as_text(&[0x00]).is_none());
 }
 
 #[test]
 fn test_given_single_printable_byte_when_checked_then_text_like() {
-    assert!(is_text_like(b"A"));
+    assert!(as_text(b"A").is_some());
 }
 
 #[test]
 fn test_given_long_ascii_text_when_checked_then_text_like() {
     let text = "a".repeat(100_000);
-    assert!(is_text_like(text.as_bytes()));
+    assert!(as_text(text.as_bytes()).is_some());
 }
 
 // ============================================================================

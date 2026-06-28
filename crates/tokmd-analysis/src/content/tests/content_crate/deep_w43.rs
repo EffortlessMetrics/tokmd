@@ -1,11 +1,11 @@
 //! Deep tests for tokmd-analysis content helpers (wave 43).
 //!
 //! Covers read_lines edge cases, tag extraction, import parsing,
-//! hash computation, entropy calculation, and is_text_like.
+//! hash computation, entropy calculation, and as_text.
 
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use std::fs::File;
 use std::io::Write;
@@ -273,22 +273,22 @@ fn entropy_ascii_text_moderate() {
 }
 
 // ============================================================================
-// 6. is_text_like
+// 6. as_text
 // ============================================================================
 
 #[test]
-fn is_text_like_utf8_emoji() {
-    assert!(is_text_like("Hello 🌍".as_bytes()));
+fn as_text_utf8_emoji() {
+    assert!(as_text("Hello 🌍".as_bytes()).is_some());
 }
 
 #[test]
-fn is_text_like_null_in_middle() {
-    assert!(!is_text_like(b"hello\x00world"));
+fn as_text_null_in_middle() {
+    assert!(as_text(b"hello\x00world").is_none());
 }
 
 #[test]
-fn is_text_like_only_whitespace() {
-    assert!(is_text_like(b"   \t\n\r  "));
+fn as_text_only_whitespace() {
+    assert!(as_text(b"   \t\n\r  ").is_some());
 }
 
 // ============================================================================

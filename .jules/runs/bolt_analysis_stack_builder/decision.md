@@ -1,12 +1,17 @@
 ## Options Considered
 
-### Option A: Remove String allocations in duplicate analysis hot loop
-- **What it is:** Change `BTreeMap<String, ...>` to `BTreeMap<&str, ...>` in `build_duplicate_report` (inside `tokmd-analysis/src/content/mod.rs`). Replace redundant `get_mut` / `insert` blocks with `entry(module).or_default()`.
-- **Trade-offs:** Clean win. Reduces repeated hashing/lookups and removes string copying completely during the hot loop of counting duplicate and wasted files by module. Very aligned with Bolt's "hot-path work reduction" and "unnecessary string building".
+### Option A: Read text directly from bytes using std::str::from_utf8 instead of String::from_utf8_lossy or optimize from_utf8_lossy calls.
+- **What it is:** The code currently calls String::from_utf8_lossy(&bytes) to read file text after checking is_text_like(&bytes). Since is_text_like already checks std::str::from_utf8(&bytes).is_ok(), we know the bytes are valid UTF-8. We can change the pattern to use std::str::from_utf8(&bytes).unwrap() to avoid string allocation/cloning.
+- **Why it fits:** The prompt says 'Find and land one meaningful performance improvement inside the shard' and target ranking #2 is 'unnecessary allocations / cloning / string building'. By avoiding String::from_utf8_lossy allocation which creates a new Cow and allocates if the data is borrowed. String::from_utf8_lossy returns a Cow. The issue is it is often assigned to let text = ... and then used. If we can avoid it and just use std::str::from_utf8, it returns a str directly.
+- **Trade-offs:** We skip redundant UTF-8 checking/copying if we know it is valid UTF-8 from is_text_like.
 
-### Option B: Partial sorting in `build_top_offenders`
-- **What it is:** Use `select_nth_unstable` in `tokmd-analysis/src/derived/files.rs` to avoid full `O(N log N)` sorting on large file trees.
-- **Trade-offs:** `select_nth_unstable` requires mutable, owned vectors, so we'd still have to allocate vectors. And while it saves sorting time, the duplicate report string building happens per duplicate file group, which can be significant.
+### Option B: Cache is_text_like parsing results
+- **What it is:** Change is_text_like to return Option string slice instead of bool. That way we do the UTF-8 validation once and immediately get the string slice without having to call String::from_utf8_lossy or re-validate UTF-8.
+- **When to choose it:** It reduces repeated work.
+- **Trade-offs:** Changes is_text_like signature which might impact other parts of the codebase.
 
-## ✅ Decision
-We will proceed with Option A because `tokmd-analysis/src/content/mod.rs` does repetitive `to_string()` allocations and double map lookups in a hot loop (iterating every duplicate file). By binding the module strings to the lifetime of the input `ExportData` and using the `Entry` API natively, we remove the string allocations and halve the map lookups.
+## Decision
+Option B is the best. Target ranking #3 is 'repeated parsing/formatting that can be reused'. Currently, is_text_like does std::str::from_utf8(bytes).is_ok(). Then immediately after, callers do String::from_utf8_lossy(&bytes). We traverse the bytes twice for UTF-8 validation! We can change is_text_like to return Option string slice and name it something like as_text.
+Let us create a new function as_text(bytes: &[u8]) -> Option<&str> which checks bytes.contains(&0) and then returns std::str::from_utf8(bytes).ok().
+Then update callers to use it to get the string slice without a second UTF-8 pass.
+This entirely eliminates the double-UTF-8 pass AND the String::from_utf8_lossy wrapper.

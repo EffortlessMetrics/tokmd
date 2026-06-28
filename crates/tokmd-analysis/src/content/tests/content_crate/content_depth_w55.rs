@@ -8,8 +8,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use std::fs::File;
 use std::io::Write;
@@ -139,27 +139,27 @@ fn hash_file_empty_file() {
 
 #[test]
 fn text_like_ascii() {
-    assert!(is_text_like(b"hello world"));
+    assert!(as_text(b"hello world").is_some());
 }
 
 #[test]
 fn text_like_utf8() {
-    assert!(is_text_like("日本語".as_bytes()));
+    assert!(as_text("日本語".as_bytes()).is_some());
 }
 
 #[test]
 fn not_text_with_null_byte() {
-    assert!(!is_text_like(b"hello\x00world"));
+    assert!(as_text(b"hello\x00world").is_none());
 }
 
 #[test]
 fn text_like_empty() {
-    assert!(is_text_like(b""));
+    assert!(as_text(b"").is_some());
 }
 
 #[test]
 fn not_text_binary_blob() {
-    assert!(!is_text_like(&[0x00, 0xFF, 0x00, 0xFE]));
+    assert!(as_text(&[0x00, 0xFF, 0x00, 0xFE]).is_none());
 }
 
 // ===========================================================================
@@ -454,7 +454,7 @@ fn binary_file_not_text() {
     let d = tmp();
     let p = write_file(&d, "bin", &[0x00, 0x01, 0x02, 0xFF]);
     let bytes = read_head(&p, 100).unwrap();
-    assert!(!is_text_like(&bytes));
+    assert!(as_text(&bytes).is_none());
 }
 
 #[test]
@@ -513,9 +513,9 @@ mod properties {
         }
 
         #[test]
-        fn is_text_like_no_null_implies_utf8_check(data in proptest::collection::vec(1u8..=127, 0..200)) {
+        fn as_text_no_null_implies_utf8_check(data in proptest::collection::vec(1u8..=127, 0..200)) {
             // ASCII range 1-127 with no nulls is always text-like
-            assert!(is_text_like(&data));
+            assert!(as_text(&data).is_some());
         }
 
         #[test]

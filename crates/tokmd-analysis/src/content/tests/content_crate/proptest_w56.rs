@@ -63,23 +63,23 @@ proptest! {
             "Different inputs should produce different hashes");
     }
 
-    /// is_text_like returns false for bytes containing null.
+    /// as_text returns false for bytes containing null.
     #[test]
-    fn is_text_like_rejects_null_bytes(
+    fn as_text_rejects_null_bytes(
         prefix in proptest::collection::vec(b'a'..=b'z', 0..32),
         suffix in proptest::collection::vec(b'a'..=b'z', 0..32),
     ) {
         let mut bytes = prefix;
         bytes.push(0);
         bytes.extend(suffix);
-        prop_assert!(!crate::content::io::is_text_like(&bytes),
+        prop_assert!(crate::content::io::as_text(&bytes).is_none(),
             "Bytes containing null should not be text-like");
     }
 
-    /// is_text_like accepts valid ASCII strings.
+    /// as_text accepts valid ASCII strings.
     #[test]
-    fn is_text_like_accepts_ascii(input in "[a-zA-Z0-9 \t\n]{0,100}") {
-        prop_assert!(crate::content::io::is_text_like(input.as_bytes()),
+    fn as_text_accepts_ascii(input in "[a-zA-Z0-9 \t\n]{0,100}") {
+        prop_assert!(crate::content::io::as_text(input.as_bytes()).is_some(),
             "Valid ASCII should be text-like");
     }
 

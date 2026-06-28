@@ -12,8 +12,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 
 // ============================================================================
@@ -338,41 +338,41 @@ fn count_tags_empty_text() {
 
 #[test]
 fn null_byte_makes_non_text() {
-    assert!(!is_text_like(b"hello\x00world"));
+    assert!(as_text(b"hello\x00world").is_none());
 }
 
 #[test]
 fn png_header_not_text() {
     let header: &[u8] = &[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-    assert!(!is_text_like(header));
+    assert!(as_text(header).is_none());
 }
 
 #[test]
 fn elf_header_not_text() {
     let header: &[u8] = &[0x7F, 0x45, 0x4C, 0x46, 0x00, 0x00];
-    assert!(!is_text_like(header));
+    assert!(as_text(header).is_none());
 }
 
 #[test]
 fn pure_binary_bytes_not_text() {
     let data: Vec<u8> = vec![0x00, 0xFF, 0x00, 0xFE, 0x00];
-    assert!(!is_text_like(&data));
+    assert!(as_text(&data).is_none());
 }
 
 #[test]
 fn invalid_utf8_without_null_not_text() {
     let data: &[u8] = &[0xFF, 0xFE, 0xFD];
-    assert!(!is_text_like(data));
+    assert!(as_text(data).is_none());
 }
 
 #[test]
 fn valid_ascii_is_text() {
-    assert!(is_text_like(b"Hello, World! 123\n\ttabs"));
+    assert!(as_text(b"Hello, World! 123\n\ttabs").is_some());
 }
 
 #[test]
 fn empty_bytes_is_text() {
-    assert!(is_text_like(&[]));
+    assert!(as_text(&[]).is_some());
 }
 
 // ============================================================================
@@ -434,9 +434,9 @@ fn entropy_large_uniform() {
 // ============================================================================
 
 #[test]
-fn is_text_like_valid_utf8_multibyte() {
+fn as_text_valid_utf8_multibyte() {
     let text = "こんにちは世界 🌍 café résumé naïve";
-    assert!(is_text_like(text.as_bytes()));
+    assert!(as_text(text.as_bytes()).is_some());
 }
 
 #[test]
@@ -558,9 +558,9 @@ fn hash_file_deterministic() {
 }
 
 #[test]
-fn is_text_like_deterministic() {
+fn as_text_deterministic() {
     let data = b"hello world";
-    assert_eq!(is_text_like(data), is_text_like(data));
+    assert_eq!(as_text(data), as_text(data));
 }
 
 #[test]

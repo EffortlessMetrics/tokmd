@@ -11,8 +11,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use proptest::prelude::*;
 
@@ -343,7 +343,7 @@ mod hashing {
 }
 
 // ============================================================================
-// 5. Binary file handling / is_text_like
+// 5. Binary file handling / as_text
 // ============================================================================
 
 mod binary_handling {
@@ -351,45 +351,45 @@ mod binary_handling {
 
     #[test]
     fn null_byte_means_not_text() {
-        assert!(!is_text_like(&[0]));
-        assert!(!is_text_like(b"hello\x00world"));
+        assert!(as_text(&[0]).is_none());
+        assert!(as_text(b"hello\x00world").is_none());
     }
 
     #[test]
     fn empty_bytes_are_text_like() {
-        assert!(is_text_like(&[]));
+        assert!(as_text(&[]).is_some());
     }
 
     #[test]
-    fn pure_ascii_is_text_like() {
-        assert!(is_text_like(b"Hello, World! 123"));
+    fn pure_ascii_as_text() {
+        assert!(as_text(b"Hello, World! 123").is_some());
     }
 
     #[test]
-    fn valid_utf8_multibyte_is_text_like() {
-        assert!(is_text_like("こんにちは".as_bytes()));
-        assert!(is_text_like("émojis 🎉🚀".as_bytes()));
+    fn valid_utf8_multibyte_as_text() {
+        assert!(as_text("こんにちは".as_bytes()).is_some());
+        assert!(as_text("émojis 🎉🚀".as_bytes()).is_some());
     }
 
     #[test]
     fn invalid_utf8_without_null_is_not_text_like() {
         // 0xFF alone is invalid UTF-8
-        assert!(!is_text_like(&[0xFF]));
+        assert!(as_text(&[0xFF]).is_none());
         // Incomplete multi-byte sequence
-        assert!(!is_text_like(&[0xC0, 0x20]));
+        assert!(as_text(&[0xC0, 0x20]).is_none());
     }
 
     #[test]
     fn binary_exe_header_is_not_text_like() {
         // Simulated PE header bytes
         let header = [0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00];
-        assert!(!is_text_like(&header));
+        assert!(as_text(&header).is_none());
     }
 
     #[test]
     fn all_printable_ascii_is_text() {
         let buf: Vec<u8> = (0x20..=0x7E).collect();
-        assert!(is_text_like(&buf));
+        assert!(as_text(&buf).is_some());
     }
 }
 
@@ -877,10 +877,10 @@ proptest! {
     }
 
     #[test]
-    fn prop_is_text_like_no_null_implies_utf8_check(bytes in prop::collection::vec(1u8..=255, 0..256)) {
-        let result = is_text_like(&bytes);
+    fn prop_as_text_no_null_implies_utf8_check(bytes in prop::collection::vec(1u8..=255, 0..256)) {
+        let result = as_text(&bytes);
         let valid_utf8 = std::str::from_utf8(&bytes).is_ok();
-        prop_assert_eq!(result, valid_utf8);
+        prop_assert_eq!(result.is_some(), valid_utf8);
     }
 
     #[test]
@@ -891,7 +891,7 @@ proptest! {
         let mut data = prefix;
         data.push(0);
         data.extend(suffix);
-        prop_assert!(!is_text_like(&data));
+        prop_assert!(as_text(&data).is_none());
     }
 
     #[test]

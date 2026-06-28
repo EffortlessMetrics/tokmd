@@ -9,7 +9,7 @@ use libfuzzer_sys::fuzz_target;
 #[path = "../../crates/tokmd-analysis/src/content/io.rs"]
 mod content_io;
 
-use content_io::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
+use content_io::{as_text, count_tags, entropy_bits_per_byte, hash_bytes};
 
 /// Max input size - entropy calculation is O(n) so we can be more generous
 const MAX_INPUT_SIZE: usize = 256 * 1024; // 256KB
@@ -25,7 +25,7 @@ fuzz_target!(|data: &[u8]| {
     assert!(!entropy.is_nan(), "Entropy should not be NaN");
 
     // Test text detection - should never panic
-    let _ = is_text_like(data);
+    let _ = as_text(data).is_some();
 
     // Test hashing - should never panic
     let hash = hash_bytes(data);

@@ -4,11 +4,11 @@ use std::path::Path;
 
 use anyhow::Result;
 
-pub fn is_text_like(bytes: &[u8]) -> bool {
+pub fn as_text(bytes: &[u8]) -> Option<&str> {
     if bytes.contains(&0) {
-        return false;
+        return None;
     }
-    std::str::from_utf8(bytes).is_ok()
+    std::str::from_utf8(bytes).ok()
 }
 
 pub fn hash_bytes(bytes: &[u8]) -> String {
