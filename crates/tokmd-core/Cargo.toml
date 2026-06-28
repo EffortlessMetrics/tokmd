@@ -29,6 +29,11 @@ analysis = [
 cockpit = ["dep:tokmd-cockpit", "dep:tokmd-git"]
 # Feature propagation for fun formats (OBJ/MIDI)
 fun = ["tokmd-format/fun"]
+# Byte-mode archive ingestion: propagates the tokmd-scan ZIP codec adapter so
+# untrusted ZIP bytes can be admitted fail-closed and routed through the
+# existing in-memory workflows. The default surface stays decompression-free.
+# See docs/specs/wasm-ffi-byte-mode.md and docs/specs/repo-snapshot.md.
+archive-zip = ["tokmd-scan/archive-zip"]
 
 [dependencies]
 anyhow.workspace = true
@@ -56,3 +61,7 @@ js-sys = "0.3.91"
 [dev-dependencies]
 proptest.workspace = true
 tempfile.workspace = true
+# Test-only ZIP writer for the byte-mode (archive-zip) parity test. Mirrors the
+# io-port/scan codec pin (deflate-only, default features off) to keep the test
+# trust surface minimal; only used by the `archive-zip`-gated parity test.
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }

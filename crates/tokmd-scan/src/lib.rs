@@ -19,11 +19,11 @@ use std::path::PathBuf;
 use tokei::{Config, Languages};
 
 use crate::ignore_patterns::ignored_patterns;
-#[cfg(feature = "archive-zip")]
-pub use crate::in_memory::scan_snapshot_from_zip;
 pub use crate::in_memory::{
     InMemoryFile, MaterializedScan, normalize_in_memory_paths, scan_in_memory, scan_snapshot,
 };
+#[cfg(feature = "archive-zip")]
+pub use crate::in_memory::{inputs_from_zip_bytes, scan_snapshot_from_zip};
 use crate::roots::{rebase_report_paths, validated_scan_roots};
 // Re-export the archive admission types so `scan_snapshot_from_zip` callers can
 // build limits and match errors without a separate `tokmd-io-port` import.

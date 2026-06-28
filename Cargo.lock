@@ -2649,6 +2649,7 @@ dependencies = [
  "tokmd-scan",
  "tokmd-settings",
  "tokmd-types",
+ "zip",
 ]
 
 [[package]]

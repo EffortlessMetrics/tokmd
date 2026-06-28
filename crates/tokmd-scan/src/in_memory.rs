@@ -130,6 +130,47 @@ pub fn scan_snapshot_from_zip(
     scan_snapshot(&snapshot, args)
 }
 
+/// Decode an in-memory ZIP archive into the ordered [`InMemoryFile`] input
+/// convention consumed by the existing in-memory workflows
+/// (`feature = "archive-zip"`).
+///
+/// This is the byte-mode transport primitive named by
+/// `docs/specs/wasm-ffi-byte-mode.md`: untrusted archive `bytes` are admitted
+/// fail-closed into a [`RepoSnapshot`](tokmd_io_port::RepoSnapshot) by the
+/// single authoritative admission engine
+/// ([`snapshot_from_zip_bytes`](tokmd_io_port::archive::snapshot_from_zip_bytes))
+/// under `limits` (path-safety + zip-bomb resource caps), then the admitted
+/// file set is mapped into the same `{ path, bytes }` input list that the
+/// `*_workflow_from_inputs` JSON modes already consume.
+///
+/// Routing the decoded inputs through those existing workflows gives byte/JSON
+/// parity by construction: there is no second scan path and no second admission
+/// path. The returned inputs follow the snapshot's deterministic normalized
+/// path order.
+///
+/// EXPERIMENTAL / UNSTABLE: part of the repo-snapshot archive sub-seam (see
+/// `docs/specs/repo-snapshot.md` and `docs/specs/wasm-ffi-byte-mode.md`). The
+/// surface may change until a stable consumer promotes it.
+///
+/// # Errors
+///
+/// Returns any [`ArchiveError`](tokmd_io_port::archive::ArchiveError) surfaced
+/// by the ZIP admission policy (malformed/undecodable archive, path-safety
+/// rejection, duplicate entry, or a breached per-entry/total/count/ratio
+/// limit).
+#[cfg(feature = "archive-zip")]
+pub fn inputs_from_zip_bytes(
+    root: impl AsRef<Path>,
+    bytes: &[u8],
+    limits: &ArchiveLimits,
+) -> Result<Vec<InMemoryFile>> {
+    let snapshot = snapshot_from_zip_bytes(root, bytes, limits)?;
+    Ok(snapshot
+        .files()
+        .map(|file| InMemoryFile::new(file.path(), file.bytes().to_vec()))
+        .collect())
+}
+
 pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {
     let root = tempfile::tempdir()?;
     let logical_paths = normalize_in_memory_paths(inputs)?;
@@ -251,5 +292,90 @@ mod tests {
 
         let err = normalize_logical_paths(&inputs, true).unwrap_err();
         assert!(err.to_string().contains("Duplicate in-memory path"));
+    }
+}
+
+#[cfg(all(test, feature = "archive-zip"))]
+mod zip_input_tests {
+    use super::*;
+    use std::io::{Cursor, Write};
+    use tokmd_io_port::archive::ArchiveError;
+    use zip::CompressionMethod;
+    use zip::write::{SimpleFileOptions, ZipWriter};
+
+    fn stored() -> SimpleFileOptions {
+        SimpleFileOptions::default().compression_method(CompressionMethod::Stored)
+    }
+
+    fn build_zip(
+        build: impl FnOnce(&mut ZipWriter<Cursor<Vec<u8>>>) -> zip::result::ZipResult<()>,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
+        build(&mut writer)?;
+        Ok(writer.finish()?.into_inner())
+    }
+
+    #[test]
+    fn inputs_from_zip_bytes_yields_admitted_files_in_normalized_order()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("z/last.rs", stored())?;
+            w.write_all(b"fn last() {}\n")?;
+            w.start_file("a/first.rs", stored())?;
+            w.write_all(b"fn first() {}\n")?;
+            Ok(())
+        })?;
+
+        let inputs = inputs_from_zip_bytes("repo", &bytes, &ArchiveLimits::default())?;
+        let pairs: Vec<(String, Vec<u8>)> = inputs
+            .iter()
+            .map(|input| {
+                (
+                    input.path.to_string_lossy().into_owned(),
+                    input.bytes.clone(),
+                )
+            })
+            .collect();
+
+        assert_eq!(
+            pairs,
+            vec![
+                ("a/first.rs".to_string(), b"fn first() {}\n".to_vec()),
+                ("z/last.rs".to_string(), b"fn last() {}\n".to_vec()),
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn inputs_from_zip_bytes_fails_closed_on_hostile_entry()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("ok.rs", stored())?;
+            w.write_all(b"fn ok() {}\n")?;
+            w.start_file("nested/../../evil.rs", stored())?;
+            w.write_all(b"pwn")?;
+            Ok(())
+        })?;
+
+        let err = inputs_from_zip_bytes("repo", &bytes, &ArchiveLimits::default())
+            .expect_err("hostile traversal entry must fail closed");
+        assert!(
+            err.downcast_ref::<ArchiveError>()
+                .is_some_and(|err| matches!(err, ArchiveError::Traversal { .. })),
+            "expected a fail-closed traversal rejection, got: {err}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn inputs_from_zip_bytes_rejects_malformed_archive() {
+        let err = inputs_from_zip_bytes("repo", b"not a zip", &ArchiveLimits::default())
+            .expect_err("malformed archive must be rejected");
+        assert!(
+            err.downcast_ref::<ArchiveError>()
+                .is_some_and(|err| matches!(err, ArchiveError::MalformedArchive { .. })),
+            "expected a malformed-archive rejection, got: {err}"
+        );
     }
 }
