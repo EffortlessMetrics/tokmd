@@ -2785,6 +2785,7 @@ dependencies = [
  "tokmd-model",
  "tokmd-settings",
  "tokmd-types",
+ "zip",
 ]
 
 [[package]]
