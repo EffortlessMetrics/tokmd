@@ -90,10 +90,13 @@ the boundaries in [browser.md](browser.md#native-only-boundaries) and the
   with `archive-zip`, and an honest experimental/native-only split for git and
   filesystem capabilities.
 - **Does not establish**: in-browser git history, manual browser smoke of the
-  runner ZIP upload path, streaming upload, or tar-family containers.
+  runner ZIP upload path (see [browser-zip-smoke.md](browser-zip-smoke.md) for
+  the maintainer recipe), streaming upload, or tar-family containers.
 
 ## See also
 
+- [browser-zip-smoke.md](browser-zip-smoke.md) — manual browser verification
+  steps for ZIP archive upload with an `archive-zip` WASM build.
 - [browser.md](browser.md) — narrative browser runner overview and boundaries.
 - [browser-to-native.md](browser-to-native.md) — bridge from browser receipts to
   native review packets, handoff bundles, and CI evidence.

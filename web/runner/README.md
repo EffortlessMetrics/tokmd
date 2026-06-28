@@ -40,6 +40,15 @@ npm --prefix web/runner run build:wasm
 npm --prefix web/runner test
 ```
 
+ZIP archive upload requires the `archive-zip` feature at build time:
+
+```bash
+npm --prefix web/runner run build:wasm:archive-zip
+```
+
+Manual browser verification steps live in
+[`docs/browser-zip-smoke.md`](../../docs/browser-zip-smoke.md).
+
 The browser bundle loads `web/runner/vendor/tokmd-wasm` and expects the wasm
 package layout produced by the build script.
 

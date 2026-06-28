@@ -14,8 +14,9 @@
   ZIP upload when the loaded bundle exposes `runJsonBytes`. Proof: `tokmd-wasm`
   native + `wasm-bindgen-test` byte-parity tests and `web/runner` npm tests (65 pass,
   1 skip for an absent local wasm bundle). **Claim boundary**: manual browser smoke
-  against a real archive, streaming upload, and tar-family containers are not yet
-  established (see `docs/browser-capability-matrix.md`).
+  against a real archive is not yet established; maintainer recipe at
+  `docs/browser-zip-smoke.md` (streaming upload and tar-family containers remain
+  out of scope; see `docs/browser-capability-matrix.md`).
 - **PR evidence packet workflow shipped in `v1.14.0`**: `sensors/tokmd/`
   evidence packets are now boring to generate from one local command
   (`tokmd packet generate`) and one GitHub Action step (`mode: packet`), with

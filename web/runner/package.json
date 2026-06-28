@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build:wasm": "wasm-pack build ../../crates/tokmd-wasm --target web --out-dir ../../web/runner/vendor/tokmd-wasm --features analysis",
+    "build:wasm:archive-zip": "wasm-pack build ../../crates/tokmd-wasm --target web --out-dir ../../web/runner/vendor/tokmd-wasm --features analysis,archive-zip",
     "check": "node --check ./main.js && node --check ./worker.js",
     "test": "node --test ./*.test.mjs"
   }
