@@ -58,3 +58,6 @@ cargo clippy -- -D warnings (Success)
 
 ## 🔜 Follow-ups
 None.
+
+## ⚠️ Notes for Reviewer
+Because of the number of modified manifest files (`crates/*/Cargo.toml`), the CI plan estimates 128 LEM, which is above the 125 hard ceiling limit. Please add the `ci-budget-override` label to the PR to allow the full check suite to run.
