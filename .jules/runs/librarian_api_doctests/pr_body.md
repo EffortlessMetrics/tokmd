@@ -1,44 +1,36 @@
 ## 💡 Summary
-This is a learning PR. I investigated adding executable doctests to the config resolver interfaces (`crates/tokmd/src/config/resolve/`) but found they already have comprehensive, passing doctest coverage.
+This is a learning PR. Attempted to add executable coverage for `docs/reference-cli.md` examples, but learned that standard `unwrap()` usage in tests triggers massive cascade renumbering in the no-panic policy. The PR was declined due to baseline cost and topology issues, so we are closing with recorded friction items.
 
 ## 🎯 Why
-The goal was to improve factual docs quality and executable examples for public interfaces to prevent silent drift.
+The attempt to fix the target issue directly in the `tokmd` repo caused a baseline explosion. We need to document this failure mode so future agents can avoid it by using fallible helpers or targeting `tokmd-swarm`.
 
 ## 🔎 Evidence
-- `crates/tokmd/src/config/resolve/export.rs`
-- `crates/tokmd/src/config/resolve/module.rs`
-- `crates/tokmd/src/config/resolve/lang.rs`
-- The `resolve_*` and `resolve_*_with_config` functions all have `/// # Examples` sections containing executable ````rust` doctests.
+- Pull request comment: `Declining this PR after review. ... Baseline cost dominates the change ... The new test-helper unwrap/expect entries are inserted mid-file and cascade-renumber every subsequent panic-NNNN id`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add doctests to config resolvers (`resolve_lang`, `resolve_export`, etc.).
-- This fits the shard by directly targeting the core CLI configuration interfaces.
-- Trade-offs: Structure is improved by ensuring public APIs have executable examples. Velocity is unaffected. Governance is improved by preventing silent drift.
+- Convert to a learning PR and record the friction.
+- **Why**: The maintainer explicitly declined the code patch and requested that the task be dropped or moved to `tokmd-swarm`.
 
 ### Option B
-- Add doctests to `tokmd_core::workflows`.
-- Choose this if the config layer is already fully covered.
-- Trade-offs: Might duplicate existing integration tests, focusing less on public APIs than the configuration layer.
+- Refactor the code patch to use `?` and submit against `tokmd-swarm`.
+- **Why not**: The instructions for this run restrict us to the current clone/shard, and the user closed the pull request as obsolete, signaling a halt.
 
 ## ✅ Decision
-Option A was chosen to investigate the config resolvers. Upon investigation, the config resolvers already have comprehensive doctest coverage. Therefore, this is submitted as a learning PR instead of forcing a fake fix.
+Chosen Option A. Recording the learning PR as requested by the pipeline rules for closed/declined patches.
 
 ## 🧱 Changes made (SRP)
-- None. This is a learning PR.
+- Added a friction item explaining the `unwrap()` / no-panic cascade issue.
 
 ## 🧪 Verification receipts
-```text
-cargo xtask docs --check
-cargo test --doc
-```
+N/A - Learning PR only.
 
 ## 🧭 Telemetry
-- Change shape: learning PR
-- Blast radius: none
-- Risk class: none (learning PR)
-- Rollback: none
-- Gates run: docs-executable (cargo xtask docs --check, cargo test --doc)
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class: Low
+- Rollback: N/A
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_api_doctests/envelope.json`
@@ -46,7 +38,7 @@ cargo test --doc
 - `.jules/runs/librarian_api_doctests/receipts.jsonl`
 - `.jules/runs/librarian_api_doctests/result.json`
 - `.jules/runs/librarian_api_doctests/pr_body.md`
-- `.jules/friction/open/config_resolver_doctests.md`
+- `.jules/friction/open/librarian-doctest-baseline-cost.md`
 
 ## 🔜 Follow-ups
 None.
