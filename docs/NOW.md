@@ -1,7 +1,35 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after wiring browser ZIP archive
-> byte-mode upload end-to-end (core/wasm/runner, swarm #352-#354).
+> One-screen operational truth. Updated after the docs/governance wave that
+> followed the browser ZIP byte-mode upload chain (swarm #352-#354).
+
+## Shipped this wave
+
+- **Browser ZIP smoke recipe (#356)**: maintainer recipe for manual browser
+  smoke against a real archive is documented at `docs/browser-zip-smoke.md`.
+- **AST shadow backend identity vocabulary (#357)**: shadow-only identity
+  vocabulary and mismatch taxonomy spec, no public behavior change.
+- **jules-index rollup fix (#358)**: `cargo xtask jules-index` now includes
+  done friction items in `RUNS_ROLLUP.md`.
+- **ADR-0015 (#359)**: ub-review partial packet consumption decision recorded.
+- **RUNS_ROLLUP regen + this handoff**: regenerated
+  `.jules/index/generated/RUNS_ROLLUP.md` from current packet state so
+  `cargo xtask jules-index --check` is green again (drift was generated-output
+  staleness only, no logic change).
+
+## Human-only remaining
+
+- **Browser smoke recipe execution**: run the manual browser smoke against a
+  real archive per `docs/browser-zip-smoke.md`; only execution remains, the
+  recipe and capability claims are in place.
+- **Publication merge-commit policy decision**: `repo-graph` reports `Diverged`
+  (publication `f9d68cf4` ahead 1, swarm `4275107f` ahead 2, merge-base
+  `2379eb72`) because publication squash-imported swarm #358/#359 as #2754.
+  Trees are byte-identical (`0693c572`), so the only repair is a deliberate
+  publication-side merge-commit import (toggle `allow_merge_commit` or push a
+  local `--no-ff` merge) followed by a swarm fast-forward back to the merge
+  commit, per `docs/specs/repo-topology.md`. This is a publication-repo /
+  policy action and is intentionally out of scope for swarm PRs.
 
 ## NOW (active)
 
