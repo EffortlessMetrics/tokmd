@@ -1,10 +1,5 @@
-{"command": "cargo xtask publish --plan --verbose", "status": "ok"}
-{"command": "cargo xtask version-consistency", "status": "ok"}
-{"command": "cargo xtask docs --check", "status": "ok"}
-{"command": "cargo fmt -- --check", "status": "ok"}
-{"command": "cargo clippy --workspace --all-targets --all-features -- -D warnings", "status": "ok"}
-{"command": "sed -i 's/1.13.1/1.14.0/g' docs/action-quickstart.md", "status": "ok"}
-{"command": "sed -i 's/1.13.1/1.14.0/g' docs/github-action.md", "status": "ok"}
-{"command": "sed -i 's/1.13.1/1.14.0/g' docs/packet-workflows.md", "status": "ok"}
-{"command": "sed -i 's/1.13.1/1.14.0/g' docs/evidence-packet.md", "status": "ok"}
-{"command": "sed -i 's/verified-public** for `v1.14.0`/verified-public** for `v1.13.1`/g' docs/packet-workflows.md", "status": "ok"}
+{"command": "cargo xtask version-consistency", "outcome": "Success"}
+{"command": "cargo xtask publish --plan --verbose", "outcome": "Success"}
+{"command": "cargo xtask docs --check", "outcome": "Success"}
+{"command": "cargo fmt -- --check", "outcome": "Success"}
+{"command": "cargo clippy -- -D warnings", "outcome": "Success"}

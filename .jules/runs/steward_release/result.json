@@ -1,5 +1,5 @@
 {
-  "status": "success",
-  "reason": "Fixed release version drift in documentation examples, updated 1.13.1 to 1.14.0.",
-  "outcome_type": "PR-ready patch"
+  "outcome": "patch",
+  "learning_pr": false,
+  "coherent_story": true
 }
