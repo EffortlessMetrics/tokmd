@@ -24,8 +24,6 @@ serde.workspace = true
 tokmd-core = { workspace = true, features = ["analysis", "cockpit"] }
 tokmd-envelope.workspace = true
 
-[build-dependencies]
-napi-build = "2"
 
 [dev-dependencies]
 tempfile.workspace = true

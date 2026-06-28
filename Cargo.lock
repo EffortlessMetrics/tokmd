@@ -2751,7 +2751,6 @@ name = "tokmd-node"
 version = "1.14.0"
 dependencies = [
  "napi",
- "napi-build",
  "napi-derive",
  "serde",
  "serde_json",
