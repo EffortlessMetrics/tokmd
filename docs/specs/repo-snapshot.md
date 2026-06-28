@@ -147,6 +147,17 @@ the workspace:
    `snapshot_from_entries`. Malformed containers and unsupported compression
    methods surface as `ArchiveError::MalformedArchive`. The first
    implementation is buffered (whole archive supplied as a byte slice).
+3. **Archive → scan consumer (landed)** — `crates/tokmd-scan` exposes
+   `scan_snapshot_from_zip(root, bytes, limits, options)` behind its own
+   `archive-zip` Cargo feature, which propagates `tokmd-io-port/archive-zip`.
+   It composes the codec adapter (`snapshot_from_zip_bytes`) with the existing
+   `scan_snapshot` materialization path: untrusted ZIP bytes are admitted
+   fail-closed into a `RepoSnapshot`, then the admitted file set is routed
+   through the same in-memory scan as every other snapshot. The default
+   `tokmd-scan` surface stays decompression-dependency-free. A parity test
+   (`crates/tokmd-scan/tests/archive_scan_parity.rs`) proves a benign ZIP scan
+   matches the host scan of the equivalent extracted tree, and that a hostile
+   traversal entry fails closed with no partial scan.
 
 This split keeps the engine — the part that must be correct against hostile
 input — fully unit-tested without committing the default `archive` dependency
@@ -285,9 +296,13 @@ integration steps, in rough dependency order, are:
   host-backed run for in-scope files.
 - **ZIP codec adapter (`archive-zip` feature, landed)** —
   `snapshot_from_zip_bytes` wires a buffered ZIP decoder over the admission
-  engine (see the incremental status note above). The remaining archive-upload
-  work is a consumer (`crates/tokmd-scan` or `crates/tokmd-wasm`) that builds a
-  snapshot from uploaded bytes and runs the existing aggregation.
+  engine (see the incremental status note above).
+- **Archive → scan consumer (`tokmd-scan` `archive-zip` feature, landed)** —
+  `scan_snapshot_from_zip` builds a snapshot from uploaded ZIP bytes and runs
+  the existing aggregation (see the incremental status note above). The
+  remaining archive-upload work is a host-free caller
+  (`crates/tokmd-wasm`) that wires this consumer to a browser/worker upload
+  surface.
 
 These are forward-looking seams; none change current behavior. Each should land
 as its own narrow PR behind the experimental marker until a real consumer

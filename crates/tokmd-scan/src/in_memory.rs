@@ -10,6 +10,8 @@ use std::path::{Component, Path, PathBuf};
 use tokei::Languages;
 
 use tokmd_io_port::RepoSnapshot;
+#[cfg(feature = "archive-zip")]
+use tokmd_io_port::archive::{ArchiveLimits, snapshot_from_zip_bytes};
 use tokmd_settings::ScanOptions;
 
 /// A single logical file supplied from memory rather than the host filesystem.
@@ -90,6 +92,42 @@ pub fn scan_snapshot(snapshot: &RepoSnapshot, args: &ScanOptions) -> Result<Mate
         .map(|file| InMemoryFile::new(file.path(), file.bytes().to_vec()))
         .collect();
     scan_in_memory(&inputs, args)
+}
+
+/// Decode an in-memory ZIP archive and scan it as a captured snapshot
+/// (`feature = "archive-zip"`).
+///
+/// This composes the io-port ZIP codec adapter
+/// ([`snapshot_from_zip_bytes`](tokmd_io_port::archive::snapshot_from_zip_bytes))
+/// with [`scan_snapshot`]: the untrusted archive `bytes` are admitted
+/// fail-closed into a [`RepoSnapshot`](tokmd_io_port::RepoSnapshot) under
+/// `limits` (path-safety + zip-bomb resource caps), then the admitted file set
+/// is routed through the same in-memory materialization path as every other
+/// snapshot scan. The resulting per-language inventory matches a host scan of
+/// the equivalent extracted tree for in-scope files.
+///
+/// Walking and ignore semantics are not re-derived from the archive; the
+/// admitted snapshot supplies the in-scope file set and bytes only.
+///
+/// EXPERIMENTAL / UNSTABLE: part of the repo-snapshot archive sub-seam (see
+/// `docs/specs/repo-snapshot.md`). The surface may change until a stable
+/// consumer promotes it.
+///
+/// # Errors
+///
+/// Returns any [`ArchiveError`](tokmd_io_port::archive::ArchiveError) surfaced
+/// by the ZIP admission policy (malformed/undecodable archive, path-safety
+/// rejection, duplicate entry, or a breached per-entry/total/count/ratio
+/// limit), or a scan error from materializing the admitted snapshot.
+#[cfg(feature = "archive-zip")]
+pub fn scan_snapshot_from_zip(
+    root: impl AsRef<Path>,
+    bytes: &[u8],
+    limits: &ArchiveLimits,
+    args: &ScanOptions,
+) -> Result<MaterializedScan> {
+    let snapshot = snapshot_from_zip_bytes(root, bytes, limits)?;
+    scan_snapshot(&snapshot, args)
 }
 
 pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {

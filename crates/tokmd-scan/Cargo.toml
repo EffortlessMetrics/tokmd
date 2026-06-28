@@ -11,6 +11,15 @@ keywords = ["code-analysis", "tokei", "loc", "scanning", "lines-of-code"]
 categories = ["development-tools"]
 documentation = "https://docs.rs/tokmd-scan"
 
+[features]
+# Snapshot-backed scanning of an in-memory ZIP archive. Propagates the io-port
+# `archive-zip` codec adapter (which pulls the audited deflate-only `zip` crate)
+# so `scan_snapshot_from_zip` can admit untrusted archive bytes fail-closed and
+# route the admitted file set through the existing snapshot scan path. The
+# default scan surface stays decompression-dependency-free.
+# See docs/specs/repo-snapshot.md.
+archive-zip = ["tokmd-io-port/archive-zip"]
+
 [dependencies]
 anyhow.workspace = true
 ignore = "0.4.25"
@@ -23,3 +32,7 @@ tokmd-types.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 tokmd-model = { path = "../tokmd-model", version = ">=1.9, <2" }
+# Test-only ZIP writer for the archive→scan parity oracle. Mirrors the io-port
+# codec pin (deflate-only, default features off) to keep the trust surface
+# minimal; only used by the `archive-zip`-gated parity test.
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
