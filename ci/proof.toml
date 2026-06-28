@@ -294,6 +294,18 @@ mutation = true
 coverage = true
 
 [[scope]]
+name = "tokmd_io_port_contract"
+kind = "rust"
+paths = ["crates/tokmd-io-port/**"]
+packages = ["tokmd-io-port"]
+proof = [
+  "cargo test -p tokmd-io-port --verbose",
+  "cargo test -p tokmd-io-port --features archive --verbose",
+]
+mutation = true
+coverage = true
+
+[[scope]]
 name = "tokmd_settings_contract"
 kind = "rust"
 paths = ["crates/tokmd-settings/**"]

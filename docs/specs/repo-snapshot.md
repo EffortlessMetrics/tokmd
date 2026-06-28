@@ -111,6 +111,38 @@ Inflation must honor the per-entry cap **during** decompression (bounded
 reads), not only after, so a malicious declared size cannot force unbounded
 allocation.
 
+#### Incremental implementation status
+
+The archive sub-seam is landing in two deliberately separated steps so the
+security-critical core is provable before any decompression dependency enters
+the workspace:
+
+1. **Admission engine (landed)** — the fail-closed path-safety and resource-limit
+   core lives in `crates/tokmd-io-port/src/archive.rs` behind the
+   `archive` Cargo feature, which carries **zero decompression dependencies**.
+   It exposes `ArchiveLimits` (with conservative defaults),
+   `RawArchiveEntry`/`EntryKind` (provider-agnostic descriptors of already
+   decoded entries), a typed `ArchiveError`, and
+   `snapshot_from_entries(root, entries, limits) -> Result<RepoSnapshot, ArchiveError>`.
+   The engine validates and normalizes each untrusted name, rejects
+   absolute/drive/UNC paths, `..` traversal, NUL/empty names, non-regular
+   entries, and case-insensitive/post-normalization duplicates, then enforces
+   the per-entry, total, entry-count, and compression-ratio limits and fails
+   the whole build on the first violation. It reuses the existing `MemFs` +
+   `RepoSnapshot` builder so admitted entries get host/in-memory parity for
+   free.
+2. **Codec adapter (deferred)** — a concrete container decoder (for example a
+   `snapshot_from_zip_bytes` that enumerates a ZIP central directory and
+   bounded-inflates each entry into a `RawArchiveEntry`) is a follow-up. It must
+   select and pin an audited archive crate through a dedicated
+   dependency-maintenance PR (license + security note, `cargo deny` proof) per
+   the Compatibility section. The spec intentionally still treats the concrete
+   crate and container matrix as an open question.
+
+This split keeps the engine — the part that must be correct against hostile
+input — fully unit-tested without committing the default dependency graph to a
+codec.
+
 ## Inputs
 
 - A `FileProvider` (`ReadFs`) instance: `HostFs` for real runs, `MemFs` for
@@ -220,6 +252,35 @@ cargo xtask doc-artifacts --check
 cargo xtask docs --check
 ```
 
+## Next integration points
+
+The seam is intentionally inert until a consumer reads from it. The next
+integration steps, in rough dependency order, are:
+
+- **`crates/tokmd-scan` (snapshot-backed scanning)** — today `tokmd-scan`
+  wraps tokei over the host filesystem (`HostFs`) and owns directory
+  walking/ignore semantics. The first consumer seam is a snapshot-or-provider
+  entry point that aggregates an already-captured `RepoSnapshot` (or any
+  `ReadFs` provider) instead of re-touching `std::fs`, while leaving the
+  default host-backed path and its receipts unchanged. Walking/ignore stays in
+  `tokmd-scan`; the snapshot only supplies the in-scope file set and bytes.
+- **`crates/tokmd-model` (parity oracle)** — the existing host/in-memory parity
+  contract (`crates/tokmd-io-port/tests/repo_snapshot.rs` and
+  `memfs_bdd.rs`) is the oracle a snapshot-backed scan must match: the same
+  normalized file set and aggregated receipt as the equivalent host run.
+- **`crates/tokmd-wasm` (host-free caller)** — the motivating consumer. A WASM
+  or worker caller that cannot use `std::fs` builds a `RepoSnapshot` from a
+  `MemFs` (or, once the codec adapter lands, directly from archive bytes) and
+  runs the same aggregation, producing receipts indistinguishable from a
+  host-backed run for in-scope files.
+- **Codec adapter (`archive` feature)** — wiring a `snapshot_from_zip_bytes`
+  over the landed admission engine (see the incremental status note above) is
+  the remaining piece needed for the archive-upload story end to end.
+
+These are forward-looking seams; none change current behavior. Each should land
+as its own narrow PR behind the experimental marker until a real consumer
+promotes the surface.
+
 ## Open Questions
 
 - Should `RepoSnapshot` own file bytes eagerly, or hold a `FileProvider` handle
@@ -236,6 +297,10 @@ cargo xtask docs --check
 - What are the right default values for the ingestion limits (per-entry cap,
   total cap, entry-count cap, compression-ratio guard), and should they scale
   with an explicit caller "expected repo size" hint instead of fixed constants?
+  The landed admission engine ships conservative tunable constants (64 MiB per
+  entry, 1 GiB total, 65,536 entries, 100x ratio) via `ArchiveLimits::default`;
+  these remain provisional and may be revised once a real codec/consumer
+  exercises them.
 - Should archive ingestion stream entries (lower peak memory, harder to bound)
   or require a fully buffered archive (simpler limit enforcement) for the first
   implementation?
