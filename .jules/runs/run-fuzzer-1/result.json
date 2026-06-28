@@ -1,0 +1,5 @@
+{
+  "title": "fuzzer: add property-based fuzz tests for TomlConfig roundtripping 🌪️",
+  "summary": "Since `cargo fuzz` fails due to ASAN linking issues in the sandbox, I implemented deterministic property-based tests for `TomlConfig` roundtripping (`JSON` and `TOML`) to guarantee parser invariants under arbitrary inputs.",
+  "proof_summary": "Added `properties_toml_config.rs` testing JSON and TOML roundtrips with proptest; tests pass."
+}

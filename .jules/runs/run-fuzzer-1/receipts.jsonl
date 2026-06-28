@@ -1,0 +1,3 @@
+{"cmd": "cargo +nightly fuzz run fuzz_toml_config --features config", "status": "error", "summary": "ASAN/nightly block prevents running cargo fuzz directly."}
+{"cmd": "cargo test -p tokmd-settings --test properties_toml_config", "status": "success", "summary": "Added and ran property-based deterministic tests for TomlConfig serialization/deserialization to improve fuzzability."}
+{"cmd": "cargo clippy -- -D warnings", "status": "success", "summary": "Fixed clippy warnings and ran without errors."}
