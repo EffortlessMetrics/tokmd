@@ -3,7 +3,7 @@
 - Status: active
 - Schema family, if any: `tokmd.evidence-packet/v1` (`docs/evidence-packet.schema.json`);
   optional syntax receipts use `tokmd.syntax_receipts.v1`
-- Related ADRs: `docs/adr/0014-schema-identity-idioms.md`
+- Related ADRs: `docs/adr/0014-schema-identity-idioms.md`, `docs/adr/0015-ub-review-partial-packet-consumption.md`
 - Related proof scopes: `tokmd_cli`, `tokmd_context_handoff`, `project_truth_docs`,
   `doc_artifacts_policy`
 
@@ -336,5 +336,9 @@ or end-to-end UB detection.
   `--output-dir` or remain `analyze.*` for ub-review compatibility.
 - Whether a separate machine-readable verifier receipt should be emitted beside
   `manifest.json` for CI upload.
-- Whether downstream `ub-review` should treat missing optional syntax as
-  workflow failure independent of packet `partial` status.
+- ~~Whether downstream `ub-review` should treat missing optional syntax as
+  workflow failure independent of packet `partial` status.~~ **Resolved by
+  ADR-0015:** ub-review consumes `partial` packets (exit `0`); optional syntax
+  skipped or advisory-missing does not fail the default advisory workflow. Strict
+  failure requires explicit `fail-on: partial` or a repo policy that promotes
+  syntax to required.

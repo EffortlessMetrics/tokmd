@@ -223,3 +223,5 @@ See [Review packet contract](review-packet.md#github-action-behavior) and
 - [Packet workflows](packet-workflows.md) — Action and CI adoption paths
 - [ub-review ↔ tokmd packet integration](ub-review-integration.md) — consumer-side
   status taxonomy, cache/receipt, and manifest trust order for the ub-review lane
+- [ADR-0015: ub-review partial packet consumption](adr/0015-ub-review-partial-packet-consumption.md) —
+  durable decision: consume `partial`, fail workflow only when explicitly required

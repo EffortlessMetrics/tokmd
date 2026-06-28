@@ -27,6 +27,7 @@ For the broader documentation routing model, see
 | [0012](0012-repo-control-plane-tool-substrate.md) | accepted | Repo control-plane tool substrate |
 | [0013](0013-proof-stack-productization-boundary.md) | accepted | Proof-stack productization boundary (ripr deferred contract) |
 | [0014](0014-schema-identity-idioms.md) | accepted | Schema identity idioms (integer family versions vs namespaced string ids) |
+| [0015](0015-ub-review-partial-packet-consumption.md) | accepted | ub-review partial packet consumption |
 
 ## House Style
 
