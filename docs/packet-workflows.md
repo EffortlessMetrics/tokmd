@@ -268,6 +268,8 @@ with:
   runtime: container
   image: ghcr.io/effortlessmetrics/tokmd
   version: 1.14.0
+```
+
 The image should include:
 
 - `tokmd`;

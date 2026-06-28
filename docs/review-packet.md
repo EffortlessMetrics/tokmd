@@ -415,6 +415,49 @@ evidence present/missing lines where applicable, matching proof evidence, proof
 references, evidence references, and reproduction commands for artifact browsing
 and local review.
 
+### Merge-blocking vs context-only review-map items
+
+The review map orders items into risk tiers, and each `review-map.md`
+"Review First" item names the tier through its review-first signal. Use the tier
+to decide whether an item must be cleared before you treat the packet as
+complete, or is only a reading-efficiency hint. This is a reading lens over the
+existing gate and proof classification, not a new gate: the packet is still not
+a merge verdict, and "merge-blocking" here means a maintainer must resolve or
+explicitly acknowledge the item before sign-off, not that `tokmd` decides the
+merge.
+
+Treat these tiers as must-resolve before sign-off:
+
+- source-of-truth artifact changed (a governing contract, spec, ADR, plan,
+  routing topology, policy doc, or `.tokmd-spec/**`);
+- required evidence missing, stale, or degraded for the item;
+- high review complexity (4/5 or 5/5);
+- contract or policy path changed (schemas, `policy/**`,
+  `.github/workflows/**`, the CLI command surface, or public API).
+
+Treat these tiers as context-only ordering (read for efficiency, not as a gate):
+
+- highest or medium cockpit priority from the source review plan;
+- items with available evidence and attached references;
+- items whose only gap is skipped advisory evidence;
+- lower-priority source review items.
+
+To find blocking signal first, read the packet in this order: the `comment.md`
+required-evidence line, then `evidence.json#/gates` for any `fail` status or
+`missing`/`stale`/`degraded` availability on a required gate, then the
+`review-map.md` "Review First" items whose signal names a must-resolve tier
+above. Read the remaining `review-map.md` ordering and any advisory or skipped
+lines as context-only.
+
+These tiers reuse, and must not duplicate, the shared taxonomies: the
+evidence-state glossary and per-family reading order in
+[Packet consumption guide](packet-consumption.md#evidence-state-glossary), and
+the manifest trust order and advisory-versus-required split for the ub-review
+lane in
+[ub-review ↔ tokmd packet integration](ub-review-integration.md#claim-boundary-what-to-trust-first-in-manifestjson).
+Required-versus-advisory classification still comes from the gate and proof
+metadata described in [Evidence Semantics](#evidence-semantics).
+
 ## Exit Codes
 
 Packet emission success means the requested artifacts were written and are
