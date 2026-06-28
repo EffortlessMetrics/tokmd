@@ -9,6 +9,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use tokei::Languages;
 
+use tokmd_io_port::RepoSnapshot;
 use tokmd_settings::ScanOptions;
 
 /// A single logical file supplied from memory rather than the host filesystem.
@@ -67,6 +68,28 @@ impl MaterializedScan {
 /// native and browser callers see the same contract.
 pub fn normalize_in_memory_paths(inputs: &[InMemoryFile]) -> Result<Vec<PathBuf>> {
     normalize_logical_paths(inputs, true)
+}
+
+/// Scan an already-captured [`RepoSnapshot`] instead of the host filesystem.
+///
+/// This is the first `tokmd-scan` consumer of the repo-snapshot portability
+/// seam (see `docs/specs/repo-snapshot.md`). The snapshot's
+/// provider-agnostic [`VirtualFile`](tokmd_io_port::VirtualFile) entries — which
+/// may have been captured from `HostFs`, `MemFs`, or a future archive provider —
+/// are routed through the same [`scan_in_memory`] materialization path. That
+/// reuse gives the snapshot scan host parity for free: the in-scope file set and
+/// aggregated language totals match the equivalent host-backed run.
+///
+/// EXPERIMENTAL / UNSTABLE: the snapshot seam is intentionally narrow and may
+/// change until a stable consumer promotes it. Walking and ignore semantics are
+/// not re-derived from the snapshot; the snapshot supplies the in-scope file set
+/// and bytes only.
+pub fn scan_snapshot(snapshot: &RepoSnapshot, args: &ScanOptions) -> Result<MaterializedScan> {
+    let inputs: Vec<InMemoryFile> = snapshot
+        .files()
+        .map(|file| InMemoryFile::new(file.path(), file.bytes().to_vec()))
+        .collect();
+    scan_in_memory(&inputs, args)
 }
 
 pub fn scan_in_memory(inputs: &[InMemoryFile], args: &ScanOptions) -> Result<MaterializedScan> {

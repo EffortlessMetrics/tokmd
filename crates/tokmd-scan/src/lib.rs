@@ -20,7 +20,7 @@ use tokei::{Config, Languages};
 
 use crate::ignore_patterns::ignored_patterns;
 pub use crate::in_memory::{
-    InMemoryFile, MaterializedScan, normalize_in_memory_paths, scan_in_memory,
+    InMemoryFile, MaterializedScan, normalize_in_memory_paths, scan_in_memory, scan_snapshot,
 };
 use crate::roots::{rebase_report_paths, validated_scan_roots};
 use tokmd_settings::ScanOptions;
