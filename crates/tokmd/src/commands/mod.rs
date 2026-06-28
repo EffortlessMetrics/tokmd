@@ -19,8 +19,8 @@ pub(crate) mod lang;
 pub(crate) mod module;
 #[cfg(feature = "analysis")]
 pub(crate) mod packet;
-#[cfg(feature = "analysis")]
 pub(crate) mod render;
+#[cfg(feature = "analysis")]
 pub(crate) mod run;
 pub(crate) mod sensor;
 #[cfg(feature = "ast")]
