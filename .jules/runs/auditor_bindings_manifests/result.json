@@ -1,0 +1,6 @@
+{
+  "status": "success",
+  "patch_type": "pr-ready",
+  "summary": "Removed unused `napi-build` build dependency from `tokmd-node`",
+  "details": "cargo machete flagged `napi-build` as unused. It was only used in `build.rs` to call `napi_build::setup()`. Testing confirmed that removing both `build.rs` and the `napi-build` build dependency does not break the Rust compilation, the Node addon compilation via `@napi-rs/cli`, or the integration tests."
+}

@@ -1,0 +1,4 @@
+{"command": "cargo machete --with-metadata", "outcome": "Found napi-build as unused dependency in tokmd-node"}
+{"command": "cat crates/tokmd-node/build.rs", "outcome": "Verified it only calls napi_build::setup()"}
+{"command": "rm crates/tokmd-node/build.rs && sed -i '/napi-build = \"2\"/d' crates/tokmd-node/Cargo.toml && sed -i '/\\[build-dependencies\\]/d' crates/tokmd-node/Cargo.toml", "outcome": "Removed build.rs and napi-build dependency"}
+{"command": "cargo build -p tokmd-node && cd crates/tokmd-node && npm ci && npm run build:debug && npm run test", "outcome": "Successfully built and ran node tests without napi-build"}

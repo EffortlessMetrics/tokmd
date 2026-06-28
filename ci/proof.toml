@@ -328,6 +328,7 @@ name = "tokmd_node_binding"
 kind = "rust"
 paths = [
   "crates/tokmd-node/src/**",
+  "crates/tokmd-node/build.rs",
   "crates/tokmd-node/index.d.ts",
   "crates/tokmd-node/npm/index.d.ts",
 ]
