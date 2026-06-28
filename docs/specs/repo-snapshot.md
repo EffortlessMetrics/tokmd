@@ -113,7 +113,7 @@ allocation.
 
 #### Incremental implementation status
 
-The archive sub-seam is landing in two deliberately separated steps so the
+The archive sub-seam landed in two deliberately separated steps so the
 security-critical core is provable before any decompression dependency enters
 the workspace:
 
@@ -131,17 +131,27 @@ the workspace:
    the whole build on the first violation. It reuses the existing `MemFs` +
    `RepoSnapshot` builder so admitted entries get host/in-memory parity for
    free.
-2. **Codec adapter (deferred)** — a concrete container decoder (for example a
-   `snapshot_from_zip_bytes` that enumerates a ZIP central directory and
-   bounded-inflates each entry into a `RawArchiveEntry`) is a follow-up. It must
-   select and pin an audited archive crate through a dedicated
-   dependency-maintenance PR (license + security note, `cargo deny` proof) per
-   the Compatibility section. The spec intentionally still treats the concrete
-   crate and container matrix as an open question.
+2. **ZIP codec adapter (landed)** — a concrete ZIP decoder,
+   `snapshot_from_zip_bytes(root, bytes, limits) -> Result<RepoSnapshot, ArchiveError>`,
+   lives in the same module behind a separate `archive-zip` Cargo feature
+   (`archive-zip = ["archive", "dep:zip"]`). The plain `archive` feature stays
+   decompression-dependency-free; `archive-zip` is the trust-surface feature
+   that pulls the audited [`zip`](https://crates.io/crates/zip) crate
+   (deflate-only, `default-features = false`, so no aes-crypto/bzip2/lzma/xz/
+   zstd/ppmd back-ends). The codec enumerates the ZIP central directory,
+   classifies each entry (symlink/device/other via unix type bits → rejected;
+   directory flag → no file; otherwise a regular file), **bounded-inflates**
+   each regular file through a reader capped at `max_entry_size + 1` byte so a
+   hostile declared size cannot force unbounded allocation, runs a running-total
+   guard during decode, and delegates the authoritative admission policy to
+   `snapshot_from_entries`. Malformed containers and unsupported compression
+   methods surface as `ArchiveError::MalformedArchive`. The first
+   implementation is buffered (whole archive supplied as a byte slice).
 
 This split keeps the engine — the part that must be correct against hostile
-input — fully unit-tested without committing the default dependency graph to a
-codec.
+input — fully unit-tested without committing the default `archive` dependency
+graph to a codec, while the optional `archive-zip` feature carries the audited
+decompression surface.
 
 ## Inputs
 
@@ -273,9 +283,11 @@ integration steps, in rough dependency order, are:
   `MemFs` (or, once the codec adapter lands, directly from archive bytes) and
   runs the same aggregation, producing receipts indistinguishable from a
   host-backed run for in-scope files.
-- **Codec adapter (`archive` feature)** — wiring a `snapshot_from_zip_bytes`
-  over the landed admission engine (see the incremental status note above) is
-  the remaining piece needed for the archive-upload story end to end.
+- **ZIP codec adapter (`archive-zip` feature, landed)** —
+  `snapshot_from_zip_bytes` wires a buffered ZIP decoder over the admission
+  engine (see the incremental status note above). The remaining archive-upload
+  work is a consumer (`crates/tokmd-scan` or `crates/tokmd-wasm`) that builds a
+  snapshot from uploaded bytes and runs the existing aggregation.
 
 These are forward-looking seams; none change current behavior. Each should land
 as its own narrow PR behind the experimental marker until a real consumer
@@ -291,9 +303,10 @@ promotes the surface.
   appears? The default promotion ladder favors an internal module first.
 - Does the seam need to carry per-file metadata (size is enough today) such as
   modified time or a content hash, or should that stay in the analysis layer?
-- Which archive crate (and container matrix: ZIP only first, or ZIP plus
-  tar/gzip) best balances audited security, maintenance, and a small dependency
-  surface for the optional feature?
+- Which container matrix beyond ZIP (tar/gzip) is worth supporting? The first
+  codec selected the audited [`zip`](https://crates.io/crates/zip) crate
+  (deflate-only, default features off) behind `archive-zip`; tar-family
+  containers remain an open option behind the same admission engine.
 - What are the right default values for the ingestion limits (per-entry cap,
   total cap, entry-count cap, compression-ratio guard), and should they scale
   with an explicit caller "expected repo size" hint instead of fixed constants?

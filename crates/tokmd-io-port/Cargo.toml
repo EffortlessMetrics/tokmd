@@ -14,12 +14,22 @@ documentation = "https://docs.rs/tokmd-io-port"
 [features]
 # Archive ingestion admission engine (path-safety + zip-bomb resource limits).
 # Carries ZERO decompression dependencies: this gate exposes the fail-closed
-# entry-admission core only. A concrete codec adapter (e.g. `snapshot_from_zip_bytes`)
-# is a deferred follow-up that selects and pins an audited archive crate via a
-# dedicated dependency-maintenance PR. See docs/specs/repo-snapshot.md.
+# entry-admission core only. See docs/specs/repo-snapshot.md.
 archive = []
+# ZIP codec adapter: layers a concrete decoder (`snapshot_from_zip_bytes`) over
+# the dependency-free admission engine. This is the trust-surface feature that
+# pulls the audited `zip` crate (deflate-only, default features off). The plain
+# `archive` feature stays decompression-dependency-free so the admission engine
+# remains provable without a codec.
+archive-zip = ["archive", "dep:zip"]
 
 [dependencies]
+# Optional ZIP decoder for the `archive-zip` codec adapter only. Deflate-only,
+# default features disabled to keep the trust surface minimal (no aes-crypto,
+# bzip2, lzma, xz, zstd, ppmd). Pure-Rust deflate backend (flate2/zlib-rs).
+zip = { version = "8.6.0", optional = true, default-features = false, features = [
+    "deflate",
+] }
 
 [dev-dependencies]
 proptest.workspace = true

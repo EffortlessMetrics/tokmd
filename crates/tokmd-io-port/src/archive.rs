@@ -189,6 +189,14 @@ pub enum ArchiveError {
         /// The normalized path that failed to capture.
         name: String,
     },
+    /// The container could not be decoded (malformed archive, unsupported
+    /// compression method, or a decompression error). Only produced by a codec
+    /// adapter such as [`snapshot_from_zip_bytes`]; the dependency-free
+    /// admission engine never returns this.
+    MalformedArchive {
+        /// A human-readable description of the decode failure.
+        reason: String,
+    },
 }
 
 impl std::fmt::Display for ArchiveError {
@@ -232,6 +240,9 @@ impl std::fmt::Display for ArchiveError {
             ),
             ArchiveError::Capture { name } => {
                 write!(f, "failed to capture admitted entry: '{name}'")
+            }
+            ArchiveError::MalformedArchive { reason } => {
+                write!(f, "malformed or undecodable archive: {reason}")
             }
         }
     }
@@ -406,6 +417,138 @@ pub fn snapshot_from_entries(
             SnapshotError::Read { path, .. } => ArchiveError::Capture { name: path },
         })?;
     Ok(builder.build())
+}
+
+/// Decode an in-memory ZIP archive into a [`RepoSnapshot`], enforcing all
+/// path-safety and resource limits fail-closed (`feature = "archive-zip"`).
+///
+/// This is the codec adapter described in `docs/specs/repo-snapshot.md`: it
+/// enumerates the ZIP central directory, classifies each entry, **bounded-
+/// inflates** regular files so a hostile declared size cannot force unbounded
+/// allocation, and delegates the authoritative admission policy to
+/// [`snapshot_from_entries`]. The archive is treated as hostile input.
+///
+/// Decoding is buffered (the whole archive is provided as a byte slice) per the
+/// spec's first-implementation choice. Compression support is deflate-only
+/// (plus stored); other methods surface as
+/// [`ArchiveError::MalformedArchive`].
+///
+/// Memory safety against zip bombs is enforced at two layers: each regular
+/// entry is inflated through a reader capped at
+/// [`ArchiveLimits::max_entry_size`] + 1 byte (so an oversized entry is
+/// detected without materializing its full declared payload), and a running
+/// total guard stops decoding before the staged byte buffer can exceed
+/// [`ArchiveLimits::max_total_size`]. [`snapshot_from_entries`] then re-checks
+/// every limit as the single authoritative validator.
+///
+/// # Errors
+///
+/// Returns [`ArchiveError::MalformedArchive`] if the bytes are not a decodable
+/// ZIP (or an entry uses an unsupported compression method), or any other
+/// [`ArchiveError`] surfaced by the admission policy (invalid/traversal/
+/// absolute name, non-regular entry, duplicate, or a breached size/count/ratio
+/// limit).
+#[cfg(feature = "archive-zip")]
+pub fn snapshot_from_zip_bytes(
+    root: impl AsRef<Path>,
+    bytes: &[u8],
+    limits: &ArchiveLimits,
+) -> Result<RepoSnapshot, ArchiveError> {
+    use std::io::{Cursor, Read};
+
+    let reader = Cursor::new(bytes);
+    let mut archive =
+        zip::ZipArchive::new(reader).map_err(|err| ArchiveError::MalformedArchive {
+            reason: err.to_string(),
+        })?;
+
+    let mut entries: Vec<RawArchiveEntry> = Vec::new();
+    // Running total guard: bound the staged byte buffer during decode so a
+    // multi-entry bomb cannot accumulate past the total cap before the
+    // admission engine runs. The engine remains authoritative.
+    let mut running_total: u64 = 0;
+    // Per-entry read ceiling: one byte over the cap is enough to detect an
+    // oversized entry without materializing the full declared payload.
+    let read_ceiling = limits.max_entry_size.saturating_add(1);
+
+    for index in 0..archive.len() {
+        let mut file = archive
+            .by_index(index)
+            .map_err(|err| ArchiveError::MalformedArchive {
+                reason: err.to_string(),
+            })?;
+
+        // Raw, untrusted stored name; the admission engine validates it.
+        let name = file.name().to_string();
+
+        // Classify: symlink/device/other (via unix type bits) before directory,
+        // so a symlink whose name lacks a trailing slash is still rejected.
+        let kind = classify_zip_entry(file.unix_mode(), file.is_dir());
+
+        match kind {
+            EntryKind::File => {
+                let compressed_size = file.compressed_size();
+                let mut buf = Vec::new();
+                file.by_ref()
+                    .take(read_ceiling)
+                    .read_to_end(&mut buf)
+                    .map_err(|err| ArchiveError::MalformedArchive {
+                        reason: err.to_string(),
+                    })?;
+
+                let uncompressed = u64::try_from(buf.len()).unwrap_or(u64::MAX);
+                // Early total guard to bound peak memory; the admission engine
+                // re-checks this authoritatively.
+                running_total = running_total.saturating_add(uncompressed);
+                if running_total > limits.max_total_size {
+                    return Err(ArchiveError::TotalTooLarge {
+                        size: running_total,
+                        limit: limits.max_total_size,
+                    });
+                }
+
+                entries.push(RawArchiveEntry::file(name, compressed_size, buf));
+            }
+            EntryKind::Directory => entries.push(RawArchiveEntry::directory(name)),
+            EntryKind::Other => entries.push(RawArchiveEntry {
+                name,
+                kind: EntryKind::Other,
+                compressed_size: 0,
+                bytes: Vec::new(),
+            }),
+        }
+    }
+
+    snapshot_from_entries(root, entries, limits)
+}
+
+/// Classify a ZIP entry into an [`EntryKind`] from its optional unix mode and
+/// the codec's directory flag.
+///
+/// Symlinks and other non-regular unix types (FIFO, block/char device, socket)
+/// are classified as [`EntryKind::Other`] so the admission engine rejects them.
+/// Entries with no unix mode (e.g. archives written on Windows) fall back to
+/// the directory flag, then to a regular file.
+#[cfg(feature = "archive-zip")]
+fn classify_zip_entry(unix_mode: Option<u32>, is_dir: bool) -> EntryKind {
+    const S_IFMT: u32 = 0o170000;
+    const S_IFREG: u32 = 0o100000;
+    const S_IFDIR: u32 = 0o040000;
+
+    if let Some(mode) = unix_mode {
+        match mode & S_IFMT {
+            S_IFREG => return EntryKind::File,
+            S_IFDIR => return EntryKind::Directory,
+            0 => {} // No type bits recorded; fall back to the directory flag.
+            _ => return EntryKind::Other, // symlink, device, fifo, socket, ...
+        }
+    }
+
+    if is_dir {
+        EntryKind::Directory
+    } else {
+        EntryKind::File
+    }
 }
 
 #[cfg(test)]
@@ -611,5 +754,205 @@ mod tests {
         let snap = snapshot_from_entries(".\\nested\\root", entries, &limits())?;
         assert_eq!(snap.root(), "nested/root");
         Ok(())
+    }
+}
+
+#[cfg(all(test, feature = "archive-zip"))]
+mod zip_tests {
+    use super::*;
+    use crate::VirtualFile;
+    use std::io::{Cursor, Write};
+    use zip::CompressionMethod;
+    use zip::write::{SimpleFileOptions, ZipWriter};
+
+    type ZipResult = zip::result::ZipResult<Vec<u8>>;
+
+    fn stored() -> SimpleFileOptions {
+        SimpleFileOptions::default().compression_method(CompressionMethod::Stored)
+    }
+
+    fn deflated() -> SimpleFileOptions {
+        SimpleFileOptions::default().compression_method(CompressionMethod::Deflated)
+    }
+
+    /// Build an in-memory ZIP via the provided closure.
+    fn build_zip(
+        build: impl FnOnce(&mut ZipWriter<Cursor<Vec<u8>>>) -> zip::result::ZipResult<()>,
+    ) -> ZipResult {
+        let mut writer = ZipWriter::new(Cursor::new(Vec::new()));
+        build(&mut writer)?;
+        let cursor = writer.finish()?;
+        Ok(cursor.into_inner())
+    }
+
+    #[test]
+    fn round_trips_stored_and_deflated() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("src/main.rs", stored())?;
+            w.write_all(b"fn main() {}")?;
+            w.start_file("a/deflated.txt", deflated())?;
+            w.write_all(b"hello deflated world")?;
+            Ok(())
+        })?;
+
+        let snap = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default())?;
+        let paths: Vec<&str> = snap.paths().collect();
+        assert_eq!(paths, vec!["a/deflated.txt", "src/main.rs"]);
+        assert_eq!(
+            snap.get("src/main.rs").map(VirtualFile::bytes),
+            Some(&b"fn main() {}"[..])
+        );
+        assert_eq!(
+            snap.get("a/deflated.txt").map(VirtualFile::bytes),
+            Some(&b"hello deflated world"[..])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn directory_entries_contribute_no_file() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.add_directory("src/", stored())?;
+            w.start_file("src/lib.rs", stored())?;
+            w.write_all(b"pub fn x() {}")?;
+            Ok(())
+        })?;
+
+        let snap = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default())?;
+        let paths: Vec<&str> = snap.paths().collect();
+        assert_eq!(paths, vec!["src/lib.rs"]);
+        Ok(())
+    }
+
+    #[test]
+    fn empty_stored_file_is_admitted() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("empty.txt", stored())?;
+            Ok(())
+        })?;
+
+        let snap = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default())?;
+        assert_eq!(snap.len(), 1);
+        assert!(
+            snap.get("empty.txt")
+                .map(VirtualFile::is_empty)
+                .unwrap_or(false)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_symlink_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.add_symlink("link", "src/main.rs", stored())?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default()).unwrap_err();
+        assert!(matches!(err, ArchiveError::NonRegularEntry { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_traversal_name() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("../evil.rs", stored())?;
+            w.write_all(b"pwn")?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default()).unwrap_err();
+        assert!(matches!(err, ArchiveError::Traversal { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn enforces_per_entry_size_cap_via_bounded_read() -> Result<(), Box<dyn std::error::Error>> {
+        let small = ArchiveLimits {
+            max_entry_size: 8,
+            ..ArchiveLimits::default()
+        };
+        let bytes = build_zip(|w| {
+            w.start_file("big.bin", stored())?;
+            w.write_all(&[0u8; 64])?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &small).unwrap_err();
+        assert!(matches!(err, ArchiveError::EntryTooLarge { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn enforces_compression_ratio_guard() -> Result<(), Box<dyn std::error::Error>> {
+        let strict = ArchiveLimits {
+            max_ratio: 10,
+            ..ArchiveLimits::default()
+        };
+        // 100 KiB of zeros deflates to a tiny payload -> ratio far above 10x.
+        let bytes = build_zip(|w| {
+            w.start_file("bomb.bin", deflated())?;
+            w.write_all(&[0u8; 100_000])?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &strict).unwrap_err();
+        assert!(matches!(err, ArchiveError::RatioExceeded { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn enforces_total_size_cap_during_decode() -> Result<(), Box<dyn std::error::Error>> {
+        let small = ArchiveLimits {
+            max_entry_size: 1024,
+            max_total_size: 10,
+            max_ratio: u64::MAX,
+            ..ArchiveLimits::default()
+        };
+        let bytes = build_zip(|w| {
+            w.start_file("a.bin", stored())?;
+            w.write_all(&[0u8; 6])?;
+            w.start_file("b.bin", stored())?;
+            w.write_all(&[0u8; 6])?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &small).unwrap_err();
+        assert!(matches!(err, ArchiveError::TotalTooLarge { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_malformed_archive() {
+        let garbage = b"this is definitely not a zip archive";
+        let err = snapshot_from_zip_bytes("repo", garbage, &ArchiveLimits::default()).unwrap_err();
+        assert!(matches!(err, ArchiveError::MalformedArchive { .. }));
+    }
+
+    #[test]
+    fn fails_closed_on_first_hostile_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let bytes = build_zip(|w| {
+            w.start_file("ok.rs", stored())?;
+            w.write_all(b"good")?;
+            w.start_file("nested/../../evil.rs", stored())?;
+            w.write_all(b"evil")?;
+            Ok(())
+        })?;
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default()).unwrap_err();
+        assert!(matches!(err, ArchiveError::Traversal { .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn classify_falls_back_without_unix_mode() {
+        assert_eq!(classify_zip_entry(None, false), EntryKind::File);
+        assert_eq!(classify_zip_entry(None, true), EntryKind::Directory);
+        assert_eq!(classify_zip_entry(Some(0o100644), false), EntryKind::File);
+        assert_eq!(
+            classify_zip_entry(Some(0o040755), false),
+            EntryKind::Directory
+        );
+        assert_eq!(classify_zip_entry(Some(0o120777), false), EntryKind::Other);
     }
 }
