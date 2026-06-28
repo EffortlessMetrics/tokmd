@@ -1,0 +1,2 @@
+{"command": "cargo xtask docs --check", "status": "Documentation is up to date."}
+{"command": "cargo run --bin tokmd module --help", "status": "Matched CLI reference docs."}

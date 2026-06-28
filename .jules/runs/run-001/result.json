@@ -1,0 +1,8 @@
+{
+  "outcome": "learning PR",
+  "reason": "No factual docs or example drift was found. cargo xtask docs --check passes.",
+  "receipts": [
+    "cargo xtask docs --check",
+    "cargo run --bin tokmd module --help"
+  ]
+}
