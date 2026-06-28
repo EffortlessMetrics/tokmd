@@ -40,7 +40,7 @@
 #[must_use]
 pub fn module_key(path: &str, module_roots: &[String], module_depth: usize) -> String {
     let mut p = path.replace('\\', "/");
-    if let Some(stripped) = p.strip_prefix("./") {
+    while let Some(stripped) = p.strip_prefix("./") {
         p = stripped.to_string();
     }
     p = p.trim_start_matches('/').to_string();
@@ -185,5 +185,15 @@ mod tests {
     fn module_key_dot_only_dir_becomes_root() {
         let roots = vec!["crates".into()];
         assert_eq!(module_key_from_normalized("./lib.rs", &roots, 2), "(root)");
+    }
+
+    #[test]
+    fn module_key_multiple_dot_slash_stripped() {
+        let roots = vec!["crates".into()];
+        assert_eq!(
+            module_key("././crates/tokmd/foo.rs", &roots, 2),
+            "crates/tokmd"
+        );
+        assert_eq!(module_key("./././src/lib.rs", &roots, 2), "src");
     }
 }

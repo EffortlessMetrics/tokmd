@@ -1,0 +1,2 @@
+{"timestamp": "2024-05-24T12:00:00Z", "phase": "investigate", "cwd": "/", "cmd": "cargo test -p tokmd-model -- module_key", "status": "success", "summary": "Identified gap in module_key handling of multiple leading `./`"}
+{"timestamp": "2024-05-24T12:00:00Z", "phase": "investigate", "cwd": "/", "cmd": "cargo test -p tokmd-model -- module_key", "status": "success", "summary": "Identified and patched `module_key` leading `./` defect, tests passed."}
