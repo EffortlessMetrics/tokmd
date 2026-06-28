@@ -64,7 +64,8 @@ Until those are addressed in a dedicated PR (core FFI byte mode + `tokmd-wasm`
 binding + `wasm-bindgen-test` parity coverage), ZIP upload in the browser is
 **not available** and should not be advertised. This doc is the standing record
 of that boundary; do not mark the archive rows "supported" until the binding and
-its tests land.
+its tests land. The byte-mode transport contract that closes this gap is
+specified in [specs/wasm-ffi-byte-mode.md](specs/wasm-ffi-byte-mode.md).
 
 ## Native-only
 
@@ -95,5 +96,7 @@ the boundaries in [browser.md](browser.md#native-only-boundaries) and the
   native review packets, handoff bundles, and CI evidence.
 - [specs/repo-snapshot.md](specs/repo-snapshot.md) — the in-memory snapshot and
   archive ingestion contract, including next integration points.
+- [specs/wasm-ffi-byte-mode.md](specs/wasm-ffi-byte-mode.md) — the FFI byte-mode
+  transport contract for browser archive upload (the remaining ZIP-upload seam).
 - [`docs/capabilities/wasm.json`](capabilities/wasm.json) — machine-readable
   per-command browser capability contract.
