@@ -1,10 +1,21 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after shipping the PR evidence packet
-> workflow lane in `v1.14.0`.
+> One-screen operational truth. Updated after wiring browser ZIP archive
+> byte-mode upload end-to-end (core/wasm/runner, swarm #352-#354).
 
 ## NOW (active)
 
+- **Browser ZIP archive byte-mode upload is wired end-to-end**: the
+  `archive-zip` byte-mode chain now reaches the browser. `tokmd_core::ffi::run_json_bytes`
+  (core, swarm #352) feeds the `tokmd-wasm` `runJsonBytes(mode, optionsJson,
+  archiveBytes: Uint8Array)` binding (swarm #353), and the `web/runner` UI accepts a
+  user-selected ZIP, reads it into a `Uint8Array`, and forwards byte-mode options to
+  the worker (swarm #354). Capability reporting stays honest: the runner only offers
+  ZIP upload when the loaded bundle exposes `runJsonBytes`. Proof: `tokmd-wasm`
+  native + `wasm-bindgen-test` byte-parity tests and `web/runner` npm tests (65 pass,
+  1 skip for an absent local wasm bundle). **Claim boundary**: manual browser smoke
+  against a real archive, streaming upload, and tar-family containers are not yet
+  established (see `docs/browser-capability-matrix.md`).
 - **PR evidence packet workflow shipped in `v1.14.0`**: `sensors/tokmd/`
   evidence packets are now boring to generate from one local command
   (`tokmd packet generate`) and one GitHub Action step (`mode: packet`), with
@@ -34,6 +45,6 @@
 
 ## LATER (roadmap)
 
-- **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led.
+- **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led. With ZIP byte-mode upload now wired (see NOW), the next browser follow-ons are manual browser smoke against a real archive, streaming/large-archive upload, and tar-family containers; treat each as a fresh evidence-led slice rather than an implicit promise.
 - **MCP/server mode**: expose stable read-only receipt resources before adding long-lived execution surfaces.
 - **AST shadow evidence**: continue only behind shadow/developer-facing evidence until comparison data justifies public behavior or schema changes.
