@@ -28,6 +28,9 @@ schemas, and verification policy for `tokmd`.
   publishing evidence.
 - [browser.md](browser.md) — no-install browser workflow and native-only
   boundaries.
+- [browser-capability-matrix.md](browser-capability-matrix.md) —
+  capability-honest map of shipped, experimental, and native-only browser/WASM
+  surfaces, including ZIP-upload blockers.
 - [browser-to-native.md](browser-to-native.md) — move from a browser trial to
   native review packets, handoff bundles, and CI evidence.
 - [analyze/bun-ub.md](analyze/bun-ub.md) — scoped `bun-ub` analysis artifacts

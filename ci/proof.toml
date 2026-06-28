@@ -1238,6 +1238,7 @@ paths = [
   "docs/artifacts.md",
   "docs/action-quickstart.md",
   "docs/browser.md",
+  "docs/browser-capability-matrix.md",
   "docs/browser-to-native.md",
   "docs/evidence-packet.md",
   "docs/examples/**",
