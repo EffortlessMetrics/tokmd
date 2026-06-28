@@ -66,6 +66,7 @@ require deleting or rewriting user-facing docs in the same change.
 | Single-tight ub-review CI gate shape (#226) | `docs/specs/ub-review-ci-gate.md`, `fixtures/ci-gate-contract/reference-ci.yml`, `cargo xtask ci-gate-contract` | specified (phase 2: live `ci.yml` collapsed to route + `Tokmd Rust Result`) | phase 3 (#299): fold `em-routed-rust-small.yml` into `ci.yml` route job |
 | Cross-tool packet preset renderer (`tokmd render`) | `docs/specs/tokmd-packets-render.md`, `crates/tokmd/schemas/tokmd-packets.schema.json`, `fixtures/tokmd-packets/minimal/`, `fixtures/tokmd-packets/sibling-derived/` | specified (phase 2: jsonschema CLI validation + sibling ingestion for manual-candidates/cards) | unsafe-review producer schema-ownership migration (#301) |
 | Proof-stack productization (ripr deferred `tokmd check --profile proof-stack` family) | `docs/specs/proof-stack-productization.md`, `docs/adr/0013-proof-stack-productization-boundary.md`, ripr-swarm `RIPR-PROP-0015` / `RIPR-SPEC-0060` | deferred | reopen only when next-action gate in spec is met (#223) |
+| Repo snapshot portability seam (RepoSnapshot / VirtualFile / FileProvider over `ReadFs`) | `docs/specs/repo-snapshot.md`, `crates/tokmd-io-port/src/lib.rs` | specified (draft; FileProvider role exists as `ReadFs`/`HostFs`/`MemFs`, snapshot types proposed only) | implement `RepoSnapshot`/`VirtualFile` behind an internal boundary with host/in-memory parity proof |
 
 ## Classification Vocabulary
 
