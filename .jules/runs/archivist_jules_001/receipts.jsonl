@@ -1,0 +1,6 @@
+{"cmd": "cargo xtask jules-index", "status": "success", "summary": "Regenerated index", "artifacts": [".jules/index/generated/RUNS_ROLLUP.md", ".jules/index/generated/FRICTION_ROLLUP.md"]}
+{"cmd": "cargo xtask docs --check", "status": "success", "summary": "Docs verified"}
+{"cmd": "cargo xtask version-consistency", "status": "success", "summary": "Versions consistent"}
+{"cmd": "cargo xtask publish --plan --verbose", "status": "success", "summary": "Publish plan verified"}
+{"cmd": "cargo fmt -- --check", "status": "success", "summary": "Formatting verified"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success", "summary": "Clippy verified"}
