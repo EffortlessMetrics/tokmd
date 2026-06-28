@@ -1,0 +1,20 @@
+{
+  "outcome": "patch",
+  "title": "mutant: handle multiple leading dot-slash prefixes in module_key 🧬",
+  "summary": "Fixed a logic gap in `module_key` where only a single `./` prefix was stripped. Using `while let` robustly handles paths with multiple leading `./` components (e.g. `././src`). Added test coverage.",
+  "target_paths": [
+    "crates/tokmd-model/src/module_key/mod.rs"
+  ],
+  "proof_summary": "Added explicit test `module_key_multiple_dot_slash_stripped` to cover behavior. Verified all 512 tests pass in `tokmd-model` via `CI=true cargo test`.",
+  "gates_run": [
+    "cargo test -p tokmd-model",
+    "cargo build -p tokmd-model",
+    "cargo fmt",
+    "cargo clippy",
+    "cargo xtask check-file-policy --strict"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout main -- crates/tokmd-model/src/module_key/mod.rs",
+  "follow_ups": []
+}
