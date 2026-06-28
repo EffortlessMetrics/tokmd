@@ -8,8 +8,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use std::fs::File;
 use std::io::Write;
@@ -75,20 +75,20 @@ fn hash_file_on_empty_file_returns_blake3_of_empty() {
 // =============================================================================
 
 #[test]
-fn is_text_like_detects_binary_with_null_bytes() {
+fn as_text_detects_binary_with_null_bytes() {
     let binary = vec![0x00, 0x01, 0x02, 0xFF, 0xFE];
-    assert!(!is_text_like(&binary));
+    assert!(as_text(&binary).is_none());
 }
 
 #[test]
-fn is_text_like_accepts_valid_utf8() {
-    assert!(is_text_like(b"Hello, world!"));
-    assert!(is_text_like("café résumé".as_bytes()));
+fn as_text_accepts_valid_utf8() {
+    assert!(as_text(b"Hello, world!").is_some());
+    assert!(as_text("café résumé".as_bytes()).is_some());
 }
 
 #[test]
-fn is_text_like_empty_input_is_text() {
-    assert!(is_text_like(&[]));
+fn as_text_empty_input_is_text() {
+    assert!(as_text(&[]).is_some());
 }
 
 #[test]

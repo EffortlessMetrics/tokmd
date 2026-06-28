@@ -11,8 +11,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines,
 };
 
 // =========================================================================
@@ -115,15 +115,15 @@ fn hash_bytes_different_input_different_hash() {
 }
 
 // =========================================================================
-// 4. is_text_like
+// 4. as_text
 // =========================================================================
 
 #[test]
-fn is_text_like_detects_text_and_binary() {
-    assert!(is_text_like(b"Hello, world!"));
-    assert!(is_text_like("café résumé".as_bytes()));
-    assert!(is_text_like(b""));
-    assert!(!is_text_like(b"has\x00null"));
+fn as_text_detects_text_and_binary() {
+    assert!(as_text(b"Hello, world!").is_some());
+    assert!(as_text("café résumé".as_bytes()).is_some());
+    assert!(as_text(b"").is_some());
+    assert!(as_text(b"has\x00null").is_none());
 }
 
 // =========================================================================

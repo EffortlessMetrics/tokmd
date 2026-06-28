@@ -1,14 +1,14 @@
 //! Depth tests for tokmd-analysis content helpers - W58.
 //!
-//! Exercises read_text_capped, entropy, is_text_like, hash determinism,
+//! Exercises read_text_capped, entropy, as_text, hash determinism,
 //! count_tags, and edge cases with binary/empty files.
 
 use std::fs::File;
 use std::io::Write;
 
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 
 // ---------------------------------------------------------------------------
@@ -109,33 +109,33 @@ fn entropy_monotonically_increases_with_diversity() {
 }
 
 // ===========================================================================
-// 3. is_text_like detection
+// 3. as_text detection
 // ===========================================================================
 
 #[test]
-fn is_text_like_on_ascii() {
-    assert!(is_text_like(b"Hello, World!"));
+fn as_text_on_ascii() {
+    assert!(as_text(b"Hello, World!").is_some());
 }
 
 #[test]
-fn is_text_like_on_utf8() {
-    assert!(is_text_like("café résumé 日本語".as_bytes()));
+fn as_text_on_utf8() {
+    assert!(as_text("café résumé 日本語".as_bytes()).is_some());
 }
 
 #[test]
-fn is_text_like_on_empty() {
-    assert!(is_text_like(b""));
+fn as_text_on_empty() {
+    assert!(as_text(b"").is_some());
 }
 
 #[test]
-fn is_text_like_rejects_null_bytes() {
-    assert!(!is_text_like(&[0x48, 0x65, 0x00, 0x6C]));
+fn as_text_rejects_null_bytes() {
+    assert!(as_text(&[0x48, 0x65, 0x00, 0x6C]).is_none());
 }
 
 #[test]
-fn is_text_like_rejects_binary_blob() {
+fn as_text_rejects_binary_blob() {
     let blob: Vec<u8> = (0u8..=255).collect();
-    assert!(!is_text_like(&blob));
+    assert!(as_text(&blob).is_none());
 }
 
 // ===========================================================================

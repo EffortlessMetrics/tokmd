@@ -9,8 +9,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use std::fs::File;
 use std::io::Write;
@@ -302,47 +302,47 @@ fn entropy_empty_file_content() {
 // ============================================================================
 
 #[test]
-fn is_text_like_ascii() {
-    assert!(is_text_like(b"hello world"));
+fn as_text_ascii() {
+    assert!(as_text(b"hello world").is_some());
 }
 
 #[test]
-fn is_text_like_utf8() {
-    assert!(is_text_like("héllo wörld".as_bytes()));
+fn as_text_utf8() {
+    assert!(as_text("héllo wörld".as_bytes()).is_some());
 }
 
 #[test]
-fn is_text_like_null_byte_makes_binary() {
-    assert!(!is_text_like(b"hello\x00world"));
+fn as_text_null_byte_makes_binary() {
+    assert!(as_text(b"hello\x00world").is_none());
 }
 
 #[test]
-fn is_text_like_empty_is_text() {
-    assert!(is_text_like(b""));
+fn as_text_empty_is_text() {
+    assert!(as_text(b"").is_some());
 }
 
 #[test]
-fn is_text_like_just_null() {
-    assert!(!is_text_like(b"\x00"));
+fn as_text_just_null() {
+    assert!(as_text(b"\x00").is_none());
 }
 
 #[test]
-fn is_text_like_binary_header() {
+fn as_text_binary_header() {
     // ELF header
-    assert!(!is_text_like(b"\x7fELF\x00\x01\x01"));
+    assert!(as_text(b"\x7fELF\x00\x01\x01").is_none());
 }
 
 #[test]
-fn is_text_like_invalid_utf8_without_null() {
+fn as_text_invalid_utf8_without_null() {
     // Invalid UTF-8 sequence but no null bytes
     let bytes = vec![0xFF, 0xFE, 0x41, 0x42];
     // This should be false because it's not valid UTF-8
-    assert!(!is_text_like(&bytes));
+    assert!(as_text(&bytes).is_none());
 }
 
 #[test]
-fn is_text_like_newlines_and_tabs() {
-    assert!(is_text_like(b"line1\nline2\ttab"));
+fn as_text_newlines_and_tabs() {
+    assert!(as_text(b"line1\nline2\ttab").is_some());
 }
 
 // ============================================================================
@@ -664,10 +664,10 @@ mod properties {
         }
 
         #[test]
-        fn is_text_like_consistent(data in proptest::collection::vec(any::<u8>(), 0..100)) {
-            let r1 = is_text_like(&data);
-            let r2 = is_text_like(&data);
-            prop_assert_eq!(r1, r2, "is_text_like must be deterministic");
+        fn as_text_consistent(data in proptest::collection::vec(any::<u8>(), 0..100)) {
+            let r1 = as_text(&data);
+            let r2 = as_text(&data);
+            prop_assert_eq!(r1, r2, "as_text must be deterministic");
         }
 
         #[test]

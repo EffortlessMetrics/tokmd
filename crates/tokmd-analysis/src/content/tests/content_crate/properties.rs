@@ -4,7 +4,7 @@ use crate::content::complexity::{
     analyze_functions, analyze_nesting_depth, estimate_cognitive_complexity,
     estimate_cyclomatic_complexity,
 };
-use crate::content::io::{count_tags, entropy_bits_per_byte, hash_bytes, is_text_like};
+use crate::content::io::{as_text, count_tags, entropy_bits_per_byte, hash_bytes};
 use proptest::prelude::*;
 
 proptest! {
@@ -85,34 +85,34 @@ proptest! {
     // ========================
 
     #[test]
-    fn is_text_like_no_nulls(bytes in prop::collection::vec(1u8..=255, 0..256)) {
+    fn as_text_no_nulls(bytes in prop::collection::vec(1u8..=255, 0..256)) {
         // Bytes without nulls might be text-like depending on UTF-8 validity
-        let result = is_text_like(&bytes);
+        let result = as_text(&bytes);
         // Just ensure it doesn't panic and returns a reasonable value
         let has_valid_utf8 = std::str::from_utf8(&bytes).is_ok();
-        prop_assert_eq!(result, has_valid_utf8);
+        prop_assert_eq!(result.is_some(), has_valid_utf8);
     }
 
     #[test]
-    fn is_text_like_with_null_is_false(prefix in prop::collection::vec(any::<u8>(), 0..64),
+    fn as_text_with_null_is_false(prefix in prop::collection::vec(any::<u8>(), 0..64),
                                         suffix in prop::collection::vec(any::<u8>(), 0..64)) {
         let mut bytes = prefix;
         bytes.push(0);
         bytes.extend(suffix);
-        prop_assert!(!is_text_like(&bytes), "Bytes with null should not be text-like");
+        prop_assert!(as_text(&bytes).is_none(), "Bytes with null should not be text-like");
     }
 
     #[test]
-    fn is_text_like_valid_utf8_strings(s in "\\PC*") {
+    fn as_text_valid_utf8_strings(s in "\\PC*") {
         // Valid UTF-8 strings without nulls should be text-like
         if !s.contains('\0') {
-            prop_assert!(is_text_like(s.as_bytes()), "Valid UTF-8 without null should be text-like");
+            prop_assert!(as_text(s.as_bytes()).is_some(), "Valid UTF-8 without null should be text-like");
         }
     }
 
     #[test]
-    fn is_text_like_empty_is_true(_dummy in 0..1u8) {
-        prop_assert!(is_text_like(&[]), "Empty bytes should be text-like");
+    fn as_text_empty_is_true(_dummy in 0..1u8) {
+        prop_assert!(as_text(&[]).is_some(), "Empty bytes should be text-like");
     }
 
     // ========================
@@ -221,15 +221,15 @@ proptest! {
     // ========================
 
     #[test]
-    fn ascii_printable_is_text_like(bytes in prop::collection::vec(0x20u8..=0x7Eu8, 1..256)) {
-        prop_assert!(is_text_like(&bytes), "Printable ASCII should be text-like");
+    fn ascii_printable_as_text(bytes in prop::collection::vec(0x20u8..=0x7Eu8, 1..256)) {
+        prop_assert!(as_text(&bytes).is_some(), "Printable ASCII should be text-like");
     }
 
     #[test]
-    fn is_text_like_idempotent(bytes in prop::collection::vec(any::<u8>(), 0..256)) {
-        let r1 = is_text_like(&bytes);
-        let r2 = is_text_like(&bytes);
-        prop_assert_eq!(r1, r2, "is_text_like should be deterministic");
+    fn as_text_idempotent(bytes in prop::collection::vec(any::<u8>(), 0..256)) {
+        let r1 = as_text(&bytes);
+        let r2 = as_text(&bytes);
+        prop_assert_eq!(r1, r2, "as_text should be deterministic");
     }
 
     // ========================

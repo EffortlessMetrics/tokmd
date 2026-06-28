@@ -53,7 +53,6 @@ pub fn as_text(bytes: &[u8]) -> Option<&str> {
     bytes::as_text(bytes)
 }
 
-
 #[cfg_attr(
     not(any(test, fuzzing)),
     expect(

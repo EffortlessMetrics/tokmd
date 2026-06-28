@@ -8,8 +8,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 use std::fs::File;
 use std::io::Write;
@@ -241,29 +241,29 @@ mod text_detection {
     use super::*;
 
     #[test]
-    fn scenario_empty_input_is_text_like() {
+    fn scenario_empty_input_as_text() {
         // Given an empty byte slice
         // When we check if it's text-like
         // Then it returns true
-        assert!(is_text_like(&[]));
+        assert!(as_text(&[]).is_some());
     }
 
     #[test]
-    fn scenario_valid_ascii_is_text_like() {
+    fn scenario_valid_ascii_as_text() {
         // Given plain ASCII text
         let bytes = b"Hello, World! 123";
         // When we check if it's text-like
         // Then it returns true
-        assert!(is_text_like(bytes));
+        assert!(as_text(bytes).is_some());
     }
 
     #[test]
-    fn scenario_valid_utf8_is_text_like() {
+    fn scenario_valid_utf8_as_text() {
         // Given valid UTF-8 with multi-byte characters
         let bytes = "こんにちは世界 🌍".as_bytes();
         // When we check if it's text-like
         // Then it returns true
-        assert!(is_text_like(bytes));
+        assert!(as_text(bytes).is_some());
     }
 
     #[test]
@@ -272,7 +272,7 @@ mod text_detection {
         let bytes = b"hello\x00world";
         // When we check if it's text-like
         // Then it returns false
-        assert!(!is_text_like(bytes));
+        assert!(as_text(bytes).is_none());
     }
 
     #[test]
@@ -281,7 +281,7 @@ mod text_detection {
         let bytes: Vec<u8> = vec![0x00, 0xFF, 0x00, 0xFE, 0x00];
         // When we check if it's text-like
         // Then it returns false
-        assert!(!is_text_like(&bytes));
+        assert!(as_text(&bytes).is_none());
     }
 
     #[test]
@@ -290,7 +290,7 @@ mod text_detection {
         let bytes: &[u8] = &[0xFF, 0xFE, 0xFD];
         // When we check if it's text-like
         // Then it returns false (invalid UTF-8)
-        assert!(!is_text_like(bytes));
+        assert!(as_text(bytes).is_none());
     }
 
     #[test]
@@ -299,7 +299,7 @@ mod text_detection {
         let bytes = b"line1\nline2\ttabbed\r\nwindows";
         // When we check if it's text-like
         // Then it returns true
-        assert!(is_text_like(bytes));
+        assert!(as_text(bytes).is_some());
     }
 }
 
@@ -898,7 +898,7 @@ mod text_detection_edge_cases {
         let bytes: Vec<u8> = vec![0x80, 0x81, 0x82, 0xFE, 0xFF];
         // When we check if it's text-like
         // Then it returns false (invalid UTF-8)
-        assert!(!is_text_like(&bytes));
+        assert!(as_text(&bytes).is_none());
     }
 
     #[test]
@@ -907,6 +907,6 @@ mod text_detection_edge_cases {
         let bytes: &[u8] = &[0xC0, 0xC1, 0xF5, 0xF6];
         // When we check if it's text-like
         // Then it returns false
-        assert!(!is_text_like(bytes));
+        assert!(as_text(bytes).is_none());
     }
 }

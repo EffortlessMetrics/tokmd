@@ -10,8 +10,8 @@ use crate::content::complexity::{
     estimate_cyclomatic_complexity,
 };
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 
 // ===========================================================================
@@ -235,32 +235,32 @@ fn hash_file_respects_max_bytes() {
 }
 
 // ===========================================================================
-// 5. is_text_like
+// 5. as_text
 // ===========================================================================
 
 #[test]
 fn text_like_ascii() {
-    assert!(is_text_like(b"Hello, World!"));
+    assert!(as_text(b"Hello, World!").is_some());
 }
 
 #[test]
 fn text_like_utf8() {
-    assert!(is_text_like("こんにちは".as_bytes()));
+    assert!(as_text("こんにちは".as_bytes()).is_some());
 }
 
 #[test]
 fn text_like_empty() {
-    assert!(is_text_like(b""));
+    assert!(as_text(b"").is_some());
 }
 
 #[test]
 fn text_like_binary_null_byte() {
-    assert!(!is_text_like(&[0x48, 0x65, 0x00, 0x6C, 0x6F]));
+    assert!(as_text(&[0x48, 0x65, 0x00, 0x6C, 0x6F]).is_none());
 }
 
 #[test]
 fn text_like_pure_binary() {
-    assert!(!is_text_like(&[0x00, 0xFF, 0x00, 0xFF]));
+    assert!(as_text(&[0x00, 0xFF, 0x00, 0xFF]).is_none());
 }
 
 // ===========================================================================
@@ -720,7 +720,7 @@ fn edge_cyclomatic_empty_string() {
 
 #[test]
 fn edge_binary_not_text() {
-    assert!(!is_text_like(&[0x00, 0x01, 0x02, 0xFF]));
+    assert!(as_text(&[0x00, 0x01, 0x02, 0xFF]).is_none());
 }
 
 #[test]

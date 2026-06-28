@@ -8,8 +8,8 @@ use std::fs::File;
 use std::io::Write;
 
 use crate::content::io::{
-    count_tags, entropy_bits_per_byte, hash_bytes, hash_file, is_text_like, read_head,
-    read_head_tail, read_lines, read_text_capped,
+    as_text, count_tags, entropy_bits_per_byte, hash_bytes, hash_file, read_head, read_head_tail,
+    read_lines, read_text_capped,
 };
 
 // ============================================================================
@@ -400,28 +400,34 @@ fn edge_entropy_empty_file_content() {
 // ============================================================================
 
 #[test]
-fn edge_is_text_like_binary_with_nulls() {
+fn edge_as_text_binary_with_nulls() {
     let data = vec![0u8; 100];
-    assert!(!is_text_like(&data), "Null bytes indicate binary content");
+    assert!(
+        as_text(&data).is_none(),
+        "Null bytes indicate binary content"
+    );
 }
 
 #[test]
-fn edge_is_text_like_mixed_binary() {
+fn edge_as_text_mixed_binary() {
     let mut data = b"hello".to_vec();
     data.push(0);
     data.extend_from_slice(b"world");
-    assert!(!is_text_like(&data), "Embedded null means not text-like");
+    assert!(
+        as_text(&data).is_none(),
+        "Embedded null means not text-like"
+    );
 }
 
 #[test]
-fn edge_is_text_like_valid_utf8() {
-    assert!(is_text_like(b"Hello, World!"));
-    assert!(is_text_like("café résumé".as_bytes()));
+fn edge_as_text_valid_utf8() {
+    assert!(as_text(b"Hello, World!").is_some());
+    assert!(as_text("café résumé".as_bytes()).is_some());
 }
 
 #[test]
-fn edge_is_text_like_empty() {
-    assert!(is_text_like(b""), "Empty bytes should be text-like");
+fn edge_as_text_empty() {
+    assert!(as_text(b"").is_some(), "Empty bytes should be text-like");
 }
 
 #[test]
