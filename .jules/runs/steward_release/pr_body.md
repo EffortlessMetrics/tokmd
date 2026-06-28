@@ -1,5 +1,5 @@
 ## 💡 Summary
-Standardized internal dependency definitions to use `workspace = true` in workspace crates (`tokmd-analysis-types`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`, `tokmd-wasm`), and aligned `tokmd-cockpit`'s explicit dependency version. This improves release metadata consistency and centralizes governance through `workspace.dependencies`.
+Standardized internal dependency definitions to use `workspace = true` in workspace crates (`tokmd-analysis-types`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`), and aligned `tokmd-cockpit`'s explicit dependency version. This improves release metadata consistency and centralizes governance through `workspace.dependencies`.
 
 ## 🎯 Why
 Several internal crates were redefining dependencies on other workspace crates via explicit `path = "../..."` and `version = "..."` pairs instead of inheriting from the root `Cargo.toml`. This creates metadata drift risk and complicates the publishing and version-bumping sequences, as changes must be synchronized in multiple places instead of just one.
@@ -23,7 +23,7 @@ Several internal crates were redefining dependencies on other workspace crates v
 - **Trade-offs**: Manual maintenance burden, higher risk of drift.
 
 ## ✅ Decision
-Selected **Option A**. Consolidating dependency definitions to use the root `[workspace.dependencies]` improves maintainability and aligns the workspace metadata safely.
+Selected **Option A**. Consolidating dependency definitions to use the root `[workspace.dependencies]` improves maintainability and aligns the workspace metadata safely. Excluded `crates/tokmd-wasm` to keep LEM budget under the hard limit of 125.
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-analysis-types/Cargo.toml`
@@ -31,7 +31,6 @@ Selected **Option A**. Consolidating dependency definitions to use the root `[wo
 - `crates/tokmd-envelope/Cargo.toml`
 - `crates/tokmd-scan/Cargo.toml`
 - `crates/tokmd-types/Cargo.toml`
-- `crates/tokmd-wasm/Cargo.toml`
 
 ## 🧪 Verification receipts
 ```text
@@ -60,4 +59,4 @@ cargo clippy -- -D warnings (Success)
 None.
 
 ## ⚠️ Notes for Reviewer
-Because of the number of modified manifest files (`crates/*/Cargo.toml`), the CI plan estimates 128 LEM, which is above the 125 hard ceiling limit. Please add the `ci-budget-override` label to the PR to allow the full check suite to run.
+Because of the number of modified manifest files (`crates/*/Cargo.toml`), the CI plan estimates 103 LEM, which is above the 75 limit but under the 125 hard ceiling limit. Please add the `ci-budget-ack` label to the PR to allow the full check suite to run.

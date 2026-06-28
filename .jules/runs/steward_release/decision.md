@@ -1,7 +1,7 @@
 # Decision
 
 ## Problem
-In several internal crates (`tokmd-analysis-types`, `tokmd-cockpit`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`, `tokmd-wasm`), internal workspace dependencies were referenced via explicit `path` and `version` combinations instead of using the `workspace = true` configuration. This introduces metadata inconsistency, bypasses the centralized dependency management in the root `Cargo.toml`, and increases the risk of release publishing failures or version mismatches during the release process (e.g. `cargo xtask version-consistency`, `cargo xtask publish --plan`).
+In several internal crates (`tokmd-analysis-types`, `tokmd-cockpit`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`), internal workspace dependencies were referenced via explicit `path` and `version` combinations instead of using the `workspace = true` configuration. This introduces metadata inconsistency, bypasses the centralized dependency management in the root `Cargo.toml`, and increases the risk of release publishing failures or version mismatches during the release process (e.g. `cargo xtask version-consistency`, `cargo xtask publish --plan`).
 
 ## Options considered
 ### Option A: Standardize internal dependency references using `workspace = true`
@@ -18,4 +18,4 @@ In several internal crates (`tokmd-analysis-types`, `tokmd-cockpit`, `tokmd-enve
 - **Trade-offs:** Increases the maintenance burden during version bumps.
 
 ## Decision
-**Option A** is the selected option. Centralizing dependency versioning through `workspace = true` prevents drift and aligns the manifests with standard cargo workspace governance.
+**Option A** is the selected option. Centralizing dependency versioning through `workspace = true` prevents drift and aligns the manifests with standard cargo workspace governance. Excluded `crates/tokmd-wasm` to keep LEM budget under the hard limit of 125.
