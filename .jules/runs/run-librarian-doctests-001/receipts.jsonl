@@ -1,0 +1,3 @@
+{"command": "cargo test -p tokmd-settings --doc", "outcome": "Success, 2 passed"}
+{"command": "cargo test -p tokmd-core --doc", "outcome": "Success, 10 passed"}
+{"command": "cargo test -p tokmd --doc", "outcome": "Success, 13 passed"}

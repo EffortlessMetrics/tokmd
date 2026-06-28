@@ -337,11 +337,40 @@ pub struct ViewProfile {
 
 impl TomlConfig {
     /// Load configuration from a TOML string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use tokmd_settings::TomlConfig;
+    ///
+    /// let toml_str = r#"
+    /// [scan]
+    /// paths = ["src", "tests"]
+    /// hidden = true
+    ///
+    /// [export]
+    /// format = "jsonl"
+    /// "#;
+    ///
+    /// let config = TomlConfig::parse(toml_str).unwrap();
+    /// assert_eq!(config.scan.paths.unwrap(), vec!["src", "tests"]);
+    /// assert_eq!(config.scan.hidden, Some(true));
+    /// assert_eq!(config.export.format.as_deref(), Some("jsonl"));
+    /// ```
     pub fn parse(s: &str) -> Result<Self, toml::de::Error> {
         toml::from_str(s)
     }
 
     /// Load configuration from a file path.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use std::path::Path;
+    /// use tokmd_settings::TomlConfig;
+    ///
+    /// let config = TomlConfig::from_file(Path::new("tokmd.toml")).unwrap();
+    /// ```
     pub fn from_file(path: &Path) -> std::io::Result<Self> {
         let content = std::fs::read_to_string(path)?;
         toml::from_str(&content)

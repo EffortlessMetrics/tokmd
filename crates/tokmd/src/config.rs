@@ -43,6 +43,17 @@ impl ConfigContext {
 }
 
 /// Load all configuration sources.
+///
+/// # Example
+///
+/// ```no_run
+/// use tokmd::config::load_config;
+///
+/// let config = load_config();
+/// if let Some(toml_path) = config.toml_path {
+///     println!("Loaded TOML config from: {}", toml_path.display());
+/// }
+/// ```
 pub fn load_config() -> ConfigContext {
     let toml_result = discover_toml_config();
     let json = load_json_config();
