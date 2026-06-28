@@ -1,7 +1,11 @@
 # Spec: WASM FFI Byte Mode for Archive Upload
 
-- Status: draft
-- Schema family, if any: none yet (no new serialized receipt schema is introduced by this stub)
+- Status: active
+- Implementation state: the core byte FFI entrypoint
+  (`tokmd_core::ffi::run_json_bytes`, behind the `archive-zip` feature) has
+  landed with core-level parity and fail-closed coverage; the WASM `Uint8Array`
+  binding and the capability promotion remain pending.
+- Schema family, if any: none yet (no new serialized receipt schema is introduced by this seam)
 - Related ADRs: none yet
 - Related proof scopes: `scan`, `model`, `io_port`
 - Related crates: `crates/tokmd-core`, `crates/tokmd-wasm`, `crates/tokmd-scan`, `crates/tokmd-io-port`
@@ -35,14 +39,20 @@ this as the standing blocker for browser ZIP upload.
 This spec fixes the byte-mode contract that closes that gap. Three roles make up
 the seam.
 
-- **Byte FFI mode (proposed)** — a core entrypoint that accepts an archive byte
-  buffer plus a small JSON options object (logical root, scan options, ingestion
-  limits, output mode) and returns the same envelope shape
+- **Byte FFI mode (landed)** — `tokmd_core::ffi::run_json_bytes(mode,
+  options_json, archive_bytes)` accepts an archive byte buffer plus a small JSON
+  options object (logical `root`, scan options, `archive_limits` ingestion caps,
+  per-mode settings) and returns the same envelope shape
   (`{ "ok": ..., "data": ..., "error": ... }`) that the JSON modes already
-  return. It composes the landed ZIP→scan consumer; it does not introduce a new
-  scan path. The byte mode is gated by the same decompression-dependency feature
-  (`archive-zip`) so the default core/binding surface stays free of
-  decompression dependencies.
+  return. It decodes the bytes through the landed
+  `tokmd_scan::inputs_from_zip_bytes` consumer and routes the admitted inputs
+  through the existing `run_mode` dispatch, so it introduces no new scan path
+  and no second admission path. The byte mode is gated by the same
+  decompression-dependency feature (`archive-zip`) so the default core/binding
+  surface stays free of decompression dependencies. It serves the
+  input-consuming scan modes (`lang`/`module`/`export`/`analyze`); host-only
+  modes (`diff`/`cockpit`/`version`) are rejected, and the `inputs`/`paths`
+  conventions are mutually exclusive with the archive byte source.
 
 - **WASM byte binding (proposed)** — a thin wasm-bindgen function that accepts a
   JS byte view (`Uint8Array`) plus options and forwards to the core byte mode,
@@ -129,27 +139,36 @@ get its own schema version and a follow-on spec; this stub does not define one.
 
 ## Proof Requirements
 
-These are the proof obligations a future implementing PR must satisfy; this stub
-asserts none of them as already met.
+These are the proof obligations for the full seam. Items met by the landed core
+byte entrypoint are marked; the remaining items gate the WASM binding and
+capability promotion.
 
-- Byte/host parity: scanning a benign archive fixture through the byte mode must
-  yield the same normalized file set and aggregated receipt as scanning the
-  equivalent extracted tree through the host path, reusing the parity oracle the
-  snapshot seam defines.
-- Byte/JSON-mode parity: for the same logical file set, the byte-mode receipt
-  must match the receipt produced by the existing `{ path, text }` JSON mode
-  (same `schema_version`, same payload modulo volatile timestamps).
-- Fail-closed admission: traversal/absolute/drive-prefix/NUL/non-regular and
-  zip-bomb fixtures must each be rejected with a named error and produce no
-  partial receipt, with no second admission path bypassing
-  `crates/tokmd-io-port/src/archive.rs`.
-- WASM boundary coverage: a `wasm-bindgen-test` must exercise the `Uint8Array`
-  binding end to end and assert the browser payload matches the core payload, in
-  the same style as the existing boundary tests in
+- Byte/JSON-mode parity (MET, core): for the same logical file set, the
+  byte-mode envelope must match the envelope produced by the existing
+  `{ path, text }` JSON mode (same `schema_version`, same payload modulo
+  volatile timestamps). Covered by the
+  `byte_mode_lang_envelope_matches_json_mode_inputs` test in
+  `crates/tokmd-core/tests/archive_zip_ffi_bytemode.rs` and the `tokmd-scan`
+  decode parity in `crates/tokmd-core/tests/archive_zip_bytemode.rs`.
+- Fail-closed admission (MET, core): a traversal entry, a malformed archive, and
+  a breached ingestion cap each fail closed with no partial receipt, with no
+  second admission path bypassing `crates/tokmd-io-port/src/archive.rs`. Covered
+  by the `byte_mode_fails_closed_on_hostile_entry`,
+  `byte_mode_rejects_malformed_archive`, and `byte_mode_enforces_archive_limits`
+  tests in the same file. Broader hostile-fixture coverage
+  (absolute/drive-prefix/NUL/non-regular) is already proven at the admission
+  engine in `crates/tokmd-io-port`.
+- Byte/host parity (PENDING): scanning a benign archive fixture through the byte
+  mode must yield the same normalized file set and aggregated receipt as
+  scanning the equivalent extracted tree through the host path, reusing the
+  parity oracle the snapshot seam defines.
+- WASM boundary coverage (PENDING): a `wasm-bindgen-test` must exercise the
+  `Uint8Array` binding end to end and assert the browser payload matches the
+  core payload, in the same style as the existing boundary tests in
   `crates/tokmd-wasm/src/lib.rs`.
-- Default-surface guard: a build/test of the default (non-`archive-zip`) feature
-  set must confirm no decompression dependency entered the default core or WASM
-  surface.
+- Default-surface guard (PENDING): a build/test of the default
+  (non-`archive-zip`) feature set must confirm no decompression dependency
+  entered the default core or WASM surface.
 
 Doc-shape checks for this spec stub itself:
 
@@ -160,11 +179,14 @@ cargo xtask docs --check
 
 ## Open Questions
 
-- Should the byte mode be a new `run_json`-style mode discriminator (e.g. an
-  `archive-zip` mode whose JSON args carry a base64 byte field) or a separate
-  byte-taking entrypoint alongside `run_json`? A dedicated byte entrypoint avoids
-  base64 inflation across the FFI boundary; a mode discriminator reuses the
-  existing dispatch and envelope plumbing. The browser matrix notes both options.
+- RESOLVED: the byte mode is a separate byte-taking entrypoint
+  (`run_json_bytes(mode, options_json, archive_bytes)`) alongside `run_json`,
+  not a base64 mode discriminator. This avoids base64 inflation across the FFI
+  boundary while still reusing the existing `run_mode` dispatch and envelope
+  plumbing by decoding the bytes into the in-memory input list first. The `mode`
+  argument selects the scan mode, leaving room for the WASM binding to expose
+  either one archive function per mode or a single mode-taking entrypoint (see
+  the next question).
 - Should the WASM binding expose one archive function per scan mode
   (mirroring `runLang`/`runModule`/`runExport`) or a single archive entrypoint
   that takes the mode as an argument?

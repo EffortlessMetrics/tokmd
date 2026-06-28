@@ -17,6 +17,8 @@
 
 use serde_json::Value;
 
+#[cfg(feature = "archive-zip")]
+mod byte_mode;
 mod envelope;
 mod inputs;
 mod modes;
@@ -24,6 +26,8 @@ mod parse;
 mod settings_parse;
 
 use crate::error::TokmdError;
+#[cfg(feature = "archive-zip")]
+pub use byte_mode::run_json_bytes;
 use envelope::json_response;
 use inputs::parse_in_memory_inputs;
 use modes::run_mode;
