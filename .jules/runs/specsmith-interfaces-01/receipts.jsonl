@@ -1,0 +1,4 @@
+{"command": "cargo run --bin tokmd -- analyze crates/tokmd/tests/data/src/ --preset health --format json | jq '.derived.todo'", "output": "{\\n  \\\"total\\\": 0,\\n  \\\"density_per_kloc\\\": 0.0,\\n  \\\"tags\\\": [\\n    {\\n      \\\"tag\\\": \\\"FIXME\\\",\\n      \\\"count\\\": 0\\n    },\\n    {\\n      \\\"tag\\\": \\\"HACK\\\",\\n      \\\"count\\\": 0\\n    },\\n    {\\n      \\\"tag\\\": \\\"TODO\\\",\\n      \\\"count\\\": 0\\n    },\\n    {\\n      \\\"tag\\\": \\\"XXX\\\",\\n      \\\"count\\\": 0\\n    }\\n  ]\\n}"}
+{"command": "python3 patch_test.py", "output": "Patched successfully"}
+{"command": "CI=true cargo test -p tokmd --test bdd_analyze_scenarios_w50 given_project_when_analyze_health_then_todo_and_complexity_present -- --nocapture", "output": "test result: ok. 1 passed; 0 failed"}
+{"command": "CI=true cargo test -p tokmd --test bdd_analyze_scenarios_w50", "output": "test result: ok. 9 passed; 0 failed"}
