@@ -6,6 +6,20 @@
     "partial": "Supported only for a documented subset of inputs, formats, or presets.",
     "native_only": "Available only through native filesystem or git-backed execution."
   },
+  "bindings": {
+    "runJsonBytes": {
+      "browser_safe": true,
+      "rootless_safe": true,
+      "native_only": false,
+      "requires_filesystem": false,
+      "requires_git_history": false,
+      "requires_host_clock": "partial",
+      "requires_validated_root": false,
+      "feature_gate": "archive-zip",
+      "input_format": "zip_bytes",
+      "supported_modes": ["lang", "module", "export", "analyze"]
+    }
+  },
   "commands": {
     "lang": {
       "browser_safe": true,

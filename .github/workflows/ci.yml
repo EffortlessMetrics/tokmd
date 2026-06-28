@@ -641,10 +641,14 @@ jobs:
         run: cargo check -p tokmd-wasm --no-default-features --target wasm32-unknown-unknown
       - name: Check tokmd-wasm for wasm32
         run: cargo check -p tokmd-wasm --features analysis --target wasm32-unknown-unknown
+      - name: Check tokmd-wasm archive-zip for wasm32
+        run: cargo check -p tokmd-wasm --no-default-features --features archive-zip --target wasm32-unknown-unknown
       - name: Run tokmd-wasm core-only wasm tests
         run: wasm-pack test --node crates/tokmd-wasm --no-default-features
       - name: Run tokmd-wasm analysis wasm tests
         run: wasm-pack test --node crates/tokmd-wasm --features analysis
+      - name: Run tokmd-wasm archive-zip wasm tests
+        run: wasm-pack test --node crates/tokmd-wasm --no-default-features --features archive-zip
       - name: Build browser runner wasm bundle
         run: npm --prefix web/runner run build:wasm
       - name: Browser runner protocol and wasm boot smoke

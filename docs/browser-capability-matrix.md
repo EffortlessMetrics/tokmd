@@ -19,53 +19,57 @@ are exercised by the `tokmd-wasm` test suite (native and `wasm-bindgen-test`).
 
 | Capability | Browser status | Notes |
 | --- | --- | --- |
-| `lang` | supported | language receipt from in-memory inputs |
-| `module` | supported | module receipt from in-memory inputs |
-| `export` | supported | file inventory from in-memory inputs |
-| `analyze` (`receipt`, `estimate`) | partial | rootless presets only; richer presets need host backing |
+| `lang` | supported | language receipt from in-memory inputs or ZIP archive bytes (`runJsonBytes`) |
+| `module` | supported | module receipt from in-memory inputs or ZIP archive bytes (`runJsonBytes`) |
+| `export` | supported | file inventory from in-memory inputs or ZIP archive bytes (`runJsonBytes`) |
+| `analyze` (`receipt`, `estimate`) | partial | rootless presets only; richer presets need host backing; archive bytes via `runJsonBytes` |
+| `runJsonBytes` (`archive-zip`) | supported | raw ZIP `Uint8Array` upload; modes `lang`/`module`/`export`/`analyze` (rootless presets) |
 | `capabilities()` / `version()` / `schemaVersion()` | supported | introspection helpers |
 
-## Experimental: snapshot and archive ingestion
+## Archive ingestion (ZIP byte upload)
 
-These seams exist in the crate graph and are covered by their own crate tests,
-but they are **not exposed through `tokmd-wasm` yet**. They are experimental
-until a browser/worker caller wires them with browser-level tests. See the
-[repo-snapshot spec](specs/repo-snapshot.md) for the contract and incremental
-status.
+The `runJsonBytes` binding (`tokmd-wasm`, `feature = archive-zip`) accepts a
+browser `Uint8Array` of raw ZIP bytes plus a JSON options object and forwards to
+`tokmd_core::ffi::run_json_bytes`. Untrusted bytes are admitted fail-closed by
+the single authoritative engine in `tokmd-io-port` / `tokmd-scan`; there is no
+second admission path. Coverage:
+
+- native parity: `core_run_json_bytes_lang_matches_inline_inputs` in
+  `crates/tokmd-wasm/src/lib.rs`
+- `wasm-bindgen-test` boundary: `run_json_bytes_lang_matches_inline_inputs_over_js_boundary`
+  in the same file
+
+The underlying snapshot/scan seams remain host-free infrastructure; they are
+now reachable from the browser through this binding when the `archive-zip`
+feature is enabled at build time.
 
 | Capability | Where it lives | Browser status | Marker |
 | --- | --- | --- | --- |
-| `RepoSnapshot` / `MemFs` in-memory file set | `tokmd-io-port`, `tokmd-scan` | experimental, no WASM caller | host-free seam |
-| `scan_snapshot` (snapshot-backed scan) | `tokmd-scan` | experimental, no WASM caller | host-free seam |
-| `snapshot_from_zip_bytes` (ZIP codec) | `tokmd-io-port` (`archive-zip`) | experimental, no WASM caller | trust-surface feature |
-| `scan_snapshot_from_zip` (ZIP → scan) | `tokmd-scan` (`archive-zip`) | experimental, no WASM caller | trust-surface feature |
+| `RepoSnapshot` / `MemFs` in-memory file set | `tokmd-io-port`, `tokmd-scan` | supported via `runJsonBytes` | host-free seam |
+| `scan_snapshot` (snapshot-backed scan) | `tokmd-scan` | supported via `runJsonBytes` | host-free seam |
+| `snapshot_from_zip_bytes` (ZIP codec) | `tokmd-io-port` (`archive-zip`) | supported via `runJsonBytes` | trust-surface feature |
+| `scan_snapshot_from_zip` / `inputs_from_zip_bytes` (ZIP → scan) | `tokmd-scan` (`archive-zip`) | supported via `runJsonBytes` | trust-surface feature |
 
 The `archive-zip` feature is decompression-dependency-gated: the default
-`tokmd-scan` surface stays free of decompression dependencies, and the audited
+`tokmd-wasm` build stays free of decompression dependencies, and the audited
 deflate-only `zip` crate only enters when `archive-zip` is enabled.
 
-## WASM blockers for ZIP upload
+## WASM blockers for ZIP upload (resolved)
 
-`scan_snapshot_from_zip` is the natural browser entry point for an
-archive-upload flow, but it is not yet callable from `tokmd-wasm`. The blockers
-are concrete, not philosophical:
+Browser ZIP upload is now available through the `runJsonBytes` binding when
+`tokmd-wasm` is built with the `archive-zip` feature. The prior blockers are
+closed:
 
-- `tokmd-wasm` routes every mode through `tokmd_core::ffi::run_json(mode,
-  args_json)`, which takes a **JSON string** and has no binary/byte input path.
-  Raw ZIP bytes cannot be passed without either a base64 argument convention or
-  a dedicated `&[u8]` / `Uint8Array` binding.
-- `tokmd-core` does not currently expose an `archive-zip` FFI mode, and does not
-  depend on `tokmd-scan`'s `archive-zip` feature, so the byte-admission path is
-  not reachable from the core entrypoint the WASM crate consumes.
-- There is no `wasm-bindgen-test` coverage for an upload path, so claiming
-  browser ZIP support would be unproven.
+- `tokmd_core::ffi::run_json_bytes(mode, options_json, archive_bytes)` accepts
+  raw archive bytes and returns the same envelope as the JSON modes.
+- `tokmd-wasm` exposes `runJsonBytes(mode, optionsJson, archiveBytes:
+  Uint8Array)`, copying the view into an owned buffer at the boundary.
+- `wasm-bindgen-test` coverage exercises the `Uint8Array` path end-to-end and
+  asserts byte-mode parity with inline `{ path, text }` inputs.
 
-Until those are addressed in a dedicated PR (core FFI byte mode + `tokmd-wasm`
-binding + `wasm-bindgen-test` parity coverage), ZIP upload in the browser is
-**not available** and should not be advertised. This doc is the standing record
-of that boundary; do not mark the archive rows "supported" until the binding and
-its tests land. The byte-mode transport contract that closes this gap is
-specified in [specs/wasm-ffi-byte-mode.md](specs/wasm-ffi-byte-mode.md).
+Remaining follow-on (out of scope for this slice): wire `runJsonBytes` into the
+browser runner UI (`web/runner`) so `zipball` upload is user-facing; streaming
+upload; tar-family containers.
 
 ## Native-only
 
@@ -83,11 +87,12 @@ the boundaries in [browser.md](browser.md#native-only-boundaries) and the
 ## Claim boundary
 
 - **Establishes**: the current browser-safe command set wired through
-  `tokmd-wasm`, and an honest experimental/native-only split for snapshot,
-  archive, git, and filesystem capabilities.
-- **Does not establish**: browser ZIP upload, in-browser git history, or any
-  promotion of an experimental seam to a shipped browser capability. Those
-  require the binding and tests described above before any "supported" claim.
+  `tokmd-wasm`, including ZIP archive byte upload via `runJsonBytes` when built
+  with `archive-zip`, and an honest experimental/native-only split for git and
+  filesystem capabilities.
+- **Does not establish**: in-browser git history, browser-runner UI wiring for
+  ZIP upload (`web/runner` `zipball` remains false until a follow-on PR),
+  streaming upload, or tar-family containers.
 
 ## See also
 

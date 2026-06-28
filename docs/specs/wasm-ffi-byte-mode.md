@@ -2,9 +2,11 @@
 
 - Status: active
 - Implementation state: the core byte FFI entrypoint
-  (`tokmd_core::ffi::run_json_bytes`, behind the `archive-zip` feature) has
-  landed with core-level parity and fail-closed coverage; the WASM `Uint8Array`
-  binding and the capability promotion remain pending.
+  (`tokmd_core::ffi::run_json_bytes`, behind the `archive-zip` feature) and the
+  WASM `Uint8Array` binding (`tokmd-wasm::runJsonBytes`) have landed with
+  native and `wasm-bindgen-test` parity coverage; the capability matrix rows are
+  promoted. Remaining follow-on: wire `runJsonBytes` into the browser runner UI
+  (`web/runner` `zipball` path) and byte/host parity oracle.
 - Schema family, if any: none yet (no new serialized receipt schema is introduced by this seam)
 - Related ADRs: none yet
 - Related proof scopes: `scan`, `model`, `io_port`
@@ -54,17 +56,16 @@ the seam.
   modes (`diff`/`cockpit`/`version`) are rejected, and the `inputs`/`paths`
   conventions are mutually exclusive with the archive byte source.
 
-- **WASM byte binding (proposed)** — a thin wasm-bindgen function that accepts a
+- **WASM byte binding (landed)** — a thin wasm-bindgen function that accepts a
   JS byte view (`Uint8Array`) plus options and forwards to the core byte mode,
   matching the thin-wrapper rule the rest of `crates/tokmd-wasm/src/lib.rs`
   follows. The crate keeps `#![forbid(unsafe_code)]`; the byte view is copied
   into an owned buffer at the boundary rather than aliased.
 
-- **Capability promotion (gated)** — the experimental archive rows in
-  `docs/browser-capability-matrix.md` and `docs/capabilities/wasm.json` move from
-  "experimental, no WASM caller" to "supported" **only** once the binding and its
-  `wasm-bindgen-test` parity coverage land. Until then the rows stay
-  experimental and browser ZIP upload is not advertised.
+- **Capability promotion (landed)** — the archive rows in
+  `docs/browser-capability-matrix.md` and `docs/capabilities/wasm.json` are
+  marked supported for the `runJsonBytes` binding with `archive-zip` enabled,
+  gated on the `wasm-bindgen-test` parity coverage in `crates/tokmd-wasm`.
 
 The boundary this seam protects:
 
@@ -162,13 +163,14 @@ capability promotion.
   mode must yield the same normalized file set and aggregated receipt as
   scanning the equivalent extracted tree through the host path, reusing the
   parity oracle the snapshot seam defines.
-- WASM boundary coverage (PENDING): a `wasm-bindgen-test` must exercise the
-  `Uint8Array` binding end to end and assert the browser payload matches the
+- WASM boundary coverage (MET): a `wasm-bindgen-test` exercises the
+  `Uint8Array` binding end to end and asserts the browser payload matches the
   core payload, in the same style as the existing boundary tests in
-  `crates/tokmd-wasm/src/lib.rs`.
-- Default-surface guard (PENDING): a build/test of the default
-  (non-`archive-zip`) feature set must confirm no decompression dependency
-  entered the default core or WASM surface.
+  `crates/tokmd-wasm/src/lib.rs` (`run_json_bytes_lang_matches_inline_inputs_over_js_boundary`).
+- Default-surface guard (MET, CI): the Wasm Compile & Test lane checks and tests
+  the default (non-`archive-zip`) feature set separately from the
+  `archive-zip`-gated binding, confirming decompression dependencies only enter
+  when the feature is enabled.
 
 Doc-shape checks for this spec stub itself:
 

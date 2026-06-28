@@ -6,6 +6,8 @@
 
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "archive-zip")]
+use js_sys::Uint8Array;
 use js_sys::{Error as JsError, JSON};
 use wasm_bindgen::prelude::*;
 
@@ -160,6 +162,28 @@ pub fn run_json(mode: &str, args_json: &str) -> String {
     tokmd_core::ffi::run_json(mode, args_json)
 }
 
+/// Run a tokmd scan over raw archive (ZIP) bytes and return the raw JSON response envelope.
+///
+/// This is the byte-mode counterpart to [`run_json`]: the archive is the sole
+/// input source, so `options_json` must not carry `inputs` or `paths`. The
+/// `archive_bytes` view is copied into an owned buffer at the boundary (the
+/// crate keeps `#![forbid(unsafe_code)]`) and forwarded to
+/// [`tokmd_core::ffi::run_json_bytes`], which admits the bytes fail-closed
+/// through the single authoritative engine and routes them through the existing
+/// mode dispatch.
+///
+/// Supported modes are `"lang"`, `"module"`, `"export"`, and `"analyze"`
+/// (rootless presets only). Host-only modes are rejected with an error
+/// envelope.
+#[cfg(feature = "archive-zip")]
+#[wasm_bindgen(js_name = runJsonBytes)]
+pub fn run_json_bytes(mode: &str, options_json: &str, archive_bytes: Uint8Array) -> String {
+    if let Err(err) = validate_mode_args_json(mode, options_json) {
+        return ResponseEnvelope::error(&err).to_json();
+    }
+    tokmd_core::ffi::run_json_bytes(mode, options_json, &archive_bytes.to_vec())
+}
+
 /// Run a tokmd mode with raw JSON args and return only the extracted data JSON payload.
 #[wasm_bindgen(js_name = runDataJson)]
 pub fn run_data_json(mode: &str, args_json: &str) -> Result<String, JsValue> {
@@ -200,6 +224,123 @@ pub fn run_export(args: JsValue) -> Result<JsValue, JsValue> {
 #[wasm_bindgen(js_name = runAnalyze)]
 pub fn run_analyze(args: JsValue) -> Result<JsValue, JsValue> {
     run_analyze_js(args)
+}
+
+/// Minimal dependency-free ZIP fixture builder shared by the native and
+/// `wasm-bindgen-test` archive-byte coverage.
+///
+/// The repo convention is to generate archive fixtures at test time rather than
+/// committing binaries (no `.zip` files are checked in), so this builds a
+/// `Stored` (uncompressed) ZIP by hand with correct CRC-32 checksums. The
+/// `zip`-crate reader behind the `archive-zip` admission engine validates the
+/// CRC on read, so an incorrect checksum here would fail the test rather than
+/// pass silently. Pure-`std`, safe code keeps it `wasm32`-compatible without
+/// adding a decompression dev-dependency to the default browser test lanes.
+#[cfg(all(test, feature = "archive-zip"))]
+mod archive_fixture {
+    /// Fixture entries in normalized-sorted path order, matching the order the
+    /// ZIP admission engine yields so the inline `{ path, text }` parity inputs
+    /// line up exactly.
+    pub(crate) const ENTRIES: &[(&str, &str)] = &[
+        ("src/lib.rs", "pub fn alpha() -> usize { 1 }\n"),
+        ("src/main.rs", "fn main() {}\n"),
+        ("tests/basic.py", "# TODO: keep smoke\nprint('ok')\n"),
+    ];
+
+    /// CRC-32 (IEEE polynomial, reflected) computed bit-by-bit so the fixture
+    /// needs no lookup table or external crate.
+    fn crc32(data: &[u8]) -> u32 {
+        let mut crc = 0xFFFF_FFFFu32;
+        for &byte in data {
+            crc ^= u32::from(byte);
+            for _ in 0..8 {
+                let mask = (crc & 1).wrapping_neg();
+                crc = (crc >> 1) ^ (0xEDB8_8320 & mask);
+            }
+        }
+        !crc
+    }
+
+    /// Build a `Stored` ZIP archive containing [`ENTRIES`].
+    pub(crate) fn tiny_zip() -> Vec<u8> {
+        let mut body = Vec::new();
+        let mut central = Vec::new();
+        // DOS date 1980-01-01 (time 0); a zero date field is technically
+        // invalid, so use the epoch the format defines.
+        const DOS_TIME: u16 = 0;
+        const DOS_DATE: u16 = 0x0021;
+
+        for (name, text) in ENTRIES {
+            let name_bytes = name.as_bytes();
+            let data = text.as_bytes();
+            let crc = crc32(data);
+            let size = u32::try_from(data.len()).expect("fixture entry fits in u32");
+            let offset = u32::try_from(body.len()).expect("fixture offset fits in u32");
+            let name_len = u16::try_from(name_bytes.len()).expect("fixture name fits in u16");
+
+            // Local file header.
+            body.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
+            body.extend_from_slice(&20u16.to_le_bytes()); // version needed
+            body.extend_from_slice(&0u16.to_le_bytes()); // flags
+            body.extend_from_slice(&0u16.to_le_bytes()); // method: stored
+            body.extend_from_slice(&DOS_TIME.to_le_bytes());
+            body.extend_from_slice(&DOS_DATE.to_le_bytes());
+            body.extend_from_slice(&crc.to_le_bytes());
+            body.extend_from_slice(&size.to_le_bytes()); // compressed
+            body.extend_from_slice(&size.to_le_bytes()); // uncompressed
+            body.extend_from_slice(&name_len.to_le_bytes());
+            body.extend_from_slice(&0u16.to_le_bytes()); // extra len
+            body.extend_from_slice(name_bytes);
+            body.extend_from_slice(data);
+
+            // Central directory header.
+            central.extend_from_slice(&0x0201_4b50u32.to_le_bytes());
+            central.extend_from_slice(&20u16.to_le_bytes()); // version made by
+            central.extend_from_slice(&20u16.to_le_bytes()); // version needed
+            central.extend_from_slice(&0u16.to_le_bytes()); // flags
+            central.extend_from_slice(&0u16.to_le_bytes()); // method: stored
+            central.extend_from_slice(&DOS_TIME.to_le_bytes());
+            central.extend_from_slice(&DOS_DATE.to_le_bytes());
+            central.extend_from_slice(&crc.to_le_bytes());
+            central.extend_from_slice(&size.to_le_bytes()); // compressed
+            central.extend_from_slice(&size.to_le_bytes()); // uncompressed
+            central.extend_from_slice(&name_len.to_le_bytes());
+            central.extend_from_slice(&0u16.to_le_bytes()); // extra len
+            central.extend_from_slice(&0u16.to_le_bytes()); // comment len
+            central.extend_from_slice(&0u16.to_le_bytes()); // disk number start
+            central.extend_from_slice(&0u16.to_le_bytes()); // internal attrs
+            central.extend_from_slice(&0u32.to_le_bytes()); // external attrs
+            central.extend_from_slice(&offset.to_le_bytes());
+            central.extend_from_slice(name_bytes);
+        }
+
+        let central_offset = u32::try_from(body.len()).expect("central offset fits in u32");
+        let central_size = u32::try_from(central.len()).expect("central size fits in u32");
+        let entry_count = u16::try_from(ENTRIES.len()).expect("fixture entry count fits in u16");
+
+        let mut archive = body;
+        archive.extend_from_slice(&central);
+        // End of central directory record.
+        archive.extend_from_slice(&0x0605_4b50u32.to_le_bytes());
+        archive.extend_from_slice(&0u16.to_le_bytes()); // disk number
+        archive.extend_from_slice(&0u16.to_le_bytes()); // disk with central dir
+        archive.extend_from_slice(&entry_count.to_le_bytes());
+        archive.extend_from_slice(&entry_count.to_le_bytes());
+        archive.extend_from_slice(&central_size.to_le_bytes());
+        archive.extend_from_slice(&central_offset.to_le_bytes());
+        archive.extend_from_slice(&0u16.to_le_bytes()); // comment len
+        archive
+    }
+
+    /// Equivalent inline `{ path, text }` options carrying the same logical file
+    /// set, used as the JSON-mode parity oracle for the byte mode.
+    pub(crate) fn inline_options_json() -> String {
+        let inputs: Vec<serde_json::Value> = ENTRIES
+            .iter()
+            .map(|(name, text)| serde_json::json!({ "path": name, "text": text }))
+            .collect();
+        serde_json::json!({ "lang": { "files": true }, "inputs": inputs }).to_string()
+    }
 }
 
 #[cfg(test)]
@@ -505,6 +646,65 @@ mod tests {
     #[test]
     fn schema_version_matches_core_receipts() {
         assert_eq!(schema_version(), tokmd_types::SCHEMA_VERSION);
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[test]
+    fn core_run_json_bytes_lang_matches_inline_inputs() {
+        use crate::archive_fixture::{inline_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        let from_zip_raw =
+            tokmd_core::ffi::run_json_bytes("lang", r#"{"lang":{"files":true}}"#, &bytes);
+        let from_json_raw = tokmd_core::ffi::run_json("lang", &inline_options_json());
+
+        let mut from_zip: Value = serde_json::from_str(&from_zip_raw).expect("byte-mode envelope");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope");
+
+        assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+        assert_eq!(from_zip["data"]["mode"], json!("lang"));
+        assert_eq!(from_zip["data"]["total"]["files"], json!(3));
+
+        let langs: Vec<&str> = from_zip["data"]["rows"]
+            .as_array()
+            .expect("lang rows array")
+            .iter()
+            .filter_map(|row| row["lang"].as_str())
+            .collect();
+        assert!(
+            langs.contains(&"Rust"),
+            "expected a Rust row, got {langs:?}"
+        );
+        assert!(
+            langs.contains(&"Python"),
+            "expected a Python row, got {langs:?}"
+        );
+
+        // Strongest oracle: the byte-mode envelope must equal the inline
+        // `{ path, text }` envelope modulo the volatile timestamp.
+        for envelope in [&mut from_zip, &mut from_json] {
+            if let Some(obj) = envelope.get_mut("data").and_then(Value::as_object_mut) {
+                obj.remove("generated_at_ms");
+            }
+        }
+        assert_eq!(
+            from_zip, from_json,
+            "byte-mode envelope diverged from the equivalent inline-inputs envelope"
+        );
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[test]
+    fn core_run_json_bytes_rejects_paths_option() {
+        use crate::archive_fixture::tiny_zip;
+
+        let bytes = tiny_zip();
+        let raw = tokmd_core::ffi::run_json_bytes("lang", r#"{"paths":["."]}"#, &bytes);
+        let envelope: Value = serde_json::from_str(&raw).expect("envelope");
+
+        assert_eq!(envelope["ok"], json!(false));
+        assert_eq!(envelope["error"]["code"], json!("invalid_settings"));
     }
 
     #[cfg(feature = "analysis")]
@@ -837,6 +1037,69 @@ mod wasm_tests {
 
         assert_eq!(parsed["mode"], "analysis");
         assert_eq!(parsed["effort"]["model"], "cocomo81-basic");
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[wasm_bindgen_test]
+    fn run_json_bytes_lang_matches_inline_inputs_over_js_boundary() {
+        use crate::archive_fixture::{inline_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        // Cross the JS boundary explicitly: build a real Uint8Array view and
+        // hand it to the binding, which copies it into an owned buffer.
+        let view = Uint8Array::from(bytes.as_slice());
+        let from_zip_raw = run_json_bytes("lang", r#"{"lang":{"files":true}}"#, view);
+        let from_json_raw = tokmd_core::ffi::run_json("lang", &inline_options_json());
+
+        let mut from_zip: Value =
+            serde_json::from_str(&from_zip_raw).expect("byte-mode envelope json");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope json");
+
+        assert_eq!(
+            from_zip["ok"],
+            Value::Bool(true),
+            "byte-mode should succeed"
+        );
+        assert_eq!(from_zip["data"]["mode"], "lang");
+        assert_eq!(from_zip["data"]["total"]["files"], 3);
+        assert_generated_at_ms_nonzero("byte-mode lang wasm payload", &from_zip["data"]);
+
+        let langs: Vec<&str> = from_zip["data"]["rows"]
+            .as_array()
+            .expect("lang rows array")
+            .iter()
+            .filter_map(|row| row["lang"].as_str())
+            .collect();
+        assert!(
+            langs.contains(&"Rust"),
+            "expected a Rust row, got {langs:?}"
+        );
+        assert!(
+            langs.contains(&"Python"),
+            "expected a Python row, got {langs:?}"
+        );
+
+        normalize_volatile_timestamps(&mut from_zip);
+        normalize_volatile_timestamps(&mut from_json);
+        assert!(
+            values_match_js_boundary(&from_zip, &from_json),
+            "byte-mode envelope diverged from inline-inputs envelope\nzip: {from_zip}\njson: {from_json}"
+        );
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[wasm_bindgen_test]
+    fn run_json_bytes_rejects_paths_option() {
+        use crate::archive_fixture::tiny_zip;
+
+        let bytes = tiny_zip();
+        let view = Uint8Array::from(bytes.as_slice());
+        let raw = run_json_bytes("lang", r#"{"paths":["."]}"#, view);
+        let envelope: Value = serde_json::from_str(&raw).expect("envelope json");
+
+        assert_eq!(envelope["ok"], Value::Bool(false));
+        assert_eq!(envelope["error"]["code"], "invalid_settings");
     }
 
     #[wasm_bindgen_test]
