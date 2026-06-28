@@ -1,21 +1,21 @@
 # Decision
 
-## Option A
-Fix release documentation drift. The workspace was updated to `v1.14.0`, but several documentation files (`docs/github-action.md`, `docs/packet-workflows.md`, `docs/action-quickstart.md`, `docs/evidence-packet.md`) still show `version: '1.13.1'` or `tokmd_version: "1.13.1"` in their examples. We should update these examples to reflect the current `1.14.0` version to prevent user confusion and maintain version consistency across the codebase.
-This fits the `tooling-governance` shard and the `Steward` persona perfectly, addressing "release metadata or changelog mismatch" and "drift". Trade-offs: Structure is improved by ensuring examples use the latest version. No governance or velocity downside.
+## Problem
+In several internal crates (`tokmd-analysis-types`, `tokmd-cockpit`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`), internal workspace dependencies were referenced via explicit `path` and `version` combinations instead of using the `workspace = true` configuration. This introduces metadata inconsistency, bypasses the centralized dependency management in the root `Cargo.toml`, and increases the risk of release publishing failures or version mismatches during the release process (e.g. `cargo xtask version-consistency`, `cargo xtask publish --plan`).
 
-## Option B
-Update historical ledgers in `docs/releases/`.
-This is a bad idea because historical ledgers should accurately reflect the history of the repository and the releases they document. Modifying them to point to `1.14.0` would invalidate the history.
+## Options considered
+### Option A: Standardize internal dependency references using `workspace = true`
+- **What it is:** Update `Cargo.toml` in all affected workspace crates to use `<crate> = { workspace = true }` or `<crate>.workspace = true` where applicable, and manually align versions (like in `tokmd-cockpit` to `1.14.0`) where workspace inheritance is blocked by `default-features = false`.
+- **Why it fits this repo and shard:** Aligns perfectly with the governance and release metadata shard. Leveraging centralized `workspace.dependencies` is a standard Rust best practice for workspaces and ensures that `cargo xtask version-consistency` and the publish sequence are robust against version drift.
+- **Trade-offs:**
+  - Structure: High alignment with workspace centralization.
+  - Velocity: Low overhead, prevents future version bump errors.
+  - Governance: High, ensures tier-1 publishability consistency.
 
-## ✅ Decision
-Option A. I will update the drift in documentation examples to match the current workspace version `1.14.0`.
+### Option B: Keep explicit path/version and rely on CI/xtask failures to catch drift
+- **What it is:** Leave the explicit paths and let the release process handle version alignment manually.
+- **When to choose it instead:** Never in a centralized workspace unless specific overriding is necessary (which is not the case for most internal core dependencies).
+- **Trade-offs:** Increases the maintenance burden during version bumps.
 
-Wait, `docs/packet-workflows.md` had:
-`Current support status: publication GHCR is **verified-public** for v1.14.0 as of 2026-06-21.`
-This date is for the `1.13.1` check in the original text. Let me check if changing `v1.13.1` to `v1.14.0` here is correct or if it makes it factually wrong since 1.14.0 wasn't published on 2026-06-21.
-Well, it's an example documentation. Maybe I should revert that specific line or keep it since the prompt says "Fix publish-plan and version consistency drift". The 1.13.1 mention here is a specific reference to a verification date. But the `ROADMAP.md` and `publishing-evidence.md` kept their references to `1.13.1` correctly because I didn't replace them.
-Actually, let me check what was there before.
-`Current support status: publication GHCR is **verified-public** for v1.13.1 as of 2026-06-21. New stable tags still need post-release verification...`
-This clearly refers to the historical verification status, so modifying it to `1.14.0` would be a factual hallucination since 1.14.0 hasn't been verified on 2026-06-21.
-I will revert that specific line in `docs/packet-workflows.md` while keeping the `version: "1.14.0"` and `image: ghcr.io/effortlessmetrics/tokmd:1.14.0` example updates.
+## Decision
+**Option A** is the selected option. Centralizing dependency versioning through `workspace = true` prevents drift and aligns the manifests with standard cargo workspace governance. Excluded `crates/tokmd-wasm` to keep LEM budget under the hard limit of 125.

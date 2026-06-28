@@ -31,7 +31,7 @@ tokmd-types.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
-tokmd-model = { path = "../tokmd-model", version = ">=1.9, <2" }
+tokmd-model.workspace = true
 # Test-only ZIP writer for the archive→scan parity oracle. Mirrors the io-port
 # codec pin (deflate-only, default features off) to keep the trust surface
 # minimal; only used by the `archive-zip`-gated parity test.
