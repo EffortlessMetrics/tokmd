@@ -1,0 +1,101 @@
+{
+  "schema": "tokmd.proof_observation_decision.v1",
+  "ok": true,
+  "mode": "observation_only",
+  "source_artifacts": [
+    {
+      "kind": "affected",
+      "path": "target/test-proof-observation-status/check-valid/affected.json",
+      "schema": "tokmd.affected.v1"
+    },
+    {
+      "kind": "proof_policy",
+      "path": "target/test-proof-observation-status/check-valid/proof-policy.json",
+      "schema": "tokmd.proof_policy.v1"
+    }
+  ],
+  "policy_state": {
+    "proof_policy_present": true,
+    "executor_pr_required": false,
+    "executor_pr_codecov_upload": false,
+    "promotion_required_gate": false,
+    "promotion_default_codecov_upload": false,
+    "proof_run_pr_required": false
+  },
+  "required_proof": {
+    "planned": 0,
+    "executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "observations": 0
+  },
+  "advisory_proof": {
+    "planned": 0,
+    "selected": 0,
+    "executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "artifacts": 0,
+    "observations": 0
+  },
+  "freshness": {
+    "commit_match": "unknown",
+    "base": null,
+    "head": null,
+    "sources": []
+  },
+  "thresholds": {
+    "min_observations": null,
+    "min_executed": null,
+    "min_scopes": null,
+    "min_artifacts": null,
+    "min_passing_collector_runs": null,
+    "observations": null,
+    "executed": null,
+    "scopes": null,
+    "artifacts": null,
+    "passing_collector_runs": null
+  },
+  "criteria_met": [
+    {
+      "id": "proof_policy_present",
+      "detail": "checked proof policy artifact was supplied"
+    },
+    {
+      "id": "affected_present",
+      "detail": "affected proof routing artifact was supplied"
+    },
+    {
+      "id": "affected_unknown_files",
+      "detail": "affected proof routing reported zero unknown files"
+    },
+    {
+      "id": "promotion_required_gate_off",
+      "detail": "proof policy keeps executor promotion required_gate disabled"
+    },
+    {
+      "id": "promotion_codecov_upload_off",
+      "detail": "proof policy keeps default Codecov upload disabled"
+    }
+  ],
+  "criteria_missing": [
+    {
+      "id": "required_proof_observed",
+      "detail": "required proof execution was not observed as passing evidence"
+    },
+    {
+      "id": "advisory_proof_observed",
+      "detail": "advisory executor proof was not observed as passing evidence"
+    },
+    {
+      "id": "promotion_readiness_missing",
+      "detail": "promotion-readiness receipt was not supplied"
+    }
+  ],
+  "reproduce": [
+    "cargo xtask affected --base origin/main --head HEAD --json-output target/test-proof-observation-status/check-valid/affected.json",
+    "cargo xtask proof-policy --json-output target/test-proof-observation-status/check-valid/proof-policy.json"
+  ],
+  "errors": []
+}

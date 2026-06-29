@@ -1,53 +1,47 @@
 ## 💡 Summary
-This fixes a minor factual drift in `docs/SCHEMA.md`. The document incorrectly listed `BASELINE_VERSION` as being defined in `crates/tokmd-analysis-types/src/lib.rs`. It is actually defined in `crates/tokmd-analysis-types/src/baseline.rs`.
+Updated the `tokmd` CLI reference documentation in `docs/reference-cli.md` to accurately reflect the `--children` flag options for different subcommands.
 
 ## 🎯 Why
-The `Librarian` persona prioritizes fixing factual docs drift. The README and memory point to `docs/SCHEMA.md` keeping truth with Rust constants. A search revealed that `docs/SCHEMA.md` incorrectly points to `lib.rs` for `BASELINE_VERSION`, while the Rust source defines it in `baseline.rs`. This factual drift violates the "docs/schema/help text mismatch" constraint and needs correction.
+The global CLI reference table documented `--children` with only `collapse` and `separate` options. However, `tokmd export` and `tokmd module` subcommands actually accept `separate` and `parents-only`. This created a mismatch between the documentation and the actual CLI schema.
 
 ## 🔎 Evidence
-- File: `docs/SCHEMA.md`
-- Observed behavior: Points to incorrect source file.
-- Receipt: `grep -rn "pub const BASELINE_VERSION" crates/` shows it is in `crates/tokmd-analysis-types/src/baseline.rs:20`.
+- `tokmd module --help` output shows: `--children <CHILDREN> ... [default: separate] Possible values: - separate ... - parents-only ...`
+- The `docs/reference-cli.md` file previously listed only `collapse` and `separate` in the global arguments table and the `tokmd lang` table.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Update `docs/SCHEMA.md` to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
-- Why it fits this repo and shard: Fixes a clear documentation drift regarding schema versioning. It's a quick, factual doc fix that complies with Librarian's constraints.
-- Trade-offs: Structure / Velocity / Governance. Minimal risk, corrects truth without changing logic.
+- what it is: Update `docs/reference-cli.md` to clarify that `--children` options vary by subcommand, and update the `lang` specific table to reflect its valid options (`collapse`, `separate`).
+- why it fits this repo and shard: This directly addresses docs/schema drift within the `tooling-governance` shard.
+- trade-offs:
+  - Structure: Improves accuracy of CLI documentation.
+  - Velocity: Fast to verify and land.
+  - Governance: Ensures the reference-cli docs match the actual CLI clap schema.
 
 ### Option B
-- What it is: Do nothing and record learning.
-- When to choose it instead: If the drift wasn't verifiable or wasn't part of the shard.
-- Trade-offs: Misses an opportunity to fix a small but clear piece of factual drift.
+- what it is: Update the CLI to use a single `ChildrenMode` enum across all subcommands.
+- when to choose it instead: If the goal was to unify CLI flag behavior rather than just documenting the current state.
+- trade-offs: Would require runtime behavior changes, violating the Librarian persona rules to not touch runtime behavior changes unless explicitly required.
 
 ## ✅ Decision
-Option A. I updated `docs/SCHEMA.md` to fix the file path for `BASELINE_VERSION`.
+Option A. The `docs/reference-cli.md` has clear drift around the `--children` flag variants depending on the subcommand (`lang` vs `export`/`module`). I updated the tables to clarify the options.
 
 ## 🧱 Changes made (SRP)
-- `docs/SCHEMA.md`
+- `docs/reference-cli.md`: Updated the global arguments table to note that `--children` options vary by subcommand (adding `parents-only` to the list of examples). Updated the `tokmd lang` specific table to explicitly list its supported modes (`collapse`, `separate`).
 
 ## 🧪 Verification receipts
 ```text
-$ rg -n "pub const BASELINE_VERSION" crates/tokmd-analysis-types/src
-crates/tokmd-analysis-types/src/baseline.rs:20:pub const BASELINE_VERSION: u32 = 1;
-$ cargo xtask doc-artifacts --check
-doc artifacts ok
-$ cargo xtask docs --check
-Documentation is up to date.
-$ cargo xtask proof-policy --check
-proof policy ok
-$ cargo xtask proof --profile affected --base origin/main --head HEAD --run-required --allow-local-required-execution --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-required affected proof passed
-$ cargo xtask proof-run-artifacts-check --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-Proof run artifacts OK: 6 executed required command(s), guard local_explicit_required_opt_in_enabled
+cargo xtask docs --check
+cargo fmt -- --check
+cargo clippy -- -D warnings
+cargo test -p xtask
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: Docs only
-- Risk class: Low
-- Rollback: `git restore docs/SCHEMA.md`
-- Gates run: `cargo xtask doc-artifacts --check`, `cargo xtask docs --check`, `cargo xtask proof-policy --check`, `cargo fmt-check`, affected required proof, proof-run artifact check
+- Change shape: Documentation update
+- Blast radius: docs
+- Risk class: Low - documentation changes only
+- Rollback: Revert the PR
+- Gates run: `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo test -p xtask`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`

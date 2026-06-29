@@ -21,7 +21,7 @@ These arguments apply when you invoke `tokmd` directly without an explicit subco
 | `--format <FORMAT>` | Output format (`md`, `tsv`, `json`). Default is `md`. |
 | `--top <TOP>` | Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows. |
 | `--files` | Include file counts and average lines per file. |
-| `--children <CHILDREN>` | How to handle embedded languages (`collapse`, `separate`). Default is `collapse`. |
+| `--children <CHILDREN>` | How to handle embedded languages. Options vary by subcommand (e.g., `collapse`, `separate`, `parents-only`). |
 | `--profile <PROFILE>` | Configuration profile to use (e.g., `llm_safe`, `ci`). Alias: `--view`. |
 | `--show-config` | Print the resolved configuration sources and profile-layered values, then exit without scanning. See [`docs/specs/config-explainability.md`](specs/config-explainability.md). |
 
@@ -100,7 +100,7 @@ Examples:
 | :--- | :--- | :--- |
 | `-f, --format <FMT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
 | `-t, --top <N>` | Only show the top N languages (by lines of code). Others grouped as "Other". | `0` (all) |
-| `--children <MODE>` | How to handle embedded languages (e.g., JS inside HTML). | `collapse` |
+| `--children <MODE>` | How to handle embedded languages (e.g., JS inside HTML). (`collapse`, `separate`) | `collapse` |
 | | `collapse`: Embedded code counts toward the parent file's language. | |
 | | `separate`: Embedded code is counted separately under its own language. | |
 
