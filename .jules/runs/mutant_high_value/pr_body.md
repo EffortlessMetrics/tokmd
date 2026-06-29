@@ -23,18 +23,20 @@ The `ManualCandidateRecord` struct had un-asserted parsing behavior for the `tes
 
 ## ✅ Decision
 Chose Option A to close immediate serialization mutation gaps and math invariants on high-value types.
+Replaced `.unwrap()` with `.expect()` in tests and regenerated the `no-panic-baseline-receipt.json` to satisfy the strict `check-no-panic-family` CI check.
 
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-types/src/packet_siblings.rs` - Added `manual_candidates_roundtrip_with_optional_fields` test.
 - `crates/tokmd-types/src/diff.rs` - Added `diff_row_delta_consistency` and `diff_totals_delta_consistency` tests.
 - `crates/tokmd-types/src/evidence_packet.rs` - Added `evidence_packet_status_serde_exhaustive` test.
+- `policy/no-panic-allowlist.toml` - Regenerated baseline receipt after updating test `expect()` messages.
 
 ## 🧪 Verification receipts
 ```text
-cargo build --verbose
-CI=true cargo test --verbose
+cargo xtask check-no-panic-family --strict
 cargo fmt -- --check
 cargo clippy -- -D warnings
+cargo test -p tokmd-types
 ```
 
 ## 🧭 Telemetry
@@ -42,7 +44,7 @@ cargo clippy -- -D warnings
 - Blast radius: None (tests only)
 - Risk class: Low
 - Rollback: Revert tests
-- Gates run: cargo test, clippy, fmt
+- Gates run: cargo test, clippy, fmt, xtask check-no-panic-family
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`

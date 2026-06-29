@@ -1,5 +1,4 @@
 {
-  "run_id": "mutant_high_value",
   "prompt_id": "mutant_high_value",
   "persona": "Mutant",
   "style": "Prover",
@@ -14,5 +13,8 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "mutation",
-  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
+  "allowed_outcomes": [
+    "proof-improvement patch",
+    "learning PR"
+  ]
 }

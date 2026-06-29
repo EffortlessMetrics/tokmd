@@ -1,1 +1,2 @@
 {"command": "cargo test -p tokmd-types", "outcome": "failed initially, passed after applying tests"}
+{"command": "cargo xtask check-no-panic-family --strict", "outcome": "failed initially due to unwrap() in tests, passed after switching to expect() and updating baseline"}

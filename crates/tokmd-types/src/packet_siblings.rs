@@ -131,8 +131,10 @@ mod tests {
                 ..ManualCandidateRecord::default()
             }],
         };
-        let json = serde_json::to_string(&file).unwrap();
-        let back: ManualCandidatesFile = serde_json::from_str(&json).unwrap();
+        let json = serde_json::to_string(&file)
+            .expect("manual_candidates_roundtrip_with_optional_fields json serialize");
+        let back: ManualCandidatesFile = serde_json::from_str(&json)
+            .expect("manual_candidates_roundtrip_with_optional_fields json deserialize");
         assert_eq!(back, file);
         assert!(back.schema_matches());
         assert_eq!(
