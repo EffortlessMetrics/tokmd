@@ -119,6 +119,32 @@ mod tests {
     }
 
     #[test]
+    fn manual_candidates_roundtrip_with_optional_fields() {
+        let file = ManualCandidatesFile {
+            schema_version: MANUAL_CANDIDATES_SCHEMA.into(),
+            candidates: vec![ManualCandidateRecord {
+                id: Some("seed-43".into()),
+                title: Some("Complex boundary".into()),
+                invariant: Some("data bounds".into()),
+                test_targets: vec!["target_a".into(), "target_b".into()],
+                do_not_touch: vec!["file_a".into(), "file_b".into()],
+                ..ManualCandidateRecord::default()
+            }],
+        };
+        let json = serde_json::to_string(&file)
+            .expect("manual_candidates_roundtrip_with_optional_fields json serialize");
+        let back: ManualCandidatesFile = serde_json::from_str(&json)
+            .expect("manual_candidates_roundtrip_with_optional_fields json deserialize");
+        assert_eq!(back, file);
+        assert!(back.schema_matches());
+        assert_eq!(
+            back.candidates[0].test_targets,
+            vec!["target_a", "target_b"]
+        );
+        assert_eq!(back.candidates[0].do_not_touch, vec!["file_a", "file_b"]);
+    }
+
+    #[test]
     fn cards_roundtrip_with_review_cards_alias() {
         let raw =
             r#"{"schema_version":"0.2","review_cards":[{"id":"rc-17","title":"slice read"}]}"#;

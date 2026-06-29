@@ -172,7 +172,58 @@ mod tests {
         }
     }
 
+    #[test]
+    fn diff_row_delta_consistency() {
+        let row = sample_diff_row();
+        assert_eq!(
+            row.delta_code,
+            (row.new_code as i64) - (row.old_code as i64)
+        );
+        assert_eq!(
+            row.delta_lines,
+            (row.new_lines as i64) - (row.old_lines as i64)
+        );
+        assert_eq!(
+            row.delta_files,
+            (row.new_files as i64) - (row.old_files as i64)
+        );
+        assert_eq!(
+            row.delta_bytes,
+            (row.new_bytes as i64) - (row.old_bytes as i64)
+        );
+        assert_eq!(
+            row.delta_tokens,
+            (row.new_tokens as i64) - (row.old_tokens as i64)
+        );
+    }
+
+    #[test]
+    fn diff_totals_delta_consistency() {
+        let totals = sample_diff_totals();
+        assert_eq!(
+            totals.delta_code,
+            (totals.new_code as i64) - (totals.old_code as i64)
+        );
+        assert_eq!(
+            totals.delta_lines,
+            (totals.new_lines as i64) - (totals.old_lines as i64)
+        );
+        assert_eq!(
+            totals.delta_files,
+            (totals.new_files as i64) - (totals.old_files as i64)
+        );
+        assert_eq!(
+            totals.delta_bytes,
+            (totals.new_bytes as i64) - (totals.old_bytes as i64)
+        );
+        assert_eq!(
+            totals.delta_tokens,
+            (totals.new_tokens as i64) - (totals.old_tokens as i64)
+        );
+    }
+
     // ── DiffTotals ───────────────────────────────────────────────────
+
     #[test]
     fn diff_totals_serde_roundtrip() {
         let totals = sample_diff_totals();

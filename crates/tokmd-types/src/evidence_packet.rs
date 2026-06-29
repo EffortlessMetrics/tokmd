@@ -82,6 +82,26 @@ mod tests {
     }
 
     #[test]
+    fn evidence_packet_status_serde_exhaustive() {
+        // Ensure all variants deserialize exactly
+        assert_eq!(
+            serde_json::from_str::<EvidencePacketStatus>("\"complete\"")
+                .expect("evidence_packet_status_serde_exhaustive deserialize complete"),
+            EvidencePacketStatus::Complete
+        );
+        assert_eq!(
+            serde_json::from_str::<EvidencePacketStatus>("\"partial\"")
+                .expect("evidence_packet_status_serde_exhaustive deserialize partial"),
+            EvidencePacketStatus::Partial
+        );
+        assert_eq!(
+            serde_json::from_str::<EvidencePacketStatus>("\"failed\"")
+                .expect("evidence_packet_status_serde_exhaustive deserialize failed"),
+            EvidencePacketStatus::Failed
+        );
+    }
+
+    #[test]
     fn evidence_packet_manifest_roundtrips() {
         let manifest = EvidencePacketManifest {
             schema: EVIDENCE_PACKET_SCHEMA.to_string(),
