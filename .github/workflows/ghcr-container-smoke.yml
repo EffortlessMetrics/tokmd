@@ -183,7 +183,7 @@ jobs:
 
       - name: Upload runtime-exec receipt
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ghcr-container-smoke-receipt-${{ github.event.inputs.version }}
           path: target/publishing/ghcr-visibility-${{ github.event.inputs.version }}-runtime-exec.md
