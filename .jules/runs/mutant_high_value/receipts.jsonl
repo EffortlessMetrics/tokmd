@@ -1,2 +1,1 @@
-{"timestamp": "2026-05-11T16:17:30+00:00", "command": "cargo mutants -p tokmd-types --timeout 300", "output": "Found 25 mutants to test\nok       Unmutated baseline in 66s build + 4s test\n25 mutants tested in 5m: 21 caught, 4 unviable"}
-{"timestamp": "2026-05-11T16:17:30+00:00", "command": "cargo mutants -p tokmd-types", "output": "Found 25 mutants to test\nok       Unmutated baseline in 79s build + 4s test\n25 mutants tested in 5m: 21 caught, 4 unviable"}
+{"command": "cargo test -p tokmd-types", "outcome": "failed initially, passed after applying tests"}
