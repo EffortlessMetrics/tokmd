@@ -1,0 +1,4 @@
+{"command": "cargo build --verbose", "status": "success"}
+{"command": "CI=true cargo test -p tokmd-cockpit -p tokmd-envelope -p tokmd-types -p tokmd-scan -p tokmd-wasm -p tokmd-analysis-types", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}
