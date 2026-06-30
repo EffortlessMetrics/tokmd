@@ -94,6 +94,9 @@ Optional syntax evidence is best-effort: when it cannot be produced the packet
 degrades to `partial` with a named missing-artifact warning rather than failing.
 Unresolved `--base`/`--head` refs fail the command before artifacts are written.
 
+For UB/crash review triage using `review_signals` and manifest
+`review_priority`, see [Syntax evidence guide](workflows/syntax-evidence-guide.md).
+
 ### Manual Equivalent
 
 The orchestrator is equivalent to this manual recipe, which remains useful when

@@ -1262,6 +1262,7 @@ paths = [
   "docs/troubleshooting.md",
   "docs/ub-review-integration.md",
   "docs/user-paths.md",
+  "docs/workflows/**",
   "docs/workflows.md",
 ]
 proof = ["cargo xtask docs --check"]

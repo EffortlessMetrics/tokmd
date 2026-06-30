@@ -9,7 +9,7 @@ Use this recipe index when you need a specific variant or CI shape.
 | --- | --- |
 | Tell me what this repo is | [Quick Health Check](#3-quick-health-check-with-analysis), [Finding Heavy Files](#7-finding-heavy-files), [Architecture Visualization](#13-architecture-visualization) |
 | Tell me what changed | [Tracking Repo Growth Over Time](#5-tracking-repo-growth-over-time), [Quick PR Summary](#15-quick-pr-summary) |
-| Help me review this PR | [PR Review Packet](#15b-pr-review-packet), [One-command PR Artifact Bundle](#15c-one-command-pr-artifact-bundle) |
+| Help me review this PR | [PR Review Packet](#15b-pr-review-packet), [One-command PR Artifact Bundle](#15c-one-command-pr-artifact-bundle), [Syntax evidence for UB/crash review](workflows/syntax-evidence-guide.md) |
 | Give CI stable evidence and gates | [CI Gate: Policy-Based Quality Gates](#10-ci-gate-policy-based-quality-gates), [GitHub Actions Integration](#18-github-actions-integration), [Baseline Tracking Workflow](#22-baseline-tracking-workflow) |
 | Give my coding agent context and proof expectations | [Packing Code into an LLM Context Window](#1-packing-code-into-an-llm-context-window), [LLM Handoff Bundles](#21-llm-handoff-bundles) |
 

@@ -41,6 +41,9 @@ schemas, and verification policy for `tokmd`.
 - [integrations/ub-review.md](integrations/ub-review.md) - copy-ready
   `ub-review` sensor recipe for `sensors/tokmd/analyze.md`,
   `sensors/tokmd/analyze.json`, and `sensors/tokmd/context.md`.
+- [workflows/syntax-evidence-guide.md](workflows/syntax-evidence-guide.md) -
+  UB/crash review triage using opt-in `review_signals` and packet
+  `review_priority`.
 - [interop/sibling-tools.md](interop/sibling-tools.md) - sibling sensor-tool
   family contracts, bidirectional learning ledger, and tokmd adoption/teaching row
   (mirror of unsafe-review-swarm canonical).

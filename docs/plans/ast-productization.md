@@ -74,11 +74,11 @@ Required CI: `Tokmd Rust Result` (`cargo test --all-features`).
 
 | # | PR | Status |
 | --- | --- | --- |
-| 1 | #368 syntax `--exclude` | open |
-| 2 | governance reconciliation | in progress |
-| 3 | packet exclude forwarding | deferred |
-| 4 | user-path syntax guide | deferred |
-| 5 | publication import | after 1–2 |
+| 1 | #368 syntax `--exclude` | merged |
+| 2 | #369 governance reconciliation | merged |
+| 3 | #370 packet exclude forwarding | merged |
+| 4 | user-path syntax guide | in progress |
+| 5 | publication import | after lane packets |
 
 ## Intentionally deferred
 

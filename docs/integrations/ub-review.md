@@ -141,6 +141,9 @@ is narrower.
 - Optional syntax output can add parser-backed review signals and
   `review_priority` entries to the packet manifest.
 
+For step-by-step triage using `review_signals`, see
+[syntax-evidence-guide.md](../workflows/syntax-evidence-guide.md).
+
 ## Fallback
 
 If `bun-ub` is unavailable in an older `tokmd` binary, the weaker generic
