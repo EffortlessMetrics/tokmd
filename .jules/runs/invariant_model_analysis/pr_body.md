@@ -1,48 +1,48 @@
 ## 💡 Summary
-Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
+Added property-based tests for `FileRow` invariants. While `LangRow` and `ModuleRow` had comprehensive tests covering sorting stability, idempotency, and aggregation conservation, `FileRow` lacked equivalent guarantees in the test suite.
 
 ## 🎯 Why
-Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
+The `sort_file_rows` function exists alongside `sort_lang_rows` and `sort_module_rows` in `crates/tokmd-model/src/sorting.rs`. Lacking `proptest` validation for `FileRow` operations introduces a blind spot where subtle regressions in how file metrics sort could break contract output behavior determinism.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
-- Proptest coverage now properly models these bounds and constraints.
+Minimal proof:
+- file path(s): `crates/tokmd-model/tests/proptest_w42.rs`
+- observed behavior / finding: No `arb_file_row` or properties related to `FileRow` were implemented, yet sorting functions existed for it.
+- command: `grep -rn "fn arb_" crates/tokmd-model/tests/` revealed only `arb_lang_row` and `arb_module_row`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
-- Fits the analysis-stack by increasing deterministic guarantees in data generation.
-- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
+- what it is: Implement `arb_file_row` and invariant tests mirroring the robust tests established for sibling row types in `crates/tokmd-model/tests/proptest_w42.rs`.
+- why it fits this repo and shard: It locks in the sorting and mathematical properties of an analysis-stack model type inside the canonical properties test file.
+- trade-offs:
+  - Structure: Zero negative impact. Merely fills an apparent omission in an existing test suite.
+  - Velocity: Rapid to iterate on and verify since the shape of the tests is mostly defined.
+  - Governance: High value to determinism guarantees.
 
 ### Option B
-- Add deterministic hard-coded unit test values.
-- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
-- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
+- what it is: Look for broader properties gaps in `tokmd-analysis`.
+- when to choose it instead: If the model crate was already flawlessly covered or if sorting determinism wasn't a core invariant.
+- trade-offs: More exploratory churn with less immediate guarantee tightening.
 
 ## ✅ Decision
-Chose Option A to enforce invariants across arbitrary file arrays properly.
+Option A. It straightforwardly closes a testing gap for a fundamental invariant.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
+- `crates/tokmd-model/tests/proptest_w42.rs`: Added `arb_file_row()` generator and `FileRow` sorting invariant property tests.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis --lib derived::tests::properties
-...
-test derived::tests::properties::distribution_median_is_correct ... ok
-test derived::tests::properties::distribution_percentiles_are_correct ... ok
-test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
-...
-test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
+cargo test -p tokmd-model --test proptest_w42
+cargo fmt
+cargo clippy -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test/Proof improvement
-- Blast radius: Internal test surface only
-- Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Change shape: Test Addition
+- Blast radius: `tokmd-model` (Testing Only)
+- Risk class: Safe (No production code changes)
+- Rollback: `git checkout HEAD^`
+- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
