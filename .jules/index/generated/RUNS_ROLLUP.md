@@ -25,6 +25,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `palette_binding_dx` | palette | prover | bindings-targets | success | 0 | live |
 | `palette_runtime_dx` | palette | builder | interfaces | success | 0 | live |
 | `palette_runtime_dx_interfaces` | Palette 🎨 | Builder | interfaces | in-progress | 0 | live |
+| `run-archivist-001` | Archivist 🗃️ | Builder | workspace-wide | in-progress | 0 | live |
 | `run-sentinel-redact-1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `run-specsmith-1` | Specsmith | Builder | analysis-stack | in-progress | 3 | live |
 | `run_mutant_01` | Mutant | Prover | core-pipeline | success | 0 | live |

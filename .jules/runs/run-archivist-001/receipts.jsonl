@@ -1,0 +1,2 @@
+cargo xtask jules-index
+cargo xtask jules-index --check
