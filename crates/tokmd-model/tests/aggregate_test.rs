@@ -55,3 +55,81 @@ fn separate_mode_does_not_count_child_bytes_or_tokens() {
     assert_eq!(report.total.bytes, 0);
     assert_eq!(report.total.tokens, 0);
 }
+
+#[test]
+fn fold_other_lang_calculates_avg_lines_correctly() {
+    let report = create_lang_report_from_rows(
+        &[
+            file_row(FileKind::Parent, "Rust", 500, 125),
+            file_row(FileKind::Parent, "Go", 500, 125),
+            file_row(FileKind::Parent, "Python", 500, 125),
+            file_row(FileKind::Parent, "C", 500, 125),
+        ],
+        2, // top 2
+        false,
+        ChildrenMode::Collapse,
+    );
+    assert_eq!(report.rows.len(), 3);
+    assert_eq!(report.rows[2].lang, "Other");
+    assert_eq!(report.rows[2].lines, 240); // 120 + 120
+    assert_eq!(report.rows[2].files, 2); // 1 + 1
+    // The model should use `avg(lines, files)`. avg(240, 2) = 120.
+    assert_eq!(report.rows[2].avg_lines, 120);
+}
+
+#[test]
+fn fold_other_lang_calculates_avg_lines_rounding() {
+    let mut rows = vec![
+        file_row(FileKind::Parent, "Rust", 500, 125),
+        file_row(FileKind::Parent, "Go", 500, 125),
+        file_row(FileKind::Parent, "Python", 500, 125),
+    ];
+    // make sure lines sum to 13 and files to 3 (avg = 4.33 -> rounds to 4). Or lines = 14, files = 3 (avg = 4.66 -> rounds to 5)
+    rows[1].code = 4; rows[1].lines = 5;
+    rows[2].code = 8; rows[2].lines = 9;
+
+    let report = create_lang_report_from_rows(
+        &rows,
+        1, // top 1
+        false,
+        ChildrenMode::Collapse,
+    );
+    assert_eq!(report.rows.len(), 2);
+    assert_eq!(report.rows[1].lang, "Other");
+    assert_eq!(report.rows[1].lines, 14);
+    assert_eq!(report.rows[1].files, 2);
+    assert_eq!(report.rows[1].avg_lines, 7);
+
+
+
+
+}
+use tokmd_model::create_module_report_from_rows;
+use tokmd_types::ChildIncludeMode;
+
+#[test]
+fn fold_other_module_calculates_avg_lines_correctly() {
+    let mut rows = vec![
+        file_row(FileKind::Parent, "Rust", 500, 125),
+        file_row(FileKind::Parent, "Go", 500, 125),
+        file_row(FileKind::Parent, "Python", 500, 125),
+    ];
+    rows[0].module = "crates/a".to_string();
+    rows[1].module = "crates/b".to_string();
+    rows[2].module = "crates/c".to_string();
+    rows[1].code = 4; rows[1].lines = 5;
+    rows[2].code = 8; rows[2].lines = 9;
+
+    let report = create_module_report_from_rows(
+        &rows,
+        &[], // module_roots
+        1,   // depth
+        ChildIncludeMode::ParentsOnly,
+        1,   // top 1
+    );
+    assert_eq!(report.rows.len(), 2);
+    assert_eq!(report.rows[1].module, "Other");
+    assert_eq!(report.rows[1].lines, 14); // 5 + 9
+    assert_eq!(report.rows[1].files, 2); // 1 + 1
+    assert_eq!(report.rows[1].avg_lines, 7);
+}

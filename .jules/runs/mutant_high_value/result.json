@@ -1,3 +1,4 @@
 {
-  "outcome": "learning PR"
+  "outcome": "proof-improvement patch",
+  "reason": "Closed a mutation gap in tokmd-model by fixing and adding explicit tests for avg_lines inside fold_other_lang and fold_other_module"
 }
