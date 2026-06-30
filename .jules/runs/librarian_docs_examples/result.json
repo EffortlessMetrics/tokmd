@@ -1,21 +1,12 @@
 {
-  "outcome": "patch",
-  "title": "librarian: fix factual path drift for BASELINE_VERSION in SCHEMA.md \ud83d\udcda",
-  "summary": "Updated docs/SCHEMA.md to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.",
-  "target_paths": [
-    "docs/SCHEMA.md"
-  ],
-  "proof_summary": "rg confirms BASELINE_VERSION is defined in baseline.rs, not lib.rs",
-  "gates_run": [
-    "cargo xtask doc-artifacts --check",
-    "cargo xtask docs --check",
-    "cargo xtask proof-policy --check",
-    "cargo fmt-check",
-    "cargo xtask proof --profile affected --run-required",
-    "cargo xtask proof-run-artifacts-check"
-  ],
-  "friction_items": [],
-  "persona_notes": [],
-  "rollback": "git restore docs/SCHEMA.md",
-  "follow_ups": []
+  "status": "success",
+  "outcome": "PR-ready patch",
+  "summary": "Aligned `--children` flag defaults documentation with CLI behavior.",
+  "artifacts_written": [
+    ".jules/runs/librarian_docs_examples/envelope.json",
+    ".jules/runs/librarian_docs_examples/receipts.jsonl",
+    ".jules/runs/librarian_docs_examples/decision.md",
+    ".jules/runs/librarian_docs_examples/result.json",
+    ".jules/runs/librarian_docs_examples/pr_body.md"
+  ]
 }
