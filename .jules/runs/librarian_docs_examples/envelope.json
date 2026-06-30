@@ -1,4 +1,5 @@
 {
+  "run_id": "librarian_docs_examples",
   "prompt_id": "librarian_docs_examples",
   "persona": "Librarian",
   "style": "Builder",
@@ -10,15 +11,13 @@
     "ROADMAP.md",
     "CHANGELOG.md",
     "Cargo.toml",
-    "Cargo.lock"
+    "Cargo.lock",
+    "crates/**/Cargo.toml",
+    ".cargo/**"
   ],
   "gate_profile": "docs-executable",
-  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
-  "artifacts": [
-    ".jules/runs/librarian_docs_examples/envelope.json",
-    ".jules/runs/librarian_docs_examples/decision.md",
-    ".jules/runs/librarian_docs_examples/receipts.jsonl",
-    ".jules/runs/librarian_docs_examples/result.json",
-    ".jules/runs/librarian_docs_examples/pr_body.md"
+  "allowed_outcomes": [
+    "PR-ready patch",
+    "learning PR"
   ]
 }
