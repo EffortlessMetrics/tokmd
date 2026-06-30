@@ -1,15 +1,19 @@
-# Decision
+# Decision: Missing FileRow Properties Coverage
 
-## Option A
-Add property tests for the `distribution_median`, `distribution_percentiles`, and `histogram_bucket_bounds` invariants in `crates/tokmd-analysis/src/derived/tests/properties.rs`.
+## Options considered
+### Option A (recommended)
+Add property-based testing to `crates/tokmd-model/tests/proptest_w42.rs` for `FileRow` sorting and aggregation invariants. The current file lacks properties testing for `FileRow`, despite containing equivalent property checks for `LangRow` and `ModuleRow`.
 
-These invariants reflect important facts about the analysis:
-1. `distribution_median_is_correct` - median should accurately reflect the 50th percentile.
-2. `distribution_percentiles_are_correct` - p90 and p99 should accurately reflect the underlying `tokmd_scan::percentile` calculations over sizes.
-3. `histogram_bucket_bounds_are_ordered_and_non_overlapping` - bucket sizes should remain contiguous with `prev.max.unwrap() + 1 == curr.min` allowing no gaps or overlap.
+Trade-offs:
+- Structure: Excellent fit. `proptest_w42.rs` is where property-based testing for model objects lives.
+- Velocity: Simple missing coverage gap. Very low risk since no production functionality is modified.
+- Governance: Tightens testing around core invariant models for sorting determinism.
 
-## Option B
-Find an alternative location to add property tests. But the existing `derived::tests::properties` clearly contains a gap because only `distribution_count`, `min_le_max`, `mean_between_min_max` and `gini` were verified, ignoring other critical metrics returned by `build_distribution_report` and `build_histogram`.
+### Option B
+Search for properties to add to `crates/tokmd-analysis`.
+
+Trade-offs:
+- Much more open ended and difficult to find gaps for.
 
 ## Decision
-Choose Option A. I have implemented and verified all three new invariants which reduce uncertainty over these analytical outputs using proptest properties in the analysis crate tests.
+Option A. It's a proven missing spot of test coverage for a very specific model entity within the shard that matches the pattern already established in the test file.

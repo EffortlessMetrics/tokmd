@@ -1,11 +1,4 @@
 {
   "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd-analysis/src/derived/tests/properties.rs"
-  ],
-  "invariants_added": [
-    "distribution_median_is_correct",
-    "distribution_percentiles_are_correct",
-    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
-  ]
+  "files_changed": ["crates/tokmd-model/tests/proptest_w42.rs"]
 }
