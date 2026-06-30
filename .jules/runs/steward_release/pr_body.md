@@ -1,49 +1,57 @@
 ## 💡 Summary
-Fixed documentation version drift to match the 1.14.0 release. Updated multiple markdown files that incorrectly used `1.13.1` in examples.
+This is a learning PR. I ran release and governance hygiene checks across the workspace and found zero drift.
 
 ## 🎯 Why
-To prevent user confusion and maintain version consistency across the codebase. Following the release of 1.14.0, documentation examples in GitHub Actions usage and packet workflows needed alignment with the new workspace version.
+To proactively maintain release/governance hygiene in the `tooling-governance` shard.
 
 ## 🔎 Evidence
-Minimal proof:
-- file paths: `docs/action-quickstart.md`, `docs/github-action.md`, `docs/packet-workflows.md`, `docs/evidence-packet.md`
-- observed behavior / finding: The documentation examples still pointed to version `1.13.1`.
-- command receipt demonstrating it: `grep -Rn "1.13.1" docs/action-quickstart.md docs/github-action.md docs/packet-workflows.md docs/evidence-packet.md`
+- File paths: `.github/workflows/**`, `docs/**`, `ROADMAP.md`, `CHANGELOG.md`, `Cargo.toml`, `Cargo.lock`
+- Observed behavior: `cargo xtask version-consistency` passed 100%, `cargo xtask publish --plan --verbose` passed, `cargo xtask docs --check` passed.
+- Receipt demonstrating it:
+```text
+{"timestamp": "0001", "command": "cargo xtask version-consistency", "output": "success"}
+{"timestamp": "0002", "command": "cargo xtask publish --plan --verbose", "output": "success"}
+{"timestamp": "0003", "command": "cargo xtask docs --check", "output": "success"}
+```
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `1.13.1` to `1.14.0` in the identified documentation examples.
-- why it fits this repo and shard: It is a low-risk release/governance improvement that directly addresses publish-plan/version-consistency drift.
-- trade-offs: Structure is improved by ensuring examples use the latest version. No governance or velocity downside.
+- what it is: Form a learning PR recording the zero-drift state.
+- why it fits this repo and shard: It strictly adheres to "Output honesty".
+- trade-offs: Structure / Velocity / Governance: Safely validates the release state without forcing unnecessary patches.
 
 ### Option B
-- what it is: Update historical ledgers in `docs/releases/`.
-- when to choose it instead: If the ledgers were actually incorrect for the historical release.
-- trade-offs: This would introduce factual inaccuracies by invalidating the history of the 1.13.1 release.
+- what it is: Fabricate an arbitrary markdown edit to `ROADMAP.md` to force a patch.
+- when to choose it instead: Never.
+- trade-offs: Violates rules against hallucinated work.
 
 ## ✅ Decision
-Chose Option A. It effectively aligns the current documentation with the latest 1.14.0 release while preserving historical accuracy.
+Option A. I am generating a learning PR since all checks successfully passed without issue.
 
 ## 🧱 Changes made (SRP)
-- `docs/action-quickstart.md`
-- `docs/github-action.md`
-- `docs/packet-workflows.md`
-- `docs/evidence-packet.md`
+- `.jules/runs/steward_release/envelope.json`
+- `.jules/runs/steward_release/receipts.jsonl`
+- `.jules/runs/steward_release/decision.md`
+- `.jules/runs/steward_release/result.json`
+- `.jules/runs/steward_release/pr_body.md`
+- `.jules/friction/open/cargo_deny_missing.md`
 
 ## 🧪 Verification receipts
 ```text
 cargo xtask version-consistency
+cargo xtask publish --plan --verbose
 cargo xtask docs --check
-cargo fmt -- --check
 cargo clippy -- -D warnings
+cargo test -p xtask
+cargo fmt -- --check
 ```
 
 ## 🧭 Telemetry
-- Change shape: Documentation update.
-- Blast radius: API / docs (No schema or codebase changes).
-- Risk class + why: Low. Modifies documentation examples to use the correct tool version.
-- Rollback: Revert the PR.
-- Gates run: `cargo xtask version-consistency`, `cargo xtask docs --check`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Change shape: Learning run packet
+- Blast radius: None (documentation / artifact only)
+- Risk class: Low
+- Rollback: rm -rf .jules/runs/steward_release
+- Gates run: governance-release profile fallbacks (`cargo xtask publish`, `version-consistency`, `docs`, `fmt`, `clippy`, `test`)
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/steward_release/envelope.json`
@@ -51,6 +59,7 @@ cargo clippy -- -D warnings
 - `.jules/runs/steward_release/receipts.jsonl`
 - `.jules/runs/steward_release/result.json`
 - `.jules/runs/steward_release/pr_body.md`
+- `.jules/friction/open/cargo_deny_missing.md`
 
 ## 🔜 Follow-ups
-None.
+- Address `cargo_deny_missing.md` to ensure `cargo deny` is available for future dependency checks.
