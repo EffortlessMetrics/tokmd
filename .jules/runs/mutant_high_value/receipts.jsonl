@@ -1,1 +1,2 @@
 {"cmd":"cargo test --package tokmd-model","exit_code":0,"stdout":"running 52 tests\ntest avg_one_file ... ok\ntest avg_rounds_to_nearest ... ok\ntest avg_zero_files_returns_zero ... ok"}
+{"cmd":"cargo xtask check-no-panic-family --strict","exit_code":0,"stdout":"no-panic policy: 22390 finding(s), 22390 matched, 0 unallowlisted, 0 stale, 0 expired, 0 shape error(s)"}

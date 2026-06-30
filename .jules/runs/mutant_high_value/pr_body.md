@@ -1,8 +1,8 @@
 ## 💡 Summary
-Replaced an unsafe `checked_div` approximation in `tokmd-model`'s data aggregation with the robust, mathematically bounded `crate::avg` function, and added mutation tests to lock in the behavior.
+Replaced an unsafe `checked_div` approximation in `tokmd-model`'s data aggregation with the robust, mathematically bounded `crate::avg` function, and added mutation tests to lock in the behavior. Modified the test implementation to ensure it complies with the repo's strict `no-panic-family` static analysis policy.
 
 ## 🎯 Why
-During exploration, I discovered a mutation-style gap: the code inside `tokmd-model::aggregate::fold_other_lang` and `fold_other_module` calculated `avg_lines` using an inline, potentially overflowing approximation: `(lines + (files / 2)).checked_div(files).unwrap_or(0)`. This could be replaced or break without failing any tests. This change fixes the math by using the unified `crate::avg` function and locks in the aggregation boundary with new unit tests.
+During exploration, I discovered a mutation-style gap: the code inside `tokmd-model::aggregate::fold_other_lang` and `fold_other_module` calculated `avg_lines` using an inline, potentially overflowing approximation: `(lines + (files / 2)).checked_div(files).unwrap_or(0)`. This could be replaced or break without failing any tests. This change fixes the math by using the unified `crate::avg` function and locks in the aggregation boundary with new unit tests. An initial attempt failed CI because it used array indexing and `unwrap()` within a test, violating the `no-panic-family` contract policy. The revised version avoids this by using standard iterators and finding options instead.
 
 ## 🔎 Evidence
 - `crates/tokmd-model/src/aggregate.rs` had weak mathematical assertions around the top-N truncation "Other" bucket.
@@ -19,7 +19,7 @@ test separate_mode_does_not_count_child_bytes_or_tokens ... ok
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Use `crate::avg(lines, files)` inside `fold_other_lang` and `fold_other_module` and write targeted tests in `crates/tokmd-model/tests/aggregate_test.rs`.
+- Use `crate::avg(lines, files)` inside `fold_other_lang` and `fold_other_module` and write targeted tests in `crates/tokmd-model/tests/aggregate_test.rs` ensuring they abide by the strict `no-panic-family` AST check policy.
 - Why it fits: Closes a concrete missed-mutant gap in a high-value core data transformation step using the `Prover` style.
 - Trade-offs: Focuses on unit tests rather than cargo-mutants. Structure: locks behavior; Velocity: minimal; Governance: robust code path.
 
@@ -47,9 +47,8 @@ test separate_mode_does_not_count_child_bytes_or_tokens ... ok
 
 test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-cargo test --package tokmd-model
-test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
-test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+cargo xtask check-no-panic-family --strict
+no-panic policy: 22390 finding(s), 22390 matched, 0 unallowlisted, 0 stale, 0 expired, 0 shape error(s)
 ```
 
 ## 🧭 Telemetry
@@ -57,7 +56,7 @@ test result: ok. 52 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - Blast radius: Output metrics formatting, API contracts.
 - Risk class: Low. The inline logic was meant to duplicate the `avg` logic. We just unified it and tested it.
 - Rollback: Revert the PR.
-- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`, `cargo xtask check-file-policy --strict`.
+- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`, `cargo xtask check-file-policy --strict`, `cargo xtask check-no-panic-family --strict`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/mutant_high_value/envelope.json`

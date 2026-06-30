@@ -70,11 +70,14 @@ fn fold_other_lang_calculates_avg_lines_correctly() {
         ChildrenMode::Collapse,
     );
     assert_eq!(report.rows.len(), 3);
-    assert_eq!(report.rows[2].lang, "Other");
-    assert_eq!(report.rows[2].lines, 240); // 120 + 120
-    assert_eq!(report.rows[2].files, 2); // 1 + 1
-    // The model should use `avg(lines, files)`. avg(240, 2) = 120.
-    assert_eq!(report.rows[2].avg_lines, 120);
+    let row_opt = report.rows.iter().find(|r| r.lang == "Other");
+    assert!(row_opt.is_some());
+    if let Some(row) = row_opt {
+        assert_eq!(row.lines, 240); // 120 + 120
+        assert_eq!(row.files, 2); // 1 + 1
+        // The model should use `avg(lines, files)`. avg(240, 2) = 120.
+        assert_eq!(row.avg_lines, 120);
+    }
 }
 
 #[test]
@@ -84,9 +87,14 @@ fn fold_other_lang_calculates_avg_lines_rounding() {
         file_row(FileKind::Parent, "Go", 500, 125),
         file_row(FileKind::Parent, "Python", 500, 125),
     ];
-    // make sure lines sum to 13 and files to 3 (avg = 4.33 -> rounds to 4). Or lines = 14, files = 3 (avg = 4.66 -> rounds to 5)
-    rows[1].code = 4; rows[1].lines = 5;
-    rows[2].code = 8; rows[2].lines = 9;
+    if let Some(r1) = rows.get_mut(1) {
+        r1.code = 4;
+        r1.lines = 5;
+    }
+    if let Some(r2) = rows.get_mut(2) {
+        r2.code = 8;
+        r2.lines = 9;
+    }
 
     let report = create_lang_report_from_rows(
         &rows,
@@ -95,15 +103,16 @@ fn fold_other_lang_calculates_avg_lines_rounding() {
         ChildrenMode::Collapse,
     );
     assert_eq!(report.rows.len(), 2);
-    assert_eq!(report.rows[1].lang, "Other");
-    assert_eq!(report.rows[1].lines, 14);
-    assert_eq!(report.rows[1].files, 2);
-    assert_eq!(report.rows[1].avg_lines, 7);
-
-
-
-
+    let row_opt = report.rows.iter().find(|r| r.lang == "Other");
+    assert!(row_opt.is_some());
+    if let Some(row) = row_opt {
+        assert_eq!(row.lines, 14); // 5 + 9
+        assert_eq!(row.files, 2); // 1 + 1
+        // `avg(14, 2)` = 7.
+        assert_eq!(row.avg_lines, 7);
+    }
 }
+
 use tokmd_model::create_module_report_from_rows;
 use tokmd_types::ChildIncludeMode;
 
@@ -114,22 +123,33 @@ fn fold_other_module_calculates_avg_lines_correctly() {
         file_row(FileKind::Parent, "Go", 500, 125),
         file_row(FileKind::Parent, "Python", 500, 125),
     ];
-    rows[0].module = "crates/a".to_string();
-    rows[1].module = "crates/b".to_string();
-    rows[2].module = "crates/c".to_string();
-    rows[1].code = 4; rows[1].lines = 5;
-    rows[2].code = 8; rows[2].lines = 9;
+    if let Some(r0) = rows.get_mut(0) {
+        r0.module = "crates/a".to_string();
+    }
+    if let Some(r1) = rows.get_mut(1) {
+        r1.module = "crates/b".to_string();
+        r1.code = 4;
+        r1.lines = 5;
+    }
+    if let Some(r2) = rows.get_mut(2) {
+        r2.module = "crates/c".to_string();
+        r2.code = 8;
+        r2.lines = 9;
+    }
 
     let report = create_module_report_from_rows(
         &rows,
         &[], // module_roots
         1,   // depth
         ChildIncludeMode::ParentsOnly,
-        1,   // top 1
+        1, // top 1
     );
     assert_eq!(report.rows.len(), 2);
-    assert_eq!(report.rows[1].module, "Other");
-    assert_eq!(report.rows[1].lines, 14); // 5 + 9
-    assert_eq!(report.rows[1].files, 2); // 1 + 1
-    assert_eq!(report.rows[1].avg_lines, 7);
+    let row_opt = report.rows.iter().find(|r| r.module == "Other");
+    assert!(row_opt.is_some());
+    if let Some(row) = row_opt {
+        assert_eq!(row.lines, 14); // 5 + 9
+        assert_eq!(row.files, 2); // 1 + 1
+        assert_eq!(row.avg_lines, 7);
+    }
 }
