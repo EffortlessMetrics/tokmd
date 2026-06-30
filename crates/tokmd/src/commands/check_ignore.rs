@@ -227,7 +227,7 @@ fn check_tokeignore(base_path: &Path, path_str: &str) -> Option<IgnoreReason> {
     None
 }
 
-fn matches_glob(pattern: &str, path: &str) -> bool {
+pub(crate) fn matches_glob(pattern: &str, path: &str) -> bool {
     // Simple glob matching (could use the glob crate for more accuracy)
     // Handle common patterns: *, **, ?
 

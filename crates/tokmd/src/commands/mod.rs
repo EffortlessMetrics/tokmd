@@ -58,7 +58,7 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Handoff(args) => handoff::handle(args, global),
         cli::Commands::Sensor(args) => sensor::handle(args, global),
         #[cfg(feature = "ast")]
-        cli::Commands::Syntax(args) => syntax::handle(args),
+        cli::Commands::Syntax(args) => syntax::handle(args, global),
         cli::Commands::EvidencePacket(args) => evidence_packet::handle(args),
         cli::Commands::Render(args) => render::handle(args),
         #[cfg(feature = "analysis")]

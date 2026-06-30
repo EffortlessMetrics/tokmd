@@ -49,6 +49,42 @@ fn syntax_command_emits_scoped_review_signals() {
 }
 
 #[test]
+fn syntax_command_honors_global_exclude_pattern() {
+    let dir = tempdir().unwrap();
+    let src = dir.path().join("src");
+    std::fs::create_dir_all(&src).unwrap();
+    std::fs::write(src.join("keep.rs"), "pub fn keep() {}\n").unwrap();
+    std::fs::write(src.join("skip.rs"), "pub fn skip() {}\n").unwrap();
+
+    let output = tokmd_cmd()
+        .current_dir(dir.path())
+        .args(["syntax", "--exclude", "**/skip.rs", "src"])
+        .output()
+        .expect("tokmd syntax should run");
+
+    assert!(
+        output.status.success(),
+        "stderr:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let paths: Vec<&str> = json["receipts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|receipt| receipt["path"].as_str())
+        .collect();
+    assert!(
+        paths.contains(&"src/keep.rs"),
+        "kept file should be present: {paths:?}"
+    );
+    assert!(
+        !paths.iter().any(|path| path.ends_with("skip.rs")),
+        "excluded file must not appear in receipts: {paths:?}"
+    );
+}
+
+#[test]
 fn syntax_command_records_advisory_receipts_as_partial() {
     let dir = tempdir().unwrap();
     let src = dir.path().join("src");

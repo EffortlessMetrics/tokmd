@@ -8,11 +8,12 @@ use serde_json::{Value, json};
 use tokmd_analysis::ast::{SyntaxParseOptions, SyntaxParseReceipt, parse_syntax_receipt};
 
 use crate::cli;
+use crate::commands::check_ignore::matches_glob;
 
 const SYNTAX_RECEIPTS_SCHEMA: &str = "tokmd.syntax_receipts.v1";
 
-pub(crate) fn handle(args: cli::SyntaxArgs) -> Result<()> {
-    let packet = build_syntax_packet(&args)?;
+pub(crate) fn handle(args: cli::SyntaxArgs, global: &cli::GlobalArgs) -> Result<()> {
+    let packet = build_syntax_packet(&args, &global.excluded)?;
     println!("{}", serde_json::to_string_pretty(&packet)?);
 
     if let Some(errors) = packet.get("errors").and_then(Value::as_array)
@@ -29,7 +30,7 @@ pub(crate) fn handle(args: cli::SyntaxArgs) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn build_syntax_packet(args: &cli::SyntaxArgs) -> Result<Value> {
+pub(crate) fn build_syntax_packet(args: &cli::SyntaxArgs, excluded: &[String]) -> Result<Value> {
     let cwd = std::env::current_dir().context("failed to resolve current directory")?;
     let requested_paths = args
         .paths
@@ -38,7 +39,7 @@ pub(crate) fn build_syntax_packet(args: &cli::SyntaxArgs) -> Result<Value> {
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
-    let files = collect_files(&args.paths, &cwd, &mut errors);
+    let files = collect_files(&args.paths, &cwd, excluded, &mut errors);
 
     if files.is_empty() && errors.is_empty() {
         push_unique(&mut warnings, "no files matched syntax path scope");
@@ -96,7 +97,12 @@ pub(crate) fn build_syntax_packet(args: &cli::SyntaxArgs) -> Result<Value> {
     }))
 }
 
-fn collect_files(paths: &[PathBuf], cwd: &Path, errors: &mut Vec<String>) -> Vec<PathBuf> {
+fn collect_files(
+    paths: &[PathBuf],
+    cwd: &Path,
+    excluded: &[String],
+    errors: &mut Vec<String>,
+) -> Vec<PathBuf> {
     let mut files = BTreeSet::new();
     for path in paths {
         if path.is_file() {
@@ -125,7 +131,18 @@ fn collect_files(paths: &[PathBuf], cwd: &Path, errors: &mut Vec<String>) -> Vec
             );
         }
     }
-    files.into_iter().collect()
+    files
+        .into_iter()
+        .filter(|file| !is_excluded(&display_path(file, cwd), excluded))
+        .collect()
+}
+
+/// Apply the global `--exclude` glob patterns to a normalized syntax path,
+/// matching the file-selection semantics of `tokmd check-ignore`.
+fn is_excluded(display: &str, excluded: &[String]) -> bool {
+    excluded
+        .iter()
+        .any(|pattern| matches_glob(pattern, display))
 }
 
 fn push_advisory_warning(receipt: &SyntaxParseReceipt, warnings: &mut Vec<String>) {
@@ -165,5 +182,14 @@ mod tests {
             display_path(Path::new(".\\src\\main.rs"), Path::new(".")),
             "src/main.rs"
         );
+    }
+
+    #[test]
+    fn is_excluded_matches_global_patterns() {
+        let patterns = vec!["**/skip.rs".to_string(), "vendor".to_string()];
+        assert!(is_excluded("src/skip.rs", &patterns));
+        assert!(is_excluded("vendor/lib.rs", &patterns));
+        assert!(!is_excluded("src/keep.rs", &patterns));
+        assert!(!is_excluded("src/keep.rs", &[]));
     }
 }

@@ -191,7 +191,7 @@ fn write_syntax(args: &cli::PacketGenerateArgs, path: &Path) -> Result<()> {
         include_generated_vendor: false,
         paths: args.paths.clone(),
     };
-    let packet = syntax::build_syntax_packet(&syntax_args)?;
+    let packet = syntax::build_syntax_packet(&syntax_args, &[])?;
     let json = serde_json::to_string_pretty(&packet)?;
     std::fs::write(path, json).with_context(|| format!("failed to write {}", path.display()))?;
     Ok(())
