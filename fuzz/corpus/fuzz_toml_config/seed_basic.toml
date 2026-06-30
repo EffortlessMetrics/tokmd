@@ -1,0 +1,88 @@
+[scan]
+paths = ["src", "lib"]
+exclude = ["*.test.js", "docs/"]
+hidden = true
+no_ignore = false
+no_ignore_parent = true
+no_ignore_dot = false
+no_ignore_vcs = false
+doc_comments = true
+config = "auto"
+
+[module]
+roots = ["crates/"]
+depth = 2
+children = "collapse"
+
+[export]
+min_code = 10
+max_rows = 100
+redact = "paths"
+format = "json"
+children = "separate"
+
+[analyze]
+preset = "default"
+window = 1000
+format = "markdown"
+git = true
+max_files = 5000
+max_bytes = 100000000
+max_file_bytes = 1048576
+max_commits = 1000
+max_commit_files = 100
+granularity = "file"
+effort_model = "basic"
+effort_layer = "core"
+effort_base_ref = "main"
+effort_head_ref = "feature"
+effort_monte_carlo = true
+effort_mc_iterations = 1000
+effort_mc_seed = 42
+
+[context]
+budget = "8k"
+strategy = "spread"
+rank_by = "tokens"
+output = "bundle"
+compress = true
+
+[badge]
+metric = "code"
+
+[gate]
+policy = "policy.toml"
+baseline = "baseline.json"
+preset = "security"
+fail_fast = true
+allow_missing_baseline = false
+allow_missing_current = true
+
+[[gate.rules]]
+name = "Max complexity"
+pointer = "/complexity/avg"
+op = "lt"
+value = 10
+
+[[gate.ratchet]]
+pointer = "/security/warnings"
+max_increase_pct = 0.0
+max_value = 5.0
+level = "error"
+description = "No new security warnings allowed"
+
+[view.ci]
+format = "json"
+files = true
+min_code = 0
+redact = "none"
+meta = true
+children = "separate"
+preset = "full"
+window = 0
+budget = "unlimited"
+strategy = "greedy"
+rank_by = "code"
+output = "json"
+compress = false
+metric = "coverage"

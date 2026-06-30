@@ -1,0 +1,1 @@
+{"phase": "exploration", "cmd": "cargo check --workspace --all-targets --all-features", "status": "success", "summary": "Verified added seed corpus files do not break anything and targets build successfully."}

@@ -1,0 +1,16 @@
+[module]
+roots = ["crates/"]
+depth = 2
+
+[view.llm]
+format = "json"
+children = "collapse"
+meta = false
+
+[export]
+redact = "all"
+min_code = 50
+
+[context]
+budget = "100k"
+strategy = "greedy"

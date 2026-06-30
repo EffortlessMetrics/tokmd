@@ -1,0 +1,20 @@
+{
+  "outcome_type": "proof_patch",
+  "reviewer_title": "fuzzer: add seed corpora for config and policy fuzz targets \ud83c\udf2a\ufe0f",
+  "summary": "Added seed corpora for `fuzz_toml_config` and `fuzz_policy_toml` to lock in real edge cases and improve fuzzing efficiency.",
+  "target_paths": [
+    "fuzz/corpus/fuzz_toml_config/seed_advanced.toml",
+    "fuzz/corpus/fuzz_toml_config/seed_basic.toml",
+    "fuzz/corpus/fuzz_toml_config/seed_types.toml",
+    "fuzz/corpus/fuzz_policy_toml/seed_basic.toml",
+    "fuzz/corpus/fuzz_policy_toml/seed_complex.toml"
+  ],
+  "proof_summary": "Added TOML seeds that exercise scan, module, export, analyze, context, badge, gate, and view profiles. Validated via workspace build.",
+  "gates_run": [
+    "cargo check --workspace --all-targets --all-features"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "git clean -fd fuzz/corpus/",
+  "follow_ups": []
+}

@@ -1,0 +1,22 @@
+fail_fast = true
+allow_missing = false
+
+[[rules]]
+name = "Test 1"
+pointer = "/a/b/c"
+op = "eq"
+value = 123
+negate = true
+
+[[rules]]
+name = "Test 2"
+pointer = ""
+op = "exists"
+level = "error"
+
+[[ratchet]]
+pointer = "/foo/bar"
+max_increase_pct = 5.0
+max_value = 10.0
+level = "error"
+description = "Do not increase foo/bar"
