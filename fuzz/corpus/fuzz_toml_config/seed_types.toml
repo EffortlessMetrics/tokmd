@@ -1,0 +1,19 @@
+[scan]
+paths = ["foo", "bar"]
+hidden = true
+
+[analyze]
+max_bytes = 12345678901234
+max_file_bytes = 10000000
+
+[[gate.rules]]
+name = "Test"
+pointer = "/path/to"
+op = "lt"
+value = 100
+
+[[gate.ratchet]]
+pointer = "/foo/bar"
+max_increase_pct = 5.0
+max_value = 10.0
+level = "error"

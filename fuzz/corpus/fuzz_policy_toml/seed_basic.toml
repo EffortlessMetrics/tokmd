@@ -1,0 +1,19 @@
+[[rules]]
+name = "Max complexity"
+pointer = "/derived/complexity/avg"
+op = "lt"
+value = 10
+
+[[rules]]
+name = "Must have README"
+pointer = "/source/files"
+op = "contains"
+value = "README.md"
+level = "warn"
+
+[[rules]]
+name = "No high severity"
+pointer = "/findings/severity"
+op = "not_in"
+values = ["high", "critical"]
+message = "Found high/critical severity issues"
