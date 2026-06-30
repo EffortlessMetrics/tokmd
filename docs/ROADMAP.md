@@ -345,42 +345,43 @@ is still one of the clearest user-facing product surfaces.
 - the next rootless preset candidate has evidence,
 - browser examples match actual behavior.
 
-### Lane 6: AST Shadow Evidence
+### Lane 6: AST / Syntax Productization
 
-**Goal:** Continue AST work only as shadow evidence until it justifies public
-behavior.
+**Goal:** Keep the explicit opt-in syntax surface working end-to-end; continue
+shadow comparison evidence; defer default-receipt promotion until candidate
+criteria clear.
 
-**Why now:** AST foundation exists, but previous decisions concluded function
-boundary candidate status is "not yet." More AST work should be evidence-led.
+**Why now:** User-directed lane opening (2026-06-30). Implementation already
+ships `tokmd syntax`, packet `--syntax`, and shadow tooling; governance was
+stale ("shadow only / no active lane"). See `docs/proposals/ast-productization.md`.
 
-**Candidate work packets:**
+**Active work packets:**
 
-1. Corpus selection proposal
-   - Identify a broader, representative corpus.
-   - Define mismatch categories before running comparisons.
-2. Shadow comparison expansion
-   - Add evidence for function boundaries, imports, and control-flow landmarks.
-   - Preserve developer-facing artifact status.
-3. Browser/WASM AST feasibility note
-   - Clarify parser size, feature flags, fallback behavior, and capability
-     reporting implications before any browser work.
-4. Candidate decision refresh
-   - Only after broader evidence exists.
-   - Decide: public candidate, continue shadow, or stop.
+1. CLI correctness on syntax surfaces (e.g. `--exclude` honoring — PR #368)
+2. Governance reconciliation (`NEXT.md`, specs, support-tier wording)
+3. Optional user-path docs for syntax evidence in UB/crash review workflows
+4. Shadow corpus maintenance and mismatch classification (developer tooling)
 
-**Do not:**
+**Still shadow-only / deferred:**
 
-- change public receipts,
-- make AST default,
+- Default `analyze` / cockpit receipt fields from AST
+- Browser/WASM tree-sitter
+- Public function-boundary candidate (prior outcome: `not yet`)
+- Explicit `backend_id` wire field (derived labels suffice)
+
+**Do not (without fresh schema proposal):**
+
+- change default public receipts,
 - add public schema fields,
-- treat control-flow evidence as product behavior,
-- do AST architecture work without product-surface proposal.
+- treat syntax review signals as merge verdicts,
+- release/version bump solely because AST lane is "done."
 
 **Done when:**
 
-- AST evidence is broader, repeatable, and classified,
-- maintainers can make a clear candidate decision,
-- fallback and rollback are documented.
+- Proposal + plan accepted; governance matches shipped behavior,
+- `tokmd syntax` and packet `--syntax` proven in CI,
+- shadow compare/check repeatable,
+- publication import aligned after merge batch.
 
 ## Later Horizons
 

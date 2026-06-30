@@ -159,14 +159,13 @@ plans, `docs/plans/ast-function-boundary-candidate.md` and
 closed with a `not yet` outcome for public function-boundary adoption, leaving
 AST evidence in shadow mode.
 
-The latest AST boundary is: there is no active AST productization lane. Future
-AST work should start from a fresh proposal that names the product surface,
-schema family, fallback behavior, proof ownership, browser/WASM reporting, and
-rollback story before implementation. The existing runner, verifier, Markdown
-summary, corpus manifest, mismatch classification, and timing receipts remain
-developer-facing shadow evidence only. They do not change default `tokmd` CLI
-behavior, public receipts, browser/WASM capability, cockpit output, handoff
-output, proof gates, Codecov defaults, or evidencebus runtime behavior.
+The latest AST boundary is: explicit syntax and shadow tooling are **productized
+for opt-in commands** (`tokmd syntax`, packet `--syntax`, xtask shadow
+compare/check). Governance and sequencing live in
+`docs/proposals/ast-productization.md` and `docs/plans/ast-productization.md`.
+Default `tokmd analyze`, cockpit, handoff, browser/WASM, and public receipt
+schemas remain unchanged. Function-boundary public promotion stays deferred
+(candidate outcome: `not yet`).
 
 `tokmd-analysis` also provides a developer-facing synthetic performance
 example:

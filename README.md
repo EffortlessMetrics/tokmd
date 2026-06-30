@@ -103,7 +103,7 @@ sequences, use [Copy-Ready Workflows](docs/workflows.md).
 | summarize a repo | `tokmd`, `module`, `export` | Markdown summary, file receipt |
 | compare states | `diff`, `run` | deterministic diff and receipts |
 | analyze code health | `analyze` | risk, effort, complexity reports |
-| inspect syntax receipts | `tokmd syntax` (requires `ast` feature) | advisory Tree-sitter syntax packet |
+| inspect syntax receipts | `tokmd syntax` (included in default builds; advisory, opt-in) | Tree-sitter syntax packet for scoped paths |
 | review a PR | `cockpit --review-packet-dir`, GitHub Action `review-packet` | review map, evidence, comment, packet manifest |
 | gate policy in CI | `gate`, `baseline`, `sensor` | verdicts, ratchets, sensor envelope |
 | pack LLM context | `context`, `handoff` | bounded bundle, handoff directory |

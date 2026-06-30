@@ -86,4 +86,6 @@ Nix-full validation.
 
 - **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led. With ZIP byte-mode upload now wired (see NOW), the next browser follow-ons are manual browser smoke against a real archive, streaming/large-archive upload, and tar-family containers; treat each as a fresh evidence-led slice rather than an implicit promise.
 - **MCP/server mode**: expose stable read-only receipt resources before adding long-lived execution surfaces.
-- **AST shadow evidence**: continue only behind shadow/developer-facing evidence until comparison data justifies public behavior or schema changes.
+- **AST/syntax productization**: active lane — explicit `tokmd syntax` and packet
+  `--syntax` are shipped; shadow compare/check remains developer tooling. See
+  `docs/proposals/ast-productization.md`. Default receipts unchanged.

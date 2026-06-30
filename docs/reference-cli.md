@@ -1611,9 +1611,8 @@ tokmd sensor --format md
 ### `tokmd syntax`
 
 Emits advisory Tree-sitter syntax receipts for explicitly scoped files or
-directories. This command is available only when the `tokmd` binary is built
-with the `ast` feature. It does not change default `analyze`, `cockpit`,
-`context`, or `handoff` behavior.
+directories. Included in default `tokmd` builds (`ast` feature). Does not change
+default `analyze`, `cockpit`, `context`, or `handoff` behavior.
 
 <!-- HELP: syntax -->
 ```text

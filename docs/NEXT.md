@@ -73,12 +73,16 @@ The AST function-boundary corpus-expansion lane is closed with outcome
 `not yet`. The broader repo-owned corpus, scoped timing receipt, and expanded
 mismatch classification are useful shadow evidence: they show AST can avoid
 heuristic over-reporting from embedded Rust source strings, but they do not yet
-justify a public function-boundary candidate proposal. There is no active AST
-productization lane. Future AST work should start from a fresh proposal that
-names the product surface, schema family, fallback behavior, browser/WASM
-reporting, proof ownership, and rollback story before implementation. The
-closed plan lives in `docs/plans/ast-function-boundary-corpus-expansion.md`;
-the earlier candidate decision is recorded in
+justify a public function-boundary candidate proposal.
+
+**AST/syntax productization lane is active** (opened 2026-06-30). The explicit
+opt-in syntax surface (`tokmd syntax`, packet `--syntax`, shadow compare/check)
+is shipped and CI-proven; governance reconciliation and remaining CLI
+correctness gaps are tracked in `docs/proposals/ast-productization.md` and
+`docs/plans/ast-productization.md`. Public receipt promotion and default
+`analyze` behavior remain unchanged until a fresh schema-reviewed proposal
+clears function-boundary candidate criteria. Prior closed plans remain historical:
+`docs/plans/ast-function-boundary-corpus-expansion.md`,
 `docs/plans/ast-function-boundary-candidate.md`.
 
 The proof-observation decision-readiness lane is closed. It now has a
@@ -211,12 +215,12 @@ wrapper receipt yet: existing publish-surface, version-consistency, affected,
 proof-plan, and proof-evidence artifacts remain sufficient until a named
 consumer proves otherwise.
 
-There is no selected implementation lane. `.jules/goals/active.toml` is paused
-as the current Jules-local machine-readable state, and new work should start
-only from a fresh consumer, missing artifact, workflow pain, or product gap. Do
-not treat the Jules-local state file as Codex's active-lane controller. Do not
-reopen proof, AST, architecture, user-path, publishing, or release-readiness
-work by inertia.
+There is no selected implementation lane outside AST/syntax productization.
+`.jules/goals/active.toml` is paused as the current Jules-local machine-readable
+state. New work outside the AST lane should start only from a fresh consumer,
+missing artifact, workflow pain, or product gap. Do not treat the Jules-local
+state file as Codex's active-lane controller. Do not reopen proof, architecture,
+user-path, publishing, or release-readiness work by inertia.
 
 Roadmap selection and durable near/mid-term lane ranking now live in
 `docs/ROADMAP.md`. Keep `docs/NEXT.md` focused on current operating state,
@@ -231,8 +235,9 @@ active constraints, and immediate work-packet decisions.
    adoption or release-readiness work only from a fresh consumer, missing
    artifact, workflow pain, or product gap; do not add a new wrapper receipt or
    command unless existing artifacts cannot answer that named consumer.
-3. Do not reopen AST productization without a fresh proposal grounded in the
-   shadow evidence.
+3. **AST/syntax productization** — follow `docs/plans/ast-productization.md`;
+   reconcile governance, close CLI correctness gaps, keep default receipts
+   unchanged unless function-boundary candidate criteria clear.
 4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 5. Preserve `tokmd cockpit` as the review evidence implementation surface until
@@ -247,8 +252,8 @@ active constraints, and immediate work-packet decisions.
 9. Keep product-readiness docs aligned as workflows change, but start any new
    product lane from a fresh plan rather than extending the completed first-pass
    user-path cleanup by inertia.
-10. Keep AST foundation work in shadow mode until comparison evidence justifies
-   any public receipt or default behavior change.
+10. Keep explicit syntax and shadow tooling opt-in; do not promote AST facts
+    onto default public receipts without schema review and candidate evidence.
 11. Treat the user-path evidence consumption lane as closed. Start the next
     product lane only from a fresh consumer, missing artifact, workflow pain, or
     product gap; do not extend the completed compression pass by inertia.
