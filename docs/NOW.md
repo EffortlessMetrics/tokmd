@@ -1,7 +1,25 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the docs/governance wave that
-> followed the browser ZIP byte-mode upload chain (swarm #352-#354).
+> One-screen operational truth. Updated after the adoption-wave closeout
+> (swarm #364-#367, publication imports #2764/#2765).
+
+## Adoption wave closeout (2026-06-30)
+
+Agent-executable adoption work for this wave is at handoff:
+
+- **#364**: archive ZIP `LangReport` test anchor (host filesystem scan).
+- **#365**: AST shadow backend identity + mismatch taxonomy wired to test values.
+- **#366**: real evidence-packet producer bridged through ub-review consumer gate.
+- **#367**: `docs/how-to-add-a-packet-field.md` extender guide (+ `ci/proof.toml`
+  and `docs/evidence-packet.md` cross-links).
+- **Publication imports #2764 / #2765**: merge-commit imports landed; `repo-graph`
+  reports `Aligned` at `6c8db52b` (publication_ahead=0, swarm_ahead=0).
+- **Publication PR #2719 closed**: direct-publication Jules friction frontmatter PR
+  was conflicting/stale; restack on `tokmd-swarm:main` if still wanted.
+
+**Claim boundary**: this wave proves test anchors and docs for packet/archive/AST
+shadow surfaces. It does not prove manual browser ZIP smoke, release publish, or
+Nix-full validation.
 
 ## Shipped this wave
 
@@ -22,14 +40,6 @@
 - **Browser smoke recipe execution**: run the manual browser smoke against a
   real archive per `docs/browser-zip-smoke.md`; only execution remains, the
   recipe and capability claims are in place.
-- **Publication merge-commit policy decision**: `repo-graph` reports `Diverged`
-  (publication `f9d68cf4` ahead 1, swarm `4275107f` ahead 2, merge-base
-  `2379eb72`) because publication squash-imported swarm #358/#359 as #2754.
-  Trees are byte-identical (`0693c572`), so the only repair is a deliberate
-  publication-side merge-commit import (toggle `allow_merge_commit` or push a
-  local `--no-ff` merge) followed by a swarm fast-forward back to the merge
-  commit, per `docs/specs/repo-topology.md`. This is a publication-repo /
-  policy action and is intentionally out of scope for swarm PRs.
 
 ## NOW (active)
 
