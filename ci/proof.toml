@@ -660,6 +660,7 @@ paths = [
   "crates/tokmd-analysis/Cargo.toml",
   "crates/tokmd-analysis/examples/ast_shadow_perf.rs",
   "crates/tokmd-analysis/src/ast/**",
+  "crates/tokmd-analysis/tests/ast_shadow_backend_taxonomy.rs",
   "fixtures/ast-shadow/**",
   "fixtures/syntax/**",
   "policy/ast-shadow-corpus.toml",
@@ -1053,6 +1054,7 @@ paths = [
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
   "crates/tokmd/tests/packet_*.rs",
+  "crates/tokmd/tests/ub_review_packet_*.rs",
   "crates/tokmd/tests/render_*.rs",
   "crates/tokmd/tests/snapshots/cli_*.snap",
   "crates/tokmd/tests/config_resolution.rs",
@@ -1069,6 +1071,7 @@ proof = [
   "cargo test -p tokmd --test config_resolution --verbose",
   "cargo test -p tokmd --test packet_generate_integration --verbose",
   "cargo test -p tokmd --test render_packets_integration --verbose",
+  "cargo test -p tokmd --test ub_review_packet_consumer --verbose",
 ]
 mutation = true
 coverage = true

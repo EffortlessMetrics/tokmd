@@ -119,6 +119,15 @@ their per-file entries, as the existing diff summary already requires.
 
 ## Proof Requirements
 
+The backend-identity and mismatch-taxonomy tables above are anchored to the
+emitted wire values by
+`crates/tokmd-analysis/tests/ast_shadow_backend_taxonomy.rs`: it asserts that
+every `tokmd.ast_shadow.v1` and `tokmd.syntax_receipt.v1` wire value a real
+producer emits maps onto exactly one documented backend identity / mismatch
+kind, and that the receipt-status taxonomy is total over `SyntaxParseStatus`.
+That oracle guards the documentation tables against silent drift; it adds no
+`backend_id` wire field and changes no default behavior.
+
 This spec documents identity meaning for behavior already covered by the AST
 shadow proof scope. When the backend identity vocabulary, the mismatch taxonomy,
 or the underlying artifact contracts change, run the `analysis_ast_shadow` scope

@@ -12,12 +12,25 @@
 //! `tokmd_types::EvidencePacketManifest` type, so a drift in the schema, the
 //! type, or the canonical examples is caught.
 //!
-//! Pure parse/validate/assert: no binary, git, or feature gate required.
+//! The synthetic rows above are pure parse/validate/assert: no binary, git, or
+//! feature gate required. The `real_producer_bridge` module at the bottom of
+//! this file additionally drives the real producer (`tokmd evidence-packet`)
+//! and feeds its emitted manifest through the *same* `consume` + `is_attachable`
+//! gate, so the hand-built skeletons cannot silently drift from what the binary
+//! actually writes. That bridge is gated on the `analysis` feature and git
+//! availability.
 
 use std::error::Error;
 
 use serde_json::{Value, json};
 use tokmd_types::{EVIDENCE_PACKET_SCHEMA, EvidencePacketManifest, EvidencePacketStatus};
+
+// Shared git/test helpers, declared at the crate root so the standard
+// `tests/common/mod.rs` resolution works on every platform (a nested-module
+// `#[path]` with `..` is not portable). Only the `analysis`-gated bridge below
+// uses it, so gate the declaration to avoid an unused module warning.
+#[cfg(feature = "analysis")]
+mod common;
 
 type TestResult = Result<(), Box<dyn Error>>;
 
@@ -214,4 +227,185 @@ fn consumer_confirms_schema_identity_before_interpreting_fields() -> TestResult 
         "a non-v1 schema id must be rejected by the v1 schema gate"
     );
     Ok(())
+}
+
+/// Realistic-input bridge: run the real producer (`tokmd evidence-packet`) and
+/// feed the manifest it writes through the same consumer gate the synthetic rows
+/// exercise (`consume` + `is_attachable`). This guards the documented trust
+/// order and ADR-0015 ("consume `partial`, reject `failed`") against real binary
+/// output rather than only hand-built fixtures.
+///
+/// Claim boundary: this asserts the producer's emitted `manifest.json` round
+/// trips through the published schema and the public `EvidencePacketManifest`
+/// type and lands on the documented attachability decision. It does not assert
+/// analyze/syntax content correctness, and it does not prove anything about UB.
+#[cfg(feature = "analysis")]
+mod real_producer_bridge {
+    use std::path::Path;
+
+    use assert_cmd::Command;
+    use serde_json::{Value, json};
+    use tempfile::tempdir;
+    use tokmd_types::{EvidencePacketManifest, EvidencePacketStatus};
+
+    use super::{TestResult, consume, is_attachable};
+    use crate::common;
+
+    type SetupResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+    const SCOPE_PATH: &str = "src/runtime/api/MarkdownObject.rs";
+
+    /// Write the canonical complete `analyze.json` the producer validates.
+    fn write_analyze_json(sensor_dir: &Path) -> SetupResult<()> {
+        std::fs::write(
+            sensor_dir.join("analyze.json"),
+            json!({
+                "status": "complete",
+                "warnings": [],
+                "args": { "preset": "bun-ub" },
+                "source": { "inputs": [SCOPE_PATH] }
+            })
+            .to_string(),
+        )?;
+        Ok(())
+    }
+
+    /// Initialise a git repo whose review scope changed between `main` and HEAD,
+    /// matching the diff window the producer resolves. Fallible so the bridge
+    /// stays panic-free.
+    fn init_repo_with_scope() -> SetupResult<tempfile::TempDir> {
+        let dir = tempdir()?;
+        if !common::init_git_repo(dir.path()) {
+            return Err("git init failed".into());
+        }
+        let scope_dir = dir.path().join("src").join("runtime").join("api");
+        std::fs::create_dir_all(&scope_dir)?;
+        std::fs::write(scope_dir.join("MarkdownObject.rs"), "pub fn old() {}\n")?;
+        if !common::git_add_commit(dir.path(), "initial") {
+            return Err("initial commit failed".into());
+        }
+        std::fs::write(
+            scope_dir.join("MarkdownObject.rs"),
+            "pub fn old() {}\npub fn new_boundary() {}\n",
+        )?;
+        if !common::git_add_commit(dir.path(), "change api") {
+            return Err("change commit failed".into());
+        }
+        Ok(dir)
+    }
+
+    /// Write the three required sensor artifacts the producer indexes.
+    fn write_required_artifacts(root: &Path) -> SetupResult<()> {
+        let sensor_dir = root.join("sensors").join("tokmd");
+        std::fs::create_dir_all(&sensor_dir)?;
+        std::fs::write(sensor_dir.join("analyze.md"), "# Bun UB analyze\n")?;
+        write_analyze_json(&sensor_dir)?;
+        std::fs::write(sensor_dir.join("context.md"), "# Context\n")?;
+        Ok(())
+    }
+
+    /// Run the producer and return its emitted `manifest.json` value.
+    fn generate_manifest(root: &Path, extra_args: &[&str]) -> SetupResult<Value> {
+        let mut args = vec!["evidence-packet", "--base", "main", "--head", "HEAD"];
+        args.extend_from_slice(extra_args);
+        args.push(SCOPE_PATH);
+        // The producer exits non-zero for `failed` packets but still writes the
+        // manifest for inspection, so do not assert on the exit status here; the
+        // consumer gate is what this bridge validates.
+        let _ = Command::new(env!("CARGO_BIN_EXE_tokmd"))
+            .current_dir(root)
+            .args(&args)
+            .output()?;
+        let manifest_path = root.join("sensors").join("tokmd").join("manifest.json");
+        let raw = std::fs::read_to_string(manifest_path)?;
+        Ok(serde_json::from_str(&raw)?)
+    }
+
+    #[test]
+    fn real_complete_packet_passes_consumer_gate() -> TestResult {
+        if !common::git_available() {
+            return Ok(());
+        }
+        let dir = init_repo_with_scope()?;
+        write_required_artifacts(dir.path())?;
+
+        let manifest = generate_manifest(dir.path(), &[])?;
+        // Real producer output must round-trip through the published schema and
+        // the public consumer type unchanged.
+        let packet: EvidencePacketManifest = consume(&manifest)?;
+
+        assert_eq!(packet.status, EvidencePacketStatus::Complete);
+        assert!(
+            packet.errors.is_empty(),
+            "complete packet carries no errors"
+        );
+        assert!(
+            is_attachable(&packet),
+            "a real complete packet is valid review evidence"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn real_partial_packet_with_advisory_missing_syntax_is_attachable() -> TestResult {
+        if !common::git_available() {
+            return Ok(());
+        }
+        let dir = init_repo_with_scope()?;
+        write_required_artifacts(dir.path())?;
+
+        // Request an optional syntax artifact that was never written: the
+        // documented "advisory-missing" state. Per ADR-0015 the packet degrades
+        // to `partial` with a named warning and stays attachable.
+        let manifest =
+            generate_manifest(dir.path(), &["--syntax-json", "sensors/tokmd/syntax.json"])?;
+        let packet: EvidencePacketManifest = consume(&manifest)?;
+
+        assert_eq!(packet.status, EvidencePacketStatus::Partial);
+        assert!(
+            packet.errors.is_empty(),
+            "advisory-missing syntax is a bounded limit, not invalid evidence"
+        );
+        assert!(
+            packet
+                .warnings
+                .iter()
+                .any(|w| w.contains("syntax_json") && w.contains("missing")),
+            "advisory-missing must name the absent optional artifact: {:?}",
+            packet.warnings
+        );
+        assert!(
+            is_attachable(&packet),
+            "ADR-0015: ub-review consumes partial packets"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn real_failed_packet_is_rejected_by_consumer_gate() -> TestResult {
+        if !common::git_available() {
+            return Ok(());
+        }
+        let dir = init_repo_with_scope()?;
+        // Omit the required analyze.md / context.md so the producer marks the
+        // packet `failed` and records errors, while still writing the manifest.
+        let sensor_dir = dir.path().join("sensors").join("tokmd");
+        std::fs::create_dir_all(&sensor_dir)?;
+        write_analyze_json(&sensor_dir)?;
+
+        let manifest = generate_manifest(dir.path(), &[])?;
+        // A failed manifest is still schema-valid and typed for inspection.
+        let packet: EvidencePacketManifest = consume(&manifest)?;
+
+        assert_eq!(packet.status, EvidencePacketStatus::Failed);
+        assert!(
+            !packet.errors.is_empty(),
+            "failed status must record at least one error for the consumer"
+        );
+        assert!(
+            !is_attachable(&packet),
+            "a real failed packet must be rejected, not attached"
+        );
+        Ok(())
+    }
 }
