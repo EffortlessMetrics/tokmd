@@ -37,7 +37,7 @@ All packets shipped. Historical detail:
 5. **Shadow corpus expansion for TS/Python** (PR #372) — merged.
 6. **WASM analyze byte-mode parity** (PR #380) — `runJsonBytes` boundary tests
    for browser-safe `analyze`.
-7. **Publication import checkpoint** (import #2779 at `6565092b`) — merged;
+7. **Publication import checkpoint** (import #2782 at `8340fbdb`) — merged;
    repo-graph aligned.
 
 ## Validation
@@ -75,7 +75,7 @@ Required CI: `Tokmd Rust Result` (`cargo test --all-features`).
 | 4 | #371 syntax evidence guide | merged |
 | 5 | #372 shadow corpus TS/Python | merged |
 | 6 | #380 wasm analyze byte-mode parity | merged |
-| 7 | import #2779 publication sync | merged (`6565092b`) |
+| 7 | import #2782 publication sync | merged (`8340fbdb`) |
 
 ## Intentionally deferred
 

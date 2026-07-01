@@ -129,8 +129,8 @@ summarized below):
    compare tooling (PR #372).
 6. **WASM analyze byte-mode parity** — `runJsonBytes` boundary tests for
    browser-safe `analyze` (PR #380).
-7. **Publication import** — merge-commit import #2779; repo-graph aligned at
-   `6565092b`.
+7. **Publication import** — merge-commit import #2782; repo-graph aligned at
+   `8340fbdb`.
 
 **Deferred until fresh evidence + schema review:**
 
