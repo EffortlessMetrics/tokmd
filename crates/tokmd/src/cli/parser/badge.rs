@@ -36,11 +36,11 @@ pub struct BadgeArgs {
     pub no_git: bool,
 
     /// Limit how many commits are scanned for git metrics.
-    #[arg(long)]
+    #[arg(long, value_parser = super::validate::positive_usize)]
     pub max_commits: Option<usize>,
 
     /// Limit files per commit when scanning git history.
-    #[arg(long)]
+    #[arg(long, value_parser = super::validate::positive_usize)]
     pub max_commit_files: Option<usize>,
 
     /// Output file for the badge (defaults to stdout).

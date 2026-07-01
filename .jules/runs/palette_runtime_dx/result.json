@@ -1,4 +1,20 @@
 {
-  "status": "success",
-  "outcome": "pr-ready patch"
+  "outcome_type": "patch",
+  "reviewer_facing_title": "palette: validate positive git max commits in analyze and badge commands 🎨",
+  "summary": "Added parse-time validation to `--max-commits` and `--max-commit-files` in `tokmd analyze` and `tokmd badge` to reject zero values, matching the behavior of `tokmd context`.",
+  "target_paths": [
+    "crates/tokmd/src/cli/parser/analysis.rs",
+    "crates/tokmd/src/cli/parser/badge.rs"
+  ],
+  "proof_summary": "Attempting to pass `--max-commits 0` now correctly fails with a clap error: `error: invalid value '0' for '--max-commits <MAX_COMMITS>': value must be at least 1`.",
+  "gates_run": [
+    "cargo build",
+    "cargo test -p tokmd",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "Revert changes to `analysis.rs` and `badge.rs`.",
+  "follow_ups": []
 }
