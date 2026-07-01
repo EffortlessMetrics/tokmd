@@ -5,8 +5,8 @@
   (`tokmd_core::ffi::run_json_bytes`, behind the `archive-zip` feature) and the
   WASM `Uint8Array` binding (`tokmd-wasm::runJsonBytes`) have landed with
   native and `wasm-bindgen-test` parity coverage; the capability matrix rows are
-  promoted. Remaining follow-on: wire `runJsonBytes` into the browser runner UI
-  (`web/runner` `zipball` path) and byte/host parity oracle.
+  promoted. The browser runner UI (`web/runner` zipball path) forwards archive
+  bytes to `runJsonBytes` when the wasm bundle is built with `archive-zip`.
 - Schema family, if any: none yet (no new serialized receipt schema is introduced by this seam)
 - Related ADRs: none yet
 - Related proof scopes: `scan`, `model`, `io_port`
@@ -151,7 +151,11 @@ capability promotion.
   `byte_mode_module_envelope_matches_json_mode_inputs`, and
   `byte_mode_export_envelope_matches_json_mode_inputs` tests in
   `crates/tokmd-core/tests/archive_zip_ffi_bytemode.rs` and the `tokmd-scan`
-  decode parity in `crates/tokmd-core/tests/archive_zip_bytemode.rs`.
+  decode parity in `crates/tokmd-core/tests/archive_zip_bytemode.rs`. Rootless
+  `analyze` presets (`receipt`, `estimate`) are covered by
+  `byte_mode_analyze_receipt_envelope_matches_json_mode_inputs` and
+  `byte_mode_analyze_estimate_envelope_matches_json_mode_inputs` in the same
+  file when the `analysis` feature is enabled.
 - Fail-closed admission (MET, core): a traversal entry, a malformed archive, and
   a breached ingestion cap each fail closed with no partial receipt, with no
   second admission path bypassing `crates/tokmd-io-port/src/archive.rs`. Covered

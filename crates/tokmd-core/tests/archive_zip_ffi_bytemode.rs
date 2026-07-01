@@ -86,17 +86,35 @@ fn byte_mode_export_options() -> String {
     json!({ "export": { "format": "json" } }).to_string()
 }
 
+#[cfg(feature = "analysis")]
+fn json_mode_analyze_options(preset: &str) -> Value {
+    let inputs: Vec<Value> = FIXTURE
+        .iter()
+        .map(|(name, body)| json!({ "path": name, "text": body }))
+        .collect();
+    json!({ "preset": preset, "inputs": inputs })
+}
+
+#[cfg(feature = "analysis")]
+fn byte_mode_analyze_options(preset: &str) -> String {
+    json!({ "preset": preset }).to_string()
+}
+
 fn parse_envelope(raw: &str) -> Result<Value, BoxedError> {
     Ok(serde_json::from_str(raw)?)
 }
 
-/// Strip the volatile `generated_at_ms` field so two otherwise-identical
-/// receipts compare equal.
+/// Strip volatile timestamp fields so two otherwise-identical receipts compare equal.
 fn scrub_timestamp(envelope: &mut Value) {
     if let Some(data) = envelope.get_mut("data")
         && let Some(obj) = data.as_object_mut()
     {
         obj.remove("generated_at_ms");
+        if let Some(source) = obj.get_mut("source")
+            && let Some(source_obj) = source.as_object_mut()
+        {
+            source_obj.remove("export_generated_at_ms");
+        }
     }
 }
 
@@ -187,6 +205,72 @@ fn byte_mode_export_envelope_matches_json_mode_inputs() -> Result<(), BoxedError
     assert_eq!(
         from_zip, from_json,
         "byte-mode export envelope diverged from the equivalent JSON-mode envelope"
+    );
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn byte_mode_analyze_receipt_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> {
+    let bytes = fixture_zip()?;
+
+    let mut from_zip = parse_envelope(&run_json_bytes(
+        "analyze",
+        &byte_mode_analyze_options("receipt"),
+        &bytes,
+    ))?;
+    let mut from_json = parse_envelope(&run_json(
+        "analyze",
+        &json_mode_analyze_options("receipt").to_string(),
+    ))?;
+
+    assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+    assert_eq!(
+        from_json["ok"],
+        json!(true),
+        "json-mode call should succeed"
+    );
+    assert_eq!(from_zip["data"]["mode"], json!("analysis"));
+    assert_eq!(from_zip["data"]["derived"]["totals"]["files"], json!(3));
+
+    scrub_timestamp(&mut from_zip);
+    scrub_timestamp(&mut from_json);
+    assert_eq!(
+        from_zip, from_json,
+        "byte-mode analyze envelope diverged from the equivalent JSON-mode envelope"
+    );
+    Ok(())
+}
+
+#[cfg(feature = "analysis")]
+#[test]
+fn byte_mode_analyze_estimate_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> {
+    let bytes = fixture_zip()?;
+
+    let mut from_zip = parse_envelope(&run_json_bytes(
+        "analyze",
+        &byte_mode_analyze_options("estimate"),
+        &bytes,
+    ))?;
+    let mut from_json = parse_envelope(&run_json(
+        "analyze",
+        &json_mode_analyze_options("estimate").to_string(),
+    ))?;
+
+    assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+    assert_eq!(
+        from_json["ok"],
+        json!(true),
+        "json-mode call should succeed"
+    );
+    assert_eq!(from_zip["data"]["mode"], json!("analysis"));
+    assert_eq!(from_zip["data"]["effort"]["model"], json!("cocomo81-basic"));
+
+    scrub_timestamp(&mut from_zip);
+    scrub_timestamp(&mut from_json);
+    assert_eq!(
+        from_zip, from_json,
+        "byte-mode analyze estimate envelope diverged from the equivalent JSON-mode envelope"
     );
     Ok(())
 }
