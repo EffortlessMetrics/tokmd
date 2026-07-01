@@ -159,10 +159,14 @@ capability promotion.
   tests in the same file. Broader hostile-fixture coverage
   (absolute/drive-prefix/NUL/non-regular) is already proven at the admission
   engine in `crates/tokmd-io-port`.
-- Byte/host parity (PENDING): scanning a benign archive fixture through the byte
-  mode must yield the same normalized file set and aggregated receipt as
-  scanning the equivalent extracted tree through the host path, reusing the
-  parity oracle the snapshot seam defines.
+- Byte/host parity (MET, lang/module/export): scanning a benign archive fixture
+  through the byte mode must yield the same normalized file set and aggregated
+  receipt as scanning the equivalent extracted tree through the host path,
+  reusing the parity oracle the snapshot seam defines. Covered by
+  `archive_lang_report_matches_host_lang_report`,
+  `archive_module_report_matches_host_module_report`, and
+  `archive_export_report_matches_host_export_report` in
+  `crates/tokmd-core/tests/archive_host_receipt_parity.rs`.
 - WASM boundary coverage (MET): a `wasm-bindgen-test` exercises the
   `Uint8Array` binding end to end and asserts the browser payload matches the
   core payload, in the same style as the existing boundary tests in

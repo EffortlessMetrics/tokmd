@@ -9,7 +9,7 @@ use crate::{InMemoryFile, build_module_receipt};
 
 use super::{
     collect_pure_in_memory_rows, deterministic_in_memory_scan_options, scan_paths_or_current_dir,
-    settings_to_scan_options,
+    settings_to_scan_options, single_scan_root_strip_prefix,
 };
 
 /// Runs the module summary workflow with pure settings types.
@@ -40,10 +40,18 @@ use super::{
 pub fn module_workflow(scan: &ScanSettings, module: &ModuleSettings) -> Result<ModuleReceipt> {
     let scan_opts = settings_to_scan_options(scan);
     let paths = scan_paths_or_current_dir(scan);
+    let strip_prefix = single_scan_root_strip_prefix(&paths);
 
     let languages = tokmd_scan::scan(&paths, &scan_opts)?;
-    let report = tokmd_model::create_module_report(
+    let file_rows = tokmd_model::collect_file_rows(
         &languages,
+        &module.module_roots,
+        module.module_depth,
+        module.children,
+        strip_prefix,
+    );
+    let report = tokmd_model::create_module_report_from_rows(
+        &file_rows,
         &module.module_roots,
         module.module_depth,
         module.children,

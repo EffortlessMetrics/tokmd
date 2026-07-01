@@ -23,6 +23,16 @@ pub(crate) fn scan_paths_or_current_dir(scan: &ScanSettings) -> Vec<PathBuf> {
     }
 }
 
+/// When exactly one scan root is provided, strip it from host file paths before
+/// module-key aggregation so single-root scans match archive/virtual relative paths.
+pub(crate) fn single_scan_root_strip_prefix(paths: &[PathBuf]) -> Option<&Path> {
+    if paths.len() == 1 {
+        paths.first().map(|path| path.as_path())
+    } else {
+        None
+    }
+}
+
 pub(crate) fn deterministic_in_memory_scan_options(scan_opts: &ScanOptions) -> ScanOptions {
     let mut effective = scan_opts.clone();
     // Explicit in-memory inputs are authoritative; they should not depend on
@@ -79,6 +89,17 @@ pub(crate) fn strip_virtual_export_prefix(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn single_scan_root_strip_prefix_uses_only_root() {
+        let one = vec![PathBuf::from("/repo")];
+        assert_eq!(
+            single_scan_root_strip_prefix(&one),
+            Some(Path::new("/repo"))
+        );
+        let many = vec![PathBuf::from("/a"), PathBuf::from("/b")];
+        assert_eq!(single_scan_root_strip_prefix(&many), None);
+    }
 
     #[test]
     fn settings_to_scan_options_preserves_values() {

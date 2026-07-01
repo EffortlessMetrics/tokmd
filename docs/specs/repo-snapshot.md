@@ -265,9 +265,11 @@ implemented:
   receipt as scanning the equivalent extracted tree through `HostFs`. The
   tokei-`Languages` inventory layer of this is covered by
   `crates/tokmd-scan/tests/archive_scan_parity.rs`; the full tokmd
-  `LangReport` (including the `tokmd-model` byte and token totals) is anchored
-  to a host filesystem scan by
-  `crates/tokmd-core/tests/archive_host_receipt_parity.rs`.
+  `LangReport`, `ModuleReport`, and `ExportData` receipts (including the
+  `tokmd-model` byte and token totals) are anchored to a host filesystem scan
+  by `crates/tokmd-core/tests/archive_host_receipt_parity.rs`. Host `module`
+  scans auto-strip a single scan root; host `export` parity uses explicit
+  `strip_prefix` matching the fixture root.
 - Fail-closed semantics: a single rejected entry fails the whole snapshot build
   rather than silently dropping the entry and reporting `complete`.
 

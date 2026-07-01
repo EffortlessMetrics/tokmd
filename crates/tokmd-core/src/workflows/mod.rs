@@ -32,5 +32,5 @@ pub use timing::{
 
 pub(crate) use support::{
     collect_pure_in_memory_rows, deterministic_in_memory_scan_options, scan_paths_or_current_dir,
-    settings_to_scan_options, strip_virtual_export_prefix,
+    settings_to_scan_options, single_scan_root_strip_prefix, strip_virtual_export_prefix,
 };
