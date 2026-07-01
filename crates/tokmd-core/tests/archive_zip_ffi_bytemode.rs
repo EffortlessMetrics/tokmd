@@ -58,8 +58,32 @@ fn json_mode_options() -> Value {
     json!({ "lang": { "files": true }, "inputs": inputs })
 }
 
-fn byte_mode_options() -> String {
+fn byte_mode_lang_options() -> String {
     json!({ "lang": { "files": true } }).to_string()
+}
+
+fn json_mode_module_options() -> Value {
+    let inputs: Vec<Value> = FIXTURE
+        .iter()
+        .map(|(name, body)| json!({ "path": name, "text": body }))
+        .collect();
+    json!({ "module": {}, "inputs": inputs })
+}
+
+fn byte_mode_module_options() -> String {
+    json!({ "module": {} }).to_string()
+}
+
+fn json_mode_export_options() -> Value {
+    let inputs: Vec<Value> = FIXTURE
+        .iter()
+        .map(|(name, body)| json!({ "path": name, "text": body }))
+        .collect();
+    json!({ "export": { "format": "json" }, "inputs": inputs })
+}
+
+fn byte_mode_export_options() -> String {
+    json!({ "export": { "format": "json" } }).to_string()
 }
 
 fn parse_envelope(raw: &str) -> Result<Value, BoxedError> {
@@ -80,7 +104,7 @@ fn scrub_timestamp(envelope: &mut Value) {
 fn byte_mode_lang_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> {
     let bytes = fixture_zip()?;
 
-    let mut from_zip = parse_envelope(&run_json_bytes("lang", &byte_mode_options(), &bytes))?;
+    let mut from_zip = parse_envelope(&run_json_bytes("lang", &byte_mode_lang_options(), &bytes))?;
     let mut from_json = parse_envelope(&run_json("lang", &json_mode_options().to_string()))?;
 
     assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
@@ -99,6 +123,70 @@ fn byte_mode_lang_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> 
     assert_eq!(
         from_zip, from_json,
         "byte-mode envelope diverged from the equivalent JSON-mode envelope"
+    );
+    Ok(())
+}
+
+#[test]
+fn byte_mode_module_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> {
+    let bytes = fixture_zip()?;
+
+    let mut from_zip = parse_envelope(&run_json_bytes(
+        "module",
+        &byte_mode_module_options(),
+        &bytes,
+    ))?;
+    let mut from_json =
+        parse_envelope(&run_json("module", &json_mode_module_options().to_string()))?;
+
+    assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+    assert_eq!(
+        from_json["ok"],
+        json!(true),
+        "json-mode call should succeed"
+    );
+    assert_eq!(from_zip["data"]["mode"], json!("module"));
+    assert_eq!(from_zip["data"]["total"]["files"], json!(3));
+
+    scrub_timestamp(&mut from_zip);
+    scrub_timestamp(&mut from_json);
+    assert_eq!(
+        from_zip, from_json,
+        "byte-mode module envelope diverged from the equivalent JSON-mode envelope"
+    );
+    Ok(())
+}
+
+#[test]
+fn byte_mode_export_envelope_matches_json_mode_inputs() -> Result<(), BoxedError> {
+    let bytes = fixture_zip()?;
+
+    let mut from_zip = parse_envelope(&run_json_bytes(
+        "export",
+        &byte_mode_export_options(),
+        &bytes,
+    ))?;
+    let mut from_json =
+        parse_envelope(&run_json("export", &json_mode_export_options().to_string()))?;
+
+    assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+    assert_eq!(
+        from_json["ok"],
+        json!(true),
+        "json-mode call should succeed"
+    );
+    assert_eq!(from_zip["data"]["mode"], json!("export"));
+    assert_eq!(
+        from_zip["data"]["rows"].as_array().map(Vec::len),
+        Some(3),
+        "export receipt should list one row per fixture file"
+    );
+
+    scrub_timestamp(&mut from_zip);
+    scrub_timestamp(&mut from_json);
+    assert_eq!(
+        from_zip, from_json,
+        "byte-mode export envelope diverged from the equivalent JSON-mode envelope"
     );
     Ok(())
 }
@@ -129,7 +217,7 @@ fn byte_mode_rejects_paths_option() -> Result<(), BoxedError> {
 fn byte_mode_rejects_host_only_mode() -> Result<(), BoxedError> {
     let bytes = fixture_zip()?;
 
-    let envelope = parse_envelope(&run_json_bytes("diff", &byte_mode_options(), &bytes))?;
+    let envelope = parse_envelope(&run_json_bytes("diff", &byte_mode_lang_options(), &bytes))?;
     assert_eq!(envelope["ok"], json!(false));
     assert_eq!(envelope["error"]["code"], json!("invalid_settings"));
     Ok(())
@@ -146,7 +234,7 @@ fn byte_mode_fails_closed_on_hostile_entry() -> Result<(), BoxedError> {
         Ok(())
     })?;
 
-    let envelope = parse_envelope(&run_json_bytes("lang", &byte_mode_options(), &bytes))?;
+    let envelope = parse_envelope(&run_json_bytes("lang", &byte_mode_lang_options(), &bytes))?;
     assert_eq!(
         envelope["ok"],
         json!(false),
@@ -161,7 +249,11 @@ fn byte_mode_fails_closed_on_hostile_entry() -> Result<(), BoxedError> {
 
 #[test]
 fn byte_mode_rejects_malformed_archive() -> Result<(), BoxedError> {
-    let envelope = parse_envelope(&run_json_bytes("lang", &byte_mode_options(), b"not a zip"))?;
+    let envelope = parse_envelope(&run_json_bytes(
+        "lang",
+        &byte_mode_lang_options(),
+        b"not a zip",
+    ))?;
     assert_eq!(envelope["ok"], json!(false));
     Ok(())
 }

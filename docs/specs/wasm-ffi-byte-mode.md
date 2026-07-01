@@ -147,8 +147,9 @@ capability promotion.
 - Byte/JSON-mode parity (MET, core): for the same logical file set, the
   byte-mode envelope must match the envelope produced by the existing
   `{ path, text }` JSON mode (same `schema_version`, same payload modulo
-  volatile timestamps). Covered by the
-  `byte_mode_lang_envelope_matches_json_mode_inputs` test in
+  volatile timestamps). Covered by the `byte_mode_lang_envelope_matches_json_mode_inputs`,
+  `byte_mode_module_envelope_matches_json_mode_inputs`, and
+  `byte_mode_export_envelope_matches_json_mode_inputs` tests in
   `crates/tokmd-core/tests/archive_zip_ffi_bytemode.rs` and the `tokmd-scan`
   decode parity in `crates/tokmd-core/tests/archive_zip_bytemode.rs`.
 - Fail-closed admission (MET, core): a traversal entry, a malformed archive, and
