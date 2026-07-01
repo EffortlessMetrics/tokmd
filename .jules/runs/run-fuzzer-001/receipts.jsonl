@@ -1,0 +1,2 @@
+{"command": "cargo test --test cli_parser_properties", "status": "success", "note": "Verified existing property test suite for CLI"}
+{"command": "cargo test --test cli_parser_fuzz_regression", "status": "success", "note": "Proved safe rejection of invalid UTF-8 without panicking"}
