@@ -1,0 +1,15 @@
+{
+  "outcome_type": "learning_pr",
+  "reviewer_title": "jules: record archivist learning on jules-index freshness 🗃️",
+  "summary": "Documented the need to enforce `jules-index` freshness to prevent `RUNS_ROLLUP.md` drift.",
+  "target_paths": [
+    ".jules/friction/open/FRIC-20231024-001.md",
+    ".jules/personas/archivist/notes/index-freshness.md"
+  ],
+  "proof_summary": "Created a friction item noting that CI does not currently gate on `jules-index --check`.",
+  "gates_run": ["cargo xtask jules-index"],
+  "friction_items_created": ["FRIC-20231024-001"],
+  "persona_notes_created": ["index-freshness.md"],
+  "rollback": "Remove the friction item and persona note.",
+  "follow_ups": ["Implement CI check for `cargo xtask jules-index --check`"]
+}

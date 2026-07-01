@@ -10,6 +10,7 @@ It rolls up metadata from all run packets in `.jules/runs/` and historical ledge
 | `36cec87d-2836-42ed-9ae1-33dbf2702319` | Librarian | Explorer | docs | completed | 3 | live |
 | `37581ca1` | Sentinel | Stabilizer | core-pipeline | in-progress | 0 | live |
 | `archivist_jules` | Archivist | Builder | workspace-wide | in-progress | 3 | live |
+| `archivist_jules_001` | Archivist | Builder | workspace-wide | in-progress | 1 | live |
 | `bolt-run-001` | Bolt | Refactorer | core-pipeline | in-progress | 0 | live |
 | `bolt_analysis_stack_builder` | Bolt ⚡ | Builder | analysis-stack | in-progress | 1 | live |
 | `carto-roadmap-design-1` | Cartographer | Builder | tooling-governance | in-progress | 0 | live |

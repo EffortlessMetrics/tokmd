@@ -5,6 +5,7 @@ It rolls up friction metadata from `.jules/friction/open/` and `.jules/friction/
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
+| `FRIC-20231024-001` | Archivist | Builder | workspace-wide | open | The `xtask jules-index` command successfully generates `RUNS_ROLLUP.md` from `.jules/runs/` packets, but this is not enforced in CI or required pre-commit. This means the generated indexes can easily become stale if an agent or developer adds a run packet but forgets to run `cargo xtask jules-index`. |
 | `FRIC-20260413-001` | fuzzer | prover | interfaces | done | `cargo +nightly fuzz run fuzz_toml_config --features config -- -max_total_time=1` still fails on Windows/MSVC before the fuzz target can run. |
 | `FRIC-20260428-001` | fuzzer | prover | interfaces | done | `cargo fuzz` fails to run in the default Jules sandbox environment due to a missing nightly toolchain and `-Zsanitizer=address` errors. |
 | `cargo_fuzz_asan_linker_failure` | Unknown | Unknown | Unknown | done | Unknown |

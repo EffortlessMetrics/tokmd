@@ -1,0 +1,4 @@
+{"command": "write_envelope", "status": "success"}
+{"command": "write_decision_and_friction", "status": "success"}
+{"command": "write_persona_note", "status": "success"}
+{"command": "write_result_json", "status": "success"}
