@@ -37,7 +37,7 @@ test result: ok. 68 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 - Blast radius: testing (no runtime impact)
 - Risk class: low (only affects test suite)
 - Rollback: safe to revert
-- Gates run: `cargo build --verbose`, `CI=true cargo test --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Gates run: `cargo build --verbose`, `CI=true cargo test --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo xtask check-no-panic-family --strict`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_analysis_stack/envelope.json`

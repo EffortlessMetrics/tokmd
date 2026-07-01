@@ -3,3 +3,5 @@
 {"command": "bash -c 'CI=true cargo test -p tokmd-analysis --verbose'", "status": "success", "duration_ms": 26190}
 {"command": "cargo fmt -- --check", "status": "success", "duration_ms": 100}
 {"command": "cargo clippy -p tokmd-analysis -- -D warnings", "status": "success", "duration_ms": 850}
+{"command": "cargo xtask no-panic-baseline --receipt-output policy/no-panic-baseline-receipt.json", "status": "success", "duration_ms": 260}
+{"command": "cargo xtask check-no-panic-family --strict", "status": "success", "duration_ms": 260}
