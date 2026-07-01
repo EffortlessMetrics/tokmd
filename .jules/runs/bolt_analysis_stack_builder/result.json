@@ -1,1 +1,5 @@
-{ "outcome": "patch", "title": "bolt: reduce hot path string allocation in duplicate analysis \u26a1", "summary": "Reduced allocations by replacing BTreeMap<String, T> with BTreeMap<&str, T> and utilizing Entry API.", "target_paths": ["crates/tokmd-analysis/src/content/mod.rs"], "proof_summary": "Replaced repetitive get_mut and insert logic with zero-allocation Entry API in hot loops.", "gates_run": ["cargo test -p tokmd-analysis --verbose"], "friction_items_created": [], "persona_notes_created": [], "rollback": "git checkout crates/tokmd-analysis/src/content/mod.rs", "follow_ups": [] }
+{
+  "outcome": "pr-ready-patch",
+  "evidence": "Eliminated O(N) string clones by deferring to_stat_row until final report generation.",
+  "blast_radius": "API: none, IO: none, docs: none, dependencies: none"
+}
