@@ -26,29 +26,19 @@ public receipts.
 
 ## Work Packets
 
-1. **CLI correctness — `tokmd syntax --exclude`** (PR #368, branch
-   `fix/syntax-honor-exclude`)
-   - Honor global `--exclude` when collecting syntax paths.
-   - Proof: `cli_syntax_integration`, no-panic strict, clippy, fmt.
-2. **Governance reconciliation** (this plan's PR on branch
-   `ast-productization-lane`)
-   - Accept `docs/proposals/ast-productization.md`.
-   - Update `NEXT.md`, `ROADMAP.md`, `NOW.md`, `ast-shadow.md`, README,
-     `reference-cli.md`, `ci/proof.toml` routing.
-3. **Optional: packet exclude forwarding**
-   - Pass global/packet excludes into `write_syntax` when generating packet
-     `syntax.json`.
-4. **Optional: user-path syntax guide**
-   - Add a recipes or workflows section for UB/crash review using
-     `review_signals` (no new command).
-5. **Shadow corpus expansion for TS/Python**
-   - Extend `policy/ast-shadow-corpus.toml` with TypeScript and Python fixtures.
-   - Promote `cargo xtask ast-shadow-compare` to infer language, collect
-     heuristics, and emit parser-backed shadow artifacts for `.ts` and `.py`
-     files alongside Rust.
-6. **Publication import checkpoint**
-   - True merge-commit import after lane packets merge; FF swarm; repo-graph
-     aligned.
+All packets shipped. Historical detail:
+
+1. **CLI correctness — `tokmd syntax --exclude`** (PR #368) — merged.
+2. **Governance reconciliation** (PR #369) — merged.
+3. **Packet exclude forwarding** (PR #370) — merged.
+4. **User-path syntax guide** (PR #371) —
+   `docs/workflows/syntax-evidence-guide.md` for UB/crash review using
+   `review_signals`.
+5. **Shadow corpus expansion for TS/Python** (PR #372) — merged.
+6. **WASM analyze byte-mode parity** (PR #380) — `runJsonBytes` boundary tests
+   for browser-safe `analyze`.
+7. **Publication import checkpoint** (import #2779 at `6565092b`) — merged;
+   repo-graph aligned.
 
 ## Validation
 
@@ -82,9 +72,10 @@ Required CI: `Tokmd Rust Result` (`cargo test --all-features`).
 | 1 | #368 syntax `--exclude` | merged |
 | 2 | #369 governance reconciliation | merged |
 | 3 | #370 packet exclude forwarding | merged |
-| 4 | user-path syntax guide | merged |
-| 5 | shadow corpus TS/Python expansion | merged |
-| 6 | publication import | after lane packets |
+| 4 | #371 syntax evidence guide | merged |
+| 5 | #372 shadow corpus TS/Python | merged |
+| 6 | #380 wasm analyze byte-mode parity | merged |
+| 7 | import #2779 publication sync | merged (`6565092b`) |
 
 ## Intentionally deferred
 

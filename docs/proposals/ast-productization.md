@@ -9,7 +9,7 @@
   `docs/specs/ast-syntax-support-tier.md`,
   `docs/specs/syntax-receipts.md`
 - Related ADRs: `docs/adr/0008-ast-foundation.md`
-- Related plans: `docs/plans/ast-productization.md`
+- Related plans: `docs/plans/ast-productization.md` (lane closed 2026-07-01)
 
 ## Problem
 
@@ -116,16 +116,21 @@ summarized below):
 | AST shadow compare/check | developer tooling | `cargo xtask ast-shadow-compare` |
 | Default analyze/cockpit receipts | unchanged (heuristic) | existing commands |
 
-**Immediate PR sequence (after this proposal):**
+**Shipped PR sequence (lane closed 2026-07-01):**
 
 1. **CLI correctness** — `tokmd syntax` honors global `--exclude` (PR #368).
-2. **Governance reconciliation** — this proposal + `NEXT.md` / `ROADMAP` /
-   spec stale-text cleanup (this PR).
-3. **Packet exclude forwarding** (optional follow-on) — pass packet/global
-   excludes into syntax generation when scoped.
-4. **User-path doc** — short recipes/workflows section for crash-hunting / UB
-   review using `review_signals` (optional follow-on PR).
-5. **Publication import** — merge-commit batch after PRs 1–2 land.
+2. **Governance reconciliation** — proposal + `NEXT.md` / `ROADMAP` /
+   spec stale-text cleanup (PR #369).
+3. **Packet exclude forwarding** — pass packet/global excludes into syntax
+   generation when scoped (PR #370).
+4. **User-path doc** — `docs/workflows/syntax-evidence-guide.md` for
+   crash-hunting / UB review using `review_signals` (PR #371).
+5. **Shadow corpus TS/Python** — extend `policy/ast-shadow-corpus.toml` and
+   compare tooling (PR #372).
+6. **WASM analyze byte-mode parity** — `runJsonBytes` boundary tests for
+   browser-safe `analyze` (PR #380).
+7. **Publication import** — merge-commit import #2779; repo-graph aligned at
+   `6565092b`.
 
 **Deferred until fresh evidence + schema review:**
 
@@ -141,7 +146,7 @@ summarized below):
    boundary.)
 2. **Analyze preset:** should a future `syntax` or `bun-ub` preset call
    `tokmd syntax` internally, or stay packet-only?
-3. **Corpus expansion:** extend `policy/ast-shadow-corpus.toml` beyond Rust-only
-   shadow comparison for TS/Python syntax receipts?
+3. **Corpus expansion:** shipped for TS/Python in PR #372; further languages
+   need a fresh registry spec review.
 4. **Release:** when is AST syntax surface stable enough for release-notes
    promotion from experimental to supported? (Not this lane.)

@@ -75,10 +75,10 @@ mismatch classification are useful shadow evidence: they show AST can avoid
 heuristic over-reporting from embedded Rust source strings, but they do not yet
 justify a public function-boundary candidate proposal.
 
-**AST/syntax productization lane is active** (opened 2026-06-30). The explicit
-opt-in syntax surface (`tokmd syntax`, packet `--syntax`, shadow compare/check)
-is shipped and CI-proven; governance reconciliation and remaining CLI
-correctness gaps are tracked in `docs/proposals/ast-productization.md` and
+**AST/syntax productization lane is closed** (2026-07-01). The explicit
+opt-in syntax surface (`tokmd syntax`, packet `--syntax`, shadow compare/check,
+syntax evidence guide, WASM analyze byte-mode parity) is shipped, CI-proven, and
+governance-aligned via `docs/proposals/ast-productization.md` and
 `docs/plans/ast-productization.md`. Public receipt promotion and default
 `analyze` behavior remain unchanged until a fresh schema-reviewed proposal
 clears function-boundary candidate criteria. Prior closed plans remain historical:
@@ -235,9 +235,9 @@ active constraints, and immediate work-packet decisions.
    adoption or release-readiness work only from a fresh consumer, missing
    artifact, workflow pain, or product gap; do not add a new wrapper receipt or
    command unless existing artifacts cannot answer that named consumer.
-3. **AST/syntax productization** — follow `docs/plans/ast-productization.md`;
-   reconcile governance, close CLI correctness gaps, keep default receipts
-   unchanged unless function-boundary candidate criteria clear.
+3. **AST/syntax productization** — lane closed 2026-07-01; see
+   `docs/plans/ast-productization.md`. Reopen only from fresh
+   function-boundary or schema-review evidence.
 4. Fix cockpit review-packet and Action-hosting gaps only when fresh evidence
    shows a product, verifier, or hosted-comment issue.
 5. Preserve `tokmd cockpit` as the review evidence implementation surface until

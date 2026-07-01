@@ -9,9 +9,9 @@ evidence names a real consumer, missing artifact, workflow pain, or product gap.
 
 ## Current Status
 
-The generated PR drain is complete. Proof, AST, browser, release-readiness,
-publishing-evidence, user-path evidence, artifact glossary, and first-pass
-product-readiness lanes are closed.
+The generated PR drain is complete. Proof, AST productization, browser,
+release-readiness, publishing-evidence, user-path evidence, artifact glossary,
+and first-pass product-readiness lanes are closed.
 
 The Rust-native proof control plane is in routine-observation mode. Fast proof,
 scoped coverage, mutation, coverage telemetry, and Codecov upload remain
@@ -347,6 +347,8 @@ is still one of the clearest user-facing product surfaces.
 
 ### Lane 6: AST / Syntax Productization
 
+**Status:** closed (2026-07-01). All agent-executable packets shipped.
+
 **Goal:** Keep the explicit opt-in syntax surface working end-to-end; continue
 shadow comparison evidence; defer default-receipt promotion until candidate
 criteria clear.
@@ -355,12 +357,15 @@ criteria clear.
 ships `tokmd syntax`, packet `--syntax`, and shadow tooling; governance was
 stale ("shadow only / no active lane"). See `docs/proposals/ast-productization.md`.
 
-**Active work packets:**
+**Shipped work packets:**
 
-1. CLI correctness on syntax surfaces (e.g. `--exclude` honoring — PR #368)
-2. Governance reconciliation (`NEXT.md`, specs, support-tier wording)
-3. Optional user-path docs for syntax evidence in UB/crash review workflows
-4. Shadow corpus maintenance and mismatch classification (developer tooling)
+1. CLI correctness on syntax surfaces (`--exclude` honoring — PR #368)
+2. Governance reconciliation (`NEXT.md`, specs, support-tier wording — PR #369)
+3. Packet exclude forwarding (PR #370)
+4. User-path syntax evidence guide (PR #371)
+5. Shadow corpus TS/Python expansion (PR #372)
+6. WASM analyze byte-mode parity (PR #380)
+7. Publication import aligned (import #2779 at `6565092b`)
 
 **Still shadow-only / deferred:**
 
@@ -376,7 +381,7 @@ stale ("shadow only / no active lane"). See `docs/proposals/ast-productization.m
 - treat syntax review signals as merge verdicts,
 - release/version bump solely because AST lane is "done."
 
-**Done when:**
+**Done when (met 2026-07-01):**
 
 - Proposal + plan accepted; governance matches shipped behavior,
 - `tokmd syntax` and packet `--syntax` proven in CI,

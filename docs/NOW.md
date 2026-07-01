@@ -21,6 +21,24 @@ Agent-executable adoption work for this wave is at handoff:
 shadow surfaces. It does not prove manual browser ZIP smoke, release publish, or
 Nix-full validation.
 
+## AST productization closeout (2026-07-01)
+
+Agent-executable AST/syntax productization work is at handoff:
+
+- **#368–#370**: CLI `--exclude` honoring, governance reconciliation, packet
+  exclude forwarding.
+- **#371**: `docs/workflows/syntax-evidence-guide.md` user-path guide for
+  UB/crash review using `review_signals`.
+- **#372**: AST shadow corpus expanded for TypeScript and Python.
+- **#380**: WASM `runJsonBytes` analyze boundary parity tests.
+- **Publication import #2779**: merge-commit import landed; `repo-graph` reports
+  `Aligned` at `6565092b` (publication_ahead=0, swarm_ahead=0).
+
+**Claim boundary**: this lane proves explicit opt-in syntax surfaces
+(`tokmd syntax`, packet `--syntax`, shadow compare/check) and matching docs/CI.
+It does not promote AST facts onto default receipts, prove function-boundary
+candidate criteria, or add browser tree-sitter.
+
 ## Shipped this wave
 
 - **Browser ZIP smoke recipe (#356)**: maintainer recipe for manual browser
@@ -86,6 +104,8 @@ Nix-full validation.
 
 - **Browser/WASM product continuation**: keep browser capability claims explicit and rootless preset work evidence-led. With ZIP byte-mode upload now wired (see NOW), the next browser follow-ons are manual browser smoke against a real archive, streaming/large-archive upload, and tar-family containers; treat each as a fresh evidence-led slice rather than an implicit promise.
 - **MCP/server mode**: expose stable read-only receipt resources before adding long-lived execution surfaces.
-- **AST/syntax productization**: active lane — explicit `tokmd syntax` and packet
-  `--syntax` are shipped; shadow compare/check remains developer tooling. See
-  `docs/proposals/ast-productization.md`. Default receipts unchanged.
+- **AST/syntax productization lane closed** (2026-07-01): explicit `tokmd syntax`,
+  packet `--syntax`, shadow compare/check, syntax evidence guide, and WASM analyze
+  byte-mode parity are shipped and governance-aligned. See
+  `docs/plans/ast-productization.md`. Default receipts unchanged; reopen only from
+  fresh function-boundary or schema-review evidence.
