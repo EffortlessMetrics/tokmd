@@ -1,0 +1,5 @@
+{"command": "cargo test -p tokmd-analysis --test analysis_deep_w64 --all-features", "status": "success", "duration_ms": 3670}
+{"command": "cargo build -p tokmd-analysis --verbose", "status": "success", "duration_ms": 15830}
+{"command": "bash -c 'CI=true cargo test -p tokmd-analysis --verbose'", "status": "success", "duration_ms": 26190}
+{"command": "cargo fmt -- --check", "status": "success", "duration_ms": 100}
+{"command": "cargo clippy -p tokmd-analysis -- -D warnings", "status": "success", "duration_ms": 850}
