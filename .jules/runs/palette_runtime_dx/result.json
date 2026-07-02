@@ -1,4 +1,22 @@
 {
-  "status": "success",
-  "outcome": "pr-ready patch"
+  "outcome": "PR-ready patch",
+  "summary": "Improved CLI error handling by rejecting zero values for max-commits and max-commit-files flags.",
+  "blast_radius": {
+    "api": false,
+    "io": false,
+    "docs": false,
+    "schema": false,
+    "concurrency": false,
+    "compatibility": false,
+    "dependencies": false
+  },
+  "risk_class": "low",
+  "risk_reasoning": "This change simply applies existing clap validation logic to more CLI arguments, which fails fast on invalid input without altering core logic.",
+  "rollback_strategy": "git revert",
+  "gates_run": [
+    "cargo build --verbose",
+    "CI=true cargo test -p tokmd --verbose",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ]
 }
