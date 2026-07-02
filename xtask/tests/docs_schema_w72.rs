@@ -576,6 +576,164 @@ fn wasm_capability_matrix_browser_safe_matches_current_runner_modes() {
     );
 }
 
+/// Parse a `const NAME: &[&str] = &["a", "b"];` string-slice literal from a Rust
+/// source file, matching the source-parse approach the other meta-tests use so
+/// this check needs no cross-crate dependency on the wasm binding.
+///
+/// The declaration may span multiple lines; collection starts at the `= &[`
+/// opener and stops at the closing `];`.
+fn read_str_slice_const(relative_path: &str, constant_name: &str) -> Option<Vec<String>> {
+    let path = workspace_root().join(relative_path);
+    let content = std::fs::read_to_string(&path).ok()?;
+    let opener = format!("const {constant_name}: &[&str] = &[");
+
+    let start = content.find(&opener)? + opener.len();
+    let rest = &content[start..];
+    let end = rest.find("];")?;
+    let body = &rest[..end];
+
+    let mut values = Vec::new();
+    let mut chars = body.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch != '"' {
+            continue;
+        }
+        let mut token = String::new();
+        for inner in chars.by_ref() {
+            if inner == '"' {
+                break;
+            }
+            token.push(inner);
+        }
+        values.push(token);
+    }
+    Some(values)
+}
+
+/// The browser rootless analyze preset surface in `wasm.json` must mirror the
+/// `ROOTLESS_ANALYZE_PRESETS` constant the wasm binding advertises through
+/// `capabilities()`. Together with the wasm crate's own
+/// `capabilities_reports_rootless_surface` and
+/// `validate_analyze_args_accepts_rootless_receipt_and_estimate` tests, this
+/// closes the chain from the `supports_rootless_in_memory_analyze_preset`
+/// authority through the advertised constant to the documented capability
+/// matrix, so widening or narrowing rootless presets cannot silently leave the
+/// docs stale.
+#[test]
+fn wasm_capability_matrix_analyze_presets_match_wasm_rootless_constant() {
+    let source_presets =
+        read_str_slice_const("crates/tokmd-wasm/src/lib.rs", "ROOTLESS_ANALYZE_PRESETS")
+            .expect("ROOTLESS_ANALYZE_PRESETS not found in crates/tokmd-wasm/src/lib.rs");
+    assert!(
+        !source_presets.is_empty(),
+        "ROOTLESS_ANALYZE_PRESETS must declare at least one preset"
+    );
+
+    let matrix = wasm_capability_matrix();
+    let doc_presets: Vec<String> = matrix["commands"]["analyze"]["browser_analyze_presets"]
+        .as_array()
+        .expect("wasm.json commands.analyze.browser_analyze_presets must be an array")
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .expect("browser_analyze_presets entries must be strings")
+                .to_string()
+        })
+        .collect();
+
+    assert_eq!(
+        doc_presets, source_presets,
+        "wasm.json commands.analyze.browser_analyze_presets ({doc_presets:?}) must match \
+         ROOTLESS_ANALYZE_PRESETS in crates/tokmd-wasm/src/lib.rs ({source_presets:?})"
+    );
+}
+
+/// The `runJsonBytes` binding row in `wasm.json` must declare the archive
+/// byte-mode shape the spec fixes: browser-safe, `archive-zip` gated,
+/// `zip_bytes` input, and a `supported_modes` array.
+#[test]
+fn wasm_capability_matrix_declares_bytes_binding_shape() {
+    let matrix = wasm_capability_matrix();
+    let binding = matrix["bindings"]["runJsonBytes"]
+        .as_object()
+        .expect("wasm.json bindings.runJsonBytes must be an object");
+
+    assert_eq!(
+        binding
+            .get("browser_safe")
+            .and_then(serde_json::Value::as_bool),
+        Some(true),
+        "runJsonBytes must be marked browser_safe"
+    );
+    assert_eq!(
+        binding
+            .get("native_only")
+            .and_then(serde_json::Value::as_bool),
+        Some(false),
+        "runJsonBytes must not be native_only"
+    );
+    assert_eq!(
+        binding
+            .get("feature_gate")
+            .and_then(serde_json::Value::as_str),
+        Some("archive-zip"),
+        "runJsonBytes must record the archive-zip feature gate"
+    );
+    assert_eq!(
+        binding
+            .get("input_format")
+            .and_then(serde_json::Value::as_str),
+        Some("zip_bytes"),
+        "runJsonBytes must record the zip_bytes input format"
+    );
+    assert!(
+        binding
+            .get("supported_modes")
+            .and_then(serde_json::Value::as_array)
+            .is_some(),
+        "runJsonBytes must declare a supported_modes array"
+    );
+}
+
+/// The byte-mode `supported_modes` must equal the browser-safe scan-mode command
+/// surface (`native_only == false` commands). This binds the archive byte
+/// binding to the same set of input-consuming scan modes the matrix advertises
+/// as non-native, with no external hardcoding: adding a browser command or
+/// flipping `analyze` to native would fail this check until `supported_modes`
+/// is reconciled.
+#[test]
+fn wasm_capability_matrix_bytes_binding_modes_match_browser_scan_modes() {
+    let matrix = wasm_capability_matrix();
+
+    let supported_modes: BTreeSet<String> = matrix["bindings"]["runJsonBytes"]["supported_modes"]
+        .as_array()
+        .expect("wasm.json bindings.runJsonBytes.supported_modes must be an array")
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .expect("supported_modes entries must be strings")
+                .to_string()
+        })
+        .collect();
+
+    let commands = matrix["commands"]
+        .as_object()
+        .expect("docs/capabilities/wasm.json commands must be an object");
+    let browser_scan_modes: BTreeSet<String> = commands
+        .iter()
+        .filter(|(_, entry)| entry["native_only"].as_bool() == Some(false))
+        .map(|(command, _)| command.clone())
+        .collect();
+
+    assert_eq!(
+        supported_modes, browser_scan_modes,
+        "runJsonBytes supported_modes ({supported_modes:?}) must equal the non-native_only \
+         command surface ({browser_scan_modes:?})"
+    );
+}
+
 // ===========================================================================
 // 5. Every CLI command in README.md Commands table actually exists
 // ===========================================================================
