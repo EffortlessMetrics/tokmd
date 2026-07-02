@@ -115,7 +115,7 @@ For a CI-only failure:
 The normal swarm required check is:
 
 ```text
-Tokmd Rust Small Result
+Tokmd Rust Result
 ```
 
 The runner-specific jobs may skip depending on route and event trust. Do not

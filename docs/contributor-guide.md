@@ -60,7 +60,7 @@ repository, `EffortlessMetrics/tokmd`, owns release, publish, signing, tags, and
 The steady-state loop is:
 
 ```text
-tokmd-swarm: branch, PR, required routed Rust Small check, squash merge
+tokmd-swarm: branch, PR, required Tokmd Rust Result check, squash merge
 tokmd: import swarm work by merge commit at publication checkpoints
 tokmd-swarm: fast-forward to the publication merge commit
 ```
@@ -101,7 +101,7 @@ still useful because it proves the docs-control surface stayed consistent.
 A normal swarm PR should wait for the required aggregate:
 
 ```text
-Tokmd Rust Small Result
+Tokmd Rust Result
 ```
 
 The route and runner-specific jobs are implementation details. They may skip

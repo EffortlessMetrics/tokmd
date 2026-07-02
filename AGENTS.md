@@ -255,7 +255,7 @@ cargo +nightly fuzz list  # List all targets
 ## Dual-Repo Workbench Boundary
 
 Normal tokmd development starts from `EffortlessMetrics/tokmd-swarm:main`.
-Create narrow PRs there, wait for `Tokmd Rust Small Result`, and squash-merge
+Create narrow PRs there, wait for `Tokmd Rust Result`, and squash-merge
 aligned work into the swarm repo.
 
 `EffortlessMetrics/tokmd` is the publication repository. Do not push feature
