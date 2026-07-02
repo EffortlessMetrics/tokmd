@@ -128,13 +128,12 @@ is sufficient.
 Start from a fresh timing receipt before optimizing:
 
 ```bash
-cargo xtask perf-smoke
+cargo xtask perf-smoke --sha "$(git rev-parse HEAD)"
 cargo run -p tokmd -- run --path . --out target/perf-debug
 ```
 
-Compare like with like: same checkout, same feature set, same target directory
-policy, and the same input corpus. A single local run is a lead, not proof of a
-stable performance improvement.
+See [ci/perf-smoke.md](ci/perf-smoke.md) for the maintainer baseline workflow,
+receipt fields, comparison rules, and claim boundary.
 
 ## Further Reading
 

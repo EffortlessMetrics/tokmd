@@ -240,6 +240,13 @@ is consumption: making those artifacts easier to read and triage.
 
 ### Lane 3: Measured Performance and CI Feedback
 
+**Status:** active (2026-07-02). Maintainer perf-smoke guide landed; optimization
+PRs must cite receipts before touching hot paths.
+
+| Packet | Shipped in |
+| --- | --- |
+| 2. `cargo xtask perf-smoke` maintainer guide | `docs/ci/perf-smoke.md` |
+
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.
 
