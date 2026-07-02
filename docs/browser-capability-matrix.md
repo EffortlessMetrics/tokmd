@@ -26,6 +26,79 @@ are exercised by the `tokmd-wasm` test suite (native and `wasm-bindgen-test`).
 | `runJsonBytes` (`archive-zip`) | supported | raw ZIP `Uint8Array` upload; modes `lang`/`module`/`export`/`analyze` (rootless presets) |
 | `capabilities()` / `version()` / `schemaVersion()` | supported | introspection helpers |
 
+## Rootless analyze preset feasibility
+
+Browser `analyze` is **partial**: only `receipt` and `estimate` are wired today. The
+authority chain is explicit in code and mirrored in
+[`docs/capabilities/wasm.json`](capabilities/wasm.json):
+
+1. **`tokmd_core::supports_rootless_in_memory_analyze_preset`** — the core gate
+   (`crates/tokmd-core/src/workflows/analyze.rs`). Only `receipt` and `estimate`
+   stay on the pure in-memory row path; every other preset materializes a
+   temporary scan root via `prepare_materialized_in_memory_export`.
+2. **`ROOTLESS_ANALYZE_PRESETS`** — the wasm binding constant
+   (`crates/tokmd-wasm/src/lib.rs`) advertised through `capabilities()`.
+3. **`commands.analyze.browser_analyze_presets`** — the machine-readable row in
+   `wasm.json`, kept in sync by `xtask/tests/docs_schema_w72.rs`.
+
+The wasm FFI rejects any other preset at the boundary with a `not_implemented`
+error before analysis runs.
+
+### Currently browser-safe analyze presets
+
+| Preset | Browser status | Why it works rootless |
+| --- | --- | --- |
+| `receipt` | supported | Pure in-memory export rows; derived metrics from scan totals only |
+| `estimate` | supported | Same row path; effort estimation degrades git/file-backed signals with named warnings when `root` is empty (see `estimate_with_rootless_context_emits_host_root_warnings` in `tokmd-analysis`) |
+
+### Blocked presets and why
+
+All other presets are blocked at one or more layers. The table below is grouped
+by the **primary** blocker; several presets hit multiple layers.
+
+| Preset | Primary blocker | What the preset needs | Current rootless behaviour |
+| --- | --- | --- | --- |
+| `health` | browser FFI gate + file-backed enrichers | TODO density, complexity histogram (`needs_files()`) | Not in `ROOTLESS_ANALYZE_PRESETS`; would materialize temp scan root |
+| `risk` | git history + file-backed enrichers | Hotspots, coupling, freshness, complexity | Git enrichers require host `git log`; not browser-safe |
+| `supply` | file-backed enrichers | Asset discovery, dependency lockfiles | Requires filesystem walk beyond in-memory rows |
+| `architecture` | file-backed enrichers | Import graph | Requires content/import scanning on host paths |
+| `topics` | file-backed enrichers | Semantic topic clouds | Requires content scanning |
+| `security` | file-backed enrichers | License radar, entropy profiling | Requires filesystem/content surfaces |
+| `identity` | git history | Archetype detection, corporate fingerprint | Fingerprint/churn need commit history |
+| `git` | git history | Advanced git metrics | Native `git log` only |
+| `deep` | git + file-backed enrichers | Everything except fun | Combines all blockers above |
+| `fun` | browser FFI gate | Eco-label (no `needs_files()`) | Could run on in-memory rows but is not wired through wasm |
+| `bun-ub` | git history + native-only command | UB review evidence packet | Native `evidence-packet` / `packet generate`; not a browser command |
+
+Shared infrastructure gaps:
+
+- **Git history** — seven presets enable git enrichers (`receipt`, `estimate`,
+  `bun-ub`, `risk`, `identity`, `git`, `deep`). In a rootless/browser context
+  git is skipped and warnings are emitted; full signals need a host repository.
+- **Filesystem walk** — enrichers gated by `PresetPlan::needs_files()` (assets,
+  deps, TODOs, duplicates, imports, entropy, license, complexity, API surface)
+  expect a validated host root or materialized scan directory, not bare in-memory
+  rows alone.
+- **WASM preset gate** — even presets that could theoretically degrade (e.g.
+  `fun`) are rejected until explicitly added to `ROOTLESS_ANALYZE_PRESETS` and
+  proven through the wasm parity tests.
+
+### What would unblock additional presets
+
+Work proceeds preset-by-preset; there is no single switch.
+
+| Unblock step | Enables | Owner seam |
+| --- | --- | --- |
+| Run content enrichers on in-memory `{ path, text }` export rows without host-root file walks | `health`, parts of `security` | `tokmd-analysis` content enrichers + `tokmd-scan` snapshot path |
+| Snapshot-backed asset/dep/import discovery (no `std::fs` walk) | `supply`, `architecture` | `tokmd-scan::scan_snapshot`, `tokmd-io-port` |
+| Explicit partial/degraded receipts for skipped git enrichers in browser | `risk`, `identity`, `git`, `deep` (partial) | `tokmd-analysis` git enrichers + wasm error policy |
+| Extend `supports_rootless_in_memory_analyze_preset` + `ROOTLESS_ANALYZE_PRESETS` + `wasm.json` + parity tests | Any newly proven preset | `tokmd-core`, `tokmd-wasm`, `docs/capabilities/wasm.json` |
+| Browser git history adapter (host-provided commit stream) | Full git presets in browser | New host port; out of scope for current wasm bundle |
+
+Until a preset clears all three layers (core rootless path, wasm FFI gate, and
+parity proof), it stays **native-only** in the capability matrix regardless of
+whether native in-memory APIs could materialize a temp scan root.
+
 ## Archive ingestion (ZIP byte upload)
 
 The `runJsonBytes` binding (`tokmd-wasm`, `feature = archive-zip`) accepts a
@@ -96,11 +169,13 @@ the boundaries in [browser.md](browser.md#native-only-boundaries) and the
 
 - **Establishes**: the current browser-safe command set wired through
   `tokmd-wasm`, including ZIP archive byte upload via `runJsonBytes` when built
-  with `archive-zip`, and an honest experimental/native-only split for git and
-  filesystem capabilities.
+  with `archive-zip`; an honest experimental/native-only split for git and
+  filesystem capabilities; and a code-backed rootless analyze preset
+  feasibility map (`receipt`/`estimate` only today, with per-preset blockers).
 - **Does not establish**: in-browser git history, manual browser smoke of the
   runner ZIP upload path (see [browser-zip-smoke.md](browser-zip-smoke.md) for
-  the maintainer recipe), streaming upload, or tar-family containers.
+  the maintainer recipe), streaming upload, tar-family containers, or a timeline
+  for widening `ROOTLESS_ANALYZE_PRESETS`.
 
 ## See also
 

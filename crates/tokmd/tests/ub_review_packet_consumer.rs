@@ -12,6 +12,12 @@
 //! `tokmd_types::EvidencePacketManifest` type, so a drift in the schema, the
 //! type, or the canonical examples is caught.
 //!
+//! Beyond the status taxonomy, a second block pins trust-order step 3
+//! (freshness / "cache by identity, not by presence"): a *valid* packet is only
+//! reusable when its recorded `(schema, tokmd_version, base, head, paths,
+//! preset)` identity matches the current run, an axis independent from
+//! attachability that was previously unpinned by any consumer test.
+//!
 //! The synthetic rows above are pure parse/validate/assert: no binary, git, or
 //! feature gate required. The `real_producer_bridge` module at the bottom of
 //! this file additionally drives the real producer (`tokmd evidence-packet`)
@@ -64,6 +70,47 @@ fn consume(manifest: &Value) -> Result<EvidencePacketManifest, Box<dyn Error>> {
 /// "what to trust first" sections of `docs/ub-review-integration.md`).
 fn is_attachable(manifest: &EvidencePacketManifest) -> bool {
     manifest.status != EvidencePacketStatus::Failed && manifest.errors.is_empty()
+}
+
+/// The documented cache-identity key for a *reusable* packet:
+/// `(schema, tokmd_version, base, head, paths, preset)` (see the "Cache and
+/// receipt guidance" section of `docs/ub-review-integration.md`: "Cache by
+/// identity, not by presence"). `paths` is compared as the review *scope* set
+/// (order-insensitive), matching the doc's "matches the PR's ... review scope".
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PacketIdentity {
+    schema: String,
+    tokmd_version: String,
+    base: String,
+    head: String,
+    paths: Vec<String>,
+    preset: String,
+}
+
+impl PacketIdentity {
+    fn from_manifest(manifest: &EvidencePacketManifest) -> Self {
+        let mut paths = manifest.paths.clone();
+        paths.sort();
+        Self {
+            schema: manifest.schema.clone(),
+            tokmd_version: manifest.tokmd_version.clone(),
+            base: manifest.base.clone(),
+            head: manifest.head.clone(),
+            paths,
+            preset: manifest.preset.clone(),
+        }
+    }
+}
+
+/// Trust-order step 3 (freshness / identity) from
+/// `docs/ub-review-integration.md`: a schema-valid, error-free packet is only
+/// *reusable* for the current run when its recorded identity matches the
+/// requested `(schema, tokmd_version, base, head, paths, preset)`. This is an
+/// axis independent from `is_attachable` (which only gates packet *validity*):
+/// a valid packet produced for a different diff window or scope is still
+/// **stale** and must be regenerated before it is trusted or cached as a pass.
+fn is_fresh_for(manifest: &EvidencePacketManifest, expected: &PacketIdentity) -> bool {
+    &PacketIdentity::from_manifest(manifest) == expected
 }
 
 fn base_artifacts(with_syntax: bool) -> Value {
@@ -225,6 +272,167 @@ fn consumer_confirms_schema_identity_before_interpreting_fields() -> TestResult 
     assert!(
         validate_against_schema(&foreign).is_err(),
         "a non-v1 schema id must be rejected by the v1 schema gate"
+    );
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Trust-order step 3: freshness / cache-by-identity (independent from validity)
+//
+// The synthetic rows above pin packet *validity* (`status` + `errors`). These
+// rows pin the separate, currently-unpinned consumer axis: a *valid* packet is
+// only reusable when its recorded identity matches the current run's window and
+// scope. Any mismatch is documented as "stale" evidence (trust-order step 3)
+// and "Cache by identity, not by presence" guidance, and must be regenerated
+// rather than reused as a pass. These rows never touch the binary or git, so
+// they do not overlap the `real_producer_bridge` status-taxonomy coverage.
+// ---------------------------------------------------------------------------
+
+/// The review window the skeleton fixtures describe, i.e. the identity a
+/// consumer would compute from the current PR before deciding whether a cached
+/// `sensors/tokmd/` packet is reusable.
+fn current_window() -> PacketIdentity {
+    PacketIdentity {
+        schema: EVIDENCE_PACKET_SCHEMA.to_string(),
+        tokmd_version: "1.14.0".to_string(),
+        base: "origin/main".to_string(),
+        head: "HEAD".to_string(),
+        paths: vec!["src/runtime/api/MarkdownObject.rs".to_string()],
+        preset: "bun-ub".to_string(),
+    }
+}
+
+fn complete_manifest() -> Value {
+    manifest_skeleton("complete", base_artifacts(false), json!([]), json!([]))
+}
+
+/// Override a single top-level manifest field, keeping the value schema-valid so
+/// staleness (not schema failure) is what the freshness gate observes.
+fn with_field(mut manifest: Value, key: &str, value: Value) -> Result<Value, Box<dyn Error>> {
+    manifest
+        .as_object_mut()
+        .ok_or("manifest skeleton must be a JSON object")?
+        .insert(key.to_string(), value);
+    Ok(manifest)
+}
+
+#[test]
+fn fresh_matching_window_packet_is_attachable_and_reusable() -> TestResult {
+    // Baseline: a complete packet whose identity matches the current run is both
+    // valid (attachable) and fresh (reusable without regeneration).
+    let packet = consume(&complete_manifest())?;
+    assert!(is_attachable(&packet), "complete packet is valid evidence");
+    assert!(
+        is_fresh_for(&packet, &current_window()),
+        "a packet whose (schema, version, base, head, paths, preset) matches the current \
+         run is reusable"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_head_mismatch_is_attachable_but_not_reusable() -> TestResult {
+    // A valid packet from a *previous* head is still schema-valid and error-free
+    // (attachable), but trust-order step 3 marks it stale for the current head:
+    // the two axes are independent, so a green status must not mask a stale
+    // window.
+    let manifest = with_field(complete_manifest(), "head", json!("deadbeefcafe"))?;
+    let packet = consume(&manifest)?;
+
+    assert!(
+        is_attachable(&packet),
+        "status/errors validity is unaffected by a head mismatch"
+    );
+    assert!(
+        !is_fresh_for(&packet, &current_window()),
+        "a head mismatch is stale evidence and must be regenerated, not reused"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_base_mismatch_is_not_reusable() -> TestResult {
+    let manifest = with_field(complete_manifest(), "base", json!("origin/release-1.13"))?;
+    let packet = consume(&manifest)?;
+    assert!(
+        is_attachable(&packet),
+        "base drift does not invalidate refs"
+    );
+    assert!(
+        !is_fresh_for(&packet, &current_window()),
+        "a base mismatch changes the diff window and is stale"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_scope_drift_in_paths_is_not_reusable() -> TestResult {
+    // Same base/head but a different review scope: the packet analysed other
+    // files, so it cannot be reused for this scope.
+    let manifest = with_field(
+        complete_manifest(),
+        "paths",
+        json!(["src/runtime/api/OtherObject.rs"]),
+    )?;
+    let packet = consume(&manifest)?;
+    assert!(is_attachable(&packet));
+    assert!(
+        !is_fresh_for(&packet, &current_window()),
+        "review-scope drift is stale: the packet covers different paths"
+    );
+    Ok(())
+}
+
+#[test]
+fn path_reordering_within_same_scope_stays_fresh() -> TestResult {
+    // Cache identity treats `paths` as the review *scope set*: the same files in
+    // a different serialization order are the same scope and stay reusable, so a
+    // producer path-ordering change does not spuriously invalidate a cache.
+    let expected = PacketIdentity {
+        paths: vec![
+            "src/a.rs".to_string(),
+            "src/b.rs".to_string(),
+            "src/c.rs".to_string(),
+        ],
+        ..current_window()
+    };
+    let manifest = with_field(
+        complete_manifest(),
+        "paths",
+        json!(["src/c.rs", "src/a.rs", "src/b.rs"]),
+    )?;
+    let packet = consume(&manifest)?;
+    assert!(
+        is_fresh_for(&packet, &expected),
+        "the same scope set in a different order is not a staleness signal"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_preset_mismatch_is_not_reusable() -> TestResult {
+    // The cache identity key includes `preset`: a packet built with a different
+    // preset produced different signals and must not be reused for this run.
+    let manifest = with_field(complete_manifest(), "preset", json!("risk"))?;
+    let packet = consume(&manifest)?;
+    assert!(is_attachable(&packet));
+    assert!(
+        !is_fresh_for(&packet, &current_window()),
+        "a preset mismatch is stale: the cache key includes preset"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_tokmd_version_mismatch_is_not_reusable() -> TestResult {
+    // A packet from a different tokmd version may encode different behaviour; the
+    // documented cache key pins `tokmd_version`, so a version drift is stale.
+    let manifest = with_field(complete_manifest(), "tokmd_version", json!("1.13.0"))?;
+    let packet = consume(&manifest)?;
+    assert!(is_attachable(&packet));
+    assert!(
+        !is_fresh_for(&packet, &current_window()),
+        "a tokmd_version mismatch is stale: the cache key includes tokmd_version"
     );
     Ok(())
 }
