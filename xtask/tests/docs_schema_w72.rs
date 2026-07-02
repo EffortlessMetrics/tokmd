@@ -588,9 +588,9 @@ fn read_str_slice_const(relative_path: &str, constant_name: &str) -> Option<Vec<
     let opener = format!("const {constant_name}: &[&str] = &[");
 
     let start = content.find(&opener)? + opener.len();
-    let rest = &content[start..];
+    let rest = content.get(start..)?;
     let end = rest.find("];")?;
-    let body = &rest[..end];
+    let body = rest.get(..end)?;
 
     let mut values = Vec::new();
     let mut chars = body.chars().peekable();
@@ -610,6 +610,24 @@ fn read_str_slice_const(relative_path: &str, constant_name: &str) -> Option<Vec<
     Some(values)
 }
 
+/// Resolve a JSON pointer in the capability matrix to a `Vec<String>`, failing
+/// with a descriptive error instead of panicking so the meta-tests stay free of
+/// panic-family calls (`expect` / unchecked indexing).
+fn matrix_string_array(matrix: &serde_json::Value, pointer: &str) -> Result<Vec<String>, String> {
+    matrix
+        .pointer(pointer)
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| format!("wasm.json {pointer} must be an array"))?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .map(str::to_string)
+                .ok_or_else(|| format!("wasm.json {pointer} entries must be strings"))
+        })
+        .collect()
+}
+
 /// The browser rootless analyze preset surface in `wasm.json` must mirror the
 /// `ROOTLESS_ANALYZE_PRESETS` constant the wasm binding advertises through
 /// `capabilities()`. Together with the wasm crate's own
@@ -620,44 +638,36 @@ fn read_str_slice_const(relative_path: &str, constant_name: &str) -> Option<Vec<
 /// matrix, so widening or narrowing rootless presets cannot silently leave the
 /// docs stale.
 #[test]
-fn wasm_capability_matrix_analyze_presets_match_wasm_rootless_constant() {
+fn wasm_capability_matrix_analyze_presets_match_wasm_rootless_constant() -> Result<(), String> {
     let source_presets =
         read_str_slice_const("crates/tokmd-wasm/src/lib.rs", "ROOTLESS_ANALYZE_PRESETS")
-            .expect("ROOTLESS_ANALYZE_PRESETS not found in crates/tokmd-wasm/src/lib.rs");
+            .ok_or("ROOTLESS_ANALYZE_PRESETS not found in crates/tokmd-wasm/src/lib.rs")?;
     assert!(
         !source_presets.is_empty(),
         "ROOTLESS_ANALYZE_PRESETS must declare at least one preset"
     );
 
     let matrix = wasm_capability_matrix();
-    let doc_presets: Vec<String> = matrix["commands"]["analyze"]["browser_analyze_presets"]
-        .as_array()
-        .expect("wasm.json commands.analyze.browser_analyze_presets must be an array")
-        .iter()
-        .map(|value| {
-            value
-                .as_str()
-                .expect("browser_analyze_presets entries must be strings")
-                .to_string()
-        })
-        .collect();
+    let doc_presets = matrix_string_array(&matrix, "/commands/analyze/browser_analyze_presets")?;
 
     assert_eq!(
         doc_presets, source_presets,
         "wasm.json commands.analyze.browser_analyze_presets ({doc_presets:?}) must match \
          ROOTLESS_ANALYZE_PRESETS in crates/tokmd-wasm/src/lib.rs ({source_presets:?})"
     );
+    Ok(())
 }
 
 /// The `runJsonBytes` binding row in `wasm.json` must declare the archive
 /// byte-mode shape the spec fixes: browser-safe, `archive-zip` gated,
 /// `zip_bytes` input, and a `supported_modes` array.
 #[test]
-fn wasm_capability_matrix_declares_bytes_binding_shape() {
+fn wasm_capability_matrix_declares_bytes_binding_shape() -> Result<(), String> {
     let matrix = wasm_capability_matrix();
-    let binding = matrix["bindings"]["runJsonBytes"]
-        .as_object()
-        .expect("wasm.json bindings.runJsonBytes must be an object");
+    let binding = matrix
+        .pointer("/bindings/runJsonBytes")
+        .and_then(serde_json::Value::as_object)
+        .ok_or("wasm.json bindings.runJsonBytes must be an object")?;
 
     assert_eq!(
         binding
@@ -694,6 +704,7 @@ fn wasm_capability_matrix_declares_bytes_binding_shape() {
             .is_some(),
         "runJsonBytes must declare a supported_modes array"
     );
+    Ok(())
 }
 
 /// The byte-mode `supported_modes` must equal the browser-safe scan-mode command
@@ -703,27 +714,26 @@ fn wasm_capability_matrix_declares_bytes_binding_shape() {
 /// flipping `analyze` to native would fail this check until `supported_modes`
 /// is reconciled.
 #[test]
-fn wasm_capability_matrix_bytes_binding_modes_match_browser_scan_modes() {
+fn wasm_capability_matrix_bytes_binding_modes_match_browser_scan_modes() -> Result<(), String> {
     let matrix = wasm_capability_matrix();
 
-    let supported_modes: BTreeSet<String> = matrix["bindings"]["runJsonBytes"]["supported_modes"]
-        .as_array()
-        .expect("wasm.json bindings.runJsonBytes.supported_modes must be an array")
-        .iter()
-        .map(|value| {
-            value
-                .as_str()
-                .expect("supported_modes entries must be strings")
-                .to_string()
-        })
-        .collect();
+    let supported_modes: BTreeSet<String> =
+        matrix_string_array(&matrix, "/bindings/runJsonBytes/supported_modes")?
+            .into_iter()
+            .collect();
 
-    let commands = matrix["commands"]
-        .as_object()
-        .expect("docs/capabilities/wasm.json commands must be an object");
+    let commands = matrix
+        .pointer("/commands")
+        .and_then(serde_json::Value::as_object)
+        .ok_or("docs/capabilities/wasm.json commands must be an object")?;
     let browser_scan_modes: BTreeSet<String> = commands
         .iter()
-        .filter(|(_, entry)| entry["native_only"].as_bool() == Some(false))
+        .filter(|(_, entry)| {
+            entry
+                .get("native_only")
+                .and_then(serde_json::Value::as_bool)
+                == Some(false)
+        })
         .map(|(command, _)| command.clone())
         .collect();
 
@@ -732,6 +742,7 @@ fn wasm_capability_matrix_bytes_binding_modes_match_browser_scan_modes() {
         "runJsonBytes supported_modes ({supported_modes:?}) must equal the non-native_only \
          command surface ({browser_scan_modes:?})"
     );
+    Ok(())
 }
 
 // ===========================================================================
