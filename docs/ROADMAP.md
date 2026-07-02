@@ -271,6 +271,19 @@ not speculative.
 
 ### Lane 4: Documentation That Serves Adoption
 
+**Status:** complete (2026-07-02). Candidate work packets shipped to swarm
+`main` with contributor quickstart, extender guide, debugging runbook, and CI
+lane inventory:
+
+| Packet | Shipped in |
+| --- | --- |
+| 1. Contributor quickstart | `docs/contributor-guide.md` (linked from `CONTRIBUTING.md`, `docs/README.md`) |
+| 2. How to extend tokmd | `docs/how-to-extend-analysis.md` (#388); `docs/how-to-add-a-packet-field.md` (#367) |
+| 3. Debugging guide | `docs/debugging.md` |
+| 4. CI lane inventory | `docs/ci/inventory.md` (#390); ub-review gate phase 4 in `docs/specs/SPEC_GAPS.md` (#391) |
+
+Reopen only from fresh evidence of a concrete contributor or adoption gap.
+
 **Goal:** Fill adoption and contributor gaps that directly help users or new
 contributors succeed.
 
@@ -365,7 +378,7 @@ stale ("shadow only / no active lane"). See `docs/proposals/ast-productization.m
 4. User-path syntax evidence guide (PR #371)
 5. Shadow corpus TS/Python expansion (PR #372)
 6. WASM analyze byte-mode parity (PR #380)
-7. Publication import aligned (import #2787 at `15e068f7`)
+7. Publication import aligned (import #2790 at `840c3ca9`)
 
 **Still shadow-only / deferred:**
 

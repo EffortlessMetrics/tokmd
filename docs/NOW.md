@@ -1,7 +1,7 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the adoption-wave closeout
-> (swarm #364-#367, publication imports #2764/#2765).
+> One-screen operational truth. Updated after the Lane 4 docs batch closeout
+> (swarm #345, #389-#391, publication import #2790).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -31,13 +31,32 @@ Agent-executable AST/syntax productization work is at handoff:
   UB/crash review using `review_signals`.
 - **#372**: AST shadow corpus expanded for TypeScript and Python.
 - **#380**: WASM `runJsonBytes` analyze boundary parity tests.
-- **Publication import #2787**: merge-commit import landed; `repo-graph` reports
-  `Aligned` at `15e068f7` (publication_ahead=0, swarm_ahead=0).
+- **Publication import #2787**: merge-commit import landed (AST batch);
+  superseded by import **#2790** at **`840c3ca9`** (current alignment).
+- **Current alignment**: `repo-graph` reports `Aligned` at `840c3ca9`
+  (publication_ahead=0, swarm_ahead=0) after import #2790.
 
 **Claim boundary**: this lane proves explicit opt-in syntax surfaces
 (`tokmd syntax`, packet `--syntax`, shadow compare/check) and matching docs/CI.
 It does not promote AST facts onto default receipts, prove function-boundary
 candidate criteria, or add browser tree-sitter.
+
+## Lane 4 docs batch closeout (2026-07-02)
+
+Agent-executable adoption/contributor docs work for this batch is at handoff:
+
+- **#345**: badge endpoint refresh (inventory badge fix).
+- **#389**: badge PR CI-suppression and maintainer nudge docs.
+- **#390**: `docs/ci/inventory.md` lane inventory reconciled with
+  `policy/ci-lane-whitelist.toml`.
+- **#391**: `docs/specs/SPEC_GAPS.md` ub-review CI gate phase 4 marked done.
+- **Publication import #2790**: merge-commit import landed; `repo-graph`
+  reports `Aligned` at `840c3ca9` (publication_ahead=0, swarm_ahead=0).
+
+**Claim boundary**: this batch proves badge visibility, CI lane inventory
+accuracy, and ub-review gate phase-4 documentation. It does not enable badge
+auto-CI (needs org `BADGE_PAT` secret) or change publication merge-commit UI
+settings.
 
 ## Shipped this wave
 
