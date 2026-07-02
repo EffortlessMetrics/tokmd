@@ -240,8 +240,12 @@ is consumption: making those artifacts easier to read and triage.
 
 ### Lane 3: Measured Performance and CI Feedback
 
-**Status:** active (2026-07-02). Maintainer perf-smoke guide and baseline landed;
-first measured hot-path fix (PR B) and I/O cache evidence plan (PR C) in flight.
+**Status:** active (2026-07-02). Packets 1-5 shipped and imported into the
+checkpoint (`#403` + `#404` + `#406`, import #2802 @ `41c05d30`): maintainer
+perf-smoke guide, baseline receipt, the first measured hot-path fix (PR B,
+export `model_ms` 377 → ~40 ms), and the I/O cache evidence plan (PR C). Lane
+now tracks the plan's Future PR D (I/O open-trace measurement) before any cache
+implementation.
 
 | Packet | Shipped in |
 | --- | --- |
@@ -249,7 +253,7 @@ first measured hot-path fix (PR B) and I/O cache evidence plan (PR C) in flight.
 | 2. `cargo xtask perf-smoke` maintainer guide | `docs/ci/perf-smoke.md` (#401) |
 | 3. Perf-smoke baseline receipt | `docs/ci/perf-smoke-baseline-2026-07.md` (#403) |
 | 4. Model row-collection hot path | `tokmd-model` line-based byte estimate (#404) |
-| 5. File I/O cache evidence plan | `docs/plans/file-io-cache-evidence.md` (#405) |
+| 5. File I/O cache evidence plan | `docs/plans/file-io-cache-evidence.md` (#406) |
 
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.
