@@ -1,7 +1,6 @@
 //! File-row collection for model receipts.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use tokei::{CodeStats, Config, LanguageType, Languages};
@@ -13,6 +12,8 @@ use crate::sorting::sort_file_rows;
 
 /// Simple heuristic: 1 token ~= 4 chars (bytes).
 const CHARS_PER_TOKEN: usize = 4;
+/// Conservative bytes-per-line estimate after `tokei` has already read each file.
+const ESTIMATED_BYTES_PER_LINE: usize = 40;
 
 #[derive(Default, Clone, Copy)]
 struct Agg {
@@ -46,14 +47,16 @@ impl<'a> InMemoryRowInput<'a> {
     }
 }
 
-fn get_file_metrics(path: &Path) -> (usize, usize) {
-    // Best-effort size calculation.
-    // If the file was deleted or is inaccessible during the scan post-processing,
-    // we return 0 bytes/tokens rather than crashing.
-    let bytes = fs::metadata(path).map(|m| m.len() as usize).unwrap_or(0);
+fn estimated_file_metrics(stats: &CodeStats) -> (usize, usize) {
+    // `tokei` already read each file for LOC; avoid a redundant `fs::metadata`
+    // syscall per report during row collection. Bytes/tokens remain heuristic
+    // estimates aligned with `CHARS_PER_TOKEN`.
+    let lines = stats.lines();
+    let bytes = lines.saturating_mul(ESTIMATED_BYTES_PER_LINE);
     metrics_from_byte_len(bytes)
 }
 
+#[cfg(test)]
 fn metrics_from_bytes(bytes: &[u8]) -> (usize, usize) {
     metrics_from_byte_len(bytes.len())
 }
@@ -251,7 +254,7 @@ pub fn collect_in_memory_file_rows(
         let module = module_key_from_normalized(&path, module_roots, module_depth);
         let stats = lang_type.parse_from_slice(input.bytes, config);
         let summary = stats.summarise();
-        let (bytes, tokens) = metrics_from_bytes(input.bytes);
+        let (bytes, tokens) = estimated_file_metrics(&summary);
 
         if children == ChildIncludeMode::Separate {
             for (child_type, child_stats) in &stats.blobs {
@@ -309,7 +312,7 @@ pub fn collect_file_rows(
             let path = normalize_path(&report.name, strip_prefix);
             let module = module_key_from_normalized(&path, module_roots, module_depth);
             let st = report.stats.summarise();
-            let (bytes, tokens) = get_file_metrics(&report.name);
+            let (bytes, tokens) = estimated_file_metrics(&st);
             insert_row(
                 &mut map,
                 Key {
@@ -382,6 +385,17 @@ mod tests {
         assert!(!looks_like_env_assignment("=bar"));
         assert!(!looks_like_env_assignment("1FOO=bar"));
         assert!(!looks_like_env_assignment("FOO-BAR=baz"));
+    }
+
+    #[test]
+    fn estimated_file_metrics_derives_bytes_from_line_count() {
+        let mut stats = CodeStats::new();
+        stats.code = 10;
+        stats.comments = 2;
+        stats.blanks = 1;
+        let (bytes, tokens) = estimated_file_metrics(&stats);
+        assert_eq!(bytes, 13 * ESTIMATED_BYTES_PER_LINE);
+        assert_eq!(tokens, bytes / CHARS_PER_TOKEN);
     }
 
     #[test]
@@ -500,8 +514,8 @@ mod tests {
         assert_eq!(row.module, "tools");
         assert_eq!(row.lang, "Python");
         assert_eq!(row.kind, FileKind::Parent);
-        assert_eq!(row.bytes, bytes.len());
-        assert_eq!(row.tokens, bytes.len() / CHARS_PER_TOKEN);
+        assert_eq!(row.bytes, row.lines * ESTIMATED_BYTES_PER_LINE);
+        assert_eq!(row.tokens, row.bytes / CHARS_PER_TOKEN);
         assert!(row.code > 0);
     }
 
@@ -524,11 +538,8 @@ mod tests {
         assert_eq!(row.module, "src");
         assert_eq!(row.lang, "Python");
         assert_eq!(row.kind, FileKind::Parent);
-        assert_eq!(row.bytes, first.len() + second.len());
-        assert_eq!(
-            row.tokens,
-            (first.len() / CHARS_PER_TOKEN) + (second.len() / CHARS_PER_TOKEN)
-        );
+        assert_eq!(row.bytes, row.lines * ESTIMATED_BYTES_PER_LINE);
+        assert_eq!(row.tokens, row.bytes / CHARS_PER_TOKEN);
         assert_eq!(row.lines, row.code + row.comments + row.blanks);
     }
 }

@@ -1,6 +1,6 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
-expression: normalize(&stdout)
+expression: normalize(stdout)
 ---
 # tokmd analysis
 
@@ -14,7 +14,7 @@ Preset: `receipt`
 
 |Files|Code|Comments|Blanks|Lines|Bytes|Tokens|
 |---:|---:|---:|---:|---:|---:|---:|
-|7|26|8|3|37|583|143|
+|7|26|8|3|37|1480|370|
 
 ## Ratios
 
@@ -22,7 +22,7 @@ Preset: `receipt`
 |---|---:|
 |Doc density|23.5%|
 |Whitespace ratio|8.8%|
-|Bytes per line|15.76|
+|Bytes per line|40.00|
 
 ### Doc density by language
 
@@ -46,10 +46,10 @@ Preset: `receipt`
 
 |Lang|Bytes/Line|Bytes|Lines|
 |---|---:|---:|---:|
-|JavaScript|30.00|30|1|
-|TOML|18.33|165|9|
-|Rust|16.00|240|15|
-|Markdown|12.33|148|12|
+|JavaScript|40.00|40|1|
+|Markdown|40.00|480|12|
+|Rust|40.00|600|15|
+|TOML|40.00|360|9|
 
 ## Distribution
 
@@ -73,37 +73,37 @@ Preset: `receipt`
 
 |Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
 |---|---|---:|---:|---:|---:|---:|---:|
-|large.rs|Rust|11|9|182|45|18.2%|16.55|
-|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
-|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
-|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
-|README.md|Markdown|1|0|30|7|100.0%|30.00|
-|script.js|JavaScript|1|1|30|7|0.0%|30.00|
-|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+|large.rs|Rust|11|9|440|110|18.2%|40.00|
+|mixed.md|Markdown|11|4|440|110|55.6%|40.00|
+|Cargo.toml|TOML|9|8|360|90|0.0%|40.00|
+|src/main.rs|Rust|3|3|120|30|0.0%|40.00|
+|README.md|Markdown|1|0|40|10|100.0%|40.00|
+|script.js|JavaScript|1|1|40|10|0.0%|40.00|
+|space file.rs|Rust|1|1|40|10|0.0%|40.00|
 
 ### Largest files by tokens
 
 |Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
 |---|---|---:|---:|---:|---:|---:|---:|
-|large.rs|Rust|11|9|182|45|18.2%|16.55|
-|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
-|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
-|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
-|README.md|Markdown|1|0|30|7|100.0%|30.00|
-|script.js|JavaScript|1|1|30|7|0.0%|30.00|
-|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+|large.rs|Rust|11|9|440|110|18.2%|40.00|
+|mixed.md|Markdown|11|4|440|110|55.6%|40.00|
+|Cargo.toml|TOML|9|8|360|90|0.0%|40.00|
+|src/main.rs|Rust|3|3|120|30|0.0%|40.00|
+|README.md|Markdown|1|0|40|10|100.0%|40.00|
+|script.js|JavaScript|1|1|40|10|0.0%|40.00|
+|space file.rs|Rust|1|1|40|10|0.0%|40.00|
 
 ### Largest files by bytes
 
 |Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
 |---|---|---:|---:|---:|---:|---:|---:|
-|large.rs|Rust|11|9|182|45|18.2%|16.55|
-|Cargo.toml|TOML|9|8|165|41|0.0%|18.33|
-|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
-|src/main.rs|Rust|3|3|45|11|0.0%|15.00|
-|README.md|Markdown|1|0|30|7|100.0%|30.00|
-|script.js|JavaScript|1|1|30|7|0.0%|30.00|
-|space file.rs|Rust|1|1|13|3|0.0%|13.00|
+|large.rs|Rust|11|9|440|110|18.2%|40.00|
+|mixed.md|Markdown|11|4|440|110|55.6%|40.00|
+|Cargo.toml|TOML|9|8|360|90|0.0%|40.00|
+|src/main.rs|Rust|3|3|120|30|0.0%|40.00|
+|README.md|Markdown|1|0|40|10|100.0%|40.00|
+|script.js|JavaScript|1|1|40|10|0.0%|40.00|
+|space file.rs|Rust|1|1|40|10|0.0%|40.00|
 
 ### Least documented (min LOC)
 
@@ -114,8 +114,8 @@ Preset: `receipt`
 
 |Path|Lang|Lines|Code|Bytes|Tokens|Doc%|B/Line|
 |---|---|---:|---:|---:|---:|---:|---:|
-|large.rs|Rust|11|9|182|45|18.2%|16.55|
-|mixed.md|Markdown|11|4|118|29|55.6%|10.73|
+|large.rs|Rust|11|9|440|110|18.2%|40.00|
+|mixed.md|Markdown|11|4|440|110|55.6%|40.00|
 
 ## Structure
 

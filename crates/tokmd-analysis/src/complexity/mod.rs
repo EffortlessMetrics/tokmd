@@ -229,7 +229,12 @@ pub(crate) fn bounded_complexity_warnings(
         }
 
         eligible_files += 1;
-        let row_bytes = row.bytes as u64;
+        // The bounded/partial signal must reflect the real bytes the complexity
+        // scan clips at `per_file_limit`, so use the on-disk size rather than the
+        // model's `row.bytes` (a line-derived estimate since the metadata-free
+        // `collect_file_rows` fast path). Fall back to the estimate if the file
+        // is unreadable (e.g. removed between scan and warning).
+        let row_bytes = actual_file_bytes(root, &path).unwrap_or(row.bytes as u64);
         let read_bytes = row_bytes.min(per_file_limit);
         total_estimated_read_bytes = total_estimated_read_bytes.saturating_add(read_bytes);
 
@@ -259,4 +264,11 @@ pub(crate) fn bounded_complexity_warnings(
     }
 
     warnings
+}
+
+/// Real on-disk size for a repo-relative complexity file, if readable.
+fn actual_file_bytes(root: &Path, rel: &str) -> Option<u64> {
+    std::fs::metadata(root.join(rel))
+        .ok()
+        .map(|meta| meta.len())
 }
