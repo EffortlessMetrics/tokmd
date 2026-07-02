@@ -145,6 +145,7 @@ machine-enforced rules, and PR bodies own review-local evidence. See
 | First user workflow | [start-here.md](start-here.md) |
 | Install and try the CLI | [install-and-try.md](install-and-try.md) |
 | Architecture and crate tiers | [architecture.md](architecture.md) |
+| Extend analysis (enricher/preset/format) | [how-to-extend-analysis.md](how-to-extend-analysis.md) |
 | Testing strategy | [testing.md](testing.md) |
 | Debug failed tests or CI evidence | [debugging.md](debugging.md) |
 | Current operating mode | [NEXT.md](NEXT.md) |
