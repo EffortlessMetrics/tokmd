@@ -31,8 +31,8 @@ Agent-executable AST/syntax productization work is at handoff:
   UB/crash review using `review_signals`.
 - **#372**: AST shadow corpus expanded for TypeScript and Python.
 - **#380**: WASM `runJsonBytes` analyze boundary parity tests.
-- **Publication import #2782**: merge-commit import landed; `repo-graph` reports
-  `Aligned` at `8340fbdb` (publication_ahead=0, swarm_ahead=0).
+- **Publication import #2786**: merge-commit import landed; `repo-graph` reports
+  `Aligned` at `b14c67db` (publication_ahead=0, swarm_ahead=0).
 
 **Claim boundary**: this lane proves explicit opt-in syntax surfaces
 (`tokmd syntax`, packet `--syntax`, shadow compare/check) and matching docs/CI.

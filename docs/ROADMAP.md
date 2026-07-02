@@ -365,7 +365,7 @@ stale ("shadow only / no active lane"). See `docs/proposals/ast-productization.m
 4. User-path syntax evidence guide (PR #371)
 5. Shadow corpus TS/Python expansion (PR #372)
 6. WASM analyze byte-mode parity (PR #380)
-7. Publication import aligned (import #2782 at `8340fbdb`)
+7. Publication import aligned (import #2786 at `b14c67db`)
 
 **Still shadow-only / deferred:**
 
