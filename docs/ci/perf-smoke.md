@@ -107,5 +107,6 @@ scanned workflows; CI restructuring needs fresh `ci-actuals` evidence.
 
 - [debugging.md](../debugging.md#performance-debugging) — short perf-debug entry
 - [ROADMAP.md](../ROADMAP.md) — Lane 3 measured performance criteria
+- [timing-refresh-2026-07.md](timing-refresh-2026-07.md) — hosted CI timing evidence and floor retuning
 - [ci-actuals.md](ci-actuals.md) — hosted CI timing receipts
 - [lem-budgeting.md](lem-budgeting.md) — LEM economics for PR CI
