@@ -1,6 +1,7 @@
 //! Inclusion-policy preparation for context file selection.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 
 use tokmd_scan::normalize_slashes as normalize_path;
 use tokmd_types::{
@@ -8,6 +9,33 @@ use tokmd_types::{
 };
 
 use super::{SelectOptions, assign_policy, classify_file, compute_file_cap};
+
+const POLICY_CHARS_PER_TOKEN: usize = 4;
+/// Must stay aligned with `tokmd_model::rows::ESTIMATED_BYTES_PER_LINE`.
+const ESTIMATED_BYTES_PER_LINE: usize = 40;
+
+/// Tokens used for inclusion-policy caps and density classification.
+///
+/// Receipt `row.tokens` is a line-derived estimate after the metadata-free model
+/// fast path; policy decisions that gate skip/head-tail need on-disk size when
+/// the scanned file is readable and the row still carries the line estimate.
+fn policy_tokens(path: &str, row: &FileRow) -> usize {
+    let estimated_bytes = row.lines.saturating_mul(ESTIMATED_BYTES_PER_LINE);
+    if row.bytes != estimated_bytes {
+        return row.tokens;
+    }
+
+    let Some(meta) = Path::new(path).metadata().ok() else {
+        return row.tokens;
+    };
+
+    let disk_bytes = meta.len() as usize;
+    if disk_bytes > row.bytes {
+        disk_bytes / POLICY_CHARS_PER_TOKEN
+    } else {
+        row.tokens
+    }
+}
 
 struct FileContextMeta {
     classifications: Vec<FileClassification>,
@@ -36,8 +64,10 @@ pub(super) fn prepare_policy_selection(
         .filter(|row| row.kind == FileKind::Parent)
     {
         let path = normalize_path(&row.path);
-        let classifications = classify_file(&path, row.tokens, row.lines, options.dense_threshold);
-        let (policy, reason) = assign_policy(row.tokens, file_cap, &classifications);
+        let policy_tokens = policy_tokens(&path, row);
+        let classifications =
+            classify_file(&path, policy_tokens, row.lines, options.dense_threshold);
+        let (policy, reason) = assign_policy(policy_tokens, file_cap, &classifications);
 
         file_meta_map.insert(
             path.clone(),
@@ -45,14 +75,14 @@ pub(super) fn prepare_policy_selection(
                 classifications: classifications.clone(),
                 policy,
                 policy_reason: reason.clone(),
-                original_tokens: row.tokens,
+                original_tokens: policy_tokens,
             },
         );
 
         if matches!(policy, InclusionPolicy::Skip | InclusionPolicy::Summary) {
             excluded_by_policy.push(PolicyExcludedFile {
                 path,
-                original_tokens: row.tokens,
+                original_tokens: policy_tokens,
                 policy,
                 reason: reason.unwrap_or_default(),
                 classifications,
@@ -80,7 +110,7 @@ pub(super) fn prepare_policy_selection(
                 && meta.policy == InclusionPolicy::HeadTail
             {
                 return FileRow {
-                    tokens: row.tokens.min(file_cap),
+                    tokens: policy_tokens(&path, row).min(file_cap),
                     ..row.clone()
                 };
             }

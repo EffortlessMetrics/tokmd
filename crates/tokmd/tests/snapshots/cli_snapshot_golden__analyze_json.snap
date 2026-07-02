@@ -1,6 +1,5 @@
 ---
 source: crates/tokmd/tests/cli_snapshot_golden.rs
-assertion_line: 35
 expression: normalize(stdout)
 ---
 {
@@ -55,8 +54,8 @@ expression: normalize(stdout)
       "comments": 8,
       "blanks": 3,
       "lines": 37,
-      "bytes": 583,
-      "tokens": 143
+      "bytes": 1480,
+      "tokens": 370
     },
     "doc_density": {
       "total": {
@@ -157,48 +156,48 @@ expression: normalize(stdout)
     "verbosity": {
       "total": {
         "key": "total",
-        "numerator": 583,
+        "numerator": 1480,
         "denominator": 37,
-        "rate": 15.7568
+        "rate": 40.0
       },
       "by_lang": [
         {
           "key": "JavaScript",
-          "numerator": 30,
+          "numerator": 40,
           "denominator": 1,
-          "rate": 30.0
-        },
-        {
-          "key": "TOML",
-          "numerator": 165,
-          "denominator": 9,
-          "rate": 18.3333
-        },
-        {
-          "key": "Rust",
-          "numerator": 240,
-          "denominator": 15,
-          "rate": 16.0
+          "rate": 40.0
         },
         {
           "key": "Markdown",
-          "numerator": 148,
+          "numerator": 480,
           "denominator": 12,
-          "rate": 12.3333
+          "rate": 40.0
+        },
+        {
+          "key": "Rust",
+          "numerator": 600,
+          "denominator": 15,
+          "rate": 40.0
+        },
+        {
+          "key": "TOML",
+          "numerator": 360,
+          "denominator": 9,
+          "rate": 40.0
         }
       ],
       "by_module": [
         {
           "key": "(root)",
-          "numerator": 538,
+          "numerator": 1360,
           "denominator": 34,
-          "rate": 15.8235
+          "rate": 40.0
         },
         {
           "key": "src",
-          "numerator": 45,
+          "numerator": 120,
           "denominator": 3,
-          "rate": 15.0
+          "rate": 40.0
         }
       ]
     },
@@ -211,10 +210,10 @@ expression: normalize(stdout)
         "comments": 5,
         "blanks": 2,
         "lines": 11,
-        "bytes": 118,
-        "tokens": 29,
+        "bytes": 440,
+        "tokens": 110,
         "doc_pct": 0.5556,
-        "bytes_per_line": 10.7273,
+        "bytes_per_line": 40.0,
         "depth": 1
       },
       "by_lang": [
@@ -228,10 +227,10 @@ expression: normalize(stdout)
             "comments": 0,
             "blanks": 0,
             "lines": 1,
-            "bytes": 30,
-            "tokens": 7,
+            "bytes": 40,
+            "tokens": 10,
             "doc_pct": 0.0,
-            "bytes_per_line": 30.0,
+            "bytes_per_line": 40.0,
             "depth": 1
           }
         },
@@ -245,10 +244,10 @@ expression: normalize(stdout)
             "comments": 5,
             "blanks": 2,
             "lines": 11,
-            "bytes": 118,
-            "tokens": 29,
+            "bytes": 440,
+            "tokens": 110,
             "doc_pct": 0.5556,
-            "bytes_per_line": 10.7273,
+            "bytes_per_line": 40.0,
             "depth": 1
           }
         },
@@ -262,10 +261,10 @@ expression: normalize(stdout)
             "comments": 2,
             "blanks": 0,
             "lines": 11,
-            "bytes": 182,
-            "tokens": 45,
+            "bytes": 440,
+            "tokens": 110,
             "doc_pct": 0.1818,
-            "bytes_per_line": 16.5455,
+            "bytes_per_line": 40.0,
             "depth": 1
           }
         },
@@ -279,10 +278,10 @@ expression: normalize(stdout)
             "comments": 0,
             "blanks": 1,
             "lines": 9,
-            "bytes": 165,
-            "tokens": 41,
+            "bytes": 360,
+            "tokens": 90,
             "doc_pct": 0.0,
-            "bytes_per_line": 18.3333,
+            "bytes_per_line": 40.0,
             "depth": 1
           }
         }
@@ -298,10 +297,10 @@ expression: normalize(stdout)
             "comments": 2,
             "blanks": 0,
             "lines": 11,
-            "bytes": 182,
-            "tokens": 45,
+            "bytes": 440,
+            "tokens": 110,
             "doc_pct": 0.1818,
-            "bytes_per_line": 16.5455,
+            "bytes_per_line": 40.0,
             "depth": 1
           }
         },
@@ -315,10 +314,10 @@ expression: normalize(stdout)
             "comments": 0,
             "blanks": 0,
             "lines": 3,
-            "bytes": 45,
-            "tokens": 11,
+            "bytes": 120,
+            "tokens": 30,
             "doc_pct": 0.0,
-            "bytes_per_line": 15.0,
+            "bytes_per_line": 40.0,
             "depth": 2
           }
         }
@@ -438,10 +437,10 @@ expression: normalize(stdout)
           "comments": 2,
           "blanks": 0,
           "lines": 11,
-          "bytes": 182,
-          "tokens": 45,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.1818,
-          "bytes_per_line": 16.5455,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -452,10 +451,10 @@ expression: normalize(stdout)
           "comments": 5,
           "blanks": 2,
           "lines": 11,
-          "bytes": 118,
-          "tokens": 29,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.5556,
-          "bytes_per_line": 10.7273,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -466,10 +465,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 1,
           "lines": 9,
-          "bytes": 165,
-          "tokens": 41,
+          "bytes": 360,
+          "tokens": 90,
           "doc_pct": 0.0,
-          "bytes_per_line": 18.3333,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -480,10 +479,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 3,
-          "bytes": 45,
-          "tokens": 11,
+          "bytes": 120,
+          "tokens": 30,
           "doc_pct": 0.0,
-          "bytes_per_line": 15.0,
+          "bytes_per_line": 40.0,
           "depth": 2
         },
         {
@@ -494,10 +493,10 @@ expression: normalize(stdout)
           "comments": 1,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 1.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -508,10 +507,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -522,10 +521,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 13,
-          "tokens": 3,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 13.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         }
       ],
@@ -538,24 +537,10 @@ expression: normalize(stdout)
           "comments": 2,
           "blanks": 0,
           "lines": 11,
-          "bytes": 182,
-          "tokens": 45,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.1818,
-          "bytes_per_line": 16.5455,
-          "depth": 1
-        },
-        {
-          "path": "Cargo.toml",
-          "module": "(root)",
-          "lang": "TOML",
-          "code": 8,
-          "comments": 0,
-          "blanks": 1,
-          "lines": 9,
-          "bytes": 165,
-          "tokens": 41,
-          "doc_pct": 0.0,
-          "bytes_per_line": 18.3333,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -566,10 +551,24 @@ expression: normalize(stdout)
           "comments": 5,
           "blanks": 2,
           "lines": 11,
-          "bytes": 118,
-          "tokens": 29,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.5556,
-          "bytes_per_line": 10.7273,
+          "bytes_per_line": 40.0,
+          "depth": 1
+        },
+        {
+          "path": "Cargo.toml",
+          "module": "(root)",
+          "lang": "TOML",
+          "code": 8,
+          "comments": 0,
+          "blanks": 1,
+          "lines": 9,
+          "bytes": 360,
+          "tokens": 90,
+          "doc_pct": 0.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -580,10 +579,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 3,
-          "bytes": 45,
-          "tokens": 11,
+          "bytes": 120,
+          "tokens": 30,
           "doc_pct": 0.0,
-          "bytes_per_line": 15.0,
+          "bytes_per_line": 40.0,
           "depth": 2
         },
         {
@@ -594,10 +593,10 @@ expression: normalize(stdout)
           "comments": 1,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 1.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -608,10 +607,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -622,10 +621,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 13,
-          "tokens": 3,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 13.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         }
       ],
@@ -638,24 +637,10 @@ expression: normalize(stdout)
           "comments": 2,
           "blanks": 0,
           "lines": 11,
-          "bytes": 182,
-          "tokens": 45,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.1818,
-          "bytes_per_line": 16.5455,
-          "depth": 1
-        },
-        {
-          "path": "Cargo.toml",
-          "module": "(root)",
-          "lang": "TOML",
-          "code": 8,
-          "comments": 0,
-          "blanks": 1,
-          "lines": 9,
-          "bytes": 165,
-          "tokens": 41,
-          "doc_pct": 0.0,
-          "bytes_per_line": 18.3333,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -666,10 +651,24 @@ expression: normalize(stdout)
           "comments": 5,
           "blanks": 2,
           "lines": 11,
-          "bytes": 118,
-          "tokens": 29,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.5556,
-          "bytes_per_line": 10.7273,
+          "bytes_per_line": 40.0,
+          "depth": 1
+        },
+        {
+          "path": "Cargo.toml",
+          "module": "(root)",
+          "lang": "TOML",
+          "code": 8,
+          "comments": 0,
+          "blanks": 1,
+          "lines": 9,
+          "bytes": 360,
+          "tokens": 90,
+          "doc_pct": 0.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -680,10 +679,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 3,
-          "bytes": 45,
-          "tokens": 11,
+          "bytes": 120,
+          "tokens": 30,
           "doc_pct": 0.0,
-          "bytes_per_line": 15.0,
+          "bytes_per_line": 40.0,
           "depth": 2
         },
         {
@@ -694,10 +693,10 @@ expression: normalize(stdout)
           "comments": 1,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 1.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -708,10 +707,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 30,
-          "tokens": 7,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 30.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -722,10 +721,10 @@ expression: normalize(stdout)
           "comments": 0,
           "blanks": 0,
           "lines": 1,
-          "bytes": 13,
-          "tokens": 3,
+          "bytes": 40,
+          "tokens": 10,
           "doc_pct": 0.0,
-          "bytes_per_line": 13.0,
+          "bytes_per_line": 40.0,
           "depth": 1
         }
       ],
@@ -739,10 +738,10 @@ expression: normalize(stdout)
           "comments": 2,
           "blanks": 0,
           "lines": 11,
-          "bytes": 182,
-          "tokens": 45,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.1818,
-          "bytes_per_line": 16.5455,
+          "bytes_per_line": 40.0,
           "depth": 1
         },
         {
@@ -753,10 +752,10 @@ expression: normalize(stdout)
           "comments": 5,
           "blanks": 2,
           "lines": 11,
-          "bytes": 118,
-          "tokens": 29,
+          "bytes": 440,
+          "tokens": 110,
           "doc_pct": 0.5556,
-          "bytes_per_line": 10.7273,
+          "bytes_per_line": 40.0,
           "depth": 1
         }
       ]

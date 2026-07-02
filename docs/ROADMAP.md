@@ -240,13 +240,16 @@ is consumption: making those artifacts easier to read and triage.
 
 ### Lane 3: Measured Performance and CI Feedback
 
-**Status:** active (2026-07-02). Maintainer perf-smoke guide landed; optimization
-PRs must cite receipts before touching hot paths.
+**Status:** active (2026-07-02). Maintainer perf-smoke guide and baseline landed;
+first measured hot-path fix (PR B) and I/O cache evidence plan (PR C) in flight.
 
 | Packet | Shipped in |
 | --- | --- |
+| 1. CI feedback timing refresh | `docs/ci/timing-refresh-2026-07.md` + static floor retuning (#402) |
 | 2. `cargo xtask perf-smoke` maintainer guide | `docs/ci/perf-smoke.md` (#401) |
-| 1. CI feedback timing refresh | `docs/ci/timing-refresh-2026-07.md` + static floor retuning |
+| 3. Perf-smoke baseline receipt | `docs/ci/perf-smoke-baseline-2026-07.md` (#403) |
+| 4. Model row-collection hot path | `tokmd-model` line-based byte estimate (#404) |
+| 5. File I/O cache evidence plan | `docs/plans/file-io-cache-evidence.md` (#405) |
 
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.
