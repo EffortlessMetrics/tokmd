@@ -35,6 +35,14 @@ jobs:
       - name: Refresh badge endpoints
         run: cargo xtask badges
 
+      # NOTE: This PR is created with the default GITHUB_TOKEN, so GitHub's
+      # recursion guard suppresses `on: pull_request` workflow runs on it.
+      # The required `Tokmd Rust Result` gate therefore does not start
+      # automatically. To land a badge refresh PR:
+      #   - Maintainer nudge (no secret): close then reopen the PR as a real
+      #     user. The `reopened` event runs `Tokmd Rust Result`; merge on green.
+      #   - Durable fix (needs a secret): set `token:` below to a PAT or
+      #     GitHub App token so created PRs trigger workflows directly.
       - name: Open badge refresh PR
         uses: peter-evans/create-pull-request@v8
         with:
