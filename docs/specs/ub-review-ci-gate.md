@@ -137,7 +137,7 @@ Phased migration:
 | 1 (this spec) | Normative contract, `cargo xtask ci-gate-contract`, reference fixture, advisory live gap report | none |
 | 2 | Collapse `ci.yml` frontdoor into single gate + route; retire `CI (Required)` aggregator | replace with `Tokmd Rust Result` |
 | 3 (done, #299) | Folded `em-routed-rust-small.yml` routing into `ci.yml` `route` job; retired the duplicate Rust Small workflow and its lane catalogue entries | kept one `Tokmd Rust Result` name |
-| 4 | Move remaining advisory workflows (cockpit, ripr, coverage upload) to explicit non-required lanes | unchanged advisory posture |
+| 4 (done) | Moved remaining advisory workflows (cockpit, ripr, coverage upload) to explicit non-required lanes catalogued in `policy/ci-lane-whitelist.toml` (`pr_cockpit_report`, `ripr_advisory`, `rust_coverage`, all `blocking = false`) | unchanged advisory posture; only `Tokmd Rust Result` is a required context |
 
 Until phase 2 lands, satellite workflows (`cockpit.yml`, `droid-review.yml`,
 `coverage.yml`, `ripr.yml`, `ci-policy.yml`, etc.) remain separate and
