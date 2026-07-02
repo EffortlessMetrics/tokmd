@@ -32,12 +32,21 @@ The `runJsonBytes` binding (`tokmd-wasm`, `feature = archive-zip`) accepts a
 browser `Uint8Array` of raw ZIP bytes plus a JSON options object and forwards to
 `tokmd_core::ffi::run_json_bytes`. Untrusted bytes are admitted fail-closed by
 the single authoritative engine in `tokmd-io-port` / `tokmd-scan`; there is no
-second admission path. Coverage:
+second admission path. Every browser-supported byte-mode is proven to match the
+equivalent inline `{ path, text }` envelope, both natively and across the JS
+boundary. Coverage (all in `crates/tokmd-wasm/src/lib.rs`):
 
-- native parity: `core_run_json_bytes_lang_matches_inline_inputs` in
-  `crates/tokmd-wasm/src/lib.rs`
-- `wasm-bindgen-test` boundary: `run_json_bytes_lang_matches_inline_inputs_over_js_boundary`
-  in the same file
+- native parity: `core_run_json_bytes_lang_matches_inline_inputs`,
+  `core_run_json_bytes_module_matches_inline_inputs`,
+  `core_run_json_bytes_export_matches_inline_inputs`,
+  `core_run_json_bytes_analyze_receipt_matches_inline_inputs`,
+  `core_run_json_bytes_analyze_estimate_matches_inline_inputs`
+- `wasm-bindgen-test` boundary:
+  `run_json_bytes_lang_matches_inline_inputs_over_js_boundary`,
+  `run_json_bytes_module_matches_inline_inputs_over_js_boundary`,
+  `run_json_bytes_export_matches_inline_inputs_over_js_boundary`,
+  `run_json_bytes_analyze_receipt_matches_inline_inputs_over_js_boundary`,
+  `run_json_bytes_analyze_estimate_matches_inline_inputs_over_js_boundary`
 
 The underlying snapshot/scan seams remain host-free infrastructure; they are
 now reachable from the browser through this binding when the `archive-zip`

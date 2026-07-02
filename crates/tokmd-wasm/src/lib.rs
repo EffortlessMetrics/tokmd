@@ -342,6 +342,17 @@ mod archive_fixture {
         serde_json::json!({ "lang": { "files": true }, "inputs": inputs }).to_string()
     }
 
+    /// Equivalent inline `{ path, text }` options with no mode-specific
+    /// settings, used as the JSON-mode parity oracle for byte-mode `module` and
+    /// `export` (whose byte call carries empty options `{}`).
+    pub(crate) fn inline_bare_options_json() -> String {
+        let inputs: Vec<serde_json::Value> = ENTRIES
+            .iter()
+            .map(|(name, text)| serde_json::json!({ "path": name, "text": text }))
+            .collect();
+        serde_json::json!({ "inputs": inputs }).to_string()
+    }
+
     /// Equivalent inline `{ path, text }` analyze options for rootless presets.
     #[cfg(feature = "analysis")]
     pub(crate) fn inline_analyze_options_json(preset: &str) -> String {
@@ -707,6 +718,89 @@ mod tests {
         assert_eq!(
             from_zip, from_json,
             "byte-mode envelope diverged from the equivalent inline-inputs envelope"
+        );
+    }
+
+    /// Recursively remove volatile timestamp keys so byte-mode and inline-mode
+    /// envelopes can be compared for full structural equality.
+    #[cfg(feature = "archive-zip")]
+    fn scrub_volatile_timestamps(value: &mut Value) {
+        match value {
+            Value::Array(items) => {
+                for item in items {
+                    scrub_volatile_timestamps(item);
+                }
+            }
+            Value::Object(map) => {
+                map.remove("generated_at_ms");
+                map.remove("export_generated_at_ms");
+                for nested in map.values_mut() {
+                    scrub_volatile_timestamps(nested);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[test]
+    fn core_run_json_bytes_module_matches_inline_inputs() {
+        use crate::archive_fixture::{inline_bare_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        let from_zip_raw = tokmd_core::ffi::run_json_bytes("module", "{}", &bytes);
+        let from_json_raw = tokmd_core::ffi::run_json("module", &inline_bare_options_json());
+
+        let mut from_zip: Value = serde_json::from_str(&from_zip_raw).expect("byte-mode envelope");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope");
+
+        assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+        assert_eq!(from_zip["data"]["mode"], json!("module"));
+        assert!(
+            from_zip["data"]["rows"].as_array().is_some(),
+            "module receipt should carry rows"
+        );
+
+        scrub_volatile_timestamps(&mut from_zip);
+        scrub_volatile_timestamps(&mut from_json);
+        assert_eq!(
+            from_zip, from_json,
+            "byte-mode module envelope diverged from the equivalent inline-inputs envelope"
+        );
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[test]
+    fn core_run_json_bytes_export_matches_inline_inputs() {
+        use crate::archive_fixture::{inline_bare_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        let from_zip_raw = tokmd_core::ffi::run_json_bytes("export", "{}", &bytes);
+        let from_json_raw = tokmd_core::ffi::run_json("export", &inline_bare_options_json());
+
+        let mut from_zip: Value = serde_json::from_str(&from_zip_raw).expect("byte-mode envelope");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope");
+
+        assert_eq!(from_zip["ok"], json!(true), "byte-mode call should succeed");
+        assert_eq!(from_zip["data"]["mode"], json!("export"));
+        let paths: Vec<&str> = from_zip["data"]["rows"]
+            .as_array()
+            .expect("export rows array")
+            .iter()
+            .filter_map(|row| row["path"].as_str())
+            .collect();
+        assert!(
+            paths.contains(&"src/lib.rs") && paths.contains(&"tests/basic.py"),
+            "expected fixture paths, got {paths:?}"
+        );
+
+        scrub_volatile_timestamps(&mut from_zip);
+        scrub_volatile_timestamps(&mut from_json);
+        assert_eq!(
+            from_zip, from_json,
+            "byte-mode export envelope diverged from the equivalent inline-inputs envelope"
         );
     }
 
@@ -1175,6 +1269,79 @@ mod wasm_tests {
         assert!(
             values_match_js_boundary(&from_zip, &from_json),
             "byte-mode envelope diverged from inline-inputs envelope\nzip: {from_zip}\njson: {from_json}"
+        );
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[wasm_bindgen_test]
+    fn run_json_bytes_module_matches_inline_inputs_over_js_boundary() {
+        use crate::archive_fixture::{inline_bare_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        let view = Uint8Array::from(bytes.as_slice());
+        let from_zip_raw = run_json_bytes("module", "{}", view);
+        let from_json_raw = tokmd_core::ffi::run_json("module", &inline_bare_options_json());
+
+        let mut from_zip: Value =
+            serde_json::from_str(&from_zip_raw).expect("byte-mode envelope json");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope json");
+
+        assert_eq!(
+            from_zip["ok"],
+            Value::Bool(true),
+            "byte-mode module should succeed"
+        );
+        assert_eq!(from_zip["data"]["mode"], "module");
+        assert!(from_zip["data"]["rows"].as_array().is_some());
+        assert_generated_at_ms_nonzero("byte-mode module wasm payload", &from_zip["data"]);
+
+        normalize_volatile_timestamps(&mut from_zip);
+        normalize_volatile_timestamps(&mut from_json);
+        assert!(
+            values_match_js_boundary(&from_zip, &from_json),
+            "byte-mode module envelope diverged from inline-inputs envelope\nzip: {from_zip}\njson: {from_json}"
+        );
+    }
+
+    #[cfg(feature = "archive-zip")]
+    #[wasm_bindgen_test]
+    fn run_json_bytes_export_matches_inline_inputs_over_js_boundary() {
+        use crate::archive_fixture::{inline_bare_options_json, tiny_zip};
+
+        let bytes = tiny_zip();
+        let view = Uint8Array::from(bytes.as_slice());
+        let from_zip_raw = run_json_bytes("export", "{}", view);
+        let from_json_raw = tokmd_core::ffi::run_json("export", &inline_bare_options_json());
+
+        let mut from_zip: Value =
+            serde_json::from_str(&from_zip_raw).expect("byte-mode envelope json");
+        let mut from_json: Value =
+            serde_json::from_str(&from_json_raw).expect("json-mode envelope json");
+
+        assert_eq!(
+            from_zip["ok"],
+            Value::Bool(true),
+            "byte-mode export should succeed"
+        );
+        assert_eq!(from_zip["data"]["mode"], "export");
+        let paths: Vec<&str> = from_zip["data"]["rows"]
+            .as_array()
+            .expect("export rows array")
+            .iter()
+            .filter_map(|row| row["path"].as_str())
+            .collect();
+        assert!(
+            paths.contains(&"src/lib.rs") && paths.contains(&"tests/basic.py"),
+            "expected fixture paths, got {paths:?}"
+        );
+        assert_generated_at_ms_nonzero("byte-mode export wasm payload", &from_zip["data"]);
+
+        normalize_volatile_timestamps(&mut from_zip);
+        normalize_volatile_timestamps(&mut from_json);
+        assert!(
+            values_match_js_boundary(&from_zip, &from_json),
+            "byte-mode export envelope diverged from inline-inputs envelope\nzip: {from_zip}\njson: {from_json}"
         );
     }
 
