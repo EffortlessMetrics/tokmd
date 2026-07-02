@@ -1,0 +1,17 @@
+{
+  "outcome": "patch",
+  "verified": true,
+  "telemetry": {
+    "change_shape": "docs-only",
+    "blast_radius": "docs",
+    "risk_class": "low",
+    "gates_run": [
+      "docs --check",
+      "fmt",
+      "publish --plan",
+      "version-consistency",
+      "clippy",
+      "test"
+    ]
+  }
+}
