@@ -170,22 +170,18 @@ release tag commit, `image.version` is `1.14.0`). Receipt:
 `target/publishing/ghcr-visibility-1.14.0.md`; ledger copy in
 `docs/releases/1.14-ledger.md`.
 
-Gate steps 6 (container `tokmd --version`) and 7 (mounted-repository `complete`
-packet smoke) were **not run** because they require a Docker exec unavailable on
-the verification host. The OCI `image.version` label is image-declared metadata,
-not a runtime exec, so it does not discharge step 6. The container runtime for
-`1.14.0` therefore stays **pending** under this gate: `action.yml` keeps the
-`runtime: container` hard error until a Docker-capable host completes steps 6-7
-for the tag. Public visibility being verified does not by itself make the
-container runtime supported.
+Gate steps 6 (container `tokmd --version`) and 7 (mounted-repository
+`complete` packet smoke) require a Docker-capable host. The OCI `image.version`
+label is image-declared metadata, not a runtime exec, so it does not discharge
+step 6 on its own.
 
 Steps 6-7 are run by the `GHCR Container Smoke` lane
 (`.github/workflows/ghcr-container-smoke.yml`), a `workflow_dispatch`-only smoke
 that anonymously pulls the published image, runs `tokmd --version`, and
 generates a `complete` packet against a mounted git fixture. See
 [GHCR container smoke runbook](../ci/ghcr-container-smoke.md). The lane only
-pulls and runs the already-published image; it does not enable
-`runtime: container` in `action.yml`.
+pulls and runs the already-published image; it records gate evidence for adding
+a tag to `action.yml`'s supported set. It does not perform release mutation.
 
 On **2026-06-26**, that lane ran on `ubuntu-latest`
 ([run 28262553040](https://github.com/EffortlessMetrics/tokmd-swarm/actions/runs/28262553040))
