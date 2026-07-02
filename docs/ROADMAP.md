@@ -191,6 +191,15 @@ and is less risky than schema or architecture changes.
 
 ### Lane 2: Review Evidence Consumption
 
+**Status:** largely complete (2026-07-02). Review-map priority explanations,
+missing-evidence wording, proof overview, and consumer freshness tests shipped;
+reopen only from fresh evidence of a concrete consumption gap.
+
+| Packet | Shipped in |
+| --- | --- |
+| 4. Review-map priority explanations + missing-evidence wording | `tokmd-cockpit` review-map renderer (prior PRs) |
+| Consumer freshness/cache-identity gate | #398 (`ub_review_packet_consumer.rs`) |
+
 **Goal:** Make cockpit/review packets easier for maintainers, agents, and CI
 readers to consume without adding a separate review orchestrator.
 
@@ -323,6 +332,16 @@ The next docs should be practical, not meta.
 - stale crate-layout docs are either updated or explicitly marked historical.
 
 ### Lane 5: Browser/WASM Product Continuation
+
+**Status:** largely complete (2026-07-02). WASM byte-mode parity, capability
+matrix sync, and rootless preset feasibility map shipped; preset widening and
+manual browser smoke remain future evidence-led slices.
+
+| Packet | Shipped in |
+| --- | --- |
+| 1. Browser capability matrix refresh | #396–#397 (`wasm.json` sync + panic-free checks) |
+| 2. Rootless preset feasibility | #399 (`docs/browser-capability-matrix.md`) |
+| 3. WASM `runJsonBytes` byte-mode parity | #395–#397 |
 
 **Goal:** Continue browser-safe product value without pretending browser mode has
 host/git capabilities.

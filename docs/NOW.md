@@ -1,7 +1,7 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the Lane 4 docs batch closeout
-> (swarm #345, #389-#391, publication import #2790).
+> One-screen operational truth. Updated after the Lane 2/5 closeout batch
+> (swarm #398, #399, publication import #2799 at `1c864623`).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -40,6 +40,24 @@ Agent-executable AST/syntax productization work is at handoff:
 (`tokmd syntax`, packet `--syntax`, shadow compare/check) and matching docs/CI.
 It does not promote AST facts onto default receipts, prove function-boundary
 candidate criteria, or add browser tree-sitter.
+
+## Lane 2/5 closeout (2026-07-02)
+
+Agent-executable review-consumption and browser/WASM continuation work for this
+batch is at handoff:
+
+- **#398**: ub-review consumer freshness/cache-identity gate tests pin the
+  documented trust-order step 3 (`schema`, `tokmd_version`, `base`, `head`,
+  `paths`, `preset`) independently from attachability.
+- **#399**: rootless analyze preset feasibility map in
+  `docs/browser-capability-matrix.md` (code-backed blockers per preset).
+- **Publication import #2799**: merge-commit import landed; `repo-graph`
+  reports `Aligned` at `1c864623` (publication_ahead=0, swarm_ahead=0).
+
+**Claim boundary**: this batch proves consumer-side cache-identity pinning and
+an honest rootless-preset feasibility map. It does not widen
+`ROOTLESS_ANALYZE_PRESETS`, promote AST facts onto default receipts, or prove
+manual browser ZIP smoke.
 
 ## Lane 4 docs batch closeout (2026-07-02)
 
