@@ -53,7 +53,7 @@ must preserve the cancellation model for the lane it edits:
 | Workflow class | Expected cancellation model |
 | --- | --- |
 | Core PR workflows | Cancel superseded `synchronize` runs, but do not cancel label/open/reopen runs. |
-| Routed Rust Small frontdoor | Follow `docs/ci/routed-ci-policy.md`: route before dispatch, cancel superseded route/result runs for new PR commits, and keep `Tokmd Rust Small Result` as the required check. |
+| `ci.yml` route + gate | The routed Rust Small frontdoor was retired in phase 3 (#299); its routing folded into the `Route CI runner` job of `ci.yml`. Cancel superseded `route`/`Tokmd Rust Result` runs for new PR commits, and keep `Tokmd Rust Result` as the required check. The historical routing contract is preserved in `docs/ci/routed-ci-policy.md`. |
 | Publication side validation | Treat runs as commit-scoped evidence keyed by `headSha`; do not collapse older publication evidence into the newest commit. |
 
 Do not submit generic efficiency edits that flip workflows to plain

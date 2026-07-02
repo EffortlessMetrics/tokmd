@@ -3,6 +3,17 @@
 Snapshot of CI lanes as of 2026-05-09. Generated as the human-readable
 companion to `policy/ci-lane-whitelist.toml`. Update on rollout PRs.
 
+> **Stale snapshot.** This table predates the phase-2/3 single-tight-gate
+> consolidation (#226, #299). The routed Rust Small frontdoor
+> (`Route Tokmd Rust Small`, `Tokmd Rust Small on Self Hosted`/`GitHub Hosted`,
+> `Tokmd Rust Small Result`) and the `CI (Required)` aggregator were retired;
+> their check/test work is now the single required `Tokmd Rust Result` gate on a
+> runner chosen by the advisory `Route CI runner` job. For the current lane set
+> use `policy/ci-lane-whitelist.toml`, and read `docs/ci/default-pr-gate.md` and
+> `docs/specs/ub-review-ci-gate.md` for the authoritative gate shape. The rows
+> below are retained as a historical rollout snapshot pending a catalogue
+> refresh.
+
 ## Frontdoor (cheap default)
 
 | Lane ID | Job | Runner | Base LEM | Notes |

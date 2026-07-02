@@ -358,7 +358,7 @@ must be carried back to `tokmd-swarm` before routine swarm work continues.
 `tokmd-swarm` is the active development repository. It owns:
 
 - normal human and agent development PRs;
-- same-repo routed Rust Small proof;
+- same-repo `Tokmd Rust Result` gate proof;
 - squash-merged feature, docs, and maintenance commits;
 - fast-forward alignment to publication merge commits.
 
@@ -385,9 +385,9 @@ if: github.repository == 'EffortlessMetrics/tokmd'
 for publication-only release, publish, signing, tag, alias, Nix package, or
 full-matrix surfaces.
 
-Shared files may include the routed Rust Small workflow and this routing
-document, as long as the jobs that must not run in one repository are guarded by
-`github.repository`.
+Shared files may include the CI workflow (`ci.yml`, whose `Route CI runner` job
+selects the gate runner) and this routing document, as long as the jobs that
+must not run in one repository are guarded by `github.repository`.
 
 ## Merge Policy
 
@@ -397,57 +397,29 @@ document, as long as the jobs that must not run in one repository are guarded by
 
 - PR merge method: squash.
 - Auto-merge: enabled when checks are green and the PR is aligned.
-- Required check: `Tokmd Rust Small Result`.
-- Routed CI policy: `docs/ci/routed-ci-policy.md`.
-- Do not require conditional route or implementation jobs such as:
-  - `Route Tokmd Rust Small`;
-  - `Tokmd Rust Small on Self Hosted`;
-  - `Tokmd Rust Small on GitHub Hosted`.
+- Required check: `Tokmd Rust Result`.
+- Runner health/routing: `docs/ci/runner-health-runbook.md`; historical routing
+  contract preserved in `docs/ci/routed-ci-policy.md`.
+- Do not require the advisory `Route CI runner` job; only `Tokmd Rust Result`
+  is required.
 
-The routed Rust Small target model is:
+The separate routed Rust Small frontdoor (`Route Tokmd Rust Small`, `Tokmd Rust
+Small on Self Hosted`/`GitHub Hosted`, `Tokmd Rust Small Result`) was retired in
+phase 3 (#299). Runner selection now lives in the advisory `Route CI runner`
+job of `ci.yml`, and the single required `Tokmd Rust Result` gate runs on the
+selected runner. The runner target model is:
 
 ```text
 self-hosted when trusted healthy capacity exists
 GitHub-hosted when runners are full, stale, unhealthy, unknown, or untrusted
 ```
 
-The aggregate result job writes and uploads
-`target/ci/routed-rust-small-result.json`. Use that receipt to inspect the
-router target, router reason, selected runner label, selected implementation
-job, selected result, and sibling job results for the same workflow run.
-It also records best-effort selected-job duration/queue telemetry, the cache
-policy note for the selected target, the GitHub run attempt, and a derived
-rerun count for rerun-storm accounting. The receipt is run evidence for the
-normalized routed check; it does not replace the selected implementation job
-log.
-
-For self-hosted routes, the route receipt may name an idle-runner candidate
-from the pre-dispatch runner API. GitHub owns the final label/group assignment;
-use `telemetry.runner_name` in `routed-rust-small-result.json` for the actual
-runner that executed the selected implementation job.
-
-Open the receipt before reading runner logs:
-
-```text
-ok/status            normalized result job verdict
-router.target        selected target: self-hosted, github-hosted, or none
-router.reason        why the router selected that target
-router.receipt_path  route receipt path from the router job
-selected.job/result  implementation job chosen by the router and its result
-jobs.*               sibling implementation results, usually skipped
-telemetry.duration_seconds  selected implementation duration, if Actions reported it
-telemetry.queue_seconds     selected implementation queue time, if Actions reported it
-telemetry.cache_note        selected target cache policy note
-run.run_attempt      GitHub Actions attempt for this run
-run.rerun_count      derived rerun count for rerun-storm accounting
-```
-
-If `selected.result` failed, inspect the selected implementation job log next.
-If the selected job succeeded but the normalized result failed, inspect the
-result job message and router fields first. A selected implementation can pass
-while the normalized result still fails when the unselected implementation job
-also ran or did not report `skipped`; routed Rust Small expects exactly one
-implementation path per run.
+The `Route CI runner` job emits `runner` and `runner_kind` outputs consumed by
+the gate's `runs-on`. The advisory `CI Actuals (Advisory)` job writes
+`target/ci/ci-actuals.json` with per-job results and best-effort timing for the
+run; open it for observed required-job results behind the `Tokmd Rust Result`
+check. There is no longer a separate normalized routed result receipt or
+mutually-exclusive implementation jobs.
 
 Runner health and quarantine operations are documented in
 `docs/ci/runner-health-runbook.md`. Use that runbook for stale health, low
@@ -488,7 +460,7 @@ EffortlessMetrics/tokmd-swarm:main
 ```
 
 Each aligned PR is squash-merged after local proof and
-`Tokmd Rust Small Result` pass.
+`Tokmd Rust Result` pass.
 
 ```text
 swarm/main:
@@ -524,7 +496,7 @@ merge(swarm): import tokmd-swarm through YYYY-MM-DD
 Swarm-Head: <tokmd-swarm/main sha>
 Swarm-Range: <previous-publication-sync sha>..<swarm-head>
 Checks:
-- Tokmd Rust Small Result: <run id>
+- Tokmd Rust Result: <run id>
 - Publication CI: <run id>
 ```
 
@@ -587,7 +559,7 @@ The repair sequence is:
 4. Reset `tokmd-swarm/main` to the guarded `tokmd/main` history with a scoped
    admin operation.
 5. Re-enable `tokmd-swarm/main` protection requiring only
-   `Tokmd Rust Small Result`.
+   `Tokmd Rust Result`.
 6. Prove `tokmd-swarm/main` with `workflow_dispatch`.
 7. Prove a tiny same-repo swarm PR and squash merge.
 8. Perform the first publication import with a merge commit.
@@ -634,7 +606,7 @@ For normal tokmd development after realignment:
 - make one PR-sized change;
 - run local proof;
 - open a PR against `tokmd-swarm/main`;
-- wait for `Tokmd Rust Small Result`;
+- wait for `Tokmd Rust Result`;
 - squash merge when aligned.
 
 Do not push feature work to `EffortlessMetrics/tokmd`. Do not create release

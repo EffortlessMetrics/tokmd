@@ -73,12 +73,11 @@
      from executed proof. -->
 
 - **Proof summary:** <!-- commands run + result, hosted check IDs/URLs if useful -->
-- **Routed fallback note:** <!-- If `Tokmd Rust Small Result` first failed with
-  `no_idle_runner`, record the failed run, the fallback authorization label or
-  dispatch used, and the newer successful routed run. Open the matching
-  `routed-rust-small-result` artifact and include its `run_attempt` and
-  `rerun_count` values when a rerun or fallback attempt is part of the evidence.
-  Label-only edits do not start a new routed check. -->
+- **Runner routing note:** <!-- The advisory `Route CI runner` job in `ci.yml`
+  selects self-hosted primary or GitHub-hosted overflow before the single
+  required `Tokmd Rust Result` gate runs. If a rerun changed the selected runner
+  (self-hosted vs GitHub-hosted overflow), record the run IDs and the runner
+  kind. See `docs/ci/runner-health-runbook.md`. -->
 
 - [ ] `cargo build` compiles
 - [ ] `cargo test` passes

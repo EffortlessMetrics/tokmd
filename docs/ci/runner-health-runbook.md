@@ -138,8 +138,8 @@ real fleet pressure:
 | `simulate-untrusted` | GitHub-hosted | Prove untrusted state cannot select self-hosted. |
 | `force-self-hosted` | Self-hosted if trusted | Diagnostic only; do not use on unsafe events. |
 
-Every proof mode should still finish through `Tokmd Rust Small Result`. A
-skipped implementation job is expected only for the unselected route.
+Every proof mode should still finish through `Tokmd Rust Result` on the runner
+the advisory `Route CI runner` job selects.
 
 ## Agent boundaries
 
@@ -158,5 +158,6 @@ Agents must not:
 - rerun self-hosted jobs repeatedly when the route already explains capacity or
   health fallback.
 
-The stable PR contract remains `Tokmd Rust Small Result`. Runner-specific jobs
-are implementation details and must not become required checks.
+The stable PR contract remains `Tokmd Rust Result`. Runner selection by the
+advisory `Route CI runner` job is an implementation detail and must not become a
+required check.

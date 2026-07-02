@@ -7,7 +7,7 @@ changed files, hit risk packs, selected lane IDs, and the estimated LEM band.
 It is not execution proof. Workflows can still skip conditional jobs, fail
 after selection, or be superseded by a newer run for the same head. Open the
 route receipt for changed-file routing, the hosted check list for actual job
-state, and execution receipts such as `routed-rust-small-result.json` or
+state, and execution receipts such as `ci-actuals.json` or
 `proof-run-summary.json` before treating proof as run.
 
 Lane selection is advisory, but budget enforcement is active: when `--enforce`
@@ -201,9 +201,10 @@ selection, not proof that those jobs executed or passed:
 
 ## CI Actuals Interpretation
 
-`target/ci/ci-actuals.json` is written by the `CI (Required)` aggregate job
-from the same run's `needs` payload. Open it when you need the observed
-required-job results and timing coverage behind the aggregate check.
+`target/ci/ci-actuals.json` is written by the advisory `CI Actuals (Advisory)`
+job from the same run's `needs` payload. Open it when you need the observed
+required-job results and timing coverage behind the required `Tokmd Rust Result`
+check.
 
 Treat the fields as telemetry, not a replacement verdict:
 
@@ -238,24 +239,20 @@ and actual LEM, duration, route target, learned-estimate source, and skip
 reasons. Download `ci-actuals.json` when you need the stable machine-readable
 receipt.
 
-## Routed Rust Small Interpretation
+## Runner routing (Route CI runner)
 
-`tokmd-swarm` has an additional routed Rust Small frontdoor. The lane catalogue
-lists the router, the aggregate `Tokmd Rust Small Result`, and each conditional
-implementation job so reviewers can see the whole route surface.
+The separate routed Rust Small frontdoor was retired in phase 3 (#299). Runner
+routing for `tokmd-swarm` workbench PRs now lives in the advisory `Route CI
+runner` job of `ci.yml`: it selects a trusted self-hosted runner when idle
+healthy capacity exists and falls back to GitHub-hosted overflow otherwise. The
+single required `Tokmd Rust Result` gate then runs on the selected runner.
 
-Those implementation jobs are mutually exclusive at runtime. A trusted
-same-repo swarm PR normally selects one self-hosted target and skips the other
-implementation jobs. A publication-repo PR skips the routed workflow entirely
-because it is guarded to `github.repository == 'EffortlessMetrics/tokmd-swarm'`.
-
-PR Plan budgets the routed frontdoor through the router plus the aggregate
-`Tokmd Rust Small Result` lane. The conditional implementation lanes stay in
-the whitelist inventory but are not ordinary default PR lanes, because only
-one implementation can run for a given route. The aggregate result lane uses a
-conservative static estimate for one selected implementation path so small
-swarm PRs do not require `ci-budget-override` merely because skipped route
-targets were counted.
+There are no longer separate mutually-exclusive implementation jobs or an
+aggregate `Tokmd Rust Small Result` lane to budget. PR Plan budgets the gate
+through the `tokmd_rust_result` lane; the advisory `Route CI runner` job is
+cheap and never required. Runner health and fallback behavior are documented in
+`docs/ci/runner-health-runbook.md`; the historical routing contract is preserved
+in `docs/ci/routed-ci-policy.md`.
 
 ## Override handling
 

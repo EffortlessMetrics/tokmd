@@ -7,7 +7,7 @@ notes when a Codex workflow needs durable in-repo context.
 
 Normal tokmd development targets `EffortlessMetrics/tokmd-swarm`. Start new
 work from `tokmd-swarm/main`, keep each branch PR-sized, wait for the required
-`Tokmd Rust Small Result` check, and squash-merge aligned PRs into swarm.
+`Tokmd Rust Result` check, and squash-merge aligned PRs into swarm.
 
 `EffortlessMetrics/tokmd` remains the publication repository. Do not push
 feature work, release tags, GitHub releases, crates.io publishes, Docker pushes,
