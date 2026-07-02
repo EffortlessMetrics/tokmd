@@ -10,9 +10,10 @@ name: GHCR Container Smoke
 #
 # This workflow only PULLS and RUNS the already-published publication image
 # (ghcr.io/effortlessmetrics/tokmd). It performs no release mutation, no push,
-# no tag/alias change, and does not enable `runtime: container` in action.yml.
-# Public visibility (gate steps 1-5) is verified separately; see
-# docs/releases/1.14-ledger.md and docs/publishing-evidence.md.
+# no tag/alias change. Public visibility (gate steps 1-5) is verified separately;
+# gate steps 6-7 discharge evidence for adding a tag to action.yml's supported
+# set (see docs/specs/packet-ghcr-runtime.md). This workflow does not perform
+# release mutation or change publication tags.
 
 on:
   workflow_dispatch:
