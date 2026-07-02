@@ -1,0 +1,6 @@
+{"command": "cargo xtask docs --check", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}
+{"command": "cargo xtask publish --plan --verbose", "status": "success"}
+{"command": "cargo xtask version-consistency", "status": "success"}
+{"command": "bash -c 'CI=true cargo test -p tokmd'", "status": "success"}
