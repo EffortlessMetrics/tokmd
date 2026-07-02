@@ -290,6 +290,26 @@ permissions:
 
 Commenting only runs on `pull_request` events. Set `comment: 'false'` for scheduled jobs, push jobs, private smoke tests, or workflows where comments are not desired.
 
+### Fork pull requests
+
+On fork pull requests the default `GITHUB_TOKEN` is read-only for security, even
+when the base workflow declares `pull-requests: write`. Hosted comment posting
+can therefore be rejected for a fork PR while receipt, packet, and artifact
+generation still succeed. A missing hosted comment on a fork PR is not a packet
+failure: treat the uploaded `tokmd-receipts` artifact (and, for cockpit review
+packets, the packet-local `.tokmd/review/` directory) as the source of truth.
+
+If a repository takes many fork contributions, prefer one of these fork-safe
+patterns over relying on the hosted comment:
+
+- keep `comment: 'false'` and let reviewers read the uploaded artifact, or
+- run generation on the `pull_request` event with `artifact: 'true'`, then post
+  the summary from a separate `workflow_run` job that has write access.
+
+Do not switch the generating job to `pull_request_target` only to expose a write
+token to fork code; that reintroduces the fork-secret exposure the read-only
+token is designed to prevent.
+
 The default flow comments with `tokmd-summary.md`. `sensor` comments with `comment.md`. JSON-only modes such as `gate`, `cockpit`, and `baseline` normally leave the `summary` output empty. `cockpit` with `review-packet: 'true'` comments with the packet summary, using `tokmd-review-packet-comment.md` when hosted packet metadata is added.
 
 For cockpit review packets, the Action copies `.tokmd/review/comment.md` to
