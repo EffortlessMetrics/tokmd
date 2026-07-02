@@ -1,10 +1,11 @@
 {
   "prompt_id": "palette_runtime_dx",
-  "persona": "palette",
-  "style": "builder",
+  "persona": "Palette",
+  "style": "Builder",
   "primary_shard": "interfaces",
   "allowed_paths": [
     "crates/tokmd-config/**",
+    "crates/tokmd-settings/**",
     "crates/tokmd-core/**",
     "crates/tokmd/**",
     "docs/reference-cli.md",
@@ -12,5 +13,5 @@
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "core-rust",
-  "allowed_outcomes": ["pr-ready patch", "learning pr"]
+  "allowed_outcomes": ["PR-ready patch", "proof-improvement patch", "learning PR"]
 }

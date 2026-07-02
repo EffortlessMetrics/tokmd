@@ -1,82 +1,50 @@
 ## 💡 Summary
-Improves the error message hint when an unrecognized subcommand is provided. Instead of giving path-related hints (like "Verify the input path exists"), it now correctly suggests running `tokmd --help` to list available subcommands.
+This patch improves the developer experience of the `tokmd analyze` and `tokmd badge` commands by rejecting `0` as an input for `--max-commits` and `--max-commit-files`. This prevents silent degenerated behavior.
 
 ## 🎯 Why
-When users mis-type a subcommand (and it's not close enough for the "Did you mean?" fuzzy matching), the CLI falls back to treating it as a bad path and displays path-related hints:
-```
-Error: Unrecognized subcommand 'abc'
-
-Hints:
-- Verify the input path exists and is readable.
-- Use an absolute path to avoid working-directory confusion.
-```
-This is confusing because the error clearly states it was parsed as a subcommand. This change ensures that when the parser definitively interprets the input as a bad subcommand, it provides a relevant hint to check the help menu.
+The `context` subcommand already explicitly validates that `--max-commits` and `--max-commit-files` are strictly positive integers by using `super::validate::positive_usize`. However, the `analyze` and `badge` subcommands omitted this validation. Passing `0` led to unhelpful and silent failure states later in the execution. Applying this validation at the CLI level fails fast with a clear error.
 
 ## 🔎 Evidence
-Before:
-```bash
-$ cargo run --bin tokmd -- abc
-Error: Unrecognized subcommand 'abc'
-
-Hints:
-- Verify the input path exists and is readable.
-- Use an absolute path to avoid working-directory confusion.
-```
-
-After:
-```bash
-$ cargo run --bin tokmd -- abc
-Error: Unrecognized subcommand 'abc'
-
-Hints:
-- Run `tokmd --help` to see a list of available subcommands.
-```
+- `crates/tokmd/src/cli/parser/badge.rs` allowed `0` for `max_commits` and `max_commit_files`.
+- `crates/tokmd/src/cli/parser/analysis.rs` allowed `0` for `max_commits` and `max_commit_files`.
+- Running `tokmd analyze --max-commits 0` without this fix proceeds without failing at the parse step.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update `error_hints.rs` to detect when a bare string without path separators is definitively treated as an unrecognized subcommand and return a hint pointing to `--help`, skipping the path-related hints.
-- Why it fits: Directly fixes the confusing output with minimal code changes. Preserves "Did you mean?" suggestions for typos and path-related hints for actual paths.
-- Trade-offs: Low risk, high value DX improvement.
+- what it is: Add clap value_parser validation (`super::validate::positive_usize`) to the numeric flags `max_commits` and `max_commit_files` in the `analyze` and `badge` CLI subcommands.
+- why it fits this repo and shard: It aligns with the existing validation of these same parameters in the `context` subcommand (found in `crates/tokmd/src/cli/parser/context.rs`), fixing a sharp edge that allowed `0` as an invalid value which would cause silent degenerate behavior or fail ungracefully, aligning perfectly with the Palette persona's runtime DX focus inside the `interfaces` shard.
+- trade-offs: Structure (low, reuses existing validation fn) / Velocity (high, clear fix) / Governance (none).
 
 ### Option B
-- Modify clap's parsing to completely separate path arguments from subcommands so they never fall back to each other.
-- When to choose it instead: If the CLI syntax allowed strict positional separation of paths vs subcommands.
-- Trade-offs: High risk. Would require restructuring the CLI syntax and breaking backwards compatibility.
+- what it is: Let `clap` parse `0` and then handle the error gracefully within the command logic itself (in `run.rs`, `analyze.rs`, etc).
+- when to choose it instead: If the value `0` had some valid semantic meaning for those commands that differs from other commands, or if delayed evaluation of the parameter was necessary.
+- trade-offs: Increases boilerplate and decreases consistency since we'd duplicate validation logic inside command implementations rather than doing it uniformly in the parser, which `context.rs` already does.
 
 ## ✅ Decision
-Option A was chosen because it directly addresses the confusing output at the point of error formatting, preserving the flexible CLI syntax while significantly improving the user experience for simple mistakes.
+Option A was chosen to maximize consistency with `context.rs` and leverage the existing `super::validate::positive_usize` parser. It fails early and provides a consistent error message across all subcommands.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/src/error_hints.rs`: Updated `suggestions` function to return an early hint `Run \`tokmd --help\` to see a list of available subcommands.` when an unrecognized subcommand is detected and no fuzzy match is found. Updated tests to reflect the new hint.
+- `crates/tokmd/src/cli/parser/badge.rs`: Added `value_parser = super::validate::positive_usize` to `max_commits` and `max_commit_files`.
+- `crates/tokmd/src/cli/parser/analysis.rs`: Added `value_parser = super::validate::positive_usize` to `max_commits` and `max_commit_files`.
+- `crates/tokmd/tests/cli_errors_w66.rs`: Added integration tests `analyze_zero_max_commits_fails` and `badge_zero_max_commits_fails`.
 
 ## 🧪 Verification receipts
 ```text
-$ cargo run --bin tokmd -- abc
-Error: Unrecognized subcommand 'abc'
-
-Hints:
-- Run `tokmd --help` to see a list of available subcommands.
-
-$ cargo run --bin tokmd -- anolyze
-Error: Unrecognized subcommand 'anolyze'
-
-Hints:
-- Did you mean the subcommand `analyze`?
-
-$ cargo run --bin tokmd -- missing/path/to/file
-Error: Path not found: missing/path/to/file
-
-Hints:
-- Verify the input path exists and is readable.
-- Use an absolute path to avoid working-directory confusion.
+{"cmd": "replace_with_git_merge_diff crates/tokmd/src/cli/parser/badge.rs", "status": "success"}
+{"cmd": "replace_with_git_merge_diff crates/tokmd/src/cli/parser/analysis.rs", "status": "success"}
+{"cmd": "replace_with_git_merge_diff crates/tokmd/tests/cli_errors_w66.rs", "status": "success"}
+{"cmd": "cargo build --verbose", "status": "success"}
+{"cmd": "bash -c 'CI=true cargo test -p tokmd --verbose'", "status": "success"}
+{"cmd": "cargo fmt -- --check", "status": "success"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success"}
 ```
 
 ## 🧭 Telemetry
-- Change shape: Logic modification
-- Blast radius: Output wording
-- Risk class: Low - Only affects error message formatting
-- Rollback: Revert `error_hints.rs` changes
-- Gates run: `core-rust` (cargo build, CI=true cargo test, cargo fmt, cargo clippy)
+- Change shape: Runtime input validation (clap configuration)
+- Blast radius (API / IO / docs / schema / concurrency / compatibility / dependencies): CLI parser configuration only
+- Risk class + why: low, purely preventative check adding no new business logic
+- Rollback: git revert
+- Gates run: `cargo build --verbose`, `CI=true cargo test -p tokmd --verbose`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/palette_runtime_dx/envelope.json`

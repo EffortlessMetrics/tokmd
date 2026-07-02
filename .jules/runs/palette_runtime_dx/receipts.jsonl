@@ -1,5 +1,15 @@
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- abc", "output": "Error: Unrecognized subcommand 'abc'\n\nHints:\n- Run `tokmd --help` to see a list of available subcommands."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- missing-command", "output": "Error: Unrecognized subcommand 'missing-command'\n\nHints:\n- Run `tokmd --help` to see a list of available subcommands."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- missing/path/to/file", "output": "Error: Path not found: missing/path/to/file\n\nHints:\n- Verify the input path exists and is readable.\n- Use an absolute path to avoid working-directory confusion."}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo run --bin tokmd -- anolyze", "output": "Error: Unrecognized subcommand 'anolyze'\n\nHints:\n- Did you mean the subcommand `analyze`?"}
-{"timestamp": "2023-10-24T00:00:00.000Z", "command": "cargo test -p tokmd", "output": "test result: ok. 506 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s"}
+{"cmd": "mkdir -p .jules/runs/palette_runtime_dx && write envelope.json", "status": "success"}
+{"cmd": "replace_with_git_merge_diff crates/tokmd/src/cli/parser/badge.rs", "status": "success"}
+{"cmd": "cat crates/tokmd/src/cli/parser/badge.rs", "status": "success"}
+{"cmd": "replace_with_git_merge_diff crates/tokmd/src/cli/parser/analysis.rs", "status": "success"}
+{"cmd": "cat crates/tokmd/src/cli/parser/analysis.rs", "status": "success"}
+{"cmd": "replace_with_git_merge_diff crates/tokmd/tests/cli_errors_w66.rs", "status": "success"}
+{"cmd": "cat crates/tokmd/tests/cli_errors_w66.rs", "status": "success"}
+{"cmd": "cargo build --verbose", "status": "success"}
+{"cmd": "bash -c 'CI=true cargo test -p tokmd --verbose'", "status": "success"}
+{"cmd": "cargo fmt -- --check", "status": "success"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success"}
+{"cmd": "write decision.md", "status": "success"}
+{"cmd": "write result.json", "status": "success"}
+{"cmd": "write pr_body.md", "status": "success"}
+{"cmd": "cat .jules/runs/palette_runtime_dx/*", "status": "success"}

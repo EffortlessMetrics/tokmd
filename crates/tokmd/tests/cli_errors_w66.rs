@@ -110,6 +110,24 @@ fn completions_invalid_shell_fails() {
         .stderr(predicate::str::contains("invalid value"));
 }
 
+#[test]
+fn analyze_zero_max_commits_fails() {
+    tokmd_cmd_fixture()
+        .args(["analyze", "--max-commits", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid value"));
+}
+
+#[test]
+fn badge_zero_max_commits_fails() {
+    tokmd_cmd_fixture()
+        .args(["badge", "--metric", "lines", "--max-commits", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("invalid value"));
+}
+
 // ===========================================================================
 // 2. Non-existent path tests
 // ===========================================================================
