@@ -34,24 +34,37 @@ The canonical multipliers live in `policy/ci-lane-whitelist.toml` under
 
 ## Worked example
 
-A typical Rust-only PR that hits the `core_receipts` risk pack:
+A typical Rust-only PR after gate consolidation (#226 phase 2, #299 phase 3).
+Quality Gate, Proof Policy, and Build & Test (Linux) are folded into the single
+required `tokmd_rust_result` gate:
 
 ```text
-PR Plan                       1 LEM
-Quality Gate                  8 LEM
-Proof Policy                  3 LEM
+PR Plan (advisory)            1 LEM
+Route CI runner               1 LEM
+Tokmd Rust Result            15 LEM   (gate + test + proof-policy concurrent)
 Affected Proof Plan           4 LEM
-Build & Test (Linux)        12 LEM
-ripr advisory                 2 LEM
+Detect risk packs             2 LEM
+Feature Boundaries            5 LEM
+MSRV Check                    2 LEM
+Docs Check                    2 LEM
+Cargo Deny                    4 LEM
+Publish Surface               2 LEM
+Version consistency           2 LEM
 Typos                         1 LEM
-CI Required summary           1 LEM
+ripr (advisory)               2 LEM
+PR Cockpit (advisory)         3 LEM
+No-panic / Clippy policy      6 LEM
+CI policy lanes               5 LEM
+Fast proof run (advisory)     5 LEM
+Scoped coverage (advisory)   12 LEM
                             ------
-                             32 LEM  (Linux only, normal band)
+                             78 LEM  (high-cost band; measured core CI ~16 LEM)
 ```
 
-Compare to the same change today, which fans out to Linux + Windows
-all-features test, WASM compile + Node tests, Nix package gate, and runtime
-mutation testing — easily 150+ LEM before risk-pack routing.
+Risk-gated lanes (Windows, WASM, Nix, mutation, proptest) add cost only when
+labels or `full-ci` select them. Pre-consolidation research cited 150+ LEM for
+every-PR fan-out; that path is retired. See
+[timing-refresh-2026-07.md](timing-refresh-2026-07.md) for measured evidence.
 
 ## Estimation vs. actuals
 

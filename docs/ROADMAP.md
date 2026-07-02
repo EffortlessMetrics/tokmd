@@ -245,7 +245,8 @@ PRs must cite receipts before touching hot paths.
 
 | Packet | Shipped in |
 | --- | --- |
-| 2. `cargo xtask perf-smoke` maintainer guide | `docs/ci/perf-smoke.md` |
+| 2. `cargo xtask perf-smoke` maintainer guide | `docs/ci/perf-smoke.md` (#401) |
+| 1. CI feedback timing refresh | `docs/ci/timing-refresh-2026-07.md` + static floor retuning |
 
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.

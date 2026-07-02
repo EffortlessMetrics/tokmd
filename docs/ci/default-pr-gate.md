@@ -52,38 +52,39 @@ Policy workflow's `No Bare Self-Hosted Routing` guard.
 
 ## Default-PR LEM after phase 2
 
-Roughly (per `docs/ci/inventory.md`, with advisory proof/cockpit lanes now
-included in the inventory):
+Static floors per `policy/ci-lane-whitelist.toml` (refreshed 2026-07-02 against
+hosted `ci-actuals`; see [timing-refresh-2026-07.md](timing-refresh-2026-07.md)):
 
 ```text
-msrv_check                   5
-quality_gate                 8
-proof_policy                 3
+tokmd_rust_result           15   (folds gate + test + proof-policy)
+route_ci_runner              1
+msrv_check                   2
 affected_proof_plan          4
-ci_detect_risk_packs         1
+ci_detect_risk_packs         2
 fast_proof_run_advisory      5
-feature_boundaries          10
+feature_boundaries           5
 typos                        1
 cargo_deny                   4
 version_consistency          2
-docs_check                   4
-build_test_linux            12
-publish_surface              8
+docs_check                   2
+publish_surface              2
 ci_lane_whitelist            3
 pr_cockpit_report            3
 no_panic_family              3
+clippy_exceptions            3
 pr_plan_advisory             1
 ripr_advisory                2
 scoped_coverage_executor_non_required 12
-ci_required                  1
+ci_gate_contract (×2)        4
 no_bare_self_hosted          1
+ci_actuals_advisory          1
                           ----
-                            93   tokmd-swarm default PR (was ~203)
+                            78   tokmd-swarm default PR static estimate
 ```
 
-That remains below the hard override ceiling, but it is intentionally reported
-as high-cost while the advisory proof executor and proof-run observation lanes
-collect real timing evidence.
+Measured core CI jobs on an ordinary PR are ~16 LEM; the static total includes
+advisory workflow lanes not in the aggregate `needs` payload. The estimate is
+just above the elevated band (≤ 75 LEM) and well below the hard override ceiling.
 
 The duplicate routed Rust Small frontdoor (`em-routed-rust-small.yml`) was
 retired in phase 3 (#299). Runner routing for `tokmd-swarm` workbench PRs now
