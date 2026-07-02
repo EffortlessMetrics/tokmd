@@ -477,8 +477,13 @@ behavior.
 ## GitHub Action Behavior
 
 The Action uploads the packet as an artifact when `artifact: 'true'` and
-`review-packet: 'true'` are both set. Comment posting remains fork-safe and is
-not required for packet generation.
+`review-packet: 'true'` are both set. Comment posting is optional and is not
+required for packet generation. On fork pull requests the default `GITHUB_TOKEN`
+is read-only, so the hosted comment can be rejected while the packet and
+artifact still generate; the uploaded `tokmd-receipts` artifact and the
+packet-local `.tokmd/review/` directory remain the source of truth. See
+[GitHub Action fork pull requests](github-action.md#fork-pull-requests) for
+fork-safe comment patterns.
 
 When the composite Action generates a review packet, it copies
 `.tokmd/review/comment.md` to `tokmd-review-packet-comment.md` and appends a

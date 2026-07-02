@@ -185,7 +185,7 @@ no separate `tokmd review` command.
 | Symptom | Likely cause | What to do |
 | --- | --- | --- |
 | Workflow succeeded but no PR comment | Event is not `pull_request`, or `comment: false` | Expected for `push`, `schedule`, and `workflow_dispatch`. Download the `tokmd-receipts` artifact or read `.tokmd/review/` from the job log path. |
-| Fork PR has artifacts but no comment | Fork-safe comment posting is skipped | Treat the uploaded packet as the source of truth. Do not infer packet failure from the absent comment. |
+| Fork PR has artifacts but no comment | Fork pull requests run with a read-only `GITHUB_TOKEN`, so hosted comment posting can be rejected even when `pull-requests: write` is declared | Expected. Treat the uploaded packet as the source of truth. Do not infer packet failure from the absent comment. For fork-heavy repos, set `comment: false` or post from a separate `workflow_run` job (see [GitHub Action](github-action.md#fork-pull-requests)). |
 | Comment says the packet was not uploaded | `artifact: false` while `comment: true` | Set `artifact: true` when reviewers need hosted links, or run `tokmd cockpit --review-packet-dir .tokmd/review` locally. |
 | Hosted comment text differs from `.tokmd/review/comment.md` | Action copies to `tokmd-review-packet-comment.md` and appends run/artifact links | Normal. Packet-local `comment.md` stays unchanged so `manifest.json` hashes remain valid. |
 | `review-packet-check` rejects a file in `.tokmd/review/` | A hosted comment copy was placed inside the packet directory | Keep hosted copies outside the packet tree. The verifier rejects hosted comment copies in the manifest path set. |
