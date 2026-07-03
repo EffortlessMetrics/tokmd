@@ -326,7 +326,7 @@ fn help_gate_mentions_practical_examples() {
                     "tokmd gate analysis.json --policy tokmd-gate.toml",
                 ))
                 .and(predicate::str::contains(
-                    "tokmd gate . --preset health --format json",
+                    "tokmd gate . --preset health --policy tokmd-gate.toml --format json",
                 )),
         );
 }
