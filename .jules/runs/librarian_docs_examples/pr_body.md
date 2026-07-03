@@ -1,53 +1,44 @@
 ## 💡 Summary
-This fixes a minor factual drift in `docs/SCHEMA.md`. The document incorrectly listed `BASELINE_VERSION` as being defined in `crates/tokmd-analysis-types/src/lib.rs`. It is actually defined in `crates/tokmd-analysis-types/src/baseline.rs`.
+Fixed example mismatch for `tokmd handoff` between CLI help and the reference documentation. The `--no-git` example was present in `docs/handoff.md` and the `reference-cli.md` examples block, but missing from the actual CLI `after_help` output.
 
 ## 🎯 Why
-The `Librarian` persona prioritizes fixing factual docs drift. The README and memory point to `docs/SCHEMA.md` keeping truth with Rust constants. A search revealed that `docs/SCHEMA.md` incorrectly points to `lib.rs` for `BASELINE_VERSION`, while the Rust source defines it in `baseline.rs`. This factual drift violates the "docs/schema/help text mismatch" constraint and needs correction.
+To resolve factual docs drift and ensure the CLI help examples remain aligned with the official documentation and roadmap requirements.
 
 ## 🔎 Evidence
-- File: `docs/SCHEMA.md`
-- Observed behavior: Points to incorrect source file.
-- Receipt: `grep -rn "pub const BASELINE_VERSION" crates/` shows it is in `crates/tokmd-analysis-types/src/baseline.rs:20`.
+- `crates/tokmd/src/cli/parser/context.rs`: Missing `--no-git` example in `HandoffArgs` `after_help`.
+- `docs/reference-cli.md` and `docs/handoff.md`: Contain the `--no-git` example.
+- Mismatch between `tokmd handoff --help` stdout and `docs/reference-cli.md` when running `cargo xtask docs --check`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- What it is: Update `docs/SCHEMA.md` to correctly point to `crates/tokmd-analysis-types/src/baseline.rs` for `BASELINE_VERSION`.
-- Why it fits this repo and shard: Fixes a clear documentation drift regarding schema versioning. It's a quick, factual doc fix that complies with Librarian's constraints.
-- Trade-offs: Structure / Velocity / Governance. Minimal risk, corrects truth without changing logic.
+- what it is: Fix the `--help` example for `tokmd handoff` in `crates/tokmd/src/cli/parser/context.rs` by adding the missing `tokmd handoff --no-git` example, and update `docs/reference-cli.md` using `cargo xtask docs --update`.
+- why it fits this repo and shard: Meets the librarian shard mandate to resolve missing docs or examples for common usage.
+- trade-offs: Structure: Low risk, localized change / Velocity: Fast / Governance: Complies with the single PR policy and anti-drift docs sync.
 
 ### Option B
-- What it is: Do nothing and record learning.
-- When to choose it instead: If the drift wasn't verifiable or wasn't part of the shard.
-- Trade-offs: Misses an opportunity to fix a small but clear piece of factual drift.
+- what it is: Instead of adding the missing CLI help example, rewrite the `docs/reference-cli.md` manually to remove the `--no-git` example, keeping it in sync with the CLI help string.
+- when to choose it instead: If the `--no-git` flag is deprecated or considered uncommon/undesirable usage.
+- trade-offs: This is worse because `--no-git` is explicitly listed in `docs/ROADMAP.md` as a valid scenario and the `handoff` command natively supports disabling git enrichment.
 
 ## ✅ Decision
-Option A. I updated `docs/SCHEMA.md` to fix the file path for `BASELINE_VERSION`.
+Option A. The missing CLI help example was restored in `crates/tokmd/src/cli/parser/context.rs` to align the CLI with the documentation.
 
 ## 🧱 Changes made (SRP)
-- `docs/SCHEMA.md`
+- `crates/tokmd/src/cli/parser/context.rs`: Added `tokmd handoff --no-git` to the `HandoffArgs` `after_help` examples.
+- `docs/reference-cli.md`: Re-rendered reference documentation using `cargo xtask docs --update`.
 
 ## 🧪 Verification receipts
 ```text
-$ rg -n "pub const BASELINE_VERSION" crates/tokmd-analysis-types/src
-crates/tokmd-analysis-types/src/baseline.rs:20:pub const BASELINE_VERSION: u32 = 1;
-$ cargo xtask doc-artifacts --check
-doc artifacts ok
-$ cargo xtask docs --check
-Documentation is up to date.
-$ cargo xtask proof-policy --check
-proof policy ok
-$ cargo xtask proof --profile affected --base origin/main --head HEAD --run-required --allow-local-required-execution --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-required affected proof passed
-$ cargo xtask proof-run-artifacts-check --proof-run-summary target/proof/proof-run-summary-librarian-baseline-path.json
-Proof run artifacts OK: 6 executed required command(s), guard local_explicit_required_opt_in_enabled
+cargo run -p xtask docs --update
+cargo run -p xtask docs --check
 ```
 
 ## 🧭 Telemetry
-- Change shape: Docs update
-- Blast radius: Docs only
-- Risk class: Low
-- Rollback: `git restore docs/SCHEMA.md`
-- Gates run: `cargo xtask doc-artifacts --check`, `cargo xtask docs --check`, `cargo xtask proof-policy --check`, `cargo fmt-check`, affected required proof, proof-run artifact check
+- Change shape: Docs/CLI help example update.
+- Blast radius: Docs only.
+- Risk class: Low - documentation only change.
+- Rollback: Revert the PR.
+- Gates run: `cargo xtask docs --check`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/librarian_docs_examples/envelope.json`

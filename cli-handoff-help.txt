@@ -1,0 +1,132 @@
+Bundle codebase for LLM handoff
+
+Usage: tokmd handoff [OPTIONS] [PATH]...
+
+Arguments:
+  [PATH]...
+          Paths to scan (directories, files, or globs). Defaults to "."
+
+Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [aliases: --ignore]
+
+      --out-dir <OUT_DIR>
+          Output directory for handoff artifacts
+
+          [default: .handoff]
+
+      --budget <BUDGET>
+          Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited")
+
+          [default: 128k]
+
+      --strategy <STRATEGY>
+          Packing strategy for code bundle
+
+          Possible values:
+          - greedy: Select files by value until budget is exhausted
+          - spread: Round-robin across modules/languages for coverage, then greedy fill
+
+          [default: greedy]
+
+      --rank-by <RANK_BY>
+          Metric to rank files by for packing
+
+          Possible values:
+          - code:    Rank by lines of code
+          - tokens:  Rank by token count
+          - churn:   Rank by git churn (requires git feature)
+          - hotspot: Rank by hotspot score (requires git feature)
+
+          [default: hotspot]
+
+      --preset <PRESET>
+          Intelligence preset level
+
+          Possible values:
+          - minimal:  Minimal: tree + map only
+          - standard: Standard: + complexity, derived
+          - risk:     Risk: + hotspots, coupling (default)
+          - deep:     Deep: everything
+
+          [default: risk]
+
+      --module-roots <MODULE_ROOTS>
+          Module roots (see `tokmd module`)
+
+      --module-depth <MODULE_DEPTH>
+          Module depth (see `tokmd module`)
+
+          [aliases: --depth]
+
+      --force
+          Overwrite existing output directory
+
+      --compress
+          Strip blank lines from code bundle
+
+      --no-progress
+          Disable progress spinners
+
+      --no-smart-exclude
+          Disable smart exclusion of lockfiles, minified files, and generated artifacts
+
+      --no-git
+          Disable git-based features
+
+      --max-commits <MAX_COMMITS>
+          Maximum commits to scan for git metrics
+
+          [default: 1000]
+
+      --max-commit-files <MAX_COMMIT_FILES>
+          Maximum files per commit to process
+
+          [default: 100]
+
+      --max-file-pct <MAX_FILE_PCT>
+          Maximum fraction of budget a single file may consume (0.0–1.0)
+
+          [default: 0.15]
+
+      --max-file-tokens <MAX_FILE_TOKENS>
+          Hard cap on tokens per file (overrides percentage-based cap)
+
+      --review-packet-dir <REVIEW_PACKET_DIR>
+          Link an existing cockpit review packet directory from the handoff bundle.
+
+          If this packet contains proof/proof-pack-route.json and --proof-route is absent, handoff links that packet-local route as proof-route evidence.
+
+      --review-packet-check <REVIEW_PACKET_CHECK>
+          Link an existing review-packet verifier receipt from the handoff bundle
+
+      --affected <AFFECTED>
+          Link an existing affected-proof report from the handoff bundle
+
+      --proof-plan <PROOF_PLAN>
+          Link an existing proof-plan report from the handoff bundle
+
+      --proof-route <PROOF_ROUTE>
+          Link an existing proof-pack route receipt from the handoff bundle
+
+      --evidence-packet <PATH>
+          Link an existing tokmd evidence packet manifest from the handoff bundle
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [aliases: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+Examples:
+  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k
+  tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json
