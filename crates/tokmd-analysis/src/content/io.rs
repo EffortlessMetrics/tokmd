@@ -35,17 +35,40 @@ mod tags;
 
 pub fn read_head(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     // `fuzz_entropy` path-includes this module (crate = tokmd-fuzz), where the
-    // tokmd-analysis-only `io_trace` module does not exist; the fuzz target
-    // never exercises the read helpers, so tracing is compiled out there.
+    // tokmd-analysis-only `io_trace`/`io_cache` modules do not exist; the fuzz
+    // target never exercises the read helpers, so instrumentation is compiled
+    // out there.
     #[cfg(not(fuzzing))]
-    crate::io_trace::record(crate::io_trace::IoReadMode::Head, max_bytes, path);
-    read::read_head(path, max_bytes)
+    {
+        crate::io_trace::record(crate::io_trace::IoReadMode::Head, max_bytes, path);
+        crate::io_cache::get_or_read_bytes(
+            crate::io_trace::IoReadMode::Head,
+            max_bytes,
+            path,
+            || read::read_head(path, max_bytes),
+        )
+    }
+    #[cfg(fuzzing)]
+    {
+        read::read_head(path, max_bytes)
+    }
 }
 
 pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
     #[cfg(not(fuzzing))]
-    crate::io_trace::record(crate::io_trace::IoReadMode::HeadTail, max_bytes, path);
-    read::read_head_tail(path, max_bytes)
+    {
+        crate::io_trace::record(crate::io_trace::IoReadMode::HeadTail, max_bytes, path);
+        crate::io_cache::get_or_read_bytes(
+            crate::io_trace::IoReadMode::HeadTail,
+            max_bytes,
+            path,
+            || read::read_head_tail(path, max_bytes),
+        )
+    }
+    #[cfg(fuzzing)]
+    {
+        read::read_head_tail(path, max_bytes)
+    }
 }
 
 pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec<String>> {

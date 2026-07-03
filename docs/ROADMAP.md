@@ -240,14 +240,17 @@ is consumption: making those artifacts easier to read and triage.
 
 ### Lane 3: Measured Performance and CI Feedback
 
-**Status:** active (2026-07-02). Packets 1-5 shipped and imported into the
+**Status:** complete (2026-07-02). Packets 1-5 shipped and imported into the
 checkpoint (`#403` + `#404` + `#406`, import #2802 @ `41c05d30`): maintainer
 perf-smoke guide, baseline receipt, the first measured hot-path fix (PR B,
 export `model_ms` 377 → ~40 ms), and the I/O cache evidence plan (PR C). Packet
-6 (plan PR D, the content-open trace) then measured the duplicate-read rate:
-duplicates are **confirmed** (health preset re-opens capped files ~1.54×) but
-the timing-reduction threshold is **not** established, so the plan's PR E
-production cache stays deferred (no-go on current evidence).
+6 (plan PR D, the content-open trace) measured the duplicate-read rate
+(**confirmed**: health preset re-opens capped files ~1.54×). Packet 7 (plan PR F,
+the prototype cache A/B) then settled the timing question: a request-scoped read
+cache serves **all** confirmed duplicate opens but changes `analyze total_ms` by
+only ~0.1% (within noise), so the plan's PR E production cache is **closed as a
+measured no-go**. The file-I/O cache lane is decided; the trace and cache
+prototypes remain opt-in maintainer instruments.
 
 | Packet | Shipped in |
 | --- | --- |
@@ -257,6 +260,7 @@ production cache stays deferred (no-go on current evidence).
 | 4. Model row-collection hot path | `tokmd-model` line-based byte estimate (#404) |
 | 5. File I/O cache evidence plan | `docs/plans/file-io-cache-evidence.md` (#406) |
 | 6. File I/O open-trace measurement (plan PR D) | `tokmd-analysis::io_trace` + `cargo xtask perf-smoke --trace-io`; `docs/ci/perf-smoke-io-trace-2026-07.md` |
+| 7. File I/O cache prototype A/B (plan PR F) | `tokmd-analysis::io_cache` + `cargo xtask perf-smoke --cache-io`; `docs/ci/perf-smoke-io-cache-2026-07.md` (PR E closed: measured no-go) |
 
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.
