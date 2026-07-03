@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use tokmd_analysis_types::{
     BoilerplateReport, CocomoReport, ContextWindowReport, DerivedReport, DerivedTotals,
-    FileStatRow, NestingReport, NestingRow, ReadingTimeReport, TestDensityReport,
+    NestingReport, NestingRow, ReadingTimeReport, TestDensityReport,
 };
 use tokmd_analysis_types::{is_infra_lang, is_test_path};
 use tokmd_format::render_analysis_tree;
@@ -17,7 +17,7 @@ mod integrity;
 mod languages;
 mod ratios;
 use distribution::{build_distribution_report, build_histogram};
-use files::{build_file_stats, build_max_file_report, build_top_offenders};
+use files::{build_max_file_report, build_top_offenders};
 use integrity::build_integrity_report;
 use languages::{build_lang_purity_report, build_polyglot_report};
 use ratios::{build_doc_density_report, build_verbosity_report, build_whitespace_report};
@@ -58,13 +58,11 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
 
     let verbosity = build_verbosity_report(&parents, totals.bytes, totals.lines);
 
-    let file_stats = build_file_stats(&parents);
-
-    let max_file = build_max_file_report(&file_stats);
+    let max_file = build_max_file_report(&parents);
 
     let lang_purity = build_lang_purity_report(&parents);
 
-    let nesting = build_nesting_report(&file_stats);
+    let nesting = build_nesting_report(&parents);
 
     let test_density = build_test_density_report(&parents);
 
@@ -76,7 +74,7 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
 
     let histogram = build_histogram(&parents);
 
-    let top = build_top_offenders(&file_stats);
+    let top = build_top_offenders(&parents);
 
     let reading_time = ReadingTimeReport {
         minutes: round_f64(totals.code as f64 / LINES_PER_MINUTE as f64, 2),
@@ -142,7 +140,7 @@ pub fn derive_report(export: &ExportData, window_tokens: Option<usize>) -> Deriv
     }
 }
 
-fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
+fn build_nesting_report(rows: &[&FileRow]) -> NestingReport {
     if rows.is_empty() {
         return NestingReport {
             max: 0,
@@ -156,12 +154,13 @@ fn build_nesting_report(rows: &[FileStatRow]) -> NestingReport {
     let mut by_module: BTreeMap<&str, Vec<usize>> = BTreeMap::new();
 
     for row in rows {
-        total_depth += row.depth;
-        max_depth = max_depth.max(row.depth);
+        let depth = tokmd_analysis_types::path_depth(&row.path);
+        total_depth += depth;
+        max_depth = max_depth.max(depth);
         if let Some(existing) = by_module.get_mut(row.module.as_str()) {
-            existing.push(row.depth);
+            existing.push(depth);
         } else {
-            by_module.insert(row.module.as_str(), vec![row.depth]);
+            by_module.insert(row.module.as_str(), vec![depth]);
         }
     }
 
