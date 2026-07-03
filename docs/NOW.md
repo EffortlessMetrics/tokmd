@@ -1,10 +1,10 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the post-Lane 3 session handoff
-> (swarm #413 no-panic allowlist fix, #414 NOW closeout, and #415 NOW alignment
-> merged; publication imports #2807 (#413), #2808 (#414), and the #415 NOW
-> alignment landed; `repo-graph` reports `Aligned` at `eba85d84`,
-> publication_ahead=0, swarm_ahead=0).
+> One-screen operational truth. Updated after the backlog top-5 batch handoff
+> (swarm #416 NOW alignment, #417 zero-limit git-arg validation, #418
+> invalid-UTF-8 parser regression, and #419 executable gate examples merged;
+> publication import #2810 landed the batch; `repo-graph` reports `Aligned` at
+> `276bdb22`, publication_ahead=0, swarm_ahead=0).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -133,10 +133,10 @@ Agent-executable work from this session:
 
 - Browser ZIP smoke execution per `docs/browser-zip-smoke.md`.
 
-**Graph state**: `repo-graph` reports `Aligned` at swarm `eba85d84` /
-publication `eba85d84` (`publication_ahead=0`, `swarm_ahead=0`) after the
-#415 NOW alignment import (imports #2807 (#413) and #2808 (#414) preceded it at
-`9c0bb1f4`).
+**Graph state**: `repo-graph` reports `Aligned` at swarm `276bdb22` /
+publication `276bdb22` (`publication_ahead=0`, `swarm_ahead=0`) after the backlog
+top-5 batch import #2810 (#416–#419); the prior #415 NOW alignment landed at
+`eba85d84`.
 
 **No new agent-executable seams** were found in `SPEC_GAPS.md`, open issues,
 or workflow hardening without org secrets. Reopen work only from fresh consumer,
@@ -146,6 +146,42 @@ artifact, workflow, or product evidence.
 test imports and records honest lane-queue disposition. It does not enable badge
 auto-CI, widen rootless presets, promote AST defaults, or prove manual browser
 smoke.
+
+## Backlog top-5 batch closeout (2026-07-03)
+
+Agent-executable backlog cleanup for this batch is at handoff:
+
+- **#416**: NOW state alignment to `eba85d84` and wasm-caller landed marker.
+- **#417**: reject zero for analyze/badge git limits
+  (`crates/tokmd/src/cli/parser/{analysis,badge}.rs` + `cli_errors_w66.rs`).
+- **#418**: deterministic invalid-UTF-8 CLI parser regression test
+  (`crates/tokmd/tests/cli_parser_fuzz_regression.rs`).
+- **#419**: executable `tokmd gate` doc examples
+  (`docs/reference-cli.md`, `crates/tokmd/src/cli/parser/gate.rs`,
+  `cli_error_help_w73.rs`).
+- **Publication import #2810**: merge-commit import landed the batch;
+  `repo-graph` reports `Aligned` at `276bdb22` (publication_ahead=0,
+  swarm_ahead=0).
+- **Superseded publication PRs closed**: direct-publication duplicates whose
+  substantive content landed via #2810 — **#2793**/**#2783** (zero/positive git
+  max-commit validation → #417), **#2781** (invalid-UTF-8 fuzz regression →
+  #418), and **#2804** (gate doc drift → #419). Closed with routing comments.
+- **PR #410 / #2805 (badge automation)**: left open — badge endpoint churn still
+  needs org `BADGE_PAT` (see #389/#390); do not approve a full gate for badge
+  churn.
+
+**Scout disposition (no PR landed)**: remaining direct-publication backlog items
+stay open pending their own proof paths — bolt `FileStatRow` defer (#2780) and
+bolt double-UTF-8 (#2752) both need a perf-smoke receipt first (Lane 3 is
+measurement-led); dependabot rust-minor group (#2788) needs a full workspace
+build/test lane; determinism regression fix (#2756) and FileRow sorting
+properties (#2774) remain candidate slices. None were clear + narrow +
+proof-ready enough to land in this session beyond this NOW alignment.
+
+**Claim boundary**: this batch proves CLI arg-validation hardening, an
+invalid-UTF-8 parser regression test, executable gate docs, and honest backlog
+disposition. It does not enable badge auto-CI, widen rootless presets, land any
+perf optimization without a receipt, or prove manual browser smoke.
 
 ## Shipped this wave
 
