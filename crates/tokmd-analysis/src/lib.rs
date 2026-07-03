@@ -46,6 +46,7 @@ mod grid;
 mod halstead;
 #[cfg(feature = "content")]
 mod imports;
+pub mod io_trace;
 #[cfg(all(feature = "content", feature = "walk"))]
 mod license;
 #[cfg(all(feature = "content", feature = "walk"))]

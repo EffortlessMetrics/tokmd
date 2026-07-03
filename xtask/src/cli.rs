@@ -508,6 +508,14 @@ pub struct PerfSmokeArgs {
     /// Maximum files scanned per git commit for each timed analysis preset.
     #[arg(long, default_value_t = 200)]
     pub analysis_max_commit_files: usize,
+
+    /// Record a content file-open trace for each timed analysis preset.
+    ///
+    /// Emits an `io_trace` section (duplicate-open counts per read mode) used to
+    /// evaluate the file-I/O cache thresholds in
+    /// `docs/plans/file-io-cache-evidence.md` before any cache is implemented.
+    #[arg(long)]
+    pub trace_io: bool,
 }
 
 impl Default for PerfSmokeArgs {
@@ -523,6 +531,7 @@ impl Default for PerfSmokeArgs {
             analysis_max_file_bytes: 1_048_576,
             analysis_max_commits: 200,
             analysis_max_commit_files: 200,
+            trace_io: false,
         }
     }
 }

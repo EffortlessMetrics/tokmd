@@ -86,12 +86,22 @@ Any cache must be:
 
 ## Work Packets
 
-1. **PR C (this plan)** — evidence protocol and thresholds. **Status: complete
-   when merged.**
-2. **Future PR D** — optional trace counter or prototype request-scoped cache
-   behind `cfg(test)` / feature flag; perf-smoke health before/after.
-3. **Future PR E** — production cache only if PR D meets thresholds with parity
-   tests.
+1. **PR C (this plan)** — evidence protocol and thresholds. **Status: complete**
+   (shipped in #406, imported @ `41c05d30`).
+2. **PR D — trace-counter branch** — permanent opt-in content-open trace
+   (`tokmd-analysis::io_trace` + `cargo xtask perf-smoke --trace-io`).
+   **Status: complete.** Measurement receipt and threshold evaluation:
+   [perf-smoke-io-trace-2026-07.md](../ci/perf-smoke-io-trace-2026-07.md).
+   Outcome: duplicate-read hypothesis **confirmed** (health preset re-opens
+   capped files ~1.54×, ≥ 1.3×), but the timing-reduction threshold is **not
+   established** by an open count. The plan's alternate PR D option — a
+   prototype request-scoped cache measured with a health-preset before/after
+   A/B — remains available and is the only instrument that can settle the
+   timing threshold.
+3. **Future PR E** — production cache only if a prototype A/B meets **all**
+   thresholds with parity tests. **Status: not started (no-go on current
+   evidence).** The trace confirms duplicates but does not prove a ≥ 15% /
+   ≥ 200 ms `analyze total_ms` win, so PR E stays deferred.
 
 ## Validation
 
@@ -119,4 +129,5 @@ git diff --check
 
 - [perf-smoke.md](../ci/perf-smoke.md)
 - [perf-smoke-baseline-2026-07.md](../ci/perf-smoke-baseline-2026-07.md)
+- [perf-smoke-io-trace-2026-07.md](../ci/perf-smoke-io-trace-2026-07.md) — PR D trace measurement + PR E decision
 - PR B — `tokmd-model` metadata elimination (core workflow `model_ms`)

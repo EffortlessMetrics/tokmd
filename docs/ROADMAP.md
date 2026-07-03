@@ -243,9 +243,11 @@ is consumption: making those artifacts easier to read and triage.
 **Status:** active (2026-07-02). Packets 1-5 shipped and imported into the
 checkpoint (`#403` + `#404` + `#406`, import #2802 @ `41c05d30`): maintainer
 perf-smoke guide, baseline receipt, the first measured hot-path fix (PR B,
-export `model_ms` 377 → ~40 ms), and the I/O cache evidence plan (PR C). Lane
-now tracks the plan's Future PR D (I/O open-trace measurement) before any cache
-implementation.
+export `model_ms` 377 → ~40 ms), and the I/O cache evidence plan (PR C). Packet
+6 (plan PR D, the content-open trace) then measured the duplicate-read rate:
+duplicates are **confirmed** (health preset re-opens capped files ~1.54×) but
+the timing-reduction threshold is **not** established, so the plan's PR E
+production cache stays deferred (no-go on current evidence).
 
 | Packet | Shipped in |
 | --- | --- |
@@ -254,6 +256,7 @@ implementation.
 | 3. Perf-smoke baseline receipt | `docs/ci/perf-smoke-baseline-2026-07.md` (#403) |
 | 4. Model row-collection hot path | `tokmd-model` line-based byte estimate (#404) |
 | 5. File I/O cache evidence plan | `docs/plans/file-io-cache-evidence.md` (#406) |
+| 6. File I/O open-trace measurement (plan PR D) | `tokmd-analysis::io_trace` + `cargo xtask perf-smoke --trace-io`; `docs/ci/perf-smoke-io-trace-2026-07.md` |
 
 **Goal:** Improve developer feedback speed and runtime performance only where
 measurement shows a bottleneck.
