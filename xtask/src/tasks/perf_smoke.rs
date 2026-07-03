@@ -1,11 +1,13 @@
 use crate::cli::PerfSmokeArgs;
 use anyhow::{Context, Result};
 use serde::Serialize;
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 use std::time::Instant;
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
+use tokmd_analysis::io_trace::{self, IoTraceReport};
 use tokmd_core::settings::{
     AnalyzeSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings,
 };
@@ -16,6 +18,7 @@ use tokmd_core::{
 
 const PERF_SMOKE_SCHEMA: &str = "tokmd.perf_smoke.v1";
 const ANALYSIS_TIMING_SCHEMA: &str = "tokmd.analysis_workflow_timing.v1";
+const IO_TRACE_SCHEMA: &str = "tokmd.io_open_trace.v1";
 
 #[derive(Debug, Serialize)]
 struct PerfSmokeReceipt {
@@ -57,6 +60,56 @@ struct AnalysisWorkflowTiming {
     enabled_reports: Vec<String>,
     limits: AnalysisTimingLimits,
     total_ms: u128,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    io_trace: Option<IoTraceSection>,
+}
+
+#[derive(Debug, Serialize)]
+struct IoTraceSection {
+    schema: String,
+    schema_version: u32,
+    total_opens: u64,
+    unique_paths: u64,
+    unique_keys: u64,
+    duplicate_key_opens: u64,
+    max_opens_for_key: u64,
+    opens_per_path: f64,
+    by_mode: BTreeMap<String, IoTraceModeSection>,
+}
+
+#[derive(Debug, Serialize)]
+struct IoTraceModeSection {
+    opens: u64,
+    unique_keys: u64,
+}
+
+impl From<&IoTraceReport> for IoTraceSection {
+    fn from(report: &IoTraceReport) -> Self {
+        let by_mode = report
+            .by_mode
+            .iter()
+            .map(|(mode, stats)| {
+                (
+                    (*mode).to_string(),
+                    IoTraceModeSection {
+                        opens: stats.opens,
+                        unique_keys: stats.unique_keys,
+                    },
+                )
+            })
+            .collect();
+        Self {
+            schema: IO_TRACE_SCHEMA.to_string(),
+            schema_version: 1,
+            total_opens: report.total_opens,
+            unique_paths: report.unique_paths,
+            unique_keys: report.unique_keys,
+            duplicate_key_opens: report.duplicate_key_opens,
+            max_opens_for_key: report.max_opens_for_key,
+            opens_per_path: report.opens_per_path(),
+            by_mode,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -136,7 +189,7 @@ fn analysis_timings(
 
     args.analysis_presets
         .iter()
-        .map(|preset| analysis_timing(scan, preset, &limits))
+        .map(|preset| analysis_timing(scan, preset, &limits, args.trace_io))
         .collect()
 }
 
@@ -144,6 +197,7 @@ fn analysis_timing(
     scan: &ScanSettings,
     preset: &str,
     limits: &AnalysisTimingLimits,
+    trace_io: bool,
 ) -> Result<AnalysisWorkflowTiming> {
     let normalized = preset.trim().to_ascii_lowercase();
     let analyze = AnalyzeSettings {
@@ -157,9 +211,15 @@ fn analysis_timing(
     };
 
     let start = Instant::now();
-    let receipt = analyze_workflow(scan, &analyze)
-        .with_context(|| format!("run analyze timing for preset `{normalized}`"))?;
+    let (receipt_result, io_report) = if trace_io {
+        let (result, report) = io_trace::scope(|| analyze_workflow(scan, &analyze));
+        (result, Some(report))
+    } else {
+        (analyze_workflow(scan, &analyze), None)
+    };
     let total_ms = start.elapsed().as_millis();
+    let receipt =
+        receipt_result.with_context(|| format!("run analyze timing for preset `{normalized}`"))?;
 
     let derived = receipt.derived.as_ref();
     let row_count = derived
@@ -181,6 +241,7 @@ fn analysis_timing(
         enabled_reports: enabled_analysis_reports(&receipt),
         limits: limits.clone(),
         total_ms,
+        io_trace: io_report.as_ref().map(IoTraceSection::from),
     })
 }
 
@@ -342,6 +403,42 @@ mod tests {
         assert_eq!(timing.limits.max_file_bytes, 512);
         assert_eq!(timing.limits.max_commits, 7);
         assert_eq!(timing.limits.max_commit_files, 8);
+        assert!(timing.io_trace.is_none());
+        assert!(!serde_json::to_string(&receipt)?.contains(temp.path().to_string_lossy().as_ref()));
+        Ok(())
+    }
+
+    #[test]
+    fn trace_io_records_content_open_section() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        fs::write(
+            temp.path().join("lib.rs"),
+            "pub fn lib() { /* TODO: keep content enrichers reading this file */ }\n",
+        )?;
+        let args = PerfSmokeArgs {
+            target_repo: temp.path().to_path_buf(),
+            output: temp.path().join("perf.json"),
+            analysis_presets: vec!["health".to_string()],
+            trace_io: true,
+            ..PerfSmokeArgs::default()
+        };
+
+        let receipt = perf_smoke_receipt(&args)?;
+
+        let timing = &receipt.analysis_workflows[0];
+        let trace = timing
+            .io_trace
+            .as_ref()
+            .expect("trace_io should populate an io_trace section");
+        assert_eq!(trace.schema, IO_TRACE_SCHEMA);
+        assert!(trace.total_opens >= 1, "expected at least one content open");
+        assert!(trace.unique_paths >= 1);
+        assert!(trace.total_opens >= trace.unique_keys);
+        assert_eq!(
+            trace.duplicate_key_opens,
+            trace.total_opens - trace.unique_keys
+        );
+        assert!(!trace.by_mode.is_empty());
         assert!(!serde_json::to_string(&receipt)?.contains(temp.path().to_string_lossy().as_ref()));
         Ok(())
     }

@@ -34,18 +34,29 @@ mod read;
 mod tags;
 
 pub fn read_head(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
+    // `fuzz_entropy` path-includes this module (crate = tokmd-fuzz), where the
+    // tokmd-analysis-only `io_trace` module does not exist; the fuzz target
+    // never exercises the read helpers, so tracing is compiled out there.
+    #[cfg(not(fuzzing))]
+    crate::io_trace::record(crate::io_trace::IoReadMode::Head, max_bytes, path);
     read::read_head(path, max_bytes)
 }
 
 pub fn read_head_tail(path: &Path, max_bytes: usize) -> Result<Vec<u8>> {
+    #[cfg(not(fuzzing))]
+    crate::io_trace::record(crate::io_trace::IoReadMode::HeadTail, max_bytes, path);
     read::read_head_tail(path, max_bytes)
 }
 
 pub fn read_lines(path: &Path, max_lines: usize, max_bytes: usize) -> Result<Vec<String>> {
+    #[cfg(not(fuzzing))]
+    crate::io_trace::record(crate::io_trace::IoReadMode::Lines, max_bytes, path);
     read::read_lines(path, max_lines, max_bytes)
 }
 
 pub fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
+    #[cfg(not(fuzzing))]
+    crate::io_trace::record(crate::io_trace::IoReadMode::TextCapped, max_bytes, path);
     read::read_text_capped(path, max_bytes)
 }
 
