@@ -6,7 +6,14 @@
 use proptest::prelude::*;
 use std::path::Path;
 use tokmd_model::{avg, module_key, normalize_path};
-use tokmd_types::{LangRow, ModuleRow};
+use tokmd_types::{FileKind, FileRow, LangRow, ModuleRow};
+
+/// Sort `FileRow`s the same way the model does: descending by code, then
+/// ascending by path. Mirrors `tokmd_model::sorting::sort_file_rows`, which is
+/// crate-private, so the invariant is asserted against the exact comparator.
+fn sort_file_rows_like_model(rows: &mut [FileRow]) {
+    rows.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.path.cmp(&b.path)));
+}
 
 // ============================================================================
 // Strategies
@@ -60,6 +67,41 @@ fn arb_module_row() -> impl Strategy<Value = ModuleRow> {
                 avg_lines,
             }
         })
+}
+
+fn arb_file_kind() -> impl Strategy<Value = FileKind> {
+    prop_oneof![Just(FileKind::Parent), Just(FileKind::Child)]
+}
+
+fn arb_file_row() -> impl Strategy<Value = FileRow> {
+    (
+        "[a-z][a-z0-9_/]{1,20}\\.[a-z]{1,4}", // path
+        "[a-z][a-z0-9_/]{0,10}",              // module
+        "[A-Z][a-z]{2,10}",                   // lang
+        arb_file_kind(),
+        0usize..50_000,    // code
+        0usize..50_000,    // comments
+        0usize..50_000,    // blanks
+        0usize..5_000_000, // bytes
+        0usize..500_000,   // tokens
+    )
+        .prop_map(
+            |(path, module, lang, kind, code, comments, blanks, bytes, tokens)| {
+                let lines = code + comments + blanks;
+                FileRow {
+                    path,
+                    module,
+                    lang,
+                    kind,
+                    code,
+                    comments,
+                    blanks,
+                    lines,
+                    bytes,
+                    tokens,
+                }
+            },
+        )
 }
 
 // ============================================================================
@@ -208,6 +250,96 @@ proptest! {
         sorted.sort_by(|a, b| b.code.cmp(&a.code).then_with(|| a.module.cmp(&b.module)));
         let sum_after: usize = sorted.iter().map(|r| r.code).sum();
         prop_assert_eq!(sum_before, sum_after);
+    }
+}
+
+// ============================================================================
+// FileRow aggregation and sorting invariants
+// ============================================================================
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(200))]
+
+    /// A well-formed FileRow keeps `lines == code + comments + blanks`.
+    #[test]
+    fn file_row_lines_equal_component_sum(row in arb_file_row()) {
+        prop_assert_eq!(row.lines, row.code + row.comments + row.blanks);
+    }
+
+    /// lines >= code for well-formed FileRows.
+    #[test]
+    fn file_row_lines_ge_code(row in arb_file_row()) {
+        prop_assert!(row.lines >= row.code,
+            "lines ({}) must be >= code ({})", row.lines, row.code);
+    }
+
+    /// Sorting FileRows by (code desc, path asc) is idempotent.
+    #[test]
+    fn file_row_sort_idempotent(rows in prop::collection::vec(arb_file_row(), 0..30)) {
+        let mut once = rows.clone();
+        sort_file_rows_like_model(&mut once);
+        let mut twice = once.clone();
+        sort_file_rows_like_model(&mut twice);
+        prop_assert_eq!(once, twice);
+    }
+
+    /// Sorting preserves the number of rows.
+    #[test]
+    fn file_row_sort_preserves_count(rows in prop::collection::vec(arb_file_row(), 0..30)) {
+        let mut sorted = rows.clone();
+        sort_file_rows_like_model(&mut sorted);
+        prop_assert_eq!(sorted.len(), rows.len());
+    }
+
+    /// Sorted FileRows are in descending code order, ties broken by path asc.
+    #[test]
+    fn file_row_sorted_descending(rows in prop::collection::vec(arb_file_row(), 2..20)) {
+        let mut sorted = rows;
+        sort_file_rows_like_model(&mut sorted);
+        // Slice-pattern binding avoids unchecked indexing (no-panic policy).
+        for w in sorted.windows(2) {
+            let [a, b] = w else { continue };
+            prop_assert!(
+                a.code > b.code || (a.code == b.code && a.path <= b.path),
+                "Sort order violated: {a:?} before {b:?}"
+            );
+        }
+    }
+
+    /// Sorting preserves the sum of code across all rows (no rows dropped).
+    #[test]
+    fn file_row_sort_preserves_code_sum(rows in prop::collection::vec(arb_file_row(), 0..30)) {
+        let sum_before: usize = rows.iter().map(|r| r.code).sum();
+        let mut sorted = rows;
+        sort_file_rows_like_model(&mut sorted);
+        let sum_after: usize = sorted.iter().map(|r| r.code).sum();
+        prop_assert_eq!(sum_before, sum_after);
+    }
+
+    /// Sorting is a permutation: the multiset of rows is unchanged.
+    #[test]
+    fn file_row_sort_is_permutation(rows in prop::collection::vec(arb_file_row(), 0..25)) {
+        // FileRow is not Ord; compare multisets via a canonical full-field key.
+        let key = |r: &FileRow| {
+            (
+                r.code,
+                r.path.clone(),
+                r.module.clone(),
+                r.lang.clone(),
+                r.kind,
+                r.comments,
+                r.blanks,
+                r.lines,
+                r.bytes,
+                r.tokens,
+            )
+        };
+        let mut sorted = rows.clone();
+        sort_file_rows_like_model(&mut sorted);
+        let mut before = rows;
+        before.sort_by_key(key);
+        sorted.sort_by_key(key);
+        prop_assert_eq!(before, sorted);
     }
 }
 
