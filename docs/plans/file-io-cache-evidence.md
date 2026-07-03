@@ -1,6 +1,7 @@
 # Plan: File I/O Cache Evidence (Lane 3 PR C)
 
-- Status: active
+- Status: complete
+- Decision: no-go for a production read cache, measured by the PR F prototype A/B
 - Related spec: none (plan precedes implementation)
 - Related ADR: none
 - Related issues: Lane 3 queue item 4 in [ROADMAP.md](../ROADMAP.md)
@@ -96,12 +97,26 @@ Any cache must be:
    capped files ~1.54×, ≥ 1.3×), but the timing-reduction threshold is **not
    established** by an open count. The plan's alternate PR D option — a
    prototype request-scoped cache measured with a health-preset before/after
-   A/B — remains available and is the only instrument that can settle the
-   timing threshold.
-3. **Future PR E** — production cache only if a prototype A/B meets **all**
-   thresholds with parity tests. **Status: not started (no-go on current
-   evidence).** The trace confirms duplicates but does not prove a ≥ 15% /
-   ≥ 200 ms `analyze total_ms` win, so PR E stays deferred.
+   A/B — was the only instrument that could settle the timing threshold; see
+   PR F below.
+3. **PR F — prototype cache A/B** — permanent opt-in request-scoped read cache
+   prototype (`tokmd-analysis::io_cache` + `cargo xtask perf-smoke --cache-io`)
+   with a health-preset before/after A/B. **Status: complete.** Measurement
+   receipt and threshold evaluation:
+   [perf-smoke-io-cache-2026-07.md](../ci/perf-smoke-io-cache-2026-07.md).
+   Outcome: the prototype serves **all 268 confirmed duplicate `head` opens**
+   (hit_rate 0.349 over 768 lookups) yet changes `analyze total_ms` by only
+   ~7 ms (~0.1%), well inside run-to-run noise and far below the ≥ 15% /
+   ≥ 200 ms threshold. The timing-reduction threshold is now **measured as not
+   met**, not merely unestablished.
+4. **Future PR E** — production cache only if a prototype A/B meets **all**
+   thresholds with parity tests. **Status: closed — no-go (measured).** The
+   PR F A/B directly measured the timing effect of eliminating every duplicate
+   open and found no ≥ 15% / ≥ 200 ms `analyze total_ms` win, so PR E is not
+   pursued. Reopen only from fresh evidence that the `analyze` compute profile
+   has shifted enough to make bounded content opens a material cost (e.g. a much
+   larger per-file byte cap, a preset dominated by `head_tail`/`lines`, or a
+   cold-cache/network-backed file provider).
 
 ## Validation
 

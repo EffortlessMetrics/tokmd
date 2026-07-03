@@ -7,6 +7,7 @@ use std::path::Path;
 use std::time::Instant;
 #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 use std::time::{SystemTime, UNIX_EPOCH};
+use tokmd_analysis::io_cache::{self, IoCacheReport};
 use tokmd_analysis::io_trace::{self, IoTraceReport};
 use tokmd_core::settings::{
     AnalyzeSettings, ExportSettings, LangSettings, ModuleSettings, ScanSettings,
@@ -19,6 +20,7 @@ use tokmd_core::{
 const PERF_SMOKE_SCHEMA: &str = "tokmd.perf_smoke.v1";
 const ANALYSIS_TIMING_SCHEMA: &str = "tokmd.analysis_workflow_timing.v1";
 const IO_TRACE_SCHEMA: &str = "tokmd.io_open_trace.v1";
+const IO_CACHE_SCHEMA: &str = "tokmd.io_cache_prototype.v1";
 
 #[derive(Debug, Serialize)]
 struct PerfSmokeReceipt {
@@ -62,6 +64,8 @@ struct AnalysisWorkflowTiming {
     total_ms: u128,
     #[serde(skip_serializing_if = "Option::is_none")]
     io_trace: Option<IoTraceSection>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    io_cache: Option<IoCacheSection>,
 }
 
 #[derive(Debug, Serialize)]
@@ -81,6 +85,33 @@ struct IoTraceSection {
 struct IoTraceModeSection {
     opens: u64,
     unique_keys: u64,
+}
+
+#[derive(Debug, Serialize)]
+struct IoCacheSection {
+    schema: String,
+    schema_version: u32,
+    lookups: u64,
+    hits: u64,
+    misses: u64,
+    entries: u64,
+    bytes_served: u64,
+    hit_rate: f64,
+}
+
+impl From<&IoCacheReport> for IoCacheSection {
+    fn from(report: &IoCacheReport) -> Self {
+        Self {
+            schema: IO_CACHE_SCHEMA.to_string(),
+            schema_version: 1,
+            lookups: report.lookups,
+            hits: report.hits,
+            misses: report.misses,
+            entries: report.entries,
+            bytes_served: report.bytes_served,
+            hit_rate: report.hit_rate(),
+        }
+    }
 }
 
 impl From<&IoTraceReport> for IoTraceSection {
@@ -189,7 +220,7 @@ fn analysis_timings(
 
     args.analysis_presets
         .iter()
-        .map(|preset| analysis_timing(scan, preset, &limits, args.trace_io))
+        .map(|preset| analysis_timing(scan, preset, &limits, args.trace_io, args.cache_io))
         .collect()
 }
 
@@ -198,6 +229,7 @@ fn analysis_timing(
     preset: &str,
     limits: &AnalysisTimingLimits,
     trace_io: bool,
+    cache_io: bool,
 ) -> Result<AnalysisWorkflowTiming> {
     let normalized = preset.trim().to_ascii_lowercase();
     let analyze = AnalyzeSettings {
@@ -210,12 +242,32 @@ fn analysis_timing(
         ..AnalyzeSettings::default()
     };
 
+    let mut io_report = None;
+    let mut cache_report = None;
     let start = Instant::now();
-    let (receipt_result, io_report) = if trace_io {
-        let (result, report) = io_trace::scope(|| analyze_workflow(scan, &analyze));
-        (result, Some(report))
-    } else {
-        (analyze_workflow(scan, &analyze), None)
+    // Trace and cache are independent thread-local scopes. When both are
+    // requested the cache scope nests inside the trace scope: the trace records
+    // every content-open demand while the cache serves duplicate reads, so an
+    // A/B can show demand and hit rate together.
+    let receipt_result = match (trace_io, cache_io) {
+        (false, false) => analyze_workflow(scan, &analyze),
+        (true, false) => {
+            let (result, report) = io_trace::scope(|| analyze_workflow(scan, &analyze));
+            io_report = Some(report);
+            result
+        }
+        (false, true) => {
+            let (result, report) = io_cache::scope(|| analyze_workflow(scan, &analyze));
+            cache_report = Some(report);
+            result
+        }
+        (true, true) => {
+            let ((result, cache), trace) =
+                io_trace::scope(|| io_cache::scope(|| analyze_workflow(scan, &analyze)));
+            io_report = Some(trace);
+            cache_report = Some(cache);
+            result
+        }
     };
     let total_ms = start.elapsed().as_millis();
     let receipt =
@@ -242,6 +294,7 @@ fn analysis_timing(
         limits: limits.clone(),
         total_ms,
         io_trace: io_report.as_ref().map(IoTraceSection::from),
+        io_cache: cache_report.as_ref().map(IoCacheSection::from),
     })
 }
 
@@ -404,6 +457,41 @@ mod tests {
         assert_eq!(timing.limits.max_commits, 7);
         assert_eq!(timing.limits.max_commit_files, 8);
         assert!(timing.io_trace.is_none());
+        assert!(timing.io_cache.is_none());
+        assert!(!serde_json::to_string(&receipt)?.contains(temp.path().to_string_lossy().as_ref()));
+        Ok(())
+    }
+
+    #[test]
+    fn cache_io_records_prototype_cache_section() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        fs::write(
+            temp.path().join("lib.rs"),
+            "pub fn lib() { /* TODO: keep content enrichers reading this file */ }\n",
+        )?;
+        let args = PerfSmokeArgs {
+            target_repo: temp.path().to_path_buf(),
+            output: temp.path().join("perf.json"),
+            analysis_presets: vec!["health".to_string()],
+            cache_io: true,
+            ..PerfSmokeArgs::default()
+        };
+
+        let receipt = perf_smoke_receipt(&args)?;
+
+        let timing = receipt
+            .analysis_workflows
+            .first()
+            .context("expected one analysis workflow timing")?;
+        assert!(timing.io_trace.is_none());
+        let cache = timing
+            .io_cache
+            .as_ref()
+            .context("cache_io should populate an io_cache section")?;
+        assert_eq!(cache.schema, IO_CACHE_SCHEMA);
+        assert!(cache.lookups >= 1, "expected at least one cache lookup");
+        assert_eq!(cache.misses + cache.hits, cache.lookups);
+        assert!(cache.entries <= cache.lookups);
         assert!(!serde_json::to_string(&receipt)?.contains(temp.path().to_string_lossy().as_ref()));
         Ok(())
     }

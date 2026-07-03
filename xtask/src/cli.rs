@@ -516,6 +516,18 @@ pub struct PerfSmokeArgs {
     /// `docs/plans/file-io-cache-evidence.md` before any cache is implemented.
     #[arg(long)]
     pub trace_io: bool,
+
+    /// Install the prototype request-scoped read cache for each timed analysis
+    /// preset.
+    ///
+    /// Emits an `io_cache` section (lookups/hits/misses/bytes served) and serves
+    /// duplicate content reads from a request-scoped cache. Use a health-preset
+    /// before/after A/B against `--cache-io` to measure whether eliminating
+    /// duplicate opens reduces `analyze total_ms` per the PR E threshold in
+    /// `docs/plans/file-io-cache-evidence.md`. Cached bytes are identical to a
+    /// fresh read; this is a measurement instrument, not a product cache.
+    #[arg(long)]
+    pub cache_io: bool,
 }
 
 impl Default for PerfSmokeArgs {
@@ -532,6 +544,7 @@ impl Default for PerfSmokeArgs {
             analysis_max_commits: 200,
             analysis_max_commit_files: 200,
             trace_io: false,
+            cache_io: false,
         }
     }
 }
