@@ -34,7 +34,7 @@ fn scaffold_git_repo(
     }
     assert!(common::git_add_commit(dir.path(), "Initial commit"));
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();

@@ -325,7 +325,7 @@ mod sensor_tests {
             return None;
         }
 
-        let status = std::process::Command::new("git")
+        let status = tokmd_git::git_cmd()
             .args(["checkout", "-b", "feature"])
             .current_dir(dir.path())
             .status()

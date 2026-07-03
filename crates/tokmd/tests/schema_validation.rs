@@ -543,7 +543,7 @@ fn test_cockpit_receipt_validates_against_schema() -> Result<()> {
         return Ok(());
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();

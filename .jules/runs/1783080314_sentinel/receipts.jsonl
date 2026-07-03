@@ -1,0 +1,16 @@
+{"command": "grep -rnw \"std::process::Command\" crates/tokmd-core crates/tokmd crates/tokmd-settings", "exit_code": 0}
+{"command": "cat crates/tokmd/src/git_support.rs", "exit_code": 0}
+{"command": "sed -i \"s/Command::new(\\\"git\\\")/tokmd_git::git_cmd()/g\" crates/tokmd-core/src/context_git/mod.rs", "exit_code": 0}
+{"command": "sed -i \"s/Command::new(\\\"git\\\")/tokmd_git::git_cmd()/g\" crates/tokmd-core/src/workflows/cockpit.rs", "exit_code": 0}
+{"command": "sed -i \"s/crate::git_support::git_cmd/tokmd_git::git_cmd/g\" crates/tokmd/src/commands/check_ignore.rs", "exit_code": 0}
+{"command": "sed -i \"s/crate::git_support::git_cmd/tokmd_git::git_cmd/g\" crates/tokmd/src/commands/handoff/capabilities.rs", "exit_code": 0}
+{"command": "rm crates/tokmd/src/git_support.rs", "exit_code": 0}
+{"command": "sed -i \"/mod git_support;/d\" crates/tokmd/src/lib.rs", "exit_code": 0}
+{"command": "sed -i \"s/Command::new(\\\"git\\\")/tokmd_git::git_cmd()/g\" crates/tokmd/tests/common/mod.rs", "exit_code": 0}
+{"command": "find crates/tokmd/tests -type f -name \"*.rs\" -print0 | xargs -0 sed -i \"s/std::process::Command::new(\\\"git\\\")/tokmd_git::git_cmd()/g\"", "exit_code": 0}
+{"command": "find crates/tokmd/tests -type f -name \"*.rs\" -print0 | xargs -0 sed -i \"s/StdCommand::new(\\\"git\\\")/tokmd_git::git_cmd()/g\"", "exit_code": 0}
+{"command": "find crates/tokmd/tests -type f -name \"*.rs\" -print0 | xargs -0 sed -i \"s/ProcessCommand::new(\\\"git\\\")/tokmd_git::git_cmd()/g\"", "exit_code": 0}
+{"command": "cargo test -p tokmd-core --features git", "exit_code": 0}
+{"command": "cargo test -p tokmd --features git", "exit_code": 0}
+{"command": "cargo fmt -- --check", "exit_code": 0}
+{"command": "cargo clippy -p tokmd-core -p tokmd -- -D warnings", "exit_code": 0}

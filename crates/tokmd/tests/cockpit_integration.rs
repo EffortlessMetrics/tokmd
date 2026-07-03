@@ -57,7 +57,7 @@ fn basic_cockpit_repo() -> Option<TempDir> {
         return None;
     }
 
-    let status = std::process::Command::new("git")
+    let status = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -815,7 +815,7 @@ fn test_cockpit_json_format() {
     }
 
     // Create a branch with changes
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -887,7 +887,7 @@ fn test_cockpit_md_format() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -959,7 +959,7 @@ fn test_cockpit_comment_format() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -1016,7 +1016,7 @@ fn test_cockpit_md_includes_summary_comparison_with_baseline() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -1082,7 +1082,7 @@ fn test_cockpit_sections_format() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "dev"])
         .current_dir(dir.path())
         .status();
@@ -1144,7 +1144,7 @@ fn test_cockpit_output_file() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "test"])
         .current_dir(dir.path())
         .status();
@@ -1193,7 +1193,7 @@ fn test_cockpit_artifacts_dir() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "test"])
         .current_dir(dir.path())
         .status();
@@ -1255,7 +1255,7 @@ fn test_cockpit_review_packet_dir() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "test"])
         .current_dir(dir.path())
         .status();
@@ -1490,7 +1490,7 @@ fn test_cockpit_review_packet_bun_ub_sensor_refs() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "test"])
         .current_dir(dir.path())
         .status();
@@ -1747,7 +1747,7 @@ fn test_cockpit_file_classification() {
     }
 
     // Create branch with diverse file types
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "diverse"])
         .current_dir(dir.path())
         .status();
@@ -1834,7 +1834,7 @@ fn test_evidence_gates_pass_all() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -1900,7 +1900,7 @@ fn test_evidence_gates_fail_coverage() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -1982,7 +1982,7 @@ serde = "1.0"
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();

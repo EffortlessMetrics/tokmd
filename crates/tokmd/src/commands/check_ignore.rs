@@ -4,7 +4,7 @@ use std::process::Stdio;
 use crate::cli;
 use anyhow::{Context, Result};
 
-use crate::git_support::git_cmd;
+use tokmd_git::git_cmd;
 
 /// Exit codes for check-ignore:
 /// - 0: Path is ignored

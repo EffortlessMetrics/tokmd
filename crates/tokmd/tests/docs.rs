@@ -52,7 +52,7 @@ fn git_recipe_fixture() -> tempfile::TempDir {
 }
 
 fn run_git(cwd: &Path, args: &[&str]) {
-    let status = StdCommand::new("git")
+    let status = tokmd_git::git_cmd()
         .current_dir(cwd)
         .args(args)
         .status()
@@ -536,7 +536,7 @@ fn recipe_sensor_json() {
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
-    let in_git = std::process::Command::new("git")
+    let in_git = tokmd_git::git_cmd()
         .arg("-C")
         .arg(&fixtures)
         .arg("rev-parse")
@@ -733,7 +733,7 @@ fn recipe_cockpit_format() {
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
-    let in_git = std::process::Command::new("git")
+    let in_git = tokmd_git::git_cmd()
         .arg("-C")
         .arg(&fixtures)
         .arg("rev-parse")

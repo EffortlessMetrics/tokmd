@@ -126,17 +126,17 @@ mod tests {
         let root = dir.path();
 
         // git init + config
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["init"])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["config", "user.email", "test@test.com"])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["config", "user.name", "Test"])
             .current_dir(root)
             .output()
@@ -144,12 +144,12 @@ mod tests {
         // Disable commit signing so environments with a global signing key
         // do not turn this test repo into a no-commit setup that makes
         // downstream assertions flaky.
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["config", "commit.gpgsign", "false"])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["config", "tag.gpgsign", "false"])
             .current_dir(root)
             .output()
@@ -157,24 +157,24 @@ mod tests {
 
         // main.rs: 2 commits (3 lines initially, then 4)
         std::fs::write(root.join("main.rs"), "1\n2\n3").ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["add", "."])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["commit", "-m", "c1"])
             .current_dir(root)
             .output()
             .ok()?;
 
         std::fs::write(root.join("main.rs"), "1\n2\n3\n4").ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["add", "."])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["commit", "-m", "c2"])
             .current_dir(root)
             .output()
@@ -182,12 +182,12 @@ mod tests {
 
         // lib.rs: 1 commit (5 lines)
         std::fs::write(root.join("lib.rs"), "1\n2\n3\n4\n5").ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["add", "."])
             .current_dir(root)
             .output()
             .ok()?;
-        Command::new("git")
+        tokmd_git::git_cmd()
             .args(["commit", "-m", "c3"])
             .current_dir(root)
             .output()

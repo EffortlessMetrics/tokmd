@@ -274,7 +274,7 @@ fn setup_cockpit_repo() -> Option<tempfile::TempDir> {
         return None;
     }
 
-    let ok = std::process::Command::new("git")
+    let ok = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status()

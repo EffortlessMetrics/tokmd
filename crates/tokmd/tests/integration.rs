@@ -1407,7 +1407,7 @@ fn test_check_ignore_verbose_shows_source() {
     let dir = tempdir().unwrap();
 
     // Initialize a git repo
-    let git_init = std::process::Command::new("git")
+    let git_init = tokmd_git::git_cmd()
         .args(["init"])
         .current_dir(dir.path())
         .output();

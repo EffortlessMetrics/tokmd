@@ -29,7 +29,7 @@ fn sensor_json_outputs_artifacts_and_data() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -121,7 +121,7 @@ fn sensor_md_outputs_markdown() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -188,7 +188,7 @@ fn sensor_report_with_risk_findings() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -256,7 +256,7 @@ fn sensor_report_with_contract_changes() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -322,7 +322,7 @@ fn sensor_envelope_verdict_aggregation() {
         return;
     }
 
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -408,7 +408,7 @@ fn scenario_docs_only_change_verdict_pass() {
     }
 
     // Feature branch: change only docs
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
@@ -523,7 +523,7 @@ fn scenario_four_high_complexity_files_verdict_fail() {
     }
 
     // Feature branch: add 4 files each with CC = 17
-    let _ = std::process::Command::new("git")
+    let _ = tokmd_git::git_cmd()
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();
