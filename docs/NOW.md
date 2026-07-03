@@ -1,7 +1,8 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the Lane 2/5 closeout batch
-> (swarm #398, #399, publication import #2799 at `1c864623`).
+> One-screen operational truth. Updated after the Lane 3 measured-performance
+> closeout batch (swarm #401–#409, publication imports #2802/#2803 at
+> `14d611cb`; PR F #411 — the file-I/O cache decision — lands in the same batch).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -75,6 +76,33 @@ Agent-executable adoption/contributor docs work for this batch is at handoff:
 accuracy, and ub-review gate phase-4 documentation. It does not enable badge
 auto-CI (needs org `BADGE_PAT` secret) or change publication merge-commit UI
 settings.
+
+## Lane 3 measured-performance closeout (2026-07-02)
+
+Agent-executable measured-performance work for Lane 3 is at handoff. The lane is
+measurement-led throughout: no optimization landed without a perf-smoke receipt.
+
+- **#401–#404, #406**: `cargo xtask perf-smoke` maintainer guide, the
+  core-workflow baseline receipt, the first measured hot-path fix (PR B —
+  `tokmd-model` line-based byte estimate, export `model_ms` 377 → ~40 ms), and
+  the file-I/O cache evidence plan (PR C). Imported at `41c05d30` (import #2802).
+- **#407, #409**: Lane 3 governance closeout and the opt-in content I/O
+  open-trace (PR D — `tokmd-analysis::io_trace` + `perf-smoke --trace-io`) that
+  measured the duplicate-read rate (health preset re-opens capped files ~1.54×,
+  confirmed). Imported at `14d611cb` (import #2803).
+- **PR F (#411)**: prototype request-scoped read cache + health-preset A/B
+  (`tokmd-analysis::io_cache` + `perf-smoke --cache-io`). The cache serves all
+  268 confirmed duplicate `head` opens (hit_rate 0.349) but changes `analyze
+  total_ms` by only ~0.1% (within run-to-run noise), so **PR E (production cache)
+  is closed as a measured no-go**. Evidence:
+  `docs/ci/perf-smoke-io-cache-2026-07.md`. Lands in this closeout batch.
+
+**Claim boundary**: this lane proves a repeatable perf-smoke measurement spine,
+one low-risk measured core-workflow win (PR B), a confirmed duplicate-read rate
+(PR D), and an evidence-settled file-I/O cache decision (PR F: no-go). It does
+not add persistent caching to the default `analyze` path, change receipt schemas
+or preset defaults, or promote any advisory proof. The trace and cache
+prototypes remain opt-in maintainer instruments.
 
 ## Shipped this wave
 
