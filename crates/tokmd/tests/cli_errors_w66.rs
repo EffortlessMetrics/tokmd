@@ -102,6 +102,42 @@ fn badge_invalid_metric_fails() {
 }
 
 #[test]
+fn analyze_zero_max_commits_fails() {
+    tokmd_cmd_fixture()
+        .args(["analyze", "--max-commits", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("value must be at least 1"));
+}
+
+#[test]
+fn analyze_zero_max_commit_files_fails() {
+    tokmd_cmd_fixture()
+        .args(["analyze", "--max-commit-files", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("value must be at least 1"));
+}
+
+#[test]
+fn badge_zero_max_commits_fails() {
+    tokmd_cmd_fixture()
+        .args(["badge", "--metric", "hotspot", "--max-commits", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("value must be at least 1"));
+}
+
+#[test]
+fn badge_zero_max_commit_files_fails() {
+    tokmd_cmd_fixture()
+        .args(["badge", "--metric", "hotspot", "--max-commit-files", "0"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("value must be at least 1"));
+}
+
+#[test]
 fn completions_invalid_shell_fails() {
     tokmd_cmd()
         .args(["completions", "invalid_shell"])
