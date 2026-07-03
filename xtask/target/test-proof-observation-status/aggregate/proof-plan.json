@@ -1,0 +1,19 @@
+{
+  "base": "origin/main",
+  "commands": [
+    {
+      "command": "cargo test",
+      "kind": "test",
+      "required": true,
+      "scope": "a"
+    },
+    {
+      "command": "cargo llvm-cov",
+      "kind": "coverage",
+      "required": false,
+      "scope": "a"
+    }
+  ],
+  "head": "HEAD",
+  "schema": "tokmd.proof_plan.v1"
+}

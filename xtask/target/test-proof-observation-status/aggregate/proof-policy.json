@@ -1,0 +1,23 @@
+{
+  "executor": {
+    "pr": {
+      "codecov_upload": false,
+      "required": false
+    },
+    "promotion": {
+      "default_codecov_upload": false,
+      "min_artifacts": 4,
+      "min_executed": 4,
+      "min_observations": 1,
+      "min_passing_collector_runs": 1,
+      "min_scopes": 4,
+      "required_gate": false
+    }
+  },
+  "proof_run": {
+    "pr": {
+      "required": false
+    }
+  },
+  "schema": "tokmd.proof_policy.v1"
+}

@@ -1,0 +1,18 @@
+{
+  "executor": {
+    "pr": {
+      "codecov_upload": false,
+      "required": false
+    },
+    "promotion": {
+      "default_codecov_upload": false,
+      "required_gate": false
+    }
+  },
+  "proof_run": {
+    "pr": {
+      "required": false
+    }
+  },
+  "schema": "tokmd.proof_policy.v1"
+}
