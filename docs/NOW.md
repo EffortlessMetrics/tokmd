@@ -1,9 +1,10 @@
 # NOW / NEXT / LATER
 
 > One-screen operational truth. Updated after the post-Lane 3 session handoff
-> (swarm #413 no-panic allowlist fix and #414 NOW closeout merged; publication
-> imports #2807 (#413) and #2808 (#414) landed; `repo-graph` reports `Aligned`
-> at `9c0bb1f4`, publication_ahead=0, swarm_ahead=0).
+> (swarm #413 no-panic allowlist fix, #414 NOW closeout, and #415 NOW alignment
+> merged; publication imports #2807 (#413), #2808 (#414), and the #415 NOW
+> alignment landed; `repo-graph` reports `Aligned` at `eba85d84`,
+> publication_ahead=0, swarm_ahead=0).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -132,9 +133,10 @@ Agent-executable work from this session:
 
 - Browser ZIP smoke execution per `docs/browser-zip-smoke.md`.
 
-**Graph state**: `repo-graph` reports `Aligned` at swarm `9c0bb1f4` /
-publication `9c0bb1f4` (`publication_ahead=0`, `swarm_ahead=0`) after imports
-#2807 (#413) and #2808 (#414).
+**Graph state**: `repo-graph` reports `Aligned` at swarm `eba85d84` /
+publication `eba85d84` (`publication_ahead=0`, `swarm_ahead=0`) after the
+#415 NOW alignment import (imports #2807 (#413) and #2808 (#414) preceded it at
+`9c0bb1f4`).
 
 **No new agent-executable seams** were found in `SPEC_GAPS.md`, open issues,
 or workflow hardening without org secrets. Reopen work only from fresh consumer,
