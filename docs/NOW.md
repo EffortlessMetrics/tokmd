@@ -1,8 +1,8 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the Lane 3 measured-performance
-> closeout batch (swarm #401–#409, publication imports #2802/#2803 at
-> `14d611cb`; PR F #411 — the file-I/O cache decision — lands in the same batch).
+> One-screen operational truth. Updated after the post-Lane 3 session handoff
+> (swarm #413 no-panic allowlist fix merged; publication import #2807 open;
+> aligned at `883007be` through import #2806, swarm-ahead=1 pending import).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -95,7 +95,7 @@ measurement-led throughout: no optimization landed without a perf-smoke receipt.
   268 confirmed duplicate `head` opens (hit_rate 0.349) but changes `analyze
   total_ms` by only ~0.1% (within run-to-run noise), so **PR E (production cache)
   is closed as a measured no-go**. Evidence:
-  `docs/ci/perf-smoke-io-cache-2026-07.md`. Lands in this closeout batch.
+  `docs/ci/perf-smoke-io-cache-2026-07.md`. Imported at `883007be` (import #2806).
 
 **Claim boundary**: this lane proves a repeatable perf-smoke measurement spine,
 one low-risk measured core-workflow win (PR B), a confirmed duplicate-read rate
@@ -103,6 +103,45 @@ one low-risk measured core-workflow win (PR B), a confirmed duplicate-read rate
 not add persistent caching to the default `analyze` path, change receipt schemas
 or preset defaults, or promote any advisory proof. The trace and cache
 prototypes remain opt-in maintainer instruments.
+
+## Post-Lane 3 session closeout (2026-07-02)
+
+Agent-executable work from this session:
+
+- **#413**: receipt the 11 Lane 3 test-code panic-family findings
+  (`panic-21941`..`panic-21951`) in `policy/no-panic-allowlist.toml`, restoring
+  the advisory No-panic Policy strict gate to green on swarm `main` (`3dd612b2`).
+- **Publication import #2807**: merge-commit import PR open in `tokmd`; Tokmd
+  Rust Result and No-panic Family passed; merge blocked on repository settings
+  (merge commits require maintainer UI merge, not API).
+
+**Lane queue state (lanes 2–6)**:
+
+| Lane | Status | Notes |
+| --- | --- | --- |
+| Lane 2 (ub-review / rootless) | **closed** | #398/#399 imported at `1c864623` |
+| Lane 3 (measured performance) | **closed** | #401–#412 + PR E no-go; imported at `883007be` |
+| Lane 4 (docs/adoption) | **closed** | #345/#389–#391 imported at `840c3ca9` |
+| Lane 5 (rootless preset widening) | **blocked/closed** | feasibility map done; no preset promotion |
+| Lane 6 | **blocked/closed** | no agent-executable seam selected |
+| PR #410 (badge automation) | **open — leave** | substantive ripr count refresh (`239→237`); CI stuck in `action_required` (bot PR; needs org `BADGE_PAT` per #389/#390); do not approve full gate for 1-line badge churn |
+
+**Human-only remaining**:
+
+- Browser ZIP smoke execution per `docs/browser-zip-smoke.md`.
+- Publication import #2807 merge commit via GitHub UI, then fast-forward swarm.
+
+**Graph state**: `repo-graph` reports `SwarmAhead` at swarm `3dd612b2` /
+publication `883007be` (`swarm_ahead=1`). Re-align after import #2807 lands.
+
+**No new agent-executable seams** were found in `SPEC_GAPS.md`, open issues,
+or workflow hardening without org secrets. Reopen work only from fresh consumer,
+artifact, workflow, or product evidence.
+
+**Claim boundary**: this session proves no-panic allowlist hygiene for Lane 3
+test imports and records honest lane-queue disposition. It does not enable badge
+auto-CI, widen rootless presets, promote AST defaults, or prove manual browser
+smoke.
 
 ## Shipped this wave
 
