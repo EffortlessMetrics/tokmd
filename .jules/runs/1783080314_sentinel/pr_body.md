@@ -53,3 +53,9 @@ cargo clippy -p tokmd-core -p tokmd -- -D warnings
 
 ## 🔜 Follow-ups
 None.
+
+## 🚨 CI Fix
+Resolved a CI failure related to the `no-panic-family` check. The refactor to `tokmd_git::git_cmd` shifted the line numbers and structure of testing helper functions (like `unwrap` and `expect`) in `crates/tokmd/tests/docs.rs` and `crates/tokmd/tests/run_diff.rs`, causing stale/unallowlisted panic policy entries. Updated the policy baseline using `cargo xtask no-panic-baseline` to synchronize the allowed test panics with the new code state.
+
+## 🚨 CI Fix 2
+Resolved an `xtask affected` failure caused by the mechanical refactor accidentally matching existing integration tests that were previously untracked in `ci/proof.toml`'s scopes map. Added `crates/tokmd/tests/integration.rs`, `progress_events.rs`, `run_diff.rs`, `deep_cli_complex_w48.rs`, `sensor_integration.rs`, and `sensor_cli_w71.rs` to the `tokmd_cli` scope path configuration. Also mapped `deep_run_cockpit_w52.rs` to `tokmd_cockpit`. Deleted stray `.run_id` file.
