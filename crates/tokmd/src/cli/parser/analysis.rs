@@ -51,11 +51,11 @@ pub struct CliAnalyzeArgs {
     pub max_file_bytes: Option<u64>,
 
     /// Limit how many commits are scanned for git metrics.
-    #[arg(long, value_parser = super::validate::positive_usize)]
+    #[arg(long)]
     pub max_commits: Option<usize>,
 
     /// Limit files per commit when scanning git history.
-    #[arg(long, value_parser = super::validate::positive_usize)]
+    #[arg(long)]
     pub max_commit_files: Option<usize>,
 
     /// Import graph granularity [default: module].
