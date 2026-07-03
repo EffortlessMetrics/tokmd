@@ -361,13 +361,13 @@ fn bounded_complexity_warnings_report_default_file_cap() {
     // The bounded/partial signal is derived from real on-disk size (the bytes the
     // scan clips at the per-file cap), so write an actual oversized source file
     // rather than relying on the model's line-derived `row.bytes` estimate.
-    let dir = tempfile::tempdir().expect("create tempdir");
+    let dir = tempfile::tempdir().unwrap();
     let src_dir = dir.path().join("src");
-    std::fs::create_dir_all(&src_dir).expect("create src dir");
+    std::fs::create_dir_all(&src_dir).unwrap();
     let oversized = "// filler line to exceed the default complexity byte cap\n"
         .repeat((DEFAULT_MAX_FILE_BYTES as usize / 56) + 512);
     assert!(oversized.len() as u64 > DEFAULT_MAX_FILE_BYTES);
-    std::fs::write(src_dir.join("lib.rs"), &oversized).expect("write oversized source");
+    std::fs::write(src_dir.join("lib.rs"), &oversized).unwrap();
 
     let export = ExportData {
         rows: vec![FileRow {

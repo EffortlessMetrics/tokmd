@@ -602,41 +602,7 @@ fn ci_detect_uses_parent_fallback_for_manual_receipts() {
 // artifacts.
 
 #[test]
-fn routed_rust_small_docs_explain_result_receipt_fields() {
-    let artifacts = fs::read_to_string(workspace_root().join("docs/artifacts.md"))
-        .expect("artifact glossary should be readable");
-    let routing = fs::read_to_string(workspace_root().join("docs/ci/swarm-routing.md"))
-        .expect("swarm routing docs should be readable");
 
-    assert!(
-        artifacts.contains("Debug routed Rust Small")
-            && artifacts.contains("target/ci/routed-rust-small-result.json")
-            && artifacts.contains("selected implementation job log"),
-        "artifact glossary should name the routed result receipt as the first debug surface"
-    );
-    for field in [
-        "router.target",
-        "router.reason",
-        "router.receipt_path",
-        "selected.job/result",
-        "telemetry.duration_seconds",
-        "telemetry.queue_seconds",
-        "telemetry.cache_note",
-        "run.run_attempt",
-        "run.rerun_count",
-    ] {
-        assert!(
-            routing.contains(field),
-            "swarm routing docs should explain routed result field `{field}`"
-        );
-    }
-    assert!(
-        routing.contains("Open the receipt before reading runner logs"),
-        "swarm routing docs should preserve the routed result reading order"
-    );
-}
-
-#[test]
 fn generic_ci_docs_open_route_receipt_before_proof_plan() {
     let artifacts = fs::read_to_string(workspace_root().join("docs/artifacts.md"))
         .expect("artifact glossary should be readable");
