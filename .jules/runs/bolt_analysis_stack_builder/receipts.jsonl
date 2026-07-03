@@ -1,3 +1,12 @@
-{"ts_utc": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "phase": "setup", "cwd": "$(pwd)", "cmd": "mkdir -p .jules/runs/bolt_analysis_stack_builder", "status": 0, "summary": "Created run artifacts directory"}
-{"ts_utc": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "phase": "patch", "cwd": "$(pwd)", "cmd": "cargo test -p tokmd-analysis --verbose", "status": 0, "summary": "Tests passed"}
-{"ts_utc": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")", "phase": "patch", "cwd": "$(pwd)", "cmd": "cargo fmt -- --check", "status": 0, "summary": "Fmt passed"}
+{"command": "mkdir -p .jules/runs/bolt_analysis_stack_builder", "status": "success"}
+{"command": "find crates/tokmd-analysis crates/tokmd-gate -type f -name \"*.rs\"", "status": "success"}
+{"command": "bash -c 'grep -rn \"\\.clone()\" crates/tokmd-analysis/src/ crates/tokmd-gate/src/ | grep -v \"tests/\" | head -n 50'", "status": "success"}
+{"command": "bash -c 'grep -rn \"\\.clone()\" crates/tokmd-analysis/src/ crates/tokmd-gate/src/ | grep -v \"tests/\" | tail -n +51'", "status": "success"}
+{"command": "cat crates/tokmd-analysis/src/derived/files.rs", "status": "success"}
+{"command": "cat crates/tokmd-analysis/src/api_surface/report.rs", "status": "success"}
+{"command": "cat crates/tokmd-analysis/src/topics/mod.rs", "status": "success"}
+{"command": "rustc benches_tops4.rs && ./benches_tops4", "status": "success"}
+{"command": "cargo build --verbose", "status": "success"}
+{"command": "bash -c 'CI=true cargo test -p tokmd-analysis --verbose'", "status": "success"}
+{"command": "cargo fmt -- --check", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}

@@ -92,18 +92,38 @@ pub(super) fn build_max_file_report(rows: &[FileStatRow]) -> MaxFileReport {
 }
 
 pub(super) fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
-    let mut by_lines: Vec<&FileStatRow> = rows.iter().collect();
-    by_lines.sort_by(|a, b| b.lines.cmp(&a.lines).then_with(|| a.path.cmp(&b.path)));
+    fn extract_top<F>(rows: &[FileStatRow], mut compare: F) -> Vec<FileStatRow>
+    where
+        F: FnMut(&&FileStatRow, &&FileStatRow) -> std::cmp::Ordering,
+    {
+        let mut by_key: Vec<&FileStatRow> = rows.iter().collect();
+        if by_key.len() > TOP_N {
+            let (_, _, _) = by_key.select_nth_unstable_by(TOP_N, &mut compare);
+            by_key.truncate(TOP_N);
+            by_key.sort_unstable_by(compare);
+            by_key.into_iter().cloned().collect()
+        } else {
+            by_key.sort_unstable_by(compare);
+            by_key.into_iter().cloned().collect()
+        }
+    }
 
-    let mut by_tokens: Vec<&FileStatRow> = rows.iter().collect();
-    by_tokens.sort_by(|a, b| b.tokens.cmp(&a.tokens).then_with(|| a.path.cmp(&b.path)));
+    let largest_lines = extract_top(rows, |a, b| {
+        b.lines.cmp(&a.lines).then_with(|| a.path.cmp(&b.path))
+    });
+    let largest_tokens = extract_top(rows, |a, b| {
+        b.tokens.cmp(&a.tokens).then_with(|| a.path.cmp(&b.path))
+    });
+    let largest_bytes = extract_top(rows, |a, b| {
+        b.bytes.cmp(&a.bytes).then_with(|| a.path.cmp(&b.path))
+    });
 
-    let mut by_bytes: Vec<&FileStatRow> = rows.iter().collect();
-    by_bytes.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.path.cmp(&b.path)));
-
-    let mut least_doc: Vec<&FileStatRow> =
-        rows.iter().filter(|r| r.lines >= MIN_DOC_LINES).collect();
-    least_doc.sort_by(|a, b| {
+    let doc_filtered: Vec<FileStatRow> = rows
+        .iter()
+        .filter(|r| r.lines >= MIN_DOC_LINES)
+        .cloned()
+        .collect();
+    let least_documented = extract_top(&doc_filtered, |a, b| {
         let a_doc = a.doc_pct.unwrap_or(0.0);
         let b_doc = b.doc_pct.unwrap_or(0.0);
         a_doc
@@ -113,8 +133,12 @@ pub(super) fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
             .then_with(|| a.path.cmp(&b.path))
     });
 
-    let mut dense: Vec<&FileStatRow> = rows.iter().filter(|r| r.lines >= MIN_DENSE_LINES).collect();
-    dense.sort_by(|a, b| {
+    let dense_filtered: Vec<FileStatRow> = rows
+        .iter()
+        .filter(|r| r.lines >= MIN_DENSE_LINES)
+        .cloned()
+        .collect();
+    let most_dense = extract_top(&dense_filtered, |a, b| {
         let a_rate = a.bytes_per_line.unwrap_or(0.0);
         let b_rate = b.bytes_per_line.unwrap_or(0.0);
         b_rate
@@ -124,10 +148,10 @@ pub(super) fn build_top_offenders(rows: &[FileStatRow]) -> TopOffenders {
     });
 
     TopOffenders {
-        largest_lines: by_lines.into_iter().take(TOP_N).cloned().collect(),
-        largest_tokens: by_tokens.into_iter().take(TOP_N).cloned().collect(),
-        largest_bytes: by_bytes.into_iter().take(TOP_N).cloned().collect(),
-        least_documented: least_doc.into_iter().take(TOP_N).cloned().collect(),
-        most_dense: dense.into_iter().take(TOP_N).cloned().collect(),
+        largest_lines,
+        largest_tokens,
+        largest_bytes,
+        least_documented,
+        most_dense,
     }
 }
