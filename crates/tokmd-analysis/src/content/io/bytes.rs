@@ -4,11 +4,21 @@ use std::path::Path;
 
 use anyhow::Result;
 
-pub fn is_text_like(bytes: &[u8]) -> bool {
+/// Borrow `bytes` as text when they are text-like: no interior NUL byte and
+/// valid UTF-8. Returns `None` otherwise.
+///
+/// This performs a single UTF-8 validation pass and returns a borrowed `&str`,
+/// letting callers avoid the `is_text_like` (validate) + `from_utf8_lossy`
+/// (validate again and allocate a `Cow`) double scan on the analysis hot path.
+pub fn as_text(bytes: &[u8]) -> Option<&str> {
     if bytes.contains(&0) {
-        return false;
+        return None;
     }
-    std::str::from_utf8(bytes).is_ok()
+    std::str::from_utf8(bytes).ok()
+}
+
+pub fn is_text_like(bytes: &[u8]) -> bool {
+    as_text(bytes).is_some()
 }
 
 pub fn hash_bytes(bytes: &[u8]) -> String {
@@ -46,6 +56,53 @@ mod tests {
     use std::io::Write;
 
     use super::*;
+
+    #[test]
+    fn as_text_borrows_valid_utf8_without_null() {
+        let bytes = "héllo wörld".as_bytes();
+        let text = as_text(bytes);
+        assert_eq!(text, Some("héllo wörld"));
+        assert_eq!(
+            text.map(str::as_ptr),
+            Some(bytes.as_ptr()),
+            "as_text must borrow, not copy"
+        );
+    }
+
+    #[test]
+    fn as_text_rejects_interior_null() {
+        assert!(as_text(b"hello\x00world").is_none());
+    }
+
+    #[test]
+    fn as_text_rejects_invalid_utf8() {
+        assert!(as_text(&[0xFF, 0xFE, 0x41]).is_none());
+    }
+
+    #[test]
+    fn as_text_empty_is_some_empty() {
+        assert_eq!(as_text(b""), Some(""));
+    }
+
+    #[test]
+    fn as_text_some_iff_is_text_like() {
+        // as_text must agree with the is_text_like predicate it now backs.
+        let cases: &[&[u8]] = &[
+            b"plain ascii",
+            "日本語".as_bytes(),
+            b"",
+            b"has\x00null",
+            &[0x89, 0x50, 0x4E, 0x47],
+            &[0xFF, 0xFE, 0x00, 0x41],
+        ];
+        for bytes in cases {
+            assert_eq!(
+                as_text(bytes).is_some(),
+                is_text_like(bytes),
+                "as_text/is_text_like disagreement for {bytes:?}"
+            );
+        }
+    }
 
     #[test]
     fn hash_file_returns_correct_blake3_hash() {

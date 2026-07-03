@@ -83,6 +83,22 @@ pub fn read_text_capped(path: &Path, max_bytes: usize) -> Result<String> {
     read::read_text_capped(path, max_bytes)
 }
 
+/// Borrow the bytes as text (`&str`) when text-like, else `None`.
+///
+/// Single-pass alternative to `is_text_like` + `String::from_utf8_lossy`: it
+/// validates UTF-8 once and returns a borrow, avoiding the redundant second
+/// validation and the `Cow` allocation at analysis enricher call sites.
+pub fn as_text(bytes: &[u8]) -> Option<&str> {
+    bytes::as_text(bytes)
+}
+
+#[cfg_attr(
+    not(any(test, fuzzing)),
+    expect(
+        dead_code,
+        reason = "text-like predicate now backed by as_text; retained for tests and fuzz_entropy"
+    )
+)]
 pub fn is_text_like(bytes: &[u8]) -> bool {
     bytes::is_text_like(bytes)
 }

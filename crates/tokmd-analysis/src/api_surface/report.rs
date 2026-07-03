@@ -71,12 +71,10 @@ pub(crate) fn build_api_surface_report(
         };
         total_bytes += bytes.len() as u64;
 
-        if !crate::content::io::is_text_like(&bytes) {
+        let Some(text) = crate::content::io::as_text(&bytes) else {
             continue;
-        }
-
-        let text = String::from_utf8_lossy(&bytes);
-        let symbols = symbols::extract_symbols(&row.lang, &text);
+        };
+        let symbols = symbols::extract_symbols(&row.lang, text);
 
         if symbols.is_empty() {
             continue;
