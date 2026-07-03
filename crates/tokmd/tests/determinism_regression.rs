@@ -20,6 +20,21 @@ fn tokmd_cmd() -> Command {
     cmd
 }
 
+/// Assert a completed command exited successfully, surfacing stderr on failure.
+///
+/// A command that fails (for example an unsupported `--format` value) prints
+/// nothing to stdout and exits non-zero, so comparing two empty outputs passes
+/// trivially and masks regressions. `assert!` is not a tracked panic-family
+/// construct, so this helper adds no no-panic debt.
+fn assert_cmd_ok(o: &std::process::Output) {
+    assert!(
+        o.status.success(),
+        "command exited with {:?}: {}",
+        o.status.code(),
+        String::from_utf8_lossy(&o.stderr)
+    );
+}
+
 /// Normalize non-deterministic fields (timestamps, tool version) for
 /// byte-level comparison of serialized output.
 fn normalize_envelope(output: &str) -> String {
@@ -69,6 +84,7 @@ fn lang_json_byte_identical_across_runs() {
             .args(["lang", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         normalize_envelope(&String::from_utf8_lossy(&o.stdout))
     };
     let a = run();
@@ -86,6 +102,7 @@ fn module_json_byte_identical_across_runs() {
             .args(["module", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         normalize_envelope(&String::from_utf8_lossy(&o.stdout))
     };
     let a = run();
@@ -103,6 +120,7 @@ fn export_jsonl_byte_identical_across_runs() {
             .args(["export", "--format", "jsonl"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         normalize_envelope(&String::from_utf8_lossy(&o.stdout))
     };
     let a = run();
@@ -145,6 +163,7 @@ fn export_json_no_backslash_in_path_or_module() {
         .args(["export", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     let rows = json["rows"].as_array().expect("rows");
 
@@ -165,6 +184,7 @@ fn module_json_no_backslash_in_module_keys() {
         .args(["module", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     let rows = json["rows"].as_array().expect("rows");
 
@@ -222,6 +242,7 @@ fn lang_json_no_backslash_in_path_fields() {
         .args(["lang", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
 
     let mut strings = Vec::new();
@@ -247,6 +268,7 @@ fn lang_timestamp_is_only_nondeterministic_field() {
             .args(["lang", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         serde_json::from_slice::<Value>(&o.stdout).expect("valid JSON")
     };
     let mut a = run();
@@ -273,6 +295,7 @@ fn module_timestamp_is_only_nondeterministic_field() {
             .args(["module", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         serde_json::from_slice::<Value>(&o.stdout).expect("valid JSON")
     };
     let mut a = run();
@@ -296,6 +319,7 @@ fn export_timestamp_is_only_nondeterministic_field() {
             .args(["export", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         serde_json::from_slice::<Value>(&o.stdout).expect("valid JSON")
     };
     let mut a = run();
@@ -346,6 +370,7 @@ fn lang_rows_descending_code_ascending_name() {
         .args(["lang", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     let rows = json["rows"].as_array().expect("rows");
 
@@ -368,6 +393,7 @@ fn module_rows_descending_code_ascending_module() {
         .args(["module", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     let rows = json["rows"].as_array().expect("rows");
 
@@ -390,6 +416,7 @@ fn export_rows_descending_code_ascending_path() {
         .args(["export", "--format", "json"])
         .output()
         .expect("run");
+    assert_cmd_ok(&o);
     let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
     let rows = json["rows"].as_array().expect("rows");
 
@@ -453,24 +480,13 @@ fn analyze_receipt_markdown_deterministic() {
 }
 
 #[test]
-fn lang_csv_byte_identical() {
-    let run = || {
-        let o = tokmd_cmd()
-            .args(["lang", "--format", "csv"])
-            .output()
-            .expect("run");
-        String::from_utf8_lossy(&o.stdout).to_string()
-    };
-    assert_eq!(run(), run(), "lang CSV must be byte-identical");
-}
-
-#[test]
 fn module_tsv_byte_identical() {
     let run = || {
         let o = tokmd_cmd()
             .args(["module", "--format", "tsv"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         String::from_utf8_lossy(&o.stdout).to_string()
     };
     assert_eq!(run(), run(), "module TSV must be byte-identical");
@@ -483,6 +499,7 @@ fn export_csv_byte_identical() {
             .args(["export", "--format", "csv"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         String::from_utf8_lossy(&o.stdout).to_string()
     };
     assert_eq!(run(), run(), "export CSV must be byte-identical");
@@ -496,6 +513,7 @@ fn export_csv_byte_identical() {
 fn row_counts_stable_across_all_commands() {
     let count = |args: &[&str]| -> usize {
         let o = tokmd_cmd().args(args).output().expect("run");
+        assert_cmd_ok(&o);
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
         json["rows"].as_array().map(|a| a.len()).unwrap_or(0)
     };
@@ -523,6 +541,7 @@ fn export_jsonl_line_count_stable() {
             .args(["export", "--format", "jsonl"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         String::from_utf8_lossy(&o.stdout).lines().count()
     };
     let a = count();
@@ -541,6 +560,7 @@ fn json_keys_alphabetically_sorted_in_receipt_rows() {
 
     for cmd in commands {
         let o = tokmd_cmd().args(*cmd).output().expect("run");
+        assert_cmd_ok(&o);
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
 
         if let Some(rows) = json["rows"].as_array() {
@@ -596,6 +616,7 @@ fn module_keys_deterministic_across_runs() {
             .args(["module", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
         json["rows"]
             .as_array()
@@ -618,6 +639,7 @@ fn export_module_keys_match_module_command() {
             .args(["module", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
         let mut mods: Vec<String> = json["rows"]
             .as_array()
@@ -635,6 +657,7 @@ fn export_module_keys_match_module_command() {
             .args(["export", "--format", "json"])
             .output()
             .expect("run");
+        assert_cmd_ok(&o);
         let json: Value = serde_json::from_slice(&o.stdout).expect("valid JSON");
         let mut mods: Vec<String> = json["rows"]
             .as_array()
