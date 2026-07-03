@@ -1,8 +1,9 @@
 # NOW / NEXT / LATER
 
 > One-screen operational truth. Updated after the post-Lane 3 session handoff
-> (swarm #413 no-panic allowlist fix merged; publication import #2807 open;
-> aligned at `883007be` through import #2806, swarm-ahead=1 pending import).
+> (swarm #413 no-panic allowlist fix and #414 NOW closeout merged; publication
+> imports #2807 (#413) and #2808 (#414) landed; `repo-graph` reports `Aligned`
+> at `9c0bb1f4`, publication_ahead=0, swarm_ahead=0).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -111,28 +112,29 @@ Agent-executable work from this session:
 - **#413**: receipt the 11 Lane 3 test-code panic-family findings
   (`panic-21941`..`panic-21951`) in `policy/no-panic-allowlist.toml`, restoring
   the advisory No-panic Policy strict gate to green on swarm `main` (`3dd612b2`).
-- **Publication import #2807**: merge-commit import PR open in `tokmd`; Tokmd
-  Rust Result and No-panic Family passed; merge blocked on repository settings
-  (merge commits require maintainer UI merge, not API).
+- **#414**: post-Lane 3 session NOW closeout + lane queue state.
+- **Publication imports #2807 (#413) and #2808 (#414)**: merge-commit imports
+  landed in `tokmd`; `repo-graph` reports `Aligned` at `9c0bb1f4`
+  (publication_ahead=0, swarm_ahead=0).
 
 **Lane queue state (lanes 2–6)**:
 
 | Lane | Status | Notes |
 | --- | --- | --- |
 | Lane 2 (ub-review / rootless) | **closed** | #398/#399 imported at `1c864623` |
-| Lane 3 (measured performance) | **closed** | #401–#412 + PR E no-go; imported at `883007be` |
+| Lane 3 (measured performance) | **closed** | #401–#414 + PR E no-go; imported at `9c0bb1f4` (#2807/#2808) |
 | Lane 4 (docs/adoption) | **closed** | #345/#389–#391 imported at `840c3ca9` |
 | Lane 5 (rootless preset widening) | **blocked/closed** | feasibility map done; no preset promotion |
 | Lane 6 | **blocked/closed** | no agent-executable seam selected |
-| PR #410 (badge automation) | **open — leave** | substantive ripr count refresh (`239→237`); CI stuck in `action_required` (bot PR; needs org `BADGE_PAT` per #389/#390); do not approve full gate for 1-line badge churn |
+| PR #410 / #2805 (badge automation) | **open — leave** | substantive ripr count refresh (`239→237`); CI stuck in `action_required` (bot PR; needs org `BADGE_PAT` per #389/#390); do not approve full gate for 1-line badge churn |
 
 **Human-only remaining**:
 
 - Browser ZIP smoke execution per `docs/browser-zip-smoke.md`.
-- Publication import #2807 merge commit via GitHub UI, then fast-forward swarm.
 
-**Graph state**: `repo-graph` reports `SwarmAhead` at swarm `3dd612b2` /
-publication `883007be` (`swarm_ahead=1`). Re-align after import #2807 lands.
+**Graph state**: `repo-graph` reports `Aligned` at swarm `9c0bb1f4` /
+publication `9c0bb1f4` (`publication_ahead=0`, `swarm_ahead=0`) after imports
+#2807 (#413) and #2808 (#414).
 
 **No new agent-executable seams** were found in `SPEC_GAPS.md`, open issues,
 or workflow hardening without org secrets. Reopen work only from fresh consumer,
