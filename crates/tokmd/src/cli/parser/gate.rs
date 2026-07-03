@@ -12,7 +12,7 @@ use super::AnalysisPreset;
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    after_help = "Examples:\n  tokmd gate analysis.json --policy tokmd-gate.toml\n  tokmd gate . --preset health --format json"
+    after_help = "Examples:\n  tokmd gate analysis.json --policy tokmd-gate.toml\n  tokmd gate . --preset health --policy tokmd-gate.toml --format json"
 )]
 pub struct CliGateArgs {
     /// Input analysis receipt or path to scan.

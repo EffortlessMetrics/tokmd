@@ -301,7 +301,7 @@ integration steps, in rough dependency order, are:
   normalized file set and aggregated receipt as the equivalent host run.
 - **`crates/tokmd-wasm` (host-free caller)** — the motivating consumer. A WASM
   or worker caller that cannot use `std::fs` builds a `RepoSnapshot` from a
-  `MemFs` (or, once the codec adapter lands, directly from archive bytes) and
+  `MemFs` (or directly from archive bytes via the landed ZIP codec) and
   runs the same aggregation, producing receipts indistinguishable from a
   host-backed run for in-scope files.
 - **ZIP codec adapter (`archive-zip` feature, landed)** —
@@ -309,10 +309,15 @@ integration steps, in rough dependency order, are:
   engine (see the incremental status note above).
 - **Archive → scan consumer (`tokmd-scan` `archive-zip` feature, landed)** —
   `scan_snapshot_from_zip` builds a snapshot from uploaded ZIP bytes and runs
-  the existing aggregation (see the incremental status note above). The
-  remaining archive-upload work is a host-free caller
-  (`crates/tokmd-wasm`) that wires this consumer to a browser/worker upload
-  surface.
+  the existing aggregation (see the incremental status note above).
+- **Host-free caller (`crates/tokmd-wasm`, landed)** — the byte-mode chain now
+  reaches a WASM caller. `tokmd_core::ffi::run_json_bytes` feeds the
+  `tokmd-wasm` `runJsonBytes(mode, optionsJson, archiveBytes)` binding, so a
+  browser/worker upload can be scanned without the host filesystem. Byte-mode
+  parity is anchored by `tokmd-wasm` native + `wasm-bindgen-test` tests. The
+  remaining archive-upload work is manual browser smoke against a real archive
+  plus streaming/large-archive upload and tar-family containers (see
+  `docs/browser-zip-smoke.md` and `docs/browser-capability-matrix.md`).
 
 These are forward-looking seams; none change current behavior. Each should land
 as its own narrow PR behind the experimental marker until a real consumer
