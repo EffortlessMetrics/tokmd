@@ -31,16 +31,16 @@ use crate::settings::CockpitSettings;
 /// // Setup a temporary git repository for the test
 /// let temp = tempfile::tempdir().expect("tempdir");
 /// let dir = temp.path();
-/// expect_success(tokmd_git::git_cmd().arg("init").current_dir(dir).status().expect("git init"));
-/// expect_success(tokmd_git::git_cmd().args(["config", "user.email", "test@example.com"]).current_dir(dir).status().expect("git config"));
-/// expect_success(tokmd_git::git_cmd().args(["config", "user.name", "Test User"]).current_dir(dir).status().expect("git config"));
-/// expect_success(tokmd_git::git_cmd().args(["config", "commit.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
-/// expect_success(tokmd_git::git_cmd().args(["config", "tag.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").arg("init").current_dir(dir).status().expect("git init"));
+/// expect_success(Command::new("git").args(["config", "user.email", "test@example.com"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").args(["config", "user.name", "Test User"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").args(["config", "commit.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
+/// expect_success(Command::new("git").args(["config", "tag.gpgsign", "false"]).current_dir(dir).status().expect("git config"));
 /// fs::write(dir.join("main.rs"), "fn main() {}").expect("write");
-/// expect_success(tokmd_git::git_cmd().args(["add", "main.rs"]).current_dir(dir).status().expect("git add"));
-/// expect_success(tokmd_git::git_cmd().args(["commit", "-m", "Initial commit"]).current_dir(dir).status().expect("git commit"));
+/// expect_success(Command::new("git").args(["add", "main.rs"]).current_dir(dir).status().expect("git add"));
+/// expect_success(Command::new("git").args(["commit", "-m", "Initial commit"]).current_dir(dir).status().expect("git commit"));
 /// fs::write(dir.join("main.rs"), "fn main() { println!(\"Hello\"); }").expect("write");
-/// expect_success(tokmd_git::git_cmd().args(["commit", "-am", "Second commit"]).current_dir(dir).status().expect("git commit"));
+/// expect_success(Command::new("git").args(["commit", "-am", "Second commit"]).current_dir(dir).status().expect("git commit"));
 ///
 /// // Run from within the temporary git repository
 /// let original_dir = std::env::current_dir().expect("current dir");

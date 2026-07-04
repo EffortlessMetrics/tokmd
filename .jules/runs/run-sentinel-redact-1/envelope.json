@@ -1,15 +1,14 @@
 {
-  "prompt_id": "sentinel_redaction",
+  "prompt_id": "sentinel_boundaries",
   "persona": "Sentinel",
-  "style": "Stabilizer",
-  "primary_shard": "core-pipeline",
+  "style": "Builder",
+  "primary_shard": "interfaces",
   "allowed_paths": [
-    "crates/tokmd-types/**",
-    "crates/tokmd-scan/**",
-    "crates/tokmd-model/**",
-    "crates/tokmd-format/**",
-    "docs/schema.json",
-    "docs/SCHEMA.md",
+    "crates/tokmd-config/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
     "crates/tokmd/tests/**"
   ],
   "gate_profile": "security-boundary",

@@ -65,7 +65,7 @@ pub fn fixture_root() -> &'static Path {
 
 /// Returns `true` when `git --version` succeeds on the current `PATH`.
 pub fn git_available() -> bool {
-    tokmd_git::git_cmd()
+    Command::new("git")
         .arg("--version")
         .output()
         .map(|o| o.status.success())
@@ -82,7 +82,7 @@ pub fn init_git_repo(dir: &Path) -> bool {
     ];
 
     for args in &commands {
-        let status = tokmd_git::git_cmd().args(args).current_dir(dir).status();
+        let status = Command::new("git").args(args).current_dir(dir).status();
         if !status.map(|s| s.success()).unwrap_or(false) {
             return false;
         }
@@ -95,7 +95,7 @@ pub fn git_add_commit(dir: &Path, message: &str) -> bool {
     let commands = [vec!["add", "."], vec!["commit", "-m", message]];
 
     for args in &commands {
-        let status = tokmd_git::git_cmd().args(args).current_dir(dir).status();
+        let status = Command::new("git").args(args).current_dir(dir).status();
         if !status.map(|s| s.success()).unwrap_or(false) {
             return false;
         }
@@ -105,7 +105,7 @@ pub fn git_add_commit(dir: &Path, message: &str) -> bool {
 
 /// Return the HEAD commit SHA, or `None` on failure.
 pub fn git_head(dir: &Path) -> Option<String> {
-    tokmd_git::git_cmd()
+    Command::new("git")
         .args(["rev-parse", "HEAD"])
         .current_dir(dir)
         .output()

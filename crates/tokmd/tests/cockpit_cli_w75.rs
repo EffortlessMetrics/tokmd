@@ -31,7 +31,7 @@ fn scaffold(base_files: &[(&str, &str)], feature_files: &[(&str, &str)]) -> temp
     }
     assert!(common::git_add_commit(dir.path(), "Initial commit"));
 
-    let _ = tokmd_git::git_cmd()
+    let _ = std::process::Command::new("git")
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status();

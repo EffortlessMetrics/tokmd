@@ -287,7 +287,7 @@ fn test_run_with_redact_flag() {
 
 #[cfg(feature = "git")]
 fn git_available() -> bool {
-    tokmd_git::git_cmd()
+    ProcessCommand::new("git")
         .arg("--version")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
@@ -298,7 +298,7 @@ fn git_available() -> bool {
 
 #[cfg(feature = "git")]
 fn git_cmd(dir: &std::path::Path, args: &[&str]) {
-    let status = tokmd_git::git_cmd()
+    let status = ProcessCommand::new("git")
         .args(args)
         .current_dir(dir)
         .status()

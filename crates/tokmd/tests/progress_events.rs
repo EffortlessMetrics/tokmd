@@ -120,7 +120,7 @@ fn cockpit_repo() -> Result<Option<tempfile::TempDir>, Box<dyn std::error::Error
         eprintln!("Skipping: initial commit failed");
         return Ok(None);
     }
-    let checked_out = tokmd_git::git_cmd()
+    let checked_out = std::process::Command::new("git")
         .args(["checkout", "-b", "feature"])
         .current_dir(dir.path())
         .status()

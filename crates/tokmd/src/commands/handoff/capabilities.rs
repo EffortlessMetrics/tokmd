@@ -5,7 +5,7 @@ use std::path::Path;
 use tokmd_types::{CapabilityState, CapabilityStatus};
 
 use crate::cli;
-use tokmd_git::git_cmd;
+use crate::git_support::git_cmd;
 
 /// Detect available capabilities for the handoff.
 pub(super) fn detect_capabilities(root: &Path, args: &cli::HandoffArgs) -> Vec<CapabilityStatus> {
