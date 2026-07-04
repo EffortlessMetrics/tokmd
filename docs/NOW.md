@@ -1,10 +1,10 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the backlog top-5 batch handoff
-> (swarm #416 NOW alignment, #417 zero-limit git-arg validation, #418
-> invalid-UTF-8 parser regression, and #419 executable gate examples merged;
-> publication import #2810 landed the batch; `repo-graph` reports `Aligned` at
-> `276bdb22`, publication_ahead=0, swarm_ahead=0).
+> One-screen operational truth. Updated after the perf/determinism batch handoff
+> (swarm #421 determinism guard, #422 FileRow properties, #423 FileStatRow defer,
+> #424 as_text UTF-8 pass, #425 rust-minor-patch deps merged; publication imports
+> #2814–#2817 landed the batch; `repo-graph` reports `Aligned` at `84bc8882`,
+> publication_ahead=0, swarm_ahead=0).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -133,10 +133,10 @@ Agent-executable work from this session:
 
 - Browser ZIP smoke execution per `docs/browser-zip-smoke.md`.
 
-**Graph state**: `repo-graph` reports `Aligned` at swarm `276bdb22` /
-publication `276bdb22` (`publication_ahead=0`, `swarm_ahead=0`) after the backlog
-top-5 batch import #2810 (#416–#419); the prior #415 NOW alignment landed at
-`eba85d84`.
+**Graph state**: `repo-graph` reports `Aligned` at swarm `84bc8882` /
+publication `84bc8882` (`publication_ahead=0`, `swarm_ahead=0`) after the
+perf/determinism batch import #2817 (#425); the prior backlog top-5 batch
+import #2810 (#416–#419) landed at `276bdb22`.
 
 **No new agent-executable seams** were found in `SPEC_GAPS.md`, open issues,
 or workflow hardening without org secrets. Reopen work only from fresh consumer,
@@ -182,6 +182,54 @@ proof-ready enough to land in this session beyond this NOW alignment.
 invalid-UTF-8 parser regression test, executable gate docs, and honest backlog
 disposition. It does not enable badge auto-CI, widen rootless presets, land any
 perf optimization without a receipt, or prove manual browser smoke.
+
+## Perf/determinism batch closeout (2026-07-04)
+
+Agent-executable backlog cleanup for this batch is at handoff:
+
+- **#421**: determinism guard against silent CLI failures
+  (`crates/tokmd/tests/determinism_regression.rs`).
+- **#422**: FileRow sorting and aggregation property tests
+  (`crates/tokmd-model/tests/file_row_properties.rs`).
+- **#423**: defer `FileStatRow` creation to report boundaries
+  (`crates/tokmd-analysis/src/content/file_stats.rs`; perf-smoke receipt in
+  PR body).
+- **#424**: borrow file text via `as_text` to drop double UTF-8 pass
+  (`crates/tokmd-analysis/src/content/mod.rs`).
+- **#425**: rust-minor-patch dependency group bump (8 updates).
+- **Publication imports #2814–#2817**: merge-commit imports landed the batch;
+  `repo-graph` reports `Aligned` at `84bc8882` (publication_ahead=0,
+  swarm_ahead=0).
+- **Superseded publication PRs closed**: direct-publication duplicates whose
+  substantive content landed via swarm keepers — **#2780** (FileStatRow defer →
+  #423), **#2752** (as_text UTF-8 → #424), **#2756** (determinism guard →
+  #421), **#2774** (FileRow properties → #422), **#2788** (rust-minor-patch →
+  #425). Closed with routing comments.
+- **PR #410 / #2805 (badge automation)**: left open — badge endpoint churn still
+  needs org `BADGE_PAT` (see #389/#390); do not approve a full gate for badge
+  churn.
+
+**AST scout (2026-07-04)**: explicit opt-in syntax surfaces are working locally —
+`cargo test -p tokmd-analysis --features ast ast` (60 tests), `cargo test -p
+tokmd --features ast --test cli_syntax_integration` (4 tests),
+`cargo xtask ast-shadow-compare` / `ast-shadow-check` (20 corpus files, 717
+matched landmarks), and `tokmd syntax` on `fixtures/syntax/` emit
+`tokmd.syntax_receipts.v1`. Packet `--syntax` coverage exists in
+`packet_generate_integration.rs` and `evidence_packet_integration.rs`. No
+default-receipt promotion gap; support tier remains `experimental` opt-in per
+`docs/specs/ast-syntax-support-tier.md`.
+
+**Scout disposition (no PR landed beyond NOW)**: remaining direct-publication
+backlog items stay open pending their own proof paths — dependabot and Jules
+draft PRs (#2812–#2819) need narrow restack or maintainer review; manual browser
+ZIP smoke remains human-only per `docs/browser-zip-smoke.md`. Reopen AST or
+browser work only from fresh consumer, artifact, or function-boundary evidence.
+
+**Claim boundary**: this batch proves determinism regression coverage, FileRow
+property tests, two measured perf seams (FileStatRow defer, as_text UTF-8),
+dependency hygiene, and honest AST end-to-end scout receipts. It does not enable
+badge auto-CI, widen rootless presets, promote AST onto default receipts, or
+prove manual browser smoke.
 
 ## Shipped this wave
 
