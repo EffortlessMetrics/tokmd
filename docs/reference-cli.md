@@ -100,7 +100,7 @@ Examples:
 | :--- | :--- | :--- |
 | `-f, --format <FMT>` | Output format: `md` (Markdown table), `tsv`, `json`. | `md` |
 | `-t, --top <N>` | Only show the top N languages (by lines of code). Others grouped as "Other". | `0` (all) |
-| `--children <MODE>` | How to handle embedded languages (e.g., JS inside HTML). | `collapse` |
+| `--children <MODE>` | How to handle embedded languages (e.g., JS inside HTML). | `collapse` (`lang`), `separate` (`module`, `export`) |
 | | `collapse`: Embedded code counts toward the parent file's language. | |
 | | `separate`: Embedded code is counted separately under its own language. | |
 
