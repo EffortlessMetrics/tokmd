@@ -867,6 +867,41 @@ fn changelog_follows_keepachangelog() {
     );
 }
 
+#[test]
+fn changelog_documents_extended_schema_versions() {
+    let cl = changelog_md();
+    let cases = [
+        (
+            "crates/tokmd-types/src/cockpit.rs",
+            "COCKPIT_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/context.rs",
+            "CONTEXT_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/context.rs",
+            "CONTEXT_BUNDLE_SCHEMA_VERSION",
+        ),
+        (
+            "crates/tokmd-types/src/context.rs",
+            "HANDOFF_SCHEMA_VERSION",
+        ),
+        ("crates/tokmd/src/tool_schema.rs", "TOOL_SCHEMA_VERSION"),
+    ];
+
+    for (path, name) in cases {
+        let current = read_const_u32(path, name);
+        assert!(current.is_some(), "{name} not found in source");
+        if let Some(current) = current {
+            assert!(
+                cl.contains(&format!("{name} = {current}")) || cl.contains(name),
+                "CHANGELOG.md should mention {name} ({current})"
+            );
+        }
+    }
+}
+
 // ===========================================================================
 // 8. Cross-doc consistency
 // ===========================================================================
