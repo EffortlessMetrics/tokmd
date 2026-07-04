@@ -107,7 +107,7 @@ pub(crate) fn build_export_receipt(
                 export
                     .strip_prefix
                     .as_ref()
-                    .map(|p| tokmd_format::redact_path(p))
+                    .map(|p| tokmd_format::short_hash(p))
             } else {
                 export.strip_prefix.clone()
             },

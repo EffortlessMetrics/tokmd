@@ -1,0 +1,10 @@
+{
+  "outcome": "pr_ready",
+  "learning_pr": false,
+  "summary": "Fix extension leak in strip_prefix redaction",
+  "files_touched": [
+    "crates/tokmd-core/src/receipts.rs",
+    "crates/tokmd-format/src/export/json.rs",
+    "crates/tokmd-format/src/export/jsonl.rs"
+  ]
+}
