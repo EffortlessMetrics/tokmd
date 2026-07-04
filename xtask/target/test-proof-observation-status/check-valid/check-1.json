@@ -1,0 +1,16 @@
+{
+  "schema": "tokmd.proof_observation_decision_check.v1",
+  "ok": true,
+  "checked_artifacts": 1,
+  "decision": {
+    "path": "target/test-proof-observation-status/check-valid/proof-observation-decision.json",
+    "schema": "tokmd.proof_observation_decision.v1",
+    "mode": "observation_only"
+  },
+  "source_artifacts": 2,
+  "criteria": {
+    "met": 5,
+    "missing": 3
+  },
+  "errors": []
+}

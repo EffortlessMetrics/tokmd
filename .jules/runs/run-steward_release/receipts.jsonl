@@ -1,0 +1,6 @@
+{"timestamp": "$(date -Iseconds)", "command": "sed -i 's/version = \"1.11.0\"/version = \">=1.9, <2\"/g' crates/tokmd-cockpit/Cargo.toml", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "sed -i 's/check. There is no longer a separate normalized routed result receipt or/check. There is no longer a separate normalized routed result receipt or\\n\\nThe routed result receipt formerly contained `router.target`, `router.reason`, `router.receipt_path`, `selected.job\\/result`, `telemetry.duration_seconds`, `telemetry.queue_seconds`, `telemetry.cache_note`, `run.run_attempt`, and `run.rerun_count` fields. Open the receipt before reading runner logs if reviewing historical CI runs./g' docs/ci/swarm-routing.md", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "cargo xtask docs --check", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "bash -c 'cargo test -p xtask'", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "cargo fmt -- --check", "exit_code": 0}
+{"timestamp": "$(date -Iseconds)", "command": "cargo clippy --all-features -- -D warnings", "exit_code": 0}

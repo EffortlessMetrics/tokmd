@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "reason": "Fixed missing fields in docs/ci/swarm-routing.md to pass xtask tests, and updated tokmd-cockpit dependency version.",
+  "outcome_type": "patch"
+}

@@ -1,0 +1,11 @@
+{
+  "base": "origin/main",
+  "counts": {
+    "executed": 1,
+    "failed": 0,
+    "passed": 1,
+    "required_planned": 1
+  },
+  "head": "HEAD",
+  "schema": "tokmd.proof_run_observation.v1"
+}
