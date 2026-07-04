@@ -10,3 +10,8 @@
 {"command": "bash -c 'CI=true cargo test -p tokmd-analysis --verbose'", "status": "success"}
 {"command": "cargo fmt -- --check", "status": "success"}
 {"command": "cargo clippy -- -D warnings", "status": "success"}
+{"command": "cargo xtask publish --plan --verbose", "status": "success"}
+{"command": "cargo xtask version-consistency", "status": "success"}
+{"command": "cargo xtask docs --check", "status": "success"}
+{"command": "cargo build --release", "status": "success"}
+{"command": "cargo xtask perf-smoke --target-repo . --output target/perf/perf-smoke-candidate.json --analysis-preset health --analysis-max-files 50000 --analysis-max-bytes 52428800 --sha \"$(git rev-parse HEAD)\"", "status": "success"}
