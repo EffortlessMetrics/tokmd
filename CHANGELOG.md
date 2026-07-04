@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Hardened the `docs_schema_w72` changelog guard to require the current
+  schema constants in `CONSTANT = value` form: `COCKPIT_SCHEMA_VERSION = 3`,
+  `CONTEXT_SCHEMA_VERSION = 4`, `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`,
+  `HANDOFF_SCHEMA_VERSION = 5`, and `TOOL_SCHEMA_VERSION = 1`. A name-only
+  mention no longer satisfies the guard, so bumping any of these constants
+  now requires a matching changelog entry.
 - Enabled `runtime: container` in the `EffortlessMetrics/tokmd` GitHub Action.
   It anonymously pulls the publication GHCR image
   (`ghcr.io/effortlessmetrics/tokmd`) and runs it against the mounted workspace

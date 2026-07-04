@@ -895,8 +895,8 @@ fn changelog_documents_extended_schema_versions() {
         assert!(current.is_some(), "{name} not found in source");
         if let Some(current) = current {
             assert!(
-                cl.contains(&format!("{name} = {current}")) || cl.contains(name),
-                "CHANGELOG.md should mention {name} ({current})"
+                cl.contains(&format!("{name} = {current}")),
+                "CHANGELOG.md should mention {name} = {current}"
             );
         }
     }
