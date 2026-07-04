@@ -1,8 +1,8 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the strip_prefix redaction import
-> batch (swarm #428 redaction hardening merged at `0b67f750`; publication import
-> #2822 open; prior alignment at `6f8e6c50` after #427 handoff fix).
+> One-screen operational truth. Updated after the strict changelog schema-version
+> guard import (swarm #432 merged at `6347095a`; publication import #2828 landed
+> at `1ce437eb`; `repo-graph --expect aligned` green).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -244,12 +244,33 @@ Agent-executable security hardening for this batch is at handoff:
   (~3k rows, analysis cap 500 files) too small for measurable win; restack deferred.
   **#2813** git spawn unification (22k-line no-panic allowlist churn).
 
-**Graph state**: `repo-graph --expect aligned` at **`8263ee1c`**.
+**Graph state**: superseded by changelog guard import closeout below.
 
 **Claim boundary**: this batch proves opaque `strip_prefix` redaction for
 directory-like prefixes that resemble filenames. It does not change file-path
 redaction semantics, enable badge auto-CI, promote AST defaults, or prove manual
 browser smoke.
+
+## Changelog schema-version guard closeout (2026-07-04)
+
+Agent-executable docs/test hardening for this batch is at handoff:
+
+- **#431**: extend `docs_schema_w72` changelog guard to cover extended schema
+  constants (`COCKPIT_SCHEMA_VERSION`, `HANDOFF_SCHEMA_VERSION`,
+  `CONTEXT_SCHEMA_VERSION`, `CONTEXT_BUNDLE_SCHEMA_VERSION`). Imported at
+  **`d8aabc2a`** (publication import #2827).
+- **#432**: drop the `|| cl.contains(name)` fallback so only the
+  `CONSTANT = value` form satisfies the guard; pin current schema constants in
+  `CHANGELOG.md` under `[Unreleased]`. Squash-merged at **`6347095a`**.
+- **Publication import #2828 / swarm FF**: true merge-commit import landed;
+  `repo-graph --expect aligned` at **`1ce437eb`** (publication_ahead=0,
+  swarm_ahead=0; merge parents `d8aabc2a` + `6347095a`).
+
+**Graph state**: `repo-graph --expect aligned` at **`1ce437eb`**.
+
+**Claim boundary**: this batch proves changelog documents extended schema-version
+constants via strict `CONST = value` matching. It does not bump schema versions,
+change receipt shapes, or alter release publish surfaces.
 
 ## Implementation-plan alignment closeout (2026-07-04)
 
