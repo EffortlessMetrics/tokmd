@@ -1,4 +1,4 @@
-use tokmd_format::redact_path;
+use tokmd_format::{redact_path, short_hash};
 
 #[test]
 fn test_redact_path_leak() {
@@ -45,4 +45,22 @@ fn redaction_normalizes_known_compound_archive_suffix_case() {
     let redacted = redact_path("archive.TAR.GZ");
     assert!(redacted.ends_with(".tar.gz"));
     assert!(!redacted.ends_with(".TAR.GZ"));
+}
+
+#[test]
+fn strip_prefix_redaction_must_use_short_hash_not_redact_path() {
+    let prefix = "src/secret.rs";
+    let via_redact_path = redact_path(prefix);
+    let via_short_hash = short_hash(prefix);
+
+    assert!(
+        via_redact_path.ends_with(".rs"),
+        "redact_path preserves a file extension that must not leak for strip_prefix: {via_redact_path}"
+    );
+    assert_eq!(via_short_hash.len(), 16);
+    assert!(!via_short_hash.contains('.'));
+    assert_ne!(
+        via_redact_path, via_short_hash,
+        "strip_prefix redaction must use short_hash semantics, not redact_path"
+    );
 }
