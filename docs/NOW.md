@@ -1,10 +1,8 @@
 # NOW / NEXT / LATER
 
-> One-screen operational truth. Updated after the perf/determinism batch handoff
-> (swarm #421 determinism guard, #422 FileRow properties, #423 FileStatRow defer,
-> #424 as_text UTF-8 pass, #425 rust-minor-patch deps merged; publication imports
-> #2814–#2817 landed the batch; `repo-graph` reports `Aligned` at `84bc8882`,
-> publication_ahead=0, swarm_ahead=0).
+> One-screen operational truth. Updated after the strip_prefix redaction import
+> batch (swarm #428 redaction hardening merged at `0b67f750`; publication import
+> #2822 open; prior alignment at `6f8e6c50` after #427 handoff fix).
 
 ## Adoption wave closeout (2026-06-30)
 
@@ -230,6 +228,26 @@ property tests, two measured perf seams (FileStatRow defer, as_text UTF-8),
 dependency hygiene, and honest AST end-to-end scout receipts. It does not enable
 badge auto-CI, widen rootless presets, promote AST onto default receipts, or
 prove manual browser smoke.
+
+## Strip_prefix redaction closeout (2026-07-04)
+
+Agent-executable security hardening for this batch is at handoff:
+
+- **#428**: use `short_hash` instead of `redact_path` for export `strip_prefix`
+  under Paths/All redaction (`tokmd-core`, `tokmd-format` json/jsonl); regression
+  test in `test_redaction_leak.rs`. Squash-merged at **`0b67f750`**.
+- **Publication import #2822**: merge-commit import open (TRUE merge from swarm
+  `0b67f750`; supersedes Jules draft **#2819**).
+- **Scout disposition (skipped)**: **#2812** perf top-offenders (needs perf-smoke
+  receipt); **#2813** git spawn unification (22k-line no-panic allowlist churn).
+
+**Graph state**: after #428 merge, `repo-graph --expect swarm-ahead` until import
+#2822 lands and swarm fast-forwards to the publication merge commit.
+
+**Claim boundary**: this batch proves opaque `strip_prefix` redaction for
+directory-like prefixes that resemble filenames. It does not change file-path
+redaction semantics, enable badge auto-CI, promote AST defaults, or prove manual
+browser smoke.
 
 ## Shipped this wave
 
