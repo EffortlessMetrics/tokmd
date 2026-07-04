@@ -1175,6 +1175,7 @@ Options:
 Examples:
   tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k
   tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json
+  tokmd handoff --no-git
 ```
 <!-- /HELP: handoff -->
 
