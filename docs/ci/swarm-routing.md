@@ -419,6 +419,13 @@ the gate's `runs-on`. The advisory `CI Actuals (Advisory)` job writes
 `target/ci/ci-actuals.json` with per-job results and best-effort timing for the
 run; open it for observed required-job results behind the `Tokmd Rust Result`
 check. There is no longer a separate normalized routed result receipt or
+
+The routed result receipt formerly contained `router.target`, `router.reason`,
+`router.receipt_path`, `selected.job/result`, `telemetry.duration_seconds`,
+`telemetry.queue_seconds`, `telemetry.cache_note`, `run.run_attempt`, and
+`run.rerun_count` fields. Open the receipt before reading runner logs if
+reviewing historical CI runs.
+
 mutually-exclusive implementation jobs.
 
 Runner health and quarantine operations are documented in
