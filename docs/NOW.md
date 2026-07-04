@@ -236,18 +236,33 @@ Agent-executable security hardening for this batch is at handoff:
 - **#428**: use `short_hash` instead of `redact_path` for export `strip_prefix`
   under Paths/All redaction (`tokmd-core`, `tokmd-format` json/jsonl); regression
   test in `test_redaction_leak.rs`. Squash-merged at **`0b67f750`**.
-- **Publication import #2822**: merge-commit import open (TRUE merge from swarm
-  `0b67f750`; supersedes Jules draft **#2819**).
-- **Scout disposition (skipped)**: **#2812** perf top-offenders (needs perf-smoke
-  receipt); **#2813** git spawn unification (22k-line no-panic allowlist churn).
+- **Publication import #2822 / swarm #429**: merge-commit import landed; `repo-graph`
+  reports `Aligned` at **`8263ee1c`** (publication_ahead=0, swarm_ahead=0).
+  Supersedes Jules draft **#2819** (closed with routing comment).
+- **Scout disposition (skipped)**: **#2812** perf top-offenders — perf-smoke baseline
+  captured on main (`8263ee1c`, receipt preset `total_ms=6202`); self-scan corpus
+  (~3k rows, analysis cap 500 files) too small for measurable win; restack deferred.
+  **#2813** git spawn unification (22k-line no-panic allowlist churn).
 
-**Graph state**: after #428 merge, `repo-graph --expect swarm-ahead` until import
-#2822 lands and swarm fast-forwards to the publication merge commit.
+**Graph state**: `repo-graph --expect aligned` at **`8263ee1c`**.
 
 **Claim boundary**: this batch proves opaque `strip_prefix` redaction for
 directory-like prefixes that resemble filenames. It does not change file-path
 redaction semantics, enable badge auto-CI, promote AST defaults, or prove manual
 browser smoke.
+
+## Implementation-plan alignment closeout (2026-07-04)
+
+Agent-executable docs alignment for this batch is at handoff:
+
+- **Swarm keeper (restack of publication #2796)**: add Phase 5h
+  selection-first pause (`v1.15.x`) and GHCR verification-gate wording to
+  `docs/implementation-plan.md` so it matches `ROADMAP.md` and `docs/NOW.md`.
+- **Publication draft #2796**: close with routing comment after swarm keeper
+  imports.
+
+**Claim boundary**: docs-only planning-surface alignment. No behavior, release,
+badge, or AST default changes.
 
 ## Shipped this wave
 

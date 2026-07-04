@@ -449,8 +449,17 @@ modules, and keep proof observations advisory while artifacts mature.
 - [x] Add `tokmd render` and `tokmd packet generate` CLIs.
 - [x] Ship `mode: packet` GitHub Action.
 - [x] Improve syntax evidence ranking to deprioritize test assertion noise.
-- [x] Add `runtime: container` Action support for the GHCR runtime.
+- [x] Add `runtime: container` Action support for the GHCR runtime with strict verification-gated tags.
 - [x] Fix and improve actionable CLI errors for `diff`, `context`, and `handoff`.
+
+---
+
+## Phase 5h: Selection-First Product and Evidence Work (v1.15.x)
+
+**Goal**: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps.
+
+Architecture consolidation is paused unless fresh product or proof evidence
+shows a real owner-module problem.
 
 ---
 
