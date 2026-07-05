@@ -1,5 +1,7 @@
 //! Metric-card rendering for analysis HTML reports.
 
+use std::fmt::Write;
+
 use super::format::{format_number, format_pct};
 use tokmd_analysis_types::AnalysisReceipt;
 
@@ -16,17 +18,19 @@ pub(super) fn build_metrics_cards(receipt: &AnalysisReceipt) -> String {
         ];
 
         for (label, value) in metrics {
-            cards.push_str(&format!(
+            let _ = write!(
+                cards,
                 r#"<div class="metric-card"><span class="value">{}</span><span class="label">{}</span></div>"#,
                 value, label
-            ));
+            );
         }
 
         if let Some(ctx) = &derived.context_window {
-            cards.push_str(&format!(
+            let _ = write!(
+                cards,
                 r#"<div class="metric-card"><span class="value">{}</span><span class="label">Context Fit</span></div>"#,
                 format_pct(ctx.pct)
-            ));
+            );
         }
     }
 

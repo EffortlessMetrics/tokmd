@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+use std::fmt::Write;
+
 use std::collections::BTreeMap;
 
 use tokmd_types::{ExportData, FileKind, FileRow};
@@ -27,10 +29,11 @@ fn insert_analysis(node: &mut AnalysisNode, parts: &[&str], lines: usize, tokens
 
 fn render_analysis(node: &AnalysisNode, name: &str, indent: &str, out: &mut String) {
     if !name.is_empty() {
-        out.push_str(&format!(
-            "{}{} (lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (lines: {}, tokens: {})",
             indent, name, node.lines, node.tokens
-        ));
+        );
     }
     let next_indent = if name.is_empty() {
         indent.to_string()
@@ -99,10 +102,11 @@ fn render_handoff(
     };
 
     if !display.is_empty() {
-        out.push_str(&format!(
-            "{}{} (files: {}, lines: {}, tokens: {})\n",
+        let _ = writeln!(
+            out,
+            "{}{} (files: {}, lines: {}, tokens: {})",
             indent, display, node.files, node.lines, node.tokens
-        ));
+        );
     }
 
     if depth >= max_depth {
