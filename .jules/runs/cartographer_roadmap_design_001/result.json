@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "patch_type": "docs",
+  "summary": "Updated implementation plan and ROADMAP to align active development state",
+  "files_changed": [
+    "docs/implementation-plan.md",
+    "docs/ROADMAP.md"
+  ]
+}

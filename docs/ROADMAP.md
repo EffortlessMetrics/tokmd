@@ -18,9 +18,9 @@ scoped coverage, mutation, coverage telemetry, and Codecov upload remain
 advisory unless maintainers deliberately promote them with fresh verified
 decision evidence.
 
-The active product lane is PR evidence packet workflows: make the
-`sensors/tokmd/` packet easy to generate from one local CLI command and one
-GitHub Action step before adding more analysis.
+The active product lane is the v1.15.x selection-first pause. Closed lanes stay closed unless fresh
+evidence names a real consumer, missing artifact, workflow pain, or product gap.
+
 
 ## Roadmap Principles
 
