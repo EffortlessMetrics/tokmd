@@ -1,0 +1,12 @@
+{"cmd": "mkdir -p .jules/runs/librarian_docs_examples_01", "status": "success"}
+{"cmd": "cat << 'EOF' > .jules/runs/librarian_docs_examples_01/envelope.json", "status": "success"}
+{"cmd": "sed -i 's/cargo run -p tokmd -- run --path . --out target\\/tokmd-debug/cargo run -p tokmd -- run . --output-dir target\\/tokmd-debug/g' docs/debugging.md", "status": "success"}
+{"cmd": "sed -i 's/cargo run -p tokmd -- analyze --path . --format json/cargo run -p tokmd -- analyze . --format json/g' docs/debugging.md", "status": "success"}
+{"cmd": "sed -i 's/cargo run -p tokmd -- cockpit --base origin\\/main --head HEAD --out target\\/cockpit-debug/cargo run -p tokmd -- cockpit --base origin\\/main --head HEAD --artifacts-dir target\\/cockpit-debug/g' docs/debugging.md", "status": "success"}
+{"cmd": "sed -i 's/cargo run -p tokmd -- run --path . --out target\\/perf-debug/cargo run -p tokmd -- run . --output-dir target\\/perf-debug/g' docs/debugging.md", "status": "success"}
+{"cmd": "cargo xtask docs --check", "status": "success"}
+{"cmd": "cargo fmt -- --check", "status": "success"}
+{"cmd": "cargo clippy -- -D warnings", "status": "success"}
+{"cmd": "bash -c 'CI=true cargo test -p tokmd --verbose'", "status": "success"}
+{"cmd": "cat << \'EOF\' > .jules/runs/librarian_docs_examples_01/result.json\n{\n  \"status\": \"success\",\n  \"chosen_option\": \"Option A\",\n  \"findings\": \"The docs/debugging.md file contained outdated CLI option usage for debugging commands. They were using --path and --out which have been replaced by positional arguments and --output-dir/--artifacts-dir. The CLI commands in the debugging guide were failing to parse.\",\n  \"outcome_type\": \"PR-ready patch\"\n}\nEOF", "status": "success"}
+{"cmd": "cat << \'EOF\' > .jules/runs/librarian_docs_examples_01/pr_body.md ...", "status": "success"}
