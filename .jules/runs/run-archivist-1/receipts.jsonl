@@ -1,0 +1,8 @@
+{"cmd": "bash -c 'cargo xtask jules-index --check'", "output": "Error: Jules index drift detected in /app/.jules/index/generated/RUNS_ROLLUP.md. Run `cargo xtask jules-index` to update."}
+{"cmd": "bash -c 'cargo xtask jules-index'", "output": "Jules indexes written under /app/.jules/index/generated"}
+{"cmd": "bash -c 'cargo xtask docs --check'", "output": "Documentation is up to date."}
+{"cmd": "bash -c 'cargo xtask version-consistency'", "output": "Version consistency checks passed."}
+{"cmd": "cargo fmt -- --check", "output": ""}
+{"cmd": "cargo clippy -- -D warnings", "output": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 48.95s"}
+{"cmd": "bash -c 'CI=true cargo test -p tokmd --verbose'", "output": "test result: ok. 15 passed; 0 failed"}
+{"cmd": "bash -c 'cargo xtask publish --plan --verbose'", "output": "Workspace version: 1.14.0\n\nPublish order (16 crates):"}

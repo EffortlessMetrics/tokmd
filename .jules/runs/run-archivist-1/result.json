@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed drift in `.jules/index/generated/RUNS_ROLLUP.md` by regenerating it with `cargo xtask jules-index`.",
+  "outcome": "PR-ready patch"
+}
