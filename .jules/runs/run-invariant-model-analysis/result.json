@@ -1,0 +1,8 @@
+{
+  "outcome": "proof-improvement patch",
+  "files_changed": [
+    "crates/tokmd-analysis/src/effort/tests/proptest_models.rs"
+  ],
+  "reason": "Successfully added monotonicity property tests for COCOMO 81 and COCOMO II effort models. These properties verify that as kloc increases, estimated effort and schedule also increase strictly.",
+  "receipts_file": ".jules/runs/run-invariant-model-analysis/receipts.jsonl"
+}

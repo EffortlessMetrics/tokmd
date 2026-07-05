@@ -113,3 +113,33 @@ proptest! {
         }
     }
 }
+
+proptest! {
+    #[test]
+    fn cocomo81_monotonicity(kloc1 in 0.1_f64..10_000.0, kloc2 in 0.1_f64..10_000.0) {
+        if (kloc1 - kloc2).abs() < 1e-6 {
+            return Ok(());
+        }
+
+        let (smaller, larger) = if kloc1 < kloc2 { (kloc1, kloc2) } else { (kloc2, kloc1) };
+        let (eff_s, sched_s, _, _) = cocomo81_effort_pm(smaller);
+        let (eff_l, sched_l, _, _) = cocomo81_effort_pm(larger);
+
+        prop_assert!(eff_l > eff_s, "Effort must be monotonic: larger kloc {} -> {}, smaller kloc {} -> {}", larger, eff_l, smaller, eff_s);
+        prop_assert!(sched_l > sched_s, "Schedule must be monotonic: larger kloc {} -> {}, smaller kloc {} -> {}", larger, sched_l, smaller, sched_s);
+    }
+
+    #[test]
+    fn cocomo2_monotonicity(kloc1 in 0.1_f64..10_000.0, kloc2 in 0.1_f64..10_000.0) {
+        if (kloc1 - kloc2).abs() < 1e-6 {
+            return Ok(());
+        }
+
+        let (smaller, larger) = if kloc1 < kloc2 { (kloc1, kloc2) } else { (kloc2, kloc1) };
+        let (eff_s, sched_s, _, _) = cocomo2_effort_pm(smaller);
+        let (eff_l, sched_l, _, _) = cocomo2_effort_pm(larger);
+
+        prop_assert!(eff_l > eff_s, "Effort must be monotonic: larger kloc {} -> {}, smaller kloc {} -> {}", larger, eff_l, smaller, eff_s);
+        prop_assert!(sched_l > sched_s, "Schedule must be monotonic: larger kloc {} -> {}, smaller kloc {} -> {}", larger, sched_l, smaller, sched_s);
+    }
+}
