@@ -77,3 +77,42 @@ fn cli_parser_rejects_invalid_utf8_global_exclude_before_subcommand() {
     let err = Cli::try_parse_from(args).expect_err("invalid UTF-8 value must be rejected");
     assert_eq!(err.kind(), ErrorKind::InvalidUtf8);
 }
+
+#[cfg(any(unix, windows))]
+#[test]
+fn cli_parser_rejects_invalid_utf8_numeric_flags() {
+    let bad = invalid_utf8_osstring();
+
+    // Verify numerical flags utilizing custom value_parser gracefully reject
+    // invalid UTF-8 byte inputs with an InvalidUtf8 error rather than panicking.
+
+    // --max-commits on badge
+    let args1: Vec<OsString> = vec![
+        OsString::from("tokmd"),
+        OsString::from("badge"),
+        OsString::from("--max-commits"),
+        bad.clone(),
+    ];
+    let err1 = Cli::try_parse_from(args1).expect_err("invalid UTF-8 value must be rejected");
+    assert_eq!(err1.kind(), ErrorKind::InvalidUtf8);
+
+    // --max-commit-files on context
+    let args2: Vec<OsString> = vec![
+        OsString::from("tokmd"),
+        OsString::from("context"),
+        OsString::from("--max-commit-files"),
+        bad.clone(),
+    ];
+    let err2 = Cli::try_parse_from(args2).expect_err("invalid UTF-8 value must be rejected");
+    assert_eq!(err2.kind(), ErrorKind::InvalidUtf8);
+
+    // --max-file-tokens on context
+    let args3: Vec<OsString> = vec![
+        OsString::from("tokmd"),
+        OsString::from("context"),
+        OsString::from("--max-file-tokens"),
+        bad.clone(),
+    ];
+    let err3 = Cli::try_parse_from(args3).expect_err("invalid UTF-8 value must be rejected");
+    assert_eq!(err3.kind(), ErrorKind::InvalidUtf8);
+}

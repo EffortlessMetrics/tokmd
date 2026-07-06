@@ -62,3 +62,4 @@ __pycache__/
 # Conveyor verification outputs (generated during agent runs)
 built/
 proven/
+tester/

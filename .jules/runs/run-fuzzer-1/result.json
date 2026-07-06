@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "persona": "fuzzer",
+  "patch_type": "proof-improvement",
+  "summary": "Added deterministic fuzz regression tests to ensure invalid UTF-8 is cleanly rejected by CLI numeric flags.",
+  "files_changed": [
+    "crates/tokmd/tests/cli_parser_fuzz_regression.rs"
+  ]
+}

@@ -90,3 +90,4 @@ insta = { workspace = true }
 regex = "1.12.3"
 proptest.workspace = true
 toml = "1.1.2"
+clap = "4.6.0"
