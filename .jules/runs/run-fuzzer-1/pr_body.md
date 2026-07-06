@@ -1,5 +1,5 @@
 ## 💡 Summary
-Added deterministic fuzz regression tests to ensure invalid UTF-8 inputs are cleanly rejected by CLI numeric flags. This is a proof-improvement patch locking down parser invariants.
+Added deterministic fuzz regression tests to ensure invalid UTF-8 inputs are cleanly rejected by CLI numeric flags. This is a proof-improvement patch locking down parser invariants. Also added a friction item for `cargo-llvm-cov` being absent in CI when the proof executor tries to run it.
 
 ## 🎯 Why
 CLI flags using custom `value_parser` logic for numbers (like `--max-commits` and `--max-commit-files`) must cleanly return `InvalidUtf8` errors when fed malformed byte sequences instead of panicking. Adding explicit deterministic tests for these cases guarantees this invariant remains intact against future `clap` or standard library changes.
@@ -44,6 +44,7 @@ cargo clippy -- -D warnings
 - `.jules/runs/run-fuzzer-1/receipts.jsonl`
 - `.jules/runs/run-fuzzer-1/result.json`
 - `.jules/runs/run-fuzzer-1/pr_body.md`
+- `.jules/friction/open/cargo_llvm_cov_missing.md`
 
 ## 🔜 Follow-ups
-None.
+Fix `cargo-llvm-cov` installation in CI to prevent `xtask proof` executor panics.
