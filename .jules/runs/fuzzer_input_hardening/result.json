@@ -1,0 +1,7 @@
+{
+  "status": "success",
+  "files_changed": [
+    "crates/tokmd/tests/cli_parser_fuzz_regression.rs"
+  ],
+  "outcome_type": "proof-improvement patch"
+}
