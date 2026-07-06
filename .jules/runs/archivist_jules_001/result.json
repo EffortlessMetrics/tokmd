@@ -1,0 +1,5 @@
+{
+  "outcome": "PR-ready patch",
+  "reason": "Successfully consolidated superseded friction items out of the workspace, regenerating indexes.",
+  "learning_pr_required": false
+}

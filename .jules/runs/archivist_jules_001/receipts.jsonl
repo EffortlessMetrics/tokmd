@@ -1,0 +1,2 @@
+{"command": "rm .jules/friction/done/FRIC-20260428-001.md .jules/friction/done/FRIC-20260413-001.md .jules/friction/done/cargo_fuzz_asan_linker_failure.md"}
+{"command": "cargo xtask jules-index"}

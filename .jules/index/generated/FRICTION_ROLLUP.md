@@ -5,9 +5,6 @@ It rolls up friction metadata from `.jules/friction/open/` and `.jules/friction/
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
-| `FRIC-20260413-001` | fuzzer | prover | interfaces | done | `cargo +nightly fuzz run fuzz_toml_config --features config -- -max_total_time=1` still fails on Windows/MSVC before the fuzz target can run. |
-| `FRIC-20260428-001` | fuzzer | prover | interfaces | done | `cargo fuzz` fails to run in the default Jules sandbox environment due to a missing nightly toolchain and `-Zsanitizer=address` errors. |
-| `cargo_fuzz_asan_linker_failure` | Unknown | Unknown | Unknown | done | Unknown |
 | `cargo_mutants_schema_drift` | Unknown | Unknown | Tooling Governance | done | The `.cargo/mutants.toml` configuration used `all_features = true`, which is invalid in `cargo-mutants` versions v25.0+. This causes the mutation testing tool to fail on launch. The correct configuration uses `additional_cargo_args = ["--all-features"]`. |
 | `compat-wasm-pack-args` | compat | builder | bindings-targets | closed | `wasm-pack test` argument placement is easy to get wrong when future runs need |
 | `config_resolver_doctests` | librarian | prover | interfaces | closed | While investigating the `crates/tokmd/src/config/resolve/` interfaces (such as |
