@@ -169,6 +169,24 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_prefix_before_extension_checks() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".claude/fixtures/key.pem").expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
+    fn skips_dot_jules_prefix_before_extension_checks() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".jules/fixtures/key.pem").expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
     fn allows_checker_source_file() {
         let dir = tempdir().expect("tempdir");
 
