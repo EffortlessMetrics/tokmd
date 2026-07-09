@@ -352,4 +352,39 @@ reason = "Crypto material should be generated at runtime or explicitly documente
 
         assert!(err.to_string().contains("failed to parse"));
     }
+
+    #[test]
+    fn fixture_policy_requires_forbid_block() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+"#,
+        )
+        .expect("policy should parse");
+
+        let err = fixture_blob_policy(&policy).expect_err("missing fixture_blob rules should fail");
+
+        assert!(err.to_string().contains("must include at least one forbid.fixture_blob rule"));
+    }
+
+    #[test]
+    fn fixture_policy_rejects_invalid_allow_glob() {
+        let policy = parse_policy_str(
+            r#"
+schema = "tokmd.proof_policy.v1"
+
+[[forbid.fixture_blob]]
+name = "bad_glob"
+extensions = ["pem"]
+markers = ["BEGIN PRIVATE KEY"]
+allow = ["[bad-glob"]
+reason = "invalid glob should be rejected."
+"#,
+        )
+        .expect("policy should parse");
+
+        let err = fixture_blob_policy(&policy).expect_err("invalid allow glob should fail");
+
+        assert!(err.to_string().contains("invalid fixture blob allow glob"));
+    }
 }
