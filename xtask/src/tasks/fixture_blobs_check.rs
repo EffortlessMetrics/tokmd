@@ -154,6 +154,21 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_and_jules_prefixes() {
+        let dir = tempdir().expect("tempdir");
+        let paths = [".claude/fixture.pem", ".jules/fixture.p12"];
+
+        for rel_path in paths {
+            let path = dir.path().join(rel_path);
+            fs::create_dir_all(path.parent().unwrap()).expect("allowlist path dir");
+            fs::write(&path, "BEGIN PRIVATE KEY").expect("write");
+
+            let violation = evaluate_candidate(dir.path(), rel_path).expect("check");
+            assert!(violation.is_none(), "expected allowlisted prefix path {rel_path} to be skipped");
+        }
+    }
+
+    #[test]
     fn detects_forbidden_marker_in_text_file() {
         let dir = tempdir().expect("tempdir");
         let manifest = dir.path().join("docs").join("example.md");
