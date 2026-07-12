@@ -169,6 +169,16 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_and_jules_prefixes() {
+        let dir = tempdir().expect("tempdir");
+
+        for path in [".claude/secret.pem", ".jules/secret.key"] {
+            let violation = evaluate_candidate(dir.path(), path).expect("check");
+            assert!(violation.is_none(), "{path} should be allowlisted");
+        }
+    }
+
+    #[test]
     fn allows_checker_source_file() {
         let dir = tempdir().expect("tempdir");
 
