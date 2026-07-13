@@ -1,6 +1,6 @@
 # tokmd Implementation Plan
 
-This document records completed implementation phases through `1.11.0` and the next active buildout aligned with the roadmap.
+This document records completed implementation phases through `1.14.0` and the next active buildout aligned with the roadmap.
 
 ## Phase 1: Baseline & Ratchet System (v1.5.0) ✅ Complete
 
@@ -454,7 +454,7 @@ modules, and keep proof observations advisory while artifacts mature.
 
 ---
 
-## Phase 5h: Selection-First Product and Evidence Work (v1.15.x)
+## Phase 5h: Selection-First Product and Evidence Work (v1.15.x) 🚧 Active
 
 **Goal**: Choose the next implementation lane deliberately from release, adoption, review-evidence, workflow, browser, performance, or AST-shadow evidence gaps.
 

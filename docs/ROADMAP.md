@@ -18,9 +18,9 @@ scoped coverage, mutation, coverage telemetry, and Codecov upload remain
 advisory unless maintainers deliberately promote them with fresh verified
 decision evidence.
 
-The active product lane is PR evidence packet workflows: make the
-`sensors/tokmd/` packet easy to generate from one local CLI command and one
-GitHub Action step before adding more analysis.
+The PR evidence packet workflow lane is closed (shipped in v1.14.0).
+There is no selected active product lane by default. New work should start from
+evidence gaps or named consumers.
 
 ## Roadmap Principles
 
@@ -42,7 +42,7 @@ GitHub Action step before adding more analysis.
 
 ## Near-Term Roadmap
 
-### Active Lane: PR Evidence Packet Workflows
+### Lane 7: PR Evidence Packet Workflows
 
 **Goal:** Make `tokmd` useful in pull request workflows and local review by
 producing the same bounded evidence packet from a one-command CLI path and a
@@ -76,7 +76,9 @@ build `tokmd` in every repository.
 - make GHCR the primary user experience,
 - promote advisory proof, Codecov upload, or release mutation by default.
 
-**Done when:**
+**Status:** complete (v1.14.0).
+
+**Done when (met v1.14.0):**
 
 - local users can generate `sensors/tokmd/` with one command,
 - PR workflows can generate and upload the same packet with one Action step,
@@ -240,7 +242,7 @@ is consumption: making those artifacts easier to read and triage.
 
 ### Lane 3: Measured Performance and CI Feedback
 
-**Status:** complete (2026-07-02). Packets 1-5 shipped and imported into the
+**Status:** complete. Packets 1-5 shipped and imported into the
 checkpoint (`#403` + `#404` + `#406`, import #2802 @ `41c05d30`): maintainer
 perf-smoke guide, baseline receipt, the first measured hot-path fix (PR B,
 export `model_ms` 377 → ~40 ms), and the I/O cache evidence plan (PR C). Packet
@@ -302,7 +304,7 @@ not speculative.
 
 ### Lane 4: Documentation That Serves Adoption
 
-**Status:** complete (2026-07-02). Candidate work packets shipped to swarm
+**Status:** complete. Candidate work packets shipped to swarm
 `main` with contributor quickstart, extender guide, debugging runbook, and CI
 lane inventory:
 
