@@ -1,0 +1,3 @@
+{"cmd": "mkdir -p .jules/runs/bridge_bindings_wasm && create envelope.json", "status": "success"}
+{"cmd": "write decision.md, result.json, and pr_body.md", "status": "success"}
+{"cmd": "write decision.md, result.json, and pr_body.md", "status": "success"}
