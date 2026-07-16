@@ -179,6 +179,32 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+        let fixture = dir.path().join(".claude").join("fixture.pem");
+        fs::create_dir_all(fixture.parent().unwrap()).expect("claude dir");
+        fs::write(&fixture, "BEGIN PRIVATE KEY").expect("write");
+
+        let violation = evaluate_candidate(dir.path(), ".claude/fixture.pem")
+            .expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
+    fn skips_dot_jules_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+        let fixture = dir.path().join(".jules").join("fixture.key");
+        fs::create_dir_all(fixture.parent().unwrap()).expect("jules dir");
+        fs::write(&fixture, "BEGIN PRIVATE KEY").expect("write");
+
+        let violation = evaluate_candidate(dir.path(), ".jules/fixture.key")
+            .expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
