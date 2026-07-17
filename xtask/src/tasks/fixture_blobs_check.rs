@@ -131,7 +131,7 @@ pub fn run(_args: FixtureBlobsCheckArgs) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{collect_violations, evaluate_candidate, forbidden_extension};
+    use super::{collect_violations, evaluate_candidate, forbidden_extension, is_allowlisted};
     use std::fs;
     use tempfile::tempdir;
 
@@ -166,6 +166,32 @@ mod tests {
 
         assert_eq!(violation.path, "docs/example.md");
         assert!(violation.reason.contains("BEGIN PRIVATE KEY"));
+    }
+
+    #[test]
+    fn skips_dot_claude_prefix_paths() {
+        assert!(is_allowlisted(".claude/fixture.pem"));
+        let dir = tempdir().expect("tempdir");
+        let claude_file = dir.path().join(".claude").join("fixture.pem");
+        fs::create_dir_all(claude_file.parent().unwrap()).expect("claude dir");
+        fs::write(&claude_file, "BEGIN PRIVATE KEY").expect("write");
+
+        assert!(evaluate_candidate(dir.path(), ".claude/fixture.pem")
+            .expect("check")
+            .is_none());
+    }
+
+    #[test]
+    fn skips_dot_jules_prefix_paths() {
+        assert!(is_allowlisted(".jules/fixture.pem"));
+        let dir = tempdir().expect("tempdir");
+        let jules_file = dir.path().join(".jules").join("fixture.pem");
+        fs::create_dir_all(jules_file.parent().unwrap()).expect("jules dir");
+        fs::write(&jules_file, "BEGIN PRIVATE KEY").expect("write");
+
+        assert!(evaluate_candidate(dir.path(), ".jules/fixture.pem")
+            .expect("check")
+            .is_none());
     }
 
     #[test]
