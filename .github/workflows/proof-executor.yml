@@ -42,7 +42,7 @@ jobs:
       PROOF_EXECUTOR_MAX_COMMANDS_INPUT: ${{ github.event.inputs.max_evidence_commands || '' }}
 
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
