@@ -179,6 +179,24 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".claude/secrets/key.pem").expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
+    fn skips_dot_jules_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".jules/reports/secret.key").expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
