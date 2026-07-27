@@ -1,5 +1,3 @@
-{"timestamp": "2026-05-07T19:25:20Z", "command": "wrote envelope.json"}
-{"timestamp": "2026-05-07T20:24:59Z", "command": "wrote decision.md"}
-{"timestamp": "2026-05-07T20:30:39Z", "command": "cargo test -p tokmd-analysis test_density_ratio_in_unit_range"}
-{"timestamp": "2026-05-07T20:30:39Z", "command": "cargo test -p tokmd-analysis boilerplate_ratio_in_unit_range"}
-{"timestamp": "2026-05-12T14:24:44Z", "command": "cargo test -p tokmd-analysis --lib derived::tests::properties", "output": "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s"}
+{"command":"patch crates/tokmd-analysis/src/effort/tests/proptest_models.rs < test_proptest.patch","output":"patching file crates/tokmd-analysis/src/effort/tests/proptest_models.rs\n"}
+{"command":"cargo test -p tokmd-analysis","output":"test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n"}
+{"command":"cargo clippy -- -D warnings","output":"Finished `dev` profile [unoptimized + debuginfo] target(s) in 43.83s\n"}

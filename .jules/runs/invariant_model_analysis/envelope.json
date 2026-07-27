@@ -6,11 +6,11 @@
   "allowed_paths": [
     "crates/tokmd-analysis*/**",
     "crates/tokmd-fun/**",
-    "crates/tokmd-gate/**",
-    "crates/tokmd-core/**",
-    "crates/tokmd/tests/**",
-    "docs/**"
+    "crates/tokmd-gate/**"
   ],
   "gate_profile": "property",
-  "allowed_outcomes": ["proof-improvement patch", "learning PR"]
+  "allowed_outcomes": [
+    "proof-improvement patch",
+    "learning PR"
+  ]
 }
