@@ -1,11 +1,20 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd-analysis/src/derived/tests/properties.rs"
+  "outcome_type": "proof_patch",
+  "title": "invariant: add proptest properties for source_complexity.rs \ud83d\udd2c",
+  "summary": "Added missing property-based invariants around `source_complexity.rs` to lock in aggregation logic.",
+  "target_paths": [
+    "crates/tokmd-analysis/src/source_complexity/properties.rs",
+    "crates/tokmd-analysis/src/source_complexity.rs"
   ],
-  "invariants_added": [
-    "distribution_median_is_correct",
-    "distribution_percentiles_are_correct",
-    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
-  ]
+  "proof_summary": "Added two invariants testing function order independence and that total complexity >= max complexity, verifying both pass with `cargo test -p tokmd-analysis properties`.",
+  "gates_run": [
+    "cargo test -p tokmd-analysis properties",
+    "cargo build --verbose -p tokmd-analysis",
+    "cargo fmt -- --check",
+    "cargo clippy -p tokmd-analysis -- -D warnings"
+  ],
+  "friction_items_created": [],
+  "persona_notes_created": [],
+  "rollback": "git checkout crates/tokmd-analysis/src/source_complexity.rs && rm crates/tokmd-analysis/src/source_complexity/properties.rs",
+  "follow_ups": []
 }

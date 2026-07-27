@@ -1,48 +1,49 @@
 ## 💡 Summary
-Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
+Added missing property-based invariant tests around `source_complexity.rs`. These invariants explicitly verify that the heuristic rust code parsing and metric aggregations are independent of structural shifts like function re-ordering.
 
 ## 🎯 Why
-Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
+The lightweight heuristic parser in `source_complexity.rs` drives cockpit review gates without pulling in a full AST. It relies on a custom token mask and a state machine tracking bracket depth and function spans. To ensure stable tracking of `total_complexity` and `max_complexity`, we needed property-based verification confirming the aggregation math works commutatively and monotonically regardless of input structure.
 
 ## 🔎 Evidence
-- `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
-- Proptest coverage now properly models these bounds and constraints.
+Minimal proof:
+- `crates/tokmd-analysis/src/source_complexity/properties.rs`
+- Observed behavior: `source_complexity.rs` was not previously covered by `proptest`. Adding invariants discovered a minor issue with bad generated regexes that we fixed. Both invariants now pass deterministically over randomized input subsets.
+- Tests demonstrate: Function order is commutative, and `total >= max` always holds.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
-- Fits the analysis-stack by increasing deterministic guarantees in data generation.
-- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
+- Add property-based invariants directly testing `source_complexity.rs` heuristic aggregations.
+- Fits the `analysis-stack` shard, improves property coverage.
+- Trade-offs: Increases CI property-testing time slightly, but locks in the core logic.
 
 ### Option B
-- Add deterministic hard-coded unit test values.
-- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
-- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
+- Try to property-test internal configuration boundaries within `tokmd-gate` (e.g. ratchet definitions).
+- Fits the shard, but doesn't find as many structural bugs as generating programmatic inputs against custom parsers.
+- Trade-offs: Focuses on JSON serialization edges instead of programmatic metrics logic.
 
 ## ✅ Decision
-Chose Option A to enforce invariants across arbitrary file arrays properly.
+Option A. Adding property-based invariants directly against the `analyze_rust_function_complexity` parser is an honest and high-value proof improvement within the `analysis-stack` that locks in true mathematical properties of the implementation.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
+- Added `crates/tokmd-analysis/src/source_complexity/properties.rs`.
+- Registered `properties.rs` within `crates/tokmd-analysis/src/source_complexity.rs`.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis --lib derived::tests::properties
+> cargo test -p tokmd-analysis properties
 ...
-test derived::tests::properties::distribution_median_is_correct ... ok
-test derived::tests::properties::distribution_percentiles_are_correct ... ok
-test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
+test source_complexity::properties::tests::property_function_order_independence ... ok
+test source_complexity::properties::tests::property_total_gte_max ... ok
 ...
-test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
+test result: ok. 103 passed; 0 failed; 0 ignored; 0 measured; 1470 filtered out; finished in 6.47s
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test/Proof improvement
-- Blast radius: Internal test surface only
+- Change shape: Add proptest module
+- Blast radius: Only test code and metrics behavior tracking
 - Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Rollback: Revert `source_complexity.rs` and delete `properties.rs`
+- Gates run: `cargo test`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`, `cargo build --verbose`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`
@@ -52,4 +53,4 @@ test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; 
 - `.jules/runs/invariant_model_analysis/pr_body.md`
 
 ## 🔜 Follow-ups
-None.
+None
