@@ -154,6 +154,26 @@ mod tests {
     }
 
     #[test]
+    fn skips_dot_claude_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".claude/fixtures/test-key.pem")
+            .expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
+    fn skips_dot_jules_prefix_paths() {
+        let dir = tempdir().expect("tempdir");
+
+        let violation = evaluate_candidate(dir.path(), ".jules/fixtures/test-key.pem")
+            .expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
     fn detects_forbidden_marker_in_text_file() {
         let dir = tempdir().expect("tempdir");
         let manifest = dir.path().join("docs").join("example.md");
