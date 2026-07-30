@@ -409,7 +409,7 @@ fn given_scanned_crate_then_unique_file_count_matches_report_count() {
     let count = unique_parent_file_count(&langs);
 
     let mut paths = std::collections::BTreeSet::new();
-    for (_, lang) in langs.iter() {
+    for lang in langs.values() {
         for report in &lang.reports {
             paths.insert(normalize_path(&report.name, None));
         }

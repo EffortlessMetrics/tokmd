@@ -224,7 +224,7 @@ fn threshold_1_only_exact_matches() {
     let base = gen_source(60, 1);
     let variant = format!(
         "{}\nfn extra_variant_function() {{ let z = 123456; }}",
-        &base
+        base
     );
     write_file(&dir, "a.rs", &base);
     write_file(&dir, "b.rs", &variant);

@@ -344,7 +344,7 @@ fn scan_result_children_map_exists() -> Result<()> {
     )?;
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     // The children map is part of Language, verify we can access it
-    for (_lt, lang) in langs.iter() {
+    for lang in langs.values() {
         let _ = &lang.children; // should compile and not panic
     }
     Ok(())
@@ -389,7 +389,7 @@ fn dir_with_only_empty_files() -> Result<()> {
     fs::write(dir.path().join("empty.rs"), "")?;
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     // An empty .rs file has 0 code lines
-    for (_, lang) in langs.iter() {
+    for lang in langs.values() {
         assert_eq!(lang.code, 0, "empty file should have 0 code lines");
     }
     Ok(())
@@ -400,7 +400,7 @@ fn dir_with_only_blank_lines() -> Result<()> {
     let dir = tempfile::tempdir()?;
     fs::write(dir.path().join("blank.rs"), "\n\n\n\n")?;
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
-    for (_, lang) in langs.iter() {
+    for lang in langs.values() {
         assert_eq!(lang.code, 0, "all-blank file should have 0 code lines");
     }
     Ok(())
@@ -649,7 +649,7 @@ mod properties {
             }
             fs::write(dir.path().join("gen.rs"), &code).unwrap();
             let langs = scan(&[dir.path().to_path_buf()], &default_opts()).unwrap();
-            for (_, lang) in langs.iter() {
+            for lang in langs.values() {
                 // All metrics must be non-negative (they're usize, but verify > 0 logic)
                 let _ = lang.code;
                 let _ = lang.comments;
@@ -703,7 +703,7 @@ mod properties {
             }
             fs::write(dir.path().join("gen.rs"), &src).unwrap();
             let langs = scan(&[dir.path().to_path_buf()], &default_opts()).unwrap();
-            for (_, lang) in langs.iter() {
+            for lang in langs.values() {
                 prop_assert!(lang.code <= lang.lines(), "code <= total lines");
             }
         }

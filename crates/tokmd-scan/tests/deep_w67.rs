@@ -165,7 +165,7 @@ fn scan_result_children_are_accessible() -> Result<()> {
     );
     let langs = scan(&[dir.path().to_path_buf()], &default_opts())?;
     // We just verify children map is accessible without panic
-    for (_lang_type, lang) in langs.iter() {
+    for lang in langs.values() {
         let _ = &lang.children;
     }
     Ok(())
