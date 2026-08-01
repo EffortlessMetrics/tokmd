@@ -131,6 +131,7 @@ paths = [
   ".github/workflows/test-action.yml",
   ".factory/rules/droid-review.md",
   ".factory/skills/review-guidelines/SKILL.md",
+  ".github/agents/ci-fix-forward.agent.md",
   "AGENTS.md",
   "ci/proof.toml",
   "codecov.yml",
@@ -1556,13 +1557,17 @@ paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
   "docs/releases/**",
+  # The Dockerfile pins the builder toolchain, and version-consistency now
+  # verifies that pin against the workspace MSRV.
+  "Dockerfile",
+  "xtask/src/tasks/version_consistency.rs",
 ]
 proof = [
   "cargo xtask version-consistency",
   "cargo xtask publish-surface --json --verify-publish",
   "cargo xtask docs --check",
 ]
-reason = "CHANGELOG and release workflow changes are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
+reason = "CHANGELOG, release workflow, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
 mutation = false
 coverage = false
 

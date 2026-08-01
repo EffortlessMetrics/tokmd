@@ -21,7 +21,7 @@ incoherence or missing route receipts fail before the expensive coverage run
 starts, and later coverage failures still have the changed-surface routing
 receipt attached.
 
-Coverage execution uses Rust `1.92`, `cargo-llvm-cov`, `--workspace`,
+Coverage execution uses Rust `1.95`, `cargo-llvm-cov`, `--workspace`,
 `--all-features`, and `--locked`.
 
 ## Artifacts
