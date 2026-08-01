@@ -212,10 +212,13 @@ fn is_skipped(path: &Path, root: &Path) -> bool {
     if SKIP_DIRS.contains(&first) {
         return true;
     }
-    if SKIP_DIRS_ANY_DEPTH.contains(&first) {
-        return true;
-    }
-    components.any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c))
+    // Includes `first` deliberately. `SKIP_DIRS_ANY_DEPTH` is currently a
+    // subset of `SKIP_DIRS`, so a separate first-component test would be dead
+    // code today; folding it into the any-depth scan keeps the first component
+    // covered if the two lists ever diverge.
+    std::iter::once(first)
+        .chain(components)
+        .any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c))
 }
 
 fn parse(path: &Path) -> Result<AllowlistFile> {
@@ -323,6 +326,41 @@ mod tests {
             let path = Path::new("/repo").join(dir).join("some-file.json");
             assert!(is_skipped(&path, root), "expected {dir}/ to be skipped");
         }
+    }
+
+    /// Skipping `target` at any depth is only safe while no tracked file lives
+    /// under such a path. That held when the rule was introduced, but it is an
+    /// assumption about repository contents rather than about this module, so
+    /// enforce it instead of trusting a one-time check: a fixture added under
+    /// e.g. `fixtures/target/` would otherwise vanish from the policy walk
+    /// silently.
+    #[test]
+    fn no_tracked_file_lives_under_a_target_component() {
+        let Ok(root) = workspace_root() else {
+            return;
+        };
+        let Ok(output) = std::process::Command::new("git")
+            .arg("ls-files")
+            .current_dir(&root)
+            .output()
+        else {
+            // git unavailable: nothing to assert against.
+            return;
+        };
+        if !output.status.success() {
+            return;
+        }
+        let listing = String::from_utf8_lossy(&output.stdout);
+        let offenders: Vec<&str> = listing
+            .lines()
+            .filter(|line| !line.is_empty())
+            .filter(|line| line.split('/').any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c)))
+            .collect();
+        assert!(
+            offenders.is_empty(),
+            "tracked files live under a skipped build-output component and would be \
+             invisible to the file-policy walk: {offenders:?}"
+        );
     }
 
     #[test]
