@@ -179,6 +179,24 @@ mod tests {
     }
 
     #[test]
+    fn allows_checker_source_file_with_forbidden_marker() {
+        let dir = tempdir().expect("tempdir");
+        let source_file = dir
+            .path()
+            .join("xtask")
+            .join("src")
+            .join("tasks")
+            .join("fixture_blobs_check.rs");
+        fs::create_dir_all(source_file.parent().unwrap()).expect("checker source dir");
+        fs::write(&source_file, "BEGIN PRIVATE KEY").expect("write checker source");
+
+        let violation = evaluate_candidate(dir.path(), "xtask/src/tasks/fixture_blobs_check.rs")
+            .expect("check");
+
+        assert!(violation.is_none());
+    }
+
+    #[test]
     fn collects_violations_across_multiple_paths() {
         let dir = tempdir().expect("tempdir");
         let pem = dir.path().join("fixtures").join("bad.pem");
