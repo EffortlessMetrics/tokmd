@@ -10,10 +10,10 @@ Commands:
   lang             Language summary (default)
   module           Module summary (group by path prefixes like `crates/<name>` or `packages/<name>`)
   export           Export a file-level dataset (CSV / JSONL / JSON)
-  analyze          Analyze receipts or paths to produce derived metrics [aliases: analyse]
+  analyze          Analyze receipts or paths to produce derived metrics [alias: analyse]
   badge            Render a simple SVG badge for a metric
   init             Write a `.tokeignore` template to the target directory
-  completions      Generate shell completions [aliases: completion]
+  completions      Generate shell completions [alias: completion]
   run              Run a full scan and save receipts to a state directory
   diff             Compare two receipts or runs
   context          Pack files into an LLM context window within a token budget
@@ -40,7 +40,7 @@ Options:
           
           Examples: --exclude target --exclude "**/*.min.js"
           
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --config <MODE>
           Whether to load scan config files (`tokei.toml` / `.tokeirc`)
@@ -68,7 +68,7 @@ Options:
       --no-ignore-vcs
           Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
           
-          [aliases: --no-ignore-git]
+          [alias: --no-ignore-git]
 
       --treat-doc-strings-as-comments
           Treat doc strings as comments (language-dependent)
@@ -103,7 +103,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
           
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit

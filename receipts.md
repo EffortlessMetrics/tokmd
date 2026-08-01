@@ -1,3 +1,0 @@
-- `cargo clippy -p tokmd -- -D warnings` -> PASS
-- `CI=true cargo test -p tokmd` -> PASS
-- `cargo fmt -- --check` -> PASS

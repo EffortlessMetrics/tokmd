@@ -29,7 +29,7 @@ Workflow
   - docs: cargo xtask docs --check
   - boundaries: cargo xtask boundaries-check
   - publish plan: cargo xtask publish --plan --verbose
-  - MSRV: cargo +1.92 check --workspace --all-features (or match CI toolchain)
+  - MSRV: cargo +1.95 check --workspace --all-features (or match CI toolchain)
 - If local repro is expensive, push a small “attempt fix” commit and use CI as compute.
 
 3) Patch with smallest diff

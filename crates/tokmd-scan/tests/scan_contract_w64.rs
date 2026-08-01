@@ -446,7 +446,7 @@ fn property_all_languages_lines_sum() -> Result<()> {
 #[test]
 fn property_code_lines_are_usize() -> Result<()> {
     let langs = scan(&[crate_src()], &default_opts())?;
-    for (_, lang) in langs.iter() {
+    for lang in langs.values() {
         // usize fields are inherently non-negative; verify they sum correctly
         let sum = lang.code + lang.blanks + lang.comments;
         assert_eq!(sum, lang.lines(), "line sum should hold");
@@ -713,7 +713,7 @@ mod properties {
             let dir = TempDir::new().unwrap();
             fs::write(dir.path().join("main.py"), "# c\nx = 1\n\ny = 2\n").unwrap();
             if let Ok(langs) = scan(&[dir.path().to_path_buf()], &opts) {
-                for (_, lang) in langs.iter() {
+                for lang in langs.values() {
                     let sum = lang.code + lang.blanks + lang.comments;
                     prop_assert_eq!(sum, lang.lines());
                 }
@@ -725,7 +725,7 @@ mod properties {
             let dir = TempDir::new().unwrap();
             fs::write(dir.path().join("f.rs"), "fn f() {}\n").unwrap();
             if let Ok(langs) = scan(&[dir.path().to_path_buf()], &opts) {
-                for (_, lang) in langs.iter() {
+                for lang in langs.values() {
                     let sum = lang.code + lang.blanks + lang.comments;
                     prop_assert_eq!(sum, lang.lines());
                 }

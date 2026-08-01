@@ -153,14 +153,18 @@ fn ci_actuals_uploads_receipt_before_advisory_summary() {
         .expect("CI actuals job should exist");
     let ci_actuals = &workflow[ci_actuals_idx..];
 
+    // Match the action, not its ref: this test pins step *ordering*, and
+    // Dependabot legitimately rewrites version refs (tag -> pinned SHA)
+    // underneath it. `dtolnay/rust-toolchain@stable` keeps its ref because
+    // `stable` is a branch, not a version the github-actions group rewrites.
     let checkout_idx = ci_actuals
-        .find("actions/checkout@v7.0.0")
+        .find("actions/checkout@")
         .expect("CI actuals checkout step");
     let toolchain_idx = ci_actuals
         .find("dtolnay/rust-toolchain@stable")
         .expect("CI actuals toolchain step");
     let cache_idx = ci_actuals
-        .find("Swatinem/rust-cache@v2")
+        .find("Swatinem/rust-cache@")
         .expect("CI actuals cache step");
     let timings_idx = ci_actuals
         .find("Generate CI timings sidecar")

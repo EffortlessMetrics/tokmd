@@ -3,7 +3,9 @@
 # =============================================================================
 # Stage 1: Build
 # =============================================================================
-FROM rust:1.92-alpine AS builder
+# Pinned to the workspace MSRV (`rust-version` in Cargo.toml). Building the
+# image at the MSRV also proves the shipped binary is MSRV-clean.
+FROM rust:1.95-alpine AS builder
 
 # Install build dependencies for musl-based static linking
 RUN apk add --no-cache musl-dev
@@ -16,7 +18,6 @@ COPY vendor/ vendor/
 COPY crates/ crates/
 COPY fuzz/ fuzz/
 COPY xtask/ xtask/
-COPY vendor/ vendor/
 
 # Build the release binary
 RUN cargo build --release --bin tokmd --locked

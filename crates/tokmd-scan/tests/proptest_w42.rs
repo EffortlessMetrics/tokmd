@@ -249,7 +249,7 @@ proptest! {
         let result = tokmd_scan::scan(&[src], &args);
         prop_assert!(result.is_ok(), "scan failed: {:?}", result.err());
         let langs = result.unwrap();
-        for (_lt, lang) in langs.iter() {
+        for lang in langs.values() {
             prop_assert!(lang.code <= lang.lines(),
                 "code ({}) should not exceed total lines ({})", lang.code, lang.lines());
         }
@@ -273,7 +273,7 @@ proptest! {
         let src = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
         let args = ScanOptions::default();
         let langs = tokmd_scan::scan(&[src], &args).unwrap();
-        for (lt, _lang) in langs.iter() {
+        for lt in langs.keys() {
             prop_assert!(!lt.name().is_empty(), "Language name should not be empty");
         }
     }

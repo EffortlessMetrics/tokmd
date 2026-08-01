@@ -26,7 +26,9 @@ jobs:
       USE_FLAKEHUB_CACHE: ${{ vars.NIX_USE_FLAKEHUB_CACHE }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install Nix
         if: env.USE_FLAKEHUB_CACHE != 'true'

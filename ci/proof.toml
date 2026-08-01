@@ -131,6 +131,7 @@ paths = [
   ".github/workflows/test-action.yml",
   ".factory/rules/droid-review.md",
   ".factory/skills/review-guidelines/SKILL.md",
+  ".github/agents/ci-fix-forward.agent.md",
   "AGENTS.md",
   "ci/proof.toml",
   "codecov.yml",
@@ -1481,6 +1482,33 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "repo_hygiene"
+kind = "non_rust"
+paths = [
+  ".dockerignore",
+  ".editorconfig",
+  ".gitattributes",
+  ".gitignore",
+  # Retired root scratch artifacts. They were committed by accident in the bulk
+  # swarm import at 2379eb7 and removed again; the ignore rules above now keep
+  # them out. Listed so the affected planner attributes their removal instead of
+  # reporting them as unknown files.
+  "gate.log",
+  "plan.md",
+  "pr_body.md",
+  "pr_body.txt",
+  "receipts.md",
+  "run-artifacts/**",
+]
+proof = [
+  "cargo xtask check-file-policy",
+  "cargo test -p xtask file_policy",
+]
+reason = "Repo-level ignore and attribute control. These files decide which non-Rust files exist in a checkout at all, so the file-policy walk is the proof that the resulting tree is still fully covered. The unit tests are listed alongside the walk because the walk alone is self-referential: it is the implementation, so it cannot witness its own skip-list regressing."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "ci_economics_policy"
 kind = "non_rust"
 paths = [
@@ -1529,13 +1557,17 @@ paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
   "docs/releases/**",
+  # The Dockerfile pins the builder toolchain, and version-consistency now
+  # verifies that pin against the workspace MSRV.
+  "Dockerfile",
+  "xtask/src/tasks/version_consistency.rs",
 ]
 proof = [
   "cargo xtask version-consistency",
   "cargo xtask publish-surface --json --verify-publish",
   "cargo xtask docs --check",
 ]
-reason = "CHANGELOG and release workflow changes are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
+reason = "CHANGELOG, release workflow, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
 mutation = false
 coverage = false
 

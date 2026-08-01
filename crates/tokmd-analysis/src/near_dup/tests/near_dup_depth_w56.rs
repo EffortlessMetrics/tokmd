@@ -145,7 +145,7 @@ fn slightly_modified_files_detected_with_low_threshold() {
     let dir = TempDir::new().unwrap();
     let base = source_text(50, 1);
     // Modify last line
-    let modified = format!("{}\nfn extra_function() {{ let x = 999; }}", &base);
+    let modified = format!("{}\nfn extra_function() {{ let x = 999; }}", base);
     write_file(&dir, "a.rs", &base);
     write_file(&dir, "b.rs", &modified);
 

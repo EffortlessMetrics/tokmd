@@ -739,24 +739,6 @@ reason = "Integration test data fixtures (JS, JSON, etc.)."
 covered_by = ["cargo test -p tokmd"]
 
 [[allow]]
-glob = "*.txt"
-kind = "tooling"
-owner = "core/policy"
-surface = "build"
-classification = "config"
-reason = "Top-level text files (PR bodies, transient notes)."
-covered_by = []
-
-[[allow]]
-glob = "*.log"
-kind = "tooling"
-owner = "core/policy"
-surface = "build"
-classification = "config"
-reason = "Top-level log fixtures (gate.log, etc.)."
-covered_by = []
-
-[[allow]]
 glob = "tokmd-role.md"
 kind = "documentation"
 owner = "docs"
@@ -800,6 +782,24 @@ surface = "vendor"
 classification = "production"
 reason = "Pinned patched dependency required until upstream fallback exists."
 covered_by = ["cargo check --workspace --locked"]
+
+[[allow]]
+glob = "fixtures/ast-shadow/python/*.py"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "Python AST shadow-compare fixtures."
+covered_by = ["cargo test --workspace"]
+
+[[allow]]
+glob = "fixtures/ast-shadow/typescript/*.ts"
+kind = "test_fixture"
+owner = "testing/oracle"
+surface = "test"
+classification = "test_fixture"
+reason = "TypeScript AST shadow-compare fixtures."
+covered_by = ["cargo test --workspace"]
 
 [[allow]]
 glob = "fixtures/bindings-parity/golden/*.json"
