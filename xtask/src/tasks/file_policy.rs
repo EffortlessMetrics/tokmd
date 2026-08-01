@@ -18,7 +18,19 @@ use walkdir::WalkDir;
 
 use crate::cli::FilePolicyArgs;
 
+/// Directories skipped when they appear as the first path component under the
+/// workspace root.
 const SKIP_DIRS: &[&str] = &[".git", "target", "node_modules", "run-artifacts", "plans"];
+
+/// Directories skipped at any depth.
+///
+/// Cargo writes build output to a `target/` directory next to every manifest it
+/// builds, not only at the workspace root: this repo has `xtask/target/`,
+/// `crates/*/target/`, and `fuzz/target/`, all of which `.gitignore` already
+/// excludes. Matching only the first path component would let whatever the last
+/// `cargo test`/`cargo build` happened to leave behind decide the outcome of
+/// this check, so the walk skips these names wherever they occur.
+const SKIP_DIRS_ANY_DEPTH: &[&str] = &["target"];
 
 #[derive(Debug, Deserialize)]
 struct AllowlistFile {
@@ -193,10 +205,17 @@ fn is_skipped(path: &Path, root: &Path) -> bool {
     let Ok(rel) = path.strip_prefix(root) else {
         return false;
     };
-    let Some(first) = rel.iter().next().and_then(|s| s.to_str()) else {
+    let mut components = rel.iter().filter_map(|s| s.to_str());
+    let Some(first) = components.next() else {
         return false;
     };
-    SKIP_DIRS.contains(&first)
+    if SKIP_DIRS.contains(&first) {
+        return true;
+    }
+    if SKIP_DIRS_ANY_DEPTH.contains(&first) {
+        return true;
+    }
+    components.any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c))
 }
 
 fn parse(path: &Path) -> Result<AllowlistFile> {
@@ -295,6 +314,45 @@ mod tests {
             findings.iter().any(|f| f.contains("missing owner")),
             "{findings:?}"
         );
+    }
+
+    #[test]
+    fn skips_root_level_skip_dirs() {
+        let root = Path::new("/repo");
+        for dir in SKIP_DIRS {
+            let path = Path::new("/repo").join(dir).join("some-file.json");
+            assert!(is_skipped(&path, root), "expected {dir}/ to be skipped");
+        }
+    }
+
+    #[test]
+    fn skips_nested_cargo_target_dirs() {
+        let root = Path::new("/repo");
+        // Cargo writes a target/ next to every manifest it builds. Before this
+        // was handled, a stale xtask/target/ from `cargo test -p xtask` turned
+        // an otherwise-clean `check-file-policy --strict` into 11 findings.
+        for rel in [
+            "xtask/target/test-proof-observation-status/aggregate/affected.json",
+            "crates/tokmd-format/target/debug/build-output.json",
+            "fuzz/target/release/artifact.json",
+        ] {
+            let path = root.join(rel);
+            assert!(is_skipped(&path, root), "expected {rel} to be skipped");
+        }
+    }
+
+    #[test]
+    fn does_not_skip_tracked_files_outside_build_dirs() {
+        let root = Path::new("/repo");
+        for rel in [
+            "docs/plans/ast-productization.md",
+            "fixtures/ast-shadow/python/basic.py",
+            "policy/non-rust-allowlist.toml",
+            ".gitignore",
+        ] {
+            let path = root.join(rel);
+            assert!(!is_skipped(&path, root), "expected {rel} to be walked");
+        }
     }
 
     #[test]

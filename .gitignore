@@ -1,5 +1,6 @@
 /target
 crates/*/target
+xtask/target
 **/*.swp
 **/*.DS_Store
 
@@ -62,3 +63,11 @@ __pycache__/
 # Conveyor verification outputs (generated during agent runs)
 built/
 proven/
+
+# Agent/CI scratch output at the repo root (never commit these)
+/*.log
+/plan.md
+/pr_body.md
+/pr_body.txt
+/receipts.md
+/run-artifacts/

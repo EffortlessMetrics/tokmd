@@ -1481,6 +1481,33 @@ mutation = false
 coverage = false
 
 [[scope]]
+name = "repo_hygiene"
+kind = "non_rust"
+paths = [
+  ".dockerignore",
+  ".editorconfig",
+  ".gitattributes",
+  ".gitignore",
+  # Retired root scratch artifacts. They were committed by accident in the bulk
+  # swarm import at 2379eb7 and removed again; the ignore rules above now keep
+  # them out. Listed so the affected planner attributes their removal instead of
+  # reporting them as unknown files.
+  "gate.log",
+  "plan.md",
+  "pr_body.md",
+  "pr_body.txt",
+  "receipts.md",
+  "run-artifacts/**",
+]
+proof = [
+  "cargo xtask check-file-policy",
+  "cargo test -p xtask file_policy",
+]
+reason = "Repo-level ignore and attribute control. These files decide which non-Rust files exist in a checkout at all, so the file-policy walk is the proof that the resulting tree is still fully covered. The unit tests are listed alongside the walk because the walk alone is self-referential: it is the implementation, so it cannot witness its own skip-list regressing."
+mutation = false
+coverage = false
+
+[[scope]]
 name = "ci_economics_policy"
 kind = "non_rust"
 paths = [
