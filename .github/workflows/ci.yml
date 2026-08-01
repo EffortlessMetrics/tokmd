@@ -641,7 +641,7 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
       - uses: actions/setup-node@v7
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@v2.85.4
         with:
           tool: wasm-pack
       - uses: Swatinem/rust-cache@v2
@@ -677,7 +677,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@v2.85.4
         with:
           tool: cargo-deny@0.19.0
       - name: Print cargo-deny version
