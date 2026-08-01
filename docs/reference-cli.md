@@ -51,7 +51,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --format <FORMAT>
           Output format [default: md]
@@ -80,7 +80,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -130,7 +130,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --format <FORMAT>
           Output format [default: md]
@@ -153,7 +153,7 @@ Options:
 
           Example: crates/foo/src/lib.rs  (depth=2) => crates/foo crates/foo/src/lib.rs  (depth=1) => crates
 
-          [aliases: --depth]
+          [alias: --depth]
 
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
@@ -168,7 +168,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -208,7 +208,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --format <FORMAT>
           Output format [default: jsonl]
@@ -222,7 +222,7 @@ Options:
       --output <PATH>
           Write output to this file instead of stdout
 
-          [aliases: --out]
+          [alias: --out]
 
       --module-roots <MODULE_ROOTS>
           Module roots (see `tokmd module`) [default: crates,packages]
@@ -230,7 +230,7 @@ Options:
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`) [default: 2]
 
-          [aliases: --depth]
+          [alias: --depth]
 
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) [default: separate]
@@ -267,7 +267,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -311,7 +311,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --output-dir <OUTPUT_DIR>
           Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible)
@@ -338,7 +338,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -392,7 +392,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --preset <PRESET>
           Analysis preset to run [default: receipt]
@@ -502,7 +502,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -574,7 +574,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --output <OUTPUT>
           Output path for baseline file
@@ -593,7 +593,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -644,7 +644,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --metric <METRIC>
           Metric to render
@@ -671,7 +671,7 @@ Options:
       --output <OUTPUT>
           Output file for the badge (defaults to stdout)
 
-          [aliases: --out]
+          [alias: --out]
 
       --no-progress
           Disable progress spinners
@@ -679,7 +679,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -725,7 +725,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --from <FROM>
           Base receipt/run or git ref to compare from
@@ -761,7 +761,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -811,7 +811,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --force
           Overwrite an existing `.tokeignore`
@@ -834,7 +834,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -901,7 +901,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --strategy <STRATEGY>
           Packing strategy
@@ -945,7 +945,7 @@ Options:
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
 
-          [aliases: --depth]
+          [alias: --depth]
 
       --git
           Enable git-based ranking (required for churn/hotspot)
@@ -969,7 +969,7 @@ Options:
       --output <PATH>
           Write output to file instead of stdout
 
-          [aliases: --out]
+          [alias: --out]
 
       --force
           Overwrite existing output file
@@ -999,7 +999,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1057,7 +1057,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --out-dir <OUT_DIR>
           Output directory for handoff artifacts
@@ -1106,7 +1106,7 @@ Options:
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
 
-          [aliases: --depth]
+          [alias: --depth]
 
       --force
           Overwrite existing output directory
@@ -1164,7 +1164,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1214,7 +1214,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
   -v, --verbose
           Show verbose output with rule sources
@@ -1225,7 +1225,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1270,7 +1270,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --format <FORMAT>
           Output format for the tool schema
@@ -1292,7 +1292,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1348,7 +1348,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --head <HEAD>
           Head reference to compare to (default: HEAD)
@@ -1418,7 +1418,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1534,7 +1534,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --head <HEAD>
           Head reference to compare to (default: HEAD)
@@ -1561,7 +1561,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1795,7 +1795,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --no-progress
           Disable progress spinners
@@ -1803,7 +1803,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1909,7 +1909,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --policy <POLICY>
           Path to policy file (TOML format)
@@ -1947,7 +1947,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -2128,7 +2128,7 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --no-progress
           Disable progress spinners
@@ -2136,7 +2136,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit

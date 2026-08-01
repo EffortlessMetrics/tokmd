@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Refreshed the `rust-minor-patch` dependency group to semver-compatible
+  minor/patch releases. The only user-visible effect is in `--help` output:
+  clap 4.6.5 renders a single alias as `[alias: --ignore]` where 4.6.1 rendered
+  `[aliases: --ignore]`. Flag names and behavior are unchanged; the golden CLI
+  snapshot and `docs/reference-cli.md` are regenerated to match.
 - Hardened the `docs_schema_w72` changelog guard to require the current
   schema constants in `CONSTANT = value` form: `COCKPIT_SCHEMA_VERSION = 3`,
   `CONTEXT_SCHEMA_VERSION = 4`, `CONTEXT_BUNDLE_SCHEMA_VERSION = 2`,
