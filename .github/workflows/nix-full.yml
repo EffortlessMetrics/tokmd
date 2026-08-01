@@ -34,8 +34,9 @@ jobs:
       # trusted FlakeHub Cache path is provisioned for this repo.
       USE_FLAKEHUB_CACHE: ${{ vars.NIX_USE_FLAKEHUB_CACHE }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Install Nix
