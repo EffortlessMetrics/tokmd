@@ -61,8 +61,13 @@ jobs:
             emit "$GH" github "api failed"
             exit 0
           fi
-          if jq -e '[.runners[] | select(.status=="online" and .busy==false) | .labels[].name] | index("trusted-pr")' <<<"$RESP" >/dev/null; then
-            emit "$SELF_HOSTED" self-hosted "idle trusted runner"
+          # The gate requests the rust-small label set below. Check all
+          # required capability labels on the same idle runner; flattening
+          # labels across runners can select an idle review runner while the
+          # rust-small pool is fully occupied, leaving the required job queued
+          # even though the route step reported self-hosted capacity.
+          if jq -e 'any(.runners[]; .status=="online" and .busy==false and ([.labels[].name] | index("trusted-pr")) and ([.labels[].name] | index("rust-small")))' <<<"$RESP" >/dev/null; then
+            emit "$SELF_HOSTED" self-hosted "idle trusted rust-small runner"
           else
             emit "$GH" github "no idle capacity"
           fi
