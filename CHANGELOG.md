@@ -30,6 +30,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/specs/packet-ghcr-runtime.md`. The default `binary` runtime is
   unchanged. No version bump, tag, or publish accompanies this change.
 
+### Fixed
+
+- Dropped the stale `version: '1.11.0'` pin from every copy-pasteable GitHub
+  Action example: both blocks in `README.md` plus 16 more across
+  `docs/action-quickstart.md`, `docs/github-action.md`, `docs/start-here.md`,
+  `docs/install.md`, `docs/install-and-try.md`, `docs/recipes.md`,
+  `docs/browser-to-native.md`, and `docs/tokmd-in-cockpit.md`. The workspace is
+  at 1.14.0 and released Action refs now carry an exact default matching the
+  workspace release, so copy-pasting any of them would pin adopters to a
+  three-minor-versions-old binary — worse than inheriting the ref's exact
+  default. They now omit the input. The
+  Versioning Model section of `docs/github-action.md` still pins explicitly,
+  because demonstrating the `version` input is its purpose; that example moves
+  to 1.14.0. The release-candidate example and the version-to-tag mapping table
+  keep their `1.11.0` strings, which illustrate format rather than recommend a
+  release.
+- Dropped the `version: '1.14.0'` pin from the three `mode: packet` Action
+  examples in `docs/github-action.md`, `docs/action-quickstart.md`, and
+  `docs/packet-workflows.md`. The first sweep missed them because they pin the
+  current version rather than a stale one, and one of them quotes the value
+  differently. They are ordinary copy-pasteable examples with no reason to pin,
+  and they would have gone stale on the next release exactly as the `1.11.0`
+  ones did. The `runtime: container` example in `docs/packet-workflows.md` keeps
+  its explicit `version`, which has to match the verification-gated image tag.
+- Added link-reference definitions to `CHANGELOG.md`. All 29 `## [version]`
+  headings were dangling shortcut references that rendered as literal
+  `[1.14.0]` text; each now resolves to a GitHub compare view (or, for
+  `0.1.0`, the release tag).
+
 ## [1.14.0] - 2026-06-25
 
 1.14 expands the PR evidence surface into a first-class local and CI workflow.
@@ -1219,3 +1248,33 @@ Stable release following `v1.10.0-rc.1` validation.
 
 ## [0.1.0] - 2026-01-25
 - Initial prototype release.
+
+[Unreleased]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...main
+[1.14.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.1...v1.14.0
+[1.13.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.0...v1.13.1
+[1.13.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.11.1...v1.12.0
+[1.11.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.11.0...v1.11.1
+[1.11.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.2...v1.10.0
+[1.9.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.1...v1.9.2
+[1.9.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.8.1...v1.9.0
+[1.8.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.3...v1.8.0
+[1.7.3]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.2...v1.7.3
+[1.7.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.1...v1.7.2
+[1.7.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.3...v1.7.0
+[1.6.3]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.2...v1.6.3
+[1.6.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.3.1...v1.4.0
+[1.3.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/EffortlessMetrics/tokmd/compare/v0.1.0...v1.0.0
+[0.1.0]: https://github.com/EffortlessMetrics/tokmd/releases/tag/v0.1.0

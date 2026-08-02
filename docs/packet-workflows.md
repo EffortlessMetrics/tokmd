@@ -156,7 +156,6 @@ The packet path is implemented as `mode: packet` on the root
 
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: "1.14.0"
     mode: packet
     preset: bun-ub
     base: origin/main
