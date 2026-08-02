@@ -53,7 +53,7 @@ context for humans, machines, CI, and agents.
 The historical roadmap remains useful as a record of shipped milestones and
 longer-term horizons. The active planning state is now selection-first:
 
-- v1.11 browser runtime polish is complete.
+- v1.14 PR evidence-packet workflow is complete.
 - Cockpit/review evidence is stable as the current PR-review surface.
 - Proof observation remains advisory, not promoted to required gates.
 - AST remains shadow-only until broader comparison evidence justifies public
@@ -69,7 +69,7 @@ New work should start from one of:
 5. a release/distribution verification gap,
 6. fresh measured performance evidence.
 
-The current near-term product priorities are:
+The current near-term product priorities are selection-first, addressing gaps in:
 
 1. Release and distribution verification.
 2. CLI/user-facing friction reduction.
