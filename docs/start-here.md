@@ -124,7 +124,6 @@ Start with artifact-producing CI before adding gates:
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
     mode: cockpit
     review-packet: 'true'
     artifact: 'true'

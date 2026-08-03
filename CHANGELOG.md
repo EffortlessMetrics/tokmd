@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No changes recorded after the 1.15.0-rc.1 preparation point.
+
+## [1.15.0-rc.1] - 2026-08-03
+
+### Added
+
+- Deterministic repository snapshots, in-memory and archive ingestion, and
+  fail-closed ZIP admission across native and browser/WASM paths.
+- `--show-config`, richer progress events, and packet-consumption contracts for
+  review workflows.
+- Opt-in syntax and shadow evidence improvements, with explicit advisory
+  evidence boundaries for downstream consumers.
+
+### Changed
+
+- CLI option placement, generated help, typo recovery, output naming, and
+  analysis-preset guidance now follow one authoritative command surface.
+- Released Action refs carry an exact default binary version; explicit
+  `version` remains available for RC selection, rollback, and verified pins.
+- The release workflow builds the archive-enabled WASM artifact and proves a
+  pre-tag candidate container digest before exact-tag promotion.
+
+### Fixed
+
+- Scan options are now accepted after a subcommand as well as before it.
+  `--config`, `--hidden`, `--no-ignore`, `--no-ignore-parent`,
+  `--no-ignore-dot`, `--no-ignore-vcs`, and `--treat-doc-strings-as-comments`
+  were root-only, so `tokmd export --hidden` failed with
+  `unexpected argument '--hidden' found` (and clap unhelpfully suggested
+  `--children`) while `tokmd --hidden export` worked. Nothing in the help
+  output distinguished them from `--exclude` and `--no-progress`, which were
+  already global. They are now all global, and appear in every subcommand's
+  `--help`. `--verbose` deliberately stays root-only because
+  `tokmd check-ignore` defines its own `-v`.
+- `tokmd <typo>` can once again suggest every subcommand. The "did you mean"
+  list was a hard-coded literal that had fallen four commands behind, so a
+  misspelling of `render`, `packet`, `evidence-packet`, or `syntax` produced no
+  suggestion at all — only a generic pointer to `--help`. It is now derived
+  from the clap parser, so it stays current automatically and reflects
+  feature-gated commands only when they are compiled in.
+- `docs/reference-cli.md` now regenerates the `syntax`, `evidence-packet`, and
+  `render` help blocks. All three had `<!-- HELP: -->` marker pairs in the file
+  but no entry in the `cargo xtask docs` generator list, so they were never
+  rewritten and had frozen at whatever was last pasted in by hand — which meant
+  `cargo xtask docs --check` reported the reference as up to date while those
+  three blocks drifted. They were missing the scan options this release makes
+  global, along with other accumulated changes.
+
 ### Changed
 
 - Refreshed the `rust-minor-patch` dependency group to semver-compatible
@@ -29,6 +77,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as `latest` and any non-gated tag are hard errors pointing at
   `docs/specs/packet-ghcr-runtime.md`. The default `binary` runtime is
   unchanged. No version bump, tag, or publish accompanies this change.
+
+### Fixed
+
+- Dropped the stale `version: '1.11.0'` pin from every copy-pasteable GitHub
+  Action example: both blocks in `README.md` plus 16 more across
+  `docs/action-quickstart.md`, `docs/github-action.md`, `docs/start-here.md`,
+  `docs/install.md`, `docs/install-and-try.md`, `docs/recipes.md`,
+  `docs/browser-to-native.md`, and `docs/tokmd-in-cockpit.md`. The workspace is
+  at 1.14.0 and released Action refs now carry an exact default matching the
+  workspace release, so copy-pasting any of them would pin adopters to a
+  three-minor-versions-old binary — worse than inheriting the ref's exact
+  default. They now omit the input. The
+  Versioning Model section of `docs/github-action.md` still pins explicitly,
+  because demonstrating the `version` input is its purpose; that example moves
+  to 1.14.0. The release-candidate example and the version-to-tag mapping table
+  keep their `1.11.0` strings, which illustrate format rather than recommend a
+  release.
+- Dropped the `version: '1.14.0'` pin from the three `mode: packet` Action
+  examples in `docs/github-action.md`, `docs/action-quickstart.md`, and
+  `docs/packet-workflows.md`. The first sweep missed them because they pin the
+  current version rather than a stale one, and one of them quotes the value
+  differently. They are ordinary copy-pasteable examples with no reason to pin,
+  and they would have gone stale on the next release exactly as the `1.11.0`
+  ones did. The `runtime: container` example in `docs/packet-workflows.md` keeps
+  its explicit `version`, which has to match the verification-gated image tag.
+- Added link-reference definitions to `CHANGELOG.md`. All 29 `## [version]`
+  headings were dangling shortcut references that rendered as literal
+  `[1.14.0]` text; each now resolves to a GitHub compare view (or, for
+  `0.1.0`, the release tag).
+
+### Fixed
+
+- Root/default-mode options that were parsed before a subcommand and then
+  silently ignored now fail as typed usage errors instead of producing output
+  under the wrong contract.
+- Output aliases preserve script compatibility while generated help and
+  examples use canonical `--output` and `--output-dir` spellings.
+- Release metadata and artifact checks now cover the Action default, CFF
+  version/date, archive-enabled WASM, exact container digests, and delayed
+  mutable-alias promotion.
+
+### Non-claims
+
+- Syntax and AST evidence remain advisory or shadow evidence unless a
+  downstream policy explicitly promotes them.
+- tokmd does not prove absence of undefined behavior, make automatic merge
+  decisions, or promote proof, mutation, coverage, or AST results by default.
+- The inactive Homebrew, AUR, Scoop, and WinGet prototypes are not supported
+  distribution channels for 1.15.
+- A container tag is unsupported until its exact image passes the candidate and
+  anonymous runtime verification gates.
 
 ## [1.14.0] - 2026-06-25
 
@@ -1219,3 +1318,34 @@ Stable release following `v1.10.0-rc.1` validation.
 
 ## [0.1.0] - 2026-01-25
 - Initial prototype release.
+
+[Unreleased]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...main
+[1.15.0-rc.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...v1.15.0-rc.1
+[1.14.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.1...v1.14.0
+[1.13.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.0...v1.13.1
+[1.13.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.11.1...v1.12.0
+[1.11.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.11.0...v1.11.1
+[1.11.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.2...v1.10.0
+[1.9.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.1...v1.9.2
+[1.9.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.8.1...v1.9.0
+[1.8.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.3...v1.8.0
+[1.7.3]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.2...v1.7.3
+[1.7.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.1...v1.7.2
+[1.7.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.3...v1.7.0
+[1.6.3]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.2...v1.6.3
+[1.6.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.3.1...v1.4.0
+[1.3.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/EffortlessMetrics/tokmd/compare/v0.1.0...v1.0.0
+[0.1.0]: https://github.com/EffortlessMetrics/tokmd/releases/tag/v0.1.0

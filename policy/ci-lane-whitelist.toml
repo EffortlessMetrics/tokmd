@@ -833,7 +833,7 @@ expires          = "2026-11-07"
 [[lane]]
 id               = "release_docker"
 workflow         = ".github/workflows/release.yml"
-job              = "Build and Push Docker Image"
+job              = "Promote Verified Docker Image"
 kind             = "release"
 tier             = "deep"
 default_pr       = false
@@ -849,6 +849,86 @@ allowed_triggers = ["push"]
 duplicate_of     = []
 review_after     = "2026-06-07"
 expires          = "2026-11-07"
+
+[[lane]]
+id               = "release_verify_container"
+workflow         = ".github/workflows/release.yml"
+job              = "Verify exact container artifact"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "release/publish"
+intent           = "Verify the exact stable GHCR image anonymously before any mutable alias promotion."
+failure_mode     = "A release alias points at a container image that has not passed consumer-facing version and packet execution checks."
+proof_obligation = "Pull the exact tag anonymously, assert tokmd --version, and generate a complete mounted-repository evidence packet."
+evidence         = ["release workflow logs", "GITHUB_STEP_SUMMARY"]
+allowed_triggers = ["push"]
+duplicate_of     = ["ghcr_container_smoke"]
+review_after     = "2026-08-02"
+expires          = "2027-02-02"
+
+[[lane]]
+id               = "release_candidate_container"
+workflow         = ".github/workflows/release-candidate.yml"
+job              = "Build and verify pre-tag candidate image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 30
+owner            = "release/publish"
+intent           = "Prove the final source commit's candidate container before a release tag exists."
+failure_mode     = "A release tag points at a container image that was never proven from the exact source commit."
+proof_obligation = "Build candidate-<commit-sha>, anonymously pull it, assert tokmd --version, run mounted packet content checks, and record the immutable digest."
+evidence         = ["release workflow logs", "container-candidate-<commit-sha>", "GITHUB_STEP_SUMMARY"]
+allowed_triggers = ["workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-08-03"
+expires          = "2027-02-03"
+
+[[lane]]
+id               = "release_verify_action"
+workflow         = ".github/workflows/release.yml"
+job              = "Verify exact-tag Action default"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 8
+owner            = "release/action"
+intent           = "Verify the tagged Action downloads and reports the exact release version."
+failure_mode     = "The release workflow verifies a binary from a different release line than the tag under test."
+proof_obligation = "Check out the exact release tag, invoke the local Action with version=<ref>, and assert the generated receipt names the tag version."
+evidence         = ["release workflow logs", "action-verification-<ref>"]
+allowed_triggers = ["push"]
+duplicate_of     = ["test_action_main"]
+review_after     = "2026-08-02"
+expires          = "2027-02-02"
+
+[[lane]]
+id               = "release_promote_aliases"
+workflow         = ".github/workflows/release.yml"
+job              = "Promote stable aliases"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 4
+owner            = "release/publish"
+intent           = "Move v1 and mutable GHCR aliases only after exact release, crate, container, and Action gates pass."
+failure_mode     = "Mutable consumer aliases move before the release surfaces are proven."
+proof_obligation = "Require publish-crates, exact-container verification, and exact-tag Action verification before moving aliases."
+evidence         = ["release workflow logs", "GitHub tag ref", "GHCR manifest tags"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-08-02"
+expires          = "2027-02-02"
 
 [[lane]]
 id               = "test_action_main"

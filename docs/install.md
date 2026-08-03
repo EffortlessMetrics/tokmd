@@ -41,7 +41,6 @@ Use the root composite Action when you want CI receipts, PR summaries, artifacts
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
     paths: .
 ```
 

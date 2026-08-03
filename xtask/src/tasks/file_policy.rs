@@ -328,6 +328,220 @@ mod tests {
         }
     }
 
+    /// Whether a failed `git ls-files` means "there is no repository here"
+    /// rather than "this repository is broken".
+    ///
+    /// Anchored to the start of git's fatal line rather than searched across
+    /// the whole of stderr: the dubious-ownership message interpolates the
+    /// repository path, so a bare substring test reads a checkout living under
+    /// a directory named "not a git repository" as having no repository at all
+    /// -- silently skipping the case most worth asserting on.
+    fn stderr_means_no_repository(stderr: &str) -> bool {
+        stderr
+            .lines()
+            .any(|line| line.starts_with("fatal: not a git repository"))
+    }
+
+    /// The repo's tracked files, or `None` when the invariant cannot be
+    /// evaluated here.
+    ///
+    /// Unevaluable environments and real errors are deliberately treated
+    /// differently, and the line between them is not simply git's exit code.
+    /// A failing `git ls-files` lands in one of two buckets:
+    ///
+    /// - **Skipped**, because the invariant cannot be evaluated: git is
+    ///   absent, or the tree is not a git repository at all. An exported
+    ///   source archive has no `.git`, and asking `git ls-files` there fails
+    ///   -- treating that as a fault would fail `cargo test` on a perfectly
+    ///   healthy archive tree.
+    /// - **Asserted**, because the tree *is* a repository and something is
+    ///   wrong with it: a container tripping `safe.directory` ownership
+    ///   checks, or a corrupt index. Swallowing these would let a repository
+    ///   that violates the invariant report green.
+    ///
+    /// All three exit 128, so the exit code cannot carry the distinction, and
+    /// neither can a `rev-parse --is-inside-work-tree` probe: repository
+    /// discovery runs the same ownership check, so a `safe.directory` trip
+    /// fails the probe exactly as it fails `ls-files` -- the very case most
+    /// worth asserting on would have been silently skipped. (A corrupt index
+    /// does *not* fail the probe, since `rev-parse` never reads the index, so
+    /// a probe would have split these two apart for no good reason.) What
+    /// actually separates them is git's own message, so that is what is
+    /// matched, under `LC_ALL=C` to keep the marker stable when a translation
+    /// catalog is installed.
+    fn tracked_files_for_policy(root: &Path) -> Result<Option<String>> {
+        // `NotFound` from `Command::output` is ambiguous: a missing `git`
+        // executable and a missing `current_dir` both surface as ENOENT from
+        // the same call, so the spawn error alone cannot tell them apart.
+        // Rule the bad root out here, or it would take the git-is-absent arm
+        // below and skip the invariant instead of reporting the fault.
+        if !root.is_dir() {
+            anyhow::bail!(
+                "cannot check the tracked-file invariant: {} is not a directory",
+                root.to_string_lossy().replace('\\', "/")
+            );
+        }
+        let output = match std::process::Command::new("git")
+            .arg("ls-files")
+            .current_dir(root)
+            .env("LC_ALL", "C")
+            .output()
+        {
+            Ok(output) => output,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => anyhow::bail!(
+                "failed to spawn `git ls-files` while checking tracked files: {error}"
+            ),
+        };
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            if stderr_means_no_repository(&stderr) {
+                return Ok(None);
+            }
+            let root_display = root.to_string_lossy().replace('\\', "/");
+            anyhow::bail!(
+                "`git ls-files` failed with {} in the repository at {root_display}; the \
+                 tracked-file invariant could not be checked. stderr: {}",
+                output.status,
+                stderr.trim()
+            );
+        }
+        Ok(Some(String::from_utf8_lossy(&output.stdout).into_owned()))
+    }
+
+    /// Whether a `workspace_root` failure means "cargo is not installed here"
+    /// rather than "this workspace is broken".
+    ///
+    /// `cargo_metadata` surfaces a missing executable as `Error::Io` with
+    /// `NotFound`; a manifest or workspace fault arrives as a different
+    /// variant. `anyhow` keeps the concrete error in the source chain, so the
+    /// distinction survives the `context` wrapper in `workspace_root`.
+    fn cargo_metadata_is_unavailable(error: &anyhow::Error) -> bool {
+        matches!(
+            error.downcast_ref::<cargo_metadata::Error>(),
+            Some(cargo_metadata::Error::Io(io)) if io.kind() == std::io::ErrorKind::NotFound
+        )
+    }
+
+    /// Tracked paths that live under a component the policy walk skips.
+    ///
+    /// Split out so the detection has a red state: run against the real
+    /// repository it is always empty, which cannot distinguish "no offenders"
+    /// from "the filter never matches anything".
+    fn tracked_offenders(listing: &str) -> Vec<&str> {
+        listing
+            .lines()
+            .filter(|line| !line.is_empty())
+            .filter(|line| line.split('/').any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c)))
+            .collect()
+    }
+
+    #[test]
+    fn tracked_offenders_finds_files_under_a_skipped_component() {
+        // The positive case the repo itself cannot provide. Without this, a
+        // filter that matched nothing would pass the invariant test forever.
+        let listing = "src/main.rs\nfixtures/target/blob.json\ndocs/guide.md\ntarget/out.bin\n";
+        assert_eq!(
+            tracked_offenders(listing),
+            vec!["fixtures/target/blob.json", "target/out.bin"]
+        );
+        // A clean listing must stay clean -- including paths that merely
+        // contain the component name as a substring.
+        assert!(tracked_offenders("src/targeting.rs\ndocs/on-target.md\n").is_empty());
+    }
+
+    #[test]
+    fn a_real_git_ls_files_error_is_not_skipped() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let initialized = match std::process::Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(temp.path())
+            .env("LC_ALL", "C")
+            .output()
+        {
+            Ok(output) => output,
+            // Only a missing git makes this witness impossible. Swallowing
+            // every spawn error here would quietly turn the one test that
+            // proves failures are not skipped into a no-op -- the same
+            // conflation it exists to catch.
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => {
+                anyhow::bail!("failed to spawn `git init` for the corrupt-index case: {error}")
+            }
+        };
+        if !initialized.status.success() {
+            anyhow::bail!(
+                "git init failed: {}",
+                String::from_utf8_lossy(&initialized.stderr).trim()
+            );
+        }
+        fs::write(temp.path().join(".git/index"), b"corrupt")?;
+
+        let error = tracked_files_for_policy(temp.path())
+            .expect_err("a corrupt index is a real git failure, not an unevaluable source archive");
+        assert!(error.to_string().contains("git ls-files"));
+        Ok(())
+    }
+
+    #[test]
+    fn only_a_missing_repository_counts_as_unevaluable() {
+        // Verbatim `git ls-files` stderr, measured under `LC_ALL=C`. All three
+        // real cases exit 128, which is why the exit code cannot carry this
+        // distinction and the message has to.
+        assert!(stderr_means_no_repository(
+            "fatal: not a git repository (or any of the parent directories): .git\n"
+        ));
+        assert!(!stderr_means_no_repository(
+            "fatal: detected dubious ownership in repository at '/repo'\n"
+        ));
+        assert!(!stderr_means_no_repository(
+            "fatal: .git/index: index file smaller than expected\n"
+        ));
+        // The repository path is interpolated into the ownership message, so a
+        // checkout that happens to live under this name is still a real fault.
+        assert!(!stderr_means_no_repository(
+            "fatal: detected dubious ownership in repository at '/tmp/not a git repository/wt'\n"
+        ));
+        assert!(!stderr_means_no_repository(
+            "fatal: bad config line 1 in file .git/config\n"
+        ));
+        // `str::lines` strips the trailing `\r`, so the anchor still matches
+        // when git writes CRLF; pinned because the prefix test would otherwise
+        // be sensitive to a line ending nobody thinks about.
+        assert!(stderr_means_no_repository(
+            "fatal: not a git repository (or any of the parent directories): .git\r\n"
+        ));
+        // The marker is honoured on any line, not just the first.
+        assert!(stderr_means_no_repository(
+            "warning: unable to access config\nfatal: not a git repository (or any of the parent directories): .git\n"
+        ));
+    }
+
+    #[test]
+    fn source_archive_without_git_is_unevaluable() -> Result<()> {
+        let archive = tempfile::tempdir()?;
+        assert!(tracked_files_for_policy(archive.path())?.is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn a_missing_root_is_not_skipped() -> Result<()> {
+        // A root that does not exist makes `Command::output` fail with the same
+        // `NotFound` that a missing `git` produces, so without the explicit
+        // directory check this would report unevaluable rather than a fault.
+        // Bind the `TempDir`: the parent has to outlive the call so that only
+        // `gone` is missing. Joining onto a temporary would drop the directory
+        // at the end of the statement and pass for the wrong reason.
+        let parent = tempfile::tempdir()?;
+        let absent = parent.path().join("gone");
+        assert!(parent.path().is_dir(), "the parent must exist");
+        assert!(!absent.exists(), "only the joined name must be missing");
+        let error = tracked_files_for_policy(&absent)
+            .expect_err("a nonexistent root is a caller error, not an unevaluable environment");
+        assert!(error.to_string().contains("is not a directory"));
+        Ok(())
+    }
+
     /// Skipping `target` at any depth is only safe while no tracked file lives
     /// under such a path. That held when the rule was introduced, but it is an
     /// assumption about repository contents rather than about this module, so
@@ -335,32 +549,26 @@ mod tests {
     /// e.g. `fixtures/target/` would otherwise vanish from the policy walk
     /// silently.
     #[test]
-    fn no_tracked_file_lives_under_a_target_component() {
-        let Ok(root) = workspace_root() else {
-            return;
+    fn no_tracked_file_lives_under_a_target_component() -> Result<()> {
+        let root = match workspace_root() {
+            Ok(root) => root,
+            // Only an absent `cargo` makes the workspace root unknowable. Any
+            // other metadata failure -- a malformed manifest, an unreadable
+            // workspace -- is a real fault, and swallowing it here would skip
+            // the invariant for the same reason this test exists to reject.
+            Err(error) if cargo_metadata_is_unavailable(&error) => return Ok(()),
+            Err(error) => return Err(error),
         };
-        let Ok(output) = std::process::Command::new("git")
-            .arg("ls-files")
-            .current_dir(&root)
-            .output()
-        else {
-            // git unavailable: nothing to assert against.
-            return;
+        let Some(listing) = tracked_files_for_policy(&root)? else {
+            return Ok(());
         };
-        if !output.status.success() {
-            return;
-        }
-        let listing = String::from_utf8_lossy(&output.stdout);
-        let offenders: Vec<&str> = listing
-            .lines()
-            .filter(|line| !line.is_empty())
-            .filter(|line| line.split('/').any(|c| SKIP_DIRS_ANY_DEPTH.contains(&c)))
-            .collect();
+        let offenders = tracked_offenders(&listing);
         assert!(
             offenders.is_empty(),
             "tracked files live under a skipped build-output component and would be \
              invisible to the file-policy walk: {offenders:?}"
         );
+        Ok(())
     }
 
     #[test]

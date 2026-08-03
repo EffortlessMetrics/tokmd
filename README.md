@@ -62,7 +62,6 @@ For CI adoption, start with the GitHub Action quickstart:
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
     paths: .
     artifact: 'true'
 ```
@@ -158,7 +157,6 @@ Use the root composite Action when you want `tokmd` receipts, PR summaries, arti
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
     paths: .
 ```
 

@@ -28,11 +28,37 @@ pub(crate) mod syntax;
 pub(crate) mod tools;
 
 use crate::cli;
-use anyhow::Result;
+use anyhow::{Error, Result};
 
 use crate::config::ResolvedConfig;
 
+#[derive(Debug)]
+pub(crate) struct UsageError(String);
+
+impl std::fmt::Display for UsageError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for UsageError {}
+
+fn reject_implicit_lang_options_with_subcommand(cli: &cli::Cli) -> Result<()> {
+    if cli.command.is_some()
+        && (cli.lang.format.is_some()
+            || cli.lang.top.is_some()
+            || cli.lang.files
+            || cli.lang.children.is_some())
+    {
+        return Err(Error::new(UsageError(
+            "default `lang` options cannot appear before a subcommand; move them after the command (for example, `tokmd module --format json`)".to_string(),
+        )));
+    }
+    Ok(())
+}
+
 pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
+    reject_implicit_lang_options_with_subcommand(&cli)?;
     let global = &cli.global;
     match cli.command.unwrap_or(cli::Commands::Lang(cli.lang.clone())) {
         cli::Commands::Completions(args) => completions::handle(args),
@@ -65,5 +91,58 @@ pub(crate) fn dispatch(cli: cli::Cli, resolved: &ResolvedConfig) -> Result<()> {
         cli::Commands::Packet(args) => packet::handle(args, global),
         #[cfg(not(feature = "analysis"))]
         _ => anyhow::bail!("analysis feature is not enabled"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser;
+
+    use super::*;
+
+    #[test]
+    fn rejects_default_lang_options_before_a_subcommand() -> Result<()> {
+        let cases: &[&[&str]] = &[
+            &["tokmd", "--format", "json", "module"],
+            &["tokmd", "--top", "5", "module"],
+            &["tokmd", "--files", "module"],
+            &["tokmd", "--children", "separate", "module"],
+            &["tokmd", "--format", "json", "module", "--format", "md"],
+            &["tokmd", "--files", "analyze"],
+        ];
+
+        for args in cases {
+            let parsed = cli::Cli::try_parse_from(*args)?;
+            if reject_implicit_lang_options_with_subcommand(&parsed).is_ok() {
+                return Err(anyhow::anyhow!(
+                    "accepted ignored root option case: {args:?}"
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn accepts_lang_options_after_a_subcommand() -> Result<()> {
+        let cases: &[&[&str]] = &[
+            &["tokmd", "module", "--format", "json"],
+            &["tokmd", "module", "--top", "5"],
+            &["tokmd", "module", "--children", "separate"],
+        ];
+        for args in cases {
+            let parsed = cli::Cli::try_parse_from(*args)?;
+            reject_implicit_lang_options_with_subcommand(&parsed)?;
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn module_subcommand_rejects_lang_only_files_flag() -> Result<()> {
+        if cli::Cli::try_parse_from(["tokmd", "module", "--files"]).is_ok() {
+            return Err(anyhow::anyhow!(
+                "module unexpectedly accepted unsupported --files"
+            ));
+        }
+        Ok(())
     }
 }

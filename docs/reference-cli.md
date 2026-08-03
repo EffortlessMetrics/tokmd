@@ -61,11 +61,23 @@ Options:
           - tsv:  Tab-separated values (good for piping to other tools)
           - json: JSON (compact)
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --top <TOP>
           Show only the top N rows (by code lines), plus an "Other" row if needed. Use 0 to show all rows
 
       --files
           Include file counts and average lines per file
+
+      --hidden
+          Count hidden files and directories
 
       --children <CHILDREN>
           How to handle embedded languages (tokei "children" / blobs) [default: collapse]
@@ -73,6 +85,25 @@ Options:
           Possible values:
           - collapse: Merge embedded content into the parent language totals
           - separate: Show embedded languages as separate "(embedded)" rows
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -140,8 +171,20 @@ Options:
           - tsv:  Tab-separated values (good for piping to other tools)
           - json: JSON (compact)
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --top <TOP>
           Show only the top N modules (by code lines), plus an "Other" row if needed. Use 0 to show all rows
+
+      --hidden
+          Count hidden files and directories
 
       --module-roots <MODULE_ROOTS>
           Treat these top-level directories as "module roots" [default: crates,packages].
@@ -155,12 +198,31 @@ Options:
 
           [alias: --depth]
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) in module totals [default: separate]
 
           Possible values:
           - separate:     Include embedded languages as separate contributions
           - parents-only: Ignore embedded languages
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -219,10 +281,22 @@ Options:
           - json:      A single JSON array
           - cyclonedx: CycloneDX 1.6 JSON SBOM format
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --output <PATH>
           Write output to this file instead of stdout
 
           [alias: --out]
+
+      --hidden
+          Count hidden files and directories
 
       --module-roots <MODULE_ROOTS>
           Module roots (see `tokmd module`) [default: crates,packages]
@@ -232,6 +306,11 @@ Options:
 
           [alias: --depth]
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --children <CHILDREN>
           Whether to include embedded languages (tokei "children" / blobs) [default: separate]
 
@@ -239,16 +318,30 @@ Options:
           - separate:     Include embedded languages as separate contributions
           - parents-only: Ignore embedded languages
 
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
       --min-code <MIN_CODE>
           Drop rows with fewer than N code lines [default: 0]
 
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
       --max-rows <MAX_ROWS>
           Stop after emitting N rows (0 = unlimited) [default: 0]
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
 
       --meta <META>
           Include a meta record (JSON / JSONL only). Enabled by default
 
           [possible values: true, false]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --redact <REDACT>
           Redact paths (and optionally module names) for safer copy/paste into LLMs [default: none]
@@ -316,13 +409,43 @@ Options:
       --output-dir <OUTPUT_DIR>
           Output directory for artifacts (defaults to `.runs/tokmd` inside the repo, or system temp if not possible)
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --name <NAME>
           Tag or name for this run
 
       --analysis <ANALYSIS>
           Also emit analysis receipts using this preset
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --redact <REDACT>
           Redact paths (and optionally module names) for safer copy/paste into LLMs
@@ -331,6 +454,20 @@ Options:
           - none:  Do not redact
           - paths: Redact file paths
           - all:   Redact file paths and module names
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -397,12 +534,37 @@ Options:
       --preset <PRESET>
           Analysis preset to run [default: receipt]
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
+
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
 
       --format <FORMAT>
           Output format [default: md]
 
           [possible values: md, json, jsonld, xml, svg, mermaid, obj, midi, tree, html]
+
+      --hidden
+          Count hidden files and directories
 
       --window <WINDOW>
           Context window size (tokens) for utilization bars
@@ -410,8 +572,19 @@ Options:
       --git
           Force-enable git-based metrics
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --no-git
           Disable git-based metrics
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
 
       --output-dir <OUTPUT_DIR>
           Output directory for analysis artifacts
@@ -419,8 +592,16 @@ Options:
       --max-files <MAX_FILES>
           Limit how many files are walked for asset/deps/content scans
 
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
       --max-bytes <MAX_BYTES>
           Limit total bytes read during content scans
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --max-file-bytes <MAX_FILE_BYTES>
           Limit bytes per file during content scans [default for file-backed scans: 131072]
@@ -581,11 +762,42 @@ Options:
 
           [default: .tokmd/baseline.json]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --determinism
           Include determinism baseline (hash build artifacts)
 
   -f, --force
           Force overwrite existing baseline
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -651,27 +863,71 @@ Options:
 
           [possible values: lines, tokens, bytes, doc, blank, hotspot]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --preset <PRESET>
           Optional analysis preset to use for the badge
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --git
           Force-enable git-based metrics
 
+      --hidden
+          Count hidden files and directories
+
       --no-git
           Disable git-based metrics
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --max-commits <MAX_COMMITS>
           Limit how many commits are scanned for git metrics
 
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
       --max-commit-files <MAX_COMMIT_FILES>
           Limit files per commit when scanning git history
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
 
       --output <OUTPUT>
           Output file for the badge (defaults to stdout)
 
           [alias: --out]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -730,6 +986,15 @@ Options:
       --from <FROM>
           Base receipt/run or git ref to compare from
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --to <TO>
           Target receipt/run or git ref to compare to
 
@@ -742,8 +1007,16 @@ Options:
 
           [default: md]
 
+      --hidden
+          Count hidden files and directories
+
       --compact
           Compact output for narrow terminals (summary table only)
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --color <COLOR>
           Color policy for terminal output
@@ -754,6 +1027,20 @@ Options:
           - never:  Never emit ANSI color
 
           [default: auto]
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -813,11 +1100,28 @@ Options:
 
           [alias: --ignore]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --force
           Overwrite an existing `.tokeignore`
 
+      --hidden
+          Count hidden files and directories
+
       --print
           Print the template to stdout instead of writing a file
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --template <TEMPLATE>
           Which template profile to use
@@ -825,8 +1129,22 @@ Options:
           [default: default]
           [possible values: default, rust, node, mono, python, go, cpp]
 
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
       --non-interactive
           Skip interactive wizard and use defaults
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -903,6 +1221,15 @@ Options:
 
           [alias: --ignore]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --strategy <STRATEGY>
           Packing strategy
 
@@ -911,6 +1238,9 @@ Options:
           - spread: Round-robin across modules/languages for coverage, then greedy fill
 
           [default: greedy]
+
+      --hidden
+          Count hidden files and directories
 
       --rank-by <RANK_BY>
           Metric to rank files by
@@ -933,8 +1263,19 @@ Options:
 
           [default: list]
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --compress
           Strip blank lines from bundle output
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
 
       --no-smart-exclude
           Disable smart exclusion of lockfiles, minified files, and generated artifacts
@@ -942,10 +1283,18 @@ Options:
       --module-roots <MODULE_ROOTS>
           Module roots (see `tokmd module`)
 
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
 
           [alias: --depth]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --git
           Enable git-based ranking (required for churn/hotspot)
@@ -974,8 +1323,10 @@ Options:
       --force
           Overwrite existing output file
 
-      --bundle-dir <DIR>
+      --output-dir <DIR>
           Write bundle to directory with manifest (for large outputs)
+
+          [alias: --bundle-dir]
 
       --max-output-bytes <MAX_OUTPUT_BYTES>
           Warn if output exceeds N bytes (default: 10MB, 0=disable)
@@ -1059,15 +1410,28 @@ Options:
 
           [alias: --ignore]
 
-      --out-dir <OUT_DIR>
-          Output directory for handoff artifacts
+      --output-dir <OUT_DIR>
+          Output directory for handoff artifacts. `--out-dir` is a compatibility alias
 
           [default: .handoff]
+          [alias: --out-dir]
 
       --budget <BUDGET>
           Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited")
 
           [default: 128k]
+
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
 
       --strategy <STRATEGY>
           Packing strategy for code bundle
@@ -1077,6 +1441,11 @@ Options:
           - spread: Round-robin across modules/languages for coverage, then greedy fill
 
           [default: greedy]
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --rank-by <RANK_BY>
           Metric to rank files by for packing
@@ -1088,6 +1457,9 @@ Options:
           - hotspot: Rank by hotspot score (requires git feature)
 
           [default: hotspot]
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
 
       --preset <PRESET>
           Intelligence preset level
@@ -1103,13 +1475,24 @@ Options:
       --module-roots <MODULE_ROOTS>
           Module roots (see `tokmd module`)
 
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
       --module-depth <MODULE_DEPTH>
           Module depth (see `tokmd module`)
 
           [alias: --depth]
 
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
       --force
           Overwrite existing output directory
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --compress
           Strip blank lines from code bundle
@@ -1173,7 +1556,7 @@ Options:
           Print help (see a summary with '-h')
 
 Examples:
-  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k
+  tokmd handoff crates/tokmd xtask --output-dir .handoff --budget 128k
   tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json
   tokmd handoff --no-git
 ```
@@ -1218,6 +1601,37 @@ Options:
 
   -v, --verbose
           Show verbose output with rule sources
+
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -1283,8 +1697,39 @@ Options:
 
           [default: jsonschema]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --pretty
           Pretty-print JSON output
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -1350,6 +1795,15 @@ Options:
 
           [alias: --ignore]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --head <HEAD>
           Head reference to compare to (default: HEAD)
 
@@ -1366,11 +1820,25 @@ Options:
 
           [default: json]
 
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --output <PATH>
           Output file (stdout if omitted)
 
       --artifacts-dir <DIR>
           Write cockpit artifacts (`cockpit.json`, `report.json`, `comment.md`) to directory
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
 
       --review-packet-dir <DIR>
           Write review packet artifacts (`manifest.json`, `cockpit.json`, `evidence.json`, `review-map.json`, `review-map.md`, `comment.md`) to directory
@@ -1380,8 +1848,16 @@ Options:
 
           When provided, cockpit will compute delta metrics showing how the current state compares to the baseline.
 
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
       --proof-run-summary <PATH>
           Import required proof-run summary evidence into review packets
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --proof-observation <PATH>
           Import proof-run observation evidence into review packets
@@ -1536,10 +2012,22 @@ Options:
 
           [alias: --ignore]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --head <HEAD>
           Head reference to compare to (default: HEAD)
 
           [default: HEAD]
+
+      --hidden
+          Count hidden files and directories
 
       --output <PATH>
           Output file for the sensor report
@@ -1554,6 +2042,25 @@ Options:
           - md:   Markdown summary
 
           [default: json]
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -1628,26 +2135,60 @@ Arguments:
 Options:
       --exclude <PATTERN>
           Exclude pattern(s) using gitignore syntax. Repeatable.
-          
+
           Examples: --exclude target --exclude "**/*.min.js"
-          
-          [aliases: --ignore]
+
+          [alias: --ignore]
 
       --max-bytes <MAX_BYTES>
           Maximum bytes per file before syntax parsing is skipped
-          
+
           [default: 1048576]
+
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
 
       --include-generated-vendor
           Include generated and vendor paths instead of recording policy skips
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
 
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
-          
-          [aliases: --view]
+
+          [alias: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
 
   -h, --help
           Print help (see a summary with '-h')
@@ -1692,23 +2233,54 @@ Options:
 
           Examples: --exclude target --exclude "**/*.min.js"
 
-          [aliases: --ignore]
+          [alias: --ignore]
 
       --preset <PRESET>
           Analysis preset used to generate analyze.md and analyze.json
 
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
+
           [default: bun-ub]
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
 
       --base <BASE>
           Base reference used by analyze artifacts
 
           [default: origin/main]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --head <HEAD>
           Head reference used by analyze artifacts
 
           [default: HEAD]
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
 
       --output <PATH>
           Output path for the evidence packet manifest
@@ -1718,14 +2290,28 @@ Options:
       --analyze-md <PATH>
           Path to the Markdown analysis artifact
 
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
       --analyze-json <PATH>
           Path to the JSON analysis artifact
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
 
       --context-md <PATH>
           Path to the context Markdown artifact
 
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
       --syntax-json <PATH>
           Path to the optional syntax JSON artifact
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --context-budget <CONTEXT_BUDGET>
           Context budget used for the context artifact reproduction command
@@ -1738,7 +2324,7 @@ Options:
       --profile <PROFILE>
           Configuration profile to use (e.g., "llm_safe", "ci")
 
-          [aliases: --view]
+          [alias: --view]
 
       --show-config
           Print the resolved configuration sources and values, then exit
@@ -1797,6 +2383,37 @@ Options:
 
           [alias: --ignore]
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
+
       --no-progress
           Disable progress spinners
 
@@ -1854,19 +2471,72 @@ Render audience-specific Markdown from cross-tool packet bundles
 Usage: tokmd render [OPTIONS] --from-packets <DIR> --preset <PRESET>
 
 Options:
+      --exclude <PATTERN>
+          Exclude pattern(s) using gitignore syntax. Repeatable.
+
+          Examples: --exclude target --exclude "**/*.min.js"
+
+          [alias: --ignore]
+
       --from-packets <DIR>
           Packet bundle directory containing `tokmd-packets.json`
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
       --preset <PRESET>
           Audience-specific packet preset to render
-          
+
           [possible values: bun-ub-handoff, bun-ub-pr-body, bun-ub-ledger-note, bun-ub-review-map, bun-ub-next-pick]
+
+      --hidden
+          Count hidden files and directories
 
   -o, --output <PATH>
           Optional output file. Prints to stdout when omitted
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
+
+      --no-progress
+          Disable progress spinners
+
+      --profile <PROFILE>
+          Configuration profile to use (e.g., "llm_safe", "ci")
+
+          [alias: --view]
+
+      --show-config
+          Print the resolved configuration sources and values, then exit
+
   -h, --help
           Print help (see a summary with '-h')
+
+Examples:
+  tokmd render --from-packets ./bundle --preset bun-ub-handoff
+  tokmd render --from-packets ./bundle --preset bun-ub-pr-body --output handoff.md
 ```
 <!-- /HELP: render -->
 
@@ -1919,15 +2589,45 @@ Options:
 
           When provided, gate will evaluate ratchet rules comparing current metrics against the baseline values.
 
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
+
       --ratchet-config <PATH>
           Path to ratchet config file (TOML format).
 
           Defines rules for comparing current metrics against baseline. Can also be specified inline in tokmd.toml under [[gate.ratchet]].
 
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
       --preset <PRESET>
           Analysis preset (for compute-then-gate mode)
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --format <FORMAT>
           Output format
@@ -1938,8 +2638,22 @@ Options:
 
           [default: text]
 
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
       --fail-fast
           Fail fast on first error
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners
@@ -2129,6 +2843,37 @@ Options:
           Examples: --exclude target --exclude "**/*.min.js"
 
           [alias: --ignore]
+
+      --config <MODE>
+          Whether to load scan config files (`tokei.toml` / `.tokeirc`)
+
+          Possible values:
+          - auto: Read scan config files (`tokei.toml` / `.tokeirc`) if present
+          - none: Ignore config files
+
+          [default: auto]
+
+      --hidden
+          Count hidden files and directories
+
+      --no-ignore
+          Don't respect ignore files (.gitignore, .ignore, etc.).
+
+          Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
+
+      --no-ignore-parent
+          Don't respect ignore files in parent directories
+
+      --no-ignore-dot
+          Don't respect .ignore and .tokeignore files (including in parent directories)
+
+      --no-ignore-vcs
+          Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents
+
+          [alias: --no-ignore-git]
+
+      --treat-doc-strings-as-comments
+          Treat doc strings as comments (language-dependent)
 
       --no-progress
           Disable progress spinners

@@ -31,7 +31,7 @@ pub enum PacketCommand {
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    after_help = "Examples:\n  tokmd packet generate --base origin/main --head HEAD src/runtime/api\n  tokmd packet generate --preset bun-ub --out sensors/tokmd --no-syntax src/runtime/api/MarkdownObject.rs"
+    after_help = "Examples:\n  tokmd packet generate --base origin/main --head HEAD src/runtime/api\n  tokmd packet generate --preset bun-ub --output-dir sensors/tokmd --no-syntax src/runtime/api/MarkdownObject.rs"
 )]
 pub struct PacketGenerateArgs {
     /// Analysis preset used to generate analyze.md and analyze.json.
@@ -46,8 +46,13 @@ pub struct PacketGenerateArgs {
     #[arg(long, default_value = "HEAD")]
     pub head: String,
 
-    /// Output directory for the packet artifacts and manifest.
-    #[arg(long = "out", value_name = "DIR", default_value = DEFAULT_PACKET_DIR)]
+    /// Output directory for the packet artifacts and manifest. `--out` is a compatibility alias.
+    #[arg(
+        long = "output-dir",
+        visible_alias = "out",
+        value_name = "DIR",
+        default_value = DEFAULT_PACKET_DIR
+    )]
     pub out: PathBuf,
 
     /// Request optional syntax evidence (`syntax.json`). On by default; this
@@ -123,5 +128,30 @@ mod tests {
     #[test]
     fn generate_requires_paths() {
         assert!(Cli::try_parse_from(["tokmd", "packet", "generate"]).is_err());
+    }
+
+    #[test]
+    fn generate_accepts_canonical_and_legacy_output_directory_flags() {
+        for flag in ["--output-dir", "--out"] {
+            let args = parse_generate(&[flag, "custom", "src/runtime/api"]);
+            assert_eq!(args.out, PathBuf::from("custom"));
+        }
+    }
+
+    #[test]
+    fn generate_rejects_conflicting_output_directory_aliases() {
+        assert!(
+            Cli::try_parse_from([
+                "tokmd",
+                "packet",
+                "generate",
+                "--output-dir",
+                "canonical",
+                "--out",
+                "legacy",
+                "src/runtime/api",
+            ])
+            .is_err()
+        );
     }
 }

@@ -1,9 +1,9 @@
 # Threat Model — tokmd-swarm
 
-**Generated:** 2026-06-01
+**Generated:** 2026-08-02
 **Scope:** Repository-wide STRIDE analysis for `EffortlessMetrics/tokmd-swarm`
 **Methodology:** STRIDE (Microsoft Threat Modeling)
-**Last Reviewed:** 2026-06-01
+**Last Reviewed:** 2026-08-02
 
 ## 1. System Overview
 
@@ -134,8 +134,8 @@ These defenses are baked into the workspace and should not regress:
 6. **Receipt schema versioning**: Per-family constants in `tokmd-types` (`SCHEMA_VERSION`, `COCKPIT_SCHEMA_VERSION`, etc.) — see `CLAUDE.md`.
 7. **Pinned GitHub Actions**: All third-party actions pinned by SHA with a comment naming the upstream version.
 8. **License allowlist + advisory check**: `deny.toml` configures `cargo-deny`.
-9. **Branch protection**: `main` requires 1 PR approval with CODEOWNERS review and `CI (Required)` status check.
-10. **Permissive merge policy**: `allow_squash_merge = true`, `allow_merge_commit = false`, `allow_rebase_merge = false`, `delete_branch_on_merge = true`.
+9. **Branch protection policy**: the checked-in settings require 1 PR approval with CODEOWNERS review and the `Tokmd Rust Result` status check. Live protection is repository-specific control-plane state and must be queried separately; the settings file is not proof that public `main` is currently protected.
+10. **Constrained merge policy**: normal swarm and public development PRs use squash merges; the publication repository also permits deliberate two-parent merge commits for swarm imports so the shared graph is preserved. Direct pushes, unrelated merge commits, and force-pushes remain prohibited by operating policy and branch controls. `allow_merge_commit = true` and `required_linear_history = false` are topology requirements for that import path, not standing security defenses.
 
 ## 6. Review Cadence
 

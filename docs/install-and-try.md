@@ -132,7 +132,6 @@ Use the GitHub Action when you want the first CI adoption path:
 ```yaml
 - uses: EffortlessMetrics/tokmd@v1
   with:
-    version: '1.11.0'
     paths: .
     artifact: 'true'
     comment: 'false'

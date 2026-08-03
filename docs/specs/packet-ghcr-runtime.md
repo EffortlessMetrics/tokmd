@@ -1,6 +1,6 @@
 # Spec: Packet GHCR Container Runtime
 
-- Status: draft
+- Status: active
 - Schema family, if any: reuses `tokmd.evidence-packet/v1`
   (`docs/evidence-packet.schema.json`); adds no new schema
 - Related ADRs:
@@ -12,11 +12,11 @@
 ## Contract
 
 The `EffortlessMetrics/tokmd` GitHub Action exposes a `runtime` input that
-selects how the Action obtains the `tokmd` binary it runs. Today `runtime`
-accepts `binary` (the default, implemented) and `container` (reserved, rejected
-with a hard error). This spec owns the normative contract for the
-`runtime: container` path so the eventual implementation has a fixed target,
-claim boundary, and rollout gate before code lands.
+selects how the Action obtains the `tokmd` binary it runs. `runtime` accepts
+`binary` (the default) and `container` for exact tags that passed the full
+verification gate. Mutable and unverified container tags are rejected with a
+hard error. This spec owns the normative contract and rollout gate for that
+secondary runtime.
 
 `runtime: container` means the Action obtains `tokmd` from a pinned OCI image
 pulled from the **publication** registry
@@ -46,14 +46,30 @@ It owns only how the Action selects, validates, and runs the publication
 container as a `tokmd` runtime, and the gate that lets the container runtime be
 called supported for a tag.
 
+## Pre-tag candidate proof
+
+The publication release process proves a final source commit before creating
+its release tag. Maintainers dispatch
+`.github/workflows/release-candidate.yml` for that exact commit. The workflow
+builds the multi-platform image as `candidate-<commit-sha>`, anonymously pulls
+and runs that candidate, executes the mounted-packet smoke, and records the
+immutable OCI digest in a `tokmd.release-candidate/v1` receipt.
+
+The tag-driven release workflow requires that candidate tag and promotes its
+recorded digest to the exact release tag with `docker buildx imagetools create`.
+It does not rebuild the image after the release tag exists. It verifies that
+the exact tag resolves to the same digest before the normal exact-container and
+Action checks run. A missing candidate, digest mismatch, failed anonymous
+smoke, or failed digest comparison blocks release promotion.
+
 ## Inputs
 
 The container runtime path consumes these Action inputs:
 
 | Input | Status | Default | Used for |
 | --- | --- | --- | --- |
-| `runtime` | implemented (`binary`); reserved (`container`) | `binary` | Selects binary download vs container pull. |
-| `version` | implemented | `latest` | Resolves the image tag for the container runtime (see tag resolution). |
+| `runtime` | implemented (`binary` and gated `container`) | `binary` | Selects binary download vs container pull. |
+| `version` | implemented | explicit concrete tag for `container`; binary default is governed by the selected Action ref | Resolves the image tag for the container runtime; container callers must use a concrete verified tag. |
 | `image` | implemented | `ghcr.io/effortlessmetrics/tokmd` | Container image reference (without tag) when `runtime: container`. The Action resolves `<image>:<normalized-version>`, accepts only verification-gated tags, and anonymously pulls and runs that image against the mounted workspace. |
 | existing per-mode inputs | implemented | — | Unchanged; the runtime does not alter mode behavior. |
 
@@ -73,10 +89,8 @@ Input rules (implemented):
 - When `runtime: container` and `version` is `latest` (or any mutable
   major/minor alias), the Action rejects it with a hard error rather than
   pulling a mutable tag, so the recorded `tokmd-version` output stays
-  reproducible. Callers must pin a verified concrete patch tag. The default
-  `version` of `latest` therefore requires an explicit pinned `version` for the
-  container runtime. (Implemented; resolves the `latest` open question by
-  rejection rather than auto-resolution.)
+  reproducible. Callers must pin a verified concrete patch tag. The binary
+  runtime's release-pinned default is not a supported container-tag fallback.
 - `runtime: container` requires a Linux runner with Docker available; on other
   runners or without Docker the Action fails with a clear error. (Implemented.)
 - The `image` input must reference the publication registry
@@ -117,7 +131,7 @@ This spec does not change:
 - swarm workbench GHCR ownership or claim boundary;
 - branch-protection gates, proof promotion, Codecov defaults, or AST defaults.
 
-The `container` branch in `action.yml` is now implemented: for a
+The `container` branch in `action.yml` is implemented: for a
 verification-gated tag it anonymously pulls `<image>:<normalized-version>` and
 runs it against the mounted workspace; for any non-gated or mutable tag it keeps
 the hard error pointing at this spec. Any change to the `runtime` input
@@ -132,7 +146,8 @@ tag until all of the following pass for that exact tag from an anonymous
 (unauthenticated) context, consistent with the publication GHCR evidence rules
 in `docs/specs/publishing-evidence.md`:
 
-1. the image was pushed by the publication release pipeline;
+1. the image was pushed by the pre-tag candidate workflow for the final source
+   commit and promoted without rebuilding;
 2. the expected tag exists;
 3. the package is public;
 4. anonymous `docker manifest inspect ghcr.io/effortlessmetrics/tokmd:<tag>`
@@ -158,6 +173,7 @@ release ledger, per `docs/specs/publishing-evidence.md`.
 | Tag | Visibility (steps 1-5) | Runtime exec (steps 6-7) | Container runtime |
 | --- | --- | --- | --- |
 | `1.14.0` (concrete patch tag) | verified-public (2026-06-26) | verified (2026-06-26) | **gate-passed and wired**; accepted by `action.yml` `runtime: container` |
+| `1.15.0-rc.1` (RC candidate tag) | pending candidate proof | pending exact-tag runtime proof | **staged, not yet supported**; do not tag until the candidate gate passes |
 | `1.14` / `1` / `latest` (mutable aliases) | verified-public (2026-06-26) | n/a | **rejected** by `action.yml`; mutable tags are not accepted for the container runtime |
 
 On **2026-06-26**, anonymous registry-API verification (no Docker on the
@@ -199,16 +215,18 @@ summary copied into `docs/releases/1.14-ledger.md`.
 PR B then wired the `runtime: container` path in `action.yml`: it replaces the
 old hard error with an anonymous `docker pull` of the verification-gated tag plus
 a mounted-workspace `docker run` wrapper (matching the GHCR Container Smoke mount
-pattern). The Action accepts only `1.14.0` today; mutable tags (`latest`, `1.14`,
-`1`) and any non-gated tag remain hard errors pointing at this spec. The
-container-runtime test in `.github/workflows/test-action.yml` exercises both the
-supported-tag success path and the unverified/mutable rejection paths. Each new
-stable tag must re-enter the verification gate and be added to the Action's
-supported-tag set before its container runtime is called supported.
+pattern). The published Action currently supports `1.14.0`; mutable tags
+(`latest`, `1.14`, `1`) and any non-gated tag remain hard errors pointing at this
+spec. The container-runtime test in `.github/workflows/test-action.yml` exercises
+both the supported-tag success path and the unverified/mutable rejection paths.
+The `1.15.0-rc.1` entry is staged by the unreleased RC-prep commit but remains
+unsupported until the pre-tag candidate and exact-tag verification receipts pass.
+Each new stable tag must re-enter the verification gate and be added to the
+Action's supported-tag set before its container runtime is called supported.
 
 ## Claim Boundary
 
-When implemented and verified for a tag, the container runtime proves only that:
+When verified for a tag, the container runtime proves only that:
 
 - the pinned publication image for that tag is anonymously pullable;
 - the container `tokmd` runs and reports the expected version;
@@ -226,12 +244,12 @@ The container runtime does **not** prove:
 - swarm workbench GHCR support claims.
 
 A verified container runtime for one tag says nothing about the next tag. Each
-new stable tag re-enters the verification gate before its container runtime is
-called supported.
+new RC or stable tag re-enters the candidate and exact-tag verification gates
+before its container runtime is called supported.
 
 ## Proof Requirements
 
-For this spec-only change:
+For changes to this spec or the release workflow:
 
 ```bash
 cargo xtask doc-artifacts --check
@@ -259,7 +277,7 @@ container.
 
 ## Open Questions
 
-- Resolved by PR B: `runtime: container` with `version: latest` (or any mutable
+- Resolved: `runtime: container` with `version: latest` (or any mutable
   alias) is rejected rather than auto-resolved, so the recorded `tokmd-version`
   stays reproducible. A future change could add concrete-tag resolution for
   `latest` if a reproducible mechanism is agreed.
@@ -270,6 +288,7 @@ container.
   $GITHUB_WORKSPACE`) through a PATH wrapper, so the existing composite
   `shell: bash` steps invoke `tokmd` unchanged.
 - Whether a container-vs-binary artifact-equivalence smoke should become a
-  required release-facing lane or remain a manual maintainer receipt.
+  required release-facing lane; the release workflow now requires exact-tag
+  container version and mounted-packet smoke before alias promotion.
 - Whether `ub-review` downstream consumption should prefer the container runtime
   once verified, or continue defaulting to the binary runtime.

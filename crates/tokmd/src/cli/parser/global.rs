@@ -23,35 +23,38 @@ pub struct GlobalArgs {
     pub excluded: Vec<String>,
 
     /// Whether to load scan config files (`tokei.toml` / `.tokeirc`).
-    #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto)]
+    #[arg(long, value_enum, value_name = "MODE", default_value_t = ConfigMode::Auto, global = true)]
     pub config: ConfigMode,
 
     /// Count hidden files and directories.
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub hidden: bool,
 
     /// Don't respect ignore files (.gitignore, .ignore, etc.).
     ///
     /// Implies --no-ignore-parent, --no-ignore-dot, and --no-ignore-vcs.
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub no_ignore: bool,
 
     /// Don't respect ignore files in parent directories.
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub no_ignore_parent: bool,
 
     /// Don't respect .ignore and .tokeignore files (including in parent directories).
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub no_ignore_dot: bool,
 
     /// Don't respect VCS ignore files (.gitignore, .hgignore, etc.), including in parents.
-    #[arg(long, visible_alias = "no-ignore-git")]
+    #[arg(long, visible_alias = "no-ignore-git", global = true)]
     pub no_ignore_vcs: bool,
 
     /// Treat doc strings as comments (language-dependent).
-    #[arg(long)]
+    #[arg(long, global = true)]
     pub treat_doc_strings_as_comments: bool,
 
+    // NOTE: `--verbose` is deliberately not `global = true`. `tokmd check-ignore`
+    // defines its own `-v`/`--verbose` as a bool (see parser/check_ignore.rs),
+    // and a global arg sharing that ID makes clap panic at startup.
     /// Verbose output (repeat for more detail).
     #[arg(short = 'v', long = "verbose", action = clap::ArgAction::Count)]
     pub verbose: u8,
