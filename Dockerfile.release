@@ -15,8 +15,8 @@ ARG SOURCE_COMMIT
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes ca-certificates git \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --gid 1000 tokmd \
-    && useradd --uid 1000 --gid 1000 --create-home --shell /usr/sbin/nologin tokmd
+    && groupadd --system tokmd \
+    && useradd --system --gid tokmd --create-home --shell /usr/sbin/nologin tokmd
 
 COPY ${BINARY} /usr/local/bin/tokmd
 RUN chmod 0755 /usr/local/bin/tokmd \
