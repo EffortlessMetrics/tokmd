@@ -197,7 +197,7 @@ jobs:
           test "$(jq -r '.status' "${FIXTURE}/sensors/tokmd/manifest.json")" = 'complete'
           test -s "${FIXTURE}/sensors/tokmd/analyze.json"
           test "$(jq -r '.artifacts | length' "${FIXTURE}/sensors/tokmd/manifest.json")" -gt 0
-          jq -e '.mode == "analysis" and .status == "complete" and (.source.paths | length > 0) and (.derived != null)' \
+          jq -e '.mode == "analysis" and .status == "complete" and (.source.inputs | length > 0) and (.derived != null)' \
             "${FIXTURE}/sensors/tokmd/analyze.json" > /dev/null
           jq -n \
             --arg schema 'tokmd.release-candidate/v1' \
