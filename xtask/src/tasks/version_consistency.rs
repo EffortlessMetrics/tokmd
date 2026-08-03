@@ -9,6 +9,7 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::{Metadata, MetadataCommand, PackageId};
+use chrono::NaiveDate;
 use semver::Version;
 use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
@@ -20,6 +21,7 @@ const NODE_PACKAGE_MANIFESTS: &[&str] = &[
     "crates/tokmd-node/package.json",
     "crates/tokmd-node/npm/package.json",
 ];
+const CITATION_FILE: &str = "CITATION.cff";
 
 pub fn run(_args: VersionConsistencyArgs) -> Result<()> {
     let workspace_root = find_workspace_root()?;
@@ -32,6 +34,7 @@ pub fn run(_args: VersionConsistencyArgs) -> Result<()> {
     check_workspace_dependency_versions(&workspace_root, &workspace_version)?;
     check_node_manifest_versions(&workspace_root, &workspace_version)?;
     check_action_version(&workspace_root, &workspace_version)?;
+    check_citation_metadata(&workspace_root, &workspace_version)?;
     check_msrv_pins(&workspace_root)?;
     check_case_insensitive_path_collisions(&workspace_root)?;
 
@@ -158,6 +161,41 @@ fn check_action_version(workspace_root: &Path, expected: &str) -> Result<()> {
     }
     println!("  ✓ Action default version matches {}.", expected);
     Ok(())
+}
+
+fn check_citation_metadata(workspace_root: &Path, expected: &str) -> Result<()> {
+    let path = workspace_root.join(CITATION_FILE);
+    let content =
+        fs::read_to_string(&path).with_context(|| format!("Failed to read {}", path.display()))?;
+    let actual =
+        extract_citation_field(&content, "version").context("CITATION.cff is missing version")?;
+    Version::parse(actual)
+        .with_context(|| format!("CITATION.cff version must be concrete semver, got {actual:?}"))?;
+    if actual != expected {
+        bail!("CITATION.cff version ({actual}) is out of sync with workspace version ({expected})");
+    }
+
+    let date = extract_citation_field(&content, "date-released")
+        .context("CITATION.cff is missing date-released")?;
+    NaiveDate::parse_from_str(date, "%Y-%m-%d")
+        .with_context(|| format!("CITATION.cff date-released must be YYYY-MM-DD, got {date:?}"))?;
+    println!(
+        "  ✓ Citation metadata matches {} (released {}).",
+        expected, date
+    );
+    Ok(())
+}
+
+fn extract_citation_field<'a>(content: &'a str, field: &str) -> Option<&'a str> {
+    let prefix = format!("{field}:");
+    content.lines().find_map(|line| {
+        let trimmed = line.trim();
+        trimmed
+            .strip_prefix(&prefix)
+            .map(str::trim)
+            .map(|value| value.trim_matches(['\'', '"']))
+            .filter(|value| !value.is_empty())
+    })
 }
 
 fn check_msrv_pins(workspace_root: &Path) -> Result<()> {
@@ -728,6 +766,33 @@ mod tests {
             "inputs:\n  version:\n    default: '1.13.0'\n",
         )?;
         assert!(check_action_version(temp.path(), "1.14.0").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn citation_metadata_is_concrete_and_matches_workspace() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        fs::write(
+            temp.path().join(CITATION_FILE),
+            "cff-version: 1.2.0\nversion: 1.14.0\ndate-released: 2026-06-25\n",
+        )?;
+        check_citation_metadata(temp.path(), "1.14.0")
+    }
+
+    #[test]
+    fn citation_metadata_rejects_drift_and_invalid_date() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        fs::write(
+            temp.path().join(CITATION_FILE),
+            "version: latest\ndate-released: not-a-date\n",
+        )?;
+        assert!(check_citation_metadata(temp.path(), "1.14.0").is_err());
+
+        fs::write(
+            temp.path().join(CITATION_FILE),
+            "version: 1.14.0\ndate-released: 2026-99-99\n",
+        )?;
+        assert!(check_citation_metadata(temp.path(), "1.14.0").is_err());
         Ok(())
     }
 

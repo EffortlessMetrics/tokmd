@@ -9,6 +9,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
+use chrono::Utc;
 use serde_json::Value as JsonValue;
 
 use super::action_manifest::update_action_default_version;
@@ -68,6 +69,7 @@ const NODE_PACKAGE_MANIFESTS: &[&str] = &[
     "crates/tokmd-node/package.json",
     "crates/tokmd-node/npm/package.json",
 ];
+const CITATION_FILE: &str = "CITATION.cff";
 
 /// Run the version bump task.
 pub fn run(args: BumpArgs) -> Result<()> {
@@ -125,6 +127,26 @@ pub fn run(args: BumpArgs) -> Result<()> {
         ));
     }
 
+    // 5. Keep the software citation record lockstep with the release metadata.
+    let citation_path = workspace_root.join(CITATION_FILE);
+    let citation_content = fs::read_to_string(&citation_path)
+        .with_context(|| format!("Failed to read {}", citation_path.display()))?;
+    let release_date = Utc::now().date_naive().format("%Y-%m-%d").to_string();
+    let (updated_citation, old_citation_version, old_citation_date) =
+        update_citation_metadata(&citation_content, &args.version, &release_date)?;
+    if old_citation_version != args.version {
+        changes.push(format!(
+            "CITATION.cff: version = '{}' -> '{}'",
+            old_citation_version, args.version
+        ));
+    }
+    if old_citation_date != release_date {
+        changes.push(format!(
+            "CITATION.cff: date-released = '{}' -> '{}'",
+            old_citation_date, release_date
+        ));
+    }
+
     // Print planned changes
     println!("Planned changes:");
     for change in &changes {
@@ -169,6 +191,11 @@ pub fn run(args: BumpArgs) -> Result<()> {
         println!("Wrote: {}", action_path.display());
     }
 
+    if old_citation_version != args.version || old_citation_date != release_date {
+        fs::write(&citation_path, &updated_citation).context("Failed to write CITATION.cff")?;
+        println!("Wrote: {}", citation_path.display());
+    }
+
     for update in &node_manifest_updates {
         let manifest_path = workspace_root.join(&update.path);
         fs::write(&manifest_path, &update.updated_content)
@@ -190,6 +217,9 @@ pub fn run(args: BumpArgs) -> Result<()> {
     println!(
         "Files modified: {}",
         1 + usize::from(old_action_version != args.version)
+            + usize::from(
+                old_citation_version != args.version || old_citation_date != release_date
+            )
             + node_manifest_updates.len()
             + args.schema.as_ref().map(|s| s.len()).unwrap_or(0)
     );
@@ -240,6 +270,50 @@ fn validate_semver(version: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn update_citation_metadata(
+    content: &str,
+    new_version: &str,
+    new_date: &str,
+) -> Result<(String, String, String)> {
+    let mut result = String::with_capacity(content.len());
+    let mut old_version = None;
+    let mut old_date = None;
+
+    for line in content.lines() {
+        let trimmed = line.trim_start();
+        let indent_len = line.len() - trimmed.len();
+        let indent = line
+            .get(..indent_len)
+            .context("CITATION.cff field indentation is outside the current line")?;
+
+        if let Some(value) = trimmed.strip_prefix("version:") {
+            let value = value.trim().trim_matches(['\'', '"']);
+            if value.is_empty() {
+                bail!("CITATION.cff version is empty");
+            }
+            old_version = Some(value.to_string());
+            result.push_str(&format!("{indent}version: {new_version}\n"));
+        } else if let Some(value) = trimmed.strip_prefix("date-released:") {
+            let value = value.trim().trim_matches(['\'', '"']);
+            if value.is_empty() {
+                bail!("CITATION.cff date-released is empty");
+            }
+            old_date = Some(value.to_string());
+            result.push_str(&format!("{indent}date-released: {new_date}\n"));
+        } else {
+            result.push_str(line);
+            result.push('\n');
+        }
+    }
+
+    let old_version = old_version.context("CITATION.cff is missing version")?;
+    let old_date = old_date.context("CITATION.cff is missing date-released")?;
+    if !content.ends_with('\n') && result.ends_with('\n') {
+        result.pop();
+    }
+    Ok((result, old_version, old_date))
 }
 
 /// Extract the current workspace version from Cargo.toml content.
@@ -776,5 +850,28 @@ edition = "2021"
         let line = r#"    "@tokmd/core-linux-x64-gnu": "1.8.1","#;
         let updated = replace_json_string_value(line, "1.9.0").expect("value should replace");
         assert_eq!(updated, r#"    "@tokmd/core-linux-x64-gnu": "1.9.0","#);
+    }
+
+    #[test]
+    fn citation_update_changes_version_and_release_date() -> Result<()> {
+        let content = "cff-version: 1.2.0\nversion: 1.14.0\ndate-released: 2026-06-25\n";
+        let (updated, old_version, old_date) =
+            update_citation_metadata(content, "1.15.0-rc.1", "2026-08-03")?;
+
+        assert_eq!(old_version, "1.14.0");
+        assert_eq!(old_date, "2026-06-25");
+        assert!(updated.contains("version: 1.15.0-rc.1"));
+        assert!(updated.contains("date-released: 2026-08-03"));
+        assert!(updated.contains("cff-version: 1.2.0"));
+        Ok(())
+    }
+
+    #[test]
+    fn citation_update_rejects_missing_fields() {
+        assert!(update_citation_metadata("version: 1.14.0\n", "1.15.0", "2026-08-03").is_err());
+        assert!(
+            update_citation_metadata("date-released: 2026-06-25\n", "1.15.0", "2026-08-03")
+                .is_err()
+        );
     }
 }

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Deterministic repository snapshots, in-memory and archive ingestion, and
+  fail-closed ZIP admission across native and browser/WASM paths.
+- `--show-config`, richer progress events, and packet-consumption contracts for
+  review workflows.
+- Opt-in syntax and shadow evidence improvements, with explicit advisory
+  evidence boundaries for downstream consumers.
+
+### Changed
+
+- CLI option placement, generated help, typo recovery, output naming, and
+  analysis-preset guidance now follow one authoritative command surface.
+- Released Action refs carry an exact default binary version; explicit
+  `version` remains available for RC selection, rollback, and verified pins.
+- The release workflow builds the archive-enabled WASM artifact and proves a
+  pre-tag candidate container digest before exact-tag promotion.
+
 ### Fixed
 
 - Scan options are now accepted after a subcommand as well as before it.
@@ -84,6 +102,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   headings were dangling shortcut references that rendered as literal
   `[1.14.0]` text; each now resolves to a GitHub compare view (or, for
   `0.1.0`, the release tag).
+
+### Fixed
+
+- Root/default-mode options that were parsed before a subcommand and then
+  silently ignored now fail as typed usage errors instead of producing output
+  under the wrong contract.
+- Output aliases preserve script compatibility while generated help and
+  examples use canonical `--output` and `--output-dir` spellings.
+- Release metadata and artifact checks now cover the Action default, CFF
+  version/date, archive-enabled WASM, exact container digests, and delayed
+  mutable-alias promotion.
+
+### Non-claims
+
+- Syntax and AST evidence remain advisory or shadow evidence unless a
+  downstream policy explicitly promotes them.
+- tokmd does not prove absence of undefined behavior, make automatic merge
+  decisions, or promote proof, mutation, coverage, or AST results by default.
+- The inactive Homebrew, AUR, Scoop, and WinGet prototypes are not supported
+  distribution channels for 1.15.
+- A container tag is unsupported until its exact image passes the candidate and
+  anonymous runtime verification gates.
 
 ## [1.14.0] - 2026-06-25
 
