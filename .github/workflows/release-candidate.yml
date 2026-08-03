@@ -18,7 +18,8 @@ jobs:
     name: Build and verify pre-tag candidate image
     if: github.repository == 'EffortlessMetrics/tokmd'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Multi-architecture candidate builds must finish before the digest can be verified.
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
