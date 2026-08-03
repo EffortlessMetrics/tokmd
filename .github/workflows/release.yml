@@ -372,7 +372,8 @@ jobs:
         id: tokmd
         uses: ./
         with:
-          version: ${{ github.ref_name }}
+          # Omit version to prove the selected Action ref carries its exact
+          # binary default; explicit version overrides are covered by PR tests.
           comment: 'false'
           artifact: 'false'
 

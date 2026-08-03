@@ -1557,6 +1557,7 @@ kind = "non_rust"
 paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
+  "CITATION.cff",
   "docs/releases/**",
   # The Dockerfile pins the builder toolchain, and version-consistency now
   # verifies that pin against the workspace MSRV.
@@ -1568,7 +1569,7 @@ proof = [
   "cargo xtask publish-surface --json --verify-publish",
   "cargo xtask docs --check",
 ]
-reason = "CHANGELOG, release workflow, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
+reason = "CHANGELOG, citation metadata, release workflow, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
 mutation = false
 coverage = false
 

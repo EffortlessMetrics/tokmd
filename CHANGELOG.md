@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No changes recorded after the 1.15.0-rc.1 preparation point.
+
+## [1.15.0-rc.1] - 2026-08-03
+
 ### Added
 
 - Deterministic repository snapshots, in-memory and archive ingestion, and
@@ -1316,6 +1320,7 @@ Stable release following `v1.10.0-rc.1` validation.
 - Initial prototype release.
 
 [Unreleased]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...main
+[1.15.0-rc.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...v1.15.0-rc.1
 [1.14.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.1...v1.14.0
 [1.13.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.0...v1.13.1
 [1.13.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.12.0...v1.13.0
