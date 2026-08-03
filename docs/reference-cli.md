@@ -2238,8 +2238,22 @@ Options:
       --preset <PRESET>
           Analysis preset used to generate analyze.md and analyze.json
 
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
+
           [default: bun-ub]
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
 
       --base <BASE>
           Base reference used by analyze artifacts
