@@ -871,9 +871,9 @@ review_after     = "2026-08-02"
 expires          = "2027-02-02"
 
 [[lane]]
-id               = "release_candidate_container"
+id               = "release_candidate_platform"
 workflow         = ".github/workflows/release-candidate.yml"
-job              = "Build and verify pre-tag candidate image"
+job              = "Build ${{ matrix.platform }} candidate image"
 kind             = "release"
 tier             = "deep"
 default_pr       = false
@@ -881,9 +881,29 @@ blocking         = true
 runner           = "ubuntu_latest"
 base_lem         = 30
 owner            = "release/publish"
-intent           = "Prove the final source commit's candidate container before a release tag exists."
+intent           = "Build each exact-source platform image before assembling the release candidate manifest."
 failure_mode     = "A release tag points at a container image that was never proven from the exact source commit."
-proof_obligation = "Build candidate-<commit-sha>, anonymously pull it, assert tokmd --version, run mounted packet content checks, and record the immutable digest."
+proof_obligation = "Build the exact source commit's platform binary and push its immutable candidate image for manifest assembly."
+evidence         = ["release workflow logs", "candidate-<commit-sha>-<platform>"]
+allowed_triggers = ["workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-08-03"
+expires          = "2027-02-03"
+
+[[lane]]
+id               = "release_candidate_assemble"
+workflow         = ".github/workflows/release-candidate.yml"
+job              = "Assemble and verify pre-tag candidate image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 10
+owner            = "release/publish"
+intent           = "Prove the multi-architecture candidate manifest from the exact source commit before a release tag exists."
+failure_mode     = "A release tag points at a container image that was never proven from the exact source commit."
+proof_obligation = "Assemble candidate-<commit-sha>, prove both Linux platforms, anonymously pull it, assert tokmd --version, run mounted packet content checks, and record the immutable digest and verified marker."
 evidence         = ["release workflow logs", "container-candidate-<commit-sha>", "GITHUB_STEP_SUMMARY"]
 allowed_triggers = ["workflow_dispatch"]
 duplicate_of     = []
