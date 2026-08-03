@@ -1,4 +1,23 @@
 use anyhow::Error;
+use clap::CommandFactory;
+
+/// Subcommand names as clap actually knows them, including visible aliases.
+///
+/// Derived from the parser rather than hard-coded: the previous literal list
+/// silently fell four commands behind (`syntax`, `evidence-packet`, `packet`,
+/// `render`), so those typos got no suggestion. It also picks up feature-gated
+/// commands only when they are compiled in.
+fn known_subcommands() -> Vec<String> {
+    crate::cli::Cli::command()
+        .get_subcommands()
+        .filter(|c| !c.is_hide_set())
+        // Suggestions are rendered as command-position tokens. Keep this
+        // pool canonical: visible aliases can be accepted by clap in some
+        // contexts but are not necessarily valid as the suggested token.
+        .map(|c| c.get_name().to_string())
+        .filter(|name| name != "help")
+        .collect()
+}
 
 pub(crate) fn format(err: &Error) -> String {
     let mut out = if let Some(token) = missing_path_as_unrecognized_subcommand(err) {
@@ -157,34 +176,16 @@ fn suggestions(err: &Error) -> Vec<String> {
                     let bad_path = e_str.trim_start_matches("Path not found: ").trim();
                     extracted_bad_path = Some(bad_path.to_string());
                     if looks_like_bare_subcommand_token(bad_path) {
-                        let known = [
-                            "lang",
-                            "module",
-                            "export",
-                            "analyze",
-                            "badge",
-                            "init",
-                            "completions",
-                            "run",
-                            "diff",
-                            "context",
-                            "check-ignore",
-                            "tools",
-                            "gate",
-                            "cockpit",
-                            "baseline",
-                            "handoff",
-                            "sensor",
-                        ];
+                        let known = known_subcommands();
 
                         let mut best_match = None;
                         let mut best_dist = usize::MAX;
 
-                        for k in known.iter() {
+                        for k in &known {
                             let d = levenshtein(bad_path, k);
                             if d < best_dist {
                                 best_dist = d;
-                                best_match = Some(*k);
+                                best_match = Some(k.as_str());
                             }
                         }
 

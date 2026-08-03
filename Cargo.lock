@@ -3421,6 +3421,7 @@ dependencies = [
  "serde_json",
  "syn 2.0.119",
  "tempfile",
+ "tokmd",
  "tokmd-analysis",
  "tokmd-analysis-types",
  "tokmd-core",

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Scan options are now accepted after a subcommand as well as before it.
+  `--config`, `--hidden`, `--no-ignore`, `--no-ignore-parent`,
+  `--no-ignore-dot`, `--no-ignore-vcs`, and `--treat-doc-strings-as-comments`
+  were root-only, so `tokmd export --hidden` failed with
+  `unexpected argument '--hidden' found` (and clap unhelpfully suggested
+  `--children`) while `tokmd --hidden export` worked. Nothing in the help
+  output distinguished them from `--exclude` and `--no-progress`, which were
+  already global. They are now all global, and appear in every subcommand's
+  `--help`. `--verbose` deliberately stays root-only because
+  `tokmd check-ignore` defines its own `-v`.
+- `tokmd <typo>` can once again suggest every subcommand. The "did you mean"
+  list was a hard-coded literal that had fallen four commands behind, so a
+  misspelling of `render`, `packet`, `evidence-packet`, or `syntax` produced no
+  suggestion at all — only a generic pointer to `--help`. It is now derived
+  from the clap parser, so it stays current automatically and reflects
+  feature-gated commands only when they are compiled in.
+- `docs/reference-cli.md` now regenerates the `syntax`, `evidence-packet`, and
+  `render` help blocks. All three had `<!-- HELP: -->` marker pairs in the file
+  but no entry in the `cargo xtask docs` generator list, so they were never
+  rewritten and had frozen at whatever was last pasted in by hand — which meant
+  `cargo xtask docs --check` reported the reference as up to date while those
+  three blocks drifted. They were missing the scan options this release makes
+  global, along with other accumulated changes.
+
 ### Changed
 
 - Refreshed the `rust-minor-patch` dependency group to semver-compatible

@@ -268,6 +268,28 @@ fn typo_subcommand_suggests_correction() {
         ));
 }
 
+/// Subcommands added after the original hint list was written must also be
+/// suggestible. The list used to be a hard-coded literal that fell four
+/// commands behind (`syntax`, `evidence-packet`, `packet`, `render`); it is now
+/// derived from the clap parser, so it cannot drift again.
+#[test]
+fn typo_suggests_recently_added_subcommands() {
+    // `syntax` is intentionally omitted: it is gated behind the `ast` feature,
+    // so it is only a subcommand in some build configurations.
+    for expected in ["render", "packet", "evidence-packet"] {
+        // Build the typo instead of spelling it out: a literal misspelling in
+        // the source trips the repo's `typos` CI check.
+        let typo = format!("{expected}x");
+        tokmd_cmd()
+            .arg(&typo)
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(format!(
+                "Did you mean the subcommand `{expected}`?"
+            )));
+    }
+}
+
 /// Verify that every expected subcommand responds to --help without error.
 #[test]
 fn known_subcommands_respond_to_help() {
