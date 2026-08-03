@@ -1569,6 +1569,7 @@ paths = [
   # The Dockerfile pins the builder toolchain, and version-consistency now
   # verifies that pin against the workspace MSRV.
   "Dockerfile",
+  "Dockerfile.release",
   "winget/manifests/e/EffortlessMetrics/tokmd/1.3.1/**",
   "xtask/src/tasks/version_consistency.rs",
 ]
@@ -1577,7 +1578,7 @@ proof = [
   "cargo xtask publish-surface --json --verify-publish",
   "cargo xtask docs --check",
 ]
-reason = "CHANGELOG, citation metadata, release workflow, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
+reason = "CHANGELOG, citation metadata, release workflow, release runtime Dockerfile, Dockerfile toolchain pin, and the version-consistency task itself are release artifacts; proof routes to version consistency, publish-surface verification, and docs checks."
 mutation = false
 coverage = false
 

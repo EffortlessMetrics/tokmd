@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+
+# Release images receive a platform-specific binary built by the release
+# matrix. Keeping Rust compilation outside Docker avoids serial workspace
+# builds under emulated ARM64 while preserving a multi-architecture image.
+FROM debian:bookworm-slim AS runtime
+
+ARG BINARY=artifacts/tokmd
+ARG VERSION
+ARG SOURCE_COMMIT
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes ca-certificates git \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 1000 tokmd \
+    && useradd --uid 1000 --gid 1000 --create-home --shell /usr/sbin/nologin tokmd
+
+COPY ${BINARY} /usr/local/bin/tokmd
+RUN chmod 0755 /usr/local/bin/tokmd \
+    && tokmd --version
+
+USER tokmd
+WORKDIR /repo
+
+LABEL org.opencontainers.image.title="tokmd" \
+      org.opencontainers.image.description="AI-native code inventory receipts and analytics for LLM workflows" \
+      org.opencontainers.image.url="https://github.com/EffortlessMetrics/tokmd" \
+      org.opencontainers.image.source="https://github.com/EffortlessMetrics/tokmd" \
+      org.opencontainers.image.documentation="https://github.com/EffortlessMetrics/tokmd#readme" \
+      org.opencontainers.image.vendor="EffortlessMetrics" \
+      org.opencontainers.image.licenses="MIT OR Apache-2.0" \
+      org.opencontainers.image.revision="${SOURCE_COMMIT}" \
+      org.opencontainers.image.version="${VERSION}"
+
+ENTRYPOINT ["tokmd"]
+CMD ["--help"]
