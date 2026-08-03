@@ -1,3 +1,4 @@
+pub(crate) mod action_manifest;
 pub mod affected;
 pub mod ast_shadow_check;
 pub mod ast_shadow_compare;

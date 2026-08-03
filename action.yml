@@ -10,8 +10,8 @@ inputs:
     description: 'tokmd mode to run. Omit for the existing module + export flow. Supported values: module, export, gate, cockpit, sensor, baseline, packet.'
     default: ''
   version:
-    description: 'Version of tokmd to install. Defaults to the latest release.'
-    default: 'latest'
+    description: 'Version of tokmd to install. Defaults to the workspace release version.'
+    default: '1.14.0'
   paths:
     description: 'Paths to scan'
     default: '.'

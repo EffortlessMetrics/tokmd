@@ -11,6 +11,7 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use serde_json::Value as JsonValue;
 
+use super::action_manifest::update_action_default_version;
 use crate::cli::BumpArgs;
 
 /// Schema version location for updating.
@@ -112,6 +113,18 @@ pub fn run(args: BumpArgs) -> Result<()> {
         changes.extend(update.changes.iter().cloned());
     }
 
+    // 4. Pin the composite Action's omitted-version behavior to this release.
+    let action_path = workspace_root.join("action.yml");
+    let action_content = fs::read_to_string(&action_path).context("Failed to read action.yml")?;
+    let (updated_action, old_action_version) =
+        update_action_default_version(&action_content, &args.version)?;
+    if old_action_version != args.version {
+        changes.push(format!(
+            "action.yml: inputs.version.default = '{}' -> '{}'",
+            old_action_version, args.version
+        ));
+    }
+
     // Print planned changes
     println!("Planned changes:");
     for change in &changes {
@@ -151,6 +164,11 @@ pub fn run(args: BumpArgs) -> Result<()> {
     fs::write(&cargo_toml_path, &final_content).context("Failed to write root Cargo.toml")?;
     println!("\nWrote: {}", cargo_toml_path.display());
 
+    if old_action_version != args.version {
+        fs::write(&action_path, &updated_action).context("Failed to write action.yml")?;
+        println!("Wrote: {}", action_path.display());
+    }
+
     for update in &node_manifest_updates {
         let manifest_path = workspace_root.join(&update.path);
         fs::write(&manifest_path, &update.updated_content)
@@ -171,7 +189,9 @@ pub fn run(args: BumpArgs) -> Result<()> {
     println!("Version bumped: {} -> {}", current_version, args.version);
     println!(
         "Files modified: {}",
-        1 + node_manifest_updates.len() + args.schema.as_ref().map(|s| s.len()).unwrap_or(0)
+        1 + usize::from(old_action_version != args.version)
+            + node_manifest_updates.len()
+            + args.schema.as_ref().map(|s| s.len()).unwrap_or(0)
     );
 
     println!("\nNext steps:");
@@ -648,6 +668,43 @@ edition = "2021"
             .expect("Should update valid workspace version");
         assert!(result.contains("version = \"1.3.0\""));
         assert!(!result.contains("version = \"1.2.3\""));
+    }
+
+    #[test]
+    fn updates_action_default_version_without_changing_other_inputs() -> Result<()> {
+        let content = "inputs:\n  version:\n    description: install version\n    default: 'latest'\n  paths:\n    default: '.'\n";
+        let (updated, old) = update_action_default_version(content, "1.15.0")?;
+        assert_eq!(old, "latest");
+        assert!(updated.contains("default: '1.15.0'"));
+        assert!(updated.contains("  paths:\n    default: '.'"));
+        Ok(())
+    }
+
+    #[test]
+    fn updates_action_default_version_preserves_missing_trailing_newline() -> Result<()> {
+        let content =
+            "inputs:\n  version:\n    description: install version\n    default: 'latest'";
+        let (updated, old) = update_action_default_version(content, "1.15.0")?;
+
+        assert_eq!(old, "latest");
+        assert_eq!(
+            updated,
+            "inputs:\n  version:\n    description: install version\n    default: '1.15.0'"
+        );
+        assert!(!updated.ends_with('\n'));
+        Ok(())
+    }
+
+    #[test]
+    fn updates_only_the_inputs_version_default() -> Result<()> {
+        let content = "version:\n  default: 'outer'\ninputs:\n  version:\n    default: 'latest'\n  paths:\n    default: '.'\n";
+        let (updated, old) = update_action_default_version(content, "1.15.0")?;
+
+        assert_eq!(old, "latest");
+        assert!(updated.contains("version:\n  default: 'outer'"));
+        assert!(updated.contains("inputs:\n  version:\n    default: '1.15.0'"));
+        assert!(updated.contains("  paths:\n    default: '.'"));
+        Ok(())
     }
 
     #[test]

@@ -661,6 +661,17 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/tokmd" packet generate --help >/dev/null
 
+      - name: Read workspace tokmd version
+        id: workspace_version
+        shell: bash
+        run: |
+          version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "tokmd") | .version' | head -n1)"
+          if [ -z "$version" ] || [ "$version" = "null" ]; then
+            echo "::error::could not resolve the workspace tokmd version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Run packet mode
         id: packet
         uses: ./
@@ -702,8 +713,8 @@ jobs:
               exit 1
               ;;
           esac
-          if [ -z "${{ steps.packet.outputs['tokmd-version'] }}" ]; then
-            echo "::error::tokmd-version output should be set"
+          if [ "${{ steps.packet.outputs['tokmd-version'] }}" != "${{ steps.workspace_version.outputs.version }}" ]; then
+            echo "::error::omitted binary version should resolve to ${{ steps.workspace_version.outputs.version }}; got '${{ steps.packet.outputs['tokmd-version'] }}'"
             exit 1
           fi
           if [ -z "${{ steps.packet.outputs['warnings-count'] }}" ]; then
@@ -828,6 +839,9 @@ jobs:
           head: HEAD
           paths: crates/tokmd-types/src
           runtime: container
+          # Keep this explicit until the exact new release tag passes the
+          # seven-step GHCR verification gate. The Action default may advance
+          # with the workspace before a matching container is published.
           version: 1.14.0
           output-dir: sensors/tokmd-container
           fail-on: never
@@ -860,7 +874,7 @@ jobs:
               ;;
           esac
           if [ "${{ steps.packet_container.outputs['tokmd-version'] }}" != "1.14.0" ]; then
-            echo "::error::container tokmd-version output should be 1.14.0; got '${{ steps.packet_container.outputs['tokmd-version'] }}'"
+            echo "::error::container tokmd-version output should match the explicitly verified 1.14.0 tag; got '${{ steps.packet_container.outputs['tokmd-version'] }}'"
             exit 1
           fi
 
