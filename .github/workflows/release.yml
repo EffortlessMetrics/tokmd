@@ -345,7 +345,7 @@ jobs:
           jq -e '
             .mode == "analysis" and
             .status == "complete" and
-            (.source.paths | length > 0) and
+            (.source.inputs | length > 0) and
             (.derived != null)
           ' "${FIXTURE}/sensors/tokmd/analyze.json" > /dev/null
           {
