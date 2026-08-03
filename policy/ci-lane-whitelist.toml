@@ -833,7 +833,7 @@ expires          = "2026-11-07"
 [[lane]]
 id               = "release_docker"
 workflow         = ".github/workflows/release.yml"
-job              = "Build and Push Docker Image"
+job              = "Promote Verified Docker Image"
 kind             = "release"
 tier             = "deep"
 default_pr       = false
@@ -869,6 +869,26 @@ allowed_triggers = ["push"]
 duplicate_of     = ["ghcr_container_smoke"]
 review_after     = "2026-08-02"
 expires          = "2027-02-02"
+
+[[lane]]
+id               = "release_candidate_container"
+workflow         = ".github/workflows/release-candidate.yml"
+job              = "Build and verify pre-tag candidate image"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 30
+owner            = "release/publish"
+intent           = "Prove the final source commit's candidate container before a release tag exists."
+failure_mode     = "A release tag points at a container image that was never proven from the exact source commit."
+proof_obligation = "Build candidate-<commit-sha>, anonymously pull it, assert tokmd --version, run mounted packet content checks, and record the immutable digest."
+evidence         = ["release workflow logs", "container-candidate-<commit-sha>", "GITHUB_STEP_SUMMARY"]
+allowed_triggers = ["workflow_dispatch"]
+duplicate_of     = []
+review_after     = "2026-08-03"
+expires          = "2027-02-03"
 
 [[lane]]
 id               = "release_verify_action"

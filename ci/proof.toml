@@ -125,6 +125,7 @@ paths = [
   ".github/workflows/droid.yml",
   ".github/workflows/droid-security-scan.yml",
   ".github/workflows/release.yml",
+  ".github/workflows/release-candidate.yml",
   ".github/workflows/swarm-ghcr.yml",
   ".github/workflows/ripr.yml",
   ".github/workflows/sync-labels.yml",

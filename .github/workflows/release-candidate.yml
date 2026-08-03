@@ -1,0 +1,160 @@
+name: Release Candidate Container Proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Final publication commit or branch to prove before tagging
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  candidate:
+    name: Build and verify pre-tag candidate image
+    if: github.repository == 'EffortlessMetrics/tokmd'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      - name: Resolve source commit and version
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          COMMIT="$(git rev-parse HEAD)"
+          VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "tokmd") | .version' | head -n 1)"
+          if [[ -z "${VERSION}" || "${VERSION}" == "null" ]]; then
+            echo "::error::workspace tokmd version could not be resolved"
+            exit 1
+          fi
+          echo "commit=${COMMIT}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "candidate_tag=candidate-${COMMIT}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push candidate image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/effortlessmetrics/tokmd:${{ steps.source.outputs.candidate_tag }}
+          labels: |
+            org.opencontainers.image.revision=${{ steps.source.outputs.commit }}
+            org.opencontainers.image.version=${{ steps.source.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify candidate anonymously and record digest
+        shell: bash
+        env:
+          EXPECTED_VERSION: ${{ steps.source.outputs.version }}
+          COMMIT: ${{ steps.source.outputs.commit }}
+          CANDIDATE_TAG: ${{ steps.source.outputs.candidate_tag }}
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/effortlessmetrics/tokmd"
+          REF="${IMAGE}:${CANDIDATE_TAG}"
+          DOCKER_CONFIG="$(mktemp -d)"
+          FIXTURE="$(mktemp -d)"
+          export DOCKER_CONFIG
+          trap 'rm -rf "${DOCKER_CONFIG}" "${FIXTURE}"' EXIT
+          docker --config "${DOCKER_CONFIG}" pull "${REF}"
+          OUT="$(docker --config "${DOCKER_CONFIG}" run --rm "${REF}" --version)"
+          if ! grep -qxE "tokmd ${EXPECTED_VERSION}([[:space:]]|$)" <<<"${OUT}"; then
+            echo "::error::candidate reported an unexpected version: ${OUT}"
+            exit 1
+          fi
+          DIGEST="$(DOCKER_CONFIG="${DOCKER_CONFIG}" docker buildx imagetools inspect "${REF}" | awk '$1 == "Digest:" { print $2; exit }')"
+          if [[ ! "${DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::candidate digest was not immutable: ${DIGEST}"
+            exit 1
+          fi
+          mkdir -p "${FIXTURE}/src" artifacts
+          printf 'pub fn add(a: i32, b: i32) -> i32 { a + b }\n' > "${FIXTURE}/src/lib.rs"
+          git -C "${FIXTURE}" init -q
+          git -C "${FIXTURE}" -c user.email=ci@tokmd.dev -c user.name=tokmd-ci add .
+          git -C "${FIXTURE}" -c user.email=ci@tokmd.dev -c user.name=tokmd-ci commit -q -m fixture
+          docker --config "${DOCKER_CONFIG}" run --rm --user "$(id -u):$(id -g)" \
+            -e HOME=/repo -v "${FIXTURE}:/repo" -w /repo "${REF}" \
+            packet generate --preset bun-ub --base HEAD --head HEAD --no-syntax src
+          test "$(jq -r '.schema' "${FIXTURE}/sensors/tokmd/manifest.json")" = 'tokmd.evidence-packet/v1'
+          test "$(jq -r '.status' "${FIXTURE}/sensors/tokmd/manifest.json")" = 'complete'
+          test -s "${FIXTURE}/sensors/tokmd/analyze.json"
+          test "$(jq -r '.artifacts | length' "${FIXTURE}/sensors/tokmd/manifest.json")" -gt 0
+          jq -e '.mode == "analysis" and .status == "complete" and (.source.paths | length > 0) and (.derived != null)' \
+            "${FIXTURE}/sensors/tokmd/analyze.json" > /dev/null
+          jq -n \
+            --arg schema 'tokmd.release-candidate/v1' \
+            --arg commit "${COMMIT}" \
+            --arg version "${EXPECTED_VERSION}" \
+            --arg candidate "${REF}" \
+            --arg digest "${DIGEST}" \
+            '{schema:$schema, source_commit:$commit, version:$version, candidate_ref:$candidate, digest:$digest, anonymous_pull:true, version_smoke:true, mounted_packet:{schema:"tokmd.evidence-packet/v1", status:"complete", content:true}}' \
+            > "artifacts/container-candidate-${COMMIT}.json"
+          {
+            echo "## Pre-tag container candidate proof"
+            echo "- source_commit: ${COMMIT}"
+            echo "- candidate_ref: ${REF}"
+            echo "- version: ${EXPECTED_VERSION}"
+            echo "- digest: ${DIGEST}"
+            echo "- anonymous_pull: pass"
+            echo "- version_smoke: pass"
+            echo "- mounted_packet: pass"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload candidate receipt
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-candidate-${{ steps.source.outputs.commit }}
+          path: artifacts/container-candidate-${{ steps.source.outputs.commit }}.json
+          if-no-files-found: error
+
+      - name: Mark candidate verified
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT: ${{ steps.source.outputs.commit }}
+          CANDIDATE_TAG: ${{ steps.source.outputs.candidate_tag }}
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/effortlessmetrics/tokmd"
+          DIGEST="$(jq -r '.digest' "artifacts/container-candidate-${COMMIT}.json")"
+          echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+          docker buildx imagetools create \
+            --tag "${IMAGE}:verified-candidate-${COMMIT}" \
+            "${IMAGE}@${DIGEST}"
+          VERIFIED="$(docker buildx imagetools inspect "${IMAGE}:verified-candidate-${COMMIT}" | awk '$1 == "Digest:" { print $2; exit }')"
+          if [[ "${VERIFIED}" != "${DIGEST}" ]]; then
+            echo "::error::verified candidate marker resolved to ${VERIFIED}, expected ${DIGEST}"
+            exit 1
+          fi
+          {
+            echo "- verified_candidate_tag: ${IMAGE}:verified-candidate-${COMMIT}"
+            echo "- verified_candidate_digest: ${VERIFIED}"
+            echo "- verification_marker: pass"
+          } >> "$GITHUB_STEP_SUMMARY"

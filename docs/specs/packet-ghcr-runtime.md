@@ -46,6 +46,22 @@ It owns only how the Action selects, validates, and runs the publication
 container as a `tokmd` runtime, and the gate that lets the container runtime be
 called supported for a tag.
 
+## Pre-tag candidate proof
+
+The publication release process proves a final source commit before creating
+its release tag. Maintainers dispatch
+`.github/workflows/release-candidate.yml` for that exact commit. The workflow
+builds the multi-platform image as `candidate-<commit-sha>`, anonymously pulls
+and runs that candidate, executes the mounted-packet smoke, and records the
+immutable OCI digest in a `tokmd.release-candidate/v1` receipt.
+
+The tag-driven release workflow requires that candidate tag and promotes its
+recorded digest to the exact release tag with `docker buildx imagetools create`.
+It does not rebuild the image after the release tag exists. It verifies that
+the exact tag resolves to the same digest before the normal exact-container and
+Action checks run. A missing candidate, digest mismatch, failed anonymous
+smoke, or failed digest comparison blocks release promotion.
+
 ## Inputs
 
 The container runtime path consumes these Action inputs:
@@ -130,7 +146,8 @@ tag until all of the following pass for that exact tag from an anonymous
 (unauthenticated) context, consistent with the publication GHCR evidence rules
 in `docs/specs/publishing-evidence.md`:
 
-1. the image was pushed by the publication release pipeline;
+1. the image was pushed by the pre-tag candidate workflow for the final source
+   commit and promoted without rebuilding;
 2. the expected tag exists;
 3. the package is public;
 4. anonymous `docker manifest inspect ghcr.io/effortlessmetrics/tokmd:<tag>`
@@ -224,8 +241,8 @@ The container runtime does **not** prove:
 - swarm workbench GHCR support claims.
 
 A verified container runtime for one tag says nothing about the next tag. Each
-new stable tag re-enters the verification gate before its container runtime is
-called supported.
+new RC or stable tag re-enters the candidate and exact-tag verification gates
+before its container runtime is called supported.
 
 ## Proof Requirements
 
