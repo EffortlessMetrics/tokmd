@@ -238,13 +238,15 @@ jobs:
           IMAGE="ghcr.io/${OWNER}/tokmd"
           CANDIDATE="${IMAGE}:verified-candidate-${GITHUB_SHA}"
           EXACT="${IMAGE}:${VERSION}"
-          DIGEST="$(docker buildx imagetools inspect "${CANDIDATE}" | awk '$1 == "Digest:" { print $2; exit }')"
+          CANDIDATE_PULL="$(docker pull "${CANDIDATE}" 2>&1 | tee /dev/stderr)"
+          DIGEST="$(awk '$1 == "Digest:" { print $2; exit }' <<<"${CANDIDATE_PULL}")"
           if [[ ! "${DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
             echo "::error::no immutable candidate digest found for ${CANDIDATE}"
             exit 1
           fi
           docker buildx imagetools create --tag "${EXACT}" "${IMAGE}@${DIGEST}"
-          PROMOTED="$(docker buildx imagetools inspect "${EXACT}" | awk '$1 == "Digest:" { print $2; exit }')"
+          PROMOTED_PULL="$(docker pull "${EXACT}" 2>&1 | tee /dev/stderr)"
+          PROMOTED="$(awk '$1 == "Digest:" { print $2; exit }' <<<"${PROMOTED_PULL}")"
           if [[ "${PROMOTED}" != "${DIGEST}" ]]; then
             echo "::error::exact release tag resolved to ${PROMOTED}, expected ${DIGEST}"
             exit 1
