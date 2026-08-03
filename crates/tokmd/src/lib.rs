@@ -71,3 +71,12 @@ pub fn run() -> Result<()> {
 pub fn format_error(err: &anyhow::Error) -> String {
     error_hints::format(err)
 }
+
+/// Return the process exit code for a CLI error.
+pub fn exit_code(err: &anyhow::Error) -> i32 {
+    if err.downcast_ref::<commands::UsageError>().is_some() {
+        2
+    } else {
+        1
+    }
+}
