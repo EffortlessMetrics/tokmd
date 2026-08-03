@@ -151,6 +151,7 @@ paths = [
   "xtask/src/proof/**",
   "xtask/src/tasks/mod.rs",
   "xtask/src/tasks/affected.rs",
+  "xtask/src/tasks/action_manifest.rs",
   "xtask/src/tasks/bindings_parity.rs",
   "xtask/src/tasks/boundaries_check.rs",
   "xtask/src/tasks/build_guard.rs",
@@ -1051,6 +1052,7 @@ paths = [
   "crates/tokmd/src/analysis_utils.rs",
   "crates/tokmd/src/cli/**",
   "crates/tokmd/src/commands/**",
+  "crates/tokmd/src/lib.rs",
   "crates/tokmd/src/config.rs",
   "crates/tokmd/src/config/**",
   "crates/tokmd/src/error_hints.rs",
@@ -1059,6 +1061,7 @@ paths = [
   "crates/tokmd/tests/cli_*.rs",
   "crates/tokmd/tests/evidence_packet_*.rs",
   "crates/tokmd/tests/packet_*.rs",
+  "crates/tokmd/tests/root_option_contract_w107.rs",
   "crates/tokmd/tests/ub_review_packet_*.rs",
   "crates/tokmd/tests/render_*.rs",
   "crates/tokmd/tests/snapshots/cli_*.snap",
@@ -1558,10 +1561,15 @@ paths = [
   ".github/workflows/release.yml",
   "CHANGELOG.md",
   "CITATION.cff",
+  "Formula/tokmd.rb",
+  "aur/.SRCINFO",
+  "aur/PKGBUILD",
+  "bucket/tokmd.json",
   "docs/releases/**",
   # The Dockerfile pins the builder toolchain, and version-consistency now
   # verifies that pin against the workspace MSRV.
   "Dockerfile",
+  "winget/manifests/e/EffortlessMetrics/tokmd/1.3.1/**",
   "xtask/src/tasks/version_consistency.rs",
 ]
 proof = [
