@@ -126,18 +126,31 @@ pub struct CliAnalyzeArgs {
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum AnalysisPreset {
+    #[value(help = "Core derived metrics: density, distribution, and COCOMO.")]
     Receipt,
+    #[value(help = "Effort estimation with model and cost projections.")]
     Estimate,
+    #[value(help = "Manual-candidate UB review packet analysis.")]
     BunUb,
+    #[value(help = "Receipt metrics plus TODO density and health indicators.")]
     Health,
+    #[value(help = "Health metrics plus git hotspots, coupling, and freshness.")]
     Risk,
+    #[value(help = "Supply-chain assets, dependency locks, and dependency manifests.")]
     Supply,
+    #[value(help = "Import graph and architecture-oriented relationships.")]
     Architecture,
+    #[value(help = "Semantic topic clouds and repository themes.")]
     Topics,
+    #[value(help = "License radar and entropy-oriented security profiling.")]
     Security,
+    #[value(help = "Repository archetype and organizational identity signals.")]
     Identity,
+    #[value(help = "Predictive churn and advanced git history metrics.")]
     Git,
+    #[value(help = "All supported analysis families except fun outputs.")]
     Deep,
+    #[value(help = "Eco-label and novelty-oriented outputs.")]
     Fun,
 }
 

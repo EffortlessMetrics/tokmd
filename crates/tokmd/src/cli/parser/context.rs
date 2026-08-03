@@ -69,7 +69,12 @@ pub struct CliContextArgs {
     pub force: bool,
 
     /// Write bundle to directory with manifest (for large outputs).
-    #[arg(long, value_name = "DIR", conflicts_with = "output")]
+    #[arg(
+        long = "output-dir",
+        visible_alias = "bundle-dir",
+        value_name = "DIR",
+        conflicts_with = "output"
+    )]
     pub bundle_dir: Option<PathBuf>,
 
     /// Warn if output exceeds N bytes (default: 10MB, 0=disable).
@@ -131,15 +136,19 @@ pub enum ContextOutput {
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    after_help = "Examples:\n  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k\n  tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json\n  tokmd handoff --no-git"
+    after_help = "Examples:\n  tokmd handoff crates/tokmd xtask --output-dir .handoff --budget 128k\n  tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json\n  tokmd handoff --no-git"
 )]
 pub struct HandoffArgs {
     /// Paths to scan (directories, files, or globs). Defaults to ".".
     #[arg(value_name = "PATH")]
     pub paths: Option<Vec<PathBuf>>,
 
-    /// Output directory for handoff artifacts.
-    #[arg(long, default_value = ".handoff")]
+    /// Output directory for handoff artifacts. `--out-dir` is a compatibility alias.
+    #[arg(
+        long = "output-dir",
+        visible_alias = "out-dir",
+        default_value = ".handoff"
+    )]
     pub out_dir: PathBuf,
 
     /// Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited").

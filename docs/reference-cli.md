@@ -424,7 +424,20 @@ Options:
       --analysis <ANALYSIS>
           Also emit analysis receipts using this preset
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --hidden
           Count hidden files and directories
@@ -521,7 +534,20 @@ Options:
       --preset <PRESET>
           Analysis preset to run [default: receipt]
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --config <MODE>
           Whether to load scan config files (`tokei.toml` / `.tokeirc`)
@@ -849,7 +875,20 @@ Options:
       --preset <PRESET>
           Optional analysis preset to use for the badge
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --git
           Force-enable git-based metrics
@@ -1284,8 +1323,10 @@ Options:
       --force
           Overwrite existing output file
 
-      --bundle-dir <DIR>
+      --output-dir <DIR>
           Write bundle to directory with manifest (for large outputs)
+
+          [alias: --bundle-dir]
 
       --max-output-bytes <MAX_OUTPUT_BYTES>
           Warn if output exceeds N bytes (default: 10MB, 0=disable)
@@ -1369,10 +1410,11 @@ Options:
 
           [alias: --ignore]
 
-      --out-dir <OUT_DIR>
-          Output directory for handoff artifacts
+      --output-dir <OUT_DIR>
+          Output directory for handoff artifacts. `--out-dir` is a compatibility alias
 
           [default: .handoff]
+          [alias: --out-dir]
 
       --budget <BUDGET>
           Token budget with optional k/m/g suffix, or 'unlimited' (e.g., "128k", "1m", "1g", "unlimited")
@@ -1514,7 +1556,7 @@ Options:
           Print help (see a summary with '-h')
 
 Examples:
-  tokmd handoff crates/tokmd xtask --out-dir .handoff --budget 128k
+  tokmd handoff crates/tokmd xtask --output-dir .handoff --budget 128k
   tokmd handoff . --review-packet-dir .tokmd/review --proof-route target/ci/proof-pack-route.json --proof-plan target/proof/proof-plan.json
   tokmd handoff --no-git
 ```
@@ -2558,7 +2600,20 @@ Options:
       --preset <PRESET>
           Analysis preset (for compute-then-gate mode)
 
-          [possible values: receipt, estimate, bun-ub, health, risk, supply, architecture, topics, security, identity, git, deep, fun]
+          Possible values:
+          - receipt:      Core derived metrics: density, distribution, and COCOMO.
+          - estimate:     Effort estimation with model and cost projections.
+          - bun-ub:       Manual-candidate UB review packet analysis.
+          - health:       Receipt metrics plus TODO density and health indicators.
+          - risk:         Health metrics plus git hotspots, coupling, and freshness.
+          - supply:       Supply-chain assets, dependency locks, and dependency manifests.
+          - architecture: Import graph and architecture-oriented relationships.
+          - topics:       Semantic topic clouds and repository themes.
+          - security:     License radar and entropy-oriented security profiling.
+          - identity:     Repository archetype and organizational identity signals.
+          - git:          Predictive churn and advanced git history metrics.
+          - deep:         All supported analysis families except fun outputs.
+          - fun:          Eco-label and novelty-oriented outputs.
 
       --format <FORMAT>
           Output format
