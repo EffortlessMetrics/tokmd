@@ -3,7 +3,10 @@
 # Release images receive a platform-specific binary built by the release
 # matrix. Keeping Rust compilation outside Docker avoids serial workspace
 # builds under emulated ARM64 while preserving a multi-architecture image.
-FROM debian:bookworm-slim AS runtime
+# The release runners build against Ubuntu 24.04's glibc 2.39; keep the
+# runtime at that compatibility floor instead of copying the binary into
+# Debian Bookworm's older glibc 2.36.
+FROM ubuntu:24.04 AS runtime
 
 ARG BINARY=artifacts/tokmd
 ARG VERSION
