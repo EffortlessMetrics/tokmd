@@ -730,6 +730,7 @@ function setCapabilities(message) {
     };
     renderWorkerCapabilities(message);
     renderRepoCapabilities();
+    updateRepoLoadControls();
     updateRunControls();
     updateDownloadButtonState();
     cancelButton.disabled = true;
