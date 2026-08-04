@@ -219,7 +219,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Publish crates in dependency order
-        run: cargo xtask publish --yes --skip-tests --verbose
+        run: bash scripts/publish-release-crates.sh
 
   docker:
     name: Promote Verified Docker Image
