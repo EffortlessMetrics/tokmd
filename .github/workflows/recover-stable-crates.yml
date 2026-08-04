@@ -54,11 +54,16 @@ jobs:
 
           manifest = Path(os.environ["RELEASE_SOURCE_DIR"]) / "crates/tokmd-types/Cargo.toml"
           text = manifest.read_text()
-          old = "tokmd-format.workspace = true"
-          new = 'tokmd-format = { version = "1.14.0" }'
-          if old not in text:
-              raise SystemExit("tokmd-types dev dependency overlay target was not found")
-          manifest.write_text(text.replace(old, new, 1))
+          replacements = {
+              "tokmd-scan.workspace = true": 'tokmd-scan = { version = "1.14.0" }',
+              "tokmd-format.workspace = true": 'tokmd-format = { version = "1.14.0" }',
+              "tokmd-model.workspace = true": 'tokmd-model = { version = "1.14.0" }',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f"tokmd-types dev dependency overlay target was not found: {old}")
+              text = text.replace(old, new, 1)
+          manifest.write_text(text)
           PY
           git -C "${RELEASE_SOURCE_DIR}" init --quiet
           git -C "${RELEASE_SOURCE_DIR}" config user.name "tokmd release recovery"
