@@ -62,7 +62,9 @@ test("released archive-enabled WASM supports browser ZIP workflows", async ({ pa
     }
 
     await page.goto(baseUrl, { waitUntil: "networkidle" });
-    await expect(page.locator("[data-worker-capabilities]")).toContainText(expectedVersion);
+    const workerCapabilities = page.locator("[data-worker-capabilities]");
+    await expect(workerCapabilities).toContainText(expectedVersion);
+    await expect(workerCapabilities).toContainText("zipball: yes");
 
     await page.locator("[data-zip-archive]").setInputFiles(zipPath);
     await expect(page.locator("[data-load-zip]")).toBeEnabled();
