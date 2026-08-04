@@ -424,9 +424,12 @@ jobs:
           EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: |
           set -euo pipefail
+          mkdir -p consumer-smoke
+          cp scripts/release-consumer-smoke-browser.spec.mjs \
+            consumer-smoke/release-consumer-smoke-browser.spec.mjs
           npx --no-install playwright install --with-deps chromium
           npx --no-install playwright test \
-            scripts/release-consumer-smoke-browser.spec.mjs \
+            consumer-smoke/release-consumer-smoke-browser.spec.mjs \
             --reporter=line
       - name: Write WASM receipt
         if: always()
