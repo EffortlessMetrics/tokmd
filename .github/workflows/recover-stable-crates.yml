@@ -48,6 +48,11 @@ jobs:
           mkdir -p "${RELEASE_SOURCE_DIR}"
           git archive --format=tar "${RELEASE_TAG}" | tar -xf - -C "${RELEASE_SOURCE_DIR}"
           test -f "${RELEASE_SOURCE_DIR}/Cargo.toml"
+          git -C "${RELEASE_SOURCE_DIR}" init --quiet
+          git -C "${RELEASE_SOURCE_DIR}" config user.name "tokmd release recovery"
+          git -C "${RELEASE_SOURCE_DIR}" config user.email "release-recovery@users.noreply.github.com"
+          git -C "${RELEASE_SOURCE_DIR}" add --all --force
+          git -C "${RELEASE_SOURCE_DIR}" commit --quiet -m "recovery: immutable stable release source"
           {
             echo "## Stable crate publication recovery"
             echo "- tag: ${RELEASE_TAG}"
