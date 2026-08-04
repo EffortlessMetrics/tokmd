@@ -61,7 +61,7 @@ jobs:
           cache-directories: ${{ runner.temp }}/target
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.6
         with:
           tool: cargo-llvm-cov
 
