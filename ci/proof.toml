@@ -1676,6 +1676,7 @@ reason = "Crypto material should be generated at runtime or explicitly documente
 name = "release_consumer_smoke"
 kind = "non_rust"
 paths = [
+  ".github/workflows/promote-release-aliases.yml",
   ".github/workflows/release-consumer-smoke.yml",
   "scripts/release-consumer-smoke-browser.mjs",
   "scripts/release-consumer-smoke-browser.spec.mjs",
@@ -1683,6 +1684,7 @@ paths = [
   "scripts/release_consumer_smoke_aggregate_test.py",
 ]
 proof = [
+  "actionlint .github/workflows/promote-release-aliases.yml",
   "actionlint .github/workflows/release-consumer-smoke.yml",
   "node --check scripts/release-consumer-smoke-browser.spec.mjs",
   "python3 -m unittest scripts/release_consumer_smoke_aggregate_test.py",
