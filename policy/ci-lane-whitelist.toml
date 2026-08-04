@@ -1257,3 +1257,23 @@ allowed_triggers = ["workflow_dispatch", "workflow_call"]
 duplicate_of     = []
 review_after     = "2026-08-04"
 expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_promote_aliases_manual"
+workflow         = ".github/workflows/promote-release-aliases.yml"
+job              = "Promote exact release aliases"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "release/publish"
+intent           = "Promote mutable GHCR and Action aliases only after an exact published stable digest is verified."
+failure_mode     = "A mutable release alias moves to an unverified or incorrect artifact."
+proof_obligation = "Verify the supplied exact release digest, promote and recheck GHCR aliases, then move v1 to the resolved release commit."
+evidence         = ["workflow logs", "GHCR manifest tags", "GitHub tag ref"]
+allowed_triggers = ["workflow_dispatch"]
+duplicate_of     = ["release_promote_aliases"]
+review_after     = "2026-08-04"
+expires          = "2027-02-04"

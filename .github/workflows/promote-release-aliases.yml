@@ -1,0 +1,100 @@
+name: Promote Release Aliases
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Exact published release tag to promote
+        required: true
+        default: v1.15.0
+        type: string
+      expected_digest:
+        description: Expected published GHCR manifest-list digest
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: promote-release-aliases-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Promote exact release aliases
+    if: github.repository == 'EffortlessMetrics/tokmd'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/effortlessmetrics/tokmd
+      RELEASE_TAG: ${{ inputs.tag }}
+      EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify exact release digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${EXPECTED_DIGEST}" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::expected_digest must be a sha256 digest"
+            exit 1
+          fi
+          actual="$(docker buildx imagetools inspect "${IMAGE}:${RELEASE_TAG}" | awk '$1 == "Digest:" { print $2; exit }')"
+          if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
+            echo "::error::exact release digest ${actual} did not match ${EXPECTED_DIGEST}"
+            exit 1
+          fi
+          echo "exact_release_digest=${actual}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Promote and verify GHCR aliases
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#v}"
+          IFS=. read -r major minor _ <<< "${version}"
+          for alias in "${major}" "${major}.${minor}" latest; do
+            docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${RELEASE_TAG}"
+            actual="$(docker buildx imagetools inspect "${IMAGE}:${alias}" | awk '$1 == "Digest:" { print $2; exit }')"
+            if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
+              echo "::error::alias ${alias} resolved to ${actual}, expected ${EXPECTED_DIGEST}"
+              exit 1
+            fi
+            echo "alias_${alias}=${actual}" >> "${GITHUB_STEP_SUMMARY}"
+          done
+
+      - name: Move v1 to the exact release commit
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        with:
+          script: |
+            const tag = process.env.RELEASE_TAG;
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            const ref = await github.rest.git.getRef({ owner, repo, ref: `tags/${tag}` });
+            let sha = ref.data.object.sha;
+            if (ref.data.object.type === 'tag') {
+              const annotated = await github.rest.git.getTag({ owner, repo, tag_sha: sha });
+              sha = annotated.data.object.sha;
+            }
+            await github.rest.git.updateRef({
+              owner,
+              repo,
+              ref: 'tags/v1',
+              sha,
+              force: true,
+            });
+            core.summary.addHeading('Action alias promotion').addTable([
+              [{ data: 'release_tag', header: true }, { data: 'commit', header: true }],
+              [tag, sha],
+              ['v1', sha],
+            ]).write();
