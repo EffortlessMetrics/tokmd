@@ -54,16 +54,26 @@ jobs:
 
           manifest = Path(os.environ["RELEASE_SOURCE_DIR"]) / "crates/tokmd-types/Cargo.toml"
           text = manifest.read_text()
-          replacements = {
-              "tokmd-scan.workspace = true": 'tokmd-scan = { version = "1.14.0" }',
-              "tokmd-format.workspace = true": 'tokmd-format = { version = "1.14.0" }',
-              "tokmd-model.workspace = true": 'tokmd-model = { version = "1.14.0" }',
-          }
-          for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f"tokmd-types dev dependency overlay target was not found: {old}")
-              text = text.replace(old, new, 1)
-          manifest.write_text(text)
+          import re
+
+          lines = []
+          in_dev_dependencies = False
+          replacements = []
+          for line in text.splitlines(keepends=True):
+              body = line.rstrip("\r\n")
+              ending = line[len(body):]
+              if body.strip().startswith("["):
+                  in_dev_dependencies = body.strip() == "[dev-dependencies]"
+              match = re.fullmatch(r"(\s*)(tokmd-[A-Za-z0-9-]+)\.workspace\s*=\s*true(\s*)", body)
+              if in_dev_dependencies and match:
+                  indent, name, suffix = match.groups()
+                  body = f'{indent}{name} = {{ version = "1.14.0" }}{suffix}'
+                  replacements.append(name)
+              lines.append(body + ending)
+          if not replacements:
+              raise SystemExit("no internal workspace dev dependencies found for recovery overlay")
+          manifest.write_text("".join(lines))
+          print(f"overlaid internal dev dependencies: {', '.join(replacements)}")
           PY
           git -C "${RELEASE_SOURCE_DIR}" init --quiet
           git -C "${RELEASE_SOURCE_DIR}" config user.name "tokmd release recovery"
