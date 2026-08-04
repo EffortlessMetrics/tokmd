@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          RELEASE_SOURCE_DIR="${RUNNER_TEMP}/tokmd-release-source"
+          export RELEASE_SOURCE_DIR="${RUNNER_TEMP}/tokmd-release-source"
           if [[ ! "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::tag must be a stable semantic-version tag such as v1.15.0"
             exit 1
