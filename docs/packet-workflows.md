@@ -8,7 +8,7 @@ into one `sensors/tokmd/` packet from a single command. The root
 `mode: packet`, downloading a prebuilt `tokmd` binary by default. This page
 defines the one-command CLI path and the `mode: packet` Action path. The GHCR
 container runtime is implemented for verification-gated tags. `1.14.0` is
-verified; `1.15.0-rc.2` is staged in the release-prep contract and remains
+verified; `1.15.0-rc.3` is staged in the release-prep contract and remains
 pending its exact candidate and anonymous runtime gate. Downstream `ub-review`
 consumption remains planned.
 
@@ -256,7 +256,7 @@ The Action's `runtime: container` path:
 
 - requires a Linux runner with Docker available;
 - accepts only verification-gated tags. The unreleased RC-prep source stages
-  `1.15.0-rc.2` for candidate verification; it is not a supported tag until
+  `1.15.0-rc.3` for candidate verification; it is not a supported tag until
   that gate passes. Any other tag,
   including mutable aliases such as `latest`, `1.14`, and `1`, is a hard error
   pointing at the spec;
@@ -325,7 +325,7 @@ A packet workflow does not:
    [GitHub Action reference](github-action.md) and the packet job summary)
 6. ~~Harden publication GHCR as a secondary runtime.~~ (done: `runtime:
    container` wired in `action.yml` for verification-gated tags; `1.14.0` is
-   verified and `1.15.0-rc.2` is staged for RC proof.) Re-verify on each
+   verified and `1.15.0-rc.3` is staged for RC proof.) Re-verify on each
    release and extend the supported-tag set only after the gate passes.
 7. Wire downstream `ub-review` consumption after the Action path is stable.
 
