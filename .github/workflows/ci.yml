@@ -121,24 +121,22 @@ jobs:
           {
             echo "# Deterministic precontext for ub-review"
             echo
-            echo "- core gate (gates the merge; running concurrently): cargo xtask gate --check"
-            echo "- core tests (running concurrently): cargo test --all-features"
-            echo "- proof policy (running concurrently): cargo xtask proof-policy --check"
+            echo "- core gate (gates the merge; serial Cargo lane): cargo xtask gate --check"
+            echo "- core tests (serial Cargo lane): cargo test --all-features"
+            echo "- proof policy (serial Cargo lane): cargo xtask proof-policy --check"
             echo "- runner: ${RUNNER_KIND:-github} event: ${GITHUB_EVENT_NAME}"
           } > target/ci-core/precontext.md
-          (
-            cargo xtask gate --check
-            echo "$?" > target/ci-core/core_exit
-          ) > target/ci-core/core.log 2>&1 &
-          (
-            cargo test --all-features
-            echo "$?" > target/ci-core/test_exit
-          ) > target/ci-core/test.log 2>&1 &
-          (
-            cargo xtask proof-policy --check
-            echo "$?" > target/ci-core/proof_policy_exit
-          ) > target/ci-core/proof_policy.log 2>&1 &
-          echo "launched background core gate, tests, and proof-policy"
+          # Keep Cargo proof lanes serial on the selected runner. Running the
+          # gate, full tests, and advisory review concurrently can starve the
+          # gate long enough to produce a false timeout marker (124) even when
+          # the same commands pass with the available resources.
+          cargo xtask gate --check > target/ci-core/core.log 2>&1
+          echo "$?" > target/ci-core/core_exit
+          cargo test --all-features > target/ci-core/test.log 2>&1
+          echo "$?" > target/ci-core/test_exit
+          cargo xtask proof-policy --check > target/ci-core/proof_policy.log 2>&1
+          echo "$?" > target/ci-core/proof_policy_exit
+          echo "completed serial core gate, tests, and proof-policy"
 
       - name: UB Review (advisory)
         id: ubreview
