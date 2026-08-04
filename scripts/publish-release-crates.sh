@@ -81,7 +81,7 @@ publish_one() {
     printf '%s\n' "$output"
 
     if [[ "$status" -eq 0 ]] || printf '%s\n' "$output" | grep -Eqi \
-      'already uploaded|crate version.*already exists'; then
+      'already uploaded|crate version.*already exists|already exists on crates.io index'; then
       echo "Published or already present: ${crate}"
       return 0
     fi
