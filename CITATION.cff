@@ -2,8 +2,8 @@ cff-version: 1.2.0
 title: tokmd
 message: "If you use this software, please cite it as below."
 type: software
-version: 1.15.0-rc.1
-date-released: 2026-08-03
+version: 1.15.0-rc.2
+date-released: 2026-08-04
 authors:
   - family-names: Zimmerman
     given-names: Steven
