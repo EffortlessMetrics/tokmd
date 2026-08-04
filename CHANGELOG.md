@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-RC2 consumer proof rejected the released WASM browser ZIP flow; RC3 preparation
-is in progress.
+RC3 consumer proof passed; stable publication and final consumer verification
+are in progress.
+
+## [1.15.0] - 2026-08-04
+
+The 1.15.0 stable release includes the capabilities and fixes carried by RC1,
+RC2, and RC3. Stable aliases and crates publication remain gated on the exact
+stable artifact proof.
 
 ## [1.15.0-rc.3] - 2026-08-04
 
