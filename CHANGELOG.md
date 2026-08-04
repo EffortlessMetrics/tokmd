@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No changes recorded after the 1.15.0-rc.1 preparation point.
+No changes recorded after the 1.15.0-rc.2 preparation point.
+
+## [1.15.0-rc.2] - 2026-08-04
+
+### Fixed
+
+- Corrected the release candidate WASM artifact path so the published bundle
+  includes the archive-enabled ZIP ingestion capability proved by the browser
+  runner.
 
 ## [1.15.0-rc.1] - 2026-08-03
 
@@ -1321,6 +1329,7 @@ Stable release following `v1.10.0-rc.1` validation.
 
 [Unreleased]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...main
 [1.15.0-rc.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...v1.15.0-rc.1
+[1.15.0-rc.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.15.0-rc.1...v1.15.0-rc.2
 [1.14.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.1...v1.14.0
 [1.13.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.0...v1.13.1
 [1.13.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.12.0...v1.13.0
