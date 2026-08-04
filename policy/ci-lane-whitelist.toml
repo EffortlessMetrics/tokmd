@@ -1089,3 +1089,151 @@ allowed_triggers = ["pull_request", "push"]
 duplicate_of     = []
 review_after     = "2026-07-07"
 expires          = "2026-12-07"
+
+[[lane]]
+id               = "release_consumer_assets"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Verify release assets"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "release/consumer"
+intent           = "Verify exact release checksums and build attestations before consumer acceptance."
+failure_mode     = "A release asset or provenance receipt disagrees with the published release."
+proof_obligation = "Download the exact release assets, verify checksums, and verify attestations for every attested artifact."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+duplicate_of     = []
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_binary"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Binary smoke (${{ matrix.id }})"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "mixed"
+base_lem         = 30
+owner            = "release/consumer"
+intent           = "Execute every advertised release binary natively against the first-hour CLI and packet contract."
+failure_mode     = "A published platform binary builds but fails to behave as a consumer artifact."
+proof_obligation = "Assert exact version, JSON parsing, packet content, canonical typo suggestions, and usage exit code 2 on native runners."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+expensive        = true
+labels           = ["release-check"]
+duplicate_of     = []
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_nix"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Nix exact-tag smoke"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 35
+owner            = "release/consumer"
+intent           = "Build and run the exact release source through the Nix consumer path."
+failure_mode     = "Nix packaging diverges from the tagged release source."
+proof_obligation = "Run nix build and nix run against the exact tag, recording unavailable separately when the runner lacks Nix."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+expensive        = true
+labels           = ["nix", "release-check"]
+duplicate_of     = ["nix_pr_package_gate"]
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_wasm"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Released WASM browser ZIP smoke"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 40
+owner            = "release/consumer"
+intent           = "Exercise the exact released archive-enabled WASM bundle through the browser ZIP workflow."
+failure_mode     = "The documented browser ZIP capability is absent from the released artifact."
+proof_obligation = "Download the release WASM archive, extract it without rebuilding, run the browser ZIP workflow, and verify version, rows, schema, and download output."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+expensive        = true
+labels           = ["wasm", "release-check"]
+duplicate_of     = ["wasm_compile_test"]
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_action_binary"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Action binary packet smoke"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 12
+owner            = "release/consumer"
+intent           = "Prove the exact Action ref resolves its baked-in binary and produces a readable packet."
+failure_mode     = "The Action wrapper works in isolation but fails for downstream packet consumers."
+proof_obligation = "Invoke the exact Action ref with omitted version and mode=packet, then verify outputs and the uploaded artifact."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+duplicate_of     = ["test_action_packet", "release_verify_action"]
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_action_container"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Action container packet smoke"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 20
+owner            = "release/consumer"
+intent           = "Prove the exact Action ref can consume the verified exact container tag in packet mode."
+failure_mode     = "The Action container runtime passes version checks but cannot produce meaningful packet artifacts."
+proof_obligation = "Invoke runtime=container with an explicit verified version, then verify packet status, manifest content, and uploaded artifacts."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+expensive        = true
+labels           = ["container", "release-check"]
+duplicate_of     = ["release_verify_container", "test_action_packet"]
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
+
+[[lane]]
+id               = "release_consumer_aggregate"
+workflow         = ".github/workflows/release-consumer-smoke.yml"
+job              = "Aggregate consumer-smoke receipt"
+kind             = "report"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "release/consumer"
+intent           = "Combine every consumer-smoke result without collapsing unavailable or unrun jobs into green."
+failure_mode     = "Release acceptance loses the distinction between passed, failed, unavailable, and not-run evidence."
+proof_obligation = "Emit tokmd.release_consumer_smoke.v1.json and release-consumer-smoke.md with one explicit status per surface."
+evidence         = ["tokmd.release_consumer_smoke.v1.json", "release-consumer-smoke.md"]
+allowed_triggers = ["workflow_dispatch", "workflow_call"]
+duplicate_of     = []
+review_after     = "2026-08-04"
+expires          = "2027-02-04"
