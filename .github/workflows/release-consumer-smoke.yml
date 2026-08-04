@@ -256,7 +256,7 @@ jobs:
           printf '%s' "$analyze_json" | python3 -c 'import json, sys; json.load(sys.stdin)'
           (
             cd "$fixture"
-            "$bin" packet generate --no-syntax .
+            "$bin" packet generate --base HEAD --head HEAD --no-syntax .
           )
           test -s "$fixture/sensors/tokmd/manifest.json"
           python3 - "$fixture/sensors/tokmd/manifest.json" <<'PY'
@@ -340,8 +340,8 @@ jobs:
             echo "nix=unavailable (Nix installer did not provide an executable)" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          nix build "github:${RELEASE_REPOSITORY}?rev=${TAG_SHA}"
-          version_output="$(nix run "github:${RELEASE_REPOSITORY}?rev=${TAG_SHA}" -- --version)"
+          nix build --no-write-lock-file "github:${RELEASE_REPOSITORY}?rev=${TAG_SHA}"
+          version_output="$(nix run --no-write-lock-file "github:${RELEASE_REPOSITORY}?rev=${TAG_SHA}" -- --version)"
           grep -qx "tokmd ${EXPECTED_VERSION}" <<< "$version_output"
           status=passed
           echo "- Nix exact-tag build and version: passed" >> "$GITHUB_STEP_SUMMARY"
@@ -415,6 +415,7 @@ jobs:
             exit 1
           fi
       - name: Run browser smoke against released archive
+        id: browser
         shell: bash
         env:
           BASE_URL: http://127.0.0.1:4173/index.html
@@ -427,6 +428,15 @@ jobs:
           npx --no-install playwright test \
             scripts/release-consumer-smoke-browser.spec.mjs \
             --reporter=line
+      - name: Write WASM receipt
+        if: always()
+        shell: bash
+        env:
+          RECEIPT_STATUS: ${{ steps.browser.outcome == 'success' && 'passed' || 'failed' }}
+          TAG: ${{ inputs.tag }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+        run: |
+          set -euo pipefail
           mkdir -p receipt
           python3 - <<'PY'
           import json
@@ -438,7 +448,7 @@ jobs:
               "kind": "wasm",
               "tag": os.environ["TAG"],
               "expected_version": os.environ["EXPECTED_VERSION"],
-              "status": "passed",
+              "status": os.environ["RECEIPT_STATUS"],
           }, indent=2) + "\n", encoding="utf-8")
           PY
       - name: Upload WASM receipt
@@ -465,6 +475,7 @@ jobs:
         continue-on-error: true
         with:
           mode: packet
+          base: HEAD
           syntax: 'false'
           artifact: 'false'
           comment: 'false'
@@ -545,6 +556,7 @@ jobs:
         continue-on-error: true
         with:
           mode: packet
+          base: HEAD
           version: ${{ inputs.expected_version }}
           runtime: container
           syntax: 'false'
