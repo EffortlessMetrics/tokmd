@@ -129,10 +129,27 @@ jobs:
       - build-wasm
     if: github.repository == 'EffortlessMetrics/tokmd'
     runs-on: ubuntu-latest
+    outputs:
+      release_version: ${{ steps.release-context.outputs.version }}
+      release_kind: ${{ steps.release-context.outputs.kind }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Resolve exact release context
+        id: release-context
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            KIND=rc
+          else
+            KIND=stable
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "kind=${KIND}" >> "$GITHUB_OUTPUT"
 
       - name: Download Artifacts
         uses: actions/download-artifact@v8
@@ -361,39 +378,12 @@ jobs:
     name: Verify exact-tag Action default
     needs: [create-release, verify-container]
     if: ${{ github.repository == 'EffortlessMetrics/tokmd' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.ref }}
-          persist-credentials: false
-
-      - name: Run Action against exact release tag
-        id: tokmd
-        uses: ./
-        with:
-          # Omit version to prove the selected Action ref carries its exact
-          # binary default; explicit version overrides are covered by PR tests.
-          comment: 'false'
-          artifact: 'false'
-
-      - name: Check exact release version
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          test -f tokmd-receipt.json
-          REPORTED="$(jq -r '.tool.version // empty' tokmd-receipt.json)"
-          test "${REPORTED}" = "${VERSION}"
-
-      - name: Upload Action verification receipt
-        uses: actions/upload-artifact@v7
-        with:
-          name: action-verification-${{ github.ref_name }}
-          path: tokmd-receipt.json
-          if-no-files-found: error
+    uses: ./.github/workflows/release-consumer-smoke.yml
+    with:
+      release_repository: ${{ github.repository }}
+      tag: ${{ github.ref_name }}
+      expected_version: ${{ needs.create-release.outputs.release_version }}
+      release_kind: ${{ needs.create-release.outputs.release_kind }}
 
   promote-aliases:
     name: Promote stable aliases
@@ -404,7 +394,8 @@ jobs:
       contents: write
       packages: write
     # contents:write moves the v1 tag; packages:write promotes GHCR aliases
-    # only after exact release, crate, container, and Action verification.
+    # only after exact release, crates, container, Action, and full consumer
+    # verification pass.
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
