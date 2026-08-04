@@ -891,3 +891,21 @@ surface = "build"
 classification = "config"
 reason = "Policy baseline receipts for clippy, no-panic, etc."
 covered_by = ["cargo xtask check-file-policy --strict"]
+
+[[allow]]
+glob = "scripts/release-consumer-smoke-browser.spec.mjs"
+kind = "tooling"
+owner = "release/consumer"
+surface = "release"
+classification = "test"
+reason = "Playwright browser harness for exact released WASM archive consumer smoke."
+covered_by = [".github/workflows/release-consumer-smoke.yml"]
+
+[[allow]]
+glob = "scripts/release_consumer_smoke_aggregate*.py"
+kind = "tooling"
+owner = "release/consumer"
+surface = "release"
+classification = "test"
+reason = "Fail-closed release consumer receipt aggregation and deterministic contract fixtures."
+covered_by = ["python3 -m unittest scripts/release_consumer_smoke_aggregate_test.py"]
