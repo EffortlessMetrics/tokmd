@@ -173,7 +173,7 @@ release ledger, per `docs/specs/publishing-evidence.md`.
 | Tag | Visibility (steps 1-5) | Runtime exec (steps 6-7) | Container runtime |
 | --- | --- | --- | --- |
 | `1.14.0` (concrete patch tag) | verified-public (2026-06-26) | verified (2026-06-26) | **gate-passed and wired**; accepted by `action.yml` `runtime: container` |
-| `1.15.0-rc.2` (RC candidate tag) | pending candidate proof | pending exact-tag runtime proof | **staged, not yet supported**; do not tag until the candidate gate passes |
+| `1.15.0-rc.3` (RC candidate tag) | pending candidate proof | pending exact-tag runtime proof | **staged, not yet supported**; do not tag until the candidate gate passes |
 | `1.14` / `1` / `latest` (mutable aliases) | verified-public (2026-06-26) | n/a | **rejected** by `action.yml`; mutable tags are not accepted for the container runtime |
 
 On **2026-06-26**, anonymous registry-API verification (no Docker on the
@@ -219,7 +219,7 @@ pattern). The published Action currently supports `1.14.0`; mutable tags
 (`latest`, `1.14`, `1`) and any non-gated tag remain hard errors pointing at this
 spec. The container-runtime test in `.github/workflows/test-action.yml` exercises
 both the supported-tag success path and the unverified/mutable rejection paths.
-The `1.15.0-rc.2` entry is staged by the unreleased RC-prep commit but remains
+The `1.15.0-rc.3` entry is staged by the unreleased RC-prep commit but remains
 unsupported until the pre-tag candidate and exact-tag verification receipts pass.
 Each new stable tag must re-enter the verification gate and be added to the
 Action's supported-tag set before its container runtime is called supported.

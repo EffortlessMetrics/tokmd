@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No changes recorded after the 1.15.0-rc.2 preparation point.
+RC2 consumer proof rejected the released WASM browser ZIP flow; RC3 preparation
+is in progress.
+
+## [1.15.0-rc.3] - 2026-08-04
+
+### Fixed
+
+- Refresh the browser repository-load controls when the WASM worker reports
+  archive ZIP capability, so the released ZIP workflow is actionable.
 
 ## [1.15.0-rc.2] - 2026-08-04
 
@@ -1330,6 +1338,7 @@ Stable release following `v1.10.0-rc.1` validation.
 [Unreleased]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...main
 [1.15.0-rc.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.14.0...v1.15.0-rc.1
 [1.15.0-rc.2]: https://github.com/EffortlessMetrics/tokmd/compare/v1.15.0-rc.1...v1.15.0-rc.2
+[1.15.0-rc.3]: https://github.com/EffortlessMetrics/tokmd/compare/v1.15.0-rc.2...v1.15.0-rc.3
 [1.14.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.1...v1.14.0
 [1.13.1]: https://github.com/EffortlessMetrics/tokmd/compare/v1.13.0...v1.13.1
 [1.13.0]: https://github.com/EffortlessMetrics/tokmd/compare/v1.12.0...v1.13.0
