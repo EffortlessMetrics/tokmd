@@ -1,0 +1,67 @@
+name: Recover stable crates publication
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Immutable stable tag whose source should be published
+        required: true
+        default: v1.15.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    name: Publish crates from exact stable tag
+    if: github.repository == 'EffortlessMetrics/tokmd'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      RELEASE_TAG: ${{ inputs.tag }}
+
+    steps:
+      - name: Check out recovery workflow source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Extract immutable release source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::tag must be a stable semantic-version tag such as v1.15.0"
+            exit 1
+          fi
+          git fetch --no-tags origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          SOURCE_COMMIT="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+          test -f scripts/publish-release-crates.sh || {
+            echo "::error::recovery publisher is missing from the workflow source checkout"
+            exit 1
+          }
+          mkdir -p release-source
+          git archive --format=tar "${RELEASE_TAG}" | tar -xf - -C release-source
+          test -f release-source/Cargo.toml
+          {
+            echo "## Stable crate publication recovery"
+            echo "- tag: ${RELEASE_TAG}"
+            echo "- source_commit: ${SOURCE_COMMIT}"
+            echo "- source: extracted immutable tag archive"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up stable Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          cargo --version
+
+      - name: Publish exact stable crates
+        working-directory: release-source
+        shell: bash
+        run: bash ../scripts/publish-release-crates.sh
