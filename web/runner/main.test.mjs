@@ -668,6 +668,40 @@ test("main page constrains mode controls to worker capabilities", async (t) => {
     assert.equal(modeInput.options.find((option) => option.value === "analyze").disabled, true);
 });
 
+test("ready capabilities enable archive controls", async (t) => {
+    const harness = installBrowserHarness(t, {
+        storage: createMemoryStorage(),
+        fetchImpl: async () => {
+            throw new Error("fetch should not run");
+        },
+    });
+
+    await import(`./main.js?zipControls=${Date.now()}`);
+
+    const worker = FakeWorker.instances[0];
+    worker.emit({
+        type: "ready",
+        protocolVersion: 2,
+        capabilities: {
+            modes: ["lang", "module", "export", "analyze"],
+            analyzePresets: ["receipt", "estimate"],
+            wasm: true,
+            downloads: true,
+            progress: true,
+            cancel: false,
+            zipball: true,
+        },
+        engine: {
+            version: "test",
+            schemaVersion: 2,
+            analysisSchemaVersion: 9,
+        },
+    });
+
+    assert.equal(harness.element("[data-zip-archive]").disabled, false);
+    assert.equal(harness.element("[data-load-zip]").disabled, false);
+});
+
 test("repo load uses the loaded wasm analyze preset fallback", async (t) => {
     const harness = installBrowserHarness(t, {
         storage: createMemoryStorage(),
