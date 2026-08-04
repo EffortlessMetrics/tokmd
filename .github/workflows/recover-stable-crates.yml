@@ -33,6 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          RELEASE_SOURCE_DIR="${RUNNER_TEMP}/tokmd-release-source"
           if [[ ! "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::tag must be a stable semantic-version tag such as v1.15.0"
             exit 1
@@ -43,9 +44,10 @@ jobs:
             echo "::error::recovery publisher is missing from the workflow source checkout"
             exit 1
           }
-          mkdir -p release-source
-          git archive --format=tar "${RELEASE_TAG}" | tar -xf - -C release-source
-          test -f release-source/Cargo.toml
+          rm -rf "${RELEASE_SOURCE_DIR}"
+          mkdir -p "${RELEASE_SOURCE_DIR}"
+          git archive --format=tar "${RELEASE_TAG}" | tar -xf - -C "${RELEASE_SOURCE_DIR}"
+          test -f "${RELEASE_SOURCE_DIR}/Cargo.toml"
           {
             echo "## Stable crate publication recovery"
             echo "- tag: ${RELEASE_TAG}"
@@ -62,6 +64,6 @@ jobs:
           cargo --version
 
       - name: Publish exact stable crates
-        working-directory: release-source
+        working-directory: ${{ runner.temp }}/tokmd-release-source
         shell: bash
-        run: bash ../scripts/publish-release-crates.sh
+        run: bash "${GITHUB_WORKSPACE}/scripts/publish-release-crates.sh"
