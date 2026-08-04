@@ -11,7 +11,7 @@ inputs:
     default: ''
   version:
     description: 'Version of tokmd to install. Defaults to the workspace release version.'
-    default: '1.15.0-rc.3'
+    default: '1.15.0'
   paths:
     description: 'Paths to scan'
     default: '.'
@@ -151,7 +151,7 @@ runs:
             # 1-7 via the GHCR Container Smoke lane). Mutable tags ('latest',
             # major/minor aliases) are intentionally excluded so the recorded
             # tokmd-version output stays reproducible.
-            container_supported_tags="1.14.0 1.15.0-rc.3"
+            container_supported_tags="1.14.0 1.15.0"
             tag_supported="false"
             for supported in $container_supported_tags; do
               if [ "$normalized_version" = "$supported" ]; then
