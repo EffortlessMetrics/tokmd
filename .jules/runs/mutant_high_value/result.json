@@ -1,3 +1,4 @@
 {
-  "outcome": "learning PR"
+  "outcome": "learning PR",
+  "reason": "The PR was closed as stale/deferred due to age and 1.15.0 release completion. Stopped work and converted run to a learning packet."
 }
