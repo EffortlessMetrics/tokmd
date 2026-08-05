@@ -1,6 +1,8 @@
 ## 💡 Summary
 Standardized internal dependency definitions to use `workspace = true` in workspace crates (`tokmd-analysis-types`, `tokmd-envelope`, `tokmd-scan`, `tokmd-types`), and aligned `tokmd-cockpit`'s explicit dependency version. This improves release metadata consistency and centralizes governance through `workspace.dependencies`.
 
+*Note: Work was stopped as the PR was closed as stale by a reviewer.*
+
 ## 🎯 Why
 Several internal crates were redefining dependencies on other workspace crates via explicit `path = "../..."` and `version = "..."` pairs instead of inheriting from the root `Cargo.toml`. This creates metadata drift risk and complicates the publishing and version-bumping sequences, as changes must be synchronized in multiple places instead of just one.
 

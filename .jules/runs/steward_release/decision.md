@@ -18,4 +18,4 @@ In several internal crates (`tokmd-analysis-types`, `tokmd-cockpit`, `tokmd-enve
 - **Trade-offs:** Increases the maintenance burden during version bumps.
 
 ## Decision
-**Option A** is the selected option. Centralizing dependency versioning through `workspace = true` prevents drift and aligns the manifests with standard cargo workspace governance. Excluded `crates/tokmd-wasm` to keep LEM budget under the hard limit of 125.
+**Option A** is the selected option. Centralizing dependency versioning through `workspace = true` prevents drift and aligns the manifests with standard cargo workspace governance. Excluded `crates/tokmd-wasm` to keep LEM budget under the hard limit of 125. Note: The PR was closed as stale by a reviewer so work is being stopped.
