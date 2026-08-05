@@ -1,3 +1,5 @@
 {
-  "outcome": "PR-ready patch"
+  "status": "success",
+  "outcome": "proof-improvement patch",
+  "message": "Added integration coverage for resolve_lang_with_config"
 }

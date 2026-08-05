@@ -1,48 +1,43 @@
 ## 💡 Summary
-Fixed CLI error messages for non-existent paths across `check-ignore`, `diff`, and `init` to use standard "Path not found: <path>" format. This correctly triggers the global `error_hints` machinery.
+Added integration test coverage for `resolve_lang_with_config` in `tokmd` config resolution.
 
 ## 🎯 Why
-Some subcommands were emitting "does not exist" or "Directory does not exist", bypassing the CLI's `error_hints` system which provides actionable advice for missing paths.
+There was a gap in BDD/integration testing for the `lang` command's configuration resolution logic. While `module` and `export` commands had `_with_config` integration tests, `resolve_lang_with_config` was missing. As configuration precedence (CLI vs TOML vs JSON Profile) is a critical interface behavior, locking it down with an explicit test improves confidence and prevents edge-case drift.
 
 ## 🔎 Evidence
-Tests failed: `init_into_nonexistent_dir_fails_gracefully` expected "does not exist" but actually needed standard error handling to match correctly or trigger hints. The memory specifically notes: "standard CLI error formatting for missing paths should always use the format `Error: Path not found: <path>` ... as this exact string prefix automatically triggers the CLI's global error hint machinery".
+Missing integration test for `resolve_lang_with_config` in `crates/tokmd/tests/config_resolution.rs`.
+Running `cargo test -p tokmd --test config_resolution` confirms `test_resolve_lang_with_config` now successfully executes and validates CLI vs TOML `ViewProfile` precedence.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Update error strings in `check_ignore.rs`, `diff.rs`, and `tokeignore/mod.rs` to output standard "Path not found: {}"
-- why it fits this repo and shard: It adheres to the specific memory instruction about error formats and fits the interfaces shard/polish mission.
-- trade-offs: Structure / Velocity / Governance: Fixes bugs but required updating several test assertions.
+- what it is: Add `test_resolve_lang_with_config` integration test.
+- why it fits this repo and shard: Directly addresses the priority to add missing BDD/integration coverage for critical paths in the `interfaces` shard (covering config and CLI).
+- trade-offs: Structure is solid, velocity is fast, and governance impact is positive by locking down determinism.
 
 ### Option B
-- Add a hack to `error_hints.rs` to match all custom "does not exist" formats.
-- when to choose it instead: If modifying error strings would break external contracts.
-- trade-offs: Leaves inconsistent error formats scattered throughout the codebase.
+- what it is: Add a unit test for profile resolution map lookups.
+- when to choose it instead: If profile mapping had complex branching.
+- trade-offs: `resolve_profile` map lookups are trivial compared to the deep merging performed by `resolve_lang_with_config`.
 
 ## ✅ Decision
-Option A. Fixed the error formats in the code, updated the assertions in the tests, and verified everything passes.
+Chosen Option A. Reconciling `CliLangArgs`, `ViewProfile`, and defaults via `resolve_lang_with_config` is an essential logic path that deserved explicit integration coverage.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd/src/commands/check_ignore.rs`
-- `crates/tokmd/src/commands/diff.rs`
-- `crates/tokmd/tests/init_cli_w76.rs`
-- `crates/tokmd-scan/src/tokeignore/mod.rs`
+- `crates/tokmd/tests/config_resolution.rs`: Added `test_resolve_lang_with_config` test.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd --test init_cli_w76
-cargo test -p tokmd --test cli_error_paths_w51
-CI=true cargo test -p tokmd --verbose
-cargo clippy -- -D warnings
-cargo fmt -- --check
-cargo build --verbose
+cargo test -p tokmd --test config_resolution
+test test_resolve_lang_with_config ... ok
+13 passed; 0 failed
 ```
 
 ## 🧭 Telemetry
-- Change shape: Bug fix
-- Blast radius: CLI error messages
-- Risk class + why: Low, only error messages
-- Rollback: Revert PR
-- Gates run: core-rust fallback
+- Change shape: Proof-improvement patch
+- Blast radius: `tests/` boundary only
+- Risk class + why: Lowest risk. Test suite addition only. No runtime logic change.
+- Rollback: Revert the test commit.
+- Gates run: `cargo test -p tokmd --test config_resolution`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/specsmith_interfaces/envelope.json`
