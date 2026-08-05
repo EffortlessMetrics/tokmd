@@ -45,11 +45,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          version="${RELEASE_TAG#v}"
           if [[ ! "${EXPECTED_DIGEST}" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
             echo "::error::expected_digest must be a sha256 digest"
             exit 1
           fi
-          actual="$(docker buildx imagetools inspect "${IMAGE}:${RELEASE_TAG}" | awk '$1 == "Digest:" { print $2; exit }')"
+          actual="$(docker buildx imagetools inspect "${IMAGE}:${version}" | awk '$1 == "Digest:" { print $2; exit }')"
           if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
             echo "::error::exact release digest ${actual} did not match ${EXPECTED_DIGEST}"
             exit 1
@@ -63,7 +64,7 @@ jobs:
           version="${RELEASE_TAG#v}"
           IFS=. read -r major minor _ <<< "${version}"
           for alias in "${major}" "${major}.${minor}" latest; do
-            docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${RELEASE_TAG}"
+            docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${version}"
             actual="$(docker buildx imagetools inspect "${IMAGE}:${alias}" | awk '$1 == "Digest:" { print $2; exit }')"
             if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
               echo "::error::alias ${alias} resolved to ${actual}, expected ${EXPECTED_DIGEST}"
