@@ -951,6 +951,26 @@ review_after     = "2026-08-02"
 expires          = "2027-02-02"
 
 [[lane]]
+id               = "release_finalize"
+workflow         = ".github/workflows/release.yml"
+job              = "Finalize stable GitHub Release"
+kind             = "release"
+tier             = "deep"
+default_pr       = false
+blocking         = true
+runner           = "ubuntu_latest"
+base_lem         = 5
+owner            = "release/publish"
+intent           = "Finalize a stable GitHub Release as latest only after registry and exact consumer proof pass."
+failure_mode     = "A partial stable publication is presented as the latest release before registry completion."
+proof_obligation = "Verify the release is non-draft and non-prerelease, finalize it as latest, and verify the latest tag points at the expected stable tag."
+evidence         = ["release workflow logs", "GitHub latest release tag"]
+allowed_triggers = ["push"]
+duplicate_of     = []
+review_after     = "2026-08-05"
+expires          = "2027-02-05"
+
+[[lane]]
 id               = "release_promote_aliases"
 workflow         = ".github/workflows/release.yml"
 job              = "Promote stable aliases"
@@ -963,7 +983,7 @@ base_lem         = 4
 owner            = "release/publish"
 intent           = "Move v1 and mutable GHCR aliases only after exact release, crate, container, and Action gates pass."
 failure_mode     = "Mutable consumer aliases move before the release surfaces are proven."
-proof_obligation = "Require publish-crates, exact-container verification, and exact-tag Action verification before moving aliases."
+proof_obligation = "Require finalized stable release, exact-container verification, and exact-tag Action verification before moving aliases."
 evidence         = ["release workflow logs", "GitHub tag ref", "GHCR manifest tags"]
 allowed_triggers = ["push"]
 duplicate_of     = []
