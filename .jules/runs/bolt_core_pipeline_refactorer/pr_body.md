@@ -1,43 +1,47 @@
 ## 💡 Summary
-Removed unnecessary `String` allocations for static property names in the CycloneDX exporter. This structural improvement prevents 7+ string allocations per file row during SBOM export.
+Recorded learning PR following instruction to close the CycloneDX string allocation refactor as stale/deferred.
 
 ## 🎯 Why
-During CycloneDX export (`tokmd-format` crate), the `CycloneDxProperty` struct was declaring `name: String`, forcing allocations for static strings like `"tokmd:code"`, `"tokmd:lang"`, etc. For large repos, allocating strings per property per file scales poorly and slows down export while increasing peak memory usage.
+The original patch successfully removed unnecessary `String` allocations from the hot path in the CycloneDX exporter, but the reviewer requested closing it out as it predated the 1.15.0 release and is not a release blocker. I have abandoned the patch and recorded the friction so the work can be salvaged later if desired.
 
 ## 🔎 Evidence
 Minimal proof:
-- file path: `crates/tokmd-format/src/export/cyclonedx.rs`
-- observed behavior: `CycloneDxProperty` defined `name: String`, and the exporter iterated rows, doing `name: "tokmd:code".to_string()`.
-- The fix correctly changes `name` to `&'static str` for static keys.
+- file path: `.jules/friction/open/stale_cyclonedx_refactor.md`
+- observed behavior: Reviewer commented: "Disposition: close as stale/deferred. This Jules draft predates the completed 1.15.0 release..."
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- what it is: Update `CycloneDxProperty` struct to use `&'static str` for the `name` field, removing `.to_string()` for static keys.
-- why it fits this repo and shard: Direct structural performance win in formatting pipeline, strictly avoiding allocations.
-- trade-offs: Structure / Velocity / Governance - Structure improves, velocity is unchanged, governance stays in line with performance expectations.
+- what it is: Abandon the current patch, record the learning in a friction item, and submit a learning PR.
+- why it fits this repo and shard: Follows the explicit instruction to close out stale bot work while keeping the run history and learnings intact for potential future salvage.
+- trade-offs: Structure / Velocity / Governance - Prioritizes governance (clean active queue) over immediate velocity.
 
 ### Option B
-- what it is: Use `Cow<'static, str>` instead of `&'static str`.
-- when to choose it instead: If the `name` field needed to be dynamically generated occasionally.
-- trade-offs: More complex code for no added benefit since all properties here use static literal names.
+- what it is: Attempt to force the patch through or ignore the reviewer comment.
+- when to choose it instead: Never, as it violates explicit reviewer instructions.
+- trade-offs: Violates governance.
 
 ## ✅ Decision
-Chose Option A to strictly eliminate the allocation without complexity overhead.
+Chose Option A to abandon the stale patch and record the learning, per reviewer instructions.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-format/src/export/cyclonedx.rs`
+- `.jules/friction/open/stale_cyclonedx_refactor.md`
+- `.jules/runs/bolt_core_pipeline_refactorer/result.json`
+- `.jules/runs/bolt_core_pipeline_refactorer/pr_body.md`
+- `.jules/runs/bolt_core_pipeline_refactorer/envelope.json`
+- `.jules/runs/bolt_core_pipeline_refactorer/decision.md`
+- `.jules/runs/bolt_core_pipeline_refactorer/receipts.jsonl`
 
 ## 🧪 Verification receipts
 ```text
-test result: ok. 144 passed; 0 failed
+(abandoned patch per reviewer instruction)
 ```
 
 ## 🧭 Telemetry
-- Change shape: Optimization (structural/hot-path reduction)
-- Blast radius: Local to `tokmd-format` CycloneDX serialization. Does not alter JSON schemas structurally, just reduces allocations under the hood before serialization.
-- Risk class + why: Low risk. Serialization outputs identical JSON.
+- Change shape: Learning PR
+- Blast radius: None (documentation only)
+- Risk class + why: None
 - Rollback: Revert the PR.
-- Gates run: `cargo check`, `cargo test`, `cargo fmt`, `cargo clippy`
+- Gates run: N/A
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/bolt_core_pipeline_refactorer/envelope.json`
@@ -45,6 +49,7 @@ test result: ok. 144 passed; 0 failed
 - `.jules/runs/bolt_core_pipeline_refactorer/receipts.jsonl`
 - `.jules/runs/bolt_core_pipeline_refactorer/result.json`
 - `.jules/runs/bolt_core_pipeline_refactorer/pr_body.md`
+- `.jules/friction/open/stale_cyclonedx_refactor.md`
 
 ## 🔜 Follow-ups
 None.
