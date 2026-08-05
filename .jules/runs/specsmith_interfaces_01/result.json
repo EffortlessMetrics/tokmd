@@ -1,7 +1,8 @@
 {
-  "outcome": "proof-improvement patch",
+  "outcome": "learning PR",
   "primary_shard": "interfaces",
   "files_changed": [
+    "ci/proof.toml",
     "crates/tokmd/tests/bdd_error_paths_w71.rs"
   ],
   "verified_with": [
@@ -11,5 +12,5 @@
     "cargo fmt -- --check",
     "cargo clippy -- -D warnings"
   ],
-  "summary": "Added BDD-style edge-case regression tests for CLI error paths, locking in the correct distinction between unrecognized subcommands and missing paths."
+  "summary": "Added BDD-style edge-case regression tests for CLI error paths."
 }
