@@ -1,0 +1,4 @@
+{"command": "cargo test -p tokmd-analysis effort::", "outcome": "Tests pass correctly verifying monotonicity properties."}
+{"command": "CI=true cargo test -p tokmd-analysis --verbose", "outcome": "Tests complete successfully with 0 failures."}
+{"command": "cargo fmt", "outcome": "Formatted code correctly."}
+{"command": "cargo clippy -- -D warnings", "outcome": "Clippy passed successfully."}
