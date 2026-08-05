@@ -50,7 +50,13 @@ jobs:
             echo "::error::expected_digest must be a sha256 digest"
             exit 1
           fi
-          actual="$(docker buildx imagetools inspect "${IMAGE}:${version}" | awk '$1 == "Digest:" { print $2; exit }')"
+          pull_output="$(docker pull "${IMAGE}:${version}" 2>&1 | tee /tmp/tokmd-release-pull.log)"
+          printf '%s\n' "${pull_output}"
+          actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }')"
+          if [[ -z "${actual}" ]]; then
+            echo "::error::exact release pull did not report a manifest digest"
+            exit 1
+          fi
           if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
             echo "::error::exact release digest ${actual} did not match ${EXPECTED_DIGEST}"
             exit 1
@@ -65,7 +71,13 @@ jobs:
           IFS=. read -r major minor _ <<< "${version}"
           for alias in "${major}" "${major}.${minor}" latest; do
             docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${version}"
-            actual="$(docker buildx imagetools inspect "${IMAGE}:${alias}" | awk '$1 == "Digest:" { print $2; exit }')"
+            pull_output="$(docker pull "${IMAGE}:${alias}" 2>&1 | tee /tmp/tokmd-alias-pull.log)"
+            printf '%s\n' "${pull_output}"
+            actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }')"
+            if [[ -z "${actual}" ]]; then
+              echo "::error::alias ${alias} pull did not report a manifest digest"
+              exit 1
+            fi
             if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
               echo "::error::alias ${alias} resolved to ${actual}, expected ${EXPECTED_DIGEST}"
               exit 1
