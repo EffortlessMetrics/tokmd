@@ -1,0 +1,163 @@
+{
+  "schema": "tokmd.release_registry_inventory.v1",
+  "generated_at": "2026-08-05T01:27:27.3042009Z",
+  "source_commit": "b4ff2c948d9abeaf5c57f8bc27de02803ef7788b",
+  "workspace_version": "1.15.0",
+  "publish_plan_command": "cargo xtask publish --plan",
+  "publish_plan_count": 16,
+  "publish_order": [
+    "tokmd-gate",
+    "tokmd-io-port",
+    "tokmd-types",
+    "tokmd-model",
+    "tokmd-settings",
+    "tokmd-scan",
+    "tokmd-git",
+    "tokmd-envelope",
+    "tokmd-sensor",
+    "tokmd-analysis-types",
+    "tokmd-format",
+    "tokmd-analysis",
+    "tokmd-cockpit",
+    "tokmd-core",
+    "tokmd-wasm",
+    "tokmd"
+  ],
+  "clean_install_command": "cargo install tokmd --version 1.15.0 --locked",
+  "clean_install_status": "passed",
+  "installed_version": "tokmd 1.15.0",
+  "packet_smoke_command": "tokmd packet generate --no-syntax .",
+  "packet_smoke_status": "passed",
+  "crate_count": 16,
+  "crates": [
+    {
+      "name": "tokmd-gate",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T13:14:40.141866Z"
+    },
+    {
+      "name": "tokmd-io-port",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T13:14:52.577117Z"
+    },
+    {
+      "name": "tokmd-types",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T21:05:04.870838Z"
+    },
+    {
+      "name": "tokmd-model",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T21:05:24.653535Z"
+    },
+    {
+      "name": "tokmd-settings",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T21:05:33.835289Z"
+    },
+    {
+      "name": "tokmd-scan",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T21:05:42.956194Z"
+    },
+    {
+      "name": "tokmd-git",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T21:05:49.13969Z"
+    },
+    {
+      "name": "tokmd-envelope",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:00.706431Z"
+    },
+    {
+      "name": "tokmd-sensor",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:21.828235Z"
+    },
+    {
+      "name": "tokmd-analysis-types",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:31.689629Z"
+    },
+    {
+      "name": "tokmd-format",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:42.067998Z"
+    },
+    {
+      "name": "tokmd-analysis",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:53.241393Z"
+    },
+    {
+      "name": "tokmd-cockpit",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:27:59.731202Z"
+    },
+    {
+      "name": "tokmd-core",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:28:03.00478Z"
+    },
+    {
+      "name": "tokmd-wasm",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:28:25.546297Z"
+    },
+    {
+      "name": "tokmd",
+      "version": "1.15.0",
+      "state": "present",
+      "yanked": false,
+      "dependencies_resolvable": true,
+      "published_at": "2026-08-04T22:28:52.979769Z"
+    }
+  ],
+  "overall": "passed"
+}

@@ -43,6 +43,7 @@ context for humans, machines, CI, and agents.
 | **v1.13.0** | ✅ Complete | Syntax-aware evidence packet release (manifest-first packet, optional parser-backed syntax evidence). |
 | **v1.13.1** | ✅ Complete | Correction: default `ast` install + bounded complexity evidence status. |
 | **v1.14.0** | ✅ Complete | PR evidence-packet workflow: `tokmd render`, `tokmd packet generate`, and `mode: packet` Action. |
+| **v1.15.0** | ✅ Complete | Portable evidence, archive-enabled WASM, version-safe Action/container paths, and consumer-proven release distribution. |
 | **v2.0.0** | 🔭 Planned  | MCP server, streaming analysis, plugin system.               |
 | **v3.0.0** | 🚧 Active (Shadow) | Tree-sitter AST foundation in-tree behind feature flag. |
 
@@ -53,6 +54,8 @@ context for humans, machines, CI, and agents.
 The historical roadmap remains useful as a record of shipped milestones and
 longer-term horizons. The active planning state is now selection-first:
 
+- v1.15.0 stable publication and consumer verification are complete; the
+  crates.io interruption and recovery are preserved in the release ledger.
 - v1.11 browser runtime polish is complete.
 - Cockpit/review evidence is stable as the current PR-review surface.
 - Proof observation remains advisory, not promoted to required gates.
@@ -71,7 +74,7 @@ New work should start from one of:
 
 The current near-term product priorities are:
 
-1. Release and distribution verification.
+1. 1.15.1 release-control repair and registry-first publication.
 2. CLI/user-facing friction reduction.
 3. Review evidence consumption.
 4. Measured performance and CI feedback.

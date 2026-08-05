@@ -228,6 +228,14 @@ active constraints, and immediate work-packet decisions.
 
 ## Next Work Packets
 
+The `v1.15.0` stable release is complete. Its interrupted crates.io
+publication, recovery, final consumer matrix, alias promotion, and history
+audit are recorded in `docs/releases/1.15.0-incident.md` and the 1.15 ledger.
+The next release-control lane is `v1.15.1`: repair stable publication ordering
+and make alias promotion globally serialized, semver-validated, protected,
+and fail-closed. Do not reopen product, schema, AST, or major dependency work
+inside that lane.
+
 1. Do not extend the closed proof workflow status packet lane to any other
    workflow without fresh evidence of a real status-arbitration gap; preserve
    advisory/non-required behavior and manual-only Codecov upload.
