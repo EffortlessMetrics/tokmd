@@ -1,0 +1,6 @@
+{
+  "outcome": "success",
+  "decision": "Option A",
+  "patch_type": "code",
+  "files_changed": ["crates/tokmd/Cargo.toml"]
+}
