@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-RC3 consumer proof passed; stable publication and final consumer verification
-are in progress.
+Post-1.15.0 follow-ups are intentionally limited to release-process repair,
+including registry-first stable publication and serialized, fail-closed alias
+promotion. No product or schema changes are implied by this section.
 
 ## [1.15.0] - 2026-08-04
 
 The 1.15.0 stable release includes the capabilities and fixes carried by RC1,
-RC2, and RC3. Stable aliases and crates publication remain gated on the exact
-stable artifact proof.
+RC2, and RC3. The release required immutable-tag crates.io recovery; all 16
+planned crates, published artifacts, Action/container paths, GHCR aliases, and
+the released WASM browser path are recorded as consumer-proven in the 1.15
+ledger.
 
 ## [1.15.0-rc.3] - 2026-08-04
 
