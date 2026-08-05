@@ -1,48 +1,48 @@
 ## 💡 Summary
-Tightened property invariants around derived analysis distributions and histograms. These new proptests verify the correctness of the median, percentiles (p90, p99), and ensure that histogram buckets remain contiguous without overlaps or gaps.
+Added explicit invariant bounds checking for `api_surface` report generator collections and `derived` module density metrics. This tightens proptest coverage around output limits that prevent large or runaway payloads.
 
 ## 🎯 Why
-Previously, the derived properties only verified the extremes (min, max, mean, gini) of the distribution, ignoring the core statistical quantiles and assuming bucket boundaries without checking their coherence across sizes. Locking these down prevents regressions in report derivations.
+Unit tests verified that API surface reporting correctly caps `by_module` at 50 and `top_exporters` at 20, but these limits lacked property-based verification over randomly generated structural boundaries. Similarly, `derived` module density ratios lacked verification that values never exceed `1.0`. Locking these down via invariants reduces regression risk as report processing evolves.
 
 ## 🔎 Evidence
+- `crates/tokmd-analysis/src/api_surface/tests/properties.rs`
 - `crates/tokmd-analysis/src/derived/tests/properties.rs`
-- Observed missing tests for `median`, `p90`, `p99`, and bucket boundary contiguity.
-- Proptest coverage now properly models these bounds and constraints.
+- Proptests for structural invariants missed hard boundary limits for `api_surface.by_module` (`<= 50`) and `api_surface.top_exporters` (`<= 20`).
+- Missing property bound assertions `[0.0, 1.0]` for `whitespace.total.ratio` and `doc_density.total.ratio`.
 
 ## 🧭 Options considered
 ### Option A (recommended)
-- Add strict checks for median calculations and gapless bounds between `min`/`max` fields on histogram buckets.
-- Fits the analysis-stack by increasing deterministic guarantees in data generation.
-- **Trade-offs:** Increases test compilation and execution time slightly but greatly enhances proof surface for `distribution_report` structure.
+- Explicitly test the `top_exporters` (`<= 20`) and `by_module` (`<= 50`) upper bounds inside `api_surface/tests/properties.rs`. Limits iterations to `5` since tests perform repetitive disk I/O per bounds validation.
+- Verify ratio variables (`doc_density`, `whitespace`) always reside within `[0.0, 1.0]` bounds in `derived/tests/properties.rs`.
+- Fits the `property` gate profile by asserting bounds strictly holding for dynamically scaled inputs.
 
 ### Option B
-- Add deterministic hard-coded unit test values.
-- **When to choose:** Only when randomized testing fails to hit specific complex mathematical edge cases or requires deterministic manual coverage.
-- **Trade-offs:** Weaker invariants and more maintenance overhead over time.
+- Only apply `api_surface` limits, ignoring `derived` module ratios.
+- Reduces test expansion, but leaves numerical boundaries unproven in property sweeps.
 
 ## ✅ Decision
-Chose Option A to enforce invariants across arbitrary file arrays properly.
+Option A. Enforcing collection bounds (`<= 50`/`<= 20`) directly maps to known serialization stability assumptions, while numerical bounds prevent unexpected `f64` drift. Disk I/O is constrained appropriately to maintain CI velocity.
 
 ## 🧱 Changes made (SRP)
-- `crates/tokmd-analysis/src/derived/tests/properties.rs` - added `distribution_median_is_correct`, `distribution_percentiles_are_correct`, and `histogram_bucket_bounds_are_ordered_and_non_overlapping`.
+- `crates/tokmd-analysis/src/api_surface/tests/properties.rs`: Added `by_module_length_bounded` and `top_exporters_length_bounded` proptests.
+- `crates/tokmd-analysis/src/derived/tests/properties.rs`: Added `whitespace_ratio_in_unit_range`, `doc_density_ratio_in_unit_range`, and `verbosity_rate_positive`.
 
 ## 🧪 Verification receipts
 ```text
-cargo test -p tokmd-analysis --lib derived::tests::properties
-...
-test derived::tests::properties::distribution_median_is_correct ... ok
-test derived::tests::properties::distribution_percentiles_are_correct ... ok
-test derived::tests::properties::histogram_bucket_bounds_are_ordered_and_non_overlapping ... ok
-...
-test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 1515 filtered out; finished in 4.40s
+python3 update_properties.py
+python3 update_properties2.py
+rm update_properties.py update_properties2.py
+cargo test -p tokmd-analysis -- --nocapture | grep -i fail
+cargo fmt -- --check
+cargo clippy -- -D warnings
 ```
 
 ## 🧭 Telemetry
-- Change shape: Test/Proof improvement
-- Blast radius: Internal test surface only
-- Risk class: Low
-- Rollback: Revert the PR
-- Gates run: `cargo test -p tokmd-analysis --lib derived::tests::properties`, `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+- Change shape: Tests
+- Blast radius: `tests/properties.rs`
+- Risk class: Low - Test-only tightening
+- Rollback: Revert
+- Gates run: `cargo test`, `cargo fmt`, `cargo clippy`
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/invariant_model_analysis/envelope.json`

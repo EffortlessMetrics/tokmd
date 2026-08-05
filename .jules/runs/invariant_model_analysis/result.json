@@ -1,11 +1,33 @@
 {
-  "outcome": "proof-improvement patch",
-  "files_touched": [
-    "crates/tokmd-analysis/src/derived/tests/properties.rs"
+  "summary": "Tightened property-based testing invariants for analysis tools.",
+  "why": "Missing explicit bounding property tests in the `api_surface` and `derived` module metrics for length and ratio bounds. By restricting constraints through structural invariants, the system is less prone to regression.",
+  "evidence": [
+    "crates/tokmd-analysis/src/api_surface/tests/properties.rs",
+    "crates/tokmd-analysis/src/derived/tests/properties.rs",
+    "Missing length bound assertions (`<= 50` and `<= 20`) for `by_module` and `top_exporters` fields.",
+    "Missing non-negative bound assertions for ratio metrics (e.g., `whitespace_ratio_in_unit_range` and `doc_density_ratio_in_unit_range`)."
   ],
-  "invariants_added": [
-    "distribution_median_is_correct",
-    "distribution_percentiles_are_correct",
-    "histogram_bucket_bounds_are_ordered_and_non_overlapping"
+  "decision": "Option A: adding `proptest` assertions enforcing length ceilings (`<= 50`, `<= 20`) on generated module/exporter outputs. Added non-negative limit checks (`>= 0.0`, `<= 1.0`) on ratio metrics.",
+  "receipts": [
+    "python3 update_properties.py",
+    "python3 update_properties2.py",
+    "rm update_properties.py update_properties2.py",
+    "cargo test -p tokmd-analysis -- --nocapture | grep -i fail",
+    "cargo fmt -- --check",
+    "cargo clippy -- -D warnings"
+  ],
+  "telemetry": {
+    "change_shape": "test",
+    "blast_radius": "tests",
+    "risk_class": "low",
+    "rollback": "revert git commit",
+    "gates_run": ["cargo test", "cargo fmt", "cargo clippy"]
+  },
+  "artifacts": [
+    ".jules/runs/invariant_model_analysis/envelope.json",
+    ".jules/runs/invariant_model_analysis/decision.md",
+    ".jules/runs/invariant_model_analysis/receipts.jsonl",
+    ".jules/runs/invariant_model_analysis/result.json",
+    ".jules/runs/invariant_model_analysis/pr_body.md"
   ]
 }

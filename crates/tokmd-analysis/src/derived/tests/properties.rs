@@ -232,6 +232,36 @@ proptest! {
         prop_assert_eq!(report.reading_time.lines_per_minute, 20);
     }
 
+
+    #[test]
+    fn whitespace_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.whitespace.total.ratio >= 0.0 && report.whitespace.total.ratio <= 1.0,
+            "whitespace ratio must be in [0, 1], got {}",
+            report.whitespace.total.ratio
+        );
+    }
+
+    #[test]
+    fn doc_density_ratio_in_unit_range(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.doc_density.total.ratio >= 0.0 && report.doc_density.total.ratio <= 1.0,
+            "doc_density ratio must be in [0, 1], got {}",
+            report.doc_density.total.ratio
+        );
+    }
+
+    #[test]
+    fn verbosity_rate_positive(rows in arb_file_rows()) {
+        let report = derive_report(&export(rows), None);
+        prop_assert!(
+            report.verbosity.total.rate >= 0.0,
+            "verbosity rate must be >= 0.0"
+        );
+    }
+
     #[test]
     fn doc_density_ratio_non_negative(rows in arb_file_rows()) {
         let report = derive_report(&export(rows), None);

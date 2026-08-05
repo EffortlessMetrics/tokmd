@@ -327,6 +327,75 @@ proptest! {
 }
 
 // ---------------------------------------------------------------------------
+// Property: bounds limits are respected
+// ---------------------------------------------------------------------------
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(5))]
+
+    #[test]
+    fn by_module_length_bounded(
+        lines_a in prop::collection::vec(rust_item_line(), 0..5),
+    ) {
+        let code_a = lines_a.join("
+") + "
+";
+        let dir = tempfile::tempdir().unwrap();
+
+        let mut rows = Vec::new();
+        let mut paths = Vec::new();
+
+        for i in 0..60 {
+            let mod_name = format!("mod{}", i);
+            let p = format!("{}/lib.rs", mod_name);
+            fs::create_dir_all(dir.path().join(&mod_name)).unwrap();
+            fs::write(dir.path().join(&p), &code_a).unwrap();
+            rows.push(make_row(&p, &mod_name, "Rust"));
+            paths.push(PathBuf::from(p));
+        }
+
+        let export = make_export(rows);
+        let report = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        prop_assert!(report.by_module.len() <= 50, "by_module must be capped at 50");
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(5))]
+
+    #[test]
+    fn top_exporters_length_bounded(
+        lines in prop::collection::vec(rust_item_line(), 1..10) // make sure it exports > 0 items
+    ) {
+        let code = lines.join("
+") + "
+pub fn item() {}
+"; // force at least 1 public item
+        let dir = tempfile::tempdir().unwrap();
+
+        let mut rows = Vec::new();
+        let mut paths = Vec::new();
+
+        for i in 0..30 {
+            let p = format!("file{}.rs", i);
+            fs::write(dir.path().join(&p), &code).unwrap();
+            rows.push(make_row(&p, ".", "Rust"));
+            paths.push(PathBuf::from(p));
+        }
+
+        let export = make_export(rows);
+        let report = build_api_surface_report(
+            dir.path(), &paths, &export, &default_limits(),
+        ).unwrap();
+
+        prop_assert!(report.top_exporters.len() <= 20, "top_exporters must be capped at 20");
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Property: empty input always yields zero-valued report
 // ---------------------------------------------------------------------------
 
