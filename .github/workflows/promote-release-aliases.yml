@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Exact published release tag to promote
+        description: Exact published stable release tag to promote
         required: true
         default: v1.15.0
         type: string
@@ -18,7 +18,7 @@ permissions:
   packages: write
 
 concurrency:
-  group: promote-release-aliases-${{ inputs.tag }}
+  group: promote-release-aliases
   cancel-in-progress: false
 
 jobs:
@@ -26,11 +26,40 @@ jobs:
     name: Promote exact release aliases
     if: github.repository == 'EffortlessMetrics/tokmd'
     runs-on: ubuntu-latest
+    environment: release-promotion
     env:
-      IMAGE: ghcr.io/effortlessmetrics/tokmd
       RELEASE_TAG: ${{ inputs.tag }}
-      EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+      EXPECTED_DIGEST_INPUT: ${{ inputs.expected_digest }}
+      IMAGE_OWNER_RAW: ${{ github.repository_owner }}
+      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Validate stable release input and resolve release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${RELEASE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::tag must be a stable semver tag such as v1.15.0"
+            exit 1
+          fi
+          if [[ ! "${EXPECTED_DIGEST_INPUT}" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
+            echo "::error::expected_digest must be a sha256 digest"
+            exit 1
+          fi
+          version="${RELEASE_TAG#v}"
+          owner="$(printf '%s' "${IMAGE_OWNER_RAW}" | tr '[:upper:]' '[:lower:]')"
+          release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")"
+          if ! jq -e --arg tag "${RELEASE_TAG}" \
+            '.tag_name == $tag and .draft == false and .prerelease == false' \
+            <<<"${release_json}" >/dev/null; then
+            echo "::error::release ${RELEASE_TAG} must exist as a non-draft stable release"
+            exit 1
+          fi
+          {
+            echo "RELEASE_VERSION=${version}"
+            echo "EXPECTED_DIGEST=$(printf '%s' "${EXPECTED_DIGEST_INPUT}" | tr '[:upper:]' '[:lower:]')"
+            echo "IMAGE=ghcr.io/${owner}/tokmd"
+          } >> "${GITHUB_ENV}"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
@@ -45,14 +74,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${RELEASE_TAG#v}"
-          if [[ ! "${EXPECTED_DIGEST}" =~ ^sha256:[0-9a-fA-F]{64}$ ]]; then
-            echo "::error::expected_digest must be a sha256 digest"
-            exit 1
-          fi
-          pull_output="$(docker pull "${IMAGE}:${version}" 2>&1 | tee /tmp/tokmd-release-pull.log)"
+          pull_output="$(docker pull "${IMAGE}:${RELEASE_VERSION}" 2>&1 | tee /tmp/tokmd-release-pull.log)"
           printf '%s\n' "${pull_output}"
-          actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }')"
+          actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }' | tr '[:upper:]' '[:lower:]')"
           if [[ -z "${actual}" ]]; then
             echo "::error::exact release pull did not report a manifest digest"
             exit 1
@@ -67,22 +91,33 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${RELEASE_TAG#v}"
-          IFS=. read -r major minor _ <<< "${version}"
+          IFS=. read -r major minor _ <<< "${RELEASE_VERSION}"
           for alias in "${major}" "${major}.${minor}" latest; do
-            docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${version}"
-            pull_output="$(docker pull "${IMAGE}:${alias}" 2>&1 | tee /tmp/tokmd-alias-pull.log)"
+            docker buildx imagetools create --tag "${IMAGE}:${alias}" "${IMAGE}:${RELEASE_VERSION}"
+            pull_output="$(docker pull "${IMAGE}:${alias}" 2>&1 | tee "/tmp/tokmd-alias-${alias//./-}-pull.log")"
             printf '%s\n' "${pull_output}"
-            actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }')"
-            if [[ -z "${actual}" ]]; then
-              echo "::error::alias ${alias} pull did not report a manifest digest"
-              exit 1
-            fi
-            if [[ "${actual}" != "${EXPECTED_DIGEST}" ]]; then
+            actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }' | tr '[:upper:]' '[:lower:]')"
+            if [[ -z "${actual}" || "${actual}" != "${EXPECTED_DIGEST}" ]]; then
               echo "::error::alias ${alias} resolved to ${actual}, expected ${EXPECTED_DIGEST}"
               exit 1
             fi
             echo "alias_${alias}=${actual}" >> "${GITHUB_STEP_SUMMARY}"
+          done
+
+      - name: Anonymous pull and version smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker logout ghcr.io >/dev/null 2>&1 || true
+          IFS=. read -r major minor _ <<< "${RELEASE_VERSION}"
+          for alias in "${RELEASE_VERSION}" "${major}" "${major}.${minor}" latest; do
+            pull_output="$(docker pull "${IMAGE}:${alias}" 2>&1)"
+            actual="$(printf '%s\n' "${pull_output}" | awk '$1 == "Digest:" { print $2; exit }' | tr '[:upper:]' '[:lower:]')"
+            version_output="$(docker run --rm "${IMAGE}:${alias}" --version 2>&1 | tr -d '\r')"
+            if [[ "${actual}" != "${EXPECTED_DIGEST}" || "${version_output}" != "tokmd ${RELEASE_VERSION}" ]]; then
+              echo "::error::anonymous smoke failed for ${alias}: digest=${actual}, version=${version_output}"
+              exit 1
+            fi
           done
 
       - name: Move v1 to the exact release commit
@@ -93,21 +128,89 @@ jobs:
           script: |
             const tag = process.env.RELEASE_TAG;
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-            const ref = await github.rest.git.getRef({ owner, repo, ref: `tags/${tag}` });
-            let sha = ref.data.object.sha;
-            if (ref.data.object.type === 'tag') {
-              const annotated = await github.rest.git.getTag({ owner, repo, tag_sha: sha });
-              sha = annotated.data.object.sha;
+
+            async function resolveRef(ref) {
+              const response = await github.rest.git.getRef({ owner, repo, ref });
+              let sha = response.data.object.sha;
+              if (response.data.object.type === 'tag') {
+                const annotated = await github.rest.git.getTag({ owner, repo, tag_sha: sha });
+                sha = annotated.data.object.object.sha;
+              }
+              return sha;
             }
-            await github.rest.git.updateRef({
-              owner,
-              repo,
-              ref: 'tags/v1',
-              sha,
-              force: true,
-            });
+
+            const targetSha = await resolveRef(`tags/${tag}`);
+            let currentSha = null;
+            try {
+              currentSha = await resolveRef('tags/v1');
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+
+            if (currentSha && currentSha !== targetSha) {
+              const comparison = await github.rest.repos.compareCommits({
+                owner,
+                repo,
+                base: currentSha,
+                head: targetSha,
+              });
+              if (!['ahead', 'identical'].includes(comparison.data.status)) {
+                throw new Error(`ref v1 would move backward: ${comparison.data.status}`);
+              }
+            }
+
+            if (!currentSha) {
+              await github.rest.git.createRef({ owner, repo, ref: 'refs/tags/v1', sha: targetSha });
+            } else if (currentSha !== targetSha) {
+              await github.rest.git.updateRef({ owner, repo, ref: 'tags/v1', sha: targetSha, force: true });
+            }
             core.summary.addHeading('Action alias promotion').addTable([
               [{ data: 'release_tag', header: true }, { data: 'commit', header: true }],
-              [tag, sha],
-              ['v1', sha],
+              [tag, targetSha],
+              ['v1', targetSha],
             ]).write();
+
+      - name: Write promotion receipt
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target/release-receipts
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+
+          status = os.environ["JOB_STATUS"]
+          receipt = {
+              "schema": "tokmd.release_alias_promotion.v1",
+              "tag": os.environ["RELEASE_TAG"],
+              "expected_digest": os.environ["EXPECTED_DIGEST"],
+              "image": os.environ.get("IMAGE", ""),
+              "overall": "passed" if status == "success" else "failed",
+              "job_status": status,
+              "generated_at": datetime.now(timezone.utc).isoformat(),
+              "aliases": ["1.15.0", "1.15", "1", "latest"],
+              "v1": "verified only when the promotion job is successful",
+          }
+          with open("target/release-receipts/release-alias-promotion.json", "w", encoding="utf-8") as handle:
+              json.dump(receipt, handle, indent=2)
+              handle.write("\n")
+          PY
+
+      - name: Upload promotion receipt
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-alias-promotion-receipt
+          path: target/release-receipts/release-alias-promotion.json
+          if-no-files-found: error
+
+      - name: Enforce promotion verdict
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: test "${JOB_STATUS}" = success
