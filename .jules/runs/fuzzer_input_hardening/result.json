@@ -1,8 +1,5 @@
 {
-  "outcome": "proof-improvement patch",
-  "summary": "Added a new libfuzzer target specifically for in-memory FFI input path validation, hardening parser edge-cases for future inputs.",
-  "gates_run": [
-    "cargo check --manifest-path fuzz/Cargo.toml --bin fuzz_in_memory_inputs --features core",
-    "cargo test -p tokmd-core"
-  ]
+  "outcome": "learning PR",
+  "summary": "Attempted to add a new libfuzzer target specifically for in-memory FFI input path validation, but deferred by PR steward due to release timing. Reverted code and recorded friction.",
+  "gates_run": []
 }

@@ -1,46 +1,43 @@
 ## 💡 Summary
-Added an explicit fuzz target for the FFI in-memory input path parsing layer. This hardens the interface boundaries for Node.js and Python bindings against adversarial file paths.
+This is a learning PR. Attempted to add an explicit fuzz target for the FFI in-memory input path parsing layer. PR was closed as stale and deferred due to 1.15.1 release timing constraints.
 
 ## 🎯 Why
-The parser validation logic in `crates/tokmd-core/src/ffi/inputs.rs` includes numerous path defense rules (no parent traversal, no absolute paths, no Windows drive paths, no control chars). While `fuzz_run_json.rs` guarantees the core interface won't panic on arbitrary payloads, it doesn't deterministically generate valid top-level schema that deeply exercises the inner nested logic in `inputs.rs`. Adding an explicit fuzz target for this logic helps lock in safety.
+The parser validation logic in `crates/tokmd-core/src/ffi/inputs.rs` includes numerous path defense rules. A PR was authored to add `fuzz_in_memory_inputs.rs` to harden this, but it predates the 1.15.1 reliability lane and is not a release blocker. The underlying idea was not rejected, so this learning PR captures the friction to remove stale bot work from the active queue.
 
 ## 🔎 Evidence
-- `crates/tokmd-core/src/ffi/inputs.rs`
-- Missing specific coverage in existing fuzzers (checked `fuzz/fuzz_targets/fuzz_run_json.rs`)
-- `cargo check --manifest-path fuzz/Cargo.toml --all-features` succeeds
+- Pull Request Comment ID: 5188376462 (Steward deferred as stale/non-release blocker).
+- `crates/tokmd-core/src/ffi/inputs.rs` (the surface investigated).
 
 ## 🧭 Options considered
 ### Option A
-- Improve `ScanOptions` redaction invariants by mutating `fuzz_scan_args.rs`.
-- While useful, the existing `fuzz_scan_args.rs` is already highly robust at proving slash normalization and determinism.
-- Trade-offs: Lower velocity, less direct impact on untrusted external interfaces.
+- Continue trying to push the code change despite the steward's direct comment.
+- Trade-offs: Directly violates queue discipline and repository ownership rules.
 
 ### Option B (recommended)
-- Add a new fuzzer specifically constructing JSON objects targeted at `ffi::inputs` inside `tokmd-core`.
-- This ensures path edge cases (e.g., zero-width spaces, special Windows paths) do not panic or hang the underlying implementation when parsing the FFI arguments.
-- Trade-offs: Simple, minimal structural change, directly addresses the fuzz-ability of the input parser surface.
+- Revert the patch and publish a learning PR documenting the friction.
+- Trade-offs: Respects maintainer queue discipline, clears out stale bot work, preserves the context for a future salvage.
 
 ## ✅ Decision
-Chosen Option B. Added `fuzz_in_memory_inputs.rs` and registered it in `fuzz/Cargo.toml`.
+Chosen Option B. Reverted all code changes and created a learning PR with a friction item.
 
 ## 🧱 Changes made (SRP)
-- `fuzz/Cargo.toml`: Add `fuzz_in_memory_inputs` target declaration.
-- `fuzz/fuzz_targets/fuzz_in_memory_inputs.rs`: Add new fuzz logic validating `run_json` path extraction constraints.
+- `.jules/friction/open/fuzzer_input_hardening_deferred.md`: Documented the triage deferral.
+- `.jules/runs/fuzzer_input_hardening/*`: Updated run artifacts for a learning PR outcome.
 
 ## 🧪 Verification receipts
 ```text
-cargo check --manifest-path fuzz/Cargo.toml --all-features
-cargo test -p tokmd-core
+None (Code changes reverted)
 ```
 
 ## 🧭 Telemetry
-- Change shape: New proof surface
-- Blast radius: None (fuzzing only)
-- Risk class: Safe / Tools
+- Change shape: Learning PR
+- Blast radius: None
+- Risk class: Safe / Documentation
 - Rollback: Revert PR
-- Gates run: fuzz tooling, `cargo check`, `cargo test`
+- Gates run: None
 
 ## 🗂️ .jules artifacts
+- `.jules/friction/open/fuzzer_input_hardening_deferred.md`
 - `.jules/runs/fuzzer_input_hardening/envelope.json`
 - `.jules/runs/fuzzer_input_hardening/decision.md`
 - `.jules/runs/fuzzer_input_hardening/receipts.jsonl`
@@ -48,4 +45,4 @@ cargo test -p tokmd-core
 - `.jules/runs/fuzzer_input_hardening/pr_body.md`
 
 ## 🔜 Follow-ups
-None.
+The original patch is available in the PR history for a future salvage if the explicit `fuzz_in_memory_inputs.rs` target is still wanted.

@@ -18,3 +18,5 @@ Let's look at `fuzz_run_json.rs`. It just blindly calls `run_json(mode, args_jso
 # Decision
 
 **Option B** is more direct. We will create a new fuzz target `fuzz_in_memory_inputs.rs` specifically for `crates/tokmd-core/src/ffi/inputs.rs` logic to harden the `parse_in_memory_inputs` and `validate_in_memory_input_path` surfaces. This will guarantee `validate_in_memory_input_path` does not panic or hang on arbitrary adversarial paths containing control characters, Windows drive prefixes, empty strings, dots, or invalid UTF-8 (when valid as JSON). We will register it in `fuzz/Cargo.toml`.
+
+**Update:** While the PR successfully authored Option B, a steward closed the PR as stale and deferred it due to being pre-1.15.1 and not a release blocker. Reverting code changes and landing a learning PR instead.
