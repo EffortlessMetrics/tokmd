@@ -372,6 +372,7 @@ paths = [
   "crates/tokmd-analysis/src/grid/**",
   "crates/tokmd-analysis/src/lib.rs",
   "crates/tokmd-analysis/tests/analysis_*.rs",
+  "crates/tokmd-analysis/tests/bdd.rs",
   "crates/tokmd-analysis/tests/capability_reporting_w53.rs",
   "crates/tokmd-analysis/tests/deep*.rs",
   "crates/tokmd-analysis/tests/enricher_pipeline.rs",

@@ -99,7 +99,11 @@ fn scenario_multi_language_polyglot_and_distribution() {
             file_row("frontend/src/app.ts", "frontend", "TypeScript", 600),
             file_row("scripts/deploy.sh", "scripts", "Shell", 50),
         ],
-        module_roots: vec!["backend".to_string(), "frontend".to_string(), "scripts".to_string()],
+        module_roots: vec![
+            "backend".to_string(),
+            "frontend".to_string(),
+            "scripts".to_string(),
+        ],
         module_depth: 1,
         children: ChildIncludeMode::Separate,
     };
@@ -166,7 +170,9 @@ fn scenario_context_window_fitting() {
 
     // Then
     let derived = receipt.derived.unwrap();
-    let ctx = derived.context_window.expect("Context window should be populated");
+    let ctx = derived
+        .context_window
+        .expect("Context window should be populated");
     assert!(ctx.fits, "Total tokens should fit within window");
     assert_eq!(ctx.window_tokens, 100_000);
 
@@ -200,7 +206,10 @@ fn scenario_missing_enrichers_for_disabled_features() {
     // Then: If features are disabled, we get a partial status and warnings
     if !cfg!(all(feature = "content", feature = "walk")) {
         assert_eq!(receipt.status, ScanStatus::Partial);
-        assert!(!receipt.warnings.is_empty(), "Warnings should be generated for missing features");
+        assert!(
+            !receipt.warnings.is_empty(),
+            "Warnings should be generated for missing features"
+        );
 
         // Derived metrics are always generated
         assert!(receipt.derived.is_some());
