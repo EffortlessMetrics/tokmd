@@ -200,7 +200,9 @@ jobs:
           files: artifacts/**/*
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}
-          make_latest: ${{ contains(github.ref_name, '-') && 'false' || 'true' }}
+          # Stable releases become latest only after crates and exact consumer
+          # proof pass in finalize-release below. RCs remain prereleases.
+          make_latest: false
 
   publish-crates:
     name: Publish to crates.io
@@ -385,9 +387,36 @@ jobs:
       expected_version: ${{ needs.create-release.outputs.release_version }}
       release_kind: ${{ needs.create-release.outputs.release_kind }}
 
+  finalize-release:
+    name: Finalize stable GitHub Release
+    needs: [publish-crates, verify-container, verify-action]
+    if: ${{ github.repository == 'EffortlessMetrics/tokmd' && !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Finalize stable release as latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release="$(gh api "repos/${REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.draft' <<<"${release}")" = false
+          test "$(jq -r '.prerelease' <<<"${release}")" = false
+          gh release edit "${TAG}" --repo "${REPOSITORY}" --draft=false --latest
+          latest="$(gh api "repos/${REPOSITORY}/releases/latest" --jq '.tag_name')"
+          test "${latest}" = "${TAG}"
+          {
+            echo "- stable_release: finalized"
+            echo "- latest_tag: ${latest}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   promote-aliases:
     name: Promote stable aliases
-    needs: [publish-crates, verify-container, verify-action]
+    needs: finalize-release
     if: ${{ github.repository == 'EffortlessMetrics/tokmd' && !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     permissions:
