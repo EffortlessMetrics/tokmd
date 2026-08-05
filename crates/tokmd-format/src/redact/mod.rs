@@ -21,33 +21,38 @@ mod extensions;
 /// This ensures that logically identical paths produce the same hash.
 /// For example, `./src/lib.rs` and `src/lib.rs` will produce the same hash.
 fn clean_path(s: &str) -> String {
-    let mut normalized = String::with_capacity(s.len());
-    let mut last_was_slash = false;
-    for ch in s.chars() {
-        let ch = if ch == '\\' { '/' } else { ch };
-        if ch == '/' {
-            if last_was_slash {
-                continue;
+    let mut parts = Vec::new();
+    let normalized = s.replace('\\', "/");
+    let is_absolute = normalized.starts_with('/');
+
+    for part in normalized.split('/') {
+        match part {
+            "" | "." => continue,
+            ".." => {
+                if let Some(last) = parts.last() {
+                    if *last != ".." {
+                        parts.pop();
+                    } else {
+                        parts.push("..");
+                    }
+                } else if !is_absolute {
+                    parts.push("..");
+                }
             }
-            last_was_slash = true;
-        } else {
-            last_was_slash = false;
+            _ => parts.push(part),
         }
-        normalized.push(ch);
     }
-    // Strip leading ./
-    while let Some(stripped) = normalized.strip_prefix("./") {
-        normalized = stripped.to_string();
+
+    let mut result = String::new();
+    if is_absolute {
+        result.push('/');
     }
-    // Remove interior /./
-    while normalized.contains("/./") {
-        normalized = normalized.replace("/./", "/");
+    result.push_str(&parts.join("/"));
+
+    if result.is_empty() && !is_absolute && s == "." {
+        return ".".to_string();
     }
-    // Remove trailing /.
-    if normalized.ends_with("/.") {
-        normalized.truncate(normalized.len() - 2);
-    }
-    normalized
+    result
 }
 
 /// Compute a short (16-character) BLAKE3 hash of a string.
@@ -293,5 +298,26 @@ mod tests {
     #[test]
     fn test_redact_path_normalizes_dot_prefix() {
         assert_eq!(redact_path("src/main.rs"), redact_path("./src/main.rs"));
+    }
+
+    #[test]
+    fn test_clean_path_resolves_parent_segments() {
+        assert_eq!(clean_path("src/../src/lib.rs"), "src/lib.rs");
+        assert_eq!(clean_path("crates/foo/../bar/lib.rs"), "crates/bar/lib.rs");
+        assert_eq!(clean_path("../src/lib.rs"), "../src/lib.rs");
+        assert_eq!(clean_path("../../src/lib.rs"), "../../src/lib.rs");
+        assert_eq!(clean_path("/foo/../bar"), "/bar");
+    }
+
+    #[test]
+    fn test_redact_path_normalizes_parent_segments() {
+        assert_eq!(
+            redact_path("src/../src/main.rs"),
+            redact_path("src/main.rs")
+        );
+        assert_eq!(
+            redact_path("crates/tokmd/../tokmd-format/src/lib.rs"),
+            redact_path("crates/tokmd-format/src/lib.rs")
+        );
     }
 }

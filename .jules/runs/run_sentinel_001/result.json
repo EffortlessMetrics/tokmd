@@ -1,0 +1,8 @@
+{
+  "outcome": "patch_ready",
+  "learning_pr": false,
+  "metrics": {
+    "files_changed": 1,
+    "tests_added": 2
+  }
+}
