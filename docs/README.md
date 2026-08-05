@@ -60,8 +60,21 @@ schemas, and verification policy for `tokmd`.
 - [handoff.md](handoff.md) — coding-agent handoff bundle workflow and guardrails.
 - [publishing-evidence.md](publishing-evidence.md) — release-facing package
   surface, metadata, and CI ownership evidence before release mutation.
-- [release-readiness.md](release-readiness.md) — quickstart for pre-release
-  evidence checks without publishing, tagging, or creating releases.
+- [release-readiness.md](release-readiness.md) — interpret pre-release evidence
+  without publishing, tagging, or creating releases.
+- [releases/release-checklist.md](releases/release-checklist.md) — canonical
+  RC/stable procedure, history-preserving import checklist, consumer-proof
+  requirements, and failure recovery matrix.
+- [releases/1.15.md](releases/1.15.md) — user-facing release narrative for the
+  portable evidence, CLI/Action, archive/WASM, and packet-consumption release.
+- [releases/1.15-readiness.md](releases/1.15-readiness.md) — command-backed RC
+  and stable-readiness state for the 1.15 train.
+- [releases/1.15-ledger.md](releases/1.15-ledger.md) — exact artifact,
+  topology, publication, and consumer-evidence ledger for the 1.15 train.
+- [releases/1.15.0-incident.md](releases/1.15.0-incident.md) — stable
+  publication incident, registry recovery, alias promotion, and closeout.
+- [releases/1.15.0-history-audit.md](releases/1.15.0-history-audit.md) —
+  finite audit of the pre-shared-history archive lineage.
 - [releases/1.12.md](releases/1.12.md) — user-facing release notes for the 1.12
   Bun UB evidence-readiness release.
 - [releases/1.12-ledger.md](releases/1.12-ledger.md) — maintainer release
