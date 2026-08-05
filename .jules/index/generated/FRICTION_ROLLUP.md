@@ -5,3 +5,4 @@ It rolls up active friction metadata from `.jules/friction/open/`.
 
 | ID | Persona | Style | Shard | Status | Summary |
 |---|---|---|---|---|---|
+| `stale_librarian_run` | Unknown | Unknown | Unknown | open | This branch (`jules/librarian-docs-debug-fix`) successfully fixed CLI flag drift in `docs/debugging.md`, but it was closed as stale because it predates the 1.15.0 release and is no longer an active priority. |
