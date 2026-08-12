@@ -57,6 +57,24 @@ proptest! {
     }
 
     #[test]
+    fn cocomo81_monotonic_growth(kloc1 in 0.1_f64..1_000.0, diff in 0.1_f64..100.0) {
+        let kloc2 = kloc1 + diff;
+        let (e1, s1, _, _) = cocomo81_effort_pm(kloc1);
+        let (e2, s2, _, _) = cocomo81_effort_pm(kloc2);
+        prop_assert!(e2 > e1);
+        prop_assert!(s2 > s1);
+    }
+
+    #[test]
+    fn cocomo2_monotonic_growth(kloc1 in 0.1_f64..1_000.0, diff in 0.1_f64..100.0) {
+        let kloc2 = kloc1 + diff;
+        let (e1, s1, _, _) = cocomo2_effort_pm(kloc1);
+        let (e2, s2, _, _) = cocomo2_effort_pm(kloc2);
+        prop_assert!(e2 > e1);
+        prop_assert!(s2 > s1);
+    }
+
+    #[test]
     fn baseline_results_ordering(kloc in 0.1_f64..10_000.0) {
         let res81 = cocomo81_baseline(kloc);
         prop_assert!(res81.effort_pm_low <= res81.effort_pm_p50);

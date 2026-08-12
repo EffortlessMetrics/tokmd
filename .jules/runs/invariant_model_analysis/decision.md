@@ -1,15 +1,14 @@
 # Decision
 
-## Option A
-Add property tests for the `distribution_median`, `distribution_percentiles`, and `histogram_bucket_bounds` invariants in `crates/tokmd-analysis/src/derived/tests/properties.rs`.
+## Option A (Tighten Invariants around Core COCOMO Bounds and Consistency)
+Add proptests specifically verifying mathematical properties in the core COCOMO81 and COCOMO2 estimation models, as well as the composite `avg_models` behavior. Specifically:
+- Check that output is monotonically non-decreasing as KLOC grows.
+- Assert limits and ranges for schedule-vs-effort scaling.
+- Assert that ensemble models don't skew wildly.
 
-These invariants reflect important facts about the analysis:
-1. `distribution_median_is_correct` - median should accurately reflect the 50th percentile.
-2. `distribution_percentiles_are_correct` - p90 and p99 should accurately reflect the underlying `tokmd_scan::percentile` calculations over sizes.
-3. `histogram_bucket_bounds_are_ordered_and_non_overlapping` - bucket sizes should remain contiguous with `prev.max.unwrap() + 1 == curr.min` allowing no gaps or overlap.
+## Option B (Improve `uncertainty.rs` Bound Checking)
+Tighten the bounds tested for the confidence penalty calculations and the way uncertainty widens confidence intervals around base estimates.
 
-## Option B
-Find an alternative location to add property tests. But the existing `derived::tests::properties` clearly contains a gap because only `distribution_count`, `min_le_max`, `mean_between_min_max` and `gini` were verified, ignoring other critical metrics returned by `build_distribution_report` and `build_histogram`.
+## Chosen: Option A
+Testing properties around mathematical models (like monotonic growth or consistency of limits) represents adding coverage to true, real invariants. `avg_models` is simple but needs testing for commutative/associative limits or just structural bounding properties. `cocomo81_effort_pm_core` has no direct testing here, though we have tests in `proptest_models.rs`. I will add explicit monotonicity checks to `proptest_models.rs`.
 
-## Decision
-Choose Option A. I have implemented and verified all three new invariants which reduce uncertainty over these analytical outputs using proptest properties in the analysis crate tests.
