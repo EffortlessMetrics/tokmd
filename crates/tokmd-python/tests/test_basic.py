@@ -63,14 +63,23 @@ def test_run_json_invalid_mode():
 
 
 def test_run_json_invalid_json():
-    """Test run_json returns error for invalid JSON."""
+    """Test run_json raises ValueError for invalid JSON."""
     import tokmd
 
-    result = tokmd.run_json("lang", "not valid json")
-    data = json.loads(result)
+    with pytest.raises(ValueError) as excinfo:
+        tokmd.run_json("lang", "not valid json")
 
-    assert data.get("error") is True
-    assert data.get("code") == "invalid_json"
+    assert "Invalid JSON in args_json" in str(excinfo.value)
+
+def test_run_json_rejects_top_level_scalar_payload():
+    """Test run_json raises ValueError for top-level scalar payload."""
+    import tokmd
+
+    with pytest.raises(ValueError) as excinfo:
+        tokmd.run_json("lang", "0")
+
+    assert "Invalid JSON: Top-level JSON value must be an object" in str(excinfo.value)
+
 
 
 def test_lang_basic():
