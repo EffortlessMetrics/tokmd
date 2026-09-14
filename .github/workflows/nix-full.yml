@@ -41,7 +41,7 @@ jobs:
 
       - name: Install Nix
         if: env.USE_FLAKEHUB_CACHE != 'true'
-        uses: DeterminateSystems/nix-installer-action@v22
+        uses: DeterminateSystems/nix-installer-action@v23
 
       - name: Install Nix with FlakeHub support
         if: env.USE_FLAKEHUB_CACHE == 'true'
@@ -56,7 +56,7 @@ jobs:
       - name: Setup Nix cache
         if: env.USE_FLAKEHUB_CACHE != 'true' || steps.flakehub-cache.outcome != 'success'
         continue-on-error: true
-        uses: DeterminateSystems/magic-nix-cache-action@v14
+        uses: DeterminateSystems/magic-nix-cache-action@v15
         with:
           use-flakehub: false
           use-gha-cache: enabled
