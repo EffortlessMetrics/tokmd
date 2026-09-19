@@ -42,27 +42,15 @@ pub(crate) fn tokenize_for_halstead(text: &str, lang: &str) -> FileTokenCounts {
             }
 
             if ch.is_ascii_punctuation() && ch != '_' && ch != '"' && ch != '\'' {
-                let mut buf = [0u8; 16];
-                let mut candidate_len = 0;
-                let mut char_lens = [0; 4];
-                let mut count = 0;
-                let mut c_iter = chars.clone();
-                while count < 4 {
-                    if let Some(c) = c_iter.next() {
-                        let c_len = c.len_utf8();
-                        c.encode_utf8(&mut buf[candidate_len..]);
-                        char_lens[count] = c_len;
-                        candidate_len += c_len;
-                        count += 1;
-                    } else {
-                        break;
-                    }
-                }
-                let remaining_str = std::str::from_utf8(&buf[..candidate_len]).unwrap();
+                let remaining: String = chars.clone().take(4).collect();
                 let mut matched = false;
-                for len in (1..=count).rev() {
-                    let byte_len: usize = char_lens[..len].iter().sum();
-                    let candidate = &remaining_str[..byte_len];
+                let char_count = remaining.chars().count();
+                for len in (1..=char_count.min(4)).rev() {
+                    let (byte_idx, _) = remaining
+                        .char_indices()
+                        .nth(len)
+                        .unwrap_or((remaining.len(), '\0'));
+                    let candidate = &remaining[..byte_idx];
                     if op_set.contains(candidate) {
                         *operators.entry(candidate.to_string()).or_insert(0) += 1;
                         total_operators += 1;
