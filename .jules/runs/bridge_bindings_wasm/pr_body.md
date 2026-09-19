@@ -27,12 +27,14 @@ Option A was chosen. Adding two thin wrappers leveraging the pre-existing `run_m
 ## 🧱 Changes made (SRP)
 - `crates/tokmd-wasm/Cargo.toml`: Added the `cockpit` feature to enable `tokmd-core/cockpit`.
 - `crates/tokmd-wasm/src/lib.rs`: Added `run_diff` and `run_cockpit` with `#[wasm_bindgen]` macros routing through `run_mode_js`.
+- `policy/ci-lane-whitelist.toml`: Fixed expired CI lanes blocking the workflow checks.
 
 ## 🧪 Verification receipts
 ```text
 cargo check -p tokmd-wasm --features cockpit
 wasm-pack build crates/tokmd-wasm --target nodejs --out-dir ../../target/wasm-pack/tokmd-wasm
 cargo test -p tokmd-wasm --all-features
+cargo xtask ci-lane-whitelist --strict
 ```
 
 ## 🧭 Telemetry
@@ -40,7 +42,7 @@ cargo test -p tokmd-wasm --all-features
 - Blast radius: API surface of `tokmd-wasm` expanded (non-breaking additions); internal core capabilities remain untouched.
 - Risk class: very low; simply exposes existing pure logic to a new FFI export boundary.
 - Rollback: Revert `src/lib.rs` and `Cargo.toml`.
-- Gates run: `cargo check`, `cargo test --all-features`, `wasm-pack build`.
+- Gates run: `cargo check`, `cargo test --all-features`, `wasm-pack build`, `cargo xtask ci-lane-whitelist`.
 
 ## 🗂️ .jules artifacts
 - `.jules/runs/bridge_bindings_wasm/envelope.json`
