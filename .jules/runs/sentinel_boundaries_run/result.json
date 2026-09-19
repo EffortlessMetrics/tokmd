@@ -1,0 +1,12 @@
+{
+  "outcome": "PR-ready patch",
+  "files_modified": [
+    "crates/tokmd-core/src/context_git/mod.rs",
+    "crates/tokmd-core/src/workflows/cockpit.rs",
+    "crates/tokmd/tests/common/mod.rs"
+  ],
+  "verification": [
+    "cargo test -p tokmd-core --test cockpit_workflow",
+    "cargo test -p tokmd"
+  ]
+}
