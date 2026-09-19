@@ -1,27 +1,22 @@
 name: CI
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   # Cancel superseded push runs and PR synchronize runs. Label add/remove must
   # not cancel an in-flight PR run: it triggers a fresh run with the new label
   # set without throwing away work.
   cancel-in-progress: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'synchronize') }}
-
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: -C debuginfo=0
-
 jobs:
   # Phase 2 (#226): single tight gate — route + one required check.
   # Normative spec: docs/specs/ub-review-ci-gate.md
@@ -71,7 +66,6 @@ jobs:
           else
             emit "$GH" github "no idle capacity"
           fi
-
   tokmd-rust-result:
     name: Tokmd Rust Result
     needs: route
@@ -85,15 +79,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-
       - name: Use larger writable target dir on GitHub-hosted overflow
         if: needs.route.outputs.runner_kind == 'github'
         run: echo "CARGO_TARGET_DIR=${RUNNER_TEMP}/target" >> "$GITHUB_ENV"
-
       - name: Use workspace gate target on self-hosted
         if: needs.route.outputs.runner_kind == 'self-hosted'
         run: |
@@ -101,12 +92,10 @@ jobs:
           mkdir -p target/ci-gate
           # Best-effort reclaim of legacy /tmp orphans from pre-fix disposable gate runs (#309).
           find /tmp -maxdepth 1 -type d -name 'tokmd-gate-target-*' -mmin +30 -exec rm -rf {} + 2>/dev/null || true
-
       - uses: Swatinem/rust-cache@v2
         with:
           cache-directories: ${{ runner.temp }}/target
           save-if: ${{ github.ref == 'refs/heads/main' }}
-
       - name: Fast precontext and launch core gate
         env:
           RUNNER_KIND: ${{ needs.route.outputs.runner_kind }}
@@ -137,7 +126,6 @@ jobs:
           cargo xtask proof-policy --check > target/ci-core/proof_policy.log 2>&1
           echo "$?" > target/ci-core/proof_policy_exit
           echo "completed serial core gate, tests, and proof-policy"
-
       - name: UB Review (advisory)
         id: ubreview
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
@@ -154,11 +142,10 @@ jobs:
           minimax-model: MiniMax-M3
           opencode-api-key: ${{ secrets.OPENCODE }}
           opencode-model: deepseek-v4-flash
-          base: origin/${{ github.base_ref }}
           pr-thread-context: target/ci-core/precontext.md
+          base: origin/${{ github.base_ref }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-summary: true
-
       - name: UB Review advisory status
         if: ${{ always() }}
         env:
@@ -175,7 +162,6 @@ jobs:
               echo "ub-review advisory lane failed (${UB_OUTCOME}): check provider secrets and model availability, then re-run. Deterministic gate verdict stands." >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac
-
       - name: Assert core gate verdict
         if: ${{ always() }}
         env:
@@ -195,7 +181,6 @@ jobs:
           core_exit="$(cat target/ci-core/core_exit)"
           test_exit="$(cat target/ci-core/test_exit)"
           proof_policy_exit="$(cat target/ci-core/proof_policy_exit)"
-
           # Self-hosted runners can exhaust CPU/RAM under concurrent cargo; retry
           # any failed lane serially once before reporting failure.
           if [ "${RUNNER_KIND}" = "self-hosted" ]; then
@@ -215,7 +200,6 @@ jobs:
               proof_policy_exit=$?
             fi
           fi
-
           {
             echo "## Deterministic core gate"
             if [ "${core_exit}" = "0" ]; then
@@ -237,7 +221,6 @@ jobs:
           test "${core_exit}" = "0"
           test "${test_exit}" = "0"
           test "${proof_policy_exit}" = "0"
-
   # Detect which risk packs the PR diff hits. Downstream gated jobs OR
   # this output into their `if:` so the deep lanes also run when matching
   # paths change, even without an explicit label. Mirrors the routing
@@ -257,11 +240,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-
       - name: Fetch base ref
         if: github.event_name == 'pull_request'
         run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
-
       - id: detect
         name: Compute risk-pack output flags
         env:
@@ -291,7 +272,6 @@ jobs:
             --json-out target/ci/ci-detect-plan.json \
             --route-json-out target/ci/proof-pack-route.json \
             --github-output "$GITHUB_OUTPUT"
-
       - name: Verify proof-pack route receipts
         if: always()
         run: |
@@ -303,7 +283,6 @@ jobs:
             fi
           done
           exit "$status"
-
       - name: Upload proof-pack route receipt
         if: always()
         uses: actions/upload-artifact@v7
@@ -314,7 +293,6 @@ jobs:
             target/ci/proof-pack-route.json
           if-no-files-found: error
           retention-days: 14
-
   msrv:
     name: MSRV Check
     runs-on: ubuntu-latest
@@ -331,7 +309,6 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: Check MSRV compatibility
         run: cargo check --workspace --all-features
-
   # Windows full-test moves off the default PR gate. It runs on push to
   # main and on PRs explicitly labelled `windows` or `full-ci`. Rust path
   # changes that are likely to behave differently on Windows go through
@@ -345,47 +322,37 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'full-ci') ||
       needs.detect.outputs.windows_path == 'true'
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
-
     - uses: Swatinem/rust-cache@v2
       with:
         save-if: ${{ github.ref == 'refs/heads/main' }}
-
     - name: Run tests
       run: cargo test --all-features --verbose
       env:
         CI: true
-
   build-macos:
     name: Build & Test (macOS)
     if: github.event_name == 'push'
     runs-on: macos-latest
-
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
-
     - uses: Swatinem/rust-cache@v2
       with:
         save-if: ${{ github.ref == 'refs/heads/main' }}
         cache-bin: false
-
     - name: Run tests
       run: cargo test --all-features --verbose
       env:
         CI: true
-
   feature-boundaries:
     name: Feature Boundaries
     runs-on: ubuntu-latest
@@ -398,20 +365,16 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
           cache-directories: ${{ runner.temp }}/target
-
       - name: tokmd-analysis with all features
         run: cargo test -p tokmd-analysis --all-features --verbose
         env:
           CI: true
-
       - name: tokmd-analysis with no default features
         run: cargo test -p tokmd-analysis --no-default-features --verbose
         env:
           CI: true
-
       - name: Guard analysis microcrate boundaries
         run: cargo xtask boundaries-check
-
   affected-plan:
     name: Affected Proof Plan
     if: github.event_name == 'pull_request'
@@ -421,36 +384,27 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-
       - uses: dtolnay/rust-toolchain@stable
-
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
-
       - name: Fetch base ref
         run: git fetch origin "${{ github.base_ref }}":"refs/remotes/origin/${{ github.base_ref }}" || true
-
       - name: Generate affected proof artifacts
         run: |
           set +e
           mkdir -p target/proof
-
           cargo xtask affected --base "origin/${{ github.base_ref }}" --head HEAD --json-output target/proof/affected.json
           affected_status=$?
-
           cargo xtask proof --profile affected --base "origin/${{ github.base_ref }}" --head HEAD --plan --plan-json target/proof/proof-plan.json --summary-md target/proof/proof-plan.md --evidence-json target/proof/proof-evidence.json --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json
           proof_plan_status=$?
-
           cargo xtask proof-artifacts-check --executor-summary target/proof/executor-summary.json --executor-manifest target/proof/executor-manifest.json --json-output target/proof/proof-artifacts-check.json > target/proof/proof-artifacts-check.txt 2>&1
           proof_artifacts_status=$?
-
           {
             echo "affected_status=${affected_status}"
             echo "proof_plan_status=${proof_plan_status}"
             echo "proof_artifacts_status=${proof_artifacts_status}"
           } > target/proof/status.env
-
           {
             echo "## Affected Proof Plan"
             echo ""
@@ -470,21 +424,16 @@ jobs:
               cat target/proof/proof-plan.md
             fi
           } >> "$GITHUB_STEP_SUMMARY"
-
           if [ "${affected_status}" -ne 0 ]; then
             exit "${affected_status}"
           fi
-
           if [ "${proof_plan_status}" -ne 0 ]; then
             exit "${proof_plan_status}"
           fi
-
           if [ "${proof_artifacts_status}" -ne 0 ]; then
             exit "${proof_artifacts_status}"
           fi
-
           exit 0
-
       - name: Upload affected proof artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -492,7 +441,6 @@ jobs:
           name: affected-proof-plan
           path: target/proof/
           if-no-files-found: error
-
   fast-proof-run:
     name: Fast Proof Run (Advisory)
     if: github.event_name == 'pull_request'
@@ -501,15 +449,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
-
       - id: proof_run_policy
         name: Resolve fast proof-run policy
         run: |
@@ -520,23 +465,18 @@ jobs:
             --proof-policy-json target/proof-run/proof-policy.json \
             --github-output target/proof-run/proof-run-pr.outputs
           cat target/proof-run/proof-run-pr.outputs >> "$GITHUB_OUTPUT"
-
       - name: Run fast proof runner
         env:
           PROOF_RUN_PROFILE: ${{ steps.proof_run_policy.outputs.profile }}
         run: |
           set +e
           mkdir -p target/proof-run
-
           cargo xtask proof --profile "${PROOF_RUN_PROFILE}" --run-required --allow-ci-required-execution --plan-json target/proof-run/proof-plan.json --proof-run-summary target/proof-run/proof-run-summary.json
           proof_run_status=$?
-
           cargo xtask proof-run-artifacts-check --proof-run-summary target/proof-run/proof-run-summary.json --json-output target/proof-run/proof-run-artifacts-check.json > target/proof-run/proof-run-artifacts-check.txt 2>&1
           proof_run_artifacts_status=$?
-
           cargo xtask proof-run-observation --proof-run-summary target/proof-run/proof-run-summary.json --output target/proof-run/proof-run-observation.json > target/proof-run/proof-run-observation.txt 2>&1
           proof_run_observation_status=$?
-
           cargo xtask proof-workflow-status \
             --workflow-kind fast-proof-run \
             --status "proof_run_status=${proof_run_status}" \
@@ -551,7 +491,6 @@ jobs:
             --summary-md target/proof-run/proof-workflow-status.md \
             --env-output target/proof-run/proof-workflow-status.env > target/proof-run/proof-workflow-status.txt 2>&1
           proof_workflow_status_status=$?
-
           if [ "${proof_workflow_status_status}" -eq 0 ]; then
             cargo xtask proof-workflow-status-check \
               --status target/proof-run/proof-workflow-status.json \
@@ -561,13 +500,11 @@ jobs:
             printf 'proof-workflow-status-check skipped because proof-workflow-status exited %s\n' "${proof_workflow_status_status}" > target/proof-run/proof-workflow-status-check.txt
             proof_workflow_status_check_status=0
           fi
-
           {
             echo "proof_run_status=${proof_run_status}"
             echo "proof_run_artifacts_status=${proof_run_artifacts_status}"
             echo "proof_run_observation_status=${proof_run_observation_status}"
           } > target/proof-run/status.env
-
           {
             echo "## Fast Proof Run"
             echo ""
@@ -596,29 +533,22 @@ jobs:
               cat target/proof-run/proof-workflow-status-check.txt
             fi
           } >> "$GITHUB_STEP_SUMMARY"
-
           if [ "${proof_run_status}" -ne 0 ]; then
             exit "${proof_run_status}"
           fi
-
           if [ "${proof_run_artifacts_status}" -ne 0 ]; then
             exit "${proof_run_artifacts_status}"
           fi
-
           if [ "${proof_run_observation_status}" -ne 0 ]; then
             exit "${proof_run_observation_status}"
           fi
-
           if [ "${proof_workflow_status_status}" -ne 0 ]; then
             exit "${proof_workflow_status_status}"
           fi
-
           if [ "${proof_workflow_status_check_status}" -ne 0 ]; then
             exit "${proof_workflow_status_check_status}"
           fi
-
           exit 0
-
       - name: Upload fast proof-run artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -626,7 +556,6 @@ jobs:
           name: ${{ steps.proof_run_policy.outputs.artifact_name || 'fast-proof-run' }}
           path: target/proof-run/
           if-no-files-found: error
-
   wasm-compile:
     name: Wasm Compile & Test
     needs: detect
@@ -672,7 +601,6 @@ jobs:
         run: npm --prefix web/runner test
       - name: Browser runner syntax check
         run: npm --prefix web/runner run check
-
   deny:
     name: Cargo Deny
     runs-on: ubuntu-latest
@@ -687,7 +615,6 @@ jobs:
         run: cargo deny --version
       - name: Check advisories and licenses
         run: cargo deny --all-features check
-
   typos:
     name: Typos
     runs-on: ubuntu-latest
@@ -696,7 +623,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: crate-ci/typos@v1
-
   proptest-smoke:
     name: Proptest Smoke
     needs: detect
@@ -722,7 +648,6 @@ jobs:
           PROPTEST_CASES=50 cargo test -p tokmd --test properties --all-features --verbose
         env:
           CI: true
-
   publish-plan:
     name: Publish Surface
     runs-on: ubuntu-latest
@@ -738,7 +663,6 @@ jobs:
         run: cargo xtask publish-surface --json --verify-publish
         env:
           CI: true
-
   version-consistency:
     name: Version consistency
     runs-on: ubuntu-latest
@@ -749,7 +673,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Check release metadata alignment
         run: cargo xtask version-consistency
-
   docs-check:
     name: Docs Check
     runs-on: ubuntu-latest
@@ -765,13 +688,10 @@ jobs:
         run: |
           set +e
           mkdir -p target/docs
-
           cargo xtask doc-artifacts --check --json target/docs/doc-artifacts-check.json
           doc_artifacts_status=$?
-
           cargo xtask docs --check
           docs_status=$?
-
           if [ -f target/docs/doc-artifacts-check.json ]; then
             {
               echo "## Documentation Artifact Check"
@@ -781,15 +701,12 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi
-
           if [ "${doc_artifacts_status}" -ne 0 ]; then
             exit "${doc_artifacts_status}"
           fi
-
           if [ "${docs_status}" -ne 0 ]; then
             exit "${docs_status}"
           fi
-
           exit 0
         env:
           CI: true
@@ -800,7 +717,6 @@ jobs:
           name: doc-artifacts-check
           path: target/docs/doc-artifacts-check.json
           if-no-files-found: warn
-
   nix-pr:
     name: Nix PR Package Gate
     needs: detect
@@ -825,23 +741,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v22
-
       - name: Setup Nix cache
         continue-on-error: true
         uses: DeterminateSystems/magic-nix-cache-action@v14
         with:
           use-flakehub: false
           use-gha-cache: enabled
-
       - name: Check flake
         run: nix flake check --no-build --accept-flake-config
-
       - name: Build package
         run: nix build -L .#tokmd
-
   mutation:
     name: Mutation Testing
     runs-on: ubuntu-latest
@@ -860,19 +771,15 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-
       - uses: dtolnay/rust-toolchain@stable
-
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --version 26.1.2 --locked
-
       - name: Get changed Rust files
         id: changed
         env:
           PUSH_BEFORE: ${{ github.event.before || '' }}
         run: |
           set -euo pipefail
-
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BASE_REF="${{ github.base_ref }}"
             BASE_REV="origin/$BASE_REF"
@@ -887,7 +794,6 @@ jobs:
             BASE_REF="main"
             BASE_REV="HEAD"
           fi
-
           cargo xtask mutation-scope \
             --base-ref "$BASE_REF" \
             --base "$BASE_REV" \
@@ -897,7 +803,6 @@ jobs:
             --changed-files changed_files.txt \
             --json-output target/mutation/mutation-scope.json \
             --github-output "$GITHUB_OUTPUT"
-
       - name: Mutation Testing
         if: steps.changed.outputs.count != '0'
         env:
@@ -905,17 +810,14 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running mutation testing on ${{ steps.changed.outputs.count }} changed file(s)..."
-
           while IFS= read -r file; do
             [ -z "$file" ] && continue
             [ -f "$file" ] || continue
-
             # Microcrate dividend: run from crate dir when possible
             crate_dir=""
             if [[ "$file" == crates/*/* ]]; then
               crate_dir="$(echo "$file" | cut -d/ -f1-2)"
             fi
-
             echo "::group::Mutants: $file"
             if [[ -n "$crate_dir" && -f "$crate_dir/Cargo.toml" ]]; then
               rel="${file#$crate_dir/}"
@@ -925,17 +827,13 @@ jobs:
             fi
             echo "::endgroup::"
           done < changed_files.txt
-
           echo "✓ All mutations caught or unviable (0 MISSED)"
-
       - name: Skip notice
         if: steps.changed.outputs.count == '0' && steps.changed.outputs.scope_exceeded != 'true'
         run: echo "No production Rust files changed - skipping mutation testing"
-
       - name: Scope exceeded notice
         if: steps.changed.outputs.scope_exceeded == 'true'
         run: echo "Mutation scope exceeded - selected files were cleared. See target/mutation/mutation-scope.json."
-
       - name: Upload mutants report
         if: always()
         uses: actions/upload-artifact@v7
@@ -949,7 +847,6 @@ jobs:
             crates/**/mutants.out/
           if-no-files-found: ignore
           retention-days: 14
-
   ci-actuals:
     name: CI Actuals (Advisory)
     permissions:
@@ -980,15 +877,12 @@ jobs:
         with:
           persist-credentials: false
         continue-on-error: true
-
       - uses: dtolnay/rust-toolchain@stable
         continue-on-error: true
-
       - uses: Swatinem/rust-cache@v2
         continue-on-error: true
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
-
       - name: Generate CI timings sidecar
         if: always()
         continue-on-error: true
@@ -1002,7 +896,6 @@ jobs:
           import os
           import urllib.request
           from datetime import datetime
-
           token = os.environ.get("GITHUB_TOKEN", "")
           repo = os.environ["GITHUB_REPOSITORY"]
           run_id = os.environ["GITHUB_RUN_ID"]
@@ -1013,7 +906,6 @@ jobs:
           }
           if token:
               headers["Authorization"] = f"Bearer {token}"
-
           job_name_to_need_key = {
               "Route CI runner": "route",
               "Tokmd Rust Result": "tokmd-rust-result",
@@ -1032,12 +924,10 @@ jobs:
               "Mutation Testing": "mutation",
               "Feature Boundaries": "feature-boundaries",
           }
-
           def parse_time(value):
               if not value:
                   return None
               return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
           timings = {}
           page = 1
           while True:
@@ -1067,13 +957,11 @@ jobs:
               if len(jobs) < 100:
                   break
               page += 1
-
           with open("target/ci/timings.json", "w", encoding="utf-8") as handle:
               json.dump(timings, handle, indent=2, sort_keys=True)
               handle.write("\n")
           print(f"CI timings sidecar written with {len(timings)} job(s)")
           PY
-
       - name: Generate CI actuals receipt
         if: always()
         continue-on-error: true
@@ -1093,7 +981,6 @@ jobs:
             --output target/ci/ci-actuals.json \
             --github-summary "$GITHUB_STEP_SUMMARY" \
             --sha "${GITHUB_SHA}"
-
       - name: Upload CI actuals receipt
         if: always()
         continue-on-error: true
@@ -1106,7 +993,6 @@ jobs:
             target/ci/ci-actuals.json
           if-no-files-found: warn
           retention-days: 14
-
       - name: Publish advisory lane summary
         if: always()
         continue-on-error: true
@@ -1116,7 +1002,6 @@ jobs:
           python - <<'PY'
           import json
           import os
-
           needs = json.loads(os.environ["NEEDS_JSON"])
           lines = [
               "## Advisory CI lane summary",
@@ -1126,16 +1011,13 @@ jobs:
               "| Job | Result |",
               "| --- | --- |",
           ]
-
           for job, payload in sorted(needs.items()):
               result = payload.get("result", "unknown")
               lines.append(f"| `{job}` | `{result}` |")
-
           summary = "\n".join(lines) + "\n"
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary_path:
               with open(summary_path, "a", encoding="utf-8") as handle:
                   handle.write(summary)
-
           print(summary)
           PY

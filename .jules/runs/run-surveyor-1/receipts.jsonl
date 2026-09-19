@@ -1,0 +1,2 @@
+{"cmd": "mkdir -p .jules/runs/run-surveyor-1 ...", "result": "success"}
+{"cmd": "cat << 'EOF' > .jules/runs/run-surveyor-1/decision.md ...", "result": "success"}
