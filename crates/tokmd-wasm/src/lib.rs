@@ -226,6 +226,19 @@ pub fn run_analyze(args: JsValue) -> Result<JsValue, JsValue> {
     run_analyze_js(args)
 }
 
+/// Run the `diff` workflow.
+#[wasm_bindgen(js_name = runDiff)]
+pub fn run_diff(args: JsValue) -> Result<JsValue, JsValue> {
+    run_mode_js("diff", args)
+}
+
+/// Run the `cockpit` workflow.
+#[cfg(feature = "cockpit")]
+#[wasm_bindgen(js_name = runCockpit)]
+pub fn run_cockpit(args: JsValue) -> Result<JsValue, JsValue> {
+    run_mode_js("cockpit", args)
+}
+
 /// Minimal dependency-free ZIP fixture builder shared by the native and
 /// `wasm-bindgen-test` archive-byte coverage.
 ///

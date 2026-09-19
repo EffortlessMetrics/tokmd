@@ -1,0 +1,18 @@
+{
+  "outcome": "patch",
+  "title": "bridge: add diff and cockpit methods to wasm bindings 🌉",
+  "summary": "Added run_diff and run_cockpit to the tokmd-wasm export boundary, closing a drift gap with tokmd-node and tokmd-python. Both modes are already implemented in tokmd-core and just needed to be exported idiomatically via wasm-bindgen.",
+  "paths": [
+    "crates/tokmd-wasm/src/lib.rs",
+    "crates/tokmd-wasm/Cargo.toml"
+  ],
+  "proof_summary": "wasm-bindgen cleanly exports runDiff and runCockpit, and compiles successfully under --features cockpit.",
+  "gates_run": [
+    "cargo check -p tokmd-wasm --all-features",
+    "wasm-pack build crates/tokmd-wasm"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "revert Cargo.toml and src/lib.rs changes",
+  "follow_ups": []
+}
