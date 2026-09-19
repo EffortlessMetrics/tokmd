@@ -17,6 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["analysis"]
 analysis = ["tokmd-core/analysis"]
+cockpit = ["tokmd-core/cockpit"]
 # Byte-mode archive (ZIP) upload binding. Propagates the tokmd-core byte FFI
 # entrypoint and its decompression dependency only when enabled, so the default
 # browser surface stays decompression-free.

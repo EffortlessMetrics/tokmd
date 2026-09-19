@@ -1,0 +1,3 @@
+{"cmd": "cargo check -p tokmd-wasm --features cockpit", "status": "success", "summary": "tokmd-wasm bindings for diff and cockpit compile cleanly after resolving missing Cargo feature."}
+{"cmd": "wasm-pack build crates/tokmd-wasm --target nodejs --out-dir ../../target/wasm-pack/tokmd-wasm", "status": "success", "summary": "wasm-pack successfully generates .d.ts with runDiff and runCockpit exports."}
+{"cmd": "cargo xtask ci-lane-whitelist --strict", "status": "success", "summary": "Fixed expired CI lanes in policy file."}
