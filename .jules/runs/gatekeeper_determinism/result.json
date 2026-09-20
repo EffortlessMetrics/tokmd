@@ -1,0 +1,5 @@
+{
+  "status": "success",
+  "resolution": "proof-improvement patch",
+  "files_changed": ["crates/tokmd/tests/determinism_hash_rule.rs"]
+}

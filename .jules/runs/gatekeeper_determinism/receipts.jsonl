@@ -1,0 +1,2 @@
+{"command": "cargo test -p tokmd", "status": "success"}
+{"command": "cargo clippy -- -D warnings", "status": "success"}
