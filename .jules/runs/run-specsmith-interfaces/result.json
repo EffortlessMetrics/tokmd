@@ -1,0 +1,16 @@
+{
+  "outcome_type": "proof_patch",
+  "title": "specsmith: lock in risk preset BDD scenario coverage \ud83e\uddea",
+  "summary": "Added a BDD scenario test for the `risk` preset in the CLI interfaces, ensuring its coverage matches other key presets like `health` and `receipt`.",
+  "target_paths": [
+    "crates/tokmd/tests/bdd_analyze_scenarios_w50.rs"
+  ],
+  "proof_summary": "Added `given_project_when_analyze_risk_then_risk_metrics_present` to verify the `risk` preset correctly generates `complexity`, `derived.todo`, and `git` telemetry sections without erroring.",
+  "gates_run": [
+    "core-rust fallback gates (cargo test/fmt/clippy)"
+  ],
+  "friction_items": [],
+  "persona_notes": [],
+  "rollback": "Revert the test addition in `crates/tokmd/tests/bdd_analyze_scenarios_w50.rs`.",
+  "follow_ups": []
+}
