@@ -1,0 +1,29 @@
+{
+  "prompt_id": "specsmith_interfaces",
+  "persona": "Specsmith 🧪",
+  "style": "Explorer",
+  "primary_shard": "interfaces",
+  "allowed_paths": [
+    "crates/tokmd-settings/**",
+    "crates/tokmd-core/**",
+    "crates/tokmd/**",
+    "docs/reference-cli.md",
+    "docs/tutorial.md",
+    "crates/tokmd/tests/**"
+  ],
+  "gate_profile": "core-rust",
+  "allowed_outcomes": ["patch", "proof_patch", "learning_pr"],
+  "decision": {
+    "option_a": null,
+    "option_b": null,
+    "selected": null
+  },
+  "artifact_paths": [
+    ".jules/runs/run-specsmith-interfaces/envelope.json",
+    ".jules/runs/run-specsmith-interfaces/decision.md",
+    ".jules/runs/run-specsmith-interfaces/receipts.jsonl",
+    ".jules/runs/run-specsmith-interfaces/result.json",
+    ".jules/runs/run-specsmith-interfaces/pr_body.md"
+  ],
+  "commands": []
+}

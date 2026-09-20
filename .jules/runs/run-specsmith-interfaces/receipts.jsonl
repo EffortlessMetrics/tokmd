@@ -1,0 +1,5 @@
+{"ts_utc": "2026-09-20T17:19:19Z", "phase": "setup", "cmd": "mkdir -p .jules/runs/run-specsmith-interfaces && write envelope.json", "status": 0}
+{"ts_utc": "2026-09-20T17:32:06Z", "phase": "investigation", "cmd": "write decision.md", "status": 0}
+{"ts_utc": "2026-09-20T17:32:27Z", "phase": "investigation", "cmd": "write decision.md (revised)", "status": 0}
+{"ts_utc": "2026-09-20T17:36:56Z", "phase": "patch", "cmd": "cargo test -p tokmd --test bdd_analyze_scenarios_w50", "status": 0, "summary": "Added BDD integration test for the `risk` preset"}
+{"ts_utc": "2026-09-20T17:41:44Z", "phase": "patch", "cmd": "write result.json and pr_body.md", "status": 0}
