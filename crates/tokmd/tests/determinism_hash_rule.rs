@@ -37,13 +37,25 @@ fn check_no_hash_maps(dir: &Path, crate_name: &str) {
                         for (i, line) in contents.lines().enumerate() {
                             // Basic heuristic check for HashMap or HashSet. We skip lines with "//" or "///" or "/*" or "!" to avoid matching comments
                             let trimmed = line.trim();
-                            if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with("!") || trimmed.starts_with("*") {
+                            if trimmed.starts_with("//")
+                                || trimmed.starts_with("/*")
+                                || trimmed.starts_with("!")
+                                || trimmed.starts_with("*")
+                            {
                                 continue;
                             }
 
                             if trimmed.contains("HashMap") || trimmed.contains("HashSet") {
-                                let display_path = path.strip_prefix(get_workspace_root()).unwrap_or(&path).display();
-                                violations.push(format!("{}:{} - {}", display_path, i + 1, trimmed));
+                                let display_path = path
+                                    .strip_prefix(get_workspace_root())
+                                    .unwrap_or(&path)
+                                    .display();
+                                violations.push(format!(
+                                    "{}:{} - {}",
+                                    display_path,
+                                    i + 1,
+                                    trimmed
+                                ));
                             }
                         }
                     }
@@ -64,12 +76,7 @@ fn check_no_hash_maps(dir: &Path, crate_name: &str) {
 fn no_hashmap_or_hashset_in_core_pipeline() {
     let root = get_workspace_root();
 
-    let crates_to_check = [
-        "tokmd-types",
-        "tokmd-scan",
-        "tokmd-model",
-        "tokmd-format",
-    ];
+    let crates_to_check = ["tokmd-types", "tokmd-scan", "tokmd-model", "tokmd-format"];
 
     for c in crates_to_check {
         let src_dir = root.join("crates").join(c).join("src");
