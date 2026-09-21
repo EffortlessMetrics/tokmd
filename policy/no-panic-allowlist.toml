@@ -416998,3 +416998,22 @@ receiver_fingerprint = "timing . io_trace . as_ref ()"
 [allow.last_seen]
 line = 517
 column = 20
+
+[[allow]]
+id = "panic-21952"
+path = "crates/tokmd/tests/determinism_hash_rule.rs"
+family = "unwrap"
+classification = "test_helper"
+owner = "Gatekeeper"
+explanation = "Safe unwrap in test helper resolving the crate workspace root."
+expires = "2026-12-31"
+
+[allow.selector]
+kind = "method_call"
+container = "get_workspace_root"
+callee = "unwrap"
+receiver_fingerprint = "std :: env :: current_dir ()"
+
+[allow.last_seen]
+line = 15
+column = 18

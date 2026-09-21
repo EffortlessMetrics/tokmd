@@ -111,7 +111,7 @@ evidence = [
 allowed_triggers = ["pull_request"]
 duplicate_of     = ["pr_plan_advisory"]
 review_after     = "2026-06-07"
-expires          = "2026-08-07"
+expires          = "2026-11-07"
 
 [[lane]]
 id               = "ci_detect_risk_packs"
@@ -369,7 +369,7 @@ allowed_triggers       = ["pull_request", "push"]
 labels                 = ["property-tests"]
 duplicate_of           = []
 review_after           = "2026-06-07"
-expires                = "2026-08-07"
+expires                = "2026-11-07"
 
 [[lane]]
 id                     = "publish_surface"
@@ -389,7 +389,7 @@ evidence               = ["job logs"]
 allowed_triggers       = ["pull_request", "push"]
 duplicate_of           = ["nix_pr_package_gate"]
 review_after           = "2026-06-07"
-expires                = "2026-08-07"
+expires                = "2026-11-07"
 
 # -----------------------------------------------------------------------
 # Swarm routed frontdoor lanes
