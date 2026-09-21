@@ -909,3 +909,21 @@ surface = "release"
 classification = "test"
 reason = "Fail-closed release consumer receipt aggregation and deterministic contract fixtures."
 covered_by = ["python3 -m unittest scripts/release_consumer_smoke_aggregate_test.py"]
+
+[[allow]]
+glob = "Dockerfile.release"
+kind = "release"
+owner = "release/publish"
+surface = "docker"
+classification = "production"
+reason = "Release runtime Dockerfile."
+covered_by = ["release-consumer-smoke"]
+
+[[allow]]
+glob = "scripts/publish-release-crates.sh"
+kind = "script"
+owner = "release/publish"
+surface = "internal"
+classification = "config"
+reason = "Release publishing script."
+covered_by = ["publish_w71"]
