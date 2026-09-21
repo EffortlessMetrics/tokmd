@@ -77,3 +77,45 @@ fn cli_parser_rejects_invalid_utf8_global_exclude_before_subcommand() {
     let err = Cli::try_parse_from(args).expect_err("invalid UTF-8 value must be rejected");
     assert_eq!(err.kind(), ErrorKind::InvalidUtf8);
 }
+
+#[cfg(any(unix, windows))]
+#[test]
+fn cli_parser_rejects_invalid_utf8_numerical_value_parser_max_commits() {
+    let bad = invalid_utf8_osstring();
+
+    let args: Vec<OsString> = vec![
+        OsString::from("tokmd"),
+        OsString::from("context"),
+        OsString::from("--max-commits"),
+        bad,
+    ];
+
+    let err = Cli::try_parse_from(args).expect_err("invalid UTF-8 value must be rejected");
+    assert_eq!(
+        err.kind(),
+        ErrorKind::InvalidUtf8,
+        "expected a clap InvalidUtf8 error for numerical flag with custom value_parser, got {:?}",
+        err.kind()
+    );
+}
+
+#[cfg(any(unix, windows))]
+#[test]
+fn cli_parser_rejects_invalid_utf8_numerical_value_parser_max_commit_files() {
+    let bad = invalid_utf8_osstring();
+
+    let args: Vec<OsString> = vec![
+        OsString::from("tokmd"),
+        OsString::from("context"),
+        OsString::from("--max-commit-files"),
+        bad,
+    ];
+
+    let err = Cli::try_parse_from(args).expect_err("invalid UTF-8 value must be rejected");
+    assert_eq!(
+        err.kind(),
+        ErrorKind::InvalidUtf8,
+        "expected a clap InvalidUtf8 error for numerical flag with custom value_parser, got {:?}",
+        err.kind()
+    );
+}

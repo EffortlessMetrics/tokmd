@@ -1,0 +1,1 @@
+{"command": "cargo test -p tokmd --test cli_parser_fuzz_regression", "output": "test result: ok. 4 passed; 0 failed"}
