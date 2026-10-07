@@ -142,7 +142,6 @@ jobs:
           minimax-model: MiniMax-M3
           opencode-api-key: ${{ secrets.OPENCODE }}
           opencode-model: deepseek-v4-flash
-          pr-thread-context: target/ci-core/precontext.md
           base: origin/${{ github.base_ref }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-summary: true

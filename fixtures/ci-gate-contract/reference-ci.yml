@@ -1,21 +1,16 @@
 # Reference single-tight CI gate for tokmd-swarm (#226).
 # Enforced by: cargo xtask ci-gate-contract --check --workflow fixtures/ci-gate-contract/reference-ci.yml
 # Normative spec: docs/specs/ub-review-ci-gate.md
-
 name: CI (reference fixture)
-
 on:
   pull_request:
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
-
 jobs:
   route:
     name: Route CI runner
@@ -58,7 +53,6 @@ jobs:
           else
             emit "$GH" github "no idle capacity"
           fi
-
   tokmd-rust-result:
     name: Tokmd Rust Result
     needs: route
@@ -72,13 +66,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-
       - uses: Swatinem/rust-cache@v2
-
       - name: Fast precontext and launch core gate
         env:
           RUNNER_KIND: ${{ needs.route.outputs.runner_kind }}
@@ -101,7 +92,6 @@ jobs:
             echo "$?" > target/ci-core/core_exit
           ) > target/ci-core/core.log 2>&1 &
           echo "launched background core gate"
-
       - name: UB Review (advisory)
         id: ubreview
         if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
@@ -119,10 +109,8 @@ jobs:
           opencode-api-key: ${{ secrets.OPENCODE }}
           opencode-model: deepseek-v4-flash
           base: origin/${{ github.base_ref }}
-          pr-thread-context: target/ci-core/precontext.md
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-summary: true
-
       - name: UB Review advisory status
         if: ${{ always() }}
         env:
@@ -139,7 +127,6 @@ jobs:
               echo "ub-review advisory lane failed (${UB_OUTCOME}): check provider secrets and model availability, then re-run. Deterministic gate verdict stands." >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac
-
       - name: Assert core gate verdict
         if: ${{ always() }}
         run: |

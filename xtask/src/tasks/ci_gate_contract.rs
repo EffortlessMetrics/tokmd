@@ -35,7 +35,6 @@ const REQUIRED_MARKERS: &[&str] = &[
     "provider-policy: minimax-primary",
     "minimax-model: MiniMax-M3",
     "opencode-model: deepseek-v4-flash",
-    "pr-thread-context: target/ci-core/precontext.md",
     "continue-on-error: true",
     "github.event.pull_request.head.repo.fork == false",
 ];
