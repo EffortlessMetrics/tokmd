@@ -909,3 +909,21 @@ surface = "release"
 classification = "test"
 reason = "Fail-closed release consumer receipt aggregation and deterministic contract fixtures."
 covered_by = ["python3 -m unittest scripts/release_consumer_smoke_aggregate_test.py"]
+
+[[allow]]
+glob = "Dockerfile.release"
+kind = "tooling"
+owner = "release/build"
+surface = "build"
+classification = "config"
+reason = "Dockerfile for publishing the multi-arch release image."
+covered_by = [".github/workflows/release-image.yml"]
+
+[[allow]]
+glob = "scripts/publish-release-crates.sh"
+kind = "tooling"
+owner = "release/publish"
+surface = "release"
+classification = "config"
+reason = "Shell script to publish Rust crates to crates.io."
+covered_by = [".github/workflows/release-publish.yml"]
