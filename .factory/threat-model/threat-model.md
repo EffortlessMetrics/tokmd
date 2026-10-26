@@ -3,7 +3,9 @@
 **Generated:** 2026-08-02
 **Scope:** Repository-wide STRIDE analysis for `EffortlessMetrics/tokmd-swarm`
 **Methodology:** STRIDE (Microsoft Threat Modeling)
-**Last Reviewed:** 2026-08-02
+**Last Reviewed:** 2026-10-26 (refreshed: branch-protection posture and supply-chain
+advisory state corrected after the 2026-10-26 weekly security scan; no new
+external surface, subprocess invocation, or trust boundary was introduced)
 
 ## 1. System Overview
 
@@ -134,7 +136,7 @@ These defenses are baked into the workspace and should not regress:
 6. **Receipt schema versioning**: Per-family constants in `tokmd-types` (`SCHEMA_VERSION`, `COCKPIT_SCHEMA_VERSION`, etc.) — see `CLAUDE.md`.
 7. **Pinned GitHub Actions**: All third-party actions pinned by SHA with a comment naming the upstream version.
 8. **License allowlist + advisory check**: `deny.toml` configures `cargo-deny`.
-9. **Branch protection policy**: the checked-in settings require 1 PR approval with CODEOWNERS review and the `Tokmd Rust Result` status check. Live protection is repository-specific control-plane state and must be queried separately; the settings file is not proof that public `main` is currently protected.
+9. **Branch protection policy**: the checked-in settings (`.github/settings.yml`) require the `Tokmd Rust Result` and `Codex Review Gate` status checks on `main`, with `strict: true`, no force pushes, no deletions, and non-linear history permitted so publication imports can land as two-parent merge commits. `required_approving_review_count` is `0` and `require_code_owner_reviews` is `false`: the single-maintainer workflow uses an exact-head automated reviewer instead of native human approval. Live protection is repository-specific control-plane state and must be queried separately; the settings file is not proof that public `main` is currently protected. As of the 2026-10-26 scan, no workflow in the repository emits a check named `Codex Review Gate`, and the `Tokmd Rust Result` gate is currently failing on `main` (the `cargo deny` advisories check fails; see the 2026-10-26 scan report).
 10. **Constrained merge policy**: normal swarm and public development PRs use squash merges; the publication repository also permits deliberate two-parent merge commits for swarm imports so the shared graph is preserved. Direct pushes, unrelated merge commits, and force-pushes remain prohibited by operating policy and branch controls. `allow_merge_commit = true` and `required_linear_history = false` are topology requirements for that import path, not standing security defenses.
 
 ## 6. Review Cadence
@@ -142,3 +144,4 @@ These defenses are baked into the workspace and should not regress:
 - **Regenerate when:** architecture changes, new external surface added, new subprocess invocation, or 90 days since last review.
 - **Source:** weekly `droid-security-scan` workflow (`.github/workflows/droid-security-scan.yml`).
 - **Owner:** EffortlessMetrics/tokmd-swarm maintainers.
+- **Next review due:** 2027-01-24 (90 days after the 2026-10-26 refresh).
