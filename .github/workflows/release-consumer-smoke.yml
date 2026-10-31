@@ -185,7 +185,7 @@ jobs:
           - id: macos-arm64
             surface: binary-macos-arm64
             artifact: tokmd-macos-arm64
-            runner: macos-14
+            runner: macos-15
             architecture: arm64
           - id: windows-amd64
             surface: binary-windows-amd64
