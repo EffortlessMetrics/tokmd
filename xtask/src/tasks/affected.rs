@@ -88,16 +88,36 @@ pub(crate) fn load_checked_policy(path: &Path) -> Result<ProofPolicy> {
     Ok(policy)
 }
 
+/// Reject a revision that Git would parse as an option.
+///
+/// `git diff` treats a leading `-` as the start of an option. `--output=<path>`
+/// is enough to make Git write to an arbitrary path, so option-like revisions
+/// never reach the subprocess.
+pub(crate) fn ensure_ref_is_not_option_like(label: &str, value: &str) -> Result<()> {
+    if value.starts_with('-') {
+        bail!("{label} revision must not look like a git option: {value:?}");
+    }
+    Ok(())
+}
+
 pub(crate) fn changed_files(base: &str, head: &str) -> Result<Vec<String>> {
+    // A revision that starts with `-` is parsed by Git as an option, not as a
+    // revision. `--output=<path>` would then make `git diff` write to a
+    // caller-chosen path. Reject option-like revisions before invoking Git.
+    ensure_ref_is_not_option_like("base", base)?;
+    ensure_ref_is_not_option_like("head", head)?;
+
     let output = Command::new("git")
-        .args(["diff", "--name-only", base, head, "--"])
+        .args(["diff", "--name-only", "--end-of-options", base, head, "--"])
         .output()
-        .with_context(|| format!("failed to run `git diff --name-only {base} {head} --`"))?;
+        .with_context(|| {
+            format!("failed to run `git diff --name-only --end-of-options {base} {head} --`")
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         bail!(
-            "`git diff --name-only {base} {head} --` failed: {}",
+            "`git diff --name-only --end-of-options {base} {head} --` failed: {}",
             stderr.trim()
         );
     }
@@ -271,7 +291,7 @@ fn print_human_report(report: &AffectedReport) {
 
 #[cfg(test)]
 mod tests {
-    use super::{affected_report, normalize_path};
+    use super::{affected_report, changed_files, ensure_ref_is_not_option_like, normalize_path};
     use crate::proof::policy::parse_policy_str;
 
     fn policy_with_defaults(
@@ -467,6 +487,51 @@ coverage = false
         );
         assert_eq!(report.scopes[0].packages, vec!["tokmd-fuzz"]);
         assert_eq!(report.scopes[0].proof, vec!["cargo +nightly fuzz list"]);
+    }
+
+    #[test]
+    fn option_like_revisions_are_rejected_before_reaching_git() {
+        assert!(
+            ensure_ref_is_not_option_like("base", "--output=/tmp/pwned").is_err(),
+            "an option-like base revision must be rejected"
+        );
+        assert!(
+            ensure_ref_is_not_option_like("head", "--upload-pack=evil").is_err(),
+            "an option-like head revision must be rejected"
+        );
+        assert!(
+            ensure_ref_is_not_option_like("base", "-output").is_err(),
+            "a single-dash revision must be rejected"
+        );
+    }
+
+    #[test]
+    fn ordinary_revisions_are_accepted() {
+        assert!(ensure_ref_is_not_option_like("base", "origin/main").is_ok());
+        assert!(ensure_ref_is_not_option_like("head", "HEAD").is_ok());
+        assert!(ensure_ref_is_not_option_like("base", "HEAD~1").is_ok());
+        assert!(ensure_ref_is_not_option_like("base", "v1.15.0").is_ok());
+    }
+
+    #[test]
+    fn option_like_base_revision_does_not_write_through_git_diff() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let marker = dir.path().join("pwned");
+        let base = format!("--output={}", marker.display());
+        let error = changed_files(&base, "HEAD")
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("option-like base revision was accepted"))?;
+        assert!(
+            error
+                .to_string()
+                .contains("must not look like a git option"),
+            "{error}"
+        );
+        assert!(
+            !marker.exists(),
+            "git must not have been allowed to write the marker file"
+        );
+        Ok(())
     }
 
     #[test]

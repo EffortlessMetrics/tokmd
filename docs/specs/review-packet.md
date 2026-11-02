@@ -89,6 +89,14 @@ BLAKE3 hashes, verdict metadata, evidence availability counts, and capability
 summaries. Artifact paths must be relative to the packet directory and must not
 escape the packet root.
 
+The verifier resolves the packet root and each listed artifact before hashing.
+A directory link is allowed only when the artifact resolves inside that root; a
+symlinked packet root is supported. This check assumes stable filesystem paths
+during verification; it is not atomic against concurrent path replacement. The
+packet writer applies the matching containment rule: it refuses to write
+through a symlinked packet root and rejects any artifact whose resolved parent
+directory lies outside the packet root.
+
 `cockpit.json` is the full cockpit receipt. It remains the authoritative source
 for cockpit review-plan items and cockpit gate statuses.
 

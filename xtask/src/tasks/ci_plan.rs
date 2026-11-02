@@ -526,10 +526,17 @@ impl LabelEntry {
 }
 
 fn git_diff_names(root: &Path, base: &str, head: &str) -> Result<Vec<String>> {
+    // A revision that starts with `-` is parsed by Git as an option, not as a
+    // revision. Reject option-like revisions before invoking Git.
+    crate::tasks::affected::ensure_ref_is_not_option_like("base", base)?;
+    crate::tasks::affected::ensure_ref_is_not_option_like("head", head)?;
+
     let output = Command::new("git")
         .arg("diff")
         .arg("--name-only")
+        .arg("--end-of-options")
         .arg(format!("{base}...{head}"))
+        .arg("--")
         .current_dir(root)
         .output()
         .context("git diff")?;

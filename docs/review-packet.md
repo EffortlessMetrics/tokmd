@@ -258,6 +258,18 @@ package:
 that manifest artifact paths are packet-local, rejects hosted comment copies in
 the manifest, and recomputes BLAKE3 hashes for listed artifacts.
 
+An artifact reached through a directory link must resolve inside the packet
+root. The verifier resolves the packet root once and resolves every listed
+artifact before hashing it, so a symlinked intermediate directory cannot make
+an out-of-packet file look packet-local. Internal directory links and a
+symlinked packet root are supported; verification assumes paths are not being
+replaced concurrently.
+
+The packet writer applies the same containment rule in the other direction. It
+refuses to write through a symlinked packet root and re-checks the resolved
+parent directory of every artifact before writing, so a packet cannot be
+emitted outside the directory the caller requested.
+
 Use `--json <path>` to write a machine-readable verifier receipt:
 
 ```bash
