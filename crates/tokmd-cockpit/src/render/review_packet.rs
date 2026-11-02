@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 
 use crate::doc_artifacts_evidence::{DOC_ARTIFACTS_PACKET_PATH, DocArtifactsEvidenceInput};
 use crate::proof_evidence::ProofEvidenceArtifact;
@@ -62,7 +62,7 @@ pub fn write_review_packet_with_imported_evidence_and_bun_ub_sensor(
     doc_artifacts: Option<&DocArtifactsEvidenceInput>,
     bun_ub_sensor: BunUbSensorEvidence,
 ) -> Result<()> {
-    std::fs::create_dir_all(dir)?;
+    let packet_root = prepare_packet_root(dir)?;
     let review_packet_dir = review_packet_dir_for_reproduction(dir);
     let proof_artifacts = packet_proof_artifacts(proof_evidence)?;
     let packet_proof_inputs: Vec<_> = proof_artifacts
@@ -98,25 +98,21 @@ pub fn write_review_packet_with_imported_evidence_and_bun_ub_sensor(
         bun_ub_sensor,
     );
 
-    std::fs::write(dir.join("cockpit.json"), &cockpit_json)?;
-    std::fs::write(dir.join("evidence.json"), &evidence_json)?;
-    std::fs::write(dir.join("review-map.json"), &review_map_json)?;
-    std::fs::write(dir.join("review-map.md"), &review_map_md)?;
-    std::fs::write(dir.join("comment.md"), &comment_md)?;
+    write_packet_artifact(&packet_root, "cockpit.json", &cockpit_json)?;
+    write_packet_artifact(&packet_root, "evidence.json", &evidence_json)?;
+    write_packet_artifact(&packet_root, "review-map.json", &review_map_json)?;
+    write_packet_artifact(&packet_root, "review-map.md", &review_map_md)?;
+    write_packet_artifact(&packet_root, "comment.md", &comment_md)?;
     if !proof_artifacts.is_empty() {
-        std::fs::create_dir_all(dir.join("proof"))?;
         for artifact in &proof_artifacts {
-            std::fs::write(dir.join(&artifact.path), &artifact.content)?;
+            write_packet_artifact(&packet_root, &artifact.path, &artifact.content)?;
         }
     }
     let doc_artifacts_json = doc_artifacts.as_ref().map(doc_artifacts_json).transpose()?;
-    if doc_artifacts.is_some() {
-        if let Some(parent) = Path::new(DOC_ARTIFACTS_PACKET_PATH).parent() {
-            std::fs::create_dir_all(dir.join(parent))?;
-        }
-        if let Some(content) = doc_artifacts_json.as_deref() {
-            std::fs::write(dir.join(DOC_ARTIFACTS_PACKET_PATH), content)?;
-        }
+    if doc_artifacts.is_some()
+        && let Some(content) = doc_artifacts_json.as_deref()
+    {
+        write_packet_artifact(&packet_root, DOC_ARTIFACTS_PACKET_PATH, content)?;
     }
 
     let mut extra_artifacts: Vec<_> = proof_artifacts
@@ -147,11 +143,88 @@ pub fn write_review_packet_with_imported_evidence_and_bun_ub_sensor(
         &comment_md,
         &extra_artifacts,
     );
-    std::fs::write(
-        dir.join("manifest.json"),
-        serde_json::to_string_pretty(&manifest)?,
+    write_packet_artifact(
+        &packet_root,
+        "manifest.json",
+        &serde_json::to_string_pretty(&manifest)?,
     )?;
 
+    Ok(())
+}
+
+/// Resolve the packet directory to a canonical root and refuse to write
+/// through a symlinked packet root.
+///
+/// A pull request can commit `.tokmd/review` as a symlink (Git records it as
+/// mode `120000` and restores it on checkout), and `.tokmd/` is not
+/// gitignored in this repository. Writing through such a root would emit
+/// every packet artifact outside the directory the caller asked for.
+fn prepare_packet_root(dir: &Path) -> Result<PathBuf> {
+    if dir.exists() {
+        let metadata = std::fs::symlink_metadata(dir)
+            .with_context(|| format!("failed to stat review packet directory {}", dir.display()))?;
+        if metadata.file_type().is_symlink() {
+            bail!(
+                "review packet directory must not be a symlink: {}",
+                dir.display()
+            );
+        }
+    } else {
+        std::fs::create_dir_all(dir).with_context(|| {
+            format!("failed to create review packet directory {}", dir.display())
+        })?;
+    }
+
+    let root = dir.canonicalize().with_context(|| {
+        format!(
+            "failed to resolve review packet directory {}",
+            dir.display()
+        )
+    })?;
+    if !root.is_dir() {
+        bail!(
+            "review packet directory is not a directory: {}",
+            dir.display()
+        );
+    }
+    Ok(root)
+}
+
+/// Write one packet artifact, refusing any target that resolves outside the
+/// packet root.
+///
+/// The relative path is checked component-wise and the resolved parent
+/// directory is re-checked before the write, so a symlinked `proof` (or any
+/// other intermediate directory) cannot redirect the write out of the packet.
+fn write_packet_artifact(root: &Path, relative: &str, content: &str) -> Result<()> {
+    let relative_path = Path::new(relative);
+    for component in relative_path.components() {
+        match component {
+            std::path::Component::Normal(_) => {}
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir
+            | std::path::Component::RootDir
+            | std::path::Component::Prefix(_) => {
+                bail!("review packet artifact path is not packet-local: {relative}");
+            }
+        }
+    }
+
+    let target = root.join(relative_path);
+    let parent = target
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("review packet artifact has no parent: {relative}"))?;
+    std::fs::create_dir_all(parent)
+        .with_context(|| format!("failed to create {}", parent.display()))?;
+    let resolved_parent = parent
+        .canonicalize()
+        .with_context(|| format!("failed to resolve {}", parent.display()))?;
+    if !resolved_parent.starts_with(root) {
+        bail!("review packet artifact path resolves outside the packet directory: {relative}");
+    }
+
+    std::fs::write(&target, content)
+        .with_context(|| format!("failed to write {}", target.display()))?;
     Ok(())
 }
 
@@ -243,4 +316,74 @@ fn proof_artifact_json(input: &ProofEvidenceInput) -> Result<String> {
 
 fn doc_artifacts_json(input: &DocArtifactsEvidenceInput) -> Result<String> {
     Ok(serde_json::to_string_pretty(&input.receipt)?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{prepare_packet_root, write_packet_artifact};
+    use std::path::Path;
+
+    #[test]
+    fn writes_artifact_inside_the_packet_root() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let root = prepare_packet_root(dir.path())?;
+        write_packet_artifact(&root, "cockpit.json", "{}")?;
+        write_packet_artifact(&root, "proof/proof-run-summary.json", "{}")?;
+        assert!(root.join("cockpit.json").is_file());
+        assert!(root.join("proof/proof-run-summary.json").is_file());
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_artifact_path_escaping_the_packet_root() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let root = prepare_packet_root(dir.path())?;
+        let error = write_packet_artifact(&root, "../escaped.json", "{}")
+            .expect_err("parent traversal must be rejected");
+        assert!(error.to_string().contains("not packet-local"), "{error}");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_symlinked_packet_root() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        let link = dir.path().join("review");
+        std::os::unix::fs::symlink(outside.path(), &link)?;
+        let error =
+            prepare_packet_root(&link).expect_err("a symlinked packet root must be rejected");
+        assert!(
+            error.to_string().contains("must not be a symlink"),
+            "{error}"
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_symlinked_intermediate_directory() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let outside = tempfile::tempdir()?;
+        let root = prepare_packet_root(dir.path())?;
+        std::os::unix::fs::symlink(outside.path(), root.join("proof"))?;
+        let error = write_packet_artifact(&root, "proof/proof-run-summary.json", "{}")
+            .expect_err("a symlinked intermediate directory must be rejected");
+        assert!(error.to_string().contains("resolves outside"), "{error}");
+        assert!(
+            !outside.path().join("proof-run-summary.json").exists(),
+            "artifact must not be written outside the packet"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn creates_missing_packet_directory() -> anyhow::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let nested = dir.path().join("a").join("b").join("review");
+        let root = prepare_packet_root(&nested)?;
+        assert!(root.is_dir());
+        assert!(Path::new(&root).is_dir());
+        Ok(())
+    }
 }
