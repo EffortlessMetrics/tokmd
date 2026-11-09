@@ -3,7 +3,7 @@
 **Generated:** 2026-08-02
 **Scope:** Repository-wide STRIDE analysis for `EffortlessMetrics/tokmd-swarm`
 **Methodology:** STRIDE (Microsoft Threat Modeling)
-**Last Reviewed:** 2026-08-02
+**Last Reviewed:** 2026-11-09
 
 ## 1. System Overview
 
@@ -136,6 +136,8 @@ These defenses are baked into the workspace and should not regress:
 8. **License allowlist + advisory check**: `deny.toml` configures `cargo-deny`.
 9. **Branch protection policy**: the checked-in settings require 1 PR approval with CODEOWNERS review and the `Tokmd Rust Result` status check. Live protection is repository-specific control-plane state and must be queried separately; the settings file is not proof that public `main` is currently protected.
 10. **Constrained merge policy**: normal swarm and public development PRs use squash merges; the publication repository also permits deliberate two-parent merge commits for swarm imports so the shared graph is preserved. Direct pushes, unrelated merge commits, and force-pushes remain prohibited by operating policy and branch controls. `allow_merge_commit = true` and `required_linear_history = false` are topology requirements for that import path, not standing security defenses.
+11. **Composite action input isolation**: `action.yml` never interpolates `${{ inputs.* }}` into a `run:` script body; every input is passed through a step-level `env:` block and read as a quoted shell variable. The `version` input is additionally constrained to `latest` or a `MAJOR.MINOR.PATCH` release tag so it can only produce a well-formed release download URL.
+12. **Fail-closed archive admission**: `tokmd-io-port`'s admission engine rejects absolute/drive/UNC paths, `..` traversal, NUL bytes, non-regular entries (symlink/device), and case-insensitive duplicates, and enforces per-entry size, total size, entry-count, and compression-ratio caps. The ZIP codec adapter bounded-inflates each entry (`read_ceiling = max_entry_size + 1`) and pre-checks the archive's total entry count before decoding any entry.
 
 ## 6. Review Cadence
 

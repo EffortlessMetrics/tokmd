@@ -219,7 +219,17 @@ runs:
           exit 0
         fi
 
-        version="${{ inputs.version }}"
+        # Read the version input from the environment (never interpolate the
+        # expression into this script body: GitHub substitutes ${{ ... }} into
+        # the script text before bash parses it, so a value containing shell
+        # metacharacters would execute as commands in this step).
+        version="${TOKMD_ACTION_VERSION:-}"
+        # Constrain the version to a plain release tag so it can only ever
+        # produce a well-formed release download URL.
+        if [ "$version" != "latest" ] && ! [[ "$version" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+          echo "::error::version must be 'latest' or a MAJOR.MINOR.PATCH release tag (optionally with a -suffix); received '$version'"
+          exit 1
+        fi
         os="${RUNNER_OS}"
         arch="${RUNNER_ARCH:-X64}"
 
