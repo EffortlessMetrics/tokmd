@@ -493,7 +493,16 @@ pub fn snapshot_from_zip_bytes(
             })?;
 
         // Raw, untrusted stored name; the admission engine validates it.
-        let name = file.name().to_string();
+        // zip 9 makes `name()` fallible (it decodes the entry name and can
+        // fail on a malformed or non-UTF-8 name). Treat a decode failure as a
+        // malformed archive rather than coercing it, so a hostile archive can
+        // never smuggle an undecoded name past the admission engine.
+        let name = file
+            .name()
+            .map_err(|err| ArchiveError::MalformedArchive {
+                reason: err.to_string(),
+            })?
+            .into_owned();
 
         // Classify: symlink/device/other (via unix type bits) before directory,
         // so a symlink whose name lacks a trailing slash is still rejected.
