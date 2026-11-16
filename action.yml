@@ -785,6 +785,13 @@ runs:
         SENSOR_REPORT_FILE: ${{ steps.generate.outputs['sensor-report'] }}
         BASELINE_REPORT_FILE: ${{ steps.generate.outputs['baseline-report'] }}
         COMMAND_STATUS: ${{ steps.generate.outputs['command-status'] }}
+        # Read the artifact and comment inputs from the environment (never
+        # interpolate the expressions into this script body: GitHub substitutes
+        # ${{ ... }} into the script text before bash parses it, so a value
+        # containing shell metacharacters would execute as commands in this
+        # step).
+        ACTION_ARTIFACT_ENABLED: ${{ inputs.artifact }}
+        ACTION_COMMENT_ENABLED: ${{ inputs.comment }}
       run: |
         set -euo pipefail
 
@@ -800,6 +807,14 @@ runs:
           fi
         }
 
+        # Render an untrusted value as inert Markdown/HTML for the step
+        # summary: strip backticks and angle brackets so a crafted input
+        # cannot inject code spans, raw HTML tags, or links into the
+        # rendered summary.
+        safe_summary_value() {
+          printf '%s' "$1" | tr -d '\`<>|'
+        }
+
         {
           echo "## tokmd action results"
           echo
@@ -813,8 +828,8 @@ runs:
           echo "| Sensor report | \`$(value_or_missing "$SENSOR_REPORT_FILE")\` |"
           echo "| Baseline report | \`$(value_or_missing "$BASELINE_REPORT_FILE")\` |"
           echo
-          echo "- Artifact upload enabled: \`${{ inputs.artifact }}\`"
-          echo "- PR comment enabled: \`${{ inputs.comment }}\`"
+          echo "- Artifact upload enabled: \`$(safe_summary_value "${ACTION_ARTIFACT_ENABLED:-}")\`"
+          echo "- PR comment enabled: \`$(safe_summary_value "${ACTION_COMMENT_ENABLED:-}")\`"
           echo "- Command exit status: \`$(value_or_missing "$COMMAND_STATUS")\`"
         } >> "$GITHUB_STEP_SUMMARY"
 
