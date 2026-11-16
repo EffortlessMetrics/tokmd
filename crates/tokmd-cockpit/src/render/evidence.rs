@@ -56,7 +56,7 @@ pub(super) fn review_packet_doc_artifacts_evidence(
                 "spec_index_lanes": input.receipt.checked.spec_index_lanes,
             },
             "errors": input.receipt.errors,
-            "refs": [format!("{DOC_ARTIFACTS_PACKET_PATH}")],
+            "refs": [DOC_ARTIFACTS_PACKET_PATH.to_string()],
         })),
         None if doc_artifacts_expected(receipt) => Some(json!({
             "source": null,

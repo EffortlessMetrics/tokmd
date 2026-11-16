@@ -64,4 +64,4 @@ tempfile.workspace = true
 # Test-only ZIP writer for the byte-mode (archive-zip) parity test. Mirrors the
 # io-port/scan codec pin (deflate-only, default features off) to keep the test
 # trust surface minimal; only used by the `archive-zip`-gated parity test.
-zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+zip = { version = "9.0.5", default-features = false, features = ["deflate"] }
