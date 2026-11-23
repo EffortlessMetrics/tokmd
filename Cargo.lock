@@ -295,9 +295,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327"
 dependencies = [
  "iana-time-zone",
- "js-sys",
  "num-traits",
- "wasm-bindgen",
  "windows-link",
 ]
 
@@ -2084,9 +2082,9 @@ checksum = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
 
 [[package]]
 name = "rustix"
-version = "1.1.4"
+version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190"
+checksum = "e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa"
 dependencies = [
  "bitflags",
  "errno",
@@ -2333,7 +2331,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
@@ -2488,9 +2486,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.53.1"
+version = "1.53.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "202caea871b69668250d242070849eb495be178ed697a3e98aebce5bc81a0bed"
+checksum = "ce3335fa71841cda333a58d7615b03901380ecf09d59b3296d21f8bbac0dde4e"
 dependencies = [
  "pin-project-lite",
 ]
@@ -2561,11 +2559,11 @@ dependencies = [
 name = "tokmd-analysis-types"
 version = "1.15.0"
 dependencies = [
- "chrono",
  "js-sys",
  "proptest",
  "serde",
  "serde_json",
+ "time",
  "tokmd-envelope",
  "tokmd-scan",
  "tokmd-types",
@@ -3438,7 +3436,6 @@ dependencies = [
  "anyhow",
  "blake3",
  "cargo_metadata",
- "chrono",
  "clap",
  "globset",
  "jsonschema",
@@ -3450,6 +3447,7 @@ dependencies = [
  "serde_json",
  "syn 2.0.119",
  "tempfile",
+ "time",
  "tokmd",
  "tokmd-analysis",
  "tokmd-analysis-types",
