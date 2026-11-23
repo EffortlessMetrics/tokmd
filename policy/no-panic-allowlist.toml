@@ -396095,7 +396095,7 @@ callee = "expect"
 receiver_fingerprint = "replace_json_string_value (line , \"1.9.0\")"
 
 [allow.last_seen]
-line = 851
+line = 850
 column = 22
 
 [[allow]]
@@ -396114,7 +396114,7 @@ callee = "expect"
 receiver_fingerprint = "parse_schema_bump (\"ANALYSIS_SCHEMA_VERSION = 5\")"
 
 [allow.last_seen]
-line = 813
+line = 812
 column = 30
 
 [[allow]]
@@ -396133,7 +396133,7 @@ callee = "expect"
 receiver_fingerprint = "parse_schema_bump (\"SCHEMA_VERSION=3\")"
 
 [allow.last_seen]
-line = 809
+line = 808
 column = 12
 
 [[allow]]
@@ -396152,7 +396152,7 @@ callee = "expect"
 receiver_fingerprint = "update_workspace_package_version (content , \"1.3.0\")"
 
 [allow.last_seen]
-line = 741
+line = 740
 column = 21
 
 [[allow]]
@@ -396171,7 +396171,7 @@ callee = "expect"
 receiver_fingerprint = "update_node_manifest_versions (content , \"crates/tokmd-node/package.json\" , \"1.9.0\")"
 
 [allow.last_seen]
-line = 838
+line = 837
 column = 12
 
 [[allow]]
@@ -396190,7 +396190,7 @@ callee = "[]"
 receiver_fingerprint = "parts[0]"
 
 [allow.last_seen]
-line = 623
+line = 622
 column = 15
 
 [[allow]]
@@ -396209,7 +396209,7 @@ callee = "[]"
 receiver_fingerprint = "parts[1]"
 
 [allow.last_seen]
-line = 624
+line = 623
 column = 23
 
 [[allow]]
@@ -396228,7 +396228,7 @@ callee = "[]"
 receiver_fingerprint = "remainder[.. key_end]"
 
 [allow.last_seen]
-line = 583
+line = 582
 column = 10
 
 [[allow]]
@@ -396247,7 +396247,7 @@ callee = "[]"
 receiver_fingerprint = "line[colon_index + 1 ..]"
 
 [allow.last_seen]
-line = 588
+line = 587
 column = 22
 
 [[allow]]
@@ -396266,7 +396266,7 @@ callee = "[]"
 receiver_fingerprint = "remainder[.. quote_end]"
 
 [allow.last_seen]
-line = 592
+line = 591
 column = 9
 
 [[allow]]
@@ -396285,7 +396285,7 @@ callee = "[]"
 receiver_fingerprint = "value_part[quote_start ..]"
 
 [allow.last_seen]
-line = 590
+line = 589
 column = 21
 
 [[allow]]
@@ -396304,7 +396304,7 @@ callee = "[]"
 receiver_fingerprint = "line[start .. end]"
 
 [allow.last_seen]
-line = 346
+line = 345
 column = 10
 
 [[allow]]
@@ -396323,7 +396323,7 @@ callee = "[]"
 receiver_fingerprint = "line[start ..]"
 
 [allow.last_seen]
-line = 345
+line = 344
 column = 14
 
 [[allow]]
@@ -396342,7 +396342,7 @@ callee = "[]"
 receiver_fingerprint = "after_version[quote_start ..]"
 
 [allow.last_seen]
-line = 455
+line = 454
 column = 21
 
 [[allow]]
@@ -396361,7 +396361,7 @@ callee = "[]"
 receiver_fingerprint = "line[version_start ..]"
 
 [allow.last_seen]
-line = 453
+line = 452
 column = 25
 
 [[allow]]
@@ -396380,7 +396380,7 @@ callee = "[]"
 receiver_fingerprint = "remaining[.. quote_end]"
 
 [allow.last_seen]
-line = 457
+line = 456
 column = 9
 
 [[allow]]
@@ -396399,7 +396399,7 @@ callee = "[]"
 receiver_fingerprint = "line[colon_index + 1 ..]"
 
 [allow.last_seen]
-line = 599
+line = 598
 column = 22
 
 [[allow]]
@@ -396418,7 +396418,7 @@ callee = "[]"
 receiver_fingerprint = "line[value_start ..]"
 
 [allow.last_seen]
-line = 604
+line = 603
 column = 20
 
 [[allow]]
@@ -396437,7 +396437,7 @@ callee = "[]"
 receiver_fingerprint = "line[.. indent]"
 
 [allow.last_seen]
-line = 666
+line = 665
 column = 26
 
 [[allow]]
@@ -396456,7 +396456,7 @@ callee = "[]"
 receiver_fingerprint = "['=' , ' '][..]"
 
 [allow.last_seen]
-line = 420
+line = 419
 column = 53
 
 [[allow]]
@@ -396475,7 +396475,7 @@ callee = "[]"
 receiver_fingerprint = "line[.. indent]"
 
 [allow.last_seen]
-line = 372
+line = 371
 column = 26
 
 [[allow]]
@@ -396605,7 +396605,7 @@ expires = "2026-12-31"
 kind = "method_call"
 container = "tests::duplicate_of_existing_lane_is_ok"
 callee = "expect"
-receiver_fingerprint = "chrono :: NaiveDate :: from_ymd_opt (2026 , 5 , 7)"
+receiver_fingerprint = "time :: Date :: from_calendar_date (2026 , time :: Month :: May , 7)"
 
 [allow.last_seen]
 line = 723
@@ -396624,7 +396624,7 @@ expires = "2026-12-31"
 kind = "method_call"
 container = "tests::duplicate_of_missing_lane_is_finding"
 callee = "expect"
-receiver_fingerprint = "chrono :: NaiveDate :: from_ymd_opt (2026 , 5 , 7)"
+receiver_fingerprint = "time :: Date :: from_calendar_date (2026 , time :: Month :: May , 7)"
 
 [allow.last_seen]
 line = 738
@@ -396643,7 +396643,7 @@ expires = "2026-12-31"
 kind = "method_call"
 container = "tests::expired_lane_is_finding"
 callee = "expect"
-receiver_fingerprint = "chrono :: NaiveDate :: from_ymd_opt (2026 , 5 , 7)"
+receiver_fingerprint = "time :: Date :: from_calendar_date (2026 , time :: Month :: May , 7)"
 
 [allow.last_seen]
 line = 708
@@ -396662,7 +396662,7 @@ expires = "2026-12-31"
 kind = "method_call"
 container = "tests::lane_missing_owner_is_finding"
 callee = "expect"
-receiver_fingerprint = "chrono :: NaiveDate :: from_ymd_opt (2026 , 5 , 7)"
+receiver_fingerprint = "time :: Date :: from_calendar_date (2026 , time :: Month :: May , 7)"
 
 [allow.last_seen]
 line = 693
@@ -397938,7 +397938,7 @@ callee = "[]"
 receiver_fingerprint = "reason[idx + needle . len () ..]"
 
 [allow.last_seen]
-line = 288
+line = 287
 column = 16
 
 [[allow]]
@@ -397957,7 +397957,7 @@ callee = "[]"
 receiver_fingerprint = "rest[.. end]"
 
 [allow.last_seen]
-line = 293
+line = 292
 column = 14
 
 [[allow]]
@@ -397976,7 +397976,7 @@ callee = "[]"
 receiver_fingerprint = "line[idx + needle . len () ..]"
 
 [allow.last_seen]
-line = 277
+line = 276
 column = 16
 
 [[allow]]
@@ -397995,7 +397995,7 @@ callee = "[]"
 receiver_fingerprint = "rest[.. end]"
 
 [allow.last_seen]
-line = 282
+line = 281
 column = 9
 
 [[allow]]
@@ -400427,7 +400427,7 @@ callee = "expect"
 receiver_fingerprint = "evaluate (& [] , & allowlist)"
 
 [allow.last_seen]
-line = 1519
+line = 1518
 column = 21
 
 [[allow]]
@@ -400446,7 +400446,7 @@ callee = "expect"
 receiver_fingerprint = "toml :: from_str (allowlist_toml)"
 
 [allow.last_seen]
-line = 1518
+line = 1517
 column = 39
 
 [[allow]]
@@ -400465,7 +400465,7 @@ callee = "expect"
 receiver_fingerprint = "evaluate (& [] , & allowlist)"
 
 [allow.last_seen]
-line = 1494
+line = 1493
 column = 21
 
 [[allow]]
@@ -400484,7 +400484,7 @@ callee = "expect"
 receiver_fingerprint = "toml :: from_str (allowlist_toml)"
 
 [allow.last_seen]
-line = 1493
+line = 1492
 column = 39
 
 [[allow]]
@@ -400503,7 +400503,7 @@ callee = "expect"
 receiver_fingerprint = "evaluate (& findings , & allowlist)"
 
 [allow.last_seen]
-line = 1535
+line = 1534
 column = 21
 
 [[allow]]
@@ -400522,7 +400522,7 @@ callee = "expect"
 receiver_fingerprint = "evaluate (& [finding] , & allowlist)"
 
 [allow.last_seen]
-line = 1468
+line = 1467
 column = 21
 
 [[allow]]
@@ -400541,7 +400541,7 @@ callee = "expect"
 receiver_fingerprint = "findings . into_iter () . next ()"
 
 [allow.last_seen]
-line = 1445
+line = 1444
 column = 22
 
 [[allow]]
@@ -400560,7 +400560,7 @@ callee = "expect"
 receiver_fingerprint = "toml :: from_str (& allowlist_toml)"
 
 [allow.last_seen]
-line = 1467
+line = 1466
 column = 39
 
 [[allow]]
@@ -400579,7 +400579,7 @@ callee = "expect"
 receiver_fingerprint = "syn :: parse_file (source)"
 
 [allow.last_seen]
-line = 1249
+line = 1248
 column = 21
 
 [[allow]]
@@ -400598,7 +400598,7 @@ callee = "expect"
 receiver_fingerprint = "evaluate (& [] , & allowlist)"
 
 [allow.last_seen]
-line = 1560
+line = 1559
 column = 21
 
 [[allow]]
@@ -400617,7 +400617,7 @@ callee = "expect"
 receiver_fingerprint = "toml :: from_str (allowlist_toml)"
 
 [allow.last_seen]
-line = 1559
+line = 1558
 column = 39
 
 [[allow]]
@@ -400636,7 +400636,7 @@ callee = "[]"
 receiver_fingerprint = "findings[0]"
 
 [allow.last_seen]
-line = 1291
+line = 1290
 column = 17
 
 [[allow]]
@@ -400655,7 +400655,7 @@ callee = "[]"
 receiver_fingerprint = "findings[0]"
 
 [allow.last_seen]
-line = 1270
+line = 1269
 column = 17
 
 [[allow]]
@@ -404436,7 +404436,7 @@ callee = "expect"
 receiver_fingerprint = "ts"
 
 [allow.last_seen]
-line = 1186
+line = 1184
 column = 17
 
 [[allow]]
@@ -405918,7 +405918,7 @@ callee = "expect"
 receiver_fingerprint = "find_workspace_root ()"
 
 [allow.last_seen]
-line = 733
+line = 732
 column = 29
 
 [[allow]]
@@ -405937,7 +405937,7 @@ callee = "expect"
 receiver_fingerprint = "load_workspace_version (& workspace_root)"
 
 [allow.last_seen]
-line = 735
+line = 734
 column = 12
 
 [[allow]]
@@ -405956,7 +405956,7 @@ callee = "expect"
 receiver_fingerprint = "find_workspace_root ()"
 
 [allow.last_seen]
-line = 741
+line = 740
 column = 29
 
 [[allow]]
