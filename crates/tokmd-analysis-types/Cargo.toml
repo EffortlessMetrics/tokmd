@@ -21,6 +21,6 @@ tokmd-types.workspace = true
 js-sys = "0.3.91"
 
 [dev-dependencies]
-chrono = "0.4.44"
+time = { version = "0.3.55", features = ["formatting", "macros", "parsing"] }
 proptest.workspace = true
 tokmd-scan.workspace = true

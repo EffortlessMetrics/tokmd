@@ -14,7 +14,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use chrono::NaiveDate;
 use serde::Deserialize;
 use walkdir::WalkDir;
 
@@ -139,7 +138,7 @@ pub fn run(args: ClippyExceptionsArgs) -> Result<()> {
 }
 
 fn validate_entries(entries: &[Exception], findings: &mut Vec<String>) {
-    let today = chrono::Utc::now().date_naive();
+    let today = crate::tasks::date::today_utc();
     let mut seen_ids: BTreeMap<&str, usize> = BTreeMap::new();
     for (i, e) in entries.iter().enumerate() {
         if let Some(prev) = seen_ids.insert(e.id.as_str(), i) {
@@ -168,7 +167,7 @@ fn validate_entries(entries: &[Exception], findings: &mut Vec<String>) {
         }
         match &e.expires {
             None => findings.push(format!("entry {:?}: missing expires", e.id)),
-            Some(date) => match NaiveDate::parse_from_str(date, "%Y-%m-%d") {
+            Some(date) => match crate::tasks::date::parse_date(date) {
                 Ok(parsed) if parsed < today => {
                     findings.push(format!("entry {:?}: expired on {date}", e.id));
                 }

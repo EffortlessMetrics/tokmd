@@ -9,7 +9,6 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use chrono::Utc;
 use serde_json::Value as JsonValue;
 
 use super::action_manifest::update_action_default_version;
@@ -131,7 +130,7 @@ pub fn run(args: BumpArgs) -> Result<()> {
     let citation_path = workspace_root.join(CITATION_FILE);
     let citation_content = fs::read_to_string(&citation_path)
         .with_context(|| format!("Failed to read {}", citation_path.display()))?;
-    let release_date = Utc::now().date_naive().format("%Y-%m-%d").to_string();
+    let release_date = crate::tasks::date::today_utc_formatted();
     let (updated_citation, old_citation_version, old_citation_date) =
         update_citation_metadata(&citation_content, &args.version, &release_date)?;
     if old_citation_version != args.version {

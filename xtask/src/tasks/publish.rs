@@ -15,9 +15,9 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow, bail};
 use cargo_metadata::{DependencyKind, Metadata, MetadataCommand, Package, PackageId};
-use chrono::{DateTime, FixedOffset, Utc};
 use petgraph::algo::toposort;
 use petgraph::graph::DiGraph;
+use time::OffsetDateTime;
 
 use crate::cli::PublishArgs;
 
@@ -728,7 +728,7 @@ fn classify_publish_error(stderr: &str) -> PublishErrorKind {
 ///
 /// Looks for "try again after <RFC2822 timestamp>" in the stderr text.
 /// Returns the parsed timestamp, or `None` if not found/parseable.
-fn parse_rate_limit_timestamp(stderr: &str) -> Option<DateTime<FixedOffset>> {
+fn parse_rate_limit_timestamp(stderr: &str) -> Option<OffsetDateTime> {
     // Look for "try again after " (case-insensitive) followed by an RFC2822 timestamp.
     // Example: "Please try again after Tue, 24 Feb 2026 16:57:08 GMT"
     let lower = stderr.to_lowercase();
@@ -743,7 +743,7 @@ fn parse_rate_limit_timestamp(stderr: &str) -> Option<DateTime<FixedOffset>> {
         .unwrap_or(after.len());
     let timestamp_str = after[..end].trim();
 
-    DateTime::parse_from_rfc2822(timestamp_str).ok()
+    crate::tasks::date::parse_rfc2822(timestamp_str).ok()
 }
 
 /// Publish a single crate with retry logic for propagation delays.
@@ -835,16 +835,15 @@ fn publish_crate_with_retry(crate_name: &str, args: &PublishArgs) -> Result<Publ
 
                 // Parse the retry-after timestamp, fall back to default
                 let wait_secs = if let Some(retry_after) = parse_rate_limit_timestamp(&stderr) {
-                    let now = Utc::now();
-                    let until = retry_after.with_timezone(&Utc);
-                    let delta = until.signed_duration_since(now);
-                    if delta.num_seconds() > 0 {
+                    let now = OffsetDateTime::now_utc();
+                    let delta = retry_after - now;
+                    if delta.whole_seconds() > 0 {
                         println!(
                             "  Rate limited by crates.io. Waiting until {} ({}s)...",
                             retry_after,
-                            delta.num_seconds()
+                            delta.whole_seconds()
                         );
-                        delta.num_seconds() as u64
+                        delta.whole_seconds() as u64
                     } else {
                         // Timestamp is in the past, wait a small amount
                         println!(
@@ -1084,7 +1083,6 @@ fn create_git_tag(args: &PublishArgs, version: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Datelike;
 
     #[test]
     fn test_classify_already_published() {
@@ -1185,7 +1183,7 @@ mod tests {
         assert!(ts.is_some(), "should parse RFC2822 timestamp");
         let ts = ts.expect("ts should be Some as checked by assert");
         assert_eq!(ts.year(), 2026);
-        assert_eq!(ts.month(), 2);
+        assert_eq!(ts.month(), time::Month::February);
         assert_eq!(ts.day(), 24);
 
         // No timestamp present

@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
 use cargo_metadata::MetadataCommand;
-use chrono::{NaiveDate, Utc};
 use serde::Deserialize;
 use toml::Value;
 
@@ -332,14 +331,14 @@ fn validate_debt(path: &Path, errors: &mut Vec<String>) {
     if debt_file.schema != 1 {
         errors.push(format!("debt schema must be 1, got {}", debt_file.schema));
     }
-    let today = Utc::now().date_naive();
+    let today = crate::tasks::date::today_utc();
     for debt in debt_file.debt {
         require_non_empty(&debt.lint, "debt.lint", errors);
         require_non_empty(&debt.path, "debt.path", errors);
         require_non_empty(&debt.owner, "debt.owner", errors);
         require_non_empty(&debt.reason, "debt.reason", errors);
         require_non_empty(&debt.expires, "debt.expires", errors);
-        match NaiveDate::parse_from_str(&debt.expires, "%Y-%m-%d") {
+        match crate::tasks::date::parse_date(&debt.expires) {
             Ok(expires) if expires < today => errors.push(format!(
                 "debt {} at {} expired on {}",
                 debt.lint, debt.path, debt.expires

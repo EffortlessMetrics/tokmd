@@ -9,7 +9,6 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::{Metadata, MetadataCommand, PackageId};
-use chrono::NaiveDate;
 use semver::Version;
 use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
@@ -177,7 +176,7 @@ fn check_citation_metadata(workspace_root: &Path, expected: &str) -> Result<()> 
 
     let date = extract_citation_field(&content, "date-released")
         .context("CITATION.cff is missing date-released")?;
-    NaiveDate::parse_from_str(date, "%Y-%m-%d")
+    crate::tasks::date::parse_date(date)
         .with_context(|| format!("CITATION.cff date-released must be YYYY-MM-DD, got {date:?}"))?;
     println!(
         "  ✓ Citation metadata matches {} (released {}).",
