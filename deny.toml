@@ -14,6 +14,18 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 ignore = [
     # term_size is transitive via tokei; no patched version available upstream
     { id = "RUSTSEC-2020-0163", reason = "transitive via tokei; revisit when upstream removes it" },
+    # chrono / chrono-tz / chrono-tz-build are "unmaintained" advisories with no
+    # patched version (all releases are affected). They reach the graph only
+    # through `tera`, which is a *build*-dependency of `tokei` (used to render
+    # tokei's config templates at build time). No published tokmd crate links
+    # chrono: `cargo tree -e normal` reports 0 chrono nodes for tokmd,
+    # tokmd-core, tokmd-model, tokmd-scan, tokmd-wasm, tokmd-python,
+    # tokmd-node, tokmd-format and tokmd-cockpit, and `nm -C` on the built
+    # `tokmd` binary shows no `chrono::` symbols. tokmd's own date handling
+    # uses the maintained `time` crate. Revisit when tokei drops tera/chrono-tz.
+    { id = "RUSTSEC-2026-0543", reason = "build-time only via tokei's tera build-dependency; not linked into any published artifact" },
+    { id = "RUSTSEC-2026-0555", reason = "build-time only via tokei's tera build-dependency; not linked into any published artifact" },
+    { id = "RUSTSEC-2026-0559", reason = "build-time only via tokei's tera build-dependency; not linked into any published artifact" },
 ]
 yanked = "warn"
 

@@ -16,6 +16,7 @@ pub mod ci_runner_health;
 pub mod clippy_exceptions;
 pub mod cockpit;
 pub mod coverage_receipt;
+pub(crate) mod date;
 pub mod doc_artifacts;
 pub mod docs;
 pub mod file_policy;

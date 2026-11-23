@@ -21,7 +21,6 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use cargo_metadata::MetadataCommand;
-use chrono::{NaiveDate, Utc};
 use proc_macro2::Span;
 use serde::{Deserialize, Serialize};
 use syn::spanned::Spanned;
@@ -161,7 +160,7 @@ pub fn run_propose(args: NoPanicProposeArgs) -> Result<()> {
 pub fn run_baseline(args: NoPanicBaselineArgs) -> Result<()> {
     let root = workspace_root()?;
     let findings = scan_workspace(&root)?;
-    NaiveDate::parse_from_str(&args.expires, "%Y-%m-%d")
+    crate::tasks::date::parse_date(&args.expires)
         .with_context(|| format!("parse baseline expires date {:?}", args.expires))?;
 
     let mut unique_findings: BTreeMap<Identity, Finding> = BTreeMap::new();
@@ -208,7 +207,7 @@ pub fn run_baseline(args: NoPanicBaselineArgs) -> Result<()> {
 
     let receipt = BaselineReceipt {
         schema: "tokmd.no_panic_baseline.v1",
-        generated_at: Utc::now().to_rfc3339(),
+        generated_at: crate::tasks::date::now_rfc3339(),
         allowlist_path: normalize_path(output.strip_prefix(&root).unwrap_or(&output)),
         finding_count: unique_findings.len(),
         entry_count: unique_findings.len(),
@@ -1110,7 +1109,7 @@ fn evaluate(findings: &[Finding], allowlist: &AllowlistFile) -> Result<Report> {
     };
 
     // Shape validation -------------------------------------------------------
-    let today = Utc::now().date_naive();
+    let today = crate::tasks::date::today_utc();
     let mut seen_ids: BTreeSet<&str> = BTreeSet::new();
     let mut entry_index: BTreeMap<Identity, &AllowEntry> = BTreeMap::new();
     for entry in &allowlist.allow {
@@ -1164,7 +1163,7 @@ fn evaluate(findings: &[Finding], allowlist: &AllowlistFile) -> Result<Report> {
                 entry.id, ALLOWED_CLASSIFICATIONS, entry.classification
             ));
         }
-        match NaiveDate::parse_from_str(&entry.expires, "%Y-%m-%d") {
+        match crate::tasks::date::parse_date(&entry.expires) {
             Ok(date) => {
                 if date < today {
                     report.expired.push(format!(

@@ -471,6 +471,20 @@ pub fn snapshot_from_zip_bytes(
     // oversized entry without materializing the full declared payload.
     let read_ceiling = limits.max_entry_size.saturating_add(1);
 
+    // Entry-count pre-guard: reject an archive whose *total* entry count
+    // already exceeds the cap before decoding any entry. Without this, the
+    // decode loop would materialize every entry (each costing a name String
+    // plus a payload Vec) before the admission engine's `max_entries` check
+    // ran, letting a small archive force a large allocation. The admission
+    // engine remains authoritative for the exact admitted-file count.
+    let total_entries = archive.len();
+    if total_entries > limits.max_entries {
+        return Err(ArchiveError::TooManyEntries {
+            count: total_entries,
+            limit: limits.max_entries,
+        });
+    }
+
     for index in 0..archive.len() {
         let mut file = archive
             .by_index(index)
@@ -479,7 +493,16 @@ pub fn snapshot_from_zip_bytes(
             })?;
 
         // Raw, untrusted stored name; the admission engine validates it.
-        let name = file.name().to_string();
+        // zip 9 makes `name()` fallible (it decodes the entry name and can
+        // fail on a malformed or non-UTF-8 name). Treat a decode failure as a
+        // malformed archive rather than coercing it, so a hostile archive can
+        // never smuggle an undecoded name past the admission engine.
+        let name = file
+            .name()
+            .map_err(|err| ArchiveError::MalformedArchive {
+                reason: err.to_string(),
+            })?
+            .into_owned();
 
         // Classify: symlink/device/other (via unix type bits) before directory,
         // so a symlink whose name lacks a trailing slash is still rejected.
@@ -942,6 +965,58 @@ mod zip_tests {
         let err = snapshot_from_zip_bytes("repo", &bytes, &ArchiveLimits::default()).unwrap_err();
         assert!(matches!(err, ArchiveError::Traversal { .. }));
         Ok(())
+    }
+
+    #[test]
+    fn rejects_archive_whose_entry_count_exceeds_the_cap_before_decoding() {
+        // The decode loop must not materialize entries for an archive whose
+        // total entry count already exceeds `max_entries`. Without the
+        // pre-guard, every entry was decoded and staged before the admission
+        // engine's count check ran, so a small archive with many tiny
+        // entries could force a large allocation before being rejected.
+        let bytes = build_zip(|w| {
+            for i in 0..64 {
+                w.start_file(format!("f{i}.txt"), stored())?;
+                w.write_all(b"x")?;
+            }
+            Ok(())
+        })
+        .expect("build zip");
+
+        let limits = ArchiveLimits {
+            max_entries: 10,
+            ..ArchiveLimits::default()
+        };
+
+        let err = snapshot_from_zip_bytes("repo", &bytes, &limits).unwrap_err();
+        match err {
+            ArchiveError::TooManyEntries { count, limit } => {
+                assert_eq!(limit, 10);
+                // The reported count is the archive's total entry count.
+                assert_eq!(count, 64);
+            }
+            other => panic!("expected TooManyEntries, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn admits_archive_whose_entry_count_is_within_the_cap() {
+        let bytes = build_zip(|w| {
+            for i in 0..10 {
+                w.start_file(format!("f{i}.txt"), stored())?;
+                w.write_all(b"x")?;
+            }
+            Ok(())
+        })
+        .expect("build zip");
+
+        let limits = ArchiveLimits {
+            max_entries: 10,
+            ..ArchiveLimits::default()
+        };
+
+        let snap = snapshot_from_zip_bytes("repo", &bytes, &limits).expect("archive within cap");
+        assert_eq!(snap.len(), 10);
     }
 
     #[test]

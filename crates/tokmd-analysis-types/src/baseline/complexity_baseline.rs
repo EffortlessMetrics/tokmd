@@ -194,8 +194,10 @@ fn chrono_timestamp_iso8601(ms: u128) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{SecondsFormat, TimeZone, Utc};
     use proptest::prelude::*;
+    use time::OffsetDateTime;
+    use time::format_description::well_known::Rfc3339;
+    use time::macros::format_description;
 
     #[test]
     fn complexity_baseline_default() -> Result<(), Box<dyn std::error::Error>> {
@@ -265,19 +267,19 @@ mod tests {
 
     proptest! {
         #[test]
-        fn chrono_timestamp_matches_chrono(ms in 0u128..253_402_300_799_000u128) {
-            let chrono_dt = Utc
-                .timestamp_millis_opt(ms as i64)
-                .single()
+        fn chrono_timestamp_matches_reference(ms in 0u128..253_402_300_799_000u128) {
+            let reference = OffsetDateTime::from_unix_timestamp_nanos((ms as i128) * 1_000_000)
                 .expect("timestamp within supported range");
-            let expected = chrono_dt.to_rfc3339_opts(SecondsFormat::Millis, true);
+            let expected = reference
+                .format(&format_description!("[year]-[month]-[day]T[hour]:[minute]:[second].[subsecond digits:3]Z"))
+                .expect("reference timestamp is formattable");
             prop_assert_eq!(chrono_timestamp_iso8601(ms), expected);
         }
 
         #[test]
         fn chrono_timestamp_is_rfc3339(ms in 0u128..253_402_300_799_000u128) {
             let rendered = chrono_timestamp_iso8601(ms);
-            prop_assert!(chrono::DateTime::parse_from_rfc3339(&rendered).is_ok());
+            prop_assert!(OffsetDateTime::parse(&rendered, &Rfc3339).is_ok());
         }
     }
 }

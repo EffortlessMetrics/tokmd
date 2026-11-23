@@ -16,8 +16,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use chrono::NaiveDate;
 use serde::Deserialize;
+use time::Date;
 
 use crate::cli::CiLaneWhitelistArgs;
 
@@ -163,7 +163,7 @@ pub fn run(args: CiLaneWhitelistArgs) -> Result<()> {
         ));
     }
 
-    let today = chrono::Utc::now().date_naive();
+    let today = crate::tasks::date::today_utc();
 
     let lane_ids: BTreeSet<&str> = whitelist.lane.iter().map(|l| l.id.as_str()).collect();
 
@@ -264,7 +264,7 @@ fn validate_lane(
     lane: &Lane,
     _lane_ids: &BTreeSet<&str>,
     runner_multipliers: &BTreeMap<String, f64>,
-    today: NaiveDate,
+    today: Date,
     findings: &mut Vec<String>,
 ) {
     if lane.kind.is_empty() {
@@ -312,7 +312,7 @@ fn validate_lane(
         }
     }
     if let Some(date) = &lane.review_after
-        && let Err(err) = NaiveDate::parse_from_str(date, "%Y-%m-%d")
+        && let Err(err) = crate::tasks::date::parse_date(date)
     {
         findings.push(format!(
             "lane {}: review_after {:?} is not YYYY-MM-DD ({err})",
@@ -320,7 +320,7 @@ fn validate_lane(
         ));
     }
     if let Some(date) = &lane.expires {
-        match NaiveDate::parse_from_str(date, "%Y-%m-%d") {
+        match crate::tasks::date::parse_date(date) {
             Ok(parsed) if parsed < today => {
                 findings.push(format!("lane {}: expired on {date}", lane.id));
             }
@@ -353,7 +353,7 @@ fn validate_lane(
 fn validate_exception(
     exc: &Exception,
     lane_ids: &BTreeSet<&str>,
-    today: NaiveDate,
+    today: Date,
     findings: &mut Vec<String>,
 ) {
     if !lane_ids.contains(exc.lane.as_str()) {
@@ -378,7 +378,7 @@ fn validate_exception(
         ));
     }
     if let Some(date) = &exc.expires {
-        match NaiveDate::parse_from_str(date, "%Y-%m-%d") {
+        match crate::tasks::date::parse_date(date) {
             Ok(parsed) if parsed < today => {
                 findings.push(format!("exception {}: expired on {date}", exc.id));
             }
@@ -392,7 +392,7 @@ fn validate_exception(
         findings.push(format!("exception {}: missing expires", exc.id));
     }
     if let Some(date) = &exc.created
-        && let Err(err) = NaiveDate::parse_from_str(date, "%Y-%m-%d")
+        && let Err(err) = crate::tasks::date::parse_date(date)
     {
         findings.push(format!(
             "exception {}: created {:?} is not YYYY-MM-DD ({err})",
@@ -400,7 +400,7 @@ fn validate_exception(
         ));
     }
     if let Some(date) = &exc.review_after
-        && let Err(err) = NaiveDate::parse_from_str(date, "%Y-%m-%d")
+        && let Err(err) = crate::tasks::date::parse_date(date)
     {
         findings.push(format!(
             "exception {}: review_after {:?} is not YYYY-MM-DD ({err})",
@@ -690,7 +690,7 @@ jobs:
         let mut findings = Vec::new();
         let ids: BTreeSet<&str> = std::iter::once("demo").collect();
         let multipliers = BTreeMap::new();
-        let today = chrono::NaiveDate::from_ymd_opt(2026, 5, 7).expect("date");
+        let today = time::Date::from_calendar_date(2026, time::Month::May, 7).expect("date");
         validate_lane(&lane, &ids, &multipliers, today, &mut findings);
         assert!(
             findings.iter().any(|f| f.contains("missing owner")),
@@ -705,7 +705,7 @@ jobs:
         let mut findings = Vec::new();
         let ids: BTreeSet<&str> = std::iter::once("demo").collect();
         let multipliers = BTreeMap::new();
-        let today = chrono::NaiveDate::from_ymd_opt(2026, 5, 7).expect("date");
+        let today = time::Date::from_calendar_date(2026, time::Month::May, 7).expect("date");
         validate_lane(&lane, &ids, &multipliers, today, &mut findings);
         assert!(
             findings.iter().any(|f| f.contains("expired on 2020-01-01")),
@@ -720,7 +720,7 @@ jobs:
         let mut findings = Vec::new();
         let ids: BTreeSet<&str> = ["demo", "other"].into_iter().collect();
         let multipliers = BTreeMap::new();
-        let today = chrono::NaiveDate::from_ymd_opt(2026, 5, 7).expect("date");
+        let today = time::Date::from_calendar_date(2026, time::Month::May, 7).expect("date");
         validate_lane(&lane, &ids, &multipliers, today, &mut findings);
         assert!(
             !findings.iter().any(|f| f.contains("duplicate_of")),
@@ -735,7 +735,7 @@ jobs:
         let mut findings = Vec::new();
         let ids: BTreeSet<&str> = std::iter::once("demo").collect();
         let multipliers = BTreeMap::new();
-        let today = chrono::NaiveDate::from_ymd_opt(2026, 5, 7).expect("date");
+        let today = time::Date::from_calendar_date(2026, time::Month::May, 7).expect("date");
         validate_lane(&lane, &ids, &multipliers, today, &mut findings);
         assert!(
             findings.iter().any(|f| f.contains("duplicate_of \"nope\"")),
